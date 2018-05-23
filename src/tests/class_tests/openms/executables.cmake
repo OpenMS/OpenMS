@@ -252,6 +252,7 @@ set(math_executables_list
   BSpline2d_test
   CubicSpline2d_test
   CumulativeBinomial_test
+  EmgGradientDescent_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
@@ -300,13 +301,14 @@ set(filtering_executables_list
   MultiplexClustering_test
   MultiplexDeltaMasses_test
   MultiplexDeltaMassesGenerator_test
+  MultiplexFilteredMSExperiment_test
+  MultiplexFilteredPeak_test
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
-  MultiplexFilterResult_test
-  MultiplexFilterResultPeak_test
-  MultiplexFilterResultRaw_test
   MultiplexIsotopicPeakPattern_test
+  MultiplexSatelliteCentroided_test
+  MultiplexSatelliteProfile_test
   MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
@@ -357,6 +359,7 @@ set(comparison_executables_list
 set(chemistry_executables_list
   AAIndex_test
   AASequence_test
+  CoarseIsotopeDistribution_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
@@ -473,6 +476,7 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
+  PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeakIntensityPredictor_test
   PScore_test
@@ -492,6 +496,7 @@ set(analysis_executables_list
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
+  RNPxlDeisotoper_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test
@@ -534,6 +539,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithm_test
   FeatureFinderIdentificationAlgorithm_test
+  FeatureFinderMultiplexAlgorithm_test
   FeatureFinderDefs_test
   FeatureFinder_test
   Fitter1D_test

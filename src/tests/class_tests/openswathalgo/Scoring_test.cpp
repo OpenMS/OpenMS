@@ -278,6 +278,81 @@ BOOST_AUTO_TEST_CASE(test_MRMFeatureScoring_calcxcorr_legacy_mquest_)
 }
 END_SECTION
 
+BOOST_AUTO_TEST_CASE(test_computeRank)
+{
+/*
+* Requires Octave with installed MIToolbox
+
+y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.50307035446167 5.24326848983765 8.40812492370605 2.83419919013977 6.94378805160522 7.69957494735718 4.08597040176392]';
+
+[~, ~, y_ranking] = unique(y);
+% Note: Matlab handles ties differently than Scoring::computeRank, but this makes no difference for MI estimation.
+
+*/
+
+  static const double arr1[] =
+  {
+    5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
+    8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392
+  };
+  static const double arr2[] =
+  {
+    15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
+    121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
+  };
+  std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+  std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+
+  std::vector<uint> result = Scoring::computeRank(data1);
+
+  TEST_EQUAL (result[0],7);
+  TEST_EQUAL (result[1],4);
+  TEST_EQUAL (result[2],1);
+  TEST_EQUAL (result[3],2);
+  TEST_EQUAL (result[4],6);
+  TEST_EQUAL (result[5],5);
+  TEST_EQUAL (result[6],10);
+  TEST_EQUAL (result[7],0);
+  TEST_EQUAL (result[8],8);
+  TEST_EQUAL (result[9],9);
+  TEST_EQUAL (result[10],2);
+
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(test_rankedMutualInformation)
+{
+/*
+* Requires Octave with installed MIToolbox
+
+y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.50307035446167 5.24326848983765 8.40812492370605 2.83419919013977 6.94378805160522 7.69957494735718 4.08597040176392]';
+x = [15.8951349258423 41.5446395874023 76.0746307373047 109.069435119629 111.90364074707 169.79216003418 121.043930053711 63.0136985778809 44.6150207519531 21.4926776885986 7.93575811386108]';
+
+[~, ~, y_ranking] = unique(y);
+[~, ~, x_ranking] = unique(x);
+
+m1 = mi(x_ranking,y_ranking)
+*/
+
+  static const double arr1[] =
+  {
+    5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
+    8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392
+  };
+  static const double arr2[] =
+  {
+    15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
+    121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
+  };
+  std::vector<double> data1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+  std::vector<double> data2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+
+  double result = Scoring::rankedMutualInformation(data1, data2);
+
+  TEST_REAL_SIMILAR (result, 3.2776);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

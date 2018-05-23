@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <Qt/qstringlist.h>
+#include <QtCore/QStringList>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
@@ -48,7 +48,7 @@ using namespace std;
 std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const QStringList& identifier = QStringList())
 {
   std::vector<FASTAFile::FASTAEntry> proteins;
-  for (Size i = 0; i < sl_prot.size(); ++i)
+  for (auto i = 0; i < sl_prot.size(); ++i)
   {
     String id = i < identifier.size() ? identifier[i] : String(i); // use identifier if given; or create automatically
     proteins.push_back(FASTAFile::FASTAEntry(id, "", sl_prot[int(i)]));
@@ -60,7 +60,7 @@ std::vector<FASTAFile::FASTAEntry> toFASTAVec(const QStringList& sl_prot, const 
 std::vector<PeptideIdentification> toPepVec(const QStringList& sl_pep)
 {
   std::vector<PeptideIdentification> pep_vec;
-  for (Size i = 0; i < sl_pep.size(); ++i)
+  for (auto i = 0; i < sl_pep.size(); ++i)
   {
     PeptideHit hit;
     hit.setSequence(AASequence::fromString(sl_pep[int(i)]));
@@ -96,6 +96,18 @@ END_SECTION
 
 START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)))
 {
+  // regression test: https://github.com/OpenMS/OpenMS/issues/3447
+  {
+    PeptideIndexing indexer;
+    std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "AAAKEEEKTTTK");
+    std::vector<ProteinIdentification> prot_ids;
+    std::vector<PeptideIdentification> pep_ids = toPepVec(QStringList() << "EEEK(Label:13C(6))");
+    indexer.run(proteins, prot_ids, pep_ids);
+    TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 1); // one exact hit
+    indexer.run(proteins, prot_ids, pep_ids);
+    TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 1); // one exact hit
+  }
+
   PeptideIndexing pi;
   Param p = pi.getParameters();
   PeptideIndexing::ExitCodes r;
@@ -107,15 +119,15 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   p.setValue("aaa_max", 0);
   pi.setParameters(p);
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessions().size(), 0); // no hit or one hit!
+  TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hit or one hit!
   p.setValue("aaa_max", 1);
   pi.setParameters(p);
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessions().size(), 1); // one hit! -- no ambAA's to spare
+  TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 1); // one hit! -- no ambAA's to spare
   p.setValue("aaa_max", 10);
   pi.setParameters(p);
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessions().size(), 1); // one hit! -- plenty of ambAA's to spare
+  TEST_EQUAL(pep_ids[0].getHits()[0].extractProteinAccessionsSet().size(), 1); // one hit! -- plenty of ambAA's to spare
 
   // 2 AmbAA's...
   proteins = toFASTAVec(QStringList() << "B*EBE*"); // DB with 2 ambiguous AA's; and extra * chars (should be ignored)
@@ -130,7 +142,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     r = pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
-      set<String> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessions();
+      set<String> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessionsSet();
       TEST_EQUAL(protein_accessions.size(), i_aa >= 2 ? 1 : 0); // no hit or one hit!
     }
   }
@@ -150,10 +162,10 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     pi.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins_local = proteins;
     std::vector<PeptideIdentification> pep_ids_local = pep_ids;
-    PeptideIndexing::ExitCodes r = pi.run(proteins_local, prot_ids, pep_ids_local);
+    pi.run(proteins_local, prot_ids, pep_ids_local);
     for (Size i = 0; i < pep_ids.size(); ++i)
     {
-      set<String> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessions();
+      set<String> protein_accessions = pep_ids_local[i].getHits()[0].extractProteinAccessionsSet();
       bool is_CASIQK = (i == 0);
       bool allow_at_least_3_ambAA = (i_aa >= 3);
       std::cerr << "TEST: ambAA=" << i_aa << ", hit#:" << i << " ==> prots: " << protein_accessions.size() << "==" << (is_CASIQK & allow_at_least_3_ambAA ? 1 : 0) << "?\n";
@@ -173,19 +185,14 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   r = pi.run(proteins, prot_ids, pep_ids);
   TEST_EQUAL(r, PeptideIndexing::PEPTIDE_IDS_EMPTY);
 
-  // duplicate accession -- just a warning, nothing else; second protein will be removed
+  // duplicate accession -- will not be detected and the peptide will have two protein hits.
+  // However, extractProteinAccessionsSet() returns a set<>, i.e. only one hit.
   p.setValue("aaa_max", 2);
   pi.setParameters(p);
   proteins = toFASTAVec(QStringList() << "BEBE" << "PROTEIN" << "BEBE", QStringList() << "P_BEBE" << "P_PROTEIN" << "P_BEBE"); //
   pep_ids = toPepVec(QStringList() << "NENE" << "NEDE" << "DENE" << "DEDE"); // 4 hits;
   r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(proteins.size(), 2) // one removed!
-  for (int i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessions().size(), 1); // one hit!
-  // ... however, if sequences are not equal: bail out
-  proteins = toFASTAVec(QStringList() << "BEBE" << "PROTEIN" << "NOT*BEBE", QStringList() << "P_BEBE" << "P_PROTEIN" << "P_BEBE"); //
-  pep_ids = toPepVec(QStringList() << "NENE" << "NEDE" << "DENE" << "DEDE"); // 4 hits;
-  r = pi.run(proteins, prot_ids, pep_ids);
-  TEST_EQUAL(r, PeptideIndexing::DATABASE_CONTAINS_MULTIPLES)
+  TEST_EQUAL(proteins.size(), 3) // all three present
    
   // I/L conversion
   p.setValue("aaa_max", 2); // testing I / L conversion, with additional ambAA's to saturate the max_aaa = 2 constraint to ensure that internally 'J' is not used for 'I' or 'L', since 'J' is unknown to SeqAn and will get converted to 'X' 
@@ -194,12 +201,12 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   proteins = toFASTAVec(QStringList() << "BEBEI" << "BEBEL"); //
   pep_ids = toPepVec(QStringList() << "NENEL" << "NEDEL" << "DENEI" << "DEDEI"); // each PSM hits either one or two proteins, depending on I/L setting;
   r = pi.run(proteins, prot_ids, pep_ids);
-  for (int i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessions().size(), 1); // one hit!
+  for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 1); // one hit!
   // ... separate
   p.setValue("IL_equivalent", "true"); // default
   pi.setParameters(p);
   r = pi.run(proteins, prot_ids, pep_ids);
-  for (int i = 0; i < 4; ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessions().size(), 2); // two hits!
+  for (Size i = 0; i < 4; ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 2); // two hits!
   TEST_EQUAL(pep_ids[0].getHits()[0].getSequence().toUnmodifiedString(), "NENEL"); // make sure the PEPTIDE(!) sequence itself is unchanged
   TEST_EQUAL(pep_ids[2].getHits()[0].getSequence().toUnmodifiedString(), "DENEI"); // make sure the PEPTIDE(!) sequence itself is unchanged
 
@@ -210,7 +217,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   proteins = toFASTAVec(QStringList() << "BEBE"); //
   pep_ids = toPepVec(QStringList() << "NEKNE" << "NEE"); // 1 insertion, 1 deletion;
   r = pi.run(proteins, prot_ids, pep_ids);
-  for (int i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessions().size(), 0); // no hits
+  for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hits
 
  
 

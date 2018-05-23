@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
@@ -292,6 +292,9 @@ namespace OpenMS
     defaults_.setValue("report_chromatograms", "false", "Adds Chromatogram for each reported feature (Output in mzml).");
     defaults_.setValidStrings("report_chromatograms", ListUtils::create<String>("false,true"));
 
+    defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
+    defaults_.setValidStrings("remove_single_traces", ListUtils::create<String>("false,true"));
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -320,15 +323,17 @@ namespace OpenMS
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
     report_convex_hulls_ = param_.getValue("report_convex_hulls").toBool();
     report_chromatograms_ = param_.getValue("report_chromatograms").toBool();
+
+    remove_single_traces_ = param_.getValue("remove_single_traces").toBool();
   }
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
   {
-    IsotopeDistribution isodist(hypo_ints.size());
-    isodist.estimateFromPeptideWeight(mol_weight);
+    CoarseIsotopePatternGenerator solver(hypo_ints.size());
+    auto isodist = solver.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
-    std::vector<std::pair<Size, double> > averagine_dist = isodist.getContainer();
+    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
@@ -337,9 +342,9 @@ namespace OpenMS
         max_int = hypo_ints[i];
       }
 
-      if (averagine_dist[i].second > theo_max_int)
+      if (averagine_dist[i].getIntensity() > theo_max_int)
       {
-        theo_max_int = averagine_dist[i].second;
+        theo_max_int = averagine_dist[i].getIntensity();
       }
     }
 
@@ -347,7 +352,7 @@ namespace OpenMS
     std::vector<double> averagine_ratios, hypo_isos;
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
-      averagine_ratios.push_back(averagine_dist[i].second / theo_max_int);
+      averagine_ratios.push_back(averagine_dist[i].getIntensity() / theo_max_int);
       hypo_isos.push_back(hypo_ints[i] / max_int);
     }
 
@@ -871,6 +876,12 @@ namespace OpenMS
       // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
 
       if (pass_isotope_filter == 0) // not passing filter
+      {
+        continue;
+      }
+
+      // filter out single traces if option is set
+      if (remove_single_traces_ && feat_hypos[hypo_idx].getCharge() == 0)
       {
         continue;
       }

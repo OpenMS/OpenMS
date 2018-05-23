@@ -105,8 +105,11 @@ namespace OpenMS
   {
     // if any of them is empty, the other is considered "greater"
     // independent of the score in the first hit
-    if (left.getHits().empty()) return true;
-    if (right.getHits().empty()) return false;
+    if (left.getHits().empty() || right.getHits().empty()) 
+    { // also: for strict weak ordering, comp(x,x) needs to be false
+      return left.getHits().size() < right.getHits().size();
+    }
+
     if (left.getHits()[0].getScore() < right.getHits()[0].getScore())
     {
       return true;

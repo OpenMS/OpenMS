@@ -504,6 +504,148 @@ BOOST_AUTO_TEST_CASE(test_SN_score)
 }
 END_SECTION
 
+BOOST_AUTO_TEST_CASE(initializeMIMatrix)
+{
+/*
+* Requires Octave with installed MIToolbox
+
+y = [5.97543668746948 4.2749171257019 3.3301842212677 4.08597040176392 5.50307035446167 5.24326848983765 8.40812492370605 2.83419919013977 6.94378805160522 7.69957494735718 4.08597040176392]';
+x = [15.8951349258423 41.5446395874023 76.0746307373047 109.069435119629 111.90364074707 169.79216003418 121.043930053711 63.0136985778809 44.6150207519531 21.4926776885986 7.93575811386108]';
+
+[~, ~, y_ranking] = unique(y);
+[~, ~, x_ranking] = unique(x);
+
+% test_calcMIScore matrices
+m1 = [mi(x_ranking,y_ranking) mi(y_ranking,y_ranking) mi(x_ranking,x_ranking)]
+mean(m1)
+
+% test_calcIndMIIdScore
+m2 = zeros(2,2)
+m2(1,1) = mi(x_ranking,y_ranking)
+m2(2,1) = mi(y_ranking,y_ranking)
+m2(1,2) = mi(x_ranking,x_ranking)
+m2(2,2) = mi(y_ranking,x_ranking)
+mean(m2)
+
+% test_calcMIScore_weighted
+m3 = [mi(x_ranking,y_ranking)*0.5*0.5 mi(y_ranking,y_ranking)*0.5*0.5*2 mi(x_ranking,x_ranking)*0.5*0.5]
+sum(m3)
+
+% test_calcMS1MIScore
+ms1 = [0.0 110.0 200.0 270.0 320.0 350.0 360.0 350.0 320.0 270.0 200.0]'
+[~, ~, ms1_ranking] = unique(ms1);
+
+m4 = [mi(x_ranking,ms1_ranking) mi(y_ranking,ms1_ranking)]
+mean(m4)
+
+*/
+
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+
+  //initialize the MI Matrix
+  mrmscore.initializeMIMatrix(imrmfeature, native_ids);
+
+  TEST_EQUAL(mrmscore.getMIMatrix().size(), 2)
+  TEST_EQUAL(mrmscore.getMIMatrix()[0].size(), 2)
+
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[0][0], 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[0][1], 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[1][1], 3.4594)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[1][0], 0) // value not initialized for lower diagonal half of matrix
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(initializeMS1MI)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+
+  //initialize the XCorr vector
+  mrmscore.initializeMS1MI(imrmfeature, native_ids, "ms1trace");
+
+  TEST_EQUAL(mrmscore.getMIMatrix().size(), 0)
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(initializeMIIdMatrix)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+
+  //initialize the XCorr Matrix
+  mrmscore.initializeMIIdMatrix(imrmfeature, native_ids, native_ids);
+
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[0][0], 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[0][1], 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[1][1], 3.4594)
+  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[1][0], 3.2776)
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(test_calcMIScore)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+  mrmscore.initializeMIMatrix(imrmfeature, native_ids);
+  TEST_REAL_SIMILAR(mrmscore.calcMIScore(), 3.3382) // mean + std deviation
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(test_calcIndMIIdScore)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+  mrmscore.initializeMIIdMatrix(imrmfeature, native_ids, native_ids);
+  TEST_EQUAL(mrmscore.calcIndMIIdScore(), "3.27761;3.36852")
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(test_calcMIScore_weighted)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+  static const double weights_[] = { 0.5, 0.5 };
+  std::vector<double> weights (weights_, weights_ + sizeof(weights_) / sizeof(weights_[0]) );
+  mrmscore.initializeMIMatrix(imrmfeature, native_ids);
+
+  // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
+  // sum(xcorr_deltas)
+  TEST_REAL_SIMILAR(mrmscore.calcMIScore_weighted(weights), 3.3231)
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(test_calcMS1MIScore)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+
+  //initialize the XCorr vector
+  mrmscore.initializeMS1MI(imrmfeature, native_ids, "ms1trace");
+
+  TEST_REAL_SIMILAR(mrmscore.calcMS1MIScore(), 2.64125 )
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

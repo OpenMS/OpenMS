@@ -56,17 +56,24 @@ namespace OpenMS
   /**
       @brief Base class for spectrum widgets
 
-      This class is the base class for the different MDI window
-      types in the TOPPView application. For each type of spectrum
-      view (such as 1D view, 2D view etc.), there must exist a
-      corresponding class derived from this class.
+      This class is the base class for the different MDI window types in the
+      TOPPView application. For each type of spectrum view (such as 1D view, 2D
+      view, 3D view etc.), there must exist a corresponding class derived from
+      this class.
+
+      In TOPPView, each SpectrumWidget holds an enclosed SpectrumCanvas with
+      which it is paired (e.g. a Spectrum1DWidget holds a Spectrum1DCanvas)
+      which can retrieved with the canvas() function. While the SpectrumCanvas
+      does the actual drawing, the SpectrumWidget holds information about the
+      axes (axis widgets), scrolling (scrollbars) etc. The SpectrumWidget uses
+      a grid layout (QGridLayout) with a default 3x3 grid where the upper right
+      corner of the grid is the canvas and the spaces left and below the canvas
+      are for the axes widget and scrollbars.
 
       To integrate a new spectrum view (i.e. classes derived from
       SpectrumWidget and SpectrumCanvas) into the TOPPView application,
       a class must be derived from this class which holds an
       instance of the SpectrumCanvas class as a child widget.
-
-      This Widget also provides axis widgets and scrollbars.
 
       @todo Add support to store the displayed data as SVG image (HiWi)
   */
@@ -109,19 +116,19 @@ public:
       return canvas_;
     }
 
-    ///Returns a pointer to the x-axis axis widget.
+    /// Returns a pointer to the x-axis axis widget.
     virtual inline AxisWidget * xAxis()
     {
       return x_axis_;
     }
 
-    ///Returns a pointer to the y-axis axis widget.
+    /// Returns a pointer to the y-axis axis widget.
     virtual inline AxisWidget * yAxis()
     {
       return y_axis_;
     }
 
-    ///Get the mouse action mode
+    /// Get the mouse action mode
     Int getActionMode() const;
 
     /// Returns if the axis labels are shown
@@ -144,6 +151,7 @@ public:
 
     /// setter for the EnhancedTabBar window id as defined in the interface
     void setWindowId(Int window_id) override;
+
 signals:
     /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
     void sendStatusMessage(std::string, OpenMS::UInt);
