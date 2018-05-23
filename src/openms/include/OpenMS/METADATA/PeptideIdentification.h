@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PEPTIDEIDENTIFICATION_H
-#define OPENMS_METADATA_PEPTIDEIDENTIFICATION_H
+#pragma once
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -175,4 +174,3 @@ protected:
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_PEPTIDEIDENTIFICATION_H

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_BILINEARINTERPOLATION_H
-#define OPENMS_MATH_MISC_BILINEARINTERPOLATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
@@ -811,4 +810,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_MATH_MISC_BILINEARINTERPOLATION_H

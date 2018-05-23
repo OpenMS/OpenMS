@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SAMPLE_H
-#define OPENMS_METADATA_SAMPLE_H
+#pragma once
 
 #include <list>
 
@@ -168,4 +167,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_SAMPLE_H

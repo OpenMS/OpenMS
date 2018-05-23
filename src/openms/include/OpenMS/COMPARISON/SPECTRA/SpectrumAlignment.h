@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H
-#define OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -326,4 +325,3 @@ public:
   }
  };
 }
-#endif //OPENMS_COMPARISON_SPECTRA_SPECTRUMALIGNMENT_H

@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_MODIFICATIONSDB_H
-#define OPENMS_CHEMISTRY_MODIFICATIONSDB_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -247,4 +246,3 @@ private:
     
   };
 }
-#endif

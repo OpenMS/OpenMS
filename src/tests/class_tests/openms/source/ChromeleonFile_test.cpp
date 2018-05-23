@@ -51,7 +51,6 @@ START_TEST(ChromeleonFile, "$Id$")
 ChromeleonFile* ptr = 0;
 ChromeleonFile* null_ptr = 0;
 const String input_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.txt");
-const String output_filepath = OPENMS_GET_TEST_DATA_PATH("20171013_HMP_C61_ISO_P1_GA1_UV_VIS_2.mzML");
 
 START_SECTION(ChromeleonFile())
 {
@@ -99,6 +98,7 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_REAL_SIMILAR(c[3300].getIntensity(), -0.130904)
 
   MzMLFile mzml;
+  const String output_filepath = File::getTemporaryFile();
   mzml.store(output_filepath, experiment);
   MSExperiment read_exp;
   mzml.load(output_filepath, read_exp);

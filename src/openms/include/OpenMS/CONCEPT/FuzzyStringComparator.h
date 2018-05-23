@@ -32,8 +32,7 @@
 // $Authors: Clemens Groepl, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_FUZZYSTRINGCOMPARATOR_H
-#define OPENMS_CONCEPT_FUZZYSTRINGCOMPARATOR_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -388,7 +387,7 @@ protected:
 
     /// Whitelist
     StringList whitelist_;
-    /// Occurences of whitelist entries
+    /// Occurrences of whitelist entries
     std::map<String, UInt> whitelist_cases_;
 
     /// Alternative Whitelist
@@ -397,4 +396,3 @@ protected:
 
 } //namespace OpenMS
 
-#endif //OPENMS_CONCEPT_FUZZYSTRINGCOMPARATOR_H

@@ -133,7 +133,7 @@ namespace OpenMS
     force_invalid_mods_ = param_.getValue("force_invalid_mods").toBool();
   }
 
-  const char* TransitionTSVFile::strarray_[] =
+  const std::vector<std::string> TransitionTSVFile::header_names_ = 
   {
     "PrecursorMz",
     "ProductMz",
@@ -163,7 +163,6 @@ namespace OpenMS
     "QuantifyingTransition"
   };
 
-  const std::vector<std::string> TransitionTSVFile::header_names_(strarray_, strarray_ + 25);
 
   void TransitionTSVFile::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
@@ -932,14 +931,10 @@ namespace OpenMS
     {
       rm_trans.setMetaValue("annotation", tr_it->Annotation);
     }
-    if (tr_it->detecting_transition) {rm_trans.setDetectingTransition(true);}
-    else if (!tr_it->detecting_transition) {rm_trans.setDetectingTransition(false);}
 
-    if (tr_it->identifying_transition) {rm_trans.setIdentifyingTransition(true);}
-    else if (!tr_it->identifying_transition) {rm_trans.setIdentifyingTransition(false);}
-
-    if (tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(true);}
-    else if (!tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(false);}
+    rm_trans.setDetectingTransition(tr_it->detecting_transition);
+    rm_trans.setIdentifyingTransition(tr_it->identifying_transition);
+    rm_trans.setQuantifyingTransition(tr_it->quantifying_transition);
   }
 
   void TransitionTSVFile::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)

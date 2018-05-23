@@ -127,11 +127,11 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   spec.setPrecursors(precs);
   spec_ETD.setPrecursors(precs);
 
-	Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
-	CompNovoIonScoring cnis;
+  Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
+  CompNovoIonScoring cnis;
   cnis.scoreSpectra(ion_scores, spec, spec_ETD, 1018.48, 1);
 
-  for (Map<double, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+  for (auto it = ion_scores.begin(); it != ion_scores.end(); ++it)
   {
 /*
 y1 175.118952187571
@@ -157,11 +157,10 @@ b8 844.383559313971
     if (fabs(it->first - 903.468292000971) < 0.001 ||
         fabs(it->first - 756.399878084171) < 0.001 ||
         fabs(it->first - 659.347114231171) < 0.001 ||
-				fabs(it->first - 659.328) < 0.001 ||
         fabs(it->first - 546.263050250571) < 0.001 ||
         fabs(it->first - 475.225936461371) < 0.001 ||
         fabs(it->first - 361.183009010571) < 0.001 ||
-				fabs(it->first - 361.164) < 0.001 ||
+	fabs(it->first - 361.159) < 0.001 ||
         fabs(it->first - 304.161545285171) < 0.001 ||
         fabs(it->first - 175.118952187571) < 0.001 ||
         fabs(it->first - 263.102633417371) < 0.001 ||
@@ -172,8 +171,9 @@ b8 844.383559313971
         fabs(it->first - 715.340966216371) < 0.001 ||
         fabs(it->first - 844.383559313971) < 0.001 ||
         //After introducing mass fix, other peaks also match (PR #1440)
-        fabs(it->first - 474.248) < 0.001 ||
-        fabs(it->first - 545.285) < 0.001)
+        fabs(it->first - 474.243) < 0.001 ||
+        fabs(it->first - 659.323) < 0.001 ||
+        fabs(it->first - 545.28) < 0.001)
 
     {
       TEST_EQUAL(it->second.score > 1, true)

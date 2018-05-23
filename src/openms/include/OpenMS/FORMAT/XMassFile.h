@@ -32,8 +32,7 @@
 // $Authors: Guillaume Belz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_XMASSFILE_H
-#define OPENMS_FORMAT_XMASSFILE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/HANDLERS/AcqusHandler.h>
@@ -246,4 +245,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XMASSFILE_H

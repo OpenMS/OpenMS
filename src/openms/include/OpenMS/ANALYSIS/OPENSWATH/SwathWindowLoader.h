@@ -32,11 +32,10 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
-#define OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
+#pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 #include <vector>
 
@@ -98,5 +97,4 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
 

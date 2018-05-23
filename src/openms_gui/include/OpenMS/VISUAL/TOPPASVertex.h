@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASVERTEX_H
-#define OPENMS_VISUAL_TOPPASVERTEX_H
+#pragma once
 
 // ------------- DEBUGGING ----------------
 
@@ -388,4 +387,3 @@ protected:
   };
 }
 
-#endif

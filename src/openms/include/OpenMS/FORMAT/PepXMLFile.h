@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_PEPXMLFILE_H
-#define OPENMS_FORMAT_PEPXMLFILE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Element.h>
@@ -304,4 +303,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_PEPXMLFILE_H

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_DPOSITION_H
-#define OPENMS_DATASTRUCTURES_DPOSITION_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -463,4 +462,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_DPOSITION_H

@@ -112,6 +112,7 @@ namespace OpenMS
   double IsotopeWavelet::table_steps_ = 0.0001;
   double IsotopeWavelet::inv_table_steps_ = 1. / table_steps_;
   IsotopeDistribution IsotopeWavelet::averagine_;
+  CoarseIsotopePatternGenerator IsotopeWavelet::solver_;
   Size IsotopeWavelet::gamma_table_max_index_ = 0;
   Size IsotopeWavelet::exp_table_max_index_ = 0;
 
@@ -297,7 +298,7 @@ namespace OpenMS
   const IsotopeDistribution::ContainerType & IsotopeWavelet::getAveragine(const double mass, UInt * size)
   {
 
-    averagine_.estimateFromPeptideWeight(mass);
+    averagine_ = solver_.estimateFromPeptideWeight(mass);
     IsotopeDistribution::ContainerType help(averagine_.getContainer());
     IsotopeDistribution::ContainerType::iterator iter;
 
@@ -312,11 +313,11 @@ namespace OpenMS
   void IsotopeWavelet::computeIsotopeDistributionSize_(const double max_m)
   {
     double max_deconv_mz = max_m * max_charge_;
-    averagine_.setMaxIsotope(UInt(max_deconv_mz / 100. + 10.)); // expect less than 10 extra Da for heavy isotopes per 1000 Da mono mass.
+    solver_.setMaxIsotope(UInt(max_deconv_mz / 100. + 10.)); // less than 10 extra Da for heavy isotopes per 1000 Da mono mass.
     // averagine_.setMaxIsotope (INT_MAX); // old version INT_MAX is C not C++, should use #include <limits> anyway
-    averagine_.estimateFromPeptideWeight(max_deconv_mz);
+    averagine_ = solver_.estimateFromPeptideWeight(max_deconv_mz);
     Int max_isotope = getNumPeakCutOff(max_deconv_mz);
-    averagine_.setMaxIsotope(max_isotope - 1);
+    solver_.setMaxIsotope(max_isotope - 1);
   }
 
 } //namespace

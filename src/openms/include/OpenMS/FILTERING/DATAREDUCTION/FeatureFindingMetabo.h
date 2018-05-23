@@ -32,8 +32,7 @@
 // $Authors: Erhan Kenar, Holger Franken $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H
-#define OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H
+#pragma once
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -285,8 +284,9 @@ e conditions are fulfilled. Mainly the
     bool use_mz_scoring_C13_;
     bool report_convex_hulls_;
     bool report_chromatograms_;
+
+    bool remove_single_traces_;
   };
 
 }
 
-#endif // OPENMS_FILTERING_DATAREDUCTION_FEATUREFINDINGMETABO_H

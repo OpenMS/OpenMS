@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_COMPOMER_H
-#define OPENMS_DATASTRUCTURES_COMPOMER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -175,4 +174,3 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_DATASTRUCTURES_COMPOMER_H

@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATION1DDISTANCEITEM_H
-#define OPENMS_VISUAL_ANNOTATION_ANNOTATION1DDISTANCEITEM_H
+#pragma once
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <vector>
@@ -81,4 +80,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_COLORSELECTOR_H
-#define OPENMS_VISUAL_COLORSELECTOR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -88,4 +87,3 @@ protected:
   };
 
 }
-#endif // OPENMS_VISUAL_COLORSELECTOR_H

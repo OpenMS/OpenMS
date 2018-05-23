@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM1DWIDGET_H
-#define OPENMS_VISUAL_SPECTRUM1DWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -111,6 +110,12 @@ signals:
     /// Requests to display the whole spectrum in 3D view
     void showCurrentPeaksAs3D();
 
+    /// Requests to display the whole spectrum in ion mobility view
+    void showCurrentPeaksAsIonMobility();
+
+    /// Requests to display a full DIA window
+    void showCurrentPeaksAsDIA();
+
 public slots:
     // Docu in base class
     void showGoToDialog() override;
@@ -132,4 +137,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

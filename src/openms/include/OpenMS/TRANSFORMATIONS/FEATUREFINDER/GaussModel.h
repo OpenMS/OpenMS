@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_GAUSSMODEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_GAUSSMODEL_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
@@ -101,4 +100,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_GAUSSMODEL_H

@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_ISOTOPEDIFFFILTER_H
-#define OPENMS_FILTERING_TRANSFORMERS_ISOTOPEDIFFFILTER_H
+#pragma once
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 #include <cmath>
@@ -117,4 +116,3 @@ public:
 private:
   };
 }
-#endif // OPENMS_FILTERING_TRANSFORMERS_ISOTOPEDIFFFILTER_H

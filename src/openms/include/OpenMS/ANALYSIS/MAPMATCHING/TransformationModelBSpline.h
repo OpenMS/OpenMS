@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
+#pragma once
 
 #include <OpenMS/config.h> // is this needed?
 
@@ -86,4 +85,3 @@ protected:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H

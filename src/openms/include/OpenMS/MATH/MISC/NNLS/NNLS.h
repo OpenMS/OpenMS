@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_NNLS_NNLS_H
-#define OPENMS_MATH_MISC_NNLS_NNLS_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -110,4 +109,3 @@ namespace OpenMS
 
 }
 
-#endif //OPENMS_MATH_MISC_NNLS_NNLS_H

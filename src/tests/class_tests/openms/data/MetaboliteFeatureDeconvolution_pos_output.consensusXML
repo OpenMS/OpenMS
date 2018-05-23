@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/fa/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_13032301277884797235" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="1">
+		<map id="0" name="" label="decharged features" size="24">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_17209116430947459327" quality="0">
+			<centroid rt="100" mz="299.9989730357" it="1500"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100" mz="318.033823" it="100" charge="1"/>
+				<element map="0" id="2" rt="100" mz="322.989218" it="100" charge="1"/>
+				<element map="0" id="3" rt="100" mz="338.963158" it="100" charge="1"/>
+				<element map="0" id="4" rt="100" mz="151.007276" it="100" charge="2"/>
+				<element map="0" id="5" rt="100" mz="159.52055" it="100" charge="2"/>
+				<element map="0" id="6" rt="100" mz="161.998247" it="100" charge="2"/>
+				<element map="0" id="7" rt="100" mz="169.985217" it="100" charge="2"/>
+				<element map="0" id="8" rt="100" mz="172.989218" it="100" charge="2"/>
+				<element map="0" id="9" rt="100" mz="101.007276" it="100" charge="3"/>
+				<element map="0" id="10" rt="100" mz="108.33459" it="100" charge="3"/>
+				<element map="0" id="11" rt="100" mz="115.661904" it="100" charge="3"/>
+				<element map="0" id="12" rt="100" mz="122.989218" it="100" charge="3"/>
+				<element map="0" id="13" rt="100" mz="342.033823" it="100" charge="1"/>
+				<element map="0" id="14" rt="100" mz="344.97116" it="100" charge="1"/>
+				<element map="0" id="15" rt="100" mz="301.007276" it="100" charge="1"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[1, 2, 3]"/>
+			<UserParam type="int" name="distinct_charges_size" value="3"/>
+			<UserParam type="int" name="pure_proton_features" value="3"/>
+		</consensusElement>
+		<consensusElement id="e_4497306292672144602" quality="0">
+			<centroid rt="102" mz="295.9877466281" it="200"/>
+			<groupedElementList>
+				<element map="0" id="101" rt="102" mz="148.992724" it="100" charge="2"/>
+				<element map="0" id="104" rt="102" mz="334.969402" it="100" charge="1"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[1, 2]"/>
+			<UserParam type="int" name="distinct_charges_size" value="2"/>
+			<UserParam type="int" name="pure_proton_features" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_2163174111164391872" quality="0">
+			<centroid rt="102" mz="297.984761259775" it="400"/>
+			<groupedElementList>
+				<element map="0" id="100" rt="102" mz="298.992724" it="100" charge="1"/>
+				<element map="0" id="102" rt="102" mz="280.98161" it="100" charge="1"/>
+				<element map="0" id="103" rt="102" mz="320.974666" it="100" charge="1"/>
+				<element map="0" id="105" rt="102" mz="336.948606" it="100" charge="1"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[1]"/>
+			<UserParam type="int" name="distinct_charges_size" value="1"/>
+			<UserParam type="int" name="pure_proton_features" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_550333940545105376" quality="0">
+			<centroid rt="102" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="107" rt="102" mz="98.992724" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M-3H"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_15596712492036028027" quality="0">
+			<centroid rt="102" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="108" rt="102" mz="344.998201" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+FA-H (CH2O2)"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_15090182187976258121" quality="0">
+			<centroid rt="102" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="106" rt="102" mz="378.918885" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+Br"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

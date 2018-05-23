@@ -402,7 +402,8 @@ void TheoreticalSpectrumGeneratorXLMS::addCommonPeaks_(PeakSpectrum & spectrum, 
     if (frag_alpha)
     {
       ion_type = "alpha|xi";
-    } else
+    }
+    else
     {
       ion_type = "beta|xi";
     }

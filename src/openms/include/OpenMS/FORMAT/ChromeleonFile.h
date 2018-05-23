@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CHROMELEONFILE_H
-#define OPENMS_FORMAT_CHROMELEONFILE_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -71,4 +70,3 @@ public:
   };
 }
 
-#endif // OPENMS_FORMAT_CHROMELEONFILE_H

@@ -32,8 +32,7 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H
-#define OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -94,7 +93,7 @@ class OPENMS_DLLAPI SplineSpectrum
      *  has some usable data to work on.
      *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
      */
-    size_t getSplineCount() const;
+    size_t size() const;
 
     /**
     * @brief iterator class for access of spline packages
@@ -188,4 +187,3 @@ class OPENMS_DLLAPI SplineSpectrum
 
 }
 
-#endif // OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H

@@ -33,12 +33,11 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_ELEMENT_H
-#define OPENMS_CHEMISTRY_ELEMENT_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #define OPENMS_CHEMISTRY_ELEMENT_NAME_DEFAULT "unknown"
 #define OPENMS_CHEMISTRY_ELEMENT_SYMBOL_DEFAULT "??"
@@ -55,6 +54,7 @@ namespace OpenMS
   {
 public:
 
+   
     /** @name Constructor and Destructors
     */
     //@{
@@ -161,4 +161,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

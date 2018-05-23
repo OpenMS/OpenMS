@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_BIGAUSSFITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_BIGAUSSFITTER1D_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
@@ -90,4 +89,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_BIGAUSSFITTER1D_H

@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ACQUISITIONINFO_H
-#define OPENMS_METADATA_ACQUISITIONINFO_H
+#pragma once
 
 #include <OpenMS/METADATA/Acquisition.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -100,4 +99,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_ACQUISITIONINFO_H

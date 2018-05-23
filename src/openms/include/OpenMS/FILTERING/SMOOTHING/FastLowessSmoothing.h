@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FILTERING_SMOOTHING_FASTLOWESSSMOOTHING_H
-#define OPENMS_FILTERING_SMOOTHING_FASTLOWESSSMOOTHING_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <vector>
@@ -128,4 +127,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-#endif // OPENMS_FILTERING_SMOOTHING_FASTLOWESSSMOOTHING_H

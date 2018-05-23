@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSQUADMZTRANSFORMING_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSQUADMZTRANSFORMING_H
+#pragma once
 
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h>
@@ -83,4 +82,3 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSQUADMZTRANSFORMING_H

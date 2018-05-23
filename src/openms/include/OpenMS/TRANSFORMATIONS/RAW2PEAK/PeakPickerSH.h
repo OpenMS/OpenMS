@@ -32,8 +32,7 @@
 // $Authors: Florian Zeller $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERSH_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERSH_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -121,4 +120,3 @@ public:
   };
 }
 
-#endif
