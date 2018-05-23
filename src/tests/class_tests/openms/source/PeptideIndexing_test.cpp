@@ -236,7 +236,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   std::vector<ProteinIdentification> prot_ids_2;
   std::vector<PeptideIdentification> pep_ids_2;
   r_2 = pi_2.run(proteins_2, prot_ids_2, pep_ids_2);
-  TEST_STRING_EQUAL("DECOY", pi_2.getDecoy_string_())
+  TEST_STRING_EQUAL("DECOY", pi_2.getDecoy_string_());
 
 }
 END_SECTION

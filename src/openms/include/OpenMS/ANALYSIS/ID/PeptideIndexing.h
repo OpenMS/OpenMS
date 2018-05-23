@@ -982,6 +982,7 @@ public:
     Int aaa_max_;
     Int mm_max_;
 
+    const String& getDecoy_string_() const;
 
   };
 }
