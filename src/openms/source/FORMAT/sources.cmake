@@ -18,6 +18,7 @@ CsvFile.cpp
 DTA2DFile.cpp
 DTAFile.cpp
 EDTAFile.cpp
+ExperimentalDesignFile.cpp
 FASTAFile.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp

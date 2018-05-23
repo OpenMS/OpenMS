@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -154,7 +155,7 @@ protected:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign ed = ExperimentalDesign::load(design_file);
+        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file, false);
 
         // determine if design defines more than one fraction
         frac2files = ed.getFractionToMSFilesMapping();
@@ -250,12 +251,10 @@ protected:
           vector<FeatureMap> fraction_maps;
 
           // TODO FRACTIONS: here we assume that the order of featureXML is from fraction 1..n
-          // we should check if these are shuffled and error / warn
-          size_t feature_map_index = 0;
-          for (String const & f : frac2files[i])
+          // we should check if these are shuffled and error / warn          
+          for (size_t feature_map_index = 0; feature_map_index != frac2files[i].size(); ++feature_map_index)
           {
             fraction_maps.push_back(maps[feature_map_index]);
-            ++feature_map_index;
           }
           algorithm->group(fraction_maps, out_map);
         }

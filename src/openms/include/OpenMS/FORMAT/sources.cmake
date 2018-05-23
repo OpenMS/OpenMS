@@ -32,6 +32,7 @@ CsvFile.h
 DTA2DFile.h
 DTAFile.h
 EDTAFile.h
+ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
