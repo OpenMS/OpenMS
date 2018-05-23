@@ -452,9 +452,6 @@ test_mt.setSmoothedIntensities(smoothed_ints);
 
 START_SECTION((double getIntensity(bool smoothed) const))
 {
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt.getIntensity(true));
-  TEST_EXCEPTION(Exception::InvalidValue, test_mt.getIntensity(false));
-
   test_mt.estimateFWHM(true);
 
   double smoothed_area = test_mt.getIntensity(true);
