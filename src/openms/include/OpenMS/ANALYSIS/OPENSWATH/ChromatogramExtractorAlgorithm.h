@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenMS
 {

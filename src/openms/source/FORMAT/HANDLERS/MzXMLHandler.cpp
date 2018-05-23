@@ -1014,7 +1014,7 @@ namespace OpenMS
           s_peaks = "<peaks precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\" compressionType=\"none\" compressedLen=\"0\" ";
         }
         if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
-        { // internal check against inadvertedly removing line breaks above!
+        { // internal check against inadvertently removing line breaks above!
           fatalError(STORE, "Internal error: <peaks> tag does not contain newlines as required by MaxQuant. Please report this as a bug.", __LINE__, 0);
         }
         os << String(ms_level + 2, '\t') << s_peaks;

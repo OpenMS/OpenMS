@@ -39,6 +39,8 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <OpenMS/MATH/MISC/SplineBisection.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -326,40 +328,8 @@ public:
           // (bisection method)
           double max_peak_mz = central_peak_mz;
           double max_peak_int = central_peak_int;
-          double threshold = 0.000001;
-          double lefthand = left_neighbor_mz;
-          double righthand = right_neighbor_mz;
-
-          bool lefthand_sign = 1;
-          double eps = std::numeric_limits<double>::epsilon();
-
-          // bisection
-          do
-          {
-            double mid = (lefthand + righthand) / 2.0;
-            double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
-
-            // if deriv nearly zero then maximum already found
-            if (!(std::fabs(midpoint_deriv_val) > eps))
-            {
-              break;
-            }
-
-            bool midpoint_sign = (midpoint_deriv_val < 0.0) ? 0 : 1;
-
-            if (lefthand_sign ^ midpoint_sign)
-            {
-              righthand = mid;
-            }
-            else
-            {
-              lefthand = mid;
-            }
-          }
-          while (righthand - lefthand > threshold);
-
-          max_peak_mz = (lefthand + righthand) / 2;
-          max_peak_int = peak_spline.eval(max_peak_mz);
+          double threshold = 1e-6;
+          OpenMS::Math::spline_bisection(peak_spline, left_neighbor_mz, right_neighbor_mz, max_peak_mz, max_peak_int, threshold);
 
           //
           // compute FWHM
@@ -531,7 +501,22 @@ public:
       {
         for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
-          if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+          if (ms_levels_.empty()) // auto mode
+          {
+            SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
+            if (spectrum_type == SpectrumSettings::CENTROID)
+            {
+              output[scan_idx] = input[scan_idx];
+            }
+            else
+            {
+              std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
+
+              pick(input[scan_idx], output[scan_idx], boundaries_s);
+              boundaries_spec.push_back(boundaries_s);
+            }
+          }
+          else if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel())) // manual mode
           {
             output[scan_idx] = input[scan_idx];
           }
@@ -587,15 +572,30 @@ public:
       Size progress = 0;
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
 
+      // resize output with respect to input
+      output.resize(input.size());
+
       if (input.getNrSpectra() > 0)
       {
-
-        // resize output with respect to input
-        output.resize(input.size());
-
         for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
-          if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+          if (ms_levels_.empty()) //auto mode
+          {
+            MSSpectrum s = input[scan_idx];
+            s.sortByPosition();
+
+            // determine type of spectral data (profile or centroided)
+            SpectrumSettings::SpectrumType spectrumType = s.getType();
+            if (spectrumType == SpectrumSettings::CENTROID)
+            {
+              output[scan_idx] = input[scan_idx];
+            }
+            else
+            {
+              pick(s, output[scan_idx]);
+            }
+          }
+          else if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel())) // manual mode
           {
             output[scan_idx] = input[scan_idx];
           }

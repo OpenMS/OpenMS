@@ -39,7 +39,9 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/Precursor.h>
-
+#include <OpenMS/METADATA/SpectrumSettings.h>
+#include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/METADATA/SpectrumLookup.h> 
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>
@@ -240,7 +242,7 @@ namespace OpenMS
     writeParameterHeader_("FORMVER", os);
     os << "1.01" << "\n";
 
-    //db name
+    // db name
     writeParameterHeader_("DB", os);
     os << param_.getValue("database") << "\n";
 
@@ -260,48 +262,48 @@ namespace OpenMS
       os << "AUTO" << "\n";
     }
 
-    //cleavage enzyme
+    // cleavage enzyme
     writeParameterHeader_("CLE", os);
     os << param_.getValue("enzyme") << "\n";
 
-    //average/monoisotopic
+    // average/monoisotopic
     writeParameterHeader_("MASS", os);
     os << param_.getValue("mass_type") << "\n";
 
-    //fixed modifications
+    // fixed modifications
     vector<String> fixed_mods = param_.getValue("fixed_modifications");
     writeModifications_(fixed_mods, os);
 
-    //variable modifications
+    // variable modifications
     vector<String> var_mods = param_.getValue("variable_modifications");
     writeModifications_(var_mods, os, true);
 
-    //instrument
+    // instrument
     writeParameterHeader_("INSTRUMENT", os);
     os << param_.getValue("instrument") << "\n";
 
-    //missed cleavages
+    // missed cleavages
     writeParameterHeader_("PFA", os);
     os << param_.getValue("missed_cleavages") << "\n";
 
-    //precursor mass tolerance
+    // precursor mass tolerance
     writeParameterHeader_("TOL", os);
     os << param_.getValue("precursor_mass_tolerance") << "\n";
 
-    //ion mass tolerance_
+    // ion mass tolerance_
     writeParameterHeader_("ITOL", os);
     os << param_.getValue("fragment_mass_tolerance") << "\n";
 
-    //taxonomy
+    // taxonomy
     writeParameterHeader_("TAXONOMY", os);
     os << param_.getValue("taxonomy") << "\n";
 
-    //charge
+    // charge
     writeParameterHeader_("CHARGE", os);
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum_(ostream& os, const PeakSpectrum& spec, const String& filename)
+  void MascotGenericFile::writeSpectrum_(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
   {
     Precursor precursor;
     if (spec.getPrecursors().size() > 0)
@@ -323,7 +325,7 @@ namespace OpenMS
 
     if (mz == 0)
     {
-      //retention time
+      // retention time
       cout << "No precursor m/z information for spectrum with rt " << rt
            << " present, skipping spectrum!\n";
     }
@@ -337,8 +339,15 @@ namespace OpenMS
            << "_" << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-        os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find("=")+1) << "\n";
-     }
+  if (native_id_type_accession == "UNKNOWN")
+  {
+    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+  }
+  else
+  {
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+  }
+      }
       else
       {
         os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
@@ -346,7 +355,14 @@ namespace OpenMS
            << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
-        os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find("=")+1) << "\n";
+  if (native_id_type_accession == "UNKNOWN")
+  {
+    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+  }
+  else
+  {
+    os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+  }
       }
 
       int charge(precursor.getCharge());
@@ -403,13 +419,25 @@ namespace OpenMS
     QFileInfo fileinfo(filename.c_str());
     QString filtered_filename = fileinfo.completeBaseName();
     filtered_filename.remove(QRegExp("[^a-zA-Z0-9]"));
+
+
+    String native_id_type_accession;
+    vector<SourceFile> sourcefiles = experiment.getExperimentalSettings().getSourceFiles();
+    if (sourcefiles.empty())
+    {
+      native_id_type_accession = "UNKNOWN";
+    }
+    else
+    {
+      native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+    }
     this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {
       this->setProgress(i);
       if (experiment[i].getMSLevel() == 2)
       {
-        writeSpectrum_(os, experiment[i], filtered_filename);
+        writeSpectrum_(os, experiment[i], filtered_filename, native_id_type_accession);
       }
       else if (experiment[i].getMSLevel() == 0)
       {

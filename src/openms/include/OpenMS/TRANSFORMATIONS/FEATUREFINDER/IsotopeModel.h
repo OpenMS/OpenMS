@@ -36,7 +36,7 @@
 #pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 namespace OpenMS
 {

@@ -116,7 +116,7 @@ protected:
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
-      setValidFormats_("out", ListUtils::create<String>("tsv"));
+      setValidFormats_("out", ListUtils::create<String>("mzTab"));
     }
 
 

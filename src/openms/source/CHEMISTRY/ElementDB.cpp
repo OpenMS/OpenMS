@@ -181,7 +181,7 @@ namespace OpenMS
         // cout << "new element prefix=" << prefix << endl;
 
         // Parsing of previous element is finished. Now store data in Element object
-        IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy);
+        IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy, Z_to_mass);
         double avg_weight = calculateAvgWeight_(Z_to_abundancy, Z_to_mass);
         double mono_weight = calculateMonoWeight_(Z_to_mass);
 
@@ -197,17 +197,19 @@ namespace OpenMS
         atomic_numbers_[an] = e;
 
         // add all the individual isotopes as separate elements
-        for (IsotopeDistribution::ConstIterator iit = isotopes.begin(); iit != isotopes.end(); ++iit)
+        for (const auto& isotope : isotopes)
         {
-          String iso_name = "(" + String(iit->first) + ")" + name;
-          String iso_symbol = "(" + String(iit->first) + ")" + symbol;
+          double atomic_mass = isotope.getMZ();
+          UInt mass_number = round(atomic_mass);
+          String iso_name = "(" + String(mass_number) + ")" + name;
+          String iso_symbol = "(" + String(mass_number) + ")" + symbol;
 
           // set avg and mono to same value for isotopes (old hack...)
-          double iso_avg_weight = Z_to_mass[(UInt) iit->first];
+          double iso_avg_weight = Z_to_mass[mass_number];
           double iso_mono_weight = iso_avg_weight;
           IsotopeDistribution iso_isotopes;
-          vector<pair<Size, double> > iso_container;
-          iso_container.push_back(make_pair(iit->first, 1.0));
+          IsotopeDistribution::ContainerType iso_container;
+          iso_container.push_back(Peak1D(atomic_mass, 1.0));
           iso_isotopes.set(iso_container);
 
           /*
@@ -278,25 +280,33 @@ namespace OpenMS
 
     // build last element
     double avg_weight(0), mono_weight(0);
-    IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy);
+    IsotopeDistribution isotopes = parseIsotopeDistribution_(Z_to_abundancy,Z_to_mass);
     Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
     names_[name] = e;
     symbols_[symbol] = e;
     atomic_numbers_[an] = e;
   }
 
-  IsotopeDistribution ElementDB::parseIsotopeDistribution_(const Map<UInt, double>& distribution)
+  IsotopeDistribution ElementDB::parseIsotopeDistribution_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass)
   {
     IsotopeDistribution::ContainerType dist;
-    for (Map<UInt, double>::ConstIterator it = distribution.begin(); it != distribution.end(); ++it)
+    
+    vector<UInt> keys;
+    for (Map<UInt, double>::const_iterator it = Z_to_abundance.begin(); it != Z_to_abundance.end(); ++it)
     {
-      dist.push_back(make_pair(it->first, it->second));
+      keys.push_back(it->first);
     }
+
+    // calculate weighted average
+    for (vector<UInt>::iterator it = keys.begin(); it != keys.end(); ++it)
+    {
+      dist.push_back(Peak1D(Z_to_mass[*it] , Z_to_abundance[*it]));
+    }
+
 
     IsotopeDistribution iso_dist;
     iso_dist.set(dist);
-    iso_dist.setMaxIsotope(100);
-
+    
     return iso_dist;
   }
 

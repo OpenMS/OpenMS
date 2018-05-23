@@ -76,7 +76,7 @@ namespace OpenMS
       IS concentration.
 
     Terms:
-    component: A protein, peptide, or compund fragment, transition, or whole species that is measured by e.g.,
+    component: A protein, peptide, or compound fragment, transition, or whole species that is measured by e.g.,
       LC-MS, LC-MS/MS, GC-MS, GC-MS/MS, LC-MS-TOF, HPLC-UV, HPLC-IR, etc.
     calibration curve:  A series of standards that are used to correlate instrument measurements to
       actual concentrations
@@ -262,7 +262,7 @@ public:
 
 protected:
     /**
-      @brief This function extractous out the components.
+      @brief This function extracts out the components.
 
       @param component_concentrations list of structures with features and concentrations
       @param component_concentrations_indices indices to extract out

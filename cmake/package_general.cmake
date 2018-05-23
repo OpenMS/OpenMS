@@ -38,11 +38,11 @@
 set(CPACK_PACKAGE_NAME "OpenMS")
 set(CPACK_PACKAGE_VENDOR "OpenMS.de")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-set(CPACK_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION}")
 set(CPACK_PACKAGE_VERSION_MAJOR "${OPENMS_PACKAGE_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${OPENMS_PACKAGE_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
 set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
 set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
@@ -62,8 +62,9 @@ set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResource
 #  fixup_bundle(\"${EXECS}\" \"${QT_PLUGINS}\" \"\${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}\")
 #  " COMPONENT applications)
 
-find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS}) ## we have to find again so the target variables are reloaded
-install_qt5_libs("${OpenMS_QT_COMPONENTS}" ${INSTALL_LIB_DIR} "QTLibs")
+set(PACKAGE_QT_COMPONENTS "${OpenMS_QT_COMPONENTS};${OpenMS_GUI_QT_COMPONENTS}")
+find_package(Qt5 COMPONENTS ${PACKAGE_QT_COMPONENTS}) ## we have to find again so the target variables are reloaded
+install_qt5_libs("${PACKAGE_QT_COMPONENTS}" ${INSTALL_LIB_DIR} "QTLibs")
 
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)
@@ -81,5 +82,6 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
   install_thirdparty_folder("SpectraST")
   install_thirdparty_folder("Sirius")
   install_thirdparty_folder("Percolator")
+  install_thirdparty_folder("MaRaCluster")
   install_thirdparty_folder("crux")
 endif()

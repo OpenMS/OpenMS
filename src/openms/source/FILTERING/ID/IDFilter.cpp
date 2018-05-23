@@ -339,6 +339,8 @@ namespace OpenMS
            groups.begin(); group_it != groups.end(); ++group_it)
     {
       ProteinIdentification::ProteinGroup filtered;
+      // sort group accessions (required for 'set_intersection' operation)
+      sort(group_it->accessions.begin(), group_it->accessions.end());
       set_intersection(group_it->accessions.begin(), group_it->accessions.end(),
                        valid_accessions.begin(), valid_accessions.end(),
                        inserter(filtered.accessions,

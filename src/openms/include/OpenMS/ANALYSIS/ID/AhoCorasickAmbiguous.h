@@ -43,7 +43,7 @@
 #ifdef NDEBUG
 #define DEBUG_ONLY if (false)
 #else
-#define DEBUG_ONLY if (true)
+#define DEBUG_ONLY if (false)
 #endif
 
 // the SeqAn implementation comes first. To use the OpenMS interface, see below.
@@ -64,7 +64,7 @@ namespace seqan
   // we re-order the aminoacids such that ambiguous AA's are consecutive (which saves effort during their enumeration)
     'A', // 00 Ala Alanine
     'Y', // 23 Tyr Tyrosine               !    1(Y)
-    'C', // 02 Cys Cystine
+    'C', // 02 Cys Cysteine
     'D', // 03 Asp Aspartic Acid   // B
     'N', // 13 Asn Asparagine      // B   !    4(N)
     'F', // 05 Phe Phenylalanine       
@@ -82,7 +82,7 @@ namespace seqan
     'R', // 17 Arg Arginine
     'S', // 18 Ser Serine
     'T', // 19 Thr Threonine
-    'U', // 20 Selenocystein
+    'U', // 20 Selenocysteine
     'V', // 21 Val Valine
     'B', // 01 Aspartic Acid, Asparagine  $    22(B) // the AmbAA's need to be consecutive (B,J,Z,X)
     'J', // 09 Leucine, Isoleucine        $    23(J)
@@ -576,7 +576,7 @@ namespace seqan
   }
 
   inline bool isAmbiguous(AAcid c)
-  { // relies on the fact that ambiguous AA's are occuring in a block
+  { // relies on the fact that ambiguous AA's are occurring in a block
     static const typename ValueSize<AAcid>::Type vB = ordValue(AAcid('B')); // D,N
     static const typename ValueSize<AAcid>::Type vX = ordValue(AAcid('X')); // all
     return (vB <= ordValue(c) && ordValue(c) <= vX);
@@ -731,7 +731,7 @@ namespace seqan
       {
         //DEBUG_ONLY std::cout << "spawn died while going up (AAA out of scope)\n";
         //spawn.current_state = getRoot(me.data_graph); // reset to root -- not required
-        return false; // this spawn just threw away its reason of existance (i.e. the AAA). Die!
+        return false; // this spawn just threw away its reason of existence (i.e. the AAA). Die!
       }
       spawn.max_depth_decrease -= up_count;
     }
@@ -1065,7 +1065,7 @@ namespace OpenMS
     // member
     ::seqan::Finder<seqan::AAString> finder_; ///< locate the next peptide hit in protein
     ::seqan::AAString protein_;               ///< the protein sequence - we need to store it since the finder only keeps a pointer to protein when constructed
-    ::seqan::PatternAuxData<PeptideDB> dh_;   ///< auxilliary data to hold a state after searching
+    ::seqan::PatternAuxData<PeptideDB> dh_;   ///< auxiliary data to hold a state after searching
   }; // class FuzzyAC
 
 } // namespace OpenMS

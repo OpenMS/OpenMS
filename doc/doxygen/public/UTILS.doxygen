@@ -123,7 +123,7 @@
   - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data 
   - @subpage UTILS_LowMemPeakPickerHiResRandomAccess - A tool for peak detection on streamed profile data 
   - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
-  - @subpage TOPP_ClusterMassTraces - Cluster mass traces occuring in the same map together.
+  - @subpage TOPP_ClusterMassTraces - Cluster mass traces occurring in the same map together.
   - @subpage TOPP_CorrelateMassTraces - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
   - @subpage UTILS_IDDecoyProbability - Estimate probability of peptide hits.
   - @subpage UTILS_RNADigestor - Digests an RNA sequence database in-silico.
@@ -131,7 +131,7 @@
 <!--
   - TODO we need descriptions for all of these
   - @subpage UTILS_OpenMSInfo - Print build system information.
-  - @subpage UTILS_RNPxlSearch - Annotate RNA to peptide crosslinks in MS/MS spectra.
+  - @subpage UTILS_RNPxlSearch - Annotate RNA to peptide cross-links in MS/MS spectra.
   - @subpage UTILS_MetaProSIP - Performs proteinSIP on peptide features for elemental flux analysis.
   - @subpage UTILS_SimpleSearchEngine - Annotates MS/MS spectra using SimpleSearchEngine.
 -->

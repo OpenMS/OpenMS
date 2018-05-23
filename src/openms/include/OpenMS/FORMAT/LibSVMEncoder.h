@@ -63,7 +63,7 @@ public:
               @brief stores a composition vector of 'sequence' in 'encoded_vector'
 
               The allowed characters given by 'allowed_characters' are counted in the sequence 'sequence'
-              and the relative frequency of the letters are sored in the composition vector.
+              and the relative frequency of the letters are stored in the composition vector.
               The first entry of the vector (<UInt, double>) corresponds to the first letter of
               'allowed_characters' that has a non zero frequency in 'sequence' and its corresponding
               relative frequency...
@@ -74,7 +74,7 @@ public:
               @brief stores composition vectors of the sequences given by 'sequence' in 'composition_vectors'
 
               The allowed characters given by 'allowed_characters' are counted in the sequences 'sequences'
-              and the relative frequency of the letters are sored in the composition vectors.
+              and the relative frequency of the letters are stored in the composition vectors.
               The first entry of the first vector (<UInt, double>) corresponds to the first letter of
               'allowed_characters' that has a non zero frequency in the first 'sequence' and its corresponding
               relative frequency...

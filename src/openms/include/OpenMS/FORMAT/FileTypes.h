@@ -85,6 +85,7 @@ namespace OpenMS
       PNG,                ///< Portable Network Graphics (.png)
       XMASS,              ///< XMass Analysis file (fid)
       TSV,                ///< msInspect file (.tsv)
+      MZTAB,              ///< mzTab file (.mzTab)
       PEPLIST,            ///< specArray file (.peplist)
       HARDKLOER,          ///< hardkloer file (.hardkloer)
       KROENIK,            ///< kroenik file (.kroenik)

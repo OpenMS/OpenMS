@@ -40,7 +40,7 @@
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenSWATH_Test
 {

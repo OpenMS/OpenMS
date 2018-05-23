@@ -409,6 +409,13 @@ namespace OpenMS
       }
     }
 
+    // mzTab file format
+    for (Size i = 0; i != complete_file.size(); ++i) {
+        if (complete_file[i].hasSubstring("MTD\tmzTab-version")) {
+            return FileTypes::MZTAB;
+        }
+    }
+
     // msInspect file (.tsv)
     for (Size i = 0; i != complete_file.size(); ++i)
     {
