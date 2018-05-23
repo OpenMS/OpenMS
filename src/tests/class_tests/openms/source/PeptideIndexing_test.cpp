@@ -223,11 +223,6 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   r = pi.run(proteins, prot_ids, pep_ids);
   for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hits
 
-  // resetting caching
-  FASTAContainer<TFI_Vector> protein_container(proteins);
-  protein_container.reset();
-  TEST_EQUAL(true, protein_container.activateCache());
-
   //auto mode for decoy strings and position
   PeptideIndexing pi_2;
   Param p_2 = pi_2.getParameters();
@@ -236,7 +231,7 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   std::vector<ProteinIdentification> prot_ids_2;
   std::vector<PeptideIdentification> pep_ids_2;
   r_2 = pi_2.run(proteins_2, prot_ids_2, pep_ids_2);
-  TEST_STRING_EQUAL("DECOY", pi_2.getDecoy_string_());
+  TEST_STRING_EQUAL("DECOY", pi_2.getDecoyString());
 
 }
 END_SECTION

@@ -695,7 +695,7 @@ public:
       return EXECUTION_OK;
     }
 
-     const String& getDecoy_string_() const;
+     const String& getDecoyString() const;
 
  protected:
      using DecoyStringToAffixCount = std::map<std::string, std::pair<int, int>>;
