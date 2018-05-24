@@ -211,6 +211,7 @@ namespace OpenMS
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSFraggerAdapter"] = Internal::ToolDescription("MSFraggerAdapter", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
+    util_map["MSstatsConverter"] = Internal::ToolDescription("MSstatsConverter", util_category);
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
     util_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", util_category);
