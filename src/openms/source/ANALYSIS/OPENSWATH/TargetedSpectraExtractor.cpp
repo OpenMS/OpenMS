@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
-
-#include <boost/unordered_map.hpp> 
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -133,45 +132,48 @@ namespace OpenMS
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& annotated_spectra,
     FeatureMap& features
-  )
+  ) const
   {
     annotated_spectra.clear();
     features.clear(true);
-    const std::vector<ReactionMonitoringTransition> transitions = targeted_exp.getTransitions();
-    for (Size i=0; i<spectra.size(); ++i)
+    const std::vector<ReactionMonitoringTransition>& transitions = targeted_exp.getTransitions();
+    for (Size i = 0; i < spectra.size(); ++i)
     {
-      MSSpectrum spectrum = spectra[i];
+      const MSSpectrum& spectrum = spectra[i];
       const double spectrum_rt = spectrum.getRT();
       const double rt_left_lim = spectrum_rt - rt_window_ / 2.0;
       const double rt_right_lim = spectrum_rt + rt_window_ / 2.0;
-      const std::vector<Precursor> precursors = spectrum.getPrecursors();
-      if (precursors.size() < 1)
+      const std::vector<Precursor>& precursors = spectrum.getPrecursors();
+      if (precursors.empty())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                         "Spectrum does not contain precursor info.");
+        LOG_WARN << "annotateSpectra(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
       }
-      const double spectrum_mz = precursors[0].getMZ();
+      const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
       const double mz_tolerance = mz_unit_is_Da_ ? mz_tolerance_ : mz_tolerance_ / 1e6;
-      const double mz_left_lim = spectrum_mz - mz_tolerance;
-      const double mz_right_lim = spectrum_mz + mz_tolerance;
 
-      LOG_DEBUG << "[" << i << "]\trt: " << spectrum_rt << "\tmz: " << spectrum_mz << std::endl;
+      // When spectrum_mz is 0, the mz check on transitions is inhibited
+      const double mz_left_lim = spectrum_mz ? spectrum_mz - mz_tolerance : std::numeric_limits<double>::min();
+      const double mz_right_lim = spectrum_mz ? spectrum_mz + mz_tolerance : std::numeric_limits<double>::max();
 
-      for (Size j=0; j<transitions.size(); ++j)
+      LOG_DEBUG << "annotateSpectra(): [" << i << "] (RT: " << spectrum_rt << ") (MZ: " << spectrum_mz << ")" << std::endl;
+
+      for (Size j = 0; j < transitions.size(); ++j)
       {
-        const TargetedExperimentHelper::Peptide peptide = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef());
+        const TargetedExperimentHelper::Peptide& peptide = targeted_exp.getPeptideByRef(transitions[j].getPeptideRef());
         double target_rt = peptide.getRetentionTime();
         if (peptide.getRetentionTimeUnit() == TargetedExperimentHelper::RetentionTime::RTUnit::MINUTE)
         {
           target_rt *= 60.0;
         }
         const double target_mz = transitions[j].getPrecursorMZ();
-        if (target_rt >= rt_left_lim && target_rt <= rt_right_lim && target_mz >= mz_left_lim && target_mz <= mz_right_lim)
+        if (target_rt >= rt_left_lim && target_rt <= rt_right_lim &&
+            target_mz >= mz_left_lim && target_mz <= mz_right_lim)
         {
-          LOG_DEBUG << "target_rt: " << target_rt << "\ttarget_mz: " << target_mz << std::endl;
-          LOG_DEBUG << "pushed thanks to transition: " << j << " with name: " << transitions[j].getPeptideRef() << std::endl << std::endl;
-          spectrum.setName(transitions[j].getPeptideRef());
-          annotated_spectra.push_back(spectrum);
+          LOG_DEBUG << "annotateSpectra(): [" << j << "][" << transitions[j].getPeptideRef() << "]";
+          LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl << std::endl;
+          MSSpectrum annotated_spectrum = spectrum;
+          annotated_spectrum.setName(transitions[j].getPeptideRef());
+          annotated_spectra.push_back(annotated_spectrum);
           Feature feature;
           feature.setRT(spectrum_rt);
           feature.setMZ(spectrum_mz);
@@ -181,24 +183,16 @@ namespace OpenMS
         }
       }
     }
-    LOG_DEBUG << "the annotated variable has " << annotated_spectra.size() << " elements instead of " << spectra.size() << std::endl;
+    LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n" << std::endl;
   }
 
-  void TargetedSpectraExtractor::pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum)
+  void TargetedSpectraExtractor::pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum) const
   {
     if (!spectrum.isSorted())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Spectrum must be sorted by position");
     }
-
-    LOG_DEBUG << " ====  Picking spectrum " << spectrum.getNativeID() << " with " << spectrum.size() << " peaks ";
-    if (spectrum.empty())
-    {
-        LOG_DEBUG << std::endl << " - Error: spectrum is empty, abort picking." << std::endl;
-        return;
-    }
-    LOG_DEBUG << "(start at RT " << spectrum[0].getMZ() << " to RT " << spectrum[spectrum.size() - 1].getMZ() << ") " << std::endl;
 
     // Smooth the spectrum
     MSSpectrum smoothed_spectrum = spectrum;
@@ -232,9 +226,9 @@ namespace OpenMS
     pp.setParameters(pepi_param);
     pp.pick(smoothed_spectrum, picked_spectrum);
 
-    std::vector<UInt> peaks_pos_to_erase;
+    std::vector<Int> peaks_pos_to_erase;
     const double fwhm_threshold = mz_unit_is_Da_ ? fwhm_threshold_ : fwhm_threshold_ / 1e6;
-    for (Int i=picked_spectrum.size()-1; i>=0; --i)
+    for (Int i = picked_spectrum.size() - 1; i >= 0; --i)
     {
       if (picked_spectrum[i].getIntensity() < peak_height_min_ ||
           picked_spectrum[i].getIntensity() > peak_height_max_ ||
@@ -246,7 +240,7 @@ namespace OpenMS
 
     if (peaks_pos_to_erase.size() != picked_spectrum.size()) // if not all peaks are to be removed
     {
-      for (auto i : peaks_pos_to_erase) // then keep only the valid peaks (and fwhm)
+      for (Int i : peaks_pos_to_erase) // then keep only the valid peaks (and fwhm)
       {
         picked_spectrum.erase(picked_spectrum.begin() + i);
         picked_spectrum.getFloatDataArrays()[0].erase(picked_spectrum.getFloatDataArrays()[0].begin() + i);
@@ -257,7 +251,8 @@ namespace OpenMS
       picked_spectrum.clear(true);
     }
 
-    LOG_DEBUG << "Found " << picked_spectrum.size() << " peaks." << std::endl;
+    LOG_DEBUG << "pickSpectrum(): " << spectrum.getName() << " (input size: " <<
+      spectrum.size() << ") (picked: " << picked_spectrum.size() << ")\n" << std::endl;
   }
 
   void TargetedSpectraExtractor::scoreSpectra(
@@ -265,20 +260,24 @@ namespace OpenMS
     const std::vector<MSSpectrum>& picked_spectra,
     FeatureMap& features,
     std::vector<MSSpectrum>& scored_spectra
-  )
+  ) const
   {
     scored_spectra.clear();
     scored_spectra.resize(annotated_spectra.size());
-    for (Size i=0; i<annotated_spectra.size(); ++i)
+    if (scored_spectra.size() != features.size())
     {
-      double total_tic = 0;
-      for (Size j=0; j<annotated_spectra[i].size(); ++j)
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+    for (Size i = 0; i < annotated_spectra.size(); ++i)
+    {
+      double total_tic { 0 };
+      for (Size j = 0; j < annotated_spectra[i].size(); ++j)
       {
         total_tic += annotated_spectra[i][j].getIntensity();
       }
 
-      double avgFWHM = 0;
-      for (Size j=0; j<picked_spectra[i].getFloatDataArrays()[0].size(); ++j)
+      double avgFWHM { 0 };
+      for (Size j = 0; j < picked_spectra[i].getFloatDataArrays()[0].size(); ++j)
       {
         avgFWHM += picked_spectra[i].getFloatDataArrays()[0][j];
       }
@@ -290,10 +289,11 @@ namespace OpenMS
       p.setValue("noise_for_empty_window", 2.0);
       p.setValue("min_required_elements", 10);
       sne.setParameters(p);
-      MSSpectrum::const_iterator it;
       sne.init(annotated_spectra[i].begin(), annotated_spectra[i].end());
-      double avgSNR = 0.0;
-      for (it=annotated_spectra[i].begin(); it!=annotated_spectra[i].end(); ++it)
+      double avgSNR { 0 };
+      for (MSSpectrum::const_iterator it = annotated_spectra[i].begin();
+           it != annotated_spectra[i].end();
+           ++it)
       {
         avgSNR += sne.getSignalToNoise(it);
       }
@@ -320,7 +320,7 @@ namespace OpenMS
       features[i].setMetaValue("avgSNR", avgSNR);
 
       std::vector<Feature> subordinates(picked_spectra[i].size());
-      for (Size j=0; j<picked_spectra[i].size(); ++j)
+      for (Size j = 0; j < picked_spectra[i].size(); ++j)
       {
         subordinates[j].setMZ(picked_spectra[i][j].getMZ());
         subordinates[j].setIntensity(picked_spectra[i][j].getIntensity());
@@ -335,22 +335,23 @@ namespace OpenMS
     const FeatureMap& features,
     std::vector<MSSpectrum>& selected_spectra,
     FeatureMap& selected_features
-  )
+  ) const
   {
-    boost::unordered_map<std::string,UInt> transition_best_spec;
-    for (Size i=0; i<scored_spectra.size(); ++i)
+    std::unordered_map<std::string,UInt> transition_best_spec;
+    for (UInt i = 0; i < scored_spectra.size(); ++i)
     {
       if (scored_spectra[i].getFloatDataArrays()[1][0] < min_score_)
       {
         continue;
       }
-      const std::string transition_name = scored_spectra[i].getName();
-      boost::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
-      if (it == transition_best_spec.end())
+      const std::string& transition_name = scored_spectra[i].getName();
+      std::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
+      if (it == transition_best_spec.cend())
       {
         transition_best_spec.insert({transition_name, i});
       }
-      else if (scored_spectra[it->second].getFloatDataArrays()[1][0] < scored_spectra[i].getFloatDataArrays()[1][0])
+      else if (scored_spectra[it->second].getFloatDataArrays()[1][0] <
+               scored_spectra[i].getFloatDataArrays()[1][0])
       {
         transition_best_spec.erase(transition_name);
         transition_best_spec.insert({transition_name, i});
@@ -380,7 +381,7 @@ namespace OpenMS
   void TargetedSpectraExtractor::selectSpectra(
     const std::vector<MSSpectrum>& scored_spectra,
     std::vector<MSSpectrum>& selected_spectra
-  )
+  ) const
   {
     FeatureMap dummy_features;
     FeatureMap dummy_selected_features;
@@ -392,10 +393,10 @@ namespace OpenMS
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& extracted_spectra,
     FeatureMap& extracted_features
-  )
+  ) const
   {
     // get the spectra from the experiment
-    const std::vector<MSSpectrum> spectra = experiment.getSpectra();
+    const std::vector<MSSpectrum>& spectra = experiment.getSpectra();
 
     // annotate spectra
     std::vector<MSSpectrum> annotated;
@@ -404,15 +405,15 @@ namespace OpenMS
 
     // pick peaks from annotate spectra
     std::vector<MSSpectrum> picked(annotated.size());
-    for (Size i=0; i<annotated.size(); ++i)
+    for (Size i = 0; i < annotated.size(); ++i)
     {
       pickSpectrum(annotated[i], picked[i]);
     }
 
     // remove empty picked<> spectra, and accordingly update annotated<> and features
-    for (Int i=annotated.size()-1; i>=0; --i)
+    for (Int i = annotated.size() - 1; i >= 0; --i)
     {
-      if (!picked[i].size())
+      if (picked[i].empty())
       {
         annotated.erase(annotated.begin() + i);
         picked.erase(picked.begin() + i);

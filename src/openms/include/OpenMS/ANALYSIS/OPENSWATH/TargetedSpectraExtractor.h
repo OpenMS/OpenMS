@@ -47,6 +47,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
+// TODO: move headers where they are necessary (cpp/h files)
+// TODO: update documentation about thrown exceptions
+
 namespace OpenMS
 {
   /**
@@ -100,7 +103,7 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& annotated_spectra,
       FeatureMap& features
-    );
+    ) const;
 
     /**
       @brief Picks a spectrum's peaks and saves them in picked_spectrum.
@@ -117,7 +120,7 @@ public:
       @param[in] spectrum The input spectrum
       @param[out] picked_spectrum A spectrum containing only the picked peaks
     */
-    void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum);
+    void pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum) const;
 
     /**
       @brief Assigns a score to the spectra given an input and saves them in scored_spectra.
@@ -139,7 +142,7 @@ public:
       const std::vector<MSSpectrum>& picked_spectra,
       FeatureMap& features,
       std::vector<MSSpectrum>& scored_spectra
-    );
+    ) const;
 
     /**
       @brief The method selects the highest scoring spectrum for each possible
@@ -155,7 +158,7 @@ public:
       const FeatureMap& features,
       std::vector<MSSpectrum>& selected_spectra,
       FeatureMap& selected_features
-    );
+    ) const;
 
     /**
       @brief The method selects the highest scoring spectrum for each possible
@@ -167,7 +170,7 @@ public:
     void selectSpectra(
       const std::vector<MSSpectrum>& scored_spectra,
       std::vector<MSSpectrum>& selected_spectra
-    );
+    ) const;
 
     /**
       @brief Combines the functionalities given by all the other methods implemented
@@ -189,7 +192,7 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra,
       FeatureMap& extracted_features
-    );
+    ) const;
 
 protected:
     /// Overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
