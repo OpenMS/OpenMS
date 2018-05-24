@@ -3389,6 +3389,71 @@ def testPeak():
 
 
 @report
+def testNumpressCoder():
+    """
+    """
+
+    np = pyopenms.MSNumpressCoder()
+
+    nc = pyopenms.NumpressConfig()
+    nc.np_compression = np.NumpressCompression.LINEAR
+    nc.estimate_fixed_point = True
+    tmp = pyopenms.String()
+    out = []
+    inp =  [1.0, 2.0, 3.0]
+    np.encodeNP(inp, tmp, True, nc)
+
+    res = str(tmp)
+    assert len(res) != 0, len(res)
+    assert res != "", res
+    np.decodeNP(res, out, True, nc)
+    assert len(out) == 3, (out, res)
+    assert out == inp, out
+
+    # Now try to use a simple Python string as input -> this will fail as we
+    # cannot pass this by reference in C++
+    res = ""
+    try:
+        np.encodeNP(inp, res, True, nc)
+        has_error = False
+    except AssertionError:
+        has_error = True
+
+    assert has_error
+
+@report
+def testNumpressConfig():
+    """
+    """
+
+    n = pyopenms.MSNumpressCoder()
+    np = pyopenms.NumpressConfig()
+    np.np_compression = n.NumpressCompression.LINEAR
+    assert np.np_compression == n.NumpressCompression.LINEAR
+    np.numpressFixedPoint = 4.2
+    np.numpressErrorTolerance = 4.2
+    np.estimate_fixed_point = True
+    np.linear_fp_mass_acc = 4.2
+    np.setCompression("linear")
+
+@report
+def testBase64():
+    """
+    """
+
+    b = pyopenms.Base64()
+    out = pyopenms.String()
+    inp =  [1.0, 2.0, 3.0]
+    b.encode(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
+    res = str(out)
+    assert len(res) != 0
+    assert res != ""
+
+    convBack = []
+    b.decode(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
+    assert convBack == inp, convBack
+
+@report
 def testPeakFileOptions():
     """
     @tests: PeakFileOptions
