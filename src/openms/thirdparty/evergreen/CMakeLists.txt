@@ -32,15 +32,12 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-project("OpenMS-3rd-party-libs")
+project("OpenMS-evergreen")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-## Note these libraries will not be compiled
-## but we only expose their sources
-
-# eol-bspline lib
-add_subdirectory(eol-bspline)
-
-# evergreen Bayesian inference library (0.9)
-# from TODO
-add_subdirectory(evergreen)
+# export include directory
+set(EVERGREEN_INCLUDE_DIRECTORY
+  ${PROJECT_SOURCE_DIR}
+  CACHE
+  INTERNAL "evergreen include directories" FORCE
+)

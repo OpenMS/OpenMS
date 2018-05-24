@@ -815,7 +815,6 @@ namespace OpenMS
 
   double FalseDiscoveryRate::applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff, UInt fpCutoff, double diffWeight)
   {
-
     if (ids.getScoreType() != "Posterior Probability")
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Proteins in ProteinIdentification do not have a posterior probability assigned. Please run an inference first.", ids.getScoreType());
@@ -827,7 +826,9 @@ namespace OpenMS
     double diff = diffEstimatedEmpirical_(scores_labels, pepCutoff);
     double auc = rocN_(scores_labels, fpCutoff);
     std::cout << "eval diff= " << diff << " and rocN= " << auc << std::endl;
-    return diff * diffWeight + auc * (1 - diffWeight);
+    // we want the score to get higher the lesser the difference. Subtract from one.
+    // Then convex combination with the AUC.
+    return (1.0 - diff) * diffWeight + auc * (1.0 - diffWeight);
   }
 
 

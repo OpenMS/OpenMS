@@ -140,22 +140,28 @@ foreach (includedir
 endforeach()
 
 #set(OpenMS_sources ${OpenMS_sources} openms_pch.cpp)
-openms_add_library(TARGET_NAME  OpenMS
-                   SOURCE_FILES  ${OpenMS_sources}
-                   HEADER_FILES  ${OpenMS_sources_h}
-                                 ${OpenMS_configured_headers}
-                   INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
-                                     ${CMAKE_CURRENT_BINARY_DIR}/include
-		   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
-                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS}
-		                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
-				     ${INCLUDES_FROM_CONTRIB}
-				     ${INCLUDES_FROM_SYSTEM}
-                                     ${Qt5Core_INCLUDE_DIRS}
-                                     ${Qt5Network_INCLUDE_DIRS}
-                   LINK_LIBRARIES OpenSwathAlgo
-                                  ${OPENMS_DEP_LIBRARIES}
-                   DLL_EXPORT_PATH "OpenMS/")
+openms_add_library(TARGET_NAME OpenMS
+									 SOURCE_FILES
+									 		${OpenMS_sources}
+									 HEADER_FILES
+									 		${OpenMS_sources_h}
+									 		${OpenMS_configured_headers}
+									 INTERNAL_INCLUDES
+									 		${CMAKE_CURRENT_SOURCE_DIR}/include
+									 		${CMAKE_CURRENT_BINARY_DIR}/include
+									 PRIVATE_INCLUDES
+									 		${EOL_BSPLINE_INCLUDE_DIRECTORY}
+									 EXTERNAL_INCLUDES
+									 		${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+									 		${EVERGREEN_INCLUDE_DIRECTORY}
+									 		${INCLUDES_FROM_CONTRIB}
+									 		${INCLUDES_FROM_SYSTEM}
+									 		${Qt5Core_INCLUDE_DIRS}
+									 		${Qt5Network_INCLUDE_DIRS}
+									 LINK_LIBRARIES
+									 		OpenSwathAlgo
+									 		${OPENMS_DEP_LIBRARIES}
+									 DLL_EXPORT_PATH "OpenMS/")
                    
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation

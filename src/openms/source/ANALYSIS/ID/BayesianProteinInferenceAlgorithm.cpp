@@ -41,16 +41,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
-  class BayesianProteinInferenceAlgorithm::FilteredGraphInferenceFunctorNoGroups :
-  public std::function<void(IDBoostGraph::FilteredGraph&)>
-  {
-  public:
-    const Param& param_;
-    vector<ProteinIdentification::ProteinGroup>& indistGroups_;
-
-
   /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
   class BayesianProteinInferenceAlgorithm::FilteredGraphInferenceFunctor :
       public std::function<void(IDBoostGraph::FilteredGraph&)>
@@ -349,13 +339,13 @@ namespace OpenMS
     GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
 
     std::array<size_t, 3> bestParams{};
+    //TODO run grid search on reduced graph?
+    //TODO if not, think about storing results temporary and only keep the best in the end
     gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
 
     std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
-    // what to do, with which params and where to write additional output (here groups) not accessible via the graphs.
-    //FilteredGraphInferenceFunctor f{param_};
-    // apply functor
-    //ibg.applyFunctorOnCCs(f);
+
+
     //TODO write graphfile?
     //TODO let user modify Grid for GridSearch and/or provide some more default settings
   }
