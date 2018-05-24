@@ -289,8 +289,8 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).fraction, 1);
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).sample, 10);
-  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
-  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");    
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");    
 
   /* example consensusXML for dimethyl labeling (FeatureFinderMultiplex) 
   */
@@ -309,7 +309,7 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");    
 
-  /* example consensusXML for label-free (FeatureLinkerUnlabeledQT) 
+  /* example consensusXML for label-free (FeatureLinkerUnlabeledKD) 
   */
   cmap.clear();
   cfile.load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_5.consensusXML"), cmap);
