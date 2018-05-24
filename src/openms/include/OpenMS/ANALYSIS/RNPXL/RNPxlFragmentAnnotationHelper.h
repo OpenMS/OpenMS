@@ -56,7 +56,7 @@ class OPENMS_DLLAPI FragmentAnnotationHelper
   public:
 
   /// Single fragment annotation
-  struct FragmentAnnotationDetail_
+  struct OPENMS_DLLAPI FragmentAnnotationDetail_
   {
     FragmentAnnotationDetail_(String s, int z, double m, double i):
       shift(s),
@@ -83,13 +83,13 @@ class OPENMS_DLLAPI FragmentAnnotationHelper
     }
   };
 
-  static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
+  OPENMS_DLLAPI static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name)
   {
     return String("i") + c + "+" + fragment_shift_name;
   }
 
   // deprecated: for PD community nodes compatibility 
-  static String fragmentAnnotationDetailsToString(const String& ion_type, std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
+  OPENMS_DLLAPI static String fragmentAnnotationDetailsToString(const String& ion_type, std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
   {
     String fas;
     for (auto ait = ion_annotation_details.begin(); ait != ion_annotation_details.end(); ++ait)
@@ -111,7 +111,7 @@ class OPENMS_DLLAPI FragmentAnnotationHelper
   }
 
   // conversion of RNPxl annotations to PeptideHit::PeakAnnotation
-  static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(const String& ion_type, std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
+  OPENMS_DLLAPI static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(const String& ion_type, std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
     for (auto ait : ion_annotation_details)
@@ -137,7 +137,7 @@ class OPENMS_DLLAPI FragmentAnnotationHelper
     return fas;
   }
 
-  static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(const std::map<String, std::set<std::pair<String, double> > >& shifted_ions)
+  OPENMS_DLLAPI static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(const std::map<String, std::set<std::pair<String, double> > >& shifted_ions)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
     for (auto ait : shifted_ions)
@@ -157,7 +157,7 @@ class OPENMS_DLLAPI FragmentAnnotationHelper
   }
 
 
-  static String shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
+  OPENMS_DLLAPI static String shiftedIonsToString(const std::vector<PeptideHit::PeakAnnotation>& as)
   {
     std::vector<PeptideHit::PeakAnnotation> sorted(as);
     stable_sort(sorted.begin(), sorted.end());
@@ -170,7 +170,7 @@ class OPENMS_DLLAPI FragmentAnnotationHelper
     return fas;
   }
 
-  static void addShiftedPeakFragmentAnnotation_(const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_b_ions,
+  OPENMS_DLLAPI static void addShiftedPeakFragmentAnnotation_(const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_b_ions,
                                          const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_y_ions,
                                          const std::map<Size, std::vector<FragmentAnnotationDetail_>>& shifted_a_ions,
                                          const std::vector<PeptideHit::PeakAnnotation>& shifted_immonium_ions,
