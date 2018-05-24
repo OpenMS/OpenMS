@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_FRAGMENTANNOTATIONHELPER_H
-#define OPENMS_ANALYSIS_RNPXL_FRAGMENTANNOTATIONHELPER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -44,13 +43,15 @@
 #include <vector>
 #include <algorithm>
 
-namespace OpenMS 
+namespace OpenMS
+{
+namespace Internal
 {
 
 /* @brief Convenience functions to construct appealing fragment annotation strings
  *
  */
-class FragmentAnnotationHelper
+class OPENMS_DLLAPI FragmentAnnotationHelper
 {
   public:
 
@@ -224,8 +225,7 @@ class FragmentAnnotationHelper
     }
   }
 };
+} // namespace Internal
+} // namespace OpenMS
 
-}
-
-#endif
 

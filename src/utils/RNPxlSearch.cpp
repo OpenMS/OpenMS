@@ -88,6 +88,7 @@
 //#define DEBUG_RNPXLSEARCH 
 
 using namespace OpenMS;
+using namespace OpenMS::Internal;
 using namespace std;
 
 class RNPxlSearch :
