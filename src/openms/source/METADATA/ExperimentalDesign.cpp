@@ -375,49 +375,40 @@ namespace OpenMS
 
     void ExperimentalDesign::isValid_()
     {
+      std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_label_set;
+      std::set< std::tuple< std::string, unsigned > > path_label_set;
+      std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_label_to_sample;
 
-    std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_label_set;
-    std::set< std::tuple< std::string, unsigned > > path_label_set;
-    std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_label_to_sample;
-
-    for (const MSFileSectionEntry& row : msfile_section_)
-    {
-      // FRACTIONGROUP__FRACTION_LABEL TUPLE
-      std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
-      errorIfAlreadyExists(
-        fractiongroup_fraction_label_set,
-        fractiongroup_fraction_label,
-      "(Fraction Group, Fraction, Label) combination can only appear once");
-
-      // PATH_LABEL_TUPLE
-      std::tuple<std::string, unsigned> path_label = std::make_tuple(row.path, row.label);
-      errorIfAlreadyExists(
-        path_label_set,
-        path_label,
-        "(Path, Label) combination can only appear once");
-
-      // FRACTIONGROUP_LABEL TUPLE
-      std::tuple<unsigned, unsigned> fractiongroup_label = std::make_tuple(row.fraction_group, row.label);
-      fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
-
-      if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
+      for (const MSFileSectionEntry& row : msfile_section_)
       {
-        throw Exception::MissingInformation(
-          __FILE__,
-          __LINE__,
-          OPENMS_PRETTY_FUNCTION,
-          "Multiple Samples encountered for the same fraction group and the same label");
+        // FRACTIONGROUP__FRACTION_LABEL TUPLE
+        std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
+        errorIfAlreadyExists(
+          fractiongroup_fraction_label_set,
+          fractiongroup_fraction_label,
+        "(Fraction Group, Fraction, Label) combination can only appear once");
+
+        // PATH_LABEL_TUPLE
+        std::tuple<std::string, unsigned> path_label = std::make_tuple(row.path, row.label);
+        errorIfAlreadyExists(
+          path_label_set,
+          path_label,
+          "(Path, Label) combination can only appear once");
+
+        // FRACTIONGROUP_LABEL TUPLE
+        std::tuple<unsigned, unsigned> fractiongroup_label = std::make_tuple(row.fraction_group, row.label);
+        fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
+
+        if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Multiple Samples encountered for the same fraction group and the same label");
+        }
       }
     }
-    ed.setRunSection(rows);
-    LOG_INFO << "Experimental design (Identification derived):\n" 
-       << "  files: " << ed.getNumberOfMSFiles()
-       << "  fractions: " << ed.getNumberOfFractions()
-       << "  channels: " << ed.getNumberOfChannels()
-       << "  samples: " << ed.getNumberOfSamples() << "\n"  
-       << endl;
-    return ed;
-  }
 
   std::vector<unsigned> ExperimentalDesign::getLabels_() const
   {

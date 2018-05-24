@@ -526,8 +526,8 @@ namespace OpenMS
         // so we need to convert between them
         //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
         size_t row = f.getMapIndex();  
-        size_t fraction = ed.getRunSection()[row].fraction;
-        size_t sample = ed.getRunSection()[row].sample;
+        size_t fraction = ed.getMSFileSection()[row].fraction;
+        size_t sample = ed.getMSFileSection()[row].sample;
         quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
       }
     }
@@ -588,9 +588,9 @@ namespace OpenMS
       const String & ms_file_path = identifier_to_ms_file[p.getIdentifier()];
 
       // determine sample and fraction by MS file name (stored in protein identification)
-      const ExperimentalDesign::RunRows & run_section = ed.getRunSection();
+      const ExperimentalDesign::MSFileSection & run_section = ed.getMSFileSection();
       auto row = find_if(begin(run_section), end(run_section), 
-        [&ms_file_path](const ExperimentalDesign::RunRow& r)
+        [&ms_file_path](const ExperimentalDesign::MSFileSectionEntry& r)
           { 
             return r.path == ms_file_path; 
           });
