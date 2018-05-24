@@ -38,6 +38,7 @@
 ///////////////////////////
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -259,7 +260,53 @@ END_SECTION
 
 START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)))
 {
-  // TODO
+  ConsensusXMLFile cfile;
+  ConsensusMap cmap; 
+  cfile.load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_3.consensusXML"), cmap);
+  /* example consensusXML for TMT10Plex
+  	<mapList count="10">
+		<map id="0" name="C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt10plex_126" size="6">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127726"/>
+		</map>
+		<map id="1" name="C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt10plex_127N" size="6">
+			<UserParam type="string" name="channel_name" value="127N"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124761"/>
+		</map>
+    ...
+  */
+  ExperimentalDesign ed_tmt10 = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(ed_tmt10.getNumberOfLabels(), 10);
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).label, 1); // "channel_id" + 1
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).label, 10); // "channel_id" + 1
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).fraction, 1); 
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).fraction, 1);
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).sample, 10);
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");    
+
+  cmap.clear();
+  cfile.load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_4.consensusXML"), cmap);
+  ExperimentalDesign ed_dimethyl = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(ed_dimethyl.getNumberOfLabels(), 10);
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).label, 1); // "channel_id" + 1
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).label, 2); // "channel_id" + 1
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).fraction, 1); 
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).fraction, 1);
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).sample, 2);
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");    
+  
 }
 END_SECTION
 

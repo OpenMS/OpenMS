@@ -78,19 +78,26 @@ namespace OpenMS
       // path of the original MS run (mzML / raw file)
       StringList ms_run_paths;
       cm.getPrimaryMSRunPath(ms_run_paths);
-
-      // no fractionation -> as many fraction_groups as samples
+      
       // each consensus element corresponds to one sample abundance
       size_t sample(1);
       ExperimentalDesign::MSFileSection msfile_section;
-      for (const auto &f : ms_run_paths)
+      for (const auto &f : cm.getFileDescriptions())
       {
         ExperimentalDesign::MSFileSectionEntry r;
-        r.path = f;
-        r.fraction = 1;
+        r.path = f.second.filename;
+        r.fraction = f.second.fraction;
         r.sample = sample;
-        r.fraction_group = sample;
-        r.label = 1; // TODO MULTIPLEXING: adapt for non-label-free
+        r.fraction_group = f.second.fraction_group;
+        if (f.second.metaValueExists("channel_id"))
+        {
+          r.label = static_cast<unsigned int>(f.second.getMetaValue("channel_id")) + 1;
+        }
+        else
+        {
+          LOG_WARN << "No channel id annotated in consensusXML. Assuming label-free." << endl;
+          r.label = 1;
+        }
         msfile_section.push_back(r);
         ++sample;
       }
