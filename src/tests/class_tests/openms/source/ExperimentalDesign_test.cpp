@@ -38,6 +38,8 @@
 ///////////////////////////
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -74,6 +76,9 @@ END_SECTION
 
 START_SECTION((ExperimentalDesign(MSFileSection msfile_section, SampleSection sample_section)))
 {
+  ExperimentalDesign::MSFileSection fs;
+  ExperimentalDesign::SampleSection ss;
+  ExperimentalDesign ed(fs, ss);
 }
 END_SECTION
 
@@ -256,55 +261,104 @@ END_SECTION
 
 START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)))
 {
-  // TODO
+  ConsensusXMLFile cfile;
+  ConsensusMap cmap; 
+  cfile.load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_3.consensusXML"), cmap);
+  /* example consensusXML for TMT10Plex
+  	<mapList count="10">
+		<map id="0" name="C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt10plex_126" size="6">
+			<UserParam type="string" name="channel_name" value="126"/>
+			<UserParam type="int" name="channel_id" value="0"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="126.127726"/>
+		</map>
+		<map id="1" name="C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt10plex_127N" size="6">
+			<UserParam type="string" name="channel_name" value="127N"/>
+			<UserParam type="int" name="channel_id" value="1"/>
+			<UserParam type="string" name="channel_description" value=""/>
+			<UserParam type="float" name="channel_center" value="127.124761"/>
+		</map>
+    ...
+  */
+  ExperimentalDesign ed_tmt10 = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(ed_tmt10.getNumberOfLabels(), 10);
+  TEST_EQUAL(ed_tmt10.getNumberOfMSFiles(), 1);
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).label, 1); // "channel_id" + 1
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).label, 10); // "channel_id" + 1
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).fraction, 1); 
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).fraction, 1);
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).sample, 10);
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(1).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");    
+
+  /* example consensusXML for dimethyl labeling (FeatureFinderMultiplex) 
+    <mapList count="2">
+      <map id="0" name="/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML" label="Dimethyl0" size="2">
+        <UserParam type="int" name="channel_id" value="0"/>
+      </map>
+      <map id="1" name="/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML" label="Dimethyl8" size="2">
+        <UserParam type="int" name="channel_id" value="1"/>
+      </map>
+    </mapList>
+  */
+  cmap.clear();
+  cfile.load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_4.consensusXML"), cmap);
+  ExperimentalDesign ed_dimethyl = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(ed_dimethyl.getNumberOfLabels(), 2);
+  TEST_EQUAL(ed_dimethyl.getNumberOfMSFiles(), 1);
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).label, 1); // "channel_id" + 1
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).label, 2); // "channel_id" + 1
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).fraction, 1); 
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).fraction, 1);
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).sample, 2);
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");    
+
+  /* example consensusXML for label-free (FeatureLinker*) 
+    <mapList count="2">
+      <map id="0" name="raw_file1.mzML" unique_id="8706403922746272921" label="" size="470">
+      </map>
+      <map id="1" name="raw_file2.mzML" unique_id="10253060449047408476" label="" size="423">
+      </map>
+    </mapList>
+  */
+  cmap.clear();
+  cfile.load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_5.consensusXML"), cmap);
+  ExperimentalDesign ed_labelfree = ExperimentalDesign::fromConsensusMap(cmap);
+  TEST_EQUAL(ed_labelfree.getNumberOfLabels(), 1);
+  TEST_EQUAL(ed_labelfree.getNumberOfMSFiles(), 2);
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).label, 1); // "channel_id" + 1
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).label, 1); // "channel_id" + 1
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction, 1); 
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).fraction, 1);
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).sample, 2);
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "raw_file1.mzML");
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).path, "raw_file2.mzML");    
 }
 END_SECTION
 
 START_SECTION((static ExperimentalDesign fromFeatureMap(const FeatureMap &f)))
 {
-  // TODO
-}
-END_SECTION
-
-START_SECTION((static ExperimentalDesign fromIdentifications(const std::vector< ProteinIdentification > &proteins)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION(([ExperimentalDesign::SampleSection] SampleSection(std::vector< std::vector< String > > _content, std::map< unsigned, Size > sample_to_rowindex, std::map< String, Size > columnname_to_columnindex)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION(([ExperimentalDesign::SampleSection] std::set< unsigned > getSamples() const ))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION(([ExperimentalDesign::SampleSection] std::set< String > getFactors() const ))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION(([ExperimentalDesign::SampleSection] bool hasSample(unsigned sample) const ))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION(([ExperimentalDesign::SampleSection] bool hasFactor(const String &factor) const ))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION(([ExperimentalDesign::SampleSection] String getFactorValue(unsigned sample, const String &factor)))
-{
-  // TODO
+  FeatureXMLFile ffile;
+  FeatureMap fmap;
+  ffile.load(OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_6.featureXML"), fmap);
+  ExperimentalDesign ed_labelfree = ExperimentalDesign::fromFeatureMap(fmap);
+  TEST_EQUAL(ed_labelfree.getNumberOfLabels(), 1);
+  TEST_EQUAL(ed_labelfree.getNumberOfMSFiles(), 1);
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).label, 1); // "channel_id" + 1
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction_group, 1); // only one fraction
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction, 1); 
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "file://C:/raw_file1.mzML");
 }
 END_SECTION
 
@@ -312,5 +366,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-

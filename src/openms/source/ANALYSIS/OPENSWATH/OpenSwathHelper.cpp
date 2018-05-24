@@ -124,7 +124,7 @@ namespace OpenMS
     }
   }
 
-  std::pair<double,double> OpenSwathHelper::estimateRTRange(OpenSwath::LightTargetedExperiment & exp)
+  std::pair<double,double> OpenSwathHelper::estimateRTRange(const OpenSwath::LightTargetedExperiment & exp)
   {
     if (exp.getCompounds().empty()) 
     {
@@ -142,17 +142,16 @@ namespace OpenMS
   }
 
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
-      OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+      const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
       bool useQualCutoff, double qualCutoff)
   {
     std::map<std::string, double> result;
-    for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-        trgroup_it != transition_group_map.end(); ++trgroup_it)
+    for (const auto & trgroup_it : transition_group_map)
     {
-      if (trgroup_it->second.getFeatures().empty() ) {continue;}
+      if (trgroup_it.second.getFeatures().empty() ) {continue;}
 
       // Find the feature with the highest score
-      const MRMFeature & bestf = trgroup_it->second.getBestFeature();
+      auto bestf = trgroup_it.second.getBestFeature();
 
       // Skip if we did not find a feature or do not exceed a certain quality
       if (useQualCutoff && bestf.getOverallQuality() < qualCutoff ) 
@@ -161,7 +160,7 @@ namespace OpenMS
       }
 
       // If we have a found a best feature, add it to the vector
-      String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
+      String pepref = trgroup_it.second.getTransitions()[0].getPeptideRef();
       result[ pepref ] = bestf.getRT();
     }
     return result;

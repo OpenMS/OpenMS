@@ -67,6 +67,7 @@ START_SECTION((static ExperimentalDesign load(const String &tsv_file, bool requi
 {
 ExperimentalDesign design = ExperimentalDesignFile::load(
   OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_1.tsv"), false);
+  // tested in ExperimentalDesign_test
 }
 END_SECTION
 

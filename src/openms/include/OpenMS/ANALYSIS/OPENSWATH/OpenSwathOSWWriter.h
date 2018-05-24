@@ -67,7 +67,11 @@ namespace OpenMS
 
   public:
 
-    OpenSwathOSWWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false, bool sonar = false, bool uis_scores = false) :
+    OpenSwathOSWWriter(const String& output_filename,
+                       const String& input_filename = "inputfile",
+                       bool ms1_scores = false,
+                       bool sonar = false,
+                       bool uis_scores = false) :
       output_filename_(output_filename),
       input_filename_(input_filename),
       run_id_(OpenMS::UniqueIdGenerator::getUniqueId()),
@@ -77,7 +81,8 @@ namespace OpenMS
       enable_uis_scoring_(uis_scores)
       {}
 
-    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName){
+    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
+    {
       int i;
       for(i=0; i<argc; i++)
       {
@@ -87,7 +92,7 @@ namespace OpenMS
       return(0);
     }
 
-    bool isActive() 
+    bool isActive() const
     {
       return doWrite_;
     }
@@ -239,7 +244,7 @@ namespace OpenMS
      */
     String prepareLine(const OpenSwath::LightCompound& /* pep */,
         const OpenSwath::LightTransition* /* transition */,
-        FeatureMap& output, String id)
+        FeatureMap& output, String id) const
     {
       std::stringstream sql, sql_feature, sql_feature_ms1, sql_feature_ms2, sql_feature_ms2_transition, sql_feature_uis_transition;
 
@@ -494,7 +499,7 @@ namespace OpenMS
      * @note Only call inside an OpenMP critical section
      *
      */
-    void writeLines(std::vector<String> to_osw_output)
+    void writeLines(const std::vector<String>& to_osw_output)
     {
       sqlite3 *db;
       char *zErrMsg = nullptr;
@@ -530,5 +535,4 @@ namespace OpenMS
   };
 
 }
-
 

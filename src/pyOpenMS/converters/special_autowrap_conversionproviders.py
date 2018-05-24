@@ -172,6 +172,11 @@ class OpenMSStringConverter(TypeConverterBase):
         return ""
 
     def type_check_expression(self, cpp_type, argument_var):
+        # Need to treat ptr and reference differently as these may be modified
+        # and the results needs to be available in Python
+        if (cpp_type.is_ptr or cpp_type.is_ref) and not cpp_type.is_const:
+            return "isinstance(%s, String)" % (argument_var)
+
         # Allow conversion from unicode str, bytes and OpenMS::String
         return "(isinstance(%s, str) or isinstance(%s, unicode) or isinstance(%s, bytes) or isinstance(%s, String))" % (
             argument_var,argument_var,argument_var, argument_var)
@@ -182,8 +187,12 @@ class OpenMSStringConverter(TypeConverterBase):
         call_as = "deref((convString(%s)).get())" % argument_var
         cleanup = ""
         code = ""
-        if cpp_type.is_ptr:
-            call_as = "(convString(%s)).get()" % argument_var
+        # Need to treat ptr and reference differently as these may be modified
+        # and the results needs to be available in Python
+        if cpp_type.is_ptr and not cpp_type.is_const:
+            call_as = "((<String>%s).inst.get())" % argument_var
+        if cpp_type.is_ref and not cpp_type.is_const:
+            call_as = "deref((<String>%s).inst.get())" % argument_var
         return code, call_as, cleanup
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):

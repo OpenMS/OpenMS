@@ -44,7 +44,7 @@ namespace OpenMS
 {
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersRANSAC(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+      const std::vector<std::pair<double, double> >& pairs, double rsq_limit,
       double coverage_limit, size_t max_iterations, double max_rt_threshold, size_t sampling_size)
   {
     size_t n = sampling_size;
@@ -90,7 +90,7 @@ namespace OpenMS
     return new_pairs;
   }
 
-  int MRMRTNormalizer::jackknifeOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::jackknifeOutlierCandidate_(const std::vector<double>& x, const std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and rsq is calculated for
     // the data points with one removed pair. The combination resulting in
@@ -113,7 +113,7 @@ namespace OpenMS
     return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
   }
 
-  int MRMRTNormalizer::residualOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::residualOutlierCandidate_(const std::vector<double>& x, const std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and residuals are calculated for
     // the data points. The one with highest residual error is selected as the outlier candidate. The
@@ -133,8 +133,8 @@ namespace OpenMS
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersIterative(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
-      double coverage_limit, bool use_chauvenet, std::string method)
+      const std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+      double coverage_limit, bool use_chauvenet, const std::string& method)
   {
     if (pairs.size() < 3)
     {
@@ -148,7 +148,7 @@ namespace OpenMS
 
     std::vector<std::pair<double, double> > pairs_corrected;
 
-    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    for (auto it = pairs.begin(); it != pairs.end(); ++it)
     {
       x.push_back(it->first);
       y.push_back(it->second);
@@ -172,7 +172,7 @@ namespace OpenMS
         std::vector<double> residuals;
 
         // calculate residuals
-        for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+        for (auto it = pairs.begin(); it != pairs.end(); ++it)
         {
           double intercept = lin_reg.getIntercept();
           double slope = (double)lin_reg.getSlope();
@@ -244,7 +244,7 @@ namespace OpenMS
     return pairs_corrected;
   }
 
-  bool MRMRTNormalizer::chauvenet(std::vector<double>& residuals, int pos)
+  bool MRMRTNormalizer::chauvenet(const std::vector<double>& residuals, int pos)
   {
     double criterion = 1.0 / (2 * residuals.size());
     double prob = MRMRTNormalizer::chauvenet_probability(residuals, pos);
@@ -260,7 +260,7 @@ namespace OpenMS
     }
   }
 
-  double MRMRTNormalizer::chauvenet_probability(std::vector<double>& residuals, int pos)
+  double MRMRTNormalizer::chauvenet_probability(const std::vector<double>& residuals, int pos)
   {
     double mean = std::accumulate(residuals.begin(), residuals.end(), 0.0) / residuals.size();
     double stdev = std::sqrt(

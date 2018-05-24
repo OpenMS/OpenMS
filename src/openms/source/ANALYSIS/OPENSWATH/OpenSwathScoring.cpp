@@ -64,7 +64,7 @@ namespace OpenMS
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
     int add_up_spectra, double spacing_for_spectra_resampling,
-    OpenSwath_Scores_Usage & su)
+    const OpenSwath_Scores_Usage & su)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
@@ -185,7 +185,7 @@ namespace OpenMS
 
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
-                                              std::vector<OpenSwath::SwathMap> swath_maps,
+                                              const std::vector<OpenSwath::SwathMap> swath_maps,
                                               OpenMS::DIAScoring & diascoring,
                                               OpenSwath_Scores & scores)
   {
@@ -369,7 +369,7 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-      std::vector<double>& normalized_library_intensity)
+                                                            std::vector<double>& normalized_library_intensity)
   {
     normalized_library_intensity.clear();
     for (Size i = 0; i < transitions.size(); i++)

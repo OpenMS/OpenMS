@@ -131,7 +131,7 @@ namespace OpenMS
     pi_.setParameters(param_.copy("PeakIntegrator:", true));
   }
 
-  void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
+  void MRMTransitionGroupPicker::findLargestPeak(const std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
   {
     double largest = 0.0;
     ChromatogramPeak largest_pos;

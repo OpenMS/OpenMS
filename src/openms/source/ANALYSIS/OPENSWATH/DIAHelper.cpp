@@ -50,12 +50,11 @@ namespace OpenMS
   namespace DIAHelpers
   {
     // for SWATH -- get the theoretical b and y series masses for a sequence
-    void getBYSeries(AASequence& a, //
+    void getBYSeries(const AASequence& a, //
                      std::vector<double>& bseries, //
                      std::vector<double>& yseries, //
-                     TheoreticalSpectrumGenerator * generator,
-                     UInt charge
-                     )
+                     TheoreticalSpectrumGenerator const * generator,
+                     UInt charge)
     {
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
       //too slow!
@@ -83,8 +82,8 @@ namespace OpenMS
     } // end getBYSeries
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
-    void getTheorMasses(AASequence& a, std::vector<double>& masses,
-                        TheoreticalSpectrumGenerator * generator,
+    void getTheorMasses(const AASequence& a, std::vector<double>& masses,
+                        TheoreticalSpectrumGenerator const * generator,
                         UInt charge)
     {
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
@@ -104,9 +103,9 @@ namespace OpenMS
       }
     } // end getBYSeries
 
-    void getAveragineIsotopeDistribution(double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec, double charge,
-                                         int nr_isotopes, double mannmass)
+    void getAveragineIsotopeDistribution(const double product_mz,
+                                         std::vector<std::pair<double, double> >& isotopesSpec, const double charge,
+                                         const int nr_isotopes, const double mannmass)
     {
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
@@ -124,10 +123,10 @@ namespace OpenMS
     } //end of dia_isotope_corr_sub
 
     //simulate spectrum from AASequence
-    void simulateSpectrumFromAASequence(AASequence& aa,
+    void simulateSpectrumFromAASequence(const AASequence& aa,
                                         std::vector<double>& firstIsotopeMasses, //[out]
                                         std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                                        TheoreticalSpectrumGenerator * generator, double charge)
+                                        TheoreticalSpectrumGenerator const * generator, double charge)
     {
       getTheorMasses(aa, firstIsotopeMasses, generator, charge);
       for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)

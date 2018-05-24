@@ -109,9 +109,9 @@ namespace OpenMS
       SampleSection() = default;
 
       SampleSection(
-        std::vector< std::vector < String > > _content,
-        std::map< unsigned, Size > _sample_to_rowindex,
-        std::map< String, Size > _columnname_to_columnindex
+        std::vector< std::vector < String > > content,
+        std::map< unsigned, Size > sample_to_rowindex,
+        std::map< String, Size > columnname_to_columnindex
       );
 
       // Get set of all samples that are present in the sample section
