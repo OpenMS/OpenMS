@@ -100,15 +100,20 @@ namespace OpenMS
     setMetaValue(score_name, score);
   }
 
-  void MRMFeature::addFeature(Feature & feature, const String& key)
+  void MRMFeature::addFeature(const Feature & feature, const String& key)
   {
     features_.push_back(feature);
     feature_map_[key] = Int(features_.size()) - 1;
   }
 
-  Feature & MRMFeature::getFeature(String key) 
+  Feature & MRMFeature::getFeature(const String& key) 
   {
     return features_.at(feature_map_[key]);
+  }
+
+  const Feature & MRMFeature::getFeature(const String& key) const 
+  {
+    return features_.at(feature_map_.at(key));
   }
 
   const std::vector<Feature> & MRMFeature::getFeatures() const
@@ -124,7 +129,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeature::addPrecursorFeature(Feature & feature, const String& key)
+  void MRMFeature::addPrecursorFeature(const Feature & feature, const String& key)
   {
     precursor_features_.push_back(feature);
     precursor_feature_map_[key] = Int(precursor_features_.size()) - 1;
@@ -141,6 +146,11 @@ namespace OpenMS
   Feature & MRMFeature::getPrecursorFeature(String key)
   {
     return precursor_features_.at(precursor_feature_map_[key]);
+  }
+
+  const Feature & MRMFeature::getPrecursorFeature(String key) const
+  {
+    return precursor_features_.at(precursor_feature_map_.at(key));
   }
 
 }

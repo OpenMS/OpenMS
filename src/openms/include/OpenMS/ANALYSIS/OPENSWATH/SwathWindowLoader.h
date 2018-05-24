@@ -73,7 +73,8 @@ namespace OpenMS
      *
      */
     static void annotateSwathMapsFromFile(const std::string & filename,
-      std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort);
+                                          std::vector< OpenSwath::SwathMap >& swath_maps,
+                                          bool doSort);
 
     /**
      * @brief Reading a tab delimited file specifying the SWATH windows
@@ -92,9 +93,8 @@ namespace OpenMS
      *
      */
     static void readSwathWindows(const std::string & filename,
-      std::vector<double> & swath_prec_lower_,
-      std::vector<double> & swath_prec_upper_ );
+                                 std::vector<double> & swath_prec_lower_,
+                                 std::vector<double> & swath_prec_upper_ );
   };
 }
-
 

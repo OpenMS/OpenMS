@@ -655,8 +655,8 @@ namespace OpenMS
     for (IsotopeDistribution::const_iterator iter = pm.getIsotopeDistribution().begin();
          iter != pm.getIsotopeDistribution().end(); ++iter)
     {
-      point.setMZ(iter->first);
-      point.setIntensity(iter->second);
+      point.setMZ(iter->getMZ());
+      point.setIntensity(iter->getIntensity());
 
       if (point.getIntensity() <= 0.0)
         continue;
@@ -733,7 +733,7 @@ namespace OpenMS
       for (IsotopeDistribution::const_iterator iter = iso_dist.begin(); iter != iso_dist.end(); ++iter, ++iso_pos)
       {
         point.setMZ(mz_mono + (iso_pos * iso_peakdist / q));
-        point.setIntensity(iter->second * rt_intensity * distortion);
+        point.setIntensity(iter->getIntensity() * rt_intensity * distortion);
 
         if (point.getIntensity() <= 0.0)
           continue;
@@ -813,7 +813,7 @@ namespace OpenMS
     for (IsotopeDistribution::iterator iter = iso_dist.begin();
          iter != iso_dist.end(); ++iter)
     {
-      const SimTypes::SimCoordinateType mz = mz_mono + double(iter->first - iso_dist.begin()->first) / q; // this is only an approximated trace' m/z position (as we do assume 1Da space between them)
+      const SimTypes::SimCoordinateType mz = mz_mono + double(iter->getMZ() - iso_dist.begin()->getMZ()) / q; // this is only an approximated trace' m/z position (as we do assume 1Da space between them)
 
       SimTypes::SimCoordinateType rt_min =  std::numeric_limits<SimTypes::SimCoordinateType>::max();
       SimTypes::SimCoordinateType rt_max = -std::numeric_limits<SimTypes::SimCoordinateType>::max();
@@ -849,7 +849,7 @@ namespace OpenMS
       hull.addPoints(points);
       active_feature.getConvexHulls().push_back(hull);
 
-      isotope_intensities.push_back(iter->second);
+      isotope_intensities.push_back(iter->getIntensity());
     }
 
     active_feature.setMetaValue("isotope_intensities", isotope_intensities);

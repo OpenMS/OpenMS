@@ -700,7 +700,15 @@ namespace OpenMS
 
     MRMTransitionGroupPicker trgroup_picker;
 
-    trgroup_picker.setParameters(feature_finder_param.copy("TransitionGroupPicker:", true));
+    Param trgroup_picker_param = feature_finder_param.copy("TransitionGroupPicker:", true);
+
+    // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score
+    if ((bool)feature_finder_param.getValue("Scores:use_total_mi_score").toBool())
+    {
+      trgroup_picker_param.setValue("compute_total_mi", "true");
+    }
+
+    trgroup_picker.setParameters(trgroup_picker_param);
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
@@ -1180,10 +1188,10 @@ namespace OpenMS
 
 
     void OpenSwathWorkflowSonar::computeSonarWindows_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                              double & sonar_winsize,
-                              double & sonar_start,
-                              double & sonar_end,
-                              int & sonar_total_win)
+                                                      double & sonar_winsize,
+                                                      double & sonar_start,
+                                                      double & sonar_end,
+                                                      int & sonar_total_win)
     {
       sonar_winsize = -1;
       sonar_start = std::numeric_limits<double>::max();

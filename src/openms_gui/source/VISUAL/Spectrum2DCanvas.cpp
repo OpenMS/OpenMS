@@ -147,7 +147,7 @@ namespace OpenMS
     else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
     {
       const LayerData & layer = getCurrentLayer();
-      const ExperimentSharedPtrType exp = layer.getPeakData();
+      const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
       // create iterator on chromatogram spectrum passed by PeakIndex
       vector<MSChromatogram >::const_iterator chrom_it = exp->getChromatograms().begin();
@@ -166,7 +166,7 @@ namespace OpenMS
     if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) // highlight: chromatogram
     {
       const LayerData & layer = getCurrentLayer();
-      const ExperimentSharedPtrType exp = layer.getPeakData();
+      const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
       vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin();
       iter += peak.spectrum;
@@ -1227,11 +1227,11 @@ namespace OpenMS
 
     current_layer_ = getLayerCount() - 1;
 
-    if (layers_.back().type == LayerData::DT_PEAK)   //peak data
+    if (layers_.back().type == LayerData::DT_PEAK)   // peak data
     {
       update_buffer_ = true;
-      //Abort if no data points are contained
-      if ((currentPeakData_()->size() == 0 || currentPeakData_()->getSize() == 0) && currentPeakData_()->getDataRange().isEmpty())
+      // Abort if no data points are contained (note that all data could be on disk)
+      if (getCurrentLayer_().getPeakData()->size() == 0)
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
@@ -1241,12 +1241,12 @@ namespace OpenMS
         QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
         return false;
       }
-      if ((currentPeakData_()->getSize() == 0) && (!currentPeakData_()->getDataRange().isEmpty()))
+      if ((getCurrentLayer_().getPeakData()->getSize() == 0) && (!getCurrentLayer_().getPeakData()->getDataRange().isEmpty()))
       {
         setLayerFlag(LayerData::P_PRECURSORS, true); // show precursors if no MS1 data is contained
       }
     }
-    else if (layers_.back().type == LayerData::DT_FEATURE)  //feature data
+    else if (layers_.back().type == LayerData::DT_FEATURE)  // feature data
     {
       getCurrentLayer_().getFeatureMap()->updateRanges();
       setLayerFlag(LayerData::F_HULL, true);
@@ -1263,7 +1263,7 @@ namespace OpenMS
         return false;
       }
     }
-    else if (layers_.back().type == LayerData::DT_CONSENSUS)  //consensus feature data
+    else if (layers_.back().type == LayerData::DT_CONSENSUS)  // consensus feature data
     {
       getCurrentLayer_().getConsensusMap()->updateRanges();
 
@@ -1277,17 +1277,15 @@ namespace OpenMS
         return false;
       }
     }
-    else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  //chromatogram data
+    else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  // chromatogram data
     {
-
-      //TODO CHROM
-      currentPeakData_()->sortChromatograms(true);
-      currentPeakData_()->updateRanges(1);
+      getCurrentLayer_().getPeakDataMuteable()->sortChromatograms(true);
+      getCurrentLayer_().getPeakDataMuteable()->updateRanges(1);
 
       update_buffer_ = true;
 
       // abort if no data points are contained
-      if (currentPeakData_()->getChromatograms().empty())
+      if (getCurrentLayer_().getPeakData()->getChromatograms().empty())
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)

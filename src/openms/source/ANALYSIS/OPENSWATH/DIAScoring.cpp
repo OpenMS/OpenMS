@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
@@ -206,7 +206,7 @@ namespace OpenMS
 
   /// Precursor isotope scores
   void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state,
-                                          double& isotope_corr, double& isotope_overlap, std::string sum_formula)
+                                          double& isotope_corr, double& isotope_overlap, const std::string& sum_formula)
   {
     // collect the potential isotopes of this peak
     double max_ratio;
@@ -292,8 +292,9 @@ namespace OpenMS
   }
 
   void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
-                                          std::map<std::string, double>& intensities, //relative intensities
-                                          double& isotope_corr, double& isotope_overlap)
+                                        std::map<std::string, double>& intensities, //relative intensities
+                                        double& isotope_corr,
+                                        double& isotope_overlap)
   {
     std::vector<double> isotopes_int;
     double max_ratio;
@@ -301,7 +302,7 @@ namespace OpenMS
     for (Size k = 0; k < transitions.size(); k++)
     {
       isotopes_int.clear();
-      String native_id = transitions[k].getNativeID();
+      const String native_id = transitions[k].getNativeID();
       double rel_intensity = intensities[native_id];
 
       // If no charge is given, we assume it to be 1
@@ -382,8 +383,9 @@ namespace OpenMS
   }
 
   double DIAScoring::scoreIsotopePattern_(double product_mz,
-                                          const std::vector<double>& isotopes_int, int putative_fragment_charge,
-                                          std::string sum_formula)
+                                          const std::vector<double>& isotopes_int,
+                                          int putative_fragment_charge,
+                                          const std::string& sum_formula)
   {
     OPENMS_PRECONDITION(putative_fragment_charge != 0, "Charge needs to be set"); // charge can be positive and negative
 
@@ -395,19 +397,19 @@ namespace OpenMS
     {
       // create the theoretical distribution from the sum formula
       EmpiricalFormula empf(sum_formula);
-      isotope_dist = empf.getIsotopeDistribution(dia_nr_isotopes_);
+      isotope_dist = empf.getIsotopeDistribution(CoarseIsotopePatternGenerator(dia_nr_isotopes_));
     }
     else
     {
       // create the theoretical distribution from the peptide weight
-      isotope_dist.setMaxIsotope(dia_nr_isotopes_ + 1);
-      isotope_dist.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
+      CoarseIsotopePatternGenerator solver(dia_nr_isotopes_ + 1);
+      isotope_dist = solver.estimateFromPeptideWeight(std::fabs(product_mz * putative_fragment_charge));
     }
 
 
     for (IsotopeDistribution::Iterator it = isotope_dist.begin(); it != isotope_dist.end(); ++it)
     {
-      isotopes.intensity.push_back(it->second);
+      isotopes.intensity.push_back(it->getIntensity());
     }
     isotopes.optional_begin = 0;
     isotopes.optional_end = dia_nr_isotopes_;

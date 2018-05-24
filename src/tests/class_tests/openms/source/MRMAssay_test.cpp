@@ -54,17 +54,17 @@ class MRMAssay_test :
   public MRMAssay
 {
 public:
-  std::vector<std::string> getMatchingPeptidoforms_test(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold)
+  std::vector<std::string> getMatchingPeptidoforms_test(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold)
   {
     return getMatchingPeptidoforms_(fragment_ion, ions, mz_threshold);
   }
 
-  int getSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
+  int getSwath_test(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz)
   {
     return getSwath_(swathes, precursor_mz);
   }
 
-  bool isInSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
+  bool isInSwath_test(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz)
   {
     return isInSwath_(swathes, precursor_mz, product_mz);
   }
@@ -110,7 +110,7 @@ START_SECTION(~MRMAssay())
 
 END_SECTION
 
-START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> > ions, const double mz_threshold); )
+START_SECTION(std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion, std::vector<std::pair<double, std::string> >& ions, const double mz_threshold); )
 {
   MRMAssay_test mrma;
 

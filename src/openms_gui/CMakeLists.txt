@@ -38,8 +38,7 @@ cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # Find Qt
 #---------------------------------------------------------------------------
-set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg OpenGL Concurrent)
-##TODO Why is Concurrent here, if not linked, but only includes? Header only?
+set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg)
 
 # On macOS the platform plugin of QT requires PrintSupport. We link
 # so it's packaged via the bundling/dependency tools/scripts
@@ -53,35 +52,23 @@ find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Widgets_FOUND)
   message(STATUS "QT5Widgets not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)>' <src-dir>")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ENDIF()
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-
-# The Qt5Widgets_INCLUDES also includes the include directories for
-# dependencies QtCore and QtGui
-include_directories(${Qt5Widgets_INCLUDE_DIRS})
-include_directories(${Qt5Svg_INCLUDE_DIRS})
-include_directories(${Qt5OpenGL_INCLUDE_DIRS})
-include_directories(${Qt5Network_INCLUDE_DIRS})
-include_directories(${Qt5Concurrent_INCLUDE_DIRS})
-
 # We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
+# TODO use the imported targets (e.g. Qt5::Widgets) instead, which add all defs, compile options, include dirs, etc
+# by just adding them to the target_link_libraries command
 add_definitions(${Qt5Widgets_DEFINITIONS})
 add_definitions(${Qt5Svg_DEFINITIONS})
-add_definitions(${Qt5OpenGL_DEFINITIONS})
 add_definitions(${Qt5Network_DEFINITIONS})
-add_definitions(${Qt5Concurrent_DEFINITIONS})
 
 # Executables fail to build with Qt 5 in the default configuration
 # without -fPIE. We add that here.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
-
-# required to indicate we use qtopengl
-set(QT_USE_QTOPENGL TRUE)
 
 # --------------------------------------------------------------------------
 # include custom macros for openms_gui lib
@@ -108,18 +95,6 @@ set(OpenMS_GUI_DEP_LIBRARIES OpenMS
                             )
 set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES "")
 
-# --------------------------------------------------------------------------
-# handle OpenGL and QTPrintSupport on macosx systems
-if(APPLE)
-  find_package(OpenGL REQUIRED)
-  # The QPA plugin libqcocoa.dylib that is silently loaded by QApplication in QT
-  # on Mac depends on QtPrintSupport. If we do not link, it will not be packaged.
-  set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES ${Qt5PrintSupport_LIBRARIES})
-  set(OpenMS_GUI_DEP_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
-                               ${OPENGL_gl_LIBRARY}
-                               ${OPENGL_glu_LIBRARY})
-endif()
-
 #------------------------------------------------------------------------------
 # add the library
 openms_add_library(TARGET_NAME OpenMS_GUI
@@ -127,6 +102,11 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES ${OpenMS_INCLUDE_DIRECTORIES}
+		   # The Qt5Widgets_INCLUDES also includes the include directories for
+		   # dependencies QtCore and QtGui
+                                     ${Qt5Widgets_INCLUDE_DIRS}
+				                             ${Qt5Svg_INCLUDE_DIRS}
+				                             ${Qt5Network_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")

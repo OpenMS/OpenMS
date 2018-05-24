@@ -38,20 +38,21 @@ namespace OpenMS
 {
 
 
-  OpenSwathTSVWriter::OpenSwathTSVWriter(String output_filename, 
-                       String input_filename,
-                       bool ms1_scores, 
-                       bool sonar, 
-                       bool uis_scores) :
-      ofs(output_filename.c_str()),
-      input_filename_(input_filename),
-      doWrite_(!output_filename.empty()),
-      use_ms1_traces_(ms1_scores),
-      sonar_(sonar),
-      enable_uis_scoring_(uis_scores)
-      {}
+  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename, 
+                                         const String& input_filename,
+                                         bool ms1_scores, 
+                                         bool sonar, 
+                                         bool uis_scores) :
+    ofs(output_filename.c_str()),
+    input_filename_(input_filename),
+    doWrite_(!output_filename.empty()),
+    use_ms1_traces_(ms1_scores),
+    sonar_(sonar),
+    enable_uis_scoring_(uis_scores)
+    {
+    }
 
-    bool OpenSwathTSVWriter::isActive()
+    bool OpenSwathTSVWriter::isActive() const
     {
       return doWrite_;
     }
@@ -108,7 +109,7 @@ namespace OpenMS
 
     String OpenSwathTSVWriter::prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id)
+        const FeatureMap& output, const String id) const
     {
         String result = "";
         String decoy = "0"; // 0 = false
@@ -305,5 +306,4 @@ namespace OpenMS
     }
 
 }
-
 

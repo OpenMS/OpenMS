@@ -46,7 +46,7 @@ namespace OpenMS
     const Size n_t(theo_spectrum.size());
     const Size n_e(exp_spectrum.size());
 
-    MorpheusScore::Result psm = MorpheusScore::Result{0, 0, 0, 0, 0};
+    MorpheusScore::Result psm = {};
 
     if (n_t == 0 || n_e == 0) { return psm; }
 
@@ -81,7 +81,8 @@ namespace OpenMS
     // similar to above but we now make sure that the intensity of every matched experimental peak is summed up to form match_intensity
     t = 0; 
     e = 0;
-    double match_intensity(0);
+    double match_intensity(0.0);
+    double sum_error(0.0);
 
     while (t < n_t && e < n_e)
     {
@@ -92,6 +93,7 @@ namespace OpenMS
       if (fabs(d) <= max_dist_dalton) // match in tolerance window? 
       {
         match_intensity += exp_spectrum[e].getIntensity();
+        sum_error += fabs(d);
         ++e; // sum up experimental peak intensity only once
       }
       else if (d < 0) // exp. peak is left of theo. peak (outside of tolerance window)
@@ -111,6 +113,7 @@ namespace OpenMS
     psm.matches = matches;
     psm.MIC = match_intensity;
     psm.TIC = total_intensity;
+    psm.err = matches > 0 ? sum_error / static_cast<double>(matches) : 1e10;
     return psm;
   }
 }

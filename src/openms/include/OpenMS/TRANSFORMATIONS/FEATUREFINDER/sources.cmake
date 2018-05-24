@@ -21,6 +21,7 @@ FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
 FeatureFinderIdentificationAlgorithm.h
+FeatureFinderMultiplexAlgorithm.h
 FeatureFinderDefs.h
 Fitter1D.h
 GaussFitter1D.h
@@ -38,13 +39,14 @@ ModelDescription.h
 MultiplexClustering.h
 MultiplexDeltaMasses.h
 MultiplexDeltaMassesGenerator.h
+MultiplexFilteredMSExperiment.h
+MultiplexFilteredPeak.h
 MultiplexFiltering.h
 MultiplexFilteringCentroided.h
 MultiplexFilteringProfile.h
-MultiplexFilterResult.h
-MultiplexFilterResultPeak.h
-MultiplexFilterResultRaw.h
 MultiplexIsotopicPeakPattern.h
+MultiplexSatelliteCentroided.h
+MultiplexSatelliteProfile.h
 PeakWidthEstimator.h
 ProductModel.h
 SeedListGenerator.h

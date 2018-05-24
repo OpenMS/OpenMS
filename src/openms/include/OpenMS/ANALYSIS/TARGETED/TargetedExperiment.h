@@ -251,7 +251,7 @@ public:
 
       Returns false if the file is valid.
     */
-    bool containsInvalidReferences();
+    bool containsInvalidReferences() const;
 
 protected:
 

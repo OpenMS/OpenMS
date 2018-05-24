@@ -114,9 +114,10 @@ START_SECTION(void store(const String& filename))
 	CsvFile f1,f2;
 	StringList list;
 
-	f1.load(OPENMS_GET_TEST_DATA_PATH("CsvFile_2.csv"),'\t',true); // load from a file
-	f1.store(OPENMS_GET_TEST_DATA_PATH("CsvFile_3.csv"));          // store into a new one
-	f2.load(OPENMS_GET_TEST_DATA_PATH("CsvFile_3.csv"),'\t',true); // load the new one
+	f1.load(OPENMS_GET_TEST_DATA_PATH("CsvFile_2.csv"), '\t', true); // load from a file
+	String tmpfile = File::getTemporaryFile();
+  f1.store(tmpfile);          // store into a new one
+	f2.load(tmpfile, '\t', true); // load the new one
 	f2.getRow(0,list);
 	TEST_EQUAL(list,ListUtils::create<String>("hello,world"))
 	f2.getRow(1,list);
@@ -131,9 +132,10 @@ START_SECTION(void addRow(const StringList& list))
 
 	f1.addRow(ListUtils::create<String>("first,second,third"));
 	f1.addRow(ListUtils::create<String>("4,5,6"));
-
-	f1.store(OPENMS_GET_TEST_DATA_PATH("CsvFile_4.csv"));
-	f2.load(OPENMS_GET_TEST_DATA_PATH("CsvFile_4.csv"), ',', false);
+  
+  String tmpfile = File::getTemporaryFile();
+	f1.store(tmpfile);
+	f2.load(tmpfile, ',', false);
 	f2.getRow(0,list);
 	TEST_EQUAL(list, ListUtils::create<String>("first,second,third"))
 	f2.getRow(1,list);

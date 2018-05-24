@@ -240,6 +240,8 @@ public:
 
       @note Make sure the chromatogram is sorted with respect to retention time.
 
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
+
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
       @param[in] right The right retention time boundary
@@ -259,6 +261,8 @@ public:
       - "intensity_sum" for the simple sum of the intensities
 
       @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
 
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
@@ -280,6 +284,8 @@ public:
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
 
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
+
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
@@ -299,6 +305,8 @@ public:
       - "intensity_sum" for the simple sum of the intensities
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
 
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
@@ -324,6 +332,8 @@ public:
       integratePeak().
 
       @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
 
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
@@ -352,6 +362,8 @@ public:
 
       @note Make sure the chromatogram is sorted with respect to retention time.
 
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
+
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
@@ -379,6 +391,8 @@ public:
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
 
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
+
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
@@ -405,6 +419,8 @@ public:
       integratePeak().
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
 
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
@@ -568,7 +584,6 @@ protected:
     ) const;
 
 private:
-
     /** @name Parameters
       The user is supposed to select a value for these parameters.
       By default, the integration_type_ is "intensity_sum" and the baseline_type_ is "base_to_base".
@@ -625,4 +640,3 @@ private:
     ///@}
   };
 }
-
