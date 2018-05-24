@@ -135,11 +135,8 @@ protected:
     Param alg_param = getParam_().copy("algorithm:", true);
     FalseDiscoveryRate fdr;
 
-    if (!alg_param.empty())
-    {
-      fdr.setParameters(alg_param);
-      writeDebug_("Parameters passed to FalseDiscoveryRate", alg_param, 3);
-    }
+    fdr.setParameters(alg_param);
+    writeDebug_("Parameters passed to FalseDiscoveryRate", alg_param, 3);
 
     // input/output files
     String in = getStringOption_("in");
