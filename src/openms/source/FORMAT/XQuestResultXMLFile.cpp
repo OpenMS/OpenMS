@@ -89,7 +89,7 @@ namespace OpenMS
   }
 
   // version for labeled linkers
-  void XQuestResultXMLFile::writeXQuestXMLSpec(String out_file, String base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  void XQuestResultXMLFile::writeXQuestXMLSpec(const String& out_file, const String& base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
     // XML Header
     std::ofstream spec_xml_file;
@@ -158,7 +158,7 @@ namespace OpenMS
   }
 
   // version for label-free linkers
-  void XQuestResultXMLFile::writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  void XQuestResultXMLFile::writeXQuestXMLSpec(const String& out_file, const String& base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
     // String spec_xml_filename = base_name + "_matched.spec.xml";
     // XML Header
