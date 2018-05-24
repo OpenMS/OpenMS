@@ -56,7 +56,7 @@ namespace OpenMS
   class OPENMS_DLLAPI RNPxlModificationsGenerator
   {
     public:
-      static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides,
+      OPENMS_DLLAPI static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides,
                                                                      std::set<char> can_xl,
                                                                      StringList mappings,
                                                                      StringList modifications,
