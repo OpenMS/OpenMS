@@ -64,7 +64,8 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureLinkerBase :
-  public TOPPBase, public ProgressLogger
+  public TOPPBase, 
+  public ProgressLogger
 {
 
 public:
@@ -147,6 +148,8 @@ protected:
   
     if (file_type == FileTypes::FEATUREXML)
     {
+      LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
+  
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
       //-------------------------------------------------------------
@@ -182,6 +185,7 @@ protected:
       vector<FeatureMap > maps(ins.size());
       FeatureXMLFile f;
       FeatureFileOptions param = f.getOptions();
+
       // to save memory don't load convex hulls and subordinates
       param.setLoadSubordinates(false);
       param.setLoadConvexHull(false);
@@ -194,13 +198,24 @@ protected:
       {
         FeatureMap tmp;
         f.load(ins[i], tmp);
-        out_map.getFileDescriptions()[i].filename = ins[i];
+        StringList ms_runs;
+        tmp.getPrimaryMSRunPath(ms_runs);
+
+        // associate mzML file with map i in consensusXML
+        if (ms_runs.size() > 1 || ms_runs.empty())
+        {
+          LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. " 
+            << ms_runs.size() 
+            << " provided." << endl;
+        }
+        else
+        {
+          out_map.getFileDescriptions()[i].filename = ms_runs.front();
+        }
         out_map.getFileDescriptions()[i].size = tmp.size();
         out_map.getFileDescriptions()[i].unique_id = tmp.getUniqueId();
 
         // copy over information on the primary MS run
-        StringList ms_runs;
-        tmp.getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         // to save memory, remove convex hulls, subordinates:

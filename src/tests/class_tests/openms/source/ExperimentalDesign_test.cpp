@@ -289,8 +289,8 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).fraction, 1);
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).sample, 10);
-  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");
-  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");    
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(1).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");    
 
   /* example consensusXML for dimethyl labeling (FeatureFinderMultiplex) 
   */
@@ -306,8 +306,8 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).fraction, 1);
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).sample, 2);
-  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
-  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");    
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");    
 
   /* example consensusXML for label-free (FeatureLinkerUnlabeledKD) 
   */
@@ -323,8 +323,8 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).fraction, 1);
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).sample, 2);
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test2.mzML");    
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "raw_file1.mzML");
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).path, "raw_file2.mzML");    
 }
 END_SECTION
 
