@@ -74,6 +74,9 @@ END_SECTION
 
 START_SECTION((ExperimentalDesign(MSFileSection msfile_section, SampleSection sample_section)))
 {
+  ExperimentalDesign::MSFileSection fs;
+  ExperimentalDesign::SampleSection ss;
+  ExperimentalDesign ed(fs, ss);
 }
 END_SECTION
 
@@ -272,7 +275,7 @@ START_SECTION((static ExperimentalDesign fromIdentifications(const std::vector< 
 }
 END_SECTION
 
-START_SECTION(([ExperimentalDesign::SampleSection] SampleSection(std::vector< std::vector< String > > _content, std::map< unsigned, Size > sample_to_rowindex, std::map< String, Size > columnname_to_columnindex)))
+START_SECTION(([ExperimentalDesign::SampleSection] SampleSection(std::vector< std::vector< String > > content, std::map< unsigned, Size > sample_to_rowindex, std::map< String, Size > columnname_to_columnindex)))
 {
   // TODO
 }
@@ -312,5 +315,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-

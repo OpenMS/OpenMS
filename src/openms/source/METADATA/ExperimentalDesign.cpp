@@ -51,12 +51,12 @@ namespace OpenMS
     using MSFileSection = std::vector<ExperimentalDesign::MSFileSection>;
 
     ExperimentalDesign::SampleSection::SampleSection(
-        std::vector< std::vector < String > > _content,
-        std::map< unsigned, Size > _sample_to_rowindex,
+        std::vector< std::vector < String > > content,
+        std::map< unsigned, Size > sample_to_rowindex,
         std::map< String, Size > columnname_to_columnindex
       ) : 
-      content_(_content),
-      sample_to_rowindex_(_sample_to_rowindex),
+      content_(content),
+      sample_to_rowindex_(sample_to_rowindex),
       columnname_to_columnindex_(columnname_to_columnindex) 
     {    
     }
