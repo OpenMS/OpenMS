@@ -48,11 +48,13 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI SimpleOpenMSSpectraFactory
   {
-    public:
+  public:
+
     /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
     static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(boost::shared_ptr<OpenMS::PeakMap> exp);
 
-    private:
+  private:
+
     static bool isExperimentCached(boost::shared_ptr<OpenMS::PeakMap> exp);
   };
 }

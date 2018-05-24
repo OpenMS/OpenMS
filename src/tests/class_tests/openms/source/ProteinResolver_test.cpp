@@ -80,12 +80,6 @@ START_SECTION((ProteinResolver& operator=(const ProteinResolver &rhs)))
 }
 END_SECTION
 
-START_SECTION((void resolve(std::vector< ISDGroup > &isd_groups, std::vector< MSDGroup > &msd_groups, std::vector< FASTAFile::FASTAEntry > &protein_data, std::vector< Size > &reindexed_proteins, std::vector< Size > &reindexed_peptides, std::vector< ProteinEntry > &protein_nodes, std::vector< PeptideEntry > &peptide_nodes, std::vector< PeptideIdentification > peptide_identifications, ConsensusMap consensus, EnzymaticDigestion digestor, bool id, UInt min_size)))
-{
-  // TODO
-}
-END_SECTION
-
 START_SECTION((void writeProteinsAndPeptidesmzTab(std::vector< ProteinEntry > &protein_nodes, std::vector< PeptideEntry > &peptide_nodes, std::vector< Size > &reindexed_proteins, std::vector< Size > &reindexed_peptides, std::vector< PeptideIdentification > &peptide_identifications)))
 {
   // TODO

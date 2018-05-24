@@ -64,13 +64,13 @@ namespace OpenMS
 
   public:
 
-    OpenSwathTSVWriter(String output_filename, 
-                       String input_filename = "inputfile",
+    OpenSwathTSVWriter(const String& output_filename, 
+                       const String& input_filename = "inputfile",
                        bool ms1_scores = false, 
                        bool sonar = false, 
                        bool uis_scores = false);
 
-    bool isActive();
+    bool isActive() const;
 
     /**
      * @brief Initializes file by writing TSV header
@@ -94,7 +94,7 @@ namespace OpenMS
      */
     String prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id);
+        const FeatureMap& output, const String id) const;
 
     /**
      * @brief Write data to disk

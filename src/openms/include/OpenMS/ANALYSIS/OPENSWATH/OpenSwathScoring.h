@@ -236,7 +236,7 @@ namespace OpenMS
 
 
     double get_quick_lda_score(double library_corr_, double library_norm_manhattan_, double norm_rt_score_, double xcorr_coelution_score_,
-                               double xcorr_shape_score_, double log_sn_score_)
+                               double xcorr_shape_score_, double log_sn_score_) const
     {
       // some scores based on manual evaluation of 80 chromatograms
       // quick LDA average model on 100 2 x Crossvalidated runs (0.85 TPR/0.17 FDR)
@@ -260,7 +260,7 @@ namespace OpenMS
       return lda_quick_score;
     }
 
-    double calculate_lda_prescore(OpenSwath_Scores scores)
+    double calculate_lda_prescore(OpenSwath_Scores scores) const
     {
 
       // LDA average model on 100 2 x Crossvalidated runs (0.91 TPR/0.20 FDR)
@@ -288,7 +288,7 @@ namespace OpenMS
              scores.elution_model_fit_score          *  1.88443209;
     }
 
-    double calculate_lda_single_transition(OpenSwath_Scores scores)
+    double calculate_lda_single_transition(OpenSwath_Scores scores) const
     {
       // Manually derived scoring model for single transition peakgroups
       return scores.norm_rt_score                    *  7.05496384 +
@@ -296,7 +296,7 @@ namespace OpenMS
              scores.elution_model_fit_score          *  -1.08443209;
     }
 
-    double calculate_swath_lda_prescore(OpenSwath_Scores scores)
+    double calculate_swath_lda_prescore(OpenSwath_Scores scores) const
     {
 
       // Swath - LDA average model on 100 2 x Crossvalidated runs (0.76 TPR/0.20 FDR) [without elution model]
@@ -501,8 +501,9 @@ var_yseries_score   -0.0327896378737766
      *
     */
     void initialize(double rt_normalization_factor,
-      int add_up_spectra, double spacing_for_spectra_resampling,
-      OpenSwath_Scores_Usage & su);
+                    int add_up_spectra,
+                    double spacing_for_spectra_resampling,
+                    const OpenSwath_Scores_Usage & su);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
      *
@@ -628,7 +629,7 @@ var_yseries_score   -0.0327896378737766
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
         const TransitionType & transition,
-        std::vector<OpenSwath::SwathMap> swath_maps,
+        const std::vector<OpenSwath::SwathMap> swath_maps,
         OpenMS::DIAScoring & diascoring,
         OpenSwath_Scores & scores);
 
@@ -636,12 +637,12 @@ var_yseries_score   -0.0327896378737766
      *
      * The intensities are normalized such that the sum to one.
      *
-     * @param transitions The library transition to score the feature against
-     * @param normalized_library_intensity The resulting normalized library intensities
+     * @param[in] transitions The library transition to score the feature against
+     * @param[out] normalized_library_intensity The resulting normalized library intensities
      *
     */
     void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-        std::vector<double>& normalized_library_intensity);
+                                            std::vector<double>& normalized_library_intensity);
 
     /** @brief Returns an averaged spectrum
      *
@@ -649,9 +650,11 @@ var_yseries_score   -0.0327896378737766
      * around the given retention time and return an "averaged" spectrum which
      * may contain less noise.
      *
-     * @param swath_map The map containing the spectra
-     * @param RT The target retention time
-     * @param nr_spectra_to_add How many spectra to add up
+     * @param[in] swath_map The map containing the spectra
+     * @param[in] RT The target retention time
+     * @param[in] nr_spectra_to_add How many spectra to add up
+     *
+     * @return Added up spectrum
      *
     */
     OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
@@ -664,10 +667,11 @@ var_yseries_score   -0.0327896378737766
      * isolation windows) around the given retention time and return an
      * "averaged" spectrum which may contain less noise.
      *
-     * @param swath_maps The maps containing the spectra
-     * @param RT The target retention time
-     * @param nr_spectra_to_add How many spectra to add up
+     * @param[in] swath_maps The maps containing the spectra
+     * @param[in] RT The target retention time
+     * @param[in] nr_spectra_to_add How many spectra to add up
      *
+     * @return Added up spectrum
     */
     OpenSwath::SpectrumPtr getAddedSpectra_(std::vector<OpenSwath::SwathMap> swath_maps,
                                             double RT, int nr_spectra_to_add);
