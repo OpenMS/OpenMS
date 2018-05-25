@@ -50,6 +50,8 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
@@ -135,7 +137,7 @@ protected:
       mzfile2idfile[in[i]] = in_ids[i];
     }
  
-    ExperimentalDesign design = ExperimentalDesign::load(design_file);
+    ExperimentalDesign design = ExperimentalDesignFile::load(design_file, false);
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
     Param pp_param = getParam_().copy("Centroiding:", true);

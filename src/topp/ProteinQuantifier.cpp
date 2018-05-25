@@ -47,7 +47,7 @@
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <cmath>
 
 using namespace OpenMS;
@@ -671,7 +671,7 @@ protected:
   {
     if (!design_file.empty()) // load experimental design file
     {
-      return ExperimentalDesign::load(design_file);
+      return ExperimentalDesignFile::load(design_file, false);
       // TODO FRACTIONS: check if ed sane
     }
     else  // no design file provided
@@ -684,7 +684,7 @@ protected:
   {
     if (!design_file.empty()) // experimental design file
     {
-      return ExperimentalDesign::load(design_file);
+      return ExperimentalDesignFile::load(design_file, false);
       // TODO FRACTIONS: check if ed sane
     }
     else  // no design given
@@ -697,7 +697,7 @@ protected:
   {
     if (!design_file.empty()) // load experimental design file
     {
-      return ExperimentalDesign::load(design_file);
+      return ExperimentalDesignFile::load(design_file, false);
       // TODO FRACTIONS: check if ed sane
     }
     else  // no design file provided
