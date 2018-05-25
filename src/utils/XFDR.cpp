@@ -475,7 +475,7 @@ protected:
 
     // Initialize and validate data structures that are derived from the main peptide identification vector 'all_pep)ids'
     initDataStructures();
-    if ( ! validateDataStructures())
+    if ( !validateDataStructures())
     {
       logFatal("Validation of internal data structures has failed");
       return ILLEGAL_PARAMETERS;
@@ -503,7 +503,7 @@ protected:
       if (   (arg_minborder == -1 || arg_minborder <= error_rel)   // minborder disabled or fullfilled
           && (arg_maxborder == -1 || arg_maxborder >= error_rel)   // maxborder disabled or fullfilled
           && (arg_mindeltas == 0  || delta_score < arg_mindeltas)
-          && (min_ions_matched   >= arg_minionsmatched)
+          && (min_ions_matched  >= (Size)arg_minionsmatched)
           &&  score >= arg_minscore
           && ( (!arg_uniquex) || unique_ids.find(id) == unique_ids.end()) )
       {
