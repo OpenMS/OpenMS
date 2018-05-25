@@ -82,20 +82,19 @@ namespace OpenMS
       // each consensus element corresponds to one sample abundance
       size_t sample(1);
       ExperimentalDesign::MSFileSection msfile_section;
+
+      bool is_fractionated(false);
+      Size fraction_groups_assigned(0);
       
-      const String experiment_type = cm.getExperimentType();
-
-      if (experiment_type == "label-free")
+      // determine vector of ms file names (in order of appearance)
+      vector<String> msfiles;
+      for (const auto &f : cm.getFileDescriptions())
       {
+        if (std::find(msfiles.begin(), msfiles.end(), f.second.filename) == msfiles.end())
+        {
+          msfiles.push_back(f.second.filename);
+        }
       }
-      else if (experiment_type == "labeled_MS1")
-      {
-
-      }
-      else if (experiment_type == "labeled_MS2")
-      {
-
-      } 
 
       for (const auto &f : cm.getFileDescriptions())
       {
@@ -104,22 +103,32 @@ namespace OpenMS
         if (f.second.metaValueExists("fraction"))
         {
           r.fraction = static_cast<unsigned int>(f.second.getMetaValue("fraction"));
+          // store that we are dealing with fractionated data
+          if (r.fraction > 1) { is_fractionated = true; }
+
+          if (f.second.metaValueExists("fraction_group"))
+          {
+            r.fraction_group = static_cast<unsigned int>(f.second.getMetaValue("fraction_group"));
+            ++fraction_groups_assigned;
+          }
+          else
+          {
+            // if we have annotated fractions, we need to also know how these are grouped
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Fractions annotated but no grouping provided.");
+          }
         }
         else
-        {
-          LOG_WARN << "No fraction annotated in consensusXML. Assuming unfractionated." << endl;
+        { // no fractions and fraction group information annotated, deduce from data
+          LOG_INFO << "No fractions annotated in consensusXML. Assuming unfractionated." << endl;
           r.fraction = 1;
+
+          // no fractions -> one fraction group for each MS file
+          // to create a unique group identifier [1..n], we take the index of the (unique) filenames  
+          r.fraction_group = (std::find(msfiles.begin(), msfiles.end(), f.second.filename) 
+                            - msfiles.begin())  + 1;
         }
 
-        if (f.second.metaValueExists("fraction_group"))
-        {
-          r.fraction_group = static_cast<unsigned int>(f.second.getMetaValue("fraction_group"));
-        }
-        else
-        {
-          LOG_WARN << "No fraction_grouo annotated in consensusXML. Assuming unfractionated." << endl;
-          r.fraction_group = sample;          
-        }
         r.sample = sample;
         if (f.second.metaValueExists("channel_id"))
         {
@@ -133,6 +142,7 @@ namespace OpenMS
         msfile_section.push_back(r);
         ++sample;
       }
+
       experimental_design.setMSFileSection(msfile_section);
       LOG_INFO << "Experimental design (ConsensusMap derived):\n"
                << "  files: " << experimental_design.getNumberOfMSFiles()
