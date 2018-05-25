@@ -1185,6 +1185,7 @@ protected:
         pi.setHigherScoreBetter(true);
         pi.setRT(exp[scan_index].getRT());
         pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
+        pi.setMetaValue("precursor_intensity", exp[scan_index].getPrecursors()[0].getIntensity());
         Size charge = exp[scan_index].getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits

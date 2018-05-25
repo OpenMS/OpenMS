@@ -96,11 +96,11 @@ namespace OpenMS
 
     table_widget_->setSortingEnabled(true);
 
-    table_widget_->setColumnWidth(0, 65); //MS Level
-    table_widget_->setColumnWidth(1, 45); //index
-    table_widget_->setColumnWidth(2, 70);
-    table_widget_->setColumnWidth(3, 70);
-    table_widget_->setColumnWidth(4, 55);
+    table_widget_->setColumnWidth(0, 65); // MS Level
+    table_widget_->setColumnWidth(1, 45); // index
+    table_widget_->setColumnWidth(2, 70); // RT
+    table_widget_->setColumnWidth(3, 70); // precursor m/z
+    table_widget_->setColumnWidth(4, 55); // dissociation
     table_widget_->setColumnHidden(4, true);
     table_widget_->setColumnWidth(5, 45);
     table_widget_->setColumnHidden(5, true);
@@ -323,7 +323,7 @@ namespace OpenMS
 
     // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated" << "precursor error (|ppm|)" << "XL position (Protein)";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated" << "precursor error (|ppm|)" << "XL position (Protein)" << "precursor intensity";
     for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
     {
       header_labels << sit->toQString();
@@ -354,6 +354,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(13, 45);
     table_widget_->setColumnWidth(14, 45);
     table_widget_->setColumnWidth(15, 70);
+    table_widget_->setColumnWidth(16, 70);
 
     QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
@@ -460,25 +461,29 @@ namespace OpenMS
           }
         }
 
-        if (!(*layer_->getPeakData())[i].getPrecursors().empty()) // has precursor
+        // fill precursor information in columns
+        const vector<Precursor> & precursors = (*layer_->getPeakData())[i].getPrecursors();
+        if (!precursors.empty())
         {
+          const Precursor & first_precursor = precursors.front();
+          // set precursor m/z 
           item = table_widget_->itemPrototype()->clone();
-          item->setData(Qt::DisplayRole, (*layer_->getPeakData())[i].getPrecursors()[0].getMZ());
+          item->setData(Qt::DisplayRole, first_precursor.getMZ());
           item->setBackgroundColor(c);
           item->setTextColor(Qt::blue);
           table_widget_->setItem(table_widget_->rowCount() - 1, 3, item);
 
+          // set activation method
           item = table_widget_->itemPrototype()->clone();
-          if (!(*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().empty())
+          if (!first_precursor.getActivationMethods().empty())
           {
             QString t;
-            for (std::set<Precursor::ActivationMethod>::const_iterator it = (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin(); it != (*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().end(); ++it)
+            for (auto it = first_precursor.getActivationMethods().begin(); 
+              it != first_precursor.getActivationMethods().end(); 
+              ++it)
             {
-              if (!t.isEmpty())
-              {
-                t.append(",");
-              }
-              t.append(QString::fromStdString((*layer_->getPeakData())[i].getPrecursors().front().NamesOfActivationMethod[*((*layer_->getPeakData())[i].getPrecursors().front().getActivationMethods().begin())]));
+              if (!t.isEmpty()) { t.append(","); }
+              t.append(QString::fromStdString(first_precursor.NamesOfActivationMethod[*first_precursor.getActivationMethods().begin()]));
             }
             item->setText(t);
           }
@@ -488,11 +493,18 @@ namespace OpenMS
           }
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount() - 1, 4, item);
+
+          // set precursor intensity
+          item = table_widget_->itemPrototype()->clone();
+          item->setData(Qt::DisplayRole, first_precursor.getIntensity());
+          item->setBackgroundColor(Qt::blue);
+          table_widget_->setItem(table_widget_->rowCount() - 1, 17, item);          
         }
         else // has no precursor (leave fields 3 and 4 empty)
         {
           addTextItemToBottomRow_("-", 3, c);
-          addTextItemToBottomRow_("-", 4, c);
+          addTextItemToBottomRow_("-", 4, c);         
+          addTextItemToBottomRow_("-", 17, c); // precursor intensity
         }
 
         // scan mode
