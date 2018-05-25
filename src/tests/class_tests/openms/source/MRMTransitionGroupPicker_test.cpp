@@ -140,6 +140,75 @@ sum(datapoints[3:10])
   }
 }
 
+void setup_transition_group2(MRMTransitionGroupType & transition_group)
+{
+  // Simulated SRM experiment with a large peak in trace 1,
+  // two smaller peaks in trace 2 that overlap with the peak in trace 1,
+  // and no peaks in trace 3
+
+  static const double rtdata_1[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
+  static const double rtdata_2[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
+  static const double rtdata_3[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29};
+
+  static const double intdata_1[] = {3,3,3,3,3,3,3,3,4,6,8,12,14,15,16,15,14,12,8,6,4,3,3,3,3,3,3,3,3,3};
+  static const double intdata_2[] = {3,3,4,6,8,10,11,11,10,8,6,4,4,6,8,10,11,11,10,8,6,4,3,3,3,3,3,3,3,3};
+  static const double intdata_3[] =  {3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3};
+
+  // Transition trace 1
+  {
+  ReactionMonitoringTransition transition;
+  transition.setNativeID("1");
+  RichPeakChromatogram chromatogram;
+  for (int k = 0; k < 30; k++)
+  {   
+    ChromatogramPeak peak;
+    peak.setMZ(rtdata_1[k]);
+    peak.setIntensity(intdata_1[k]);
+    chromatogram.push_back(peak);
+  } 
+  chromatogram.setMetaValue("product_mz", 618.31);
+  chromatogram.setNativeID("1");
+  transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+  transition_group.addTransition(transition, transition.getNativeID());
+  }
+
+  // Transition trace 2
+  {
+  ReactionMonitoringTransition transition;
+  transition.setNativeID("2");
+  RichPeakChromatogram chromatogram;
+  for (int k = 0; k < 30; k++)
+  {   
+    ChromatogramPeak peak;
+    peak.setMZ(rtdata_2[k]);
+    peak.setIntensity(intdata_2[k]);
+    chromatogram.push_back(peak);
+  } 
+  chromatogram.setMetaValue("product_mz", 619.31);
+  chromatogram.setNativeID("2");
+  transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+  transition_group.addTransition(transition, transition.getNativeID());
+  }
+
+  // Transition trace 3
+  {
+  ReactionMonitoringTransition transition;
+  transition.setNativeID("3");
+  RichPeakChromatogram chromatogram;
+  for (int k = 0; k < 30; k++)
+  {   
+    ChromatogramPeak peak;
+    peak.setMZ(rtdata_3[k]);
+    peak.setIntensity(intdata_3[k]);
+    chromatogram.push_back(peak);
+  } 
+  chromatogram.setMetaValue("product_mz", 812.2);
+  chromatogram.setNativeID("3");
+  transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+  transition_group.addTransition(transition, transition.getNativeID());
+  }
+}
+
 void setup_toy_chromatogram(RichPeakChromatogram & chromatogram)
 {
   
@@ -201,66 +270,130 @@ END_SECTION
 
 START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTransitionGroup(MRMTransitionGroup< SpectrumT, TransitionT > &transition_group)))
 { 
-  MRMTransitionGroupType transition_group;
-  setup_transition_group(transition_group);
+  { // transition group 1
+    MRMTransitionGroupType transition_group;
+    setup_transition_group(transition_group);
 
-  MRMTransitionGroupPicker trgroup_picker;
-  Param picker_param = trgroup_picker.getDefaults();
-  picker_param.setValue("PeakPickerMRM:method", "legacy"); // old parameters
-  picker_param.setValue("PeakPickerMRM:peak_width", 40.0); // old parameters
-  trgroup_picker.setParameters(picker_param);
-  trgroup_picker.pickTransitionGroup(transition_group);
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("PeakPickerMRM:method", "legacy"); // old parameters
+    picker_param.setValue("PeakPickerMRM:peak_width", 40.0); // old parameters
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
 
-  TEST_EQUAL(transition_group.getFeatures().size(), 1)
-  MRMFeature mrmfeature = transition_group.getFeatures()[0];
-  TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
-  TEST_REAL_SIMILAR( mrmfeature.getMetaValue("leftWidth"), 1481.84);
-  TEST_REAL_SIMILAR( mrmfeature.getMetaValue("rightWidth"), 1501.23);
+    TEST_EQUAL(transition_group.getFeatures().size(), 1)
+    MRMFeature mrmfeature = transition_group.getFeatures()[0];
+    TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
+    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("leftWidth"), 1481.84);
+    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("rightWidth"), 1501.23);
 
-  // test the number of hull points (should be equal)
-  TEST_EQUAL( mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size(), 7);
-  TEST_EQUAL( mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size(), 7);
+    // test the number of hull points (should be equal)
+    TEST_EQUAL( mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size(), 7);
+    TEST_EQUAL( mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size(), 7);
 
-  // the intensity of the hull points should not have changed
+    // the intensity of the hull points should not have changed
 
-  // Check Feature 2
-  ConvexHull2D::PointArrayType data1_points = mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints();
-  double sum = 0.0;
-  for (ConvexHull2D::PointArrayType::iterator it = data1_points.begin(); it != data1_points.end(); it++)
-  {
-    sum += it->getY();
+    // Check Feature 2
+    ConvexHull2D::PointArrayType data1_points = mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints();
+    double sum = 0.0;
+    for (ConvexHull2D::PointArrayType::iterator it = data1_points.begin(); it != data1_points.end(); it++)
+    {
+      sum += it->getY();
+    }
+    TEST_REAL_SIMILAR(sum, 507385.32);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 507385.32);
+
+    // Check Feature 1
+    ConvexHull2D::PointArrayType data2_points = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints();
+    sum = 0.0;
+    for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
+    {
+      sum += it->getY();
+    }
+    TEST_REAL_SIMILAR(sum, 59989.8287208466);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 59989.8287208466);
+
+    // Also check the MS1
+    std::vector<String> result;
+    mrmfeature.getPrecursorFeatureIDs(result);
+    TEST_EQUAL(result.size(), 1);
+    TEST_EQUAL(result[0], "Precursor_i0");
+    data2_points = mrmfeature.getPrecursorFeature("Precursor_i0").getConvexHulls()[0].getHullPoints();
+    sum = 0.0;
+    for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
+    {
+      sum += it->getY();
+    }
+    // Part of the signal gets lost due to the re-sampling since the MS1 sampling
+    // positions are not at the same place as the MS2 sampling positions
+    double resampling_loss = 875.9514;
+    TEST_REAL_SIMILAR(sum, 53900 - resampling_loss);
+    TEST_REAL_SIMILAR(mrmfeature.getPrecursorFeature("Precursor_i0").getIntensity(),
+    // mrmfeature.getMS1Feature().getIntensity(), 53900 - resampling_loss);
+    53900 - resampling_loss);
   }
-  TEST_REAL_SIMILAR(sum, 507385.32);
-  TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 507385.32);
 
-  // Check Feature 1
-  ConvexHull2D::PointArrayType data2_points = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints();
-  sum = 0.0;
-  for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
-  {
-    sum += it->getY();
-  }
-  TEST_REAL_SIMILAR(sum, 59989.8287208466);
-  TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 59989.8287208466);
+  { // transition group 2 (Consensus)
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
 
-  // Also check the MS1
-  std::vector<String> result;
-  mrmfeature.getPrecursorFeatureIDs(result);
-  TEST_EQUAL(result.size(), 1);
-  TEST_EQUAL(result[0], "Precursor_i0");
-  data2_points = mrmfeature.getPrecursorFeature("Precursor_i0").getConvexHulls()[0].getHullPoints();
-  sum = 0.0;
-  for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
-  {
-    sum += it->getY();
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 10.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 1.0);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "true");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+
+    TEST_EQUAL(transition_group.getFeatures().size(), 1);
+    MRMFeature mrmfeature = transition_group.getFeatures()[0];
+    TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 140);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 117);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 45);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 7);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
   }
-  // Part of the signal gets lost due to the re-sampling since the MS1 sampling
-  // positions are not at the same place as the MS2 sampling positions
-  double resampling_loss = 875.9514;
-  TEST_REAL_SIMILAR(sum, 53900 - resampling_loss);
-  TEST_REAL_SIMILAR(mrmfeature.getPrecursorFeature("Precursor_i0").getIntensity(),
-  // mrmfeature.getMS1Feature().getIntensity(), 53900 - resampling_loss);
-  53900 - resampling_loss);
+
+  { // transition group 2 (no consensus)
+    MRMTransitionGroupType transition_group;
+    setup_transition_group2(transition_group);
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("resample_boundary", 1.0);
+    picker_param.setValue("PeakPickerMRM:gauss_width", 10.0);
+    picker_param.setValue("PeakPickerMRM:peak_width", -1.0);
+    picker_param.setValue("PeakPickerMRM:signal_to_noise", 1.0);
+    picker_param.setValue("PeakPickerMRM:method", "corrected");
+    picker_param.setValue("use_consensus", "false");
+    trgroup_picker.setParameters(picker_param);
+    trgroup_picker.pickTransitionGroup(transition_group);
+
+    TEST_EQUAL(transition_group.getFeatures().size(), 2);
+    MRMFeature mrmfeature = transition_group.getFeatures()[0];
+    TEST_REAL_SIMILAR(mrmfeature.getRT(), 14);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 7);
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 21);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 140);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 58); // consensus = 117
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getIntensity(), 45);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 16);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 11);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_int"), 3);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 7
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
+  }
 }
 END_SECTION
 
@@ -358,24 +491,6 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.44773) // ratio should be stable
   }
 
-  // background subtraction with peak integrator
-  {
-    MRMTransitionGroupPicker picker;
-    Param picker_param = picker.getDefaults();
-    picker_param.setValue("PeakPickerMRM::method", "legacy"); // old parameters
-    picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
-    picker_param.setValue("background_subtraction", "exact");
-    picker.setParameters(picker_param);
-
-    MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
-
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 514590); // slightly reduced value due to background subtraction
-    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155331.37806798); // slightly reduced value due to background subtraction
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 61009.7); // slightly reduced value due to background subtraction
-    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247); // slightly reduced value due to background subtraction
-    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.43456040596823) // ratio should be stable
-  }
-
   // integration with Simpon's rule (with background subtraction)
   {
     MRMTransitionGroupPicker picker;
@@ -393,6 +508,24 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 168685); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247); // slightly reduced value due to background subtraction
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.42957) // ratio should be stable
+  }
+
+  // background subtraction with peak integrator
+  {
+    MRMTransitionGroupPicker picker;
+    Param picker_param = picker.getDefaults();
+    picker_param.setValue("PeakPickerMRM::method", "legacy"); // old parameters
+    picker_param.setValue("PeakPickerMRM::peak_width", 40.0); // old parameters
+    picker_param.setValue("background_subtraction", "exact");
+    picker.setParameters(picker_param);
+
+    MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
+
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 514590); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("2").getMetaValue("peak_apex_int"), 155331.37806798); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 61009.7); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR((double)mrmfeature.getFeature("1").getMetaValue("peak_apex_int"), 30251.2414481247); // slightly reduced value due to background subtraction
+    TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity()/mrmfeature.getFeature("1").getIntensity(), 8.43456040596823) // ratio should be stable
   }
 }
 END_SECTION

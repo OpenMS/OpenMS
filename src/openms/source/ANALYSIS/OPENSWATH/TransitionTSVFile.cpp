@@ -1444,7 +1444,7 @@ namespace OpenMS
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
-  void TransitionTSVFile::validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionTSVFile::validateTargetedExperiment(const OpenMS::TargetedExperiment& targeted_exp)
   {
     if (targeted_exp.containsInvalidReferences())
     {

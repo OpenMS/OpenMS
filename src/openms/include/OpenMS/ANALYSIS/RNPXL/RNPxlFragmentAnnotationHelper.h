@@ -58,7 +58,7 @@ class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
   public:
 
   /// Single fragment annotation
-  struct FragmentAnnotationDetail_
+  struct OPENMS_DLLAPI FragmentAnnotationDetail_
   {
     FragmentAnnotationDetail_(String s, int z, double m, double i):
       shift(s),
@@ -86,11 +86,6 @@ class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
   };
 
   static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name);
-
-  // deprecated: for PD community nodes compatibility 
-  static String fragmentAnnotationDetailsToString(
-    const String& ion_type, 
-    std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details);
 
   // conversion of RNPxl annotations to PeptideHit::PeakAnnotation
   static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(
