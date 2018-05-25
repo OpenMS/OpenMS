@@ -33,6 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <unordered_map>
 
 namespace OpenMS
@@ -55,8 +60,6 @@ namespace OpenMS
     defaultsToParam_(); // write defaults into Param object param_
   }
 
-  TargetedSpectraExtractor::~TargetedSpectraExtractor() {}
-
   void TargetedSpectraExtractor::updateMembers_()
   {
     rt_window_ = (double)param_.getValue("rt_window");
@@ -72,7 +75,7 @@ namespace OpenMS
     snr_weight_ = (double)param_.getValue("snr_weight");
   }
 
-  void TargetedSpectraExtractor::getDefaultParameters(Param& params)
+  void TargetedSpectraExtractor::getDefaultParameters(Param& params) const
   {
     params.clear();
 

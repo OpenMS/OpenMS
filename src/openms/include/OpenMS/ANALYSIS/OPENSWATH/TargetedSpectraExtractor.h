@@ -35,20 +35,10 @@
 #pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-
-// TODO: move headers where they are necessary (cpp/h files)
-// TODO: update documentation about thrown exceptions
 
 namespace OpenMS
 {
@@ -79,9 +69,9 @@ namespace OpenMS
   {
 public:
     TargetedSpectraExtractor();
-    virtual ~TargetedSpectraExtractor();
+    virtual ~TargetedSpectraExtractor() = default;
 
-    void getDefaultParameters(Param& params);
+    void getDefaultParameters(Param& params) const;
 
     /**
       @brief Filters and annotates those spectra that could potentially match the
@@ -97,6 +87,7 @@ public:
       @param[in] targeted_exp The target list
       @param[out] annotated_spectra The spectra annotated with the related transition's name
       @param[out] features A FeatureMap which will contain informations about the name, precursor RT and precursor MZ of the matched transition
+      @param[in] compute_features If false, `features` will be ignored
     */
     void annotateSpectra(
       const std::vector<MSSpectrum>& spectra,
@@ -106,6 +97,20 @@ public:
       const bool compute_features = true
     ) const;
 
+    /**
+      @brief Filters and annotates those spectra that could potentially match the
+      transitions of the target list.
+
+      The spectra taken into account are those that fall within the precursor RT
+      window and MZ tolerance set by the user through the parameters "rt_window"
+      and "mz_tolerance". Default values are provided for both parameters.
+
+      @warning The picked spectrum could be empty, meaning no peaks were found.
+
+      @param[in] spectra The spectra to filter
+      @param[in] targeted_exp The target list
+      @param[out] annotated_spectra The spectra annotated with the related transition's name
+    */
     void annotateSpectra(
       const std::vector<MSSpectrum>& spectra,
       const TargetedExperiment& targeted_exp,
@@ -124,6 +129,8 @@ public:
       It is possible to set the peaks' limits through the parameters: "peak_height_min",
       "peak_height_max" and "fwhm_threshold".
 
+      @throw Exception::IllegalArgument If `spectrum` is not sorted by position (mz).
+
       @param[in] spectrum The input spectrum
       @param[out] picked_spectrum A spectrum containing only the picked peaks
     */
@@ -139,10 +146,13 @@ public:
       The FWHMs are computed only on picked peaks. Both SNR and FWHM are averaged values.
       The informations are added as FloatDataArray in scored_spectra and as MetaValue in features.
 
+      @throw Exception::InvalidSize If `features` and `annotated_spectra` sizes don't match.
+
       @param[in] annotated_spectra The annotated spectra to score (for TIC and SNR)
       @param[in] picked_spectra The picked peaks found on each of the annotated spectra (for FWHM)
       @param[in,out] features The score informations are also added to this FeatureMap. Picked peaks' FWHMs are saved in features' subordinates.
       @param[out] scored_spectra The scored spectra. Basically a copy of annotated_spectra with the added score informations
+      @param[in] compute_features If false, `features` will be ignored
     */
     void scoreSpectra(
       const std::vector<MSSpectrum>& annotated_spectra,
@@ -152,6 +162,19 @@ public:
       const bool compute_features = true
     ) const;
 
+    /**
+      @brief Assigns a score to the spectra given an input and saves them in scored_spectra.
+
+      Also add the informations to the FeatureMap first constructed in annotateSpectra().
+      The scores are based on total TIC, SNR and FWHM. It is possible to assign a
+      weight to these parameters using: "tic_weight", "fwhm_weight" and "snr_weight".
+      For each spectrum, the TIC and the SNR are computed on the entire spectrum.
+      The FWHMs are computed only on picked peaks. Both SNR and FWHM are averaged values.
+
+      @param[in] annotated_spectra The annotated spectra to score (for TIC and SNR)
+      @param[in] picked_spectra The picked peaks found on each of the annotated spectra (for FWHM)
+      @param[out] scored_spectra The scored spectra. Basically a copy of annotated_spectra with the added score informations
+    */
     void scoreSpectra(
       const std::vector<MSSpectrum>& annotated_spectra,
       const std::vector<MSSpectrum>& picked_spectra,
@@ -166,6 +189,7 @@ public:
       @param[in] features Input features
       @param[out] selected_spectra Output selected spectra
       @param[out] selected_features Output selected features
+      @param[in] compute_features If false, `selected_features` will be ignored
     */
     void selectSpectra(
       const std::vector<MSSpectrum>& scored_spectra,
@@ -201,6 +225,7 @@ public:
       @param[in] targeted_exp The target list
       @param[out] extracted_spectra The spectra related to the transitions
       @param[out] extracted_features The features related to the output spectra
+      @param[in] compute_features If false, `extracted_features` will be ignored
     */
     void extractSpectra(
       const MSExperiment& experiment,
@@ -210,6 +235,19 @@ public:
       const bool compute_features = true
     ) const;
 
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
+
+      The method expects an experiment and a target list in input,
+      and constructs the extracted spectra.
+      For each transition of the target list, the method tries to find its best
+      spectrum match.
+
+      @param[in] experiment The input experiment
+      @param[in] targeted_exp The target list
+      @param[out] extracted_spectra The spectra related to the transitions
+    */
     void extractSpectra(
       const MSExperiment& experiment,
       const TargetedExperiment& targeted_exp,
