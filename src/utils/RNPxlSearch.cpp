@@ -665,7 +665,7 @@ protected:
         set<Size> peak_is_annotated;  // experimental peak index
 
         // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
-        using MapIonIndexToFragmentAnnotation = map<Size, vector<FragmentAnnotationHelper::FragmentAnnotationDetail_> >;
+        using MapIonIndexToFragmentAnnotation = map<Size, vector<RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
         MapIonIndexToFragmentAnnotation unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
         vector<PeptideHit::PeakAnnotation> shifted_immonium_ions;
         vector<PeptideHit::PeakAnnotation> annotated_marker_ions;
@@ -709,7 +709,7 @@ protected:
             // only allow matching charges (if a fragment charge was assigned)
             if (fragment_charge == 0 || fragment_charge == charge)
             {
-              FragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_y_ions[ion_number].push_back(d);
             }
             #ifdef DEBUG_RNPXLSEARCH
@@ -734,7 +734,7 @@ protected:
             // only allow matching charges (if a fragment charge was assigned)
             if (fragment_charge == 0 || fragment_charge == charge)
             {
-              FragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_b_ions[ion_number].push_back(d);
             }
             #ifdef DEBUG_RNPXLSEARCH
@@ -759,7 +759,7 @@ protected:
             // only allow matching charges (if a fragment charge was assigned)
             if (fragment_charge == 0 || fragment_charge == charge)
             {
-              FragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_a_ions[ion_number].push_back(d);
             }
             #ifdef DEBUG_RNPXLSEARCH
@@ -781,27 +781,21 @@ protected:
         }
 
         // generate fragment annotation strings for unshifted ions
-        StringList fa_strings;
         vector<PeptideHit::PeakAnnotation> fas;
-        String ub = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions);
-        if (!ub.empty())
+        if (!unshifted_b_ions.empty())
         {
-          fa_strings.push_back(ub);
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);;
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
-        String uy = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions);
-        if (!uy.empty())
+
+        if (!unshifted_y_ions.empty())
         {
-          fa_strings.push_back(uy);
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);;
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
-        String ua = FragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions);
-        if (!ua.empty())
+        if (!unshifted_a_ions.empty())
         {
-          fa_strings.push_back(ua);
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = FragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);;
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
         vector<double> sites_sum_score(aas.size(), 0);
@@ -817,7 +811,6 @@ protected:
 
         if (alignment.empty())
         {
-          a.fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
           a.fragment_annotations = fas;
           continue;
         }
@@ -860,7 +853,7 @@ protected:
             // only allow matching charges (if a fragment charge was assigned)
             if (fragment_charge == 0 || fragment_charge == charge)
             {
-              FragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
               shifted_y_ions[ion_number].push_back(d);
             }
             #ifdef DEBUG_RNPXLSEARCH
@@ -880,7 +873,7 @@ protected:
             // only allow matching charges (if a fragment charge was assigned)
             if (fragment_charge == 0 || fragment_charge == charge)
             {
-              FragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
               shifted_b_ions[ion_number].push_back(d);
             }
             #ifdef DEBUG_RNPXLSEARCH
@@ -900,7 +893,7 @@ protected:
             // only allow matching charges (if a fragment charge was assigned)
             if (fragment_charge == 0 || fragment_charge == charge)
             {
-              FragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
+              RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
               shifted_a_ions[ion_number].push_back(d);
             }
             #ifdef DEBUG_RNPXLSEARCH
@@ -1111,42 +1104,40 @@ protected:
         #endif
 
         // create annotation strings for shifted fragment ions
-        FragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions,
+        RNPxlFragmentAnnotationHelper::addShiftedPeakFragmentAnnotation_(shifted_b_ions,
                                           shifted_y_ions,
                                           shifted_a_ions,
                                           shifted_immonium_ions,
                                           annotated_marker_ions,
                                           annotated_precursor_ions,
-                                          fa_strings,
                                           fas);
 
         // store score of best localization(s)
         a.localization_scores = localization_scores;
         a.best_localization = best_localization;
         a.best_localization_score = best_localization_score;
-        a.fragment_annotation_string = ListUtils::concatenate(fa_strings, "|");
         a.fragment_annotations = fas;
 
         #ifdef DEBUG_RNPXLSEARCH
           LOG_DEBUG << "Ion centric annotation: " << endl;
           LOG_DEBUG << "unshifted b ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", unshifted_b_ions) << endl;
           LOG_DEBUG << "unshifted y ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", unshifted_y_ions) << endl;
           LOG_DEBUG << "unshifted a ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", unshifted_a_ions) << endl;
           LOG_DEBUG << "shifted b ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("b", shifted_b_ions) << endl;
           LOG_DEBUG << "shifted y ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("y", shifted_y_ions) << endl;
           LOG_DEBUG << "shifted a ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToString("a", shifted_a_ions) << endl;
           LOG_DEBUG << "shifted immonium ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(shifted_immonium_ions) << endl;
           LOG_DEBUG << "shifted marker ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_marker_ions) << endl;
           LOG_DEBUG << "shifted precursor ions: " << endl;
-          LOG_DEBUG << FragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions) << endl;
+          LOG_DEBUG << RNPxlFragmentAnnotationHelper::shiftedIonsToString(annotated_precursor_ions) << endl;
           LOG_DEBUG << "Localization scores: ";
           LOG_DEBUG << localization_scores << endl;
           LOG_DEBUG << "Localisation based on ion series and immonium ions of all observed fragments: ";
@@ -2663,69 +2654,69 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
     const double immonium_ion_mz = EmpiricalFormula("C8H10NO").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('Y', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("W"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C10H11N2").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('W', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("F"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C8H10N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('F', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("H"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C5H8N3").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('H', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("C"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C2H6NS").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('C', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("P"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C4H8N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('P', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("L") || unmodified_sequence.hasSubstring("I"))
   {
     const double immonium_ion_mz = EmpiricalFormula("C5H12N").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('L', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("K"))
   {
     const double immonium_ion_mz = 101.10732 + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
 
     // TODO: check if only DNA specific and if also other shifts are observed
     const double immonium_ion2_mz = 84.0808 + fragment_shift_mass; // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
     partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("M"))
   {
     const double immonium_ion_mz = 104.05285 + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(FragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('M', fragment_shift_name));
   }
 }
 
