@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="/home/sachsenb/OpenMS/src/tests/topp/RNPxlSearch_1_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2018-05-25T13:23:30" search_engine="RNPxlSearch" search_engine_version="2.4.0-feature-RNPxlSearch-ladder-2018-05-25" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-05-25T21:30:37" search_engine="RNPxlSearch" search_engine_version="2.4.0-feature-RNPxlSearch-ladder-2018-05-25" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Cse1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -43,7 +43,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="3.3154616355896"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 21.36 18.25 0 0 0 0 0 331.55"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="AEADNLDDKk"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1117.5251393925"/>
@@ -89,7 +88,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="2.3846275806427"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 238.46 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="LDSkGNIK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="873.4919861373"/>
@@ -135,7 +133,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.623175978660583"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 24.95 62.32 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="YTPyLGR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="868.444306914"/>
@@ -181,7 +178,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.669801533222198"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 10.40 66.98 0 38.44 1.28 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="DYhTVLGAR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1030.519598233"/>
@@ -227,7 +223,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.31447559595108"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="31.45 27.71 0 0 0 0 0 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="kSEQTTGISLGR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1275.6782859667"/>
@@ -273,7 +268,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.0909393876791"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 0 0 1.16 0 0 0 0 1.16 0 0 0 0 0 9.09 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="VEDVHPISERPQYFSGdGK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="2159.0283585298"/>
@@ -319,7 +313,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="FDQKIIDK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1005.5495013925"/>
@@ -365,7 +358,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="4.97831726074219"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 0 44.39 22.71 0 0 0 497.83 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="AWQQLDNGScAQIR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1588.7416320476"/>
@@ -411,7 +403,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="3.98488759994507"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 398.49 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="LLkVLK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="712.5210991692"/>
@@ -457,7 +448,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 0 0 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="VLKEDIAAIR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1126.671013871"/>
@@ -503,7 +493,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="3.38389325141907"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="338.39 0 0 0 0 0 0 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="mATSGMMTELGK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1255.5610720291"/>
@@ -549,7 +538,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.994392037391663"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 99.44 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="MVFcLSAGK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="970.461613693"/>
@@ -595,7 +583,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="2.27153563499451"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 0 0 0 227.15 0 0 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="DDMNMQkDAIFGGK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1568.6963217776"/>
@@ -641,7 +628,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="TLALLSGKSVDEAEK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1559.8406617323"/>
@@ -687,7 +673,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="1.56915903091431"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="35.65 0 2.13 0 127.52 137.64 0 156.92 145.88 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="ALYTFAEgFK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1145.5757165201"/>
@@ -733,7 +718,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="4.66946649551392"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="1.96 0 0 0 0 0 466.95 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="LVQPFGwENPR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1341.6829759029"/>
@@ -779,7 +763,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.538138926029205"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 53.81 0 0 0 0 40.91 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="DEpMITLPR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1070.5430362182"/>
@@ -825,7 +808,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="1.27343046665192"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 127.34 32.79 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="MLTwWGK"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="920.4578477716"/>
@@ -871,7 +853,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="1.52112281322479"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="52.32 0 0 38.31 0 0 30.68 0 152.11 0 0 0 0 142.32 0 0 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="LAGPMQAWgQPTFEGTRPTGR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="2257.1062305788"/>
@@ -917,7 +898,6 @@
 				<UserParam type="float" name="RNPxl:best_localization_score" value="0.0701017901301384"/>
 				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 7.01 7.01 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
 				<UserParam type="string" name="RNPxl:best_localization" value="SGyyAQNIGESSLRTIHLAQLR"/>
-				<UserParam type="string" name="RNPxl:fragment_annotation" value=""/>
 				<UserParam type="int" name="isotope_error" value="0"/>
 				<UserParam type="int" name="rank" value="0"/>
 				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="2476.2822825187"/>

@@ -350,7 +350,6 @@ protected:
     float best_localization_score = 0;
     String localization_scores;
     String best_localization;  
-    String fragment_annotation_string; // for visualizaion in Proteome Discoverer
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
 
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
@@ -1236,7 +1235,6 @@ protected:
           ph.setMetaValue(String("RNPxl:best_localization_score"), ah.best_localization_score);
           ph.setMetaValue(String("RNPxl:localization_scores"), ah.localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), ah.best_localization);
-          ph.setMetaValue(String("RNPxl:fragment_annotation"), ah.fragment_annotation_string);
 
           ph.setPeakAnnotations(ah.fragment_annotations);
           ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));

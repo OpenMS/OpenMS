@@ -71,7 +71,7 @@ namespace OpenMS
     if (no_id)
     {
       sl << "" << "" << ""
-         << "" << "" << "" << "" << "";
+         << "" << "" << "" << "";
     }
     else
     {
@@ -84,8 +84,6 @@ namespace OpenMS
          << String::number(m_2H, 4)
          << String::number(m_3H, 4)
          << String::number(m_4H, 4);
-      // fragment annotation
-      sl << fragment_annotation_string;
       // rank
       sl << String(rank);
     }
@@ -249,12 +247,6 @@ namespace OpenMS
           ph.setMetaValue("RNPxl:z2 mass", (double)weight_z2);
           ph.setMetaValue("RNPxl:z3 mass", (double)weight_z3);
           ph.setMetaValue("RNPxl:z4 mass", (double)weight_z4);
-
-          if (ph.metaValueExists("RNPxl:fragment_annotation"))
-          {
-            row.fragment_annotation_string = ph.getMetaValue("RNPxl:fragment_annotation");
-          }
-
           csv_rows.push_back(row);
       }
     }
