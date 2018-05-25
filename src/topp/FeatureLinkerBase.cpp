@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -61,7 +62,8 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFeatureLinkerBase :
-  public TOPPBase, public ProgressLogger
+  public TOPPBase, 
+  public ProgressLogger
 {
 
 public:
@@ -144,6 +146,8 @@ protected:
   
     if (file_type == FileTypes::FEATUREXML)
     {
+      LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
+  
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
       //-------------------------------------------------------------
@@ -154,7 +158,7 @@ protected:
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign ed = ExperimentalDesign::load(design_file);
+        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file, false);
 
         // determine if design defines more than one fraction
         frac2files = ed.getFractionToMSFilesMapping();
@@ -179,6 +183,7 @@ protected:
       vector<FeatureMap > maps(ins.size());
       FeatureXMLFile f;
       FeatureFileOptions param = f.getOptions();
+
       // to save memory don't load convex hulls and subordinates
       param.setLoadSubordinates(false);
       param.setLoadConvexHull(false);
@@ -191,13 +196,24 @@ protected:
       {
         FeatureMap tmp;
         f.load(ins[i], tmp);
-        out_map.getFileDescriptions()[i].filename = ins[i];
+        StringList ms_runs;
+        tmp.getPrimaryMSRunPath(ms_runs);
+
+        // associate mzML file with map i in consensusXML
+        if (ms_runs.size() > 1 || ms_runs.empty())
+        {
+          LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. " 
+            << ms_runs.size() 
+            << " provided." << endl;
+        }
+        else
+        {
+          out_map.getFileDescriptions()[i].filename = ms_runs.front();
+        }
         out_map.getFileDescriptions()[i].size = tmp.size();
         out_map.getFileDescriptions()[i].unique_id = tmp.getUniqueId();
 
         // copy over information on the primary MS run
-        StringList ms_runs;
-        tmp.getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         // to save memory, remove convex hulls, subordinates:
@@ -250,12 +266,10 @@ protected:
           vector<FeatureMap> fraction_maps;
 
           // TODO FRACTIONS: here we assume that the order of featureXML is from fraction 1..n
-          // we should check if these are shuffled and error / warn
-          size_t feature_map_index = 0;
-          for (String const & f : frac2files[i])
+          // we should check if these are shuffled and error / warn          
+          for (size_t feature_map_index = 0; feature_map_index != frac2files[i].size(); ++feature_map_index)
           {
             fraction_maps.push_back(maps[feature_map_index]);
-            ++feature_map_index;
           }
           algorithm->group(fraction_maps, out_map);
         }

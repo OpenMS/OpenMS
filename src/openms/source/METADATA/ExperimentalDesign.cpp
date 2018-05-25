@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,280 +37,461 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
+
+#include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
-  // static
-  ExperimentalDesign ExperimentalDesign::load(const String & tsv_file)
-  {
-    ExperimentalDesign design;
+    using MSFileSection = std::vector<ExperimentalDesign::MSFileSection>;
 
-    design.run_section_.clear();
+    ExperimentalDesign::SampleSection::SampleSection(
+        std::vector< std::vector < String > > content,
+        std::map< unsigned, Size > sample_to_rowindex,
+        std::map< String, Size > columnname_to_columnindex
+      ) : 
+      content_(content),
+      sample_to_rowindex_(sample_to_rowindex),
+      columnname_to_columnindex_(columnname_to_columnindex) 
+    {    
+    }
 
-    TextFile tf(tsv_file, true);
-
-    int line_number(0);
-    for (String s : tf)
+    ExperimentalDesign::ExperimentalDesign(
+      ExperimentalDesign::MSFileSection msfile_section, 
+      ExperimentalDesign::SampleSection sample_section) : 
+        msfile_section_(msfile_section), 
+        sample_section_(sample_section)
     {
-      ++line_number;      
-      // skip empty lines
-      if (s.trim().empty()) { continue; }
+      sort_();
+      isValid_();
+    }
 
-      // run-level header
-      if (line_number == 1)
+    ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap &cm)
+    {
+      ExperimentalDesign experimental_design;
+
+      // path of the original MS run (mzML / raw file)
+      StringList ms_run_paths;
+      cm.getPrimaryMSRunPath(ms_run_paths);
+      
+      // each consensus element corresponds to one sample abundance
+      size_t sample(1);
+      ExperimentalDesign::MSFileSection msfile_section;
+      for (const auto &f : cm.getFileDescriptions())
       {
-        if (!s.hasPrefix("Run"))
+        ExperimentalDesign::MSFileSectionEntry r;
+        r.path = f.second.filename;
+        r.fraction = f.second.fraction;
+        r.sample = sample;
+        r.fraction_group = f.second.fraction_group;
+        if (f.second.metaValueExists("channel_id"))
         {
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-            "Error: Line does not contain the run header of the experimental design: " + String(s) + ".");
+          r.label = static_cast<unsigned int>(f.second.getMetaValue("channel_id")) + 1;
         }
         else
         {
-          StringList cells;
-          s.split("\t", cells);
-          if (cells.size() != 4)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-              "Error: Wrong number of columns (" + String(cells.size()) + ") in the experimental design header provided: " + String(s) + ".");
-          }
-          continue;
+          LOG_WARN << "No channel id annotated in consensusXML. Assuming label-free." << endl;
+          r.label = 1;
         }
+        msfile_section.push_back(r);
+        ++sample;
       }
-
-      // run-level run_section_
-      StringList cells;
-      s.split("\t", cells);
-
-      if (cells.size() < 3)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Not all columns of experimental design provided: " + String(s) + ".");
-      }
-
-      RunRow row;
-
-      row.run = cells[0].toInt();
-      row.fraction = cells[1].toInt();
-
-      // if sample and channel column missing, assign run index
-      if (cells.size() <= 3)
-      {
-        row.channel = 1;  
-        row.sample = row.run; 
-      }
-      else if (cells.size() <= 4) // at least channel given
-      {
-        row.channel = cells[3].toInt();
-
-        if (cells.size() == 5)
-        {
-          row.sample = cells[4].toInt();;
-        }
-        else // assign sample index to channel number
-        {
-          row.sample = row.channel;
-        }
-      }
-
-      String spec_file = cells[2];
-      QFileInfo spectra_file_info(spec_file.toQString());
-      if (spectra_file_info.isRelative())
-      {
-        // file name is relative so we need to figure out the correct folder
-
-        // first check folder relative to folder of design file 
-        // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
-        // where ./ is the same folder
-        QFileInfo design_file_info(tsv_file.toQString());
-        QString design_file_relative(design_file_info.absolutePath());
-        design_file_relative = design_file_relative + "/" + spec_file.toQString();
-
-        if (File::exists(design_file_relative))
-        {
-          row.path = design_file_relative.toStdString();
-        }
-        else
-        {
-          // check current folder
-          String f = File::absolutePath(spec_file);
-          if (File::exists(f))
-          {
-            row.path = f;
-          }
-        }
-      }     
-      else
-      {
-        // set to absolute path
-        row.path = spec_file;
-      }
-
-      if (!File::exists(row.path))
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, tsv_file,
-          "Error: Spectra file does not exist: '" + String(row.path) + "'");
-      }
-
-      design.run_section_.push_back(row);
+      experimental_design.setMSFileSection(msfile_section);
+      LOG_INFO << "Experimental design (ConsensusMap derived):\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  labels: " << experimental_design.getNumberOfLabels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
+               << endl;
+      return experimental_design;
     }
 
-    design.sort_();
-    design.checkValidRunSection_();
-  }
-  
-  ExperimentalDesign ExperimentalDesign::fromConsensusMap(const ConsensusMap& cm)
-  {
-    ExperimentalDesign ed;
-    // path of the original MS run (mzML / raw file)
-    StringList ms_run_paths;
-    cm.getPrimaryMSRunPath(ms_run_paths);
-
-    // no fractionation -> as many runs as samples
-    // each consensus element corresponds to one sample abundance
-    size_t sample(1);
-    ExperimentalDesign::RunRows rows;
-    for (auto const & f : ms_run_paths)
+    ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap &fm)
     {
-      ExperimentalDesign::RunRow r;
-      r.path = f;
-      r.fraction = 1;
-      r.sample = sample;
-      r.run = sample;
-      r.channel = 1; // TODO MULTIPLEXING: adapt for non-label-free
-      rows.push_back(r);
-      ++sample;
-    }
-    ed.setRunSection(rows);
-    LOG_INFO << "Experimental design (ConsensusMap derived):\n" 
-       << "  files: " << ed.getNumberOfMSFiles()
-       << "  fractions: " << ed.getNumberOfFractions()
-       << "  channels: " << ed.getNumberOfChannels()
-       << "  samples: " << ed.getNumberOfSamples() << "\n"  
-       << endl;
-    return ed; 
-  }
+      ExperimentalDesign experimental_design;
+      // path of the original MS run (mzML / raw file)
+      StringList ms_paths;
+      fm.getPrimaryMSRunPath(ms_paths);
 
-  ExperimentalDesign ExperimentalDesign::fromFeatureMap(const FeatureMap& fm)
-  {
-    ExperimentalDesign ed;
-    // path of the original MS run (mzML / raw file)
-    StringList ms_paths;
-    fm.getPrimaryMSRunPath(ms_paths);
-  
-    if (ms_paths.size() != 1)
-    {
-        throw Exception::MissingInformation(
-         __FILE__, 
-         __LINE__, 
-         OPENMS_PRETTY_FUNCTION, 
-         "FeatureMap annotated with " + String(ms_paths.size()) + " MS files. Must be exactly one.");
-    }
-    
-    // Feature map is simple. One file, one fraction, one sample, one run
-    ExperimentalDesign::RunRow r;
-    r.path = ms_paths[0];
-    r.fraction = 1;
-    r.sample = 1;
-    r.run = 1;
-    r.channel = 1;
-
-    ExperimentalDesign::RunRows rows(1, r);
-    ed.setRunSection(rows);
-    LOG_INFO << "Experimental design (FeatureMap derived):\n" 
-       << "  files: " << ed.getNumberOfMSFiles()
-       << "  fractions: " << ed.getNumberOfFractions()
-       << "  channels: " << ed.getNumberOfChannels()
-       << "  samples: " << ed.getNumberOfSamples() << "\n"  
-       << endl;
-    return ed; 
-  }
-
-  ExperimentalDesign ExperimentalDesign::fromIdentifications(const vector<ProteinIdentification> & proteins)
-  {
-    ExperimentalDesign ed;
-    // path of the original MS files (mzML / raw file)
-    StringList ms_run_paths;
-    for (auto const & p : proteins)
-    {
-      StringList tmp_ms_run_paths;
-      p.getPrimaryMSRunPath(tmp_ms_run_paths);
-      if (tmp_ms_run_paths.size() != 1)
+      if (ms_paths.size() != 1)
       {
         throw Exception::MissingInformation(
-         __FILE__, 
-         __LINE__, 
-         OPENMS_PRETTY_FUNCTION, 
-         "ProteinIdentification annotated with " + String(tmp_ms_run_paths.size()) + " MS files. Must be exactly one.");
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "FeatureMap annotated with " + String(ms_paths.size()) + " MS files. Must be exactly one.");
       }
-      ms_run_paths.push_back(tmp_ms_run_paths[0]);
-    }
 
-    // no fractionation -> as many runs as samples
-    // each identification run corresponds to one sample abundance
-    size_t sample(1);
-    ExperimentalDesign::RunRows rows;
-    for (auto const & f : ms_run_paths)
-    {
-      ExperimentalDesign::RunRow r;
-      r.path = f;
+      // Feature map is simple. One file, one fraction, one sample, one fraction_group
+      ExperimentalDesign::MSFileSectionEntry r;
+      r.path = ms_paths[0];
       r.fraction = 1;
-      r.sample = sample;
-      r.run = sample;
-      r.channel = 1;
+      r.sample = 1;
+      r.fraction_group = 1;
+      r.label = 1;
 
-      rows.push_back(r);
-      ++sample;
-    }
-    ed.setRunSection(rows);
-    LOG_INFO << "Experimental design (Identification derived):\n" 
-       << "  files: " << ed.getNumberOfMSFiles()
-       << "  fractions: " << ed.getNumberOfFractions()
-       << "  channels: " << ed.getNumberOfChannels()
-       << "  samples: " << ed.getNumberOfSamples() << "\n"  
-       << endl;
-    return ed;
-  }
-
-
-  map<unsigned, vector<String> > ExperimentalDesign::getFractionToMSFilesMapping() const
-  {
-    map<unsigned, vector<String> > ret;
-
-    for (RunRow const & r : run_section_)
-    {
-      ret[r.fraction].emplace_back(r.path);
+      ExperimentalDesign::MSFileSection rows(1, r);
+      experimental_design.setMSFileSection(rows);
+      LOG_INFO << "Experimental design (FeatureMap derived):\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  labels: " << experimental_design.getNumberOfLabels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
+               << endl;
+      return experimental_design;
     }
 
-    return ret;
-  }
-
-  bool ExperimentalDesign::sameNrOfMSFilesPerFraction() const
-  {
-    map<unsigned, vector<String>> frac2files = getFractionToMSFilesMapping();
-    if (frac2files.size() <= 1) { return true; }
- 
-    Size files_per_fraction(0);
-    for (auto const & f : frac2files)
+    ExperimentalDesign ExperimentalDesign::fromIdentifications(const vector <ProteinIdentification> &proteins)
     {
-      if (files_per_fraction == 0) // first fraction, initialize
+      ExperimentalDesign experimental_design;
+      // path of the original MS files (mzML / raw file)
+      StringList ms_run_paths;
+      for (const auto &protein : proteins)
       {
-        files_per_fraction = f.second.size();
-      }
-      else // fraction >= 2
-      {
-        // different number of associated MS files?
-        if (f.second.size() != files_per_fraction)
+        StringList tmp_ms_run_paths;
+        protein.getPrimaryMSRunPath(tmp_ms_run_paths);
+        if (tmp_ms_run_paths.size() != 1)
         {
-          return false;
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "ProteinIdentification annotated with " + String(tmp_ms_run_paths.size()) +
+            " MS files. Must be exactly one.");
+        }
+        ms_run_paths.push_back(tmp_ms_run_paths[0]);
+      }
+
+      // no fractionation -> as many fraction_groups as samples
+      // each identification run corresponds to one sample abundance
+      unsigned sample(1);
+      ExperimentalDesign::MSFileSection rows;
+      for (const auto &f : ms_run_paths)
+      {
+        ExperimentalDesign::MSFileSectionEntry r;
+        r.path = f;
+        r.fraction = 1;
+        r.sample = sample;
+        r.fraction_group = sample;
+        r.label = 1;
+
+        rows.push_back(r);
+        ++sample;
+      }
+      experimental_design.setMSFileSection(rows);
+      LOG_INFO << "Experimental design (Identification derived):\n"
+               << "  files: " << experimental_design.getNumberOfMSFiles()
+               << "  fractions: " << experimental_design.getNumberOfFractions()
+               << "  labels: " << experimental_design.getNumberOfLabels()
+               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
+               << endl;
+      return experimental_design;
+    }
+
+    map<unsigned, vector<String> > ExperimentalDesign::getFractionToMSFilesMapping() const
+    {
+      map<unsigned, vector<String> > ret;
+
+      for (MSFileSectionEntry const& r : msfile_section_)
+      {
+        ret[r.fraction].emplace_back(r.path);
+      }
+      return ret;
+    }
+
+    map<pair<String, unsigned>, unsigned> ExperimentalDesign::pathLabelMapper_(
+            const bool basename,
+            unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry &entry)) const
+    {
+      map<pair<String, unsigned>, unsigned> ret;
+      for (MSFileSectionEntry const& r : msfile_section_)
+      {
+        const String path = String(r.path);
+        pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
+        ret[tpl] = f(r);
+      }
+      return ret;
+    }
+
+    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathLabelToSampleMapping(
+            const bool basename) const
+    {
+      return pathLabelMapper_(basename, [](const MSFileSectionEntry &r)
+      { return r.sample; });
+    }
+
+    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathLabelToFractionMapping(
+            const bool basename) const
+    {
+      return pathLabelMapper_(basename, [](const MSFileSectionEntry &r)
+      { return r.fraction; });
+    }
+
+    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathLabelToFractionGroupMapping(
+            const bool basename) const
+    {
+      return pathLabelMapper_(basename, [](const MSFileSectionEntry &r)
+      { return r.fraction_group; });
+    }
+
+    bool ExperimentalDesign::sameNrOfMSFilesPerFraction() const
+    {
+      map<unsigned, vector<String>> frac2files = getFractionToMSFilesMapping();
+      if (frac2files.size() <= 1) { return true; }
+
+      Size files_per_fraction(0);
+      for (auto const &f : frac2files)
+      {
+        if (files_per_fraction == 0) // first fraction, initialize
+        {
+          files_per_fraction = f.second.size();
+        }
+        else // fraction >= 2
+        {
+          // different number of associated MS files?
+          if (f.second.size() != files_per_fraction)
+          {
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    const ExperimentalDesign::MSFileSection& ExperimentalDesign::getMSFileSection() const
+    {
+      return msfile_section_;
+    }
+
+    void ExperimentalDesign::setMSFileSection(const MSFileSection& msfile_section)
+    {
+      msfile_section_ = msfile_section;
+      sort_();
+    }
+
+    void ExperimentalDesign::setSampleSection(const SampleSection& sample_section)
+    {
+      sample_section_ = sample_section;
+    }
+
+    unsigned ExperimentalDesign::getNumberOfSamples() const
+    {
+      if (msfile_section_.empty()) { return 0; }
+      return std::max_element(msfile_section_.begin(), msfile_section_.end(),
+                              [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
+                              {
+                                return f1.sample < f2.sample;
+                              })->sample;
+    }
+
+    unsigned ExperimentalDesign::getNumberOfFractions() const
+    {
+      if (msfile_section_.empty()) { return 0; }
+      return std::max_element(msfile_section_.begin(), msfile_section_.end(),
+                              [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
+                              {
+                                  return f1.fraction < f2.fraction;
+                              })->fraction;
+    }
+
+    // @return the number of labels per file
+    unsigned ExperimentalDesign::getNumberOfLabels() const
+    {
+      if (msfile_section_.empty()) { return 0; }
+      return std::max_element(msfile_section_.begin(), msfile_section_.end(),
+                              [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
+                              {
+                                return f1.label < f2.label;
+                              })->label;
+    }
+
+    // @return the number of MS files (= fractions * fraction_groups)
+    unsigned ExperimentalDesign::getNumberOfMSFiles() const
+    {
+      std::set<std::string> unique_paths;
+      for (auto const & r : msfile_section_) { unique_paths.insert(r.path); }
+      return unique_paths.size();
+    }
+
+    bool ExperimentalDesign::isFractionated() const
+    {
+      std::vector<unsigned> fractions = getFractions_();
+      std::set<unsigned> fractions_set(fractions.begin(), fractions.end());
+      return fractions_set.size() > 1;
+    }
+
+    unsigned ExperimentalDesign::getNumberOfFractionGroups() const
+    {
+      if (msfile_section_.empty()) { return 0; }
+      return std::max_element(msfile_section_.begin(), msfile_section_.end(),
+                              [](const MSFileSectionEntry& f1, const MSFileSectionEntry& f2)
+                              {
+                                  return f1.fraction_group < f2.fraction_group;
+                              })->fraction_group;
+    }
+
+    unsigned ExperimentalDesign::getSample(unsigned fraction_group, unsigned label)
+    {
+      return std::find_if(msfile_section_.begin(), msfile_section_.end(),
+                          [&fraction_group, &label](const MSFileSectionEntry& r)
+                          {
+                              return r.fraction_group == fraction_group && r.label == label;
+                          })->sample;
+    }
+
+    const ExperimentalDesign::SampleSection& ExperimentalDesign::getSampleSection() const
+    {
+      return sample_section_;
+    }
+
+    std::vector< String > ExperimentalDesign::getFileNames_(const bool basename) const
+    {
+      std::vector<String> filenames;
+      for (const MSFileSectionEntry& row : msfile_section_)
+      {
+        const String path = String(row.path);
+        filenames.push_back(basename ? path : File::basename(path));
+      }
+      return filenames;
+    }
+
+    template<typename T>
+    void ExperimentalDesign::errorIfAlreadyExists(std::set<T> &container, T &item, const String &message)
+    {
+      if (container.find(item) != container.end())
+      {
+       throw Exception::MissingInformation(
+       __FILE__,
+       __LINE__,
+        OPENMS_PRETTY_FUNCTION, message);
+      }
+      container.insert(item);
+    }
+
+    void ExperimentalDesign::isValid_()
+    {
+      std::set< std::tuple< unsigned, unsigned, unsigned > > fractiongroup_fraction_label_set;
+      std::set< std::tuple< std::string, unsigned > > path_label_set;
+      std::map< std::tuple< unsigned, unsigned >, std::set< unsigned > > fractiongroup_label_to_sample;
+
+      for (const MSFileSectionEntry& row : msfile_section_)
+      {
+        // FRACTIONGROUP__FRACTION_LABEL TUPLE
+        std::tuple<unsigned, unsigned, unsigned> fractiongroup_fraction_label = std::make_tuple(row.fraction_group, row.fraction, row.label);
+        errorIfAlreadyExists(
+          fractiongroup_fraction_label_set,
+          fractiongroup_fraction_label,
+        "(Fraction Group, Fraction, Label) combination can only appear once");
+
+        // PATH_LABEL_TUPLE
+        std::tuple<std::string, unsigned> path_label = std::make_tuple(row.path, row.label);
+        errorIfAlreadyExists(
+          path_label_set,
+          path_label,
+          "(Path, Label) combination can only appear once");
+
+        // FRACTIONGROUP_LABEL TUPLE
+        std::tuple<unsigned, unsigned> fractiongroup_label = std::make_tuple(row.fraction_group, row.label);
+        fractiongroup_label_to_sample[fractiongroup_label].insert(row.sample);
+
+        if (fractiongroup_label_to_sample[fractiongroup_label].size() > 1)
+        {
+          throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Multiple Samples encountered for the same fraction group and the same label");
         }
       }
     }
-    return true;
+
+  std::vector<unsigned> ExperimentalDesign::getLabels_() const
+  {
+    std::vector<unsigned> labels;
+    for (const MSFileSectionEntry &row : msfile_section_)
+    {
+      labels.push_back(row.label);
+    }
+    return labels;
+  }
+
+  std::vector<unsigned> ExperimentalDesign::getFractions_() const
+  {
+    std::vector<unsigned> fractions;
+    for (const MSFileSectionEntry &row : msfile_section_)
+    {
+      fractions.push_back(row.fraction);
+    }
+    return fractions;
+  }
+
+  void ExperimentalDesign::sort_()
+  {
+    std::sort(msfile_section_.begin(), msfile_section_.end(),
+      [](const MSFileSectionEntry& a, const MSFileSectionEntry& b)
+      {
+        return std::tie(a.fraction_group, a.fraction, a.label, a.sample, a.path) <
+               std::tie(b.fraction_group, b.fraction, b.label, b.sample, b.path);
+      });
+  }
+
+  /* Implementations of SampleSection */
+
+  std::set<unsigned> ExperimentalDesign::SampleSection::getSamples() const
+  {
+    std::set<unsigned> samples;
+    for (const auto &kv : sample_to_rowindex_)
+    {
+      samples.insert(kv.first);
+    }
+    return samples;
+  }
+
+  std::set< String > ExperimentalDesign::SampleSection::getFactors() const
+  {
+    std::set<String> factors;
+    for (const auto &kv : columnname_to_columnindex_)
+    {
+      factors.insert(kv.first);
+    }
+    return factors;
+  }
+
+  bool ExperimentalDesign::SampleSection::hasSample(const unsigned sample) const
+  {
+    return sample_to_rowindex_.find(sample) != sample_to_rowindex_.end();
+  }
+
+  bool ExperimentalDesign::SampleSection::hasFactor(const String &factor) const
+  {
+    return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
+  }
+
+  String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor)
+  {
+   if (! hasSample(sample))
+   {
+    throw Exception::MissingInformation(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Sample " + String(sample) + " is not present in the Experimental Design");
+   }
+   if (! hasFactor(factor))
+   {
+    throw Exception::MissingInformation(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Factor " + factor + " is not present in the Experimental Design");
+   }
+   StringList sample_row = content_[sample_to_rowindex_[sample]];
+   const Size col_index = columnname_to_columnindex_[factor];
+   return sample_row[col_index];
   }
 }
-
