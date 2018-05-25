@@ -118,10 +118,6 @@ public:
       String filename;
       /// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation
       String label;
-      /// fraction identifier 1..n
-      Size fraction = 1;
-      /// fraction_group identifier 1..n
-      Size fraction_group = 1;
       /// @brief Number of elements (features, peaks, ...).
       /// This is e.g. used to check for correct element indices when writing a consensus map TODO fix that
       Size size;
@@ -327,8 +323,8 @@ protected:
     /// Map from index to file description
     FileDescriptions file_description_;
 
-    /// type of experiment (label-free, itraq, ...); see xsd schema
-    String experiment_type_;
+    /// type of experiment (label-free, labeled_MS1, labeled_MS2)
+    String experiment_type_ = "label-free";
 
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;

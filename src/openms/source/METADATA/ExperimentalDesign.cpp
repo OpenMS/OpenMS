@@ -82,13 +82,45 @@ namespace OpenMS
       // each consensus element corresponds to one sample abundance
       size_t sample(1);
       ExperimentalDesign::MSFileSection msfile_section;
+      
+      const String experiment_type = cm.getExperimentType();
+
+      if (experiment_type == "label-free")
+      {
+      }
+      else if (experiment_type == "labeled_MS1")
+      {
+
+      }
+      else if (experiment_type == "labeled_MS2")
+      {
+
+      } 
+
       for (const auto &f : cm.getFileDescriptions())
       {
         ExperimentalDesign::MSFileSectionEntry r;
         r.path = f.second.filename;
-        r.fraction = f.second.fraction;
+        if (f.second.metaValueExists("fraction"))
+        {
+          r.fraction = static_cast<unsigned int>(f.second.getMetaValue("fraction"));
+        }
+        else
+        {
+          LOG_WARN << "No fraction annotated in consensusXML. Assuming unfractionated." << endl;
+          r.fraction = 1;
+        }
+
+        if (f.second.metaValueExists("fraction_group"))
+        {
+          r.fraction_group = static_cast<unsigned int>(f.second.getMetaValue("fraction_group"));
+        }
+        else
+        {
+          LOG_WARN << "No fraction_grouo annotated in consensusXML. Assuming unfractionated." << endl;
+          r.fraction_group = sample;          
+        }
         r.sample = sample;
-        r.fraction_group = f.second.fraction_group;
         if (f.second.metaValueExists("channel_id"))
         {
           r.label = static_cast<unsigned int>(f.second.getMetaValue("channel_id")) + 1;

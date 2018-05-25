@@ -1,5 +1,5 @@
 from String cimport *
-
+from ExperimentalDesign cimport *
 from libcpp cimport bool
 
 cdef extern from "<OpenMS/FORMAT/ExperimentalDesignFile.h>" namespace "OpenMS":
@@ -8,5 +8,5 @@ cdef extern from "<OpenMS/FORMAT/ExperimentalDesignFile.h>" namespace "OpenMS":
                 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/FORMAT/ExperimentalDesignFile.h>" namespace "OpenMS::ExperimentalDesignFile":
-    ExperimentalDesignFile load(const String &tsv_file, bool) nogil except + #wrap-attach:ExperimentalDesignFile
+    ExperimentalDesign load(const String& tsv_file, bool) nogil except + #wrap-attach:ExperimentalDesignFile
 
