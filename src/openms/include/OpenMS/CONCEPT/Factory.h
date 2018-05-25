@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/SingletonRegistry.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <mutex>
 #include <map>
 #include <typeinfo>
 
@@ -110,6 +111,14 @@ public:
     /// return FactoryProduct according to unique identifier @p name
     static FactoryProduct * create(const String & name)
     {
+
+      // unique lock (make sure we only create one instance)
+      //  -> Since we may call Factory<FactoryProduct>::create for another
+      //     FactoryProduct during initialization, we have to implement locking
+      //     per template class specialization.
+      static std::mutex factory_create_mutex;
+      std::lock_guard<std::mutex> lock(factory_create_mutex);
+
       MapIterator it = instance_()->inventory_.find(name);
       if (it != instance_()->inventory_.end())
       {
