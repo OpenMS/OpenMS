@@ -131,7 +131,8 @@ namespace OpenMS
     const std::vector<MSSpectrum>& spectra,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& annotated_spectra,
-    FeatureMap& features
+    FeatureMap& features,
+    const bool compute_features
   ) const
   {
     annotated_spectra.clear();
@@ -174,16 +175,30 @@ namespace OpenMS
           MSSpectrum annotated_spectrum = spectrum;
           annotated_spectrum.setName(transitions[j].getPeptideRef());
           annotated_spectra.push_back(annotated_spectrum);
-          Feature feature;
-          feature.setRT(spectrum_rt);
-          feature.setMZ(spectrum_mz);
-          feature.setMetaValue("transition_name", transitions[j].getPeptideRef());
-          features.push_back(feature);
+          if (compute_features)
+          {
+            Feature feature;
+            feature.setRT(spectrum_rt);
+            feature.setMZ(spectrum_mz);
+            feature.setMetaValue("transition_name", transitions[j].getPeptideRef());
+            features.push_back(feature);
+          }
           break;
         }
       }
     }
     LOG_DEBUG << "annotateSpectra(): (input size: " << spectra.size() << ") (annotated spectra: " << annotated_spectra.size() << ")\n" << std::endl;
+  }
+
+  void TargetedSpectraExtractor::annotateSpectra(
+    const std::vector<MSSpectrum>& spectra,
+    const TargetedExperiment& targeted_exp,
+    std::vector<MSSpectrum>& annotated_spectra
+  ) const
+  {
+    FeatureMap features;
+    const bool compute_features { false };
+    annotateSpectra(spectra, targeted_exp, annotated_spectra, features, compute_features);
   }
 
   void TargetedSpectraExtractor::pickSpectrum(const MSSpectrum& spectrum, MSSpectrum& picked_spectrum) const
@@ -259,12 +274,13 @@ namespace OpenMS
     const std::vector<MSSpectrum>& annotated_spectra,
     const std::vector<MSSpectrum>& picked_spectra,
     FeatureMap& features,
-    std::vector<MSSpectrum>& scored_spectra
+    std::vector<MSSpectrum>& scored_spectra,
+    const bool compute_features
   ) const
   {
     scored_spectra.clear();
     scored_spectra.resize(annotated_spectra.size());
-    if (scored_spectra.size() != features.size())
+    if (compute_features && scored_spectra.size() != features.size())
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -307,34 +323,51 @@ namespace OpenMS
       scored_spectra[i].getFloatDataArrays().resize(5);
       scored_spectra[i].getFloatDataArrays()[1].setName("score");
       scored_spectra[i].getFloatDataArrays()[1].push_back(score);
-      features[i].setIntensity(score); // The intensity of a feature is (proportional to) its total ion count. http://ftp.mi.fu-berlin.de/pub/OpenMS/develop-documentation/html/classOpenMS_1_1Feature.html
       scored_spectra[i].getFloatDataArrays()[2].setName("log10_total_tic");
       scored_spectra[i].getFloatDataArrays()[2].push_back(log10_total_tic);
-      features[i].setMetaValue("log10_total_tic", log10_total_tic);
       scored_spectra[i].getFloatDataArrays()[3].setName("inverse_avgFWHM");
       scored_spectra[i].getFloatDataArrays()[3].push_back(inverse_avgFWHM);
-      features[i].setMetaValue("inverse_avgFWHM", inverse_avgFWHM);
-      features[i].setMetaValue("avgFWHM", avgFWHM);
       scored_spectra[i].getFloatDataArrays()[4].setName("avgSNR");
       scored_spectra[i].getFloatDataArrays()[4].push_back(avgSNR);
-      features[i].setMetaValue("avgSNR", avgSNR);
 
-      std::vector<Feature> subordinates(picked_spectra[i].size());
-      for (Size j = 0; j < picked_spectra[i].size(); ++j)
+      if (compute_features)
       {
-        subordinates[j].setMZ(picked_spectra[i][j].getMZ());
-        subordinates[j].setIntensity(picked_spectra[i][j].getIntensity());
-        subordinates[j].setMetaValue("FWHM", picked_spectra[i].getFloatDataArrays()[0][j]);
+        // The intensity of a feature is (proportional to) its total ion count
+        // http://ftp.mi.fu-berlin.de/pub/OpenMS/develop-documentation/html/classOpenMS_1_1Feature.html
+        features[i].setIntensity(score);
+        features[i].setMetaValue("log10_total_tic", log10_total_tic);
+        features[i].setMetaValue("inverse_avgFWHM", inverse_avgFWHM);
+        features[i].setMetaValue("avgFWHM", avgFWHM);
+        features[i].setMetaValue("avgSNR", avgSNR);
+        std::vector<Feature> subordinates(picked_spectra[i].size());
+        for (Size j = 0; j < picked_spectra[i].size(); ++j)
+        {
+          subordinates[j].setMZ(picked_spectra[i][j].getMZ());
+          subordinates[j].setIntensity(picked_spectra[i][j].getIntensity());
+          subordinates[j].setMetaValue("FWHM", picked_spectra[i].getFloatDataArrays()[0][j]);
+        }
+        features[i].setSubordinates(subordinates);
       }
-      features[i].setSubordinates(subordinates);
     }
+  }
+
+  void TargetedSpectraExtractor::scoreSpectra(
+    const std::vector<MSSpectrum>& annotated_spectra,
+    const std::vector<MSSpectrum>& picked_spectra,
+    std::vector<MSSpectrum>& scored_spectra
+  ) const
+  {
+    FeatureMap features;
+    const bool compute_features { false };
+    scoreSpectra(annotated_spectra, picked_spectra, features, scored_spectra, compute_features);
   }
 
   void TargetedSpectraExtractor::selectSpectra(
     const std::vector<MSSpectrum>& scored_spectra,
     const FeatureMap& features,
     std::vector<MSSpectrum>& selected_spectra,
-    FeatureMap& selected_features
+    FeatureMap& selected_features,
+    const bool compute_features
   ) const
   {
     std::unordered_map<std::string,UInt> transition_best_spec;
@@ -361,20 +394,10 @@ namespace OpenMS
     selected_spectra.clear();
     selected_features.clear(true);
 
-    if (features.size())
+    for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
     {
-      for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
-      {
-        selected_spectra.push_back(scored_spectra[it->second]);
-        selected_features.push_back(features[it->second]);
-      }
-    }
-    else
-    {
-      for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
-      {
-        selected_spectra.push_back(scored_spectra[it->second]);
-      }
+      selected_spectra.push_back(scored_spectra[it->second]);
+      if (compute_features) selected_features.push_back(features[it->second]);
     }
   }
 
@@ -385,14 +408,16 @@ namespace OpenMS
   {
     FeatureMap dummy_features;
     FeatureMap dummy_selected_features;
-    selectSpectra(scored_spectra, dummy_features, selected_spectra, dummy_selected_features);
+    const bool compute_features { false };
+    selectSpectra(scored_spectra, dummy_features, selected_spectra, dummy_selected_features, compute_features);
   }
 
   void TargetedSpectraExtractor::extractSpectra(
     const PeakMap& experiment,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& extracted_spectra,
-    FeatureMap& extracted_features
+    FeatureMap& extracted_features,
+    const bool compute_features
   ) const
   {
     // get the spectra from the experiment
@@ -401,7 +426,7 @@ namespace OpenMS
     // annotate spectra
     std::vector<MSSpectrum> annotated;
     FeatureMap features;
-    annotateSpectra(spectra, targeted_exp, annotated, features);
+    annotateSpectra(spectra, targeted_exp, annotated, features, compute_features);
 
     // pick peaks from annotate spectra
     std::vector<MSSpectrum> picked(annotated.size());
@@ -417,14 +442,26 @@ namespace OpenMS
       {
         annotated.erase(annotated.begin() + i);
         picked.erase(picked.begin() + i);
-        features.erase(features.begin() + i);
+        if (compute_features) features.erase(features.begin() + i);
       }
     }
 
     // score spectra
     std::vector<MSSpectrum> scored;
-    scoreSpectra(annotated, picked, features, scored);
+    scoreSpectra(annotated, picked, features, scored, compute_features);
 
-    selectSpectra(scored, features, extracted_spectra, extracted_features);
+    // select the best spectrum for each group of spectra having the same name
+    selectSpectra(scored, features, extracted_spectra, extracted_features, compute_features);
+  }
+
+  void TargetedSpectraExtractor::extractSpectra(
+    const PeakMap& experiment,
+    const TargetedExperiment& targeted_exp,
+    std::vector<MSSpectrum>& extracted_spectra
+  ) const
+  {
+    FeatureMap extracted_features;
+    const bool compute_features { false };
+    extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features, compute_features);
   }
 }

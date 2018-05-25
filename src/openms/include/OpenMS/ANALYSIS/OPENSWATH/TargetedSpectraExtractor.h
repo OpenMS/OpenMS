@@ -102,7 +102,14 @@ public:
       const std::vector<MSSpectrum>& spectra,
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& annotated_spectra,
-      FeatureMap& features
+      FeatureMap& features,
+      const bool compute_features = true
+    ) const;
+
+    void annotateSpectra(
+      const std::vector<MSSpectrum>& spectra,
+      const TargetedExperiment& targeted_exp,
+      std::vector<MSSpectrum>& annotated_spectra
     ) const;
 
     /**
@@ -141,6 +148,13 @@ public:
       const std::vector<MSSpectrum>& annotated_spectra,
       const std::vector<MSSpectrum>& picked_spectra,
       FeatureMap& features,
+      std::vector<MSSpectrum>& scored_spectra,
+      const bool compute_features = true
+    ) const;
+
+    void scoreSpectra(
+      const std::vector<MSSpectrum>& annotated_spectra,
+      const std::vector<MSSpectrum>& picked_spectra,
       std::vector<MSSpectrum>& scored_spectra
     ) const;
 
@@ -157,7 +171,8 @@ public:
       const std::vector<MSSpectrum>& scored_spectra,
       const FeatureMap& features,
       std::vector<MSSpectrum>& selected_spectra,
-      FeatureMap& selected_features
+      FeatureMap& selected_features,
+      const bool compute_features = true
     ) const;
 
     /**
@@ -191,7 +206,14 @@ public:
       const MSExperiment& experiment,
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra,
-      FeatureMap& extracted_features
+      FeatureMap& extracted_features,
+      const bool compute_features = true
+    ) const;
+
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const TargetedExperiment& targeted_exp,
+      std::vector<MSSpectrum>& extracted_spectra
     ) const;
 
 protected:
