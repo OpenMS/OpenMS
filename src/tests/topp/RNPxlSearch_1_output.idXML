@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="/home/sachsenb/OpenMS/src/tests/topp/RNPxlSearch_1_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2018-05-25T09:25:29" search_engine="RNPxlSearch" search_engine_version="2.4.0-feature-RNPxlSearch-ladder-2018-05-24" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-05-25T13:23:30" search_engine="RNPxlSearch" search_engine_version="2.4.0-feature-RNPxlSearch-ladder-2018-05-25" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Cse1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -66,6 +66,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="0"/>
+			<UserParam type="float" name="precursor_intensity" value="4744377.5"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="590.766052246094" RT="18.3059501647949" >
 			<PeptideHit score="2.64102983474731" sequence="LDSKGNIK" charge="2" aa_before="R" aa_after="R" start="102" end="109" protein_refs="PH_4" >
@@ -111,6 +112,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="1"/>
+			<UserParam type="float" name="precursor_intensity" value="754859.3125"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="508.185516357422" RT="25.1164321899414" >
 			<PeptideHit score="3.00526595115662" sequence="YTPYLGR" charge="3" aa_before="R" aa_after="R" start="141" end="147" protein_refs="PH_3" >
@@ -156,6 +158,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="2"/>
+			<UserParam type="float" name="precursor_intensity" value="1503572.125"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="678.284423828125" RT="26.2365341186523" >
 			<PeptideHit score="12.8916025161743" sequence="DYHTVLGAR" charge="2" aa_before="R" aa_after="E" start="83" end="91" protein_refs="PH_3" >
@@ -201,6 +204,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="3"/>
+			<UserParam type="float" name="precursor_intensity" value="2464265.5"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="791.859008789063" RT="26.4131374359131" >
 			<PeptideHit score="18.4376258850098" sequence="KSEQTTGISLGR" charge="2" aa_before="K" aa_after="A" start="77" end="88" protein_refs="PH_1" >
@@ -246,6 +250,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="4"/>
+			<UserParam type="float" name="precursor_intensity" value="6056189"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="828.696105957031" RT="28.4869823455811" >
 			<PeptideHit score="18.8931694030762" sequence="VEDVHPISERPQYFSGDGK" charge="3" aa_before="R" aa_after="S" start="135" end="153" protein_refs="PH_4" >
@@ -291,6 +296,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="5"/>
+			<UserParam type="float" name="precursor_intensity" value="4983046.5"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="656.794921875" RT="28.67844581604" >
 			<PeptideHit score="3.94885778427124" sequence="FDQKIIDK" charge="2" aa_before="R" aa_after="T" start="82" end="89" protein_refs="PH_2" >
@@ -336,6 +342,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="6"/>
+			<UserParam type="float" name="precursor_intensity" value="907837.1875"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="957.396789550781" RT="31.8116321563721" >
 			<PeptideHit score="11.8183317184448" sequence="AWQQLDNGSCAQIR" charge="2" aa_before="R" aa_after="R" start="12" end="25" protein_refs="PH_1" >
@@ -381,6 +388,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="7"/>
+			<UserParam type="float" name="precursor_intensity" value="1653100.375"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="510.280517578125" RT="33.2371559143066" >
 			<PeptideHit score="2.70921111106873" sequence="LLKVLK" charge="2" aa_before="K" aa_after="E" start="138" end="143" protein_refs="PH_2" >
@@ -426,6 +434,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="8"/>
+			<UserParam type="float" name="precursor_intensity" value="4837597.5"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="717.355346679688" RT="33.7913818359375" >
 			<PeptideHit score="9.3382043838501" sequence="VLKEDIAAIR" charge="2" aa_before="K" aa_after="V" start="141" end="150" protein_refs="PH_2" >
@@ -471,6 +480,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="9"/>
+			<UserParam type="float" name="precursor_intensity" value="338005.40625"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="790.80615234375" RT="34.0160827636719" >
 			<PeptideHit score="19.69287109375" sequence="MATSGMMTELGK" charge="2" aa_before="R" aa_after="V" start="165" end="176" protein_refs="PH_2" >
@@ -516,6 +526,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="10"/>
+			<UserParam type="float" name="precursor_intensity" value="62663788"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="648.255920410156" RT="34.0715484619141" >
 			<PeptideHit score="6.49664545059204" sequence="M(Oxidation)VFCLSAGK" charge="2" aa_before="R" aa_after="N" start="60" end="68" protein_refs="PH_1" >
@@ -561,6 +572,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="11"/>
+			<UserParam type="float" name="precursor_intensity" value="768507.1875"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="938.369262695313" RT="36.528003692627" >
 			<PeptideHit score="15.0916328430176" sequence="DDMNMQKDAIFGGK" charge="2" aa_before="R" aa_after="R" start="20" end="33" protein_refs="PH_2" >
@@ -606,6 +618,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="12"/>
+			<UserParam type="float" name="precursor_intensity" value="903884.9375"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="933.940612792969" RT="36.7670631408691" >
 			<PeptideHit score="9.66769409179688" sequence="TLALLSGKSVDEAEK" charge="2" aa_before="K" aa_after="I" start="90" end="104" protein_refs="PH_2" >
@@ -651,6 +664,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="13"/>
+			<UserParam type="float" name="precursor_intensity" value="438940.125"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="735.813903808594" RT="37.0982551574707" >
 			<PeptideHit score="15.2731637954712" sequence="ALYTFAEGFK" charge="2" aa_before="K" aa_after="N" start="394" end="403" protein_refs="PH_0" >
@@ -696,6 +710,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="14"/>
+			<UserParam type="float" name="precursor_intensity" value="1292741"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="833.867248535156" RT="37.5358963012695" >
 			<PeptideHit score="5.50045251846313" sequence="LVQPFGWENPR" charge="2" aa_before="R" aa_after="H" start="42" end="52" protein_refs="PH_1" >
@@ -741,6 +756,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="15"/>
+			<UserParam type="float" name="precursor_intensity" value="1817525.125"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="698.29736328125" RT="37.8638763427734" >
 			<PeptideHit score="10.3271074295044" sequence="DEPMITLPR" charge="2" aa_before="R" aa_after="Q" start="197" end="205" protein_refs="PH_3" >
@@ -786,6 +802,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="16"/>
+			<UserParam type="float" name="precursor_intensity" value="1729520.75"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="623.253967285156" RT="39.1179161071777" >
 			<PeptideHit score="3.60432839393616" sequence="MLTWWGK" charge="2" aa_before="R" aa_after="R" start="135" end="141" protein_refs="PH_1" >
@@ -831,6 +848,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="17"/>
+			<UserParam type="float" name="precursor_intensity" value="1323910.5"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="861.388916015625" RT="39.8525009155273" >
 			<PeptideHit score="13.6637954711914" sequence="LAGPMQAWGQPTFEGTRPTGR" charge="3" aa_before="R" aa_after="F" start="8" end="28" protein_refs="PH_3" >
@@ -876,6 +894,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="18"/>
+			<UserParam type="float" name="precursor_intensity" value="799795.0625"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="1043.45251464844" RT="40.0377769470215" >
 			<PeptideHit score="6.2952184677124" sequence="SGYYAQNIGESSLRTIHLAQLR" charge="3" aa_before="K" aa_after="D" start="50" end="71" protein_refs="PH_2" >
@@ -921,6 +940,7 @@
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="19"/>
+			<UserParam type="float" name="precursor_intensity" value="1146872.25"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>
