@@ -10,5 +10,5 @@ cdef extern from "<OpenMS/FORMAT/MS2File.h>" namespace "OpenMS":
         #  ProgressLogger
         MS2File() nogil except +
         MS2File(MS2File) nogil except + #wrap-ignore
-        void load(String & filename, MSExperiment & exp) nogil except +
+        void load(const String & filename, MSExperiment & exp) nogil except +
 

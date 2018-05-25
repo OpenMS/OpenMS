@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS":
         libcpp_vector[ ExperimentalDesign_RunRow] rows
         # libcpp_map[ unsigned, libcpp_set[unsigned] ] getFractionToRunsMapping() nogil except +
         bool sameNrOfRunsPerFraction() nogil except +
-        void load(String & tsv_file, ExperimentalDesign & design) nogil except +
+        void load(const String & tsv_file, ExperimentalDesign & design) nogil except +
 
 cdef extern from "<OpenMS/METADATA/ExperimentalDesign.h>" namespace "OpenMS::ExperimentalDesign":
     

@@ -16,14 +16,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         String description
         libcpp_vector[ ParamEntry ] entries
         libcpp_vector[ ParamNode ] nodes
-        ParamNode(String & n, String & d) nogil except +
+        ParamNode(const String & n, const String & d) nogil except +
         bool operator==(ParamNode & rhs) nogil except +
-        # EntryIterator findEntry(String & name) nogil except +
-        # NodeIterator findNode(String & name) nogil except +
-        ParamNode * findParentOf(String & name) nogil except +
-        ParamEntry * findEntryRecursive(String & name) nogil except +
-        void insert(ParamNode & node, String & prefix) nogil except +
-        void insert(ParamEntry & entry, String & prefix) nogil except +
+        # EntryIterator findEntry(const String & name) nogil except +
+        # NodeIterator findNode(const String & name) nogil except +
+        ParamNode * findParentOf(const String & name) nogil except +
+        ParamEntry * findEntryRecursive(const String & name) nogil except +
+        void insert(ParamNode & node, const String & prefix) nogil except +
+        void insert(ParamEntry & entry, const String & prefix) nogil except +
         Size size() nogil except +
-        String suffix(String & key) nogil except +
+        String suffix(const String & key) nogil except +
 

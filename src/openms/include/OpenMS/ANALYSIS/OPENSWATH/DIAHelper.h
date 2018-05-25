@@ -47,24 +47,30 @@ namespace OpenMS
     */
     ///@{
     /// compute the b and y series masses for a given AASequence
-    OPENMS_DLLAPI void getBYSeries(AASequence& a,
-                     std::vector<double>& bseries, std::vector<double>& yseries, TheoreticalSpectrumGenerator * g, UInt charge = 1u);
+    OPENMS_DLLAPI void getBYSeries(const AASequence& a,
+                                   std::vector<double>& bseries,
+                                   std::vector<double>& yseries,
+                                   TheoreticalSpectrumGenerator const * g,
+                                   UInt charge = 1u);
 
     /// for SWATH -- get the theoretical b and y series masses for a sequence
-    OPENMS_DLLAPI void getTheorMasses(AASequence& a, std::vector<double>& masses, TheoreticalSpectrumGenerator * g, UInt charge = 1u);
+    OPENMS_DLLAPI void getTheorMasses(const AASequence& a,
+                                      std::vector<double>& masses,
+                                      TheoreticalSpectrumGenerator const * g,
+                                      UInt charge = 1u);
 
     /// get averagine distribution given mass
-    OPENMS_DLLAPI void getAveragineIsotopeDistribution(double product_mz,
+    OPENMS_DLLAPI void getAveragineIsotopeDistribution(const double product_mz,
                                          std::vector<std::pair<double, double> >& isotopesSpec, 
-                                         double charge = 1.,
-                                         int nr_isotopes = 4,
-                                         double mannmass = 1.00048);
+                                         const double charge = 1.,
+                                         const int nr_isotopes = 4,
+                                         const double mannmass = 1.00048);
 
     /// simulate spectrum from AASequence
-    OPENMS_DLLAPI void simulateSpectrumFromAASequence(AASequence& aa,
+    OPENMS_DLLAPI void simulateSpectrumFromAASequence(const AASequence& aa,
                                         std::vector<double>& firstIsotopeMasses, //[out]
                                         std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                                        TheoreticalSpectrumGenerator * g,
+                                        TheoreticalSpectrumGenerator const * g,
                                         double charge = 1.);
 
     /// modify masses by charge
@@ -95,3 +101,4 @@ namespace OpenMS
     ///}@
   }
 }
+

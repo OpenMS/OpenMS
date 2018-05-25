@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
          bool toBool() nogil except +
          bool hasUnit() nogil except +
          String  getUnit() nogil except +
-         void setUnit(String & unit) nogil except +
+         void setUnit(const String & unit) nogil except +
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS::DataValue":
 
