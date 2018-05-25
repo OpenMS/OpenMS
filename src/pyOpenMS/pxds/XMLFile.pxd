@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/XMLFile.h>" namespace "OpenMS::Internal":
         XMLFile() nogil except +
         XMLFile(XMLFile) nogil except + #wrap-ignore
 
-        XMLFile(String & schema_location, String & version) nogil except +
-        # NAMESPACE # bool isValid(String & filename, std::ostream & os) nogil except +
+        XMLFile(const String & schema_location, const String & version) nogil except +
+        # NAMESPACE # bool isValid(const String & filename, std::ostream & os) nogil except +
         String getVersion() nogil except +
 

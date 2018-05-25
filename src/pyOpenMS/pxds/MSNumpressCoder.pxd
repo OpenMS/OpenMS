@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
         void encodeNP(libcpp_vector[double] in_, String & result,
                 bool zlib_compression, NumpressConfig config) nogil except +
 
-        void decodeNP(String in_, libcpp_vector[double] & out,
+        void decodeNP(const String& in_, libcpp_vector[double] & out,
                 bool zlib_compression, NumpressConfig config) nogil except +
 
 cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS::MSNumpressCoder":
