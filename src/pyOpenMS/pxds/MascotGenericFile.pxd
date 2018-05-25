@@ -13,9 +13,9 @@ cdef extern from "<OpenMS/FORMAT/MascotGenericFile.h>" namespace "OpenMS":
         #  DefaultParamHandler
         MascotGenericFile() nogil except +
         MascotGenericFile(MascotGenericFile) nogil except + #wrap-ignore
-        void store(String & filename, MSExperiment & experiment) nogil except +
-        # NAMESPACE # void store(std::ostream & os, String & filename, MSExperiment & experiment) nogil except +
-        void load(String & filename, MSExperiment & exp) nogil except +
-        libcpp_pair[ String, String ] getHTTPPeakListEnclosure(String & filename) nogil except +
+        void store(const String & filename, MSExperiment & experiment) nogil except +
+        # NAMESPACE # void store(std::ostream & os, const String & filename, MSExperiment & experiment) nogil except +
+        void load(const String & filename, MSExperiment & exp) nogil except +
+        libcpp_pair[ String, String ] getHTTPPeakListEnclosure(const String & filename) nogil except +
         void updateMembers_() nogil except +
 

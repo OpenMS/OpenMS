@@ -1188,10 +1188,10 @@ namespace OpenMS
 
 
     void OpenSwathWorkflowSonar::computeSonarWindows_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                              double & sonar_winsize,
-                              double & sonar_start,
-                              double & sonar_end,
-                              int & sonar_total_win)
+                                                      double & sonar_winsize,
+                                                      double & sonar_start,
+                                                      double & sonar_end,
+                                                      int & sonar_total_win)
     {
       sonar_winsize = -1;
       sonar_start = std::numeric_limits<double>::max();

@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
       
         DecoyTransitionType getDecoyTransitionType() nogil except +
 
-        void setCompoundRef(String & compound_ref)nogil except +
+        void setCompoundRef(const String & compound_ref)nogil except +
         String  getCompoundRef()nogil except +
 
         bool hasPrecursorCVTerms() nogil except +

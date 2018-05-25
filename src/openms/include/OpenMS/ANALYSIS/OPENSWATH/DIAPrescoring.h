@@ -77,7 +77,6 @@ public:
 
     void updateMembers_() override;
 
-
     /**
       @brief Score a spectrum given a transition group.
 

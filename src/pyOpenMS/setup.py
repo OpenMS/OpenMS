@@ -76,7 +76,6 @@ ctime = os.stat("pyopenms").st_mtime
 ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
-
 version = OPEN_MS_VERSION
 
 with open("pyopenms/version.py", "w") as fp:
