@@ -121,6 +121,11 @@ const String &PeptideIndexing::getDecoyString() const
   return decoy_string_;
 }
 
+bool PeptideIndexing::isPrefix() const
+{
+  return prefix_;
+}
+
 
 /// @endcond
 

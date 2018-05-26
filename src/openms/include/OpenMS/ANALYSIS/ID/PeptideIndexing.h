@@ -708,6 +708,8 @@ public:
 
      const String& getDecoyString() const;
 
+     bool isPrefix() const;
+
  protected:
      using DecoyStringToAffixCount = std::map<std::string, std::pair<int, int>>;
      using CaseInsensitiveToCaseSensitiveDecoy = std::map<std::string, std::string>;
@@ -719,11 +721,14 @@ public:
        // Note: decoy prefixes/suffices must be provided in lower case and must only contain alphanumeric characters
         DecoyStringToAffixCount decoy_count = {{"decoy", {0,0}}, {"reverse", {0,0}},
                                                           {"rev", {0,0}}, {"dev", {0,0}},
-                                                          {"iddecoy", {0,0}}, {"xxx", {0,0}},
+                                                          {"__id_decoy", {0,0}}, {"xxx", {0,0}},
                                                           {"shuffled", {0,0}}, {"shuffle", {0,0}},
                                                           {"pseudo", {0,0}}, {"random", {0, 0}}};
        // Map case insensitive strings back to original case (as used in fasta)
        CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
+
+       // assume that it contains decoys
+       contains_decoys_ = true;
 
        // Setup regex vector, sort descending
        std::vector<std::string> prefix_regex;
@@ -734,8 +739,8 @@ public:
        std::sort(prefix_regex.rbegin(), prefix_regex.rend());
 
        // Setup prefix- and suffix regex strings
-       const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(prefix_regex, "|") + ")";
-       const std::string regexstr_suffix = std::string("(") + ListUtils::concatenate<std::string>(prefix_regex, "|") + ")$";
+       const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(prefix_regex, "_*|") + "_*)";
+       const std::string regexstr_suffix = std::string("(") + ListUtils::concatenate<std::string>(prefix_regex, "_*|") + "_*)$";
 
        const boost::regex pattern_prefix(regexstr_prefix);
        const boost::regex pattern_suffix(regexstr_suffix);
@@ -756,8 +761,8 @@ public:
            {
              String seq = proteins.chunkAt(i).identifier;
              // remove all non-alphanumeric characters
-             seq.erase(std::remove_if(seq.begin(), seq.end(),
-                                      [](char c) { return !std::isalpha(c); }), seq.end());
+             //seq.erase(std::remove_if(seq.begin(), seq.end(),
+               //                       [](char c) { return !std::isalpha(c); }), seq.end());
              String seq_lower = seq;
              seq_lower.toLower();
 
