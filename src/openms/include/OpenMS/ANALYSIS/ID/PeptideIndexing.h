@@ -760,9 +760,7 @@ public:
            for (SignedSize i = 0; i < prot_count; ++i)
            {
              String seq = proteins.chunkAt(i).identifier;
-             // remove all non-alphanumeric characters
-             //seq.erase(std::remove_if(seq.begin(), seq.end(),
-               //                       [](char c) { return !std::isalpha(c); }), seq.end());
+             
              String seq_lower = seq;
              seq_lower.toLower();
 
