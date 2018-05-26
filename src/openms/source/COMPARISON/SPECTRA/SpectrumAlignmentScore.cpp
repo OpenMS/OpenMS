@@ -78,14 +78,11 @@ namespace OpenMS
   double SpectrumAlignmentScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const
   {
     const double tolerance = (double)param_.getValue("tolerance");
-    bool is_relative_tolerance = param_.getValue("is_relative_tolerance").toBool();
-    bool use_linear_factor = param_.getValue("use_linear_factor").toBool();
-    bool use_gaussian_factor = param_.getValue("use_gaussian_factor").toBool();
+    const bool is_relative_tolerance = param_.getValue("is_relative_tolerance").toBool();
+    const bool use_linear_factor = param_.getValue("use_linear_factor").toBool();
+    const bool use_gaussian_factor = param_.getValue("use_gaussian_factor").toBool();
 
-    if (use_linear_factor && use_gaussian_factor)
-    {
-      cerr << "Warning: SpectrumAlignmentScore, use either 'use_linear_factor' or 'use_gaussian_factor'!" << endl;
-    }
+    OPENMS_PRECONDITION(!(use_linear_factor && use_gaussian_factor), "SpectrumAlignmentScore, use either 'use_linear_factor' or 'use_gaussian_factor")
 
     SpectrumAlignment aligner;
     Param p;
@@ -93,61 +90,41 @@ namespace OpenMS
     p.setValue("is_relative_tolerance", (String)param_.getValue("is_relative_tolerance"));
     aligner.setParameters(p);
 
-    vector<pair<Size, Size> > alignment;
+    vector<pair<Size, Size>> alignment;
     aligner.getSpectrumAlignment(alignment, s1, s2);
 
-    double score(0), sum(0), sum1(0), sum2(0);
-    for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
-    {
-      sum1 += it1->getIntensity() * it1->getIntensity();
-    }
+    double score(0), sum(0);
+    
+    // calculate sum of squared intensities
+    double sum1(0);
+    for (auto const & p : s1) { sum1 += pow(p.getIntensity(), 2); }
 
-    for (PeakSpectrum::ConstIterator it1 = s2.begin(); it1 != s2.end(); ++it1)
-    {
-      sum2 += it1->getIntensity() * it1->getIntensity();
-    }
+    double sum2(0);
+    for (auto const & p : s2) { sum2 += pow(p.getIntensity(), 2); }
 
-    for (vector<pair<Size, Size> >::const_iterator it = alignment.begin(); it != alignment.end(); ++it)
+    for (auto const ap : alignment)
     {
-      //double factor(0.0);
-      //factor = (epsilon - fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0])) / epsilon;
-      double mz_tolerance(tolerance);
-
-      if (is_relative_tolerance)
+      const double mz_tolerance = is_relative_tolerance ? tolerance * s1[ap.first].getMZ() * 1e-6 : tolerance;
+      const double mz_difference(fabs(s1[ap.first].getMZ() - s2[ap.second].getMZ()));
+ 
+      double factor(1.0);
+      if (use_linear_factor) 
       {
-        mz_tolerance = mz_tolerance * s1[it->first].getPosition()[0] / 1e6;
+        factor = (mz_tolerance - mz_difference) / mz_tolerance; 
+      }
+      else if (use_gaussian_factor)
+      {
+        const double epsilon = mz_difference / (3.0 * mz_tolerance * sqrt(2)); 
+        factor = std::erfc(epsilon); 
       }
 
-      double mz_difference(fabs(s1[it->first].getPosition()[0] - s2[it->second].getPosition()[0]));
-      double factor = 1.0;
-
-      if (use_linear_factor || use_gaussian_factor)
-      {
-        factor = getFactor_(mz_tolerance, mz_difference, use_gaussian_factor);
-      }
-      sum += sqrt(s1[it->first].getIntensity() * s2[it->second].getIntensity() * factor);
+      // calculate weighted sum of the multiplied intensities
+      sum += sqrt(s1[ap.first].getIntensity() * s2[ap.second].getIntensity() * factor);
     }
 
     score = sum / (sqrt(sum1 * sum2));
 
     return score;
-  }
-
-  double SpectrumAlignmentScore::getFactor_(double mz_tolerance, double mz_difference, bool is_gaussian) const
-  {
-    double factor(0.0);
-
-    if (is_gaussian)
-    {
-      static const double denominator = mz_tolerance * 3.0 * sqrt(2.0);
-      factor = boost::math::erfc(mz_difference / denominator);
-      //cerr << "Factor: " << factor << " " << mz_tolerance << " " << mz_difference << endl;
-    }
-    else
-    {
-      factor = (mz_tolerance - mz_difference) / mz_tolerance;
-    }
-    return factor;
   }
 
 }

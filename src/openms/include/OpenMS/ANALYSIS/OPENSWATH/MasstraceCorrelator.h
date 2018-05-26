@@ -77,7 +77,7 @@ namespace OpenMS
      * This assumes that the consensus map is sorted by intensity
      *
     */
-    void createPseudoSpectra(ConsensusMap& map, MSExperiment& pseudo_spectra,
+    void createPseudoSpectra(const ConsensusMap& map, MSExperiment& pseudo_spectra,
         Size min_peak_nr, double min_correlation, int max_lag,
         double max_rt_apex_difference);
 
@@ -102,9 +102,14 @@ namespace OpenMS
      * @param mindiff Minimal differences for matching up the two mass traces
      *
     */
-    void scoreHullpoints(const MasstracePointsType& hull_points1, const MasstracePointsType& hull_points2,
-        int& lag, double& lag_intensity, double& pearson_score, 
-        const double min_corr, const int max_lag, const double mindiff = 0.1);
+    void scoreHullpoints(const MasstracePointsType& hull_points1,
+                         const MasstracePointsType& hull_points2,
+                         int& lag,
+                         double& lag_intensity,
+                         double& pearson_score,
+                         const double min_corr,
+                         const int max_lag,
+                         const double mindiff = 0.1);
 
     /* Create a cache of the features in a consensus map
      *
@@ -120,9 +125,9 @@ namespace OpenMS
      * @param rt_cache The list of retention times of all features
     */
     void createConsensusMapCache(const ConsensusMap& map,
-        std::vector<MasstracePointsType>& feature_points,
-        std::vector<std::pair<double, double> >& max_intensities,
-        std::vector<double>& rt_cache);
+                                 std::vector<MasstracePointsType>& feature_points,
+                                 std::vector<std::pair<double, double> >& max_intensities,
+                                 std::vector<double>& rt_cache);
 
   protected:
 
@@ -147,9 +152,12 @@ namespace OpenMS
      * @param padEnds Whether to pad ends with zeros
      *
     */
-    void matchMassTraces_(const MasstracePointsType& hull_points1, const MasstracePointsType& hull_points2,
-        std::vector<double>& vec1, std::vector<double>& vec2, double mindiff,
-        double padEnds = true);
+    void matchMassTraces_(const MasstracePointsType& hull_points1,
+                          const MasstracePointsType& hull_points2,
+                          std::vector<double>& vec1,
+                          std::vector<double>& vec2,
+                          double mindiff,
+                          double padEnds = true);
   };
 }
 

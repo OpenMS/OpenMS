@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SimpleSVM.h>" namespace "OpenMS":
         # void setup(libcpp_map[String, libcpp_vector[double] ]& predictors, libcpp_map[ Size, Int ] & labels) nogil except +
         void predict(libcpp_vector[ SVMPrediction ] & predictions, libcpp_vector[ size_t ] indexes) nogil except +
         void getFeatureWeights(libcpp_map[ String, double ] & feature_weights) nogil except +
-        void writeXvalResults(String & path) nogil except +
+        void writeXvalResults(const String & path) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/SVM/SimpleSVM.h>" namespace "OpenMS::SimpleSVM":

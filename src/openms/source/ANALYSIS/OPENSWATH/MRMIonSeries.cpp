@@ -44,19 +44,19 @@ namespace OpenMS
   {
   }
 
-  std::pair<String, double> MRMIonSeries::getIon(IonSeries ionseries, String ionid)
+  std::pair<String, double> MRMIonSeries::getIon(IonSeries& ionseries, const String& ionid)
   {
-    std::pair<String, double> ion = make_pair(String("unannotated"), -1);
-
     if (ionseries.find(ionid) != ionseries.end())
     {
-      ion = make_pair(ionid, ionseries[ionid]);
+      return make_pair(ionid, ionseries[ionid]);
     }
-
-    return ion;
+    else
+    {
+      return make_pair(String("unannotated"), -1);
+    }
   }
 
-  std::pair<String, double> MRMIonSeries::annotateIon(IonSeries ionseries, double ProductMZ, double mz_threshold)
+  std::pair<String, double> MRMIonSeries::annotateIon(const IonSeries& ionseries, const double ProductMZ, const double mz_threshold)
   {
     // make sure to only use annotated transitions and to use the theoretical MZ
     using namespace boost::assign;
@@ -67,7 +67,7 @@ namespace OpenMS
     ion = make_pair(unannotated, -1);
     double closest_delta = std::numeric_limits<double>::max();
 
-    for (boost::unordered_map<String, double>::iterator ordinal = ionseries.begin(); ordinal != ionseries.end(); ++ordinal)
+    for (boost::unordered_map<String, double>::const_iterator ordinal = ionseries.begin(); ordinal != ionseries.end(); ++ordinal)
     {
       if (std::fabs(ordinal->second - ProductMZ) <= mz_threshold && std::fabs(ordinal->second - ProductMZ) <= closest_delta)
       {
@@ -79,7 +79,7 @@ namespace OpenMS
     return ion;
   }
 
-  TargetedExperiment::Interpretation MRMIonSeries::annotationToCVTermList_(String annotation)
+  TargetedExperiment::Interpretation MRMIonSeries::annotationToCVTermList_(const String& annotation)
   {
     // CVTermList interpretation;
     TargetedExperiment::Interpretation interpretation;
@@ -212,13 +212,13 @@ namespace OpenMS
     tr.setProduct(p);
   }
 
-  void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransition& tr, String annotation)
+  void MRMIonSeries::annotateTransitionCV(ReactionMonitoringTransition& tr, const String& annotation)
   {
     tr.setMetaValue("annotation", annotation);
     annotationToCV_(tr);
   }
 
-  void MRMIonSeries::annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide peptide, const double precursor_mz_threshold, double product_mz_threshold, bool enable_reannotation, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
+  void MRMIonSeries::annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide& peptide, const double precursor_mz_threshold, double product_mz_threshold, const bool enable_reannotation, const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges, const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow)
   {
     OPENMS_PRECONDITION(peptide.hasCharge(), "Cannot annotate transition without a peptide charge state")
     // TODO: we should not have transitions without charge states
@@ -471,13 +471,13 @@ namespace OpenMS
     tr.setProduct(p);
   }
 
-  boost::unordered_map<String, double> MRMIonSeries::getIonSeries(AASequence sequence, size_t precursor_charge, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
+  boost::unordered_map<String, double> MRMIonSeries::getIonSeries(const AASequence& sequence, size_t precursor_charge, const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges, const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow)
   {
     boost::unordered_map<String, double> ionseries;
 
-    for (std::vector<String>::iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ++ft_it)
+    for (std::vector<String>::const_iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ++ft_it)
     {
-      for (std::vector<size_t>::iterator ch_it = fragment_charges.begin(); ch_it != fragment_charges.end(); ++ch_it)
+      for (std::vector<size_t>::const_iterator ch_it = fragment_charges.begin(); ch_it != fragment_charges.end(); ++ch_it)
       {
         size_t charge = *ch_it;
 
@@ -523,7 +523,9 @@ namespace OpenMS
           }
           else
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *ft_it + " ion series for peptide sequence \"" + sequence.toString() + "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                *ft_it + " ion series for peptide sequence \"" + sequence.toString() +
+                "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
           }
 
           ionseries[*ft_it + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);
@@ -535,13 +537,24 @@ namespace OpenMS
               const std::vector<EmpiricalFormula> losses = ion[j].getLossFormulas();
               for (std::vector<EmpiricalFormula>::const_iterator lit = losses.begin(); lit != losses.end(); ++lit)
               {
-                if (enable_specific_losses && lit->toString() != String("H2O1") && lit->toString() != String("H3N1") && lit->toString() != String("C1H2N2") && lit->toString() != String("C1H2N1O1"))
+                if (enable_specific_losses && 
+                    lit->toString() != String("H2O1") &&
+                    lit->toString() != String("H3N1") &&
+                    lit->toString() != String("C1H2N2") &&
+                    lit->toString() != String("C1H2N1O1"))
                 {
-                  ionseries[*ft_it + String(i) + "-" + lit->toString() + "^" + String(charge)] = Math::roundDecimal(pos - lit->getMonoWeight() / charge, round_decPow);
+                  ionseries[*ft_it + String(i) + "-" + lit->toString() + "^" + String(charge)] =
+                    Math::roundDecimal(pos - lit->getMonoWeight() / charge, round_decPow);
                 }
-                else if (enable_unspecific_losses && (lit->toString() == String("H2O1") || lit->toString() == String("H3N1") || lit->toString() == String("C1H2N2") || lit->toString() == String("C1H2N1O1")))
+                else if (enable_unspecific_losses && (
+                            lit->toString() == String("H2O1") ||
+                            lit->toString() == String("H3N1") ||
+                            lit->toString() == String("C1H2N2") ||
+                            lit->toString() == String("C1H2N1O1")
+                          ))
                 {
-                  ionseries[*ft_it + String(i) + "-" + lit->toString() + "^" + String(charge)] = Math::roundDecimal(pos - lit->getMonoWeight() / charge, round_decPow);
+                  ionseries[*ft_it + String(i) + "-" + lit->toString() + "^" + String(charge)] =
+                    Math::roundDecimal(pos - lit->getMonoWeight() / charge, round_decPow);
                 }
               }
             }

@@ -161,8 +161,6 @@ namespace OpenMS
 
   bool ModificationsDB::has(String modification) const
   {
-    OPENMS_PRECONDITION(!modification_names_.has(modification) || (int)findModificationIndex(modification) >= 0,
-        "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
     return modification_names_.has(modification);
   }
 
