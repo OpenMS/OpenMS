@@ -623,6 +623,7 @@ class SimpleSearchEngine :
       // reindex peptides to proteins
       PeptideIndexing indexer;
       Param param_pi = indexer.getParameters();
+      param_pi.setValue("decoy_string", "DECOY_");
       param_pi.setValue("decoy_string_position", "prefix");
       param_pi.setValue("enzyme:name", getStringOption_("enzyme"));
       param_pi.setValue("enzyme:specificity", "full");

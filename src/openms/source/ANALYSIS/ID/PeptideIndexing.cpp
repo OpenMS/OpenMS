@@ -43,9 +43,9 @@ using namespace std;
     : DefaultParamHandler("PeptideIndexing")
   {
 
-    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'decoy_string_position' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "", "String that was appended (or prefixed - see 'decoy_string_position' flag below) to the accessions in the protein database to indicate decoy proteins. If empty (default), it's determined automatically (checking for common terms, both as prefix and suffix).");
 
-    defaults_.setValue("decoy_string_position", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?");
+    defaults_.setValue("decoy_string_position", "prefix", "Is the 'decoy_string' prepended (prefix) or appended (suffix) to the protein accession? (ignored if decoy_string is empty)");
     defaults_.setValidStrings("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
 
     defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message), 'silent' (no action is taken, not even a warning)");
@@ -115,6 +115,16 @@ using namespace std;
     aaa_max_ = static_cast<Int>(param_.getValue("aaa_max"));
     mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
   }
+
+const String &PeptideIndexing::getDecoyString() const
+{
+  return decoy_string_;
+}
+
+bool PeptideIndexing::isPrefix() const
+{
+  return prefix_;
+}
 
 
 /// @endcond
