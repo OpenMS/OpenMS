@@ -899,7 +899,7 @@ private:
     map<Size, Size> &rank_to_idx = this->specref_to_rank_to_pepidx[getSpectrumReference(pep_id)];
     const Size pep_id_rank = getRank(pep_id);
 
-    double result;
+    double result(0);
 
     for (Size rank = 1; rank < rank_to_idx.size(); ++rank)
     {
