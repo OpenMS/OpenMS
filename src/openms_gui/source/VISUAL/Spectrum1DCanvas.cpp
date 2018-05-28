@@ -679,24 +679,31 @@ namespace OpenMS
 
   void Spectrum1DCanvas::paint(QPainter * painter, QPaintEvent * e)
   {
-    //Fill background if no layer is present
+    // Fill background if no layer is present
     if (getLayerCount() == 0)
     {
-      painter->fillRect(0, 0, this->width(), this->height(), QColor(param_.getValue("background_color").toQString()));
+      painter->fillRect(0, 
+        0, 
+        width(), 
+        height(), 
+        QColor(param_.getValue("background_color").toQString()));
       e->accept();
       return;
     }
 
     QTime timer;
-    if (show_timing_)
-    {
-      timer.start();
-    }
+    if (show_timing_) { timer.start(); }
 
     QPoint begin, end;
 
-    painter->fillRect(0, 0, this->width(), this->height(), QColor(param_.getValue("background_color").toQString()));
+    // clear
+    painter->fillRect(0, 
+      0, 
+      this->width(), 
+      this->height(), 
+      QColor(param_.getValue("background_color").toQString()));
 
+    // gridlines
     emit recalculateAxes();
     paintGridLines_(*painter);
 
@@ -705,32 +712,33 @@ namespace OpenMS
     {
       const LayerData & layer = getLayer(i);
 
-      if (layer.type != LayerData::DT_PEAK)  // skip non peak data layer
-      {
-        continue;
-      }
+      // skip non peak data layer
+      if (layer.type != LayerData::DT_PEAK) { continue; }
 
-      const ExperimentType::SpectrumType & spectrum = layer.getCurrentSpectrum();
       if (layer.visible)
       {
+        const ExperimentType::SpectrumType & spectrum = layer.getCurrentSpectrum();
+
+        // get default icon and peak color
         QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
         QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
         pen.setStyle(peak_penstyle_[i]);
+
         // TODO option for variable pen width
         // pen.setWidthF(1.5);
         painter->setPen(pen);
         updatePercentageFactor_(i);
         vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
         vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
+
         // draw dashed elongations for pairs of peaks annotated with a distance
-        for (Annotations1DContainer::ConstIterator it = layer.getCurrentAnnotations().begin();
+        for (auto it = layer.getCurrentAnnotations().begin();
              it != layer.getCurrentAnnotations().end(); ++it)
         {
           Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(*it);
           if (distance_item)
           {
-            QPoint from;
-            QPoint to;
+            QPoint from, to;
             dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
 
             dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
@@ -751,7 +759,6 @@ namespace OpenMS
           {
             if (layer.filters.passes(spectrum, it - spectrum.begin()))
             {
-
               // use peak colors stored in the layer, if available
               if (layer.peak_colors_1d.size() == spectrum.size())
               {
@@ -759,6 +766,19 @@ namespace OpenMS
                 Size peak_index = std::distance(spectrum.begin(), it);
                 pen.setColor(layer.peak_colors_1d[peak_index]);
                 painter->setPen(pen);
+              }
+              
+              // Warn if non-empty peak color array present but size doesn't match number of peaks
+              // This indicates a bug but we gracefuly just issue a warning
+              if (!layer.peak_colors_1d.empty() && 
+               layer.peak_colors_1d.size() < spectrum.size())
+              {
+                LOG_ERROR << "Peak color array size (" 
+                  << layer.peak_colors_1d.size() 
+                  << ") doesn't match number of peaks ("
+                  << spectrum.size()
+                  << ") in spectrum." 
+                  << endl;
               }
 
               dataToWidget(*it, end, layer.flipped);
@@ -984,11 +1004,12 @@ namespace OpenMS
     QPen pen(QColor(layer.param.getValue("annotation_color").toQString()));
     QPen selected_pen;
 
-    //make selected items a little brighter
+    // make selected items a little brighter
     int sel_red = pen.color().red() + 50;
     int sel_green = pen.color().green() + 50;
     int sel_blue = pen.color().blue() + 50;
-    //check if rgb out of bounds
+
+    // check if rgb out of bounds
     sel_red = sel_red > 255 ? 255 : sel_red;
     sel_green = sel_green > 255 ? 255 : sel_green;
     sel_blue = sel_blue > 255 ? 255 : sel_blue;
