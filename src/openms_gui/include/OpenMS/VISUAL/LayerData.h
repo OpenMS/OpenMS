@@ -293,8 +293,13 @@ public:
     */
     const ExperimentType::SpectrumType & getCurrentSpectrum() const;
 
-    /// Returns a copy of the required spectrum
-    ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
+    void sortCurrentSpectrumByPosition()
+    {
+      cached_spectrum_.sortByPosition();
+    }
+
+    /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
+    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
     {
       if (spectrum_idx == current_spectrum_) return cached_spectrum_;
 
