@@ -533,6 +533,7 @@ namespace OpenMS
 
     // switch between different view tabs
     connect(views_tabwidget_, SIGNAL(currentChanged(int)), this, SLOT(viewChanged(int)));
+    connect(views_tabwidget_, SIGNAL(tabBarDoubleClicked(int)), this, SLOT(viewTabwidgetDoubleClicked(int)));
 
     // add hide/show option to dock widget
     windows->addAction(views_dockwidget_->toggleViewAction());
@@ -2088,6 +2089,31 @@ namespace OpenMS
     updateViewBar();
   }
 
+    void TOPPViewBase::viewTabwidgetDoubleClicked(int tab_index)
+  {
+    if (!getActiveSpectrumWidget()) return;
+
+    // double click on disabled identification view
+    // enables it and creates an empty identification structure
+    if (views_tabwidget_->tabText(tab_index) == "Identification view"
+      && !views_tabwidget_-> isTabEnabled(tab_index))
+    {
+      views_tabwidget_->setTabEnabled(1, true); // enable identification view
+      views_tabwidget_->setCurrentIndex(1); // switch to identification view
+
+      spectraview_behavior_->deactivateBehavior();
+      layer_dock_widget_->show();
+      filter_dock_widget_->show();
+      if (getActive2DWidget()) // currently 2D window is open
+      {
+        showSpectrumAs1D(0);
+      }
+      identificationview_behavior_->activateBehavior();
+    }
+
+    updateViewBar();
+  }
+
   void TOPPViewBase::layerSelectionChange(int i)
   {
     // after adding a layer i is -1. TODO: check if this is the correct behaviour
@@ -3200,6 +3226,7 @@ namespace OpenMS
         mapper.setParameters(p);
         mapper.annotate(*layer.getPeakDataMuteable(), identifications, protein_identifications, true);
         views_tabwidget_->setTabEnabled(1, true); // enable identification view
+        views_tabwidget_->setCurrentIndex(1); // switch to identification view
       }
       else if (layer.type == LayerData::DT_FEATURE)
       {
