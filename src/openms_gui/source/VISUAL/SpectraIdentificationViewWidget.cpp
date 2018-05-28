@@ -520,7 +520,9 @@ namespace OpenMS
         addTextItemToBottomRow_(is_zoom, 6, c);
       }
       else
-      {  // has identifications
+      {
+        c = QColor(175, 255, 175); // with identification: light green
+        
         for (Size pi_idx = 0; pi_idx != id_count; ++pi_idx)
         {
           for (Size ph_idx = 0; ph_idx != pi[pi_idx].getHits().size(); ++ph_idx)

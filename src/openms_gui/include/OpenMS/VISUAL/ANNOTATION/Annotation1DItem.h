@@ -120,4 +120,3 @@ protected:
     QString text_;
   };
 } // namespace OpenMS
-
