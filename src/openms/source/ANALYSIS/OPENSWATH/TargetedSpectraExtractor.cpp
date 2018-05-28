@@ -186,7 +186,6 @@ namespace OpenMS
             feature.setMetaValue("transition_name", transitions[j].getPeptideRef());
             features.push_back(feature);
           }
-          break;
         }
       }
     }
