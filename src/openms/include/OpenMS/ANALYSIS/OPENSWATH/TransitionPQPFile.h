@@ -57,6 +57,7 @@ namespace OpenMS
   {
 
 private:
+
     /** @brief Read PQP SQLite file
      *
      * @param filename The input file

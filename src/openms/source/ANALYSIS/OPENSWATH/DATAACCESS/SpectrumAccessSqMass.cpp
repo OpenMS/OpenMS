@@ -38,17 +38,17 @@ namespace OpenMS
 {
 
     /// Constructor
-  SpectrumAccessSqMass::SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler) :
+  SpectrumAccessSqMass::SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler) :
       handler_(handler)
     {}
 
-    SpectrumAccessSqMass::SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices) :
+    SpectrumAccessSqMass::SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices) :
       handler_(handler),
       sidx_(indices)
     {}
 
 
-    SpectrumAccessSqMass::SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> indices) :
+    SpectrumAccessSqMass::SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices) :
       handler_(sp.handler_)
     {
       if (indices.empty())

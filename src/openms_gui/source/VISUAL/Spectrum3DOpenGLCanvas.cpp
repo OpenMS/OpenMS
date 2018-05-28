@@ -53,6 +53,9 @@ namespace OpenMS
   {
     canvas_3d.rubber_band_.setParent(this);
 
+    x_label_ = (String(Peak2D::shortDimensionName(Peak2D::MZ)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::MZ)) + "]").toQString();
+    y_label_ = (String(Peak2D::shortDimensionName(Peak2D::RT)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::RT)) + "]").toQString();
+
     //Set focus policy and mouse tracking in order to get keyboard events
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
@@ -323,73 +326,72 @@ namespace OpenMS
     QString text;
     qglColor_(Qt::black);
 
-    //RT axis legend
+    // Draw x and y axis legend
     if (canvas_3d_.legend_shown_)
     {
       font.setPixelSize(12);
-
-      static QString mz_label = (String(Peak2D::shortDimensionName(Peak2D::MZ)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::MZ)) + "]").toQString();
-      renderText_(0.0, -corner_ - 20.0, -near_ - 2 * corner_ + 20.0, mz_label);
-
-      static QString rt_label = (String(Peak2D::shortDimensionName(Peak2D::RT)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::RT)) + "]").toQString();
-      renderText_(-corner_ - 20.0, -corner_ - 20.0, -near_ - 3 * corner_, rt_label);
-
+      renderText_(0.0, -corner_ - 20.0, -near_ - 2 * corner_ + 20.0, x_label_);
+      renderText_(-corner_ - 20.0, -corner_ - 20.0, -near_ - 3 * corner_, y_label_);
       font.setPixelSize(10);
     }
 
-    //RT numbers
-    if (grid_rt_.size() > 0)
+    // RT tick labels
     {
-      for (Size i = 0; i < grid_rt_[0].size(); i++)
+      if (grid_rt_.size() > 0)
       {
-        text = QString::number(grid_rt_[0][i]);
-        renderText_(-corner_ - 15.0, -corner_ - 5.0, -near_ - 2 * corner_ - scaledRT_(grid_rt_[0][i]), text);
+        for (Size i = 0; i < grid_rt_[0].size(); i++)
+        {
+          text = QString::number(grid_rt_[0][i]);
+          renderText_(-corner_ - 15.0, -corner_ - 5.0, -near_ - 2 * corner_ - scaledRT_(grid_rt_[0][i]), text);
+        }
       }
-    }
-    if (zoom_ < 3.0 && grid_rt_.size() >= 2)
-    {
-      for (Size i = 0; i < grid_rt_[1].size(); i++)
+      if (zoom_ < 3.0 && grid_rt_.size() >= 2)
       {
-        text = QString::number(grid_rt_[1][i]);
-        renderText_(-corner_ - 15.0, -corner_ - 5.0, -near_ - 2 * corner_ - scaledRT_(grid_rt_[1][i]), text);
+        for (Size i = 0; i < grid_rt_[1].size(); i++)
+        {
+          text = QString::number(grid_rt_[1][i]);
+          renderText_(-corner_ - 15.0, -corner_ - 5.0, -near_ - 2 * corner_ - scaledRT_(grid_rt_[1][i]), text);
+        }
       }
-    }
-    if (zoom_ < 2.0 && grid_rt_.size() >= 3)
-    {
-      for (Size i = 0; i < grid_rt_[2].size(); i++)
+      if (zoom_ < 2.0 && grid_rt_.size() >= 3)
       {
-        text = QString::number(grid_rt_[2][i]);
-        renderText_(-corner_ - 15.0, -corner_ - 5.0, -near_ - 2 * corner_ - scaledRT_(grid_rt_[2][i]), text);
-      }
-    }
-
-    //m/z numbers
-    if (grid_mz_.size() > 0)
-    {
-      for (Size i = 0; i < grid_mz_[0].size(); i++)
-      {
-        text = QString::number(grid_mz_[0][i]);
-        renderText_(-corner_ - text.length() + scaledMZ_(grid_mz_[0][i]), -corner_ - 5.0, -near_ - 2 * corner_ + 15.0, text);
-      }
-    }
-    if (zoom_ < 3.0 && grid_mz_.size() >= 2)
-    {
-      for (Size i = 0; i < grid_mz_[1].size(); i++)
-      {
-        text = QString::number(grid_mz_[1][i]);
-        renderText_(-corner_ - text.length() + scaledMZ_(grid_mz_[1][i]), -corner_ - 5.0, -near_ - 2 * corner_ + 15.0, text);
-      }
-    }
-    if (zoom_ < 2.0 && grid_mz_.size() >= 3)
-    {
-      for (Size i = 0; i < grid_mz_[2].size(); i++)
-      {
-        text = QString::number(grid_mz_[2][i]);
-        renderText_(-corner_ - text.length() + scaledMZ_(grid_mz_[2][i]), -corner_ - 5.0, -near_ - 2 * corner_ + 15.0, text);
+        for (Size i = 0; i < grid_rt_[2].size(); i++)
+        {
+          text = QString::number(grid_rt_[2][i]);
+          renderText_(-corner_ - 15.0, -corner_ - 5.0, -near_ - 2 * corner_ - scaledRT_(grid_rt_[2][i]), text);
+        }
       }
     }
 
-    //draw intensity legend if not in zoom mode
+    // m/z tick labels
+    {
+      if (grid_mz_.size() > 0)
+      {
+        for (Size i = 0; i < grid_mz_[0].size(); i++)
+        {
+          text = QString::number(grid_mz_[0][i]);
+          renderText_(-corner_ - text.length() + scaledMZ_(grid_mz_[0][i]), -corner_ - 5.0, -near_ - 2 * corner_ + 15.0, text);
+        }
+      }
+      if (zoom_ < 3.0 && grid_mz_.size() >= 2)
+      {
+        for (Size i = 0; i < grid_mz_[1].size(); i++)
+        {
+          text = QString::number(grid_mz_[1][i]);
+          renderText_(-corner_ - text.length() + scaledMZ_(grid_mz_[1][i]), -corner_ - 5.0, -near_ - 2 * corner_ + 15.0, text);
+        }
+      }
+      if (zoom_ < 2.0 && grid_mz_.size() >= 3)
+      {
+        for (Size i = 0; i < grid_mz_[2].size(); i++)
+        {
+          text = QString::number(grid_mz_[2][i]);
+          renderText_(-corner_ - text.length() + scaledMZ_(grid_mz_[2][i]), -corner_ - 5.0, -near_ - 2 * corner_ + 15.0, text);
+        }
+      }
+    }
+
+    // draw intensity legend if not in zoom mode
     if (canvas_3d_.action_mode_ != SpectrumCanvas::AM_ZOOM)
     {
       switch (canvas_3d_.intensity_mode_)

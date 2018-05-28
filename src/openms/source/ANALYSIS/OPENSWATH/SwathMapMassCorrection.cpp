@@ -49,11 +49,11 @@ namespace OpenMS
 {
 
   void SwathMapMassCorrection::correctMZ(
-    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+    const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
     std::vector< OpenSwath::SwathMap > & swath_maps,
-    std::string corr_type,
-    double mz_extr_window,
-    bool ppm)
+    const std::string& corr_type,
+    const double mz_extr_window,
+    const bool ppm)
   {
     LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
@@ -76,12 +76,11 @@ namespace OpenMS
     std::vector<double> exp_mz;
     std::vector<double> theo_mz;
     std::vector<double> delta_ppm;
-    for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-        trgroup_it != transition_group_map.end(); ++trgroup_it)
+    for (auto trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
 
       // we need at least one feature to find the best one
-      OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
+      auto transition_group = &trgroup_it->second;
       if (transition_group->getFeatures().size() == 0)
       {
         continue;
@@ -90,8 +89,7 @@ namespace OpenMS
       // Find the feature with the highest score
       double bestRT = -1;
       double highest_score = -1000;
-      for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-           mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
+      for (auto mrmfeature = transition_group->getFeatures().begin(); mrmfeature != transition_group->getFeatures().end(); ++mrmfeature)
       {
         if (mrmfeature->getOverallQuality() > highest_score)
         {

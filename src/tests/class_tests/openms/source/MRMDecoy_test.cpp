@@ -477,11 +477,20 @@ END_SECTION
 
 /// Public methods
 
-START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                   String method, String decoy_tag, int max_attempts, double identity_threshold,
-                                   double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
-                                   std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
-                                   bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow); ))
+START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
+                        OpenMS::TargetedExperiment& dec,
+                        const String& method,
+                        const String& decoy_tag,
+                        const int max_attempts,
+                        const double identity_threshold,
+                        const double precursor_mz_shift,
+                        const double product_mz_shift,
+                        const double product_mz_threshold,
+                        const std::vector<String>& fragment_types,
+                        const std::vector<size_t>& fragment_charges,
+                        const bool enable_specific_losses,
+                        const bool enable_unspecific_losses,
+                        const int round_decPow = -4) const))
 {
   String method = "pseudo-reverse";
   double identity_threshold = 0.7;

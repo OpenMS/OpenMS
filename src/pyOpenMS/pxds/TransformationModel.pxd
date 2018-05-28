@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
     cdef cppclass TM_DataPoint "OpenMS::TransformationModel::DataPoint":
         TM_DataPoint() nogil except +
         TM_DataPoint(double, double) nogil except +
-        TM_DataPoint(double, double, String&) nogil except +
+        TM_DataPoint(double, double, const String&) nogil except +
         TM_DataPoint(TM_DataPoint) nogil except + #wrap-ignore
         bool operator<(TM_DataPoint&) nogil except +
         bool operator==(TM_DataPoint&) nogil except +
@@ -31,8 +31,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
         
         void weightData(libcpp_vector[TM_DataPoint]& data) nogil except +
         void weightData(libcpp_vector[TM_DataPoint]& data) nogil except +
-        bool checkValidWeight(String& weight, libcpp_vector[String]& valid_weights) nogil except +
-        double weightDatum(double& datum, String& weight) nogil except +
-        double unWeightDatum(double& datum, String& weight) nogil except +
+        bool checkValidWeight(const String& weight, libcpp_vector[String]& valid_weights) nogil except +
+        double weightDatum(double& datum, const String& weight) nogil except +
+        double unWeightDatum(double& datum, const String& weight) nogil except +
         # String getValidXWeights() nogil except +
         # String getValidYWeights() nogil except +

@@ -10,20 +10,20 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
         SequestInfile() nogil except +
         SequestInfile(SequestInfile) nogil except +
         bool operator==(SequestInfile &sequest_infile) nogil except +
-        void store(String &filename) nogil except +
+        void store(const String &filename) nogil except +
         String getEnzymeInfoAsString() nogil except +
         String  getDatabase() nogil except +
-        void setDatabase(String &database) nogil except +
+        void setDatabase(const String &database) nogil except +
         String  getNeutralLossesForIons() nogil except +
-        void setNeutralLossesForIons(String &neutral_losses_for_ions) nogil except +
+        void setNeutralLossesForIons(const String &neutral_losses_for_ions) nogil except +
         String  getIonSeriesWeights() nogil except +
-        void setIonSeriesWeights(String &ion_series_weights) nogil except +
+        void setIonSeriesWeights(const String &ion_series_weights) nogil except +
         String  getPartialSequence() nogil except +
-        void setPartialSequence(String &partial_sequence) nogil except +
+        void setPartialSequence(const String &partial_sequence) nogil except +
         String  getSequenceHeaderFilter() nogil except +
-        void setSequenceHeaderFilter(String &sequence_header_filter) nogil except +
+        void setSequenceHeaderFilter(const String &sequence_header_filter) nogil except +
         String  getProteinMassFilter() nogil except +
-        void setProteinMassFilter(String &protein_mass_filter) nogil except +
+        void setProteinMassFilter(const String &protein_mass_filter) nogil except +
         float getPeakMassTolerance() nogil except +
         void setPeakMassTolerance(float peak_mass_tolerance) nogil except +
         float getPrecursorMassTolerance() nogil except +
@@ -68,5 +68,5 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
         void addEnzymeInfo(libcpp_vector[ String ] &enzyme_info) nogil except +
 
         libcpp_map[ String, libcpp_vector[ String ] ]  getModifications() nogil except + # wrap-ignore
-        void handlePTMs(String &modification_line, String &modifications_filename, bool monoisotopic) nogil except +
+        void handlePTMs(const String &modification_line, const String &modifications_filename, bool monoisotopic) nogil except +
 

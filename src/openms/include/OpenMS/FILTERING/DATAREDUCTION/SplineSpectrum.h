@@ -93,7 +93,7 @@ class OPENMS_DLLAPI SplineSpectrum
      *  has some usable data to work on.
      *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
      */
-    size_t getSplineCount() const;
+    size_t size() const;
 
     /**
     * @brief iterator class for access of spline packages

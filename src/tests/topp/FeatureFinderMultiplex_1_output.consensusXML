@@ -1,26 +1,25 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<UserParam type="stringList" name="spectra_data" value="[file:///BM2000.raw]"/>
+<?xml-stylesheet type="text/xsl" href="file:////Users/lars/Code/OpenMS-develop/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_3332699010107892018" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="2">
-		<map id="0" name="FeatureFinderMultiplex_1.tmp" label="Dimethyl0" size="2">
+		<map id="0" name="FeatureFinderMultiplex_1_output.consensusXML" label="Dimethyl0" size="2">
 		</map>
-		<map id="1" name="FeatureFinderMultiplex_1.tmp" label="Dimethyl8" size="2">
+		<map id="1" name="FeatureFinderMultiplex_1_output.consensusXML" label="Dimethyl8" size="2">
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_4835329514588776807" quality="1" charge="2">
-			<centroid rt="1482.32694449856" mz="472.282282875233" it="4.80271e+09"/>
+		<consensusElement id="e_13440783915218733453" quality="1" charge="2">
+			<centroid rt="1481.91170682959" mz="472.282340766101" it="4.6503e+10"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1482.32694449856" mz="472.282282875233" it="2.00873e+09" charge="2"/>
-				<element map="1" id="0" rt="1481.78192813311" mz="476.304834607691" it="7.59669e+09" charge="2"/>
+				<element map="0" id="0" rt="1481.91170682959" mz="472.282340766101" it="4.6503e+10" charge="2"/>
+				<element map="1" id="0" rt="1481.3672326728" mz="476.304773819883" it="1.6154e+10" charge="2"/>
 			</groupedElementList>
 		</consensusElement>
-		<consensusElement id="e_17749660155506638460" quality="1" charge="2">
-			<centroid rt="1484.20212495666" mz="470.303387735018" it="2.42072e+09"/>
+		<consensusElement id="e_15916652588957785155" quality="1" charge="2">
+			<centroid rt="1484.48374199201" mz="470.303156673582" it="1.55212e+10"/>
 			<groupedElementList>
-				<element map="0" id="0" rt="1484.20212495666" mz="470.303387735018" it="9.42216e+08" charge="2"/>
-				<element map="1" id="0" rt="1483.8580124736" mz="474.325554483854" it="3.89921e+09" charge="2"/>
+				<element map="0" id="0" rt="1484.48374199201" mz="470.303156673582" it="1.55212e+10" charge="2"/>
+				<element map="1" id="0" rt="1484.18179263412" mz="474.32536238458" it="3.28017e+10" charge="2"/>
 			</groupedElementList>
 		</consensusElement>
 	</consensusElementList>

@@ -14,16 +14,16 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
 
         MzMLFile() nogil except +
 
-        void load(String, MSExperiment &) nogil except+
-        void store(String, MSExperiment &) nogil except+
+        void load(const String&, MSExperiment &) nogil except+
+        void store(const String&, MSExperiment &) nogil except+
 
-        void transform(String, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
+        void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *) nogil except + # wrap-ignore
 
         PeakFileOptions getOptions() nogil except +
         void setOptions(PeakFileOptions) nogil except +
 
-        bool isSemanticallyValid(String & filename, StringList & errors, StringList & warnings) nogil except +
+        bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings) nogil except +
 
-        # NAMESPACE # bool isValid(String & filename, std::ostream & os)
+        # NAMESPACE # bool isValid(const String & filename, std::ostream & os)
 
-        # void loadSize(String & filename, Size & scount, Size & ccount) 
+        # void loadSize(const String & filename, Size & scount, Size & ccount) 

@@ -60,11 +60,14 @@ namespace OpenMS
     defaults_.setValue("background_subtraction", "none", "Remove background from peak signal using estimated noise levels. The 'original' method is only provided for historical purposes, please use the 'exact' method and set parameters using the PeakIntegrator: settings. The same original or smoothed chromatogram specified by peak_integration will be used for background estimation.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("background_subtraction", ListUtils::create<String>("none,original,exact"));
 
-    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if the variation within the picked peaks is too large.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("recalculate_peaks", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("use_precursors", "false", "Use precursor chromatogram for peak picking", ListUtils::create<String>("advanced"));
+    defaults_.setValue("use_precursors", "false", "Use precursor chromatogram for peak picking (note that this may lead to precursor signal driving the peak picking)", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("use_precursors", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("use_consensus", "true", "Use consensus peak boundaries when computing transition group picking (if false, compute independent peak boundaries for each transition)", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("use_consensus", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("recalculate_peaks_max_z", 1.0, "Determines the maximal Z-Score (difference measured in standard deviations) that is considered too large for peak boundaries. If the Z-Score is above this value, the median is used for peak boundaries (default value 1.0).", ListUtils::create<String>("advanced"));
 
@@ -75,7 +78,7 @@ namespace OpenMS
     defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions. The resulting score is centered around zero and values above 0 are generally good and below -1 or -2 are usually bad.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("compute_peak_quality", ListUtils::create<String>("true,false"));
     
-    defaults_.setValue("compute_peak_shape_metrics", "false", "Calulates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("compute_peak_shape_metrics", "false", "Calculates various peak shape metrics (e.g., tailing) that can be used for downstream QC/QA.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("compute_peak_shape_metrics", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("compute_total_mi", "false", "Compute mutual information metrics for individual transitions that can be used for OpenSWATH/IPF scoring.", ListUtils::create<String>("advanced"));
@@ -114,6 +117,7 @@ namespace OpenMS
     background_subtraction_ = param_.getValue("background_subtraction");
     recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
     use_precursors_ = (bool)param_.getValue("use_precursors").toBool();
+    use_consensus_ = (bool)param_.getValue("use_consensus").toBool();
     recalculate_peaks_max_z_ = (double)param_.getValue("recalculate_peaks_max_z");
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
     compute_peak_shape_metrics_ = (bool)param_.getValue("compute_peak_shape_metrics").toBool();
@@ -127,7 +131,7 @@ namespace OpenMS
     pi_.setParameters(param_.copy("PeakIntegrator:", true));
   }
 
-  void MRMTransitionGroupPicker::findLargestPeak(std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
+  void MRMTransitionGroupPicker::findLargestPeak(const std::vector<MSChromatogram >& picked_chroms, int& chr_idx, int& peak_idx)
   {
     double largest = 0.0;
     ChromatogramPeak largest_pos;

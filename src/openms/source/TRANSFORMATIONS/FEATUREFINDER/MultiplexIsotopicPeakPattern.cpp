@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,8 @@ namespace OpenMS
     // generate m/z shifts
     for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)
     {
-      for (int j = -1; j < peaks_per_peptide_; ++j)
+      for (int j = 0; j < peaks_per_peptide_; ++j)
       {
-        // j=-1 shift corresponds to the zeroth peak
         const std::vector<MultiplexDeltaMasses::DeltaMass>& delta_masses = mass_shifts_.getDeltaMasses();
         mz_shifts_.push_back((delta_masses[i].delta_mass + j * Constants::C13C12_MASSDIFF_U) / charge_);
       }
@@ -81,12 +80,12 @@ namespace OpenMS
     return mass_shifts_.getDeltaMasses().size();
   }
 
-  double MultiplexIsotopicPeakPattern::getMassShiftAt(int i) const
+  double MultiplexIsotopicPeakPattern::getMassShiftAt(size_t i) const
   {
     return mass_shifts_.getDeltaMasses()[i].delta_mass;
   }
 
-  double MultiplexIsotopicPeakPattern::getMZShiftAt(int i) const
+  double MultiplexIsotopicPeakPattern::getMZShiftAt(size_t i) const
   {
     return mz_shifts_[i];
   }
