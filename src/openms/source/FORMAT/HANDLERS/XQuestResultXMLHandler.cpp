@@ -127,11 +127,20 @@ namespace OpenMS
       else
       {
         // Example: Fri Dec 18 12:28:42 2015
-        UInt day = xquest_datetime_string_split[2].toInt();
-        UInt year = xquest_datetime_string_split[4].toInt();
+        // Example: Fri Dec  8 12:28:42 2015
+        // for single digit days, there are two spaces and the day is in the 4th string instead of the 3rd
+        // that also moves the time and year one slot further
+        UInt correction = 0;
+        String day_string = xquest_datetime_string_split[2];
+        if (day_string.empty())
+        {
+          correction = 1;
+        }
+        UInt day = xquest_datetime_string_split[2+correction].toInt();
+        UInt year = xquest_datetime_string_split[4+correction].toInt();
         UInt month = XQuestResultXMLHandler::months[xquest_datetime_string_split[1]];
         date_time.setDate(month, day, year);
-        date_time.setTime(xquest_datetime_string_split[3]);
+        date_time.setTime(xquest_datetime_string_split[3+correction]);
       }
     }
 
@@ -223,9 +232,9 @@ namespace OpenMS
           search_params.setMetaValue("precursor:max_charge", this->max_precursor_charge_);
 
           (*this->prot_ids_)[0].setSearchParameters(search_params);
-              }
-            }
         }
+      }
+    }
 
     void XQuestResultXMLHandler::startElement(const XMLCh * const, const XMLCh * const, const XMLCh * const qname, const Attributes &attributes)
     {
@@ -233,18 +242,21 @@ namespace OpenMS
       // Extract meta information from the xquest_results tag
       if (tag == "xquest_results")
       {
+        //cout << "Parse xQuest search settings" << endl;
         // Decide whether this Block is original xQuest or OpenPepXL
         String xquest_version = this->attributeAsString_(attributes, "xquest_version");
         this->is_openpepxl_ = xquest_version.hasSubstring("OpenPepXL");
 
         // Date and Time of Search
         DateTime date_time;
+        //cout << "Parse Date" << endl;
         this->extractDateTime_(this->attributeAsString_(attributes, "date"), date_time);
         (*this->prot_ids_)[0].setDateTime(date_time);
 
         // Set the search parameters
         ProteinIdentification::SearchParameters search_params;
 
+        //cout << "Parse Enzyme" << endl;
         // General
         if (this->is_openpepxl_) // Enzyme via name
         {
@@ -255,6 +267,7 @@ namespace OpenMS
           search_params.digestion_enzyme = dynamic_cast<const DigestionEnzymeProtein&>(*this->enzymes_db_->getEnzyme(XQuestResultXMLHandler::enzymes[this->attributeAsInt_(attributes, "enzyme_num")]));
         }
 
+        //cout << "Parse shitpile 1" << endl;
         search_params.missed_cleavages = this->attributeAsInt_(attributes, "missed_cleavages");
         search_params.db = this->attributeAsString_(attributes, "database");
         search_params.precursor_mass_tolerance = this->attributeAsDouble_(attributes, "ms1tolerance");
@@ -264,6 +277,7 @@ namespace OpenMS
         String tolerancemeasure_ms2 = this->attributeAsString_(attributes, "tolerancemeasure_ms2");
         search_params.fragment_mass_tolerance_ppm = tolerancemeasure_ms2 != "Da";
 
+        //cout << "Parse Mods" << endl;
         // variable Modifications
         vector< String > variable_mod_list;
         vector< String > variable_mod_split;
@@ -280,7 +294,7 @@ namespace OpenMS
             if (mods.size() > 0)
             {
               variable_mod_list.push_back(mods[0]);
-        }
+            }
           }
         search_params.variable_modifications = variable_mod_list;
         }
@@ -293,6 +307,7 @@ namespace OpenMS
           search_params.fixed_modifications = fixed_mod_list;
         }
 
+        //cout << "Parse decoy stuff" << endl;
         String decoy_prefix;
         // if this info is not available, we can assume the decoy string is a prefix, since that is the standard way
         if (!this->optionalAttributeAsString_(decoy_prefix, attributes, "decoy_prefix"))
@@ -334,6 +349,7 @@ namespace OpenMS
         std::istringstream is_nterm(this->attributeAsString_(attributes, "ntermxlinkable"));
         is_nterm >> ntermxlinkable;
 
+        //cout << "Parse AArequired" << endl;
         String aarequired;
         // older xQuest versions only allowed homobifunctional cross-linkers
         if (this->optionalAttributeAsString_(aarequired, attributes, "AArequired"))
@@ -341,7 +357,7 @@ namespace OpenMS
           if (ntermxlinkable)
           {
             aarequired += ",N-term";
-      }
+          }
           search_params.setMetaValue("cross_link:residue1", ListUtils::create<String>(aarequired));
           search_params.setMetaValue("cross_link:residue2", ListUtils::create<String>(aarequired));
         }
@@ -363,6 +379,7 @@ namespace OpenMS
 
         if (this->is_openpepxl_)
         {
+          //cout << "Parse OPXL specific settings" << endl;
           String searched_charges = this->attributeAsString_(attributes, "charges");
           search_params.charges = searched_charges;
           IntList charge_ints = ListUtils::create<Int>(searched_charges);
@@ -383,7 +400,7 @@ namespace OpenMS
         // <spectrum_search spectrum="GUA1354-S15-A-LRRK2_DSG_A4.light.2616_GUA1354-S15-A-LRRK2_DSG_A4.heavy.2481" mz_precursor="590.556396484375" scantype="light_heavy" charge_precursor="4" Mr_precursor="2358.19648007042" rtsecscans="2231.988:2194.8258"                mzscans="590.556396484375:592.065673828125" >
         // <spectrum_search spectrum="GUA1354-S15-A-LRRK2_DSG_A4.light.1327_GUA1354-S15-A-LRRK2_DSG_A4.heavy.1327" mz_precursor="1008.83288574219" scantype="light"       charge_precursor="3" Mr_precursor="3023.47682782626" rtsecscans="2796.68020000002:2796.68020000002" mzscans="1008.83288574219:1008.83288574219" >
         // <spectrum_search Mr_precursor="1465.880913324" addedMass="0" apriori_pmatch_common="0.0311" apriori_pmatch_xlink="0.0658" charge_precursor="3" ionintensity_stdev="5.73" iontag_ncandidates="240" mean_ionintensity="2.28" mz_precursor="489.63479614" mzscans="489.63479614:493.6600647" ncommonions="71" nxlinkions="102" rtsecscans="2491:2477" scantype="light_heavy" spectrum="aleitner_M1012_006.c.02942.02942.3_aleitner_M1012_006.c.02913.02913.3">
-
+        //cout << "Parse Spectrum" << endl;
         // Update retention time of light
         StringList rt_split;
         StringUtils::split(this->attributeAsString_(attributes, "rtsecscans"), ":", rt_split);
@@ -409,14 +426,15 @@ namespace OpenMS
         UInt charge_precursor = this->attributeAsInt_(attributes, "charge_precursor");
         if (!this->is_openpepxl_)
         {
-        if (charge_precursor < this->min_precursor_charge_)
-        {
-          this->min_precursor_charge_ = charge_precursor;
-        }
-        if (charge_precursor > this->max_precursor_charge_)
-        {
-          this->max_precursor_charge_ = charge_precursor;
-        }
+          //cout << "Parse xQuest Spectrum" << endl;
+          if (charge_precursor < this->min_precursor_charge_)
+          {
+            this->min_precursor_charge_ = charge_precursor;
+          }
+          if (charge_precursor > this->max_precursor_charge_)
+          {
+            this->max_precursor_charge_ = charge_precursor;
+          }
           this->charges_.insert(charge_precursor);
 
           // read input filename (will not contain file type this way), example:
@@ -446,19 +464,27 @@ namespace OpenMS
           // StringUtils::split(split_spectrum[2], ".", split_spectrum3);
           // this->spectrum_index_light_ = split_spectrum2[0].toInt();
           // this->spectrum_index_heavy_ = split_spectrum3[1].toInt();
+          //std::cout << "Spectrum Index: " << std::endl;
           if (split_spectrum_light[split_spectrum_light.size()-1].size() > 1)
           {
+            //cout << "Parse Spectrum index version 1" << endl;
+            //cout << endl << split_spectrum_light[split_spectrum_light.size()-1] << endl;
+            //cout << endl << split_spectrum_heavy[split_spectrum_heavy.size()-1] << endl;
             this->spectrum_index_light_ = split_spectrum_light[split_spectrum_light.size()-1].toInt();
             this->spectrum_index_heavy_ = split_spectrum_heavy[split_spectrum_heavy.size()-1].toInt();
           }
           else
           {
+            //cout << "Parse Spectrum index version 2" << endl;
+            //cout << endl << split_spectrum_light[split_spectrum_light.size()-2] << endl;
+            //cout << endl << split_spectrum_heavy[split_spectrum_heavy.size()-2] << endl;
             this->spectrum_index_light_ = split_spectrum_light[split_spectrum_light.size()-2].toInt();
             this->spectrum_index_heavy_ = split_spectrum_heavy[split_spectrum_heavy.size()-2].toInt();
           }
         }
         else
         {
+          //cout << "Parse OPXL Spectrum" << endl;
           this->spectrum_index_light_ = this->attributeAsInt_(attributes, "scan_index_light");
           this->spectrum_index_heavy_ = this->attributeAsInt_(attributes, "scan_index_heavy");
 
@@ -633,6 +659,9 @@ namespace OpenMS
             seq2 = seq2.substitute("X", "M(Oxidation)");
           }
           peptide_hit_beta.setSequence(AASequence::fromString(seq2));
+          peptide_hit_alpha.setMetaValue("beta_sequence", seq2);
+          peptide_hit_alpha.setMetaValue("beta_sequence", seq2);
+
           peptide_hit_beta.setCharge(charge);
 
           peptide_hit_beta.setMetaValue("spectrum_reference", spectrum_index_light_);
@@ -693,12 +722,13 @@ namespace OpenMS
           // Set Peptide Evidences for Beta
           this->setPeptideEvidence_(prot2_string, peptide_hit_beta);
 
-          // Determine if protein is intra/inter protein, check all protein ID combinations
-          StringList prot1_list;
-          prot1_string.split(",", prot1_list);
-          StringList prot2_list;
-          prot2_string.split( ",", prot2_list);
-            }
+          // TODO Determine if protein is intra/inter protein, check all protein ID combinations
+          // StringList prot1_list;
+          // prot1_string.split(",", prot1_list);
+          // StringList prot2_list;
+          // prot2_string.split( ",", prot2_list);
+
+        }
         else if (xlink_type_string == "intralink")
         {
           // xl type
