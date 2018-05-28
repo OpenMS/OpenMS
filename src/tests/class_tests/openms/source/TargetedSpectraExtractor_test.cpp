@@ -207,6 +207,10 @@ START_SECTION(void annotateSpectra(
   TEST_EQUAL(annotated_spectra[16].size(), 143)
   TEST_EQUAL(annotated_spectra[20].getName(), "glu-L.glu-L_m5-5")
   TEST_EQUAL(annotated_spectra[20].size(), 82)
+  TEST_EQUAL(annotated_spectra[24].getName(), "glu-L.glu-L_m2-2")
+  TEST_EQUAL(annotated_spectra[24].size(), 94)
+  TEST_EQUAL(annotated_spectra[29].getName(), "skm.skm_m4-4")
+  TEST_EQUAL(annotated_spectra[29].size(), 552)
 
   TEST_EQUAL(features[0].getMetaValue("transition_name"), "met-L.met-L_m0-0")
   TEST_REAL_SIMILAR(features[0].getRT(), 80.22100000002)
@@ -226,6 +230,12 @@ START_SECTION(void annotateSpectra(
   TEST_EQUAL(features[20].getMetaValue("transition_name"), "glu-L.glu-L_m5-5")
   TEST_REAL_SIMILAR(features[20].getRT(), 141.70399999998)
   TEST_REAL_SIMILAR(features[20].getMZ(), 151.061996459961)
+  TEST_EQUAL(features[24].getMetaValue("transition_name"), "glu-L.glu-L_m2-2")
+  TEST_REAL_SIMILAR(features[24].getRT(), 148.473)
+  TEST_REAL_SIMILAR(features[24].getMZ(), 148.052001953125)
+  TEST_EQUAL(features[29].getMetaValue("transition_name"), "skm.skm_m4-4")
+  TEST_REAL_SIMILAR(features[29].getRT(), 166.95400000002)
+  TEST_REAL_SIMILAR(features[29].getMZ(), 177.057998657227)
 }
 END_SECTION
 
@@ -256,6 +266,10 @@ START_SECTION(void annotateSpectra(
   TEST_EQUAL(annotated_spectra[4].size(), 135)
   TEST_EQUAL(annotated_spectra[20].getName(), "glu-L.glu-L_m5-5")
   TEST_EQUAL(annotated_spectra[20].size(), 82)
+  TEST_EQUAL(annotated_spectra[24].getName(), "glu-L.glu-L_m2-2")
+  TEST_EQUAL(annotated_spectra[24].size(), 94)
+  TEST_EQUAL(annotated_spectra[29].getName(), "skm.skm_m4-4")
+  TEST_EQUAL(annotated_spectra[29].size(), 552)
 }
 END_SECTION
 
@@ -348,8 +362,6 @@ START_SECTION(void scoreSpectra(
   const vector<MSSpectrum>& spectra = experiment.getSpectra();
 
   tse.annotateSpectra(spectra, targeted_exp, annotated_spectra, features);
-  TEST_EQUAL(annotated_spectra.size(), features.size())
-  TEST_EQUAL(annotated_spectra.size(), 30)
 
   vector<MSSpectrum> picked_spectra(annotated_spectra.size());
   for (Size i = 0; i < annotated_spectra.size(); ++i)
@@ -401,6 +413,18 @@ START_SECTION(void scoreSpectra(
   TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 3.78555)
   TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 8.18436)
 
+  TEST_EQUAL(scored_spectra[15].getName(), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[1][0], 13.5799)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[2][0], 5.49089)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[3][0], 3.53584)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[4][0], 4.55314)
+
+  TEST_EQUAL(scored_spectra[19].getName(), "skm.skm_m4-4")
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[1][0], 10.5746)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[2][0], 6.60354)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[3][0], 2.02869)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[4][0], 1.94236)
+
   TEST_EQUAL(features[0].getMetaValue("transition_name"), "met-L.met-L_m0-0")
   TEST_REAL_SIMILAR(features[0].getIntensity(), 15.2046270370483)                  // score
   TEST_REAL_SIMILAR(features[0].getMetaValue("log10_total_tic"), 5.3508939743042)  // total tic
@@ -428,6 +452,20 @@ START_SECTION(void scoreSpectra(
   TEST_REAL_SIMILAR(features[11].getMetaValue("inverse_avgFWHM"), 3.78554915619634)
   TEST_REAL_SIMILAR(features[11].getMetaValue("avgSNR"), 8.18435900228459)
   TEST_REAL_SIMILAR(features[11].getMetaValue("avgFWHM"), 0.264162465929985)
+
+  TEST_EQUAL(features[15].getMetaValue("transition_name"), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(features[15].getIntensity(), 13.5799)
+  TEST_REAL_SIMILAR(features[15].getMetaValue("log10_total_tic"), 5.49089446225569)
+  TEST_REAL_SIMILAR(features[15].getMetaValue("inverse_avgFWHM"), 3.53583924309525)
+  TEST_REAL_SIMILAR(features[15].getMetaValue("avgSNR"), 4.55314284068408)
+  TEST_REAL_SIMILAR(features[15].getMetaValue("avgFWHM"), 0.282818287611008)
+
+  TEST_EQUAL(features[19].getMetaValue("transition_name"), "skm.skm_m4-4")
+  TEST_REAL_SIMILAR(features[19].getIntensity(), 10.5746)
+  TEST_REAL_SIMILAR(features[19].getMetaValue("log10_total_tic"), 6.60354130105922)
+  TEST_REAL_SIMILAR(features[19].getMetaValue("inverse_avgFWHM"), 2.02868912178847)
+  TEST_REAL_SIMILAR(features[19].getMetaValue("avgSNR"), 1.94235549504842)
+  TEST_REAL_SIMILAR(features[19].getMetaValue("avgFWHM"), 0.492929147822516)
 }
 END_SECTION
 
@@ -449,7 +487,6 @@ START_SECTION(void scoreSpectra(
   const vector<MSSpectrum>& spectra = experiment.getSpectra();
 
   tse.annotateSpectra(spectra, targeted_exp, annotated_spectra);
-  TEST_EQUAL(annotated_spectra.size(), 30)
 
   vector<MSSpectrum> picked_spectra(annotated_spectra.size());
   for (Size i = 0; i < annotated_spectra.size(); ++i)
@@ -466,6 +503,7 @@ START_SECTION(void scoreSpectra(
     }
   }
   TEST_EQUAL(annotated_spectra.size(), 20)
+  TEST_EQUAL(annotated_spectra.size(), picked_spectra.size())
 
   vector<MSSpectrum> scored_spectra;
   tse.scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
@@ -496,6 +534,18 @@ START_SECTION(void scoreSpectra(
   TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[2][0], 5.48532)
   TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 3.78555)
   TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 8.18436)
+
+  TEST_EQUAL(scored_spectra[15].getName(), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[1][0], 13.5799)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[2][0], 5.49089)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[3][0], 3.53584)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[4][0], 4.55314)
+
+  TEST_EQUAL(scored_spectra[19].getName(), "skm.skm_m4-4")
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[1][0], 10.5746)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[2][0], 6.60354)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[3][0], 2.02869)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[4][0], 1.94236)
 }
 END_SECTION
 
@@ -552,19 +602,13 @@ START_SECTION(void selectSpectra(
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
   }
 
-  tse.selectSpectra(scored, selected_spectra);
-  TEST_EQUAL(selected_spectra.size(), 3)
-  for (Size i = 0; i < selected_spectra.size(); ++i)
-  {
-    TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
-  }
-
   vector<MSSpectrum>::const_iterator it;
   it = find_spectrum_by_name(selected_spectra, "asp-L.asp-L_m2-1");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = find_spectrum_by_name(selected_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
+  it = find_spectrum_by_name(selected_spectra, "asp-L.asp-L_m2-2");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
 
@@ -612,19 +656,13 @@ START_SECTION(void selectSpectra(
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
   }
 
-  tse.selectSpectra(scored, selected_spectra);
-  TEST_EQUAL(selected_spectra.size(), 3)
-  for (Size i = 0; i < selected_spectra.size(); ++i)
-  {
-    TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
-  }
-
   vector<MSSpectrum>::const_iterator it;
   it = find_spectrum_by_name(selected_spectra, "asp-L.asp-L_m2-1");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = find_spectrum_by_name(selected_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
+  it = find_spectrum_by_name(selected_spectra, "asp-L.asp-L_m2-2");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
 
@@ -657,6 +695,8 @@ START_SECTION(void extractSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = find_spectrum_by_name(extracted_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
+  it = find_spectrum_by_name(extracted_spectra, "asp-L.asp-L_m2-2");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
 
@@ -685,6 +725,8 @@ START_SECTION(void extractSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = find_spectrum_by_name(extracted_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
+  it = find_spectrum_by_name(extracted_spectra, "asp-L.asp-L_m2-2");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
 
