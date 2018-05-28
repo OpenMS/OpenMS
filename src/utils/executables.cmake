@@ -48,7 +48,6 @@ QCImporter
 QCMerger
 QCShrinker
 RNADigestor
-RNPxl
 RNPxlXICFilter
 RNPxlSearch
 RTEvaluation

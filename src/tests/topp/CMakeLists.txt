@@ -2050,7 +2050,7 @@ add_test("TOPP_PeptideIndexer_6" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${
 add_test("TOPP_PeptideIndexer_6_out" ${DIFF} -in1 PeptideIndexer_6_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_6_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_6_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_6")
 # specificity tests
-add_test("TOPP_PeptideIndexer_7" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_3.idXML -out PeptideIndexer_7_out.tmp.idXML -allow_unmatched -aaa_max 4)
+add_test("TOPP_PeptideIndexer_7" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_3.idXML -out PeptideIndexer_7_out.tmp.idXML -allow_unmatched -aaa_max 4 -decoy_string DECOY_)
 add_test("TOPP_PeptideIndexer_7_out" ${DIFF} -in1 PeptideIndexer_7_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_7_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_7_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_7")
 add_test("TOPP_PeptideIndexer_8" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_3.idXML -out PeptideIndexer_8_out.tmp.idXML -allow_unmatched -enzyme:specificity semi -aaa_max 4)
