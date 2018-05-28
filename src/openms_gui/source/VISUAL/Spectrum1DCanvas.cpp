@@ -822,7 +822,7 @@ namespace OpenMS
         // draw a legend
         if (param_.getValue("show_legend").toBool())
         {
-          SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
+          const SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
           double xpos = getVisibleArea().maxX() - (getVisibleArea().maxX() - getVisibleArea().minX()) * 0.1;
           SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(xpos), PeakType::IntensityLess());
           if (tmp != spectrum.end())
@@ -1107,9 +1107,9 @@ namespace OpenMS
     // sort spectra in ascending order of position (ensure that we sort all spectra as well as the currently 
     for (Size i = 0; i < getCurrentLayer_().getPeakData()->size(); ++i)
     {
-      (*getCurrentLayer_().getPeakDataMuteable())[i].sortByPosition();
+      (*getCurrentLayer_().getPeakDataMuteable())[i].sortByPosition(); // TODO 
     }
-    getCurrentLayer_().getCurrentSpectrum().sortByPosition();
+    getCurrentLayer_().getCurrentSpectrumMuteable().sortByPosition();
 
     getCurrentLayer_().annotations_1d.resize(getCurrentLayer_().getPeakData()->size());
 
@@ -1241,7 +1241,7 @@ namespace OpenMS
       double local_max  = -numeric_limits<double>::max();
       for (Size i = 0; i < getLayerCount(); ++i)
       {
-        SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
+        const SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
         SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
         if (tmp != spectrum.end() && tmp->getIntensity() > local_max)
         {
@@ -1330,7 +1330,7 @@ namespace OpenMS
           if (pa != nullptr)
           {
             // check if present in current fragment annotation vector and also delete from there
-            MSSpectrum & spectrum = getCurrentLayer_().getCurrentSpectrum();
+            MSSpectrum & spectrum = getCurrentLayer_().getCurrentSpectrumMuteable(); // TODO 
 
             // store user fragment annotations
             vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();

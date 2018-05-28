@@ -72,7 +72,7 @@ namespace OpenMS
 
   @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() may
   be different than the one retrieved through getPeakData()[index] due to the
-  getCurrentSpectrum() being loaded from disk on-demoand and the calling code
+  getCurrentSpectrum() being loaded from disk on-demand and the calling code
   cannot assume that they are the same. Therefore all calls in Spectrum1DCanvas
   should only go through getCurrentSpectrum() and never through getPeakData().
 
@@ -285,8 +285,14 @@ public:
     @brief Returns a mutable reference to the current spectrum (1D view)
 
     @note Only use this function to access the current spectrum for the 1D view
+
+    @note This is a *copy* of the underlying spectrum (the raw spectrum data
+    will be either on disk or in memory at a different location). Do not use
+    this function to make any persistent changes to the spectrum since all
+    changes made here will be deleted once the user re-loads the 1D spectrum.
+
     */
-    ExperimentType::SpectrumType & getCurrentSpectrum();
+    ExperimentType::SpectrumType & getCurrentSpectrumMuteable();
 
     /**
     @brief Returns a const reference to the current spectrum (1D view)

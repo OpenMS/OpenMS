@@ -612,7 +612,7 @@ namespace OpenMS
   {
     SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
-    SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
+    const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
     AASequence aa_sequence = ph.getSequence();
 
@@ -1015,7 +1015,7 @@ namespace OpenMS
 
     SpectrumCanvas* current_canvas = w->canvas();
     LayerData& current_layer = current_canvas->getCurrentLayer();
-    SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
+    const SpectrumType& current_spectrum = current_layer.getCurrentSpectrum();
 
     // find first MS2 spectrum with peptide identification and set current spectrum to it
     if (current_spectrum.getMSLevel() == 1)  // no fragment spectrum
