@@ -55,12 +55,14 @@ namespace OpenMS
 public:
 
     /// adds up a list of Spectra by resampling them and then addition of intensities
-    static OpenSwath::SpectrumPtr addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
-        double sampling_rate, bool filter_zeros);
+    static OpenSwath::SpectrumPtr addUpSpectra(const std::vector<OpenSwath::SpectrumPtr> all_spectra,
+                                               double sampling_rate,
+                                               bool filter_zeros);
 
     /// adds up a list of Spectra by resampling them and then addition of intensities
-    static OpenMS::MSSpectrum addUpSpectra(std::vector< OpenMS::MSSpectrum> all_spectra,
-        double sampling_rate, bool filter_zeros);
+    static OpenMS::MSSpectrum addUpSpectra(const std::vector< OpenMS::MSSpectrum> all_spectra,
+                                           double sampling_rate,
+                                           bool filter_zeros);
 
   };
 }

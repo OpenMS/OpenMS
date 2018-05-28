@@ -320,6 +320,10 @@ public slots:
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
     void showCurrentPeaksAs3D();
+    /// Shows the current peak data of the active layer as ion mobility
+    void showCurrentPeaksAsIonMobility();
+    /// Shows the current peak data of the active layer as DIA data
+    void showCurrentPeaksAsDIA();
     /// Shows the 'About' dialog
     void showAboutDialog();
     /// Saves the whole current layer data
@@ -575,6 +579,9 @@ protected:
 public:
     /// Returns true if @p contains at least one MS1 spectrum
     static bool containsMS1Scans(const ExperimentType& exp);
+
+    /// Returns true if @p contains ion mobility data
+    static bool containsIMData(const MSSpectrum& s);
 
     /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
     float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);

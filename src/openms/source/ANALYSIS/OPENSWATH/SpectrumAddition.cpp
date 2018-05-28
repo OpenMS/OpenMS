@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
+  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const std::vector<OpenSwath::SpectrumPtr> all_spectra,
       double sampling_rate, bool filter_zeros)
   {
     if (all_spectra.size() == 1) return all_spectra[0];
@@ -125,7 +125,7 @@ namespace OpenMS
     }
   }
 
-  OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(std::vector<OpenMS::MSSpectrum> all_spectra, double sampling_rate, bool filter_zeros)
+  OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(const std::vector<OpenMS::MSSpectrum> all_spectra, double sampling_rate, bool filter_zeros)
   {
     if (all_spectra.size() == 1) return all_spectra[0];
     if (all_spectra.empty()) return MSSpectrum();

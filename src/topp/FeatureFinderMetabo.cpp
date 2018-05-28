@@ -303,15 +303,22 @@ protected:
       trace_count += (Size) feat_map[i].getMetaValue("num_of_masstraces");
     }
 
+    if (trace_count != m_traces_final.size())
+    {
+      if (ffm_param.getValue("remove_single_traces").toBool() == false)
+      { 
+        LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
+        return UNEXPECTED_RESULT;
+      }
+      else
+      {
+        LOG_INFO << "FF-Metabo: " << (m_traces_final.size() - trace_count) << " unassembled traces have been removed." << std::endl;
+      }     
+    }
+
     LOG_INFO << "-- FF-Metabo stats --\n"
              << "Input traces:    " << m_traces_final.size() << "\n"
              << "Output features: " << feat_map.size() << " (total trace count: " << trace_count << ")" << std::endl;
-
-    if (trace_count != m_traces_final.size())
-    {
-        LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
-        return UNEXPECTED_RESULT;
-    }
 
     // store chromatograms
     if (!out_chrom.empty())
