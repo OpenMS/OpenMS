@@ -521,7 +521,7 @@ namespace OpenMS
       }
       else
       {
-        c = Qt::green; // with identification
+        c = QColor(175, 255, 175); // with identification: light green
         for (Size pi_idx = 0; pi_idx != id_count; ++pi_idx)
         {
           for (Size ph_idx = 0; ph_idx != pi[pi_idx].getHits().size(); ++ph_idx)

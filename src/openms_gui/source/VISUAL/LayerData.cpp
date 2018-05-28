@@ -36,6 +36,8 @@
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -94,7 +96,7 @@ namespace OpenMS
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
-    MSSpectrum & spectrum = getCurrentSpectrum();
+    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
     int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)
@@ -118,7 +120,7 @@ namespace OpenMS
           updatePeptideHitAnnotations_(hit);
         }
         else
-        {
+        { // no hits? add empty hit
           PeptideHit hit;
           updatePeptideHitAnnotations_(hit);
           hits.push_back(hit);
@@ -185,14 +187,16 @@ namespace OpenMS
     // for each annotation item on the canvas
     for (auto& a : las)
     {
-      // only store peak annotations
+      // only store peak annotations (skip general lables and distance annotations)
       Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
       if (pa == nullptr) { continue; }
 
       int tmp_charge(0);
 
       // add new fragment annotation
-      QString peak_anno = pa->getText();
+      QString peak_anno = pa->getText();      
+
+      // read charge and text from annotation item string
       int match_pos = reg_exp.indexIn(peak_anno);
       if (match_pos >= 0)
       {
@@ -208,7 +212,11 @@ namespace OpenMS
       fas.push_back(fa);
       annotations_changed = true;
     }
-    if (annotations_changed) { hit.setPeakAnnotations(fas); }
+
+    if (annotations_changed) 
+    { 
+      hit.setPeakAnnotations(fas); 
+    }
   }
 
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)

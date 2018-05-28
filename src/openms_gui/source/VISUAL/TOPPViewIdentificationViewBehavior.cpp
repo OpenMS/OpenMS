@@ -1036,17 +1036,24 @@ namespace OpenMS
 
     MSSpectrum& spectrum = (*current_layer.getPeakDataMuteable())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
-
-    if (ms_level == 2)
+    if (ms_level == 2)  
     {
       // synchronize PeptideHits with the annotations in the spectrum
       current_layer.synchronizePeakAnnotations();
-
+#ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Removing peak annotations." << endl;
+#endif
       // remove all graphical peak annotations as these will be recreated from the stored peak annotations
       Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
       auto new_end = remove_if(las.begin(), las.end(),
                               [](const Annotation1DItem* a)
-                              { return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr; });
+                              { 
+                                #ifdef DEBUG_IDENTIFICATION_VIEW
+                                cout << a->getText().toStdString() << endl;
+                                #endif 
+                                return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr; 
+                              });
+                             
       las.erase(new_end, las.end());
 
       removeTheoreticalSpectrumLayer_();
@@ -1085,7 +1092,7 @@ namespace OpenMS
     {
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!"); // @TODO: improve error message
       return;
-    }
+    } 
 
     // init all peak colors to black (=no annotation) 
     current_layer.peak_colors_1d.assign(current_spectrum.size(), Qt::black);
@@ -1102,6 +1109,10 @@ namespace OpenMS
       }
 
       String label = ann.annotation;
+
+#ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Adding annotation item based on fragment annotations: " << label << endl;
+#endif
 
       // write out positive and negative charges with the correct sign at the end of the annotation string
       switch (ann.charge)
@@ -1168,7 +1179,6 @@ namespace OpenMS
     tv_->updateLayerBar();
     tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
   }
-
 
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
   {
