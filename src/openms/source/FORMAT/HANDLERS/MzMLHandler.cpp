@@ -34,7 +34,14 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
+#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
@@ -49,7 +56,7 @@ namespace OpenMS
       options_(),
       spec_(),
       chromatogram_(),
-      data_(),
+      bin_data_(),
       default_array_length_(0),
       in_spectrum_list_(false),
       decoder_(),
@@ -59,8 +66,7 @@ namespace OpenMS
       chromatogram_count(0),
       skip_chromatogram_(false),
       skip_spectrum_(false),
-      rt_set_(false) // ,
-      // validator_(mapping_, cv_)
+      rt_set_(false)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
       cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
@@ -86,7 +92,7 @@ namespace OpenMS
       options_(),
       spec_(),
       chromatogram_(),
-      data_(),
+      bin_data_(),
       default_array_length_(0),
       in_spectrum_list_(false),
       decoder_(),
@@ -119,8 +125,36 @@ namespace OpenMS
     MzMLHandler::~MzMLHandler()
     {
     }
+    /// Set the peak file options
+    void MzMLHandler::setOptions(const PeakFileOptions& opt)
+    {
+      options_ = opt;
+      spectrum_data_.reserve(options_.getMaxDataPoolSize());
+      chromatogram_data_.reserve(options_.getMaxDataPoolSize());
+    }
 
-    void MzMLHandler::populateSpectraWithData()
+    /// Get the peak file options
+    PeakFileOptions& MzMLHandler::getOptions()
+    {
+      return options_;
+    }
+
+    //@}
+
+    /// Get the spectra and chromatogram counts of a file
+    void MzMLHandler::getCounts(Size& spectra_counts, Size& chromatogram_counts)
+    {
+      spectra_counts = scan_count;
+      chromatogram_counts = chromatogram_count;
+    }
+
+    /// Set the IMSDataConsumer consumer which will consume the read data
+    void MzMLHandler::setMSDataConsumer(Interfaces::IMSDataConsumer* consumer)
+    {
+      consumer_ = consumer;
+    }
+
+    void MzMLHandler::populateSpectraWithData_()
     {
 
       // Whether spectrum should be populated with data
@@ -179,7 +213,7 @@ namespace OpenMS
       spectrum_data_.clear();
     }
 
-    void MzMLHandler::populateChromatogramsWithData()
+    void MzMLHandler::populateChromatogramsWithData_()
     {
       // Whether chromatogram should be populated with data
       if (options_.getFillData())
@@ -619,7 +653,7 @@ namespace OpenMS
       if (current_tag == "binary")
       {
         // Since we convert a Base64 string here, it can only contain plain ASCII
-        sm_.appendASCII(chars, length, data_.back().base64);
+        sm_.appendASCII(chars, length, bin_data_.back().base64);
       }
       else if (current_tag == "offset" || current_tag == "indexListOffset" || current_tag == "fileChecksum")
       {
@@ -772,24 +806,24 @@ namespace OpenMS
       }
       else if (tag == "binaryDataArrayList" /* && in_spectrum_list_*/)
       {
-        data_.reserve(attributeAsInt_(attributes, s_count));
+        bin_data_.reserve(attributeAsInt_(attributes, s_count));
       }
       else if (tag == "binaryDataArray" /* && in_spectrum_list_*/)
       {
-        data_.push_back(BinaryData());
-        data_.back().np_compression = MSNumpressCoder::NONE; // ensure that numpress compression is initially set to none ...
-        data_.back().compression = false; // ensure that zlib compression is initially set to none ...
+        bin_data_.push_back(BinaryData());
+        bin_data_.back().np_compression = MSNumpressCoder::NONE; // ensure that numpress compression is initially set to none ...
+        bin_data_.back().compression = false; // ensure that zlib compression is initially set to none ...
 
         //array length
         Int array_length = (Int) default_array_length_;
         optionalAttributeAsInt_(array_length, attributes, s_array_length);
-        data_.back().size = array_length;
+        bin_data_.back().size = array_length;
 
         //data processing
         String data_processing_ref;
         if (optionalAttributeAsString_(data_processing_ref, attributes, s_data_processing_ref))
         {
-          data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
+          bin_data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
         }
       }
       else if (tag == "cvParam")
@@ -1141,20 +1175,20 @@ namespace OpenMS
           spectrum_data_.back().spectrum = spec_;
           if (options_.getFillData())
           {
-            spectrum_data_.back().data = data_;
+            spectrum_data_.back().data = bin_data_;
           }
         }
 
         if (spectrum_data_.size() >= options_.getMaxDataPoolSize())
         {
-          populateSpectraWithData();
+          populateSpectraWithData_();
         }
 
         skip_spectrum_ = false;
         rt_set_ = false;
         if (options_.getSizeOnly()) {skip_spectrum_ = true; }
         logger_.setProgress(++scan_count);
-        data_.clear();
+        bin_data_.clear();
         default_array_length_ = 0;
       }
       else if (equal_(qname, s_chromatogram))
@@ -1167,19 +1201,19 @@ namespace OpenMS
           chromatogram_data_.back().chromatogram = chromatogram_;
           if (options_.getFillData())
           {
-            chromatogram_data_.back().data = data_;
+            chromatogram_data_.back().data = bin_data_;
           }
         }
 
         if (chromatogram_data_.size() >= options_.getMaxDataPoolSize())
         {
-          populateChromatogramsWithData();
+          populateChromatogramsWithData_();
         }
 
         skip_chromatogram_ = false;
         if (options_.getSizeOnly()) {skip_chromatogram_ = true; }
         logger_.setProgress(++chromatogram_count);
-        data_.clear();
+        bin_data_.clear();
         default_array_length_ = 0;
       }
       else if (equal_(qname, s_spectrum_list))
@@ -1203,8 +1237,8 @@ namespace OpenMS
         processing_.clear();
 
         // Flush the remaining data
-        populateSpectraWithData();
-        populateChromatogramsWithData();
+        populateSpectraWithData_();
+        populateChromatogramsWithData_();
       }
     }
 
@@ -1339,11 +1373,11 @@ namespace OpenMS
       //------------------------- binaryDataArray ----------------------------
       else if (parent_tag == "binaryDataArray")
       {
-        if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name, unit_accession))
+        if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(bin_data_, accession, value, name, unit_accession))
         {
           if (cv_.isChildOf(accession, "MS:1000513")) //other array names as string
           {
-            data_.back().meta.setName(cv_.getTerm(accession).name);
+            bin_data_.back().meta.setName(cv_.getTerm(accession).name);
           }
           else
           {
@@ -3050,7 +3084,7 @@ namespace OpenMS
       }
       else if (parent_tag == "binaryDataArray")
       {
-        data_.back().meta.setMetaValue(name, data_value);
+        bin_data_.back().meta.setMetaValue(name, data_value);
       }
       else if (parent_tag == "spectrum")
       {
@@ -4856,8 +4890,8 @@ namespace OpenMS
         String encoded_string;
         os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + spec.getFloatDataArrays().size() + spec.getStringDataArrays().size() + spec.getIntegerDataArrays().size()) << "\">\n";
 
-        writeContainerData<SpectrumType>(os, options_, spec, "mz");
-        writeContainerData<SpectrumType>(os, options_, spec, "intensity");
+        writeContainerData_<SpectrumType>(os, options_, spec, "mz");
+        writeContainerData_<SpectrumType>(os, options_, spec, "intensity");
 
         String compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
         //write float data array
@@ -4948,7 +4982,7 @@ namespace OpenMS
     }
 
     template <typename ContainerT>
-    void MzMLHandler::writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
+    void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
     {
       // Intensity is the same for chromatograms and spectra, the second
       // dimension is either "time" or "mz" (both of these are controlled by getMz32Bit)
@@ -4970,7 +5004,7 @@ namespace OpenMS
             data_to_encode[p] = container[p].getMZ();
           }
         }
-        writeBinaryDataArray(os, pf_options_, data_to_encode, false, array_type);
+        writeBinaryDataArray_(os, pf_options_, data_to_encode, false, array_type);
       }
       else
       {
@@ -4990,13 +5024,13 @@ namespace OpenMS
             data_to_encode[p] = container[p].getMZ();
           }
         }
-        writeBinaryDataArray(os, pf_options_, data_to_encode, true, array_type);
+        writeBinaryDataArray_(os, pf_options_, data_to_encode, true, array_type);
       }
 
     }
 
     template <typename DataType>
-    void MzMLHandler::writeBinaryDataArray(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type)
+    void MzMLHandler::writeBinaryDataArray_(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type)
     {
       String encoded_string;
       bool no_numpress = true;
@@ -5070,11 +5104,11 @@ namespace OpenMS
     }
 
     // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
-    template void MzMLHandler::writeContainerData<SpectrumType>(std::ostream& os, const PeakFileOptions& pf_options_, const SpectrumType& container, String array_type);
-    template void MzMLHandler::writeContainerData<ChromatogramType>(std::ostream& os, const PeakFileOptions& pf_options_, const ChromatogramType& container, String array_type);
+    template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os, const PeakFileOptions& pf_options_, const SpectrumType& container, String array_type);
+    template void MzMLHandler::writeContainerData_<ChromatogramType>(std::ostream& os, const PeakFileOptions& pf_options_, const ChromatogramType& container, String array_type);
 
-    template void MzMLHandler::writeBinaryDataArray<float>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<float> data_to_encode, bool is32bit, String array_type);
-    template void MzMLHandler::writeBinaryDataArray<double>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<double> data_to_encode, bool is32bit, String array_type);
+    template void MzMLHandler::writeBinaryDataArray_<float>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<float> data_to_encode, bool is32bit, String array_type);
+    template void MzMLHandler::writeBinaryDataArray_<double>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<double> data_to_encode, bool is32bit, String array_type);
 
     void MzMLHandler::writeChromatogram_(std::ostream& os,
                                          const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
@@ -5137,8 +5171,8 @@ namespace OpenMS
       String encoded_string;
       os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + chromatogram.getFloatDataArrays().size() + chromatogram.getStringDataArrays().size() + chromatogram.getIntegerDataArrays().size()) << "\">\n";
 
-      writeContainerData<ChromatogramType>(os, options_, chromatogram, "time");
-      writeContainerData<ChromatogramType>(os, options_, chromatogram, "intensity");
+      writeContainerData_<ChromatogramType>(os, options_, chromatogram, "time");
+      writeContainerData_<ChromatogramType>(os, options_, chromatogram, "intensity");
 
       compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
       //write float data array

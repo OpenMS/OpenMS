@@ -34,35 +34,22 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Helpers.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
+
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/CONCEPT/Helpers.h>
 
-#include <OpenMS/SYSTEM/File.h>
-
-#include <sstream>
-#include <boost/shared_ptr.hpp>
-#include <iostream>
-
-#include <QRegExp>
 
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
@@ -85,9 +72,13 @@
 
 namespace OpenMS
 {
-  class ControlledVocabulary;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
   namespace Internal
   {
+    class MzMLValidator;
 
     /**
         @brief XML handler for MzMLFile
@@ -106,9 +97,9 @@ namespace OpenMS
         @todo replace hardcoded cv stuff with more flexible handling via obo r/w.
     */
 
-	typedef PeakMap MapType;
-	typedef MSSpectrum SpectrumType;
-	typedef MSChromatogram ChromatogramType;
+	  typedef PeakMap MapType;
+	  typedef MSSpectrum SpectrumType;
+	  typedef MSChromatogram ChromatogramType;
 
     class OPENMS_DLLAPI MzMLHandler :
       public XMLHandler
@@ -156,33 +147,18 @@ public:
       //@{
 
       /// Set the peak file options
-      void setOptions(const PeakFileOptions& opt)
-      {
-        options_ = opt;
-        spectrum_data_.reserve(options_.getMaxDataPoolSize());
-        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
-      }
+      void setOptions(const PeakFileOptions& opt);
 
       /// Get the peak file options
-      PeakFileOptions& getOptions()
-      {
-        return options_;
-      }
+      PeakFileOptions& getOptions();
 
       //@}
 
       /// Get the spectra and chromatogram counts of a file
-      void getCounts(Size& spectra_counts, Size& chromatogram_counts)
-      {
-        spectra_counts = scan_count;
-        chromatogram_counts = chromatogram_count;
-      }
+      void getCounts(Size& spectra_counts, Size& chromatogram_counts);
 
       /// Set the IMSDataConsumer consumer which will consume the read data
-      void setMSDataConsumer(Interfaces::IMSDataConsumer* consumer)
-      {
-        consumer_ = consumer;
-      }
+      void setMSDataConsumer(Interfaces::IMSDataConsumer* consumer);
 
 protected:
 
@@ -204,7 +180,7 @@ protected:
       void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
-      void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
+      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
 
       /**
           @brief Populate all spectra on the stack with data from input
@@ -212,7 +188,7 @@ protected:
           Will populate all spectra on the current work stack with data (using
           multiple threads if available) and append them to the result.
       */
-      void populateSpectraWithData();
+      void populateSpectraWithData_();
 
       /**
           @brief Populate all chromatograms on the stack with data from input
@@ -220,7 +196,7 @@ protected:
           Will populate all chromatograms on the current work stack with data (using
           multiple threads if available) and append them to the result.
       */
-      void populateChromatogramsWithData();
+      void populateChromatogramsWithData_();
 
       void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
                                 const Size n, SpectrumType& spectrum) const;
@@ -251,7 +227,7 @@ protected:
                                           ChromatogramType& inp_chromatogram);
 
       template <typename DataType>
-      void writeBinaryDataArray(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type);
+      void writeBinaryDataArray_(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type);
 
       void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector< ConstDataProcessingPtr > >& dps, Internal::MzMLValidator& validator);
 
@@ -270,7 +246,7 @@ protected:
       /// The current chromatogram
       ChromatogramType chromatogram_;
       /// The spectrum data (or chromatogram data)
-      std::vector<BinaryData> data_;
+      std::vector<BinaryData> bin_data_;
       /// The default number of peaks in the current spectrum
       Size default_array_length_;
       /// Flag that indicates that we're inside a spectrum (in contrast to a chromatogram)
