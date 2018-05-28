@@ -110,7 +110,7 @@ START_SECTION(virtual ~SwathMapMassCorrection())
     delete ptr;
 END_SECTION
 
-START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type))
+START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, std::vector< OpenSwath::SwathMap > & swath_maps, const std::string& corr_type))
 {
 
   // targets for correction are : 500.00, 600.00, 700.00, 800.00

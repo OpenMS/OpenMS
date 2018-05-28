@@ -259,7 +259,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection)
+  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection)
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> detecting_transitions;
@@ -281,7 +281,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy)
+  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy)
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> identifying_transitions, identifying_transitions_decoy;
@@ -313,7 +313,7 @@ namespace OpenMS
                                                                  const double det_intensity_ratio_score,
                                                                  const double det_mi_ratio_score,
                                                                  bool write_log_messages,
-                                                                 std::vector<OpenSwath::SwathMap> swath_maps)
+                                                                 const std::vector<OpenSwath::SwathMap>& swath_maps)
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
@@ -448,8 +448,8 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
-                                                TransformationDescription& trafo, 
-                                                std::vector<OpenSwath::SwathMap> swath_maps,
+                                                const TransformationDescription& trafo, 
+                                                const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                 FeatureMap& output, 
                                                 bool ms1only)
   {
@@ -954,6 +954,8 @@ namespace OpenMS
       if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break;}
       output.push_back(feature_list[i]);
     }
+
+    // store all data manipulation performed on the features of the transition group
     transition_group = transition_group_detection;
   }
 

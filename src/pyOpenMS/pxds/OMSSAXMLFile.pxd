@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FORMAT/OMSSAXMLFile.h>" namespace "OpenMS":
         OMSSAXMLFile() nogil except +
         OMSSAXMLFile(OMSSAXMLFile) nogil except + #wrap-ignore
 
-        void load(String & filename,
+        void load(const String & filename,
                   ProteinIdentification & protein_identification,
                   libcpp_vector[ PeptideIdentification ] & id_data,
                   bool load_proteins,

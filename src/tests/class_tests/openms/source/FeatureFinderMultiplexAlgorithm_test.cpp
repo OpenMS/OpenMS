@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,67 +32,29 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 
-#include <vector>
-#include <algorithm>
-#include <iostream>
+using namespace OpenMS;
+using namespace std;
 
-namespace OpenMS
+START_TEST(FeatureFinderMultiplexAlgorithm, "$Id$")
+
+FeatureFinderMultiplexAlgorithm* ptr = 0;
+FeatureFinderMultiplexAlgorithm* null_ptr = 0;
+START_SECTION(FeatureFinderMultiplexAlgorithm())
 {
-    /**
-     * @brief data structure storing a single raw data point that passed all filters
-     * 
-     * Each raw filter result corresponds to a successful search for a particular
-     * peak pattern in the spline interpolated raw data. The actual m/z shifts seen
-     * in the filter result might differ from the theoretical shifts listed in the
-     * peak pattern.
-     * 
-     * @see MultiplexPeakPattern
-     */
-    class OPENMS_DLLAPI MultiplexFilterResultRaw
-    {
-        public:
-        /**
-         * @brief constructor
-         */
-        MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities);
-        
-        /**
-         * @brief returns m/z position
-         */
-        double getMZ() const;
-
-        /**
-         * @brief returns m/z shifts
-         */
-        std::vector<double> getMZShifts() const;
-
-        /**
-         * @brief returns intensities
-         */
-        std::vector<double> getIntensities() const;
-        
-        private:
-        /**
-         * @brief m/z of the raw data point
-         * (RT stored in MultiplexFilterResultPeak)
-         */
-        double mz_;
-        
-        /**
-         * @brief m/z shifts at which the filtering found corresponding intensities
-         */
-        std::vector<double> mz_shifts_;
-
-        /**
-         * @brief intensities at mz_ + mzShifts_
-         */
-        std::vector<double> intensities_;
-
-   };
-  
+  ptr = new FeatureFinderMultiplexAlgorithm();
+  TEST_NOT_EQUAL(ptr, null_ptr);
 }
+END_SECTION
 
+START_SECTION(~FeatureFinderMultiplexAlgorithm())
+{
+  delete ptr;
+}
+END_SECTION
+
+
+END_TEST

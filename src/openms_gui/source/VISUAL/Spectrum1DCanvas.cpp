@@ -1447,6 +1447,16 @@ namespace OpenMS
         context_menu->addAction("Switch to 3D view");
       }
 
+      if (TOPPViewBase::containsIMData(getCurrentLayer().getCurrentSpectrum()))
+      {
+        context_menu->addAction("Switch to ion mobility view");
+      }
+
+      if (getCurrentLayer().isDIAData())
+      {
+        context_menu->addAction("Switch to DIA-MS view");
+      }
+
       //add external context menu
       if (context_add_)
       {
@@ -1527,6 +1537,14 @@ namespace OpenMS
         else if (result->text() == "Switch to 3D view")
         {
           emit showCurrentPeaksAs3D();
+        }
+        else if (result->text() == "Switch to ion mobility view")
+        {
+          emit showCurrentPeaksAsIonMobility();
+        }
+        else if (result->text() == "Switch to DIA-MS view")
+        {
+          emit showCurrentPeaksAsDIA();
         }
       }
     }

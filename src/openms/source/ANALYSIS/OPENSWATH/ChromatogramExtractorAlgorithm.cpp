@@ -46,7 +46,7 @@ namespace OpenMS
             std::vector<double>::const_iterator& mz_it,
       const std::vector<double>::const_iterator& mz_end,
             std::vector<double>::const_iterator& int_it,
-      const double& mz, double& integrated_intensity, const double& mz_extraction_window, bool ppm)
+      const double mz, double& integrated_intensity, const double mz_extraction_window, const bool ppm)
   {
     integrated_intensity = 0;
     if (mz_start == mz_end)
@@ -145,10 +145,12 @@ namespace OpenMS
                             const std::vector<double>::const_iterator& mz_end,
                             std::vector<double>::const_iterator& int_it,
                             std::vector<double>::const_iterator& im_it,
-                            const double& mz,
-                            const double& im,
+                            const double mz,
+                            const double im,
                             double& integrated_intensity,
-                            const double& mz_extraction_window, const double& im_extraction_window, bool ppm)
+                            const double mz_extraction_window,
+                            const double im_extraction_window,
+                            const bool ppm)
   {
     // Note that we have a 3D spectrum with m/z, intensity and ion mobility.
     // The spectrum is sorted by m/z but we expect to have ion mobility
@@ -266,7 +268,7 @@ namespace OpenMS
       double mz_extraction_window,
       bool ppm,
       double im_extraction_window,
-      String filter)
+      const String& filter)
   {
     Size input_size = input->getNrSpectra();
     if (input_size < 1)
@@ -371,7 +373,7 @@ namespace OpenMS
     endProgress();
   }
 
-  int ChromatogramExtractorAlgorithm::getFilterNr_(String filter)
+  int ChromatogramExtractorAlgorithm::getFilterNr_(const String& filter)
   {
     if (filter == "tophat")
     {

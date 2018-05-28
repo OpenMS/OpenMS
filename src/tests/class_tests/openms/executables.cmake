@@ -299,13 +299,14 @@ set(filtering_executables_list
   MultiplexClustering_test
   MultiplexDeltaMasses_test
   MultiplexDeltaMassesGenerator_test
+  MultiplexFilteredMSExperiment_test
+  MultiplexFilteredPeak_test
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
-  MultiplexFilterResult_test
-  MultiplexFilterResultPeak_test
-  MultiplexFilterResultRaw_test
   MultiplexIsotopicPeakPattern_test
+  MultiplexSatelliteCentroided_test
+  MultiplexSatelliteProfile_test
   MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
@@ -536,6 +537,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithm_test
   FeatureFinderIdentificationAlgorithm_test
+  FeatureFinderMultiplexAlgorithm_test
   FeatureFinderDefs_test
   FeatureFinder_test
   Fitter1D_test

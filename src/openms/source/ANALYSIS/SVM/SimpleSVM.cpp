@@ -156,8 +156,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
 }
 
 
-void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
-  const
+void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) const
 {
   if (model_ == nullptr)
   {

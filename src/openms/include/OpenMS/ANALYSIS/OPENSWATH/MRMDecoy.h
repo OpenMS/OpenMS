@@ -56,7 +56,7 @@
 
 namespace OpenMS
 {
-/**
+  /**
   @brief This class generates a TargetedExperiment object with decoys based on a TargetedExperiment object
 
   There are multiple methods to create the decoy transitions, the simplest ones
@@ -85,7 +85,6 @@ namespace OpenMS
   than the experimental value in the library.
 
  */
-
   class OPENMS_DLLAPI MRMDecoy :
     public DefaultParamHandler,
     public ProgressLogger
@@ -112,11 +111,20 @@ public:
       mz_threshold is used for the matching of theoretical ion series to the observed one
 
     */
-    void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                        String method, String decoy_tag, int max_attempts, double identity_threshold,
-                        double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
-                        std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
-                        bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4) const;
+    void generateDecoys(const OpenMS::TargetedExperiment& exp,
+                        OpenMS::TargetedExperiment& dec,
+                        const String& method,
+                        const String& decoy_tag,
+                        const int max_attempts,
+                        const double identity_threshold,
+                        const double precursor_mz_shift,
+                        const double product_mz_shift,
+                        const double product_mz_threshold,
+                        const std::vector<String>& fragment_types,
+                        const std::vector<size_t>& fragment_charges,
+                        const bool enable_specific_losses,
+                        const bool enable_unspecific_losses,
+                        const int round_decPow = -4) const;
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
