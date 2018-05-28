@@ -81,11 +81,6 @@ namespace OpenMS
     }
   }
 
-  LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum()
-  {
-    return cached_spectrum_;
-  }
-
   const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
   {
     return cached_spectrum_;
@@ -96,7 +91,9 @@ namespace OpenMS
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
+    // get mutable access to the spectrum
     MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
+
     int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)
@@ -227,7 +224,8 @@ namespace OpenMS
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
-    MSSpectrum & spectrum = getCurrentSpectrum();
+    // get mutable access to the spectrum
+    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
