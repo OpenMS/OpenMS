@@ -397,7 +397,7 @@ namespace OpenMS
     selected_spectra.clear();
     selected_features.clear(true);
 
-    for (auto it = transition_best_spec.cbegin(); it!=transition_best_spec.cend(); ++it)
+    for (auto it = transition_best_spec.cbegin(); it != transition_best_spec.cend(); ++it)
     {
       selected_spectra.push_back(scored_spectra[it->second]);
       if (compute_features) selected_features.push_back(features[it->second]);

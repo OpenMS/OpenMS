@@ -44,6 +44,20 @@
 using namespace OpenMS;
 using namespace std;
 
+vector<MSSpectrum>::const_iterator find_spectrum_by_name(const vector<MSSpectrum>& spectra, const String& name)
+{
+  vector<MSSpectrum>::const_iterator it;
+  it = std::find_if(spectra.cbegin(), spectra.cend(), [&name] (const MSSpectrum& s)
+    {
+      return s.getName() == name;
+    });
+  if (it == spectra.cend())
+  {
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+  }
+  return it;
+}
+
 START_TEST(TargetedSpectraExtractor, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -545,10 +559,12 @@ START_SECTION(void selectSpectra(
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
   }
-  TEST_EQUAL(selected_spectra[0].getName(), "asp-L.asp-L_m2-1")
-  TEST_REAL_SIMILAR(selected_spectra[0].getFloatDataArrays()[1][0], 17.4552230834961)
-  TEST_EQUAL(selected_spectra[1].getName(), "met-L.met-L_m0-0")
-  TEST_REAL_SIMILAR(selected_spectra[1].getFloatDataArrays()[1][0], 16.0294418334961)
+
+  vector<MSSpectrum>::const_iterator it;
+  it = find_spectrum_by_name(selected_spectra, "asp-L.asp-L_m2-1");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
+  it = find_spectrum_by_name(selected_spectra, "met-L.met-L_m0-0");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
 }
 END_SECTION
 
@@ -603,10 +619,12 @@ START_SECTION(void selectSpectra(
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
   }
-  TEST_EQUAL(selected_spectra[0].getName(), "asp-L.asp-L_m2-1")
-  TEST_REAL_SIMILAR(selected_spectra[0].getFloatDataArrays()[1][0], 17.4552230834961)
-  TEST_EQUAL(selected_spectra[1].getName(), "met-L.met-L_m0-0")
-  TEST_REAL_SIMILAR(selected_spectra[1].getFloatDataArrays()[1][0], 16.0294418334961)
+
+  vector<MSSpectrum>::const_iterator it;
+  it = find_spectrum_by_name(selected_spectra, "asp-L.asp-L_m2-1");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
+  it = find_spectrum_by_name(selected_spectra, "met-L.met-L_m0-0");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
 }
 END_SECTION
 
@@ -634,10 +652,11 @@ START_SECTION(void extractSpectra(
   TEST_EQUAL(extracted_spectra.size(), extracted_features.size())
   TEST_EQUAL(extracted_spectra.size(), 2)
 
-  TEST_EQUAL(extracted_spectra[0].getName(), "asp-L.asp-L_m2-1")
-  TEST_REAL_SIMILAR(extracted_spectra[0].getFloatDataArrays()[1][0], 17.4552230834961)
-  TEST_EQUAL(extracted_spectra[1].getName(), "met-L.met-L_m0-0")
-  TEST_REAL_SIMILAR(extracted_spectra[1].getFloatDataArrays()[1][0], 16.0294418334961)
+  vector<MSSpectrum>::const_iterator it;
+  it = find_spectrum_by_name(extracted_spectra, "asp-L.asp-L_m2-1");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
+  it = find_spectrum_by_name(extracted_spectra, "met-L.met-L_m0-0");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
 }
 END_SECTION
 
@@ -661,10 +680,11 @@ START_SECTION(void extractSpectra(
 
   TEST_EQUAL(extracted_spectra.size(), 2)
 
-  TEST_EQUAL(extracted_spectra[0].getName(), "asp-L.asp-L_m2-1")
-  TEST_REAL_SIMILAR(extracted_spectra[0].getFloatDataArrays()[1][0], 17.4552230834961)
-  TEST_EQUAL(extracted_spectra[1].getName(), "met-L.met-L_m0-0")
-  TEST_REAL_SIMILAR(extracted_spectra[1].getFloatDataArrays()[1][0], 16.0294418334961)
+  vector<MSSpectrum>::const_iterator it;
+  it = find_spectrum_by_name(extracted_spectra, "asp-L.asp-L_m2-1");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
+  it = find_spectrum_by_name(extracted_spectra, "met-L.met-L_m0-0");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
 }
 END_SECTION
 
