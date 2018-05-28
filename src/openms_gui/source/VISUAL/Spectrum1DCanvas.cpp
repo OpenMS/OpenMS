@@ -1130,7 +1130,8 @@ namespace OpenMS
     {
       (*getCurrentLayer_().getPeakDataMuteable())[i].sortByPosition(); // TODO 
     }
-    getCurrentLayer_().getCurrentSpectrumMuteable().sortByPosition();
+    Size current_spectrum = getCurrentLayer_().getCurrentSpectrumIndex();
+    getCurrentLayer_().getPeakDataMuteable()->getSpectrum(current_spectrum).sortByPosition();
 
     getCurrentLayer_().annotations_1d.resize(getCurrentLayer_().getPeakData()->size());
 
@@ -1351,7 +1352,8 @@ namespace OpenMS
           if (pa != nullptr)
           {
             // check if present in current fragment annotation vector and also delete from there
-            MSSpectrum & spectrum = getCurrentLayer_().getCurrentSpectrumMuteable(); // TODO 
+            Size current_spectrum = getCurrentLayer_().getCurrentSpectrumIndex();  
+            MSSpectrum & spectrum = getCurrentLayer_().getPeakDataMuteable()->getSpectrum(current_spectrum);
 
             // store user fragment annotations
             vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();

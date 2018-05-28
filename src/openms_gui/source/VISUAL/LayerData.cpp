@@ -81,11 +81,6 @@ namespace OpenMS
     }
   }
 
-  LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrumMuteable()
-  {
-    return cached_spectrum_;
-  }
-
   const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
   {
     return cached_spectrum_;
@@ -229,8 +224,8 @@ namespace OpenMS
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
-    // TODO: check if this is correct?
-    MSSpectrum & spectrum = getCurrentSpectrumMuteable();
+    // get mutable access to the spectrum
+    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
