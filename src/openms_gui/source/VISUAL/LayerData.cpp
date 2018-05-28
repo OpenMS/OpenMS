@@ -146,7 +146,7 @@ namespace OpenMS
 
         // create a dummy ProteinIdentification for all ID-less PeakAnnotations
         vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
-        if (prot_ids.back().getIdentifier() != String("Unknown"))
+        if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
         {
           ProteinIdentification prot_id;
           prot_id.setIdentifier("Unknown");
