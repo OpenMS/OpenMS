@@ -69,6 +69,7 @@ namespace OpenMS
     bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
     bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
+    cout << "add_decoys " << add_decoy_peptides << endl;
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
     cerr << "Parameters: no_qvalues=" << !q_value << ", use_all_hits=" << use_all_hits << ", treat_runs_separately=" << treat_runs_separately << ", split_charge_variants=" << split_charge_variants << endl;
 #endif
@@ -224,6 +225,10 @@ namespace OpenMS
 
         if (target_scores.empty() || decoy_scores.empty())
         {
+          for (vector<double>::const_iterator i = decoy_scores.begin(); i != decoy_scores.end(); ++i)
+          {
+            std::cout << *i << ' ';
+          }
           // no remove the the relevant entries, or put 'pseudo-scores' in
           for (auto it = ids.begin(); it != ids.end(); ++it)
           {
@@ -299,11 +304,14 @@ namespace OpenMS
               String meta_value = (String)hit.getMetaValue("target_decoy");
               if (meta_value == "decoy" && !add_decoy_peptides)
               {
+                cout << "skip decoy hit" << endl;
                 continue;
               }
             }
             hit.setMetaValue(score_type, pit->getScore());
             hit.setScore(score_to_fdr[pit->getScore()]);
+            cout << hit.getMetaValue("target_decoy");
+            cout << hit.getScore() << endl;
             hits.push_back(hit);
           }
           it->getHits().swap(hits);
@@ -343,6 +351,7 @@ namespace OpenMS
   {
     if (fwd_ids.empty() || rev_ids.empty())
     {
+      cout << "rev_ids empty" << endl;
       return;
     }
     vector<double> target_scores, decoy_scores;
@@ -352,6 +361,7 @@ namespace OpenMS
       for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
         target_scores.push_back(pit->getScore());
+        cout << pit->getSequence().toString() << endl;
       }
     }
 
@@ -360,6 +370,7 @@ namespace OpenMS
       for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
       {
         decoy_scores.push_back(pit->getScore());
+        cout << pit->getSequence().toString() << endl;
       }
     }
 
@@ -435,6 +446,7 @@ namespace OpenMS
 
     if (ids.empty())
     {
+      cout << "all ids empty" << endl;
       LOG_WARN << "No protein identifications given to FalseDiscoveryRate! No calculation performed.\n";
       return;
     }
@@ -506,6 +518,7 @@ namespace OpenMS
   {
     if (fwd_ids.empty() || rev_ids.empty())
     {
+      cout << "fwd or rev ids empty" << endl;
       return;
     }
     vector<double> target_scores, decoy_scores;
@@ -590,6 +603,7 @@ namespace OpenMS
       {
         if (decoy_scores.empty())
         {
+          cout << "calculate fdr decoy scores empty" << endl;
           // set FDR to 0 (done below automatically)
         }
         else if (i == 0 && j == 0)
