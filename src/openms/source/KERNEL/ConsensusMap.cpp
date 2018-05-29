@@ -130,7 +130,7 @@ namespace OpenMS
     return *this;
   }
 
-  ConsensusMap& ConsensusMap::operator+=(const ConsensusMap& rhs)
+  ConsensusMap& ConsensusMap::appendRows(const ConsensusMap& rhs)
   {
     ConsensusMap empty_map;
 
@@ -203,9 +203,6 @@ namespace OpenMS
 
     // append consensusElements to consensusElementList:
     this->insert(this->end(), rhs.begin(), rhs.end());
-
-    // todo: check for double entries
-    // features, unassignedpeptides, proteins...
 
     // consistency
     try

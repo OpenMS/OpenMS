@@ -160,11 +160,10 @@ public:
 
       Consensus elements are merged into one container, simply by appending.
       ConsensusElementLists are appended.
-      Information on map lists ......
 
       @param rhs The consensus map.
     */
-    OPENMS_DLLAPI ConsensusMap& operator+=(const ConsensusMap& rhs);
+    OPENMS_DLLAPI ConsensusMap& appendRows(const ConsensusMap& rhs);
 
     /**
       @brief Clears all data and meta data
