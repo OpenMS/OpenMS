@@ -79,6 +79,18 @@ public:
 
     /// Returns the color of the label
     const QColor& getColor() const;
+
+    /// Calculate bounding box in widget coordinates
+    static QRectF calculateBoundingBox(
+      const PointType & peak_position, 
+      const PointType & position,
+      const QString & text,
+      Spectrum1DCanvas * const canvas,
+      bool flipped,
+      QPoint & position_widget, 
+      QPoint & peak_position_widget,
+      double & horizontal_shift,
+      double & vertical_shift);
 protected:
     /// The position of the anchor (peak) (in MZ / intensity coordinates)
     PointType peak_position_;
@@ -90,4 +102,3 @@ protected:
     QColor color_;
   };
 } // namespace OpenMS
-
