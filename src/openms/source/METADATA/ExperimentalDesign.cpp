@@ -83,7 +83,6 @@ namespace OpenMS
       size_t sample(1);
       ExperimentalDesign::MSFileSection msfile_section;
 
-      bool is_fractionated(false);
       Size fraction_groups_assigned(0);
       
       // determine vector of ms file names (in order of appearance)
@@ -103,8 +102,6 @@ namespace OpenMS
         if (f.second.metaValueExists("fraction"))
         {
           r.fraction = static_cast<unsigned int>(f.second.getMetaValue("fraction"));
-          // store that we are dealing with fractionated data
-          if (r.fraction > 1) { is_fractionated = true; }
 
           if (f.second.metaValueExists("fraction_group"))
           {
