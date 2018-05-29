@@ -255,7 +255,7 @@ public:
     inline const ChromatogramType & getPrecursorChromatogram(const String& key) const
     {
       OPENMS_PRECONDITION(hasPrecursorChromatogram(key), "Cannot retrieve precursor chromatogram that does not exist")
-      OPENMS_PRECONDITION(precursor_chromatograms_.size() > (size_t)precursor_chromatogram_map_[key], "Mapping needs to be accurate")
+      OPENMS_PRECONDITION(precursor_chromatograms_.size() > (size_t)precursor_chromatogram_map_.at(key), "Mapping needs to be accurate")
       return precursor_chromatograms_[precursor_chromatogram_map_.at(key)];
     }
     //@}

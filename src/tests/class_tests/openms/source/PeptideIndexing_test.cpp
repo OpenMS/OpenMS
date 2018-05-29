@@ -99,6 +99,8 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   // regression test: https://github.com/OpenMS/OpenMS/issues/3447
   {
     PeptideIndexing indexer;
+    Param p = indexer.getParameters();
+    indexer.setParameters(p);
     std::vector<FASTAFile::FASTAEntry> proteins = toFASTAVec(QStringList() << "AAAKEEEKTTTK");
     std::vector<ProteinIdentification> prot_ids;
     std::vector<PeptideIdentification> pep_ids = toPepVec(QStringList() << "EEEK(Label:13C(6))");
@@ -219,8 +221,57 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
   r = pi.run(proteins, prot_ids, pep_ids);
   for (Size i = 0; i < pep_ids.size(); ++i) TEST_EQUAL(pep_ids[i].getHits()[0].extractProteinAccessionsSet().size(), 0); // no hits
 
- 
+  // auto mode for decoy strings and position
+  std::vector<ProteinIdentification> prot_ids_2;
+  std::vector<PeptideIdentification> pep_ids_2;
 
+  // simple prefix
+  PeptideIndexing pi_2;
+  Param p_2 = pi_2.getParameters();
+  std::vector<FASTAFile::FASTAEntry> proteins_2 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "Protein1" << "DECOY_Protein2");
+  pi_2.run(proteins_2, prot_ids_2, pep_ids_2);
+  TEST_STRING_EQUAL(pi_2.getDecoyString(), "DECOY_");
+  TEST_EQUAL(pi_2.isPrefix(), true);
+
+  // simple prefix without special characters
+  PeptideIndexing pi_3;
+  Param p_3 = pi_3.getParameters();
+  std::vector<FASTAFile::FASTAEntry> proteins_3 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "Protein1" << "DECOYProtein2");
+  pi_3.run(proteins_3, prot_ids_2, pep_ids_2);
+  TEST_STRING_EQUAL(pi_3.getDecoyString(), "DECOY");
+  TEST_EQUAL(pi_3.isPrefix(), true);
+
+  // simple suffix
+  PeptideIndexing pi_4;
+  Param p_4 = pi_4.getParameters();
+  std::vector<FASTAFile::FASTAEntry> proteins_4 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "Protein1" << "Protein2DECOY_");
+  pi_4.run(proteins_4, prot_ids_2, pep_ids_2);
+  TEST_STRING_EQUAL(pi_4.getDecoyString(), "DECOY_");
+  TEST_EQUAL(pi_4.isPrefix(), false);
+
+  // complex prefix with one false friend
+  PeptideIndexing pi_5;
+  Param p_5 = pi_5.getParameters();
+  std::vector<FASTAFile::FASTAEntry> proteins_5 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX" << "PEPTLDEXXX" << "PEPTLDEXXX" << "PEPTLDEXXX" << "PEPTLDEXXX",
+                                                             QStringList() << "Protein1" << "__id_decoy__Protein2" << "Protein3" <<"Protein4rev" << "__id_decoy__Protein5" << "__id_decoy__Protein6");
+  pi_5.run(proteins_5, prot_ids_2, pep_ids_2);
+  TEST_STRING_EQUAL(pi_5.getDecoyString(), "__id_decoy__");
+  TEST_EQUAL(pi_5.isPrefix(), true);
+
+  // test for self containing decoys: rev vs reverse should output the longer decoy -> reverse?
+  PeptideIndexing pi_6;
+  Param p_6 = pi_6.getParameters();
+  std::vector<FASTAFile::FASTAEntry> proteins_6 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "Protein1" << "reverse_Protein");
+  pi_6.run(proteins_6, prot_ids_2, pep_ids_2);
+  TEST_STRING_EQUAL(pi_6.getDecoyString(), "reverse_");
+  TEST_EQUAL(pi_6.isPrefix(), true);
+
+  // impossible to determine automatically -> exitcode: DECOYSTRING_EMPTY?
+  PeptideIndexing pi_7;
+  Param p_7 = pi_7.getParameters();
+  std::vector<FASTAFile::FASTAEntry> proteins_7 = toFASTAVec(QStringList() << "PEPTIDEXXX" << "PEPTLDEXXX", QStringList() << "rev_Protein1" << "reverse_Protein");
+  PeptideIndexing::ExitCodes r_7 = pi_7.run(proteins_7, prot_ids_2, pep_ids_2);
+  TEST_EQUAL(r_7, PeptideIndexing::DECOYSTRING_EMPTY);
 }
 END_SECTION
 
