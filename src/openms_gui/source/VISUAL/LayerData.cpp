@@ -188,13 +188,13 @@ namespace OpenMS
       Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
       if (pa == nullptr) { continue; }
 
-      int tmp_charge(0);
-
       // add new fragment annotation
       QString peak_anno = pa->getText();      
 
       // read charge and text from annotation item string
+      // cut and convert the trailing + or - to a proper charge
       int match_pos = reg_exp.indexIn(peak_anno);
+      int tmp_charge(0);
       if (match_pos >= 0)
       {
         tmp_charge = reg_exp.cap(1).toInt();
