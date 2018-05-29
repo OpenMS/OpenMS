@@ -88,49 +88,57 @@ public:
   template<class T>
   static void makeUnique(T & map)
   {
-    // Copy features before clearing them.
-    T map_ = map;
-    map.clear(false);
-
     // A std::map tracking the set of unique features.
     // Uniqueness criterion/key is a pair <charge, sequence> for each feature.
-    typedef std::map<std::pair<Int, AASequence>, const typename T::value_type*> FeatureSet;
+    typedef std::map<std::pair<Int, AASequence>, typename T::value_type*> FeatureSet;
     FeatureSet feature_set;
 
-    // 1. create a std::map `feature_set` mapping pairs <charge, sequence> to a pointer to 
+    // Create a std::map `feature_set` mapping pairs <charge, sequence> to a pointer to
     // the feature with the highest intensity for this sequence.
-    for (const typename T::value_type& element : map_) 
+    for (typename T::value_type& element : map)
     {
-      const std::vector<PeptideIdentification>& pep_ids = element.getPeptideIdentifications();
+      std::vector<PeptideIdentification>& pep_ids = element.getPeptideIdentifications();
 
       if (!pep_ids.empty())
       {
         if (pep_ids.size() != 1) 
         {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Features may contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Feature does contain multiple identifications.");
         }
 
         // Assumption: first hit returned by `getHits()` has always highest search engine score.
         // TODO: Is this assumption reasonable or do we need to sort the hits first?
-        const std::vector<PeptideHit>& hits = pep_ids.front().getHits();
+        std::vector<PeptideHit>& hits = pep_ids.front().getHits();
 
         if (!hits.empty()) 
         {
-          const PeptideHit& highest_score_hit = hits.front();
-          //
+          PeptideHit& highest_score_hit = hits.front();
+          
           // Pair <charge, sequence> of charge of the new feature and the sequence of its highest scoring peptide hit.
-          const std::pair<Int, AASequence> pair = std::make_pair(element.getCharge(), highest_score_hit.getSequence());
+          std::pair<Int, AASequence> pair = std::make_pair(element.getCharge(), highest_score_hit.getSequence());
 
-          // If a <charge, sequence> pair is not yet in the FeatureSet or new feature `fm_it` 
+          // If a <charge, sequence> pair is not yet in the FeatureSet or new feature `feature_in_set`
           // has higher intensity than its counterpart `feature_set[<charge, sequence>]`
-          // store a pointer to `fm_it` in `feature_set`.
-          const typename FeatureSet::iterator feature_in_set = feature_set.find(pair);
+          // store a pointer to `feature_in_set` in `feature_set`.
+          typename FeatureSet::iterator feature_in_set = feature_set.find(pair);
           if (feature_in_set != feature_set.end()) 
           {
+            // Identical (charge, sequence) key found. Remove annotations from either the old or new feature.
+            
             if (feature_in_set->second->getIntensity() < element.getIntensity()) 
             {
+              // Remove annotations from the old low-intensity feature.
+              std::vector<PeptideIdentification> pep_ids_empty;
+              feature_in_set->second->setPeptideIdentifications(pep_ids_empty);
+              
               // Replace feature in the set.
               feature_in_set->second = &(element);
+            }
+            else
+            {
+              // Remove annotations from the new low-intensity feature.
+              std::vector<PeptideIdentification> pep_ids_empty;
+              element.setPeptideIdentifications(pep_ids_empty);
             }
           }
           else 
@@ -140,16 +148,6 @@ public:
           }
         }
       }
-      else
-      {
-        // Maintain features without peptide identifications.
-        map.push_back(element);
-      }
-    }
-    // 2. copy features from `feature_set` into our new FeatureMap.
-    for (auto const& element : feature_set) 
-    {
-      map.push_back(*(element.second));
     }
   }
 
