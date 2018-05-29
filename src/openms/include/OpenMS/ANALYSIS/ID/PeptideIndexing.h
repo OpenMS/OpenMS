@@ -246,7 +246,6 @@ public:
         LOG_WARN << "XTandem used but specificity set to full. Setting enzyme specificity to semi specific cleavage to cope with special cutting rules in XTandem." << std::endl; 
         enzyme.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
       }
-
       // solely MSGFPlus -> Trypsin P as enzyme
       else if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin") 
       {
