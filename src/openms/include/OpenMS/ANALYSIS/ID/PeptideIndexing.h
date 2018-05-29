@@ -212,7 +212,7 @@ public:
       }
 
       //---------------------------------------------------------------
-      // parsing parameters, automating xtandem and MSGFPlus parameters
+      // parsing parameters, correcting xtandem and MSGFPlus parameters
       //---------------------------------------------------------------
       ProteaseDigestion enzyme;
       enzyme.setEnzyme(enzyme_name_);
