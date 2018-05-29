@@ -607,7 +607,7 @@ START_SECTION(void selectSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = findSpectrumByName(selected_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
-  it = find_spectrum_by_name(selected_spectra, "asp-L.asp-L_m2-2");
+  it = findSpectrumByName(selected_spectra, "asp-L.asp-L_m2-2");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
@@ -661,7 +661,7 @@ START_SECTION(void selectSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = findSpectrumByName(selected_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
-  it = find_spectrum_by_name(selected_spectra, "asp-L.asp-L_m2-2");
+  it = findSpectrumByName(selected_spectra, "asp-L.asp-L_m2-2");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
@@ -695,7 +695,7 @@ START_SECTION(void extractSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = findSpectrumByName(extracted_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
-  it = find_spectrum_by_name(extracted_spectra, "asp-L.asp-L_m2-2");
+  it = findSpectrumByName(extracted_spectra, "asp-L.asp-L_m2-2");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
@@ -725,7 +725,7 @@ START_SECTION(void extractSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = findSpectrumByName(extracted_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
-  it = find_spectrum_by_name(extracted_spectra, "asp-L.asp-L_m2-2");
+  it = findSpectrumByName(extracted_spectra, "asp-L.asp-L_m2-2");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
