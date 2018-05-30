@@ -192,40 +192,50 @@ START_SECTION(void annotateSpectra(
 
   tse.annotateSpectra(spectra, targeted_exp, annotated_spectra, features);
 
-  TEST_EQUAL(annotated_spectra.size(), 21)
+  TEST_EQUAL(annotated_spectra.size(), 30)
   TEST_EQUAL(annotated_spectra.size(), features.size())
 
   TEST_EQUAL(annotated_spectra[0].getName(), "met-L.met-L_m0-0")
   TEST_EQUAL(annotated_spectra[0].size(), 121)
-  TEST_EQUAL(annotated_spectra[4].getName(), "glu-L.glu-L_m4-4")
-  TEST_EQUAL(annotated_spectra[4].size(), 98)
+  TEST_EQUAL(annotated_spectra[4].getName(), "met-L.met-L_m1-0")
+  TEST_EQUAL(annotated_spectra[4].size(), 135)
   TEST_EQUAL(annotated_spectra[8].getName(), "asp-L.asp-L_m0-0")
-  TEST_EQUAL(annotated_spectra[8].size(), 61)
-  TEST_EQUAL(annotated_spectra[12].getName(), "asp-L.asp-L_m3-2")
-  TEST_EQUAL(annotated_spectra[12].size(), 432)
-  TEST_EQUAL(annotated_spectra[16].getName(), "glu-L.glu-L_m1-1")
-  TEST_EQUAL(annotated_spectra[16].size(), 149)
-  TEST_EQUAL(annotated_spectra[20].getName(), "skm.skm_m4-3")
-  TEST_EQUAL(annotated_spectra[20].size(), 552)
+  TEST_EQUAL(annotated_spectra[8].size(), 55)
+  TEST_EQUAL(annotated_spectra[12].getName(), "asp-L.asp-L_m1-0")
+  TEST_EQUAL(annotated_spectra[12].size(), 389)
+  TEST_EQUAL(annotated_spectra[16].getName(), "asp-L.asp-L_m2-1")
+  TEST_EQUAL(annotated_spectra[16].size(), 143)
+  TEST_EQUAL(annotated_spectra[20].getName(), "glu-L.glu-L_m5-5")
+  TEST_EQUAL(annotated_spectra[20].size(), 82)
+  TEST_EQUAL(annotated_spectra[24].getName(), "glu-L.glu-L_m2-2")
+  TEST_EQUAL(annotated_spectra[24].size(), 94)
+  TEST_EQUAL(annotated_spectra[29].getName(), "skm.skm_m4-4")
+  TEST_EQUAL(annotated_spectra[29].size(), 552)
 
   TEST_EQUAL(features[0].getMetaValue("transition_name"), "met-L.met-L_m0-0")
   TEST_REAL_SIMILAR(features[0].getRT(), 80.22100000002)
   TEST_REAL_SIMILAR(features[0].getMZ(), 148.052001953125)
-  TEST_EQUAL(features[4].getMetaValue("transition_name"), "glu-L.glu-L_m4-4")
-  TEST_REAL_SIMILAR(features[4].getRT(), 123.02200000002)
-  TEST_REAL_SIMILAR(features[4].getMZ(), 150.059005737305)
+  TEST_EQUAL(features[4].getMetaValue("transition_name"), "met-L.met-L_m1-0")
+  TEST_REAL_SIMILAR(features[4].getRT(), 87.927)
+  TEST_REAL_SIMILAR(features[4].getMZ(), 149.054992675781)
   TEST_EQUAL(features[8].getMetaValue("transition_name"), "asp-L.asp-L_m0-0")
-  TEST_REAL_SIMILAR(features[8].getRT(), 129.73300000002)
+  TEST_REAL_SIMILAR(features[8].getRT(), 126.37699999998)
   TEST_REAL_SIMILAR(features[8].getMZ(), 132.029998779297)
-  TEST_EQUAL(features[12].getMetaValue("transition_name"), "asp-L.asp-L_m3-2")
-  TEST_REAL_SIMILAR(features[12].getRT(), 140.34499999998)
-  TEST_REAL_SIMILAR(features[12].getMZ(), 135.039993286133)
-  TEST_EQUAL(features[16].getMetaValue("transition_name"), "glu-L.glu-L_m1-1")
-  TEST_REAL_SIMILAR(features[16].getRT(), 147.15700000002)
-  TEST_REAL_SIMILAR(features[16].getMZ(), 147.04899597168)
-  TEST_EQUAL(features[20].getMetaValue("transition_name"), "skm.skm_m4-3")
-  TEST_REAL_SIMILAR(features[20].getRT(), 166.95400000002)
-  TEST_REAL_SIMILAR(features[20].getMZ(), 177.057998657227)
+  TEST_EQUAL(features[12].getMetaValue("transition_name"), "asp-L.asp-L_m1-0")
+  TEST_REAL_SIMILAR(features[12].getRT(), 131.73100000002)
+  TEST_REAL_SIMILAR(features[12].getMZ(), 133.033004760742)
+  TEST_EQUAL(features[16].getMetaValue("transition_name"), "asp-L.asp-L_m2-1")
+  TEST_REAL_SIMILAR(features[16].getRT(), 138.29599999998)
+  TEST_REAL_SIMILAR(features[16].getMZ(), 134.035995483398)
+  TEST_EQUAL(features[20].getMetaValue("transition_name"), "glu-L.glu-L_m5-5")
+  TEST_REAL_SIMILAR(features[20].getRT(), 141.70399999998)
+  TEST_REAL_SIMILAR(features[20].getMZ(), 151.061996459961)
+  TEST_EQUAL(features[24].getMetaValue("transition_name"), "glu-L.glu-L_m2-2")
+  TEST_REAL_SIMILAR(features[24].getRT(), 148.473)
+  TEST_REAL_SIMILAR(features[24].getMZ(), 148.052001953125)
+  TEST_EQUAL(features[29].getMetaValue("transition_name"), "skm.skm_m4-4")
+  TEST_REAL_SIMILAR(features[29].getRT(), 166.95400000002)
+  TEST_REAL_SIMILAR(features[29].getMZ(), 177.057998657227)
 }
 END_SECTION
 
@@ -248,14 +258,18 @@ START_SECTION(void annotateSpectra(
 
   tse.annotateSpectra(spectra, targeted_exp, annotated_spectra);
 
-  TEST_EQUAL(annotated_spectra.size(), 21)
+  TEST_EQUAL(annotated_spectra.size(), 30)
 
   TEST_EQUAL(annotated_spectra[0].getName(), "met-L.met-L_m0-0")
   TEST_EQUAL(annotated_spectra[0].size(), 121)
-  TEST_EQUAL(annotated_spectra[4].getName(), "glu-L.glu-L_m4-4")
-  TEST_EQUAL(annotated_spectra[4].size(), 98)
-  TEST_EQUAL(annotated_spectra[20].getName(), "skm.skm_m4-3")
-  TEST_EQUAL(annotated_spectra[20].size(), 552)
+  TEST_EQUAL(annotated_spectra[4].getName(), "met-L.met-L_m1-0")
+  TEST_EQUAL(annotated_spectra[4].size(), 135)
+  TEST_EQUAL(annotated_spectra[20].getName(), "glu-L.glu-L_m5-5")
+  TEST_EQUAL(annotated_spectra[20].size(), 82)
+  TEST_EQUAL(annotated_spectra[24].getName(), "glu-L.glu-L_m2-2")
+  TEST_EQUAL(annotated_spectra[24].size(), 94)
+  TEST_EQUAL(annotated_spectra[29].getName(), "skm.skm_m4-4")
+  TEST_EQUAL(annotated_spectra[29].size(), 552)
 }
 END_SECTION
 
@@ -348,8 +362,6 @@ START_SECTION(void scoreSpectra(
   const vector<MSSpectrum>& spectra = experiment.getSpectra();
 
   tse.annotateSpectra(spectra, targeted_exp, annotated_spectra, features);
-  TEST_EQUAL(annotated_spectra.size(), features.size())
-  TEST_EQUAL(annotated_spectra.size(), 21)
 
   vector<MSSpectrum> picked_spectra(annotated_spectra.size());
   for (Size i = 0; i < annotated_spectra.size(); ++i)
@@ -366,14 +378,14 @@ START_SECTION(void scoreSpectra(
       features.erase(features.begin() + i);
     }
   }
-  TEST_EQUAL(annotated_spectra.size(), 12)
+  TEST_EQUAL(annotated_spectra.size(), 20)
   TEST_EQUAL(annotated_spectra.size(), features.size())
   TEST_EQUAL(picked_spectra.size(), features.size())
 
   vector<MSSpectrum> scored_spectra;
   tse.scoreSpectra(annotated_spectra, picked_spectra, features, scored_spectra);
 
-  TEST_EQUAL(scored_spectra.size(), 12)
+  TEST_EQUAL(scored_spectra.size(), 20)
   TEST_EQUAL(scored_spectra.size(), annotated_spectra.size())
   TEST_EQUAL(scored_spectra.size(), features.size())
 
@@ -384,22 +396,34 @@ START_SECTION(void scoreSpectra(
   TEST_REAL_SIMILAR(scored_spectra[0].getFloatDataArrays()[4][0], 5.89106035232544) // average snr
 
   TEST_EQUAL(scored_spectra[4].getName(), "asp-L.asp-L_m1-0")
-  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[1][0], 10.90163230896)
-  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[2][0], 6.50192594528198)
-  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[3][0], 2.14086890220642)
-  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[4][0], 2.25883746147156)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[1][0], 10.8893)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[2][0], 6.49946)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[3][0], 2.65215)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[4][0], 1.73772)
 
-  TEST_EQUAL(scored_spectra[8].getName(), "glu-L.glu-L_m1-1")
-  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[1][0], 13.7276296615601)
-  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[2][0], 5.51675566061136)
-  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[3][0], 3.46319246830875)
-  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[4][0], 4.74768113612061)
+  TEST_EQUAL(scored_spectra[8].getName(), "asp-L.asp-L_m2-1")
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[1][0], 16.1929)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[2][0], 5.52142)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[3][0], 3.44492)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[4][0], 7.22662)
 
-  TEST_EQUAL(scored_spectra[11].getName(), "skm.skm_m4-3")
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[1][0], 10.5745859146118)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[2][0], 6.60354137420654)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 2.02868914604187)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 1.94235551357269)
+  TEST_EQUAL(scored_spectra[11].getName(), "asp-L.asp-L_m2-2")
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[1][0], 17.4552)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[2][0], 5.48532)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 3.78555)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 8.18436)
+
+  TEST_EQUAL(scored_spectra[15].getName(), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[1][0], 13.5799)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[2][0], 5.49089)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[3][0], 3.53584)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[4][0], 4.55314)
+
+  TEST_EQUAL(scored_spectra[19].getName(), "skm.skm_m4-4")
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[1][0], 10.5746)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[2][0], 6.60354)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[3][0], 2.02869)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[4][0], 1.94236)
 
   TEST_EQUAL(features[0].getMetaValue("transition_name"), "met-L.met-L_m0-0")
   TEST_REAL_SIMILAR(features[0].getIntensity(), 15.2046270370483)                  // score
@@ -409,25 +433,39 @@ START_SECTION(void scoreSpectra(
   TEST_REAL_SIMILAR(features[0].getMetaValue("avgFWHM"), 0.252354895075162)        // average fwhm
 
   TEST_EQUAL(features[4].getMetaValue("transition_name"), "asp-L.asp-L_m1-0")
-  TEST_REAL_SIMILAR(features[4].getIntensity(), 10.90163230896)
-  TEST_REAL_SIMILAR(features[4].getMetaValue("log10_total_tic"), 6.50192594528198)
-  TEST_REAL_SIMILAR(features[4].getMetaValue("inverse_avgFWHM"), 2.14086890220642)
-  TEST_REAL_SIMILAR(features[4].getMetaValue("avgSNR"), 2.25883746147156)
-  TEST_REAL_SIMILAR(features[4].getMetaValue("avgFWHM"), 0.467100044855705)
+  TEST_REAL_SIMILAR(features[4].getIntensity(), 10.8893)
+  TEST_REAL_SIMILAR(features[4].getMetaValue("log10_total_tic"), 6.49945796336373)
+  TEST_REAL_SIMILAR(features[4].getMetaValue("inverse_avgFWHM"), 2.65214624318674)
+  TEST_REAL_SIMILAR(features[4].getMetaValue("avgSNR"), 1.73772000291411)
+  TEST_REAL_SIMILAR(features[4].getMetaValue("avgFWHM"), 0.377053114084097)
 
-  TEST_EQUAL(features[8].getMetaValue("transition_name"), "glu-L.glu-L_m1-1")
-  TEST_REAL_SIMILAR(features[8].getIntensity(), 13.7276296615601)
-  TEST_REAL_SIMILAR(features[8].getMetaValue("log10_total_tic"), 5.51675566061136)
-  TEST_REAL_SIMILAR(features[8].getMetaValue("inverse_avgFWHM"), 3.46319246830875)
-  TEST_REAL_SIMILAR(features[8].getMetaValue("avgSNR"), 4.74768113612061)
-  TEST_REAL_SIMILAR(features[8].getMetaValue("avgFWHM"), 0.288750916719437)
+  TEST_EQUAL(features[8].getMetaValue("transition_name"), "asp-L.asp-L_m2-1")
+  TEST_REAL_SIMILAR(features[8].getIntensity(), 16.1929)
+  TEST_REAL_SIMILAR(features[8].getMetaValue("log10_total_tic"), 5.52141560620828)
+  TEST_REAL_SIMILAR(features[8].getMetaValue("inverse_avgFWHM"), 3.44491858720322)
+  TEST_REAL_SIMILAR(features[8].getMetaValue("avgSNR"), 7.22661551261844)
+  TEST_REAL_SIMILAR(features[8].getMetaValue("avgFWHM"), 0.290282621979713)
 
-  TEST_EQUAL(features[11].getMetaValue("transition_name"), "skm.skm_m4-3")
-  TEST_REAL_SIMILAR(features[11].getIntensity(), 10.5745859146118)
-  TEST_REAL_SIMILAR(features[11].getMetaValue("log10_total_tic"), 6.60354130105922)
-  TEST_REAL_SIMILAR(features[11].getMetaValue("inverse_avgFWHM"), 2.02868912178847)
-  TEST_REAL_SIMILAR(features[11].getMetaValue("avgSNR"), 1.94235549504842)
-  TEST_REAL_SIMILAR(features[11].getMetaValue("avgFWHM"), 0.492929147822516)
+  TEST_EQUAL(features[11].getMetaValue("transition_name"), "asp-L.asp-L_m2-2")
+  TEST_REAL_SIMILAR(features[11].getIntensity(), 17.4552)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("log10_total_tic"), 5.48531541983726)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("inverse_avgFWHM"), 3.78554915619634)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("avgSNR"), 8.18435900228459)
+  TEST_REAL_SIMILAR(features[11].getMetaValue("avgFWHM"), 0.264162465929985)
+
+  TEST_EQUAL(features[15].getMetaValue("transition_name"), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(features[15].getIntensity(), 13.5799)
+  TEST_REAL_SIMILAR(features[15].getMetaValue("log10_total_tic"), 5.49089446225569)
+  TEST_REAL_SIMILAR(features[15].getMetaValue("inverse_avgFWHM"), 3.53583924309525)
+  TEST_REAL_SIMILAR(features[15].getMetaValue("avgSNR"), 4.55314284068408)
+  TEST_REAL_SIMILAR(features[15].getMetaValue("avgFWHM"), 0.282818287611008)
+
+  TEST_EQUAL(features[19].getMetaValue("transition_name"), "skm.skm_m4-4")
+  TEST_REAL_SIMILAR(features[19].getIntensity(), 10.5746)
+  TEST_REAL_SIMILAR(features[19].getMetaValue("log10_total_tic"), 6.60354130105922)
+  TEST_REAL_SIMILAR(features[19].getMetaValue("inverse_avgFWHM"), 2.02868912178847)
+  TEST_REAL_SIMILAR(features[19].getMetaValue("avgSNR"), 1.94235549504842)
+  TEST_REAL_SIMILAR(features[19].getMetaValue("avgFWHM"), 0.492929147822516)
 }
 END_SECTION
 
@@ -449,7 +487,6 @@ START_SECTION(void scoreSpectra(
   const vector<MSSpectrum>& spectra = experiment.getSpectra();
 
   tse.annotateSpectra(spectra, targeted_exp, annotated_spectra);
-  TEST_EQUAL(annotated_spectra.size(), 21)
 
   vector<MSSpectrum> picked_spectra(annotated_spectra.size());
   for (Size i = 0; i < annotated_spectra.size(); ++i)
@@ -465,12 +502,13 @@ START_SECTION(void scoreSpectra(
       picked_spectra.erase(picked_spectra.begin() + i);
     }
   }
-  TEST_EQUAL(annotated_spectra.size(), 12)
+  TEST_EQUAL(annotated_spectra.size(), 20)
+  TEST_EQUAL(annotated_spectra.size(), picked_spectra.size())
 
   vector<MSSpectrum> scored_spectra;
   tse.scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
 
-  TEST_EQUAL(scored_spectra.size(), 12)
+  TEST_EQUAL(scored_spectra.size(), 20)
   TEST_EQUAL(scored_spectra.size(), annotated_spectra.size())
 
   TEST_EQUAL(scored_spectra[0].getName(), "met-L.met-L_m0-0")
@@ -480,22 +518,34 @@ START_SECTION(void scoreSpectra(
   TEST_REAL_SIMILAR(scored_spectra[0].getFloatDataArrays()[4][0], 5.89106035232544) // average snr
 
   TEST_EQUAL(scored_spectra[4].getName(), "asp-L.asp-L_m1-0")
-  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[1][0], 10.90163230896)
-  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[2][0], 6.50192594528198)
-  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[3][0], 2.14086890220642)
-  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[4][0], 2.25883746147156)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[1][0], 10.8893)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[2][0], 6.49946)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[3][0], 2.65215)
+  TEST_REAL_SIMILAR(scored_spectra[4].getFloatDataArrays()[4][0], 1.73772)
 
-  TEST_EQUAL(scored_spectra[8].getName(), "glu-L.glu-L_m1-1")
-  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[1][0], 13.7276296615601)
-  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[2][0], 5.51675566061136)
-  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[3][0], 3.46319246830875)
-  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[4][0], 4.74768113612061)
+  TEST_EQUAL(scored_spectra[8].getName(), "asp-L.asp-L_m2-1")
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[1][0], 16.1929)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[2][0], 5.52142)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[3][0], 3.44492)
+  TEST_REAL_SIMILAR(scored_spectra[8].getFloatDataArrays()[4][0], 7.22662)
 
-  TEST_EQUAL(scored_spectra[11].getName(), "skm.skm_m4-3")
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[1][0], 10.5745859146118)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[2][0], 6.60354137420654)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 2.02868914604187)
-  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 1.94235551357269)
+  TEST_EQUAL(scored_spectra[11].getName(), "asp-L.asp-L_m2-2")
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[1][0], 17.4552)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[2][0], 5.48532)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[3][0], 3.78555)
+  TEST_REAL_SIMILAR(scored_spectra[11].getFloatDataArrays()[4][0], 8.18436)
+
+  TEST_EQUAL(scored_spectra[15].getName(), "glu-L.glu-L_m1-1")
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[1][0], 13.5799)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[2][0], 5.49089)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[3][0], 3.53584)
+  TEST_REAL_SIMILAR(scored_spectra[15].getFloatDataArrays()[4][0], 4.55314)
+
+  TEST_EQUAL(scored_spectra[19].getName(), "skm.skm_m4-4")
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[1][0], 10.5746)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[2][0], 6.60354)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[3][0], 2.02869)
+  TEST_REAL_SIMILAR(scored_spectra[19].getFloatDataArrays()[4][0], 1.94236)
 }
 END_SECTION
 
@@ -542,7 +592,7 @@ START_SECTION(void selectSpectra(
   FeatureMap selected_features;
 
   tse.selectSpectra(scored, features, selected_spectra, selected_features);
-  TEST_EQUAL(selected_spectra.size(), 2)
+  TEST_EQUAL(selected_spectra.size(), 3)
   TEST_EQUAL(selected_spectra.size(), selected_features.size())
   for (Size i = 0; i < selected_spectra.size(); ++i)
   {
@@ -552,19 +602,13 @@ START_SECTION(void selectSpectra(
     TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
   }
 
-  tse.selectSpectra(scored, selected_spectra);
-  TEST_EQUAL(selected_spectra.size(), 2)
-  for (Size i = 0; i < selected_spectra.size(); ++i)
-  {
-    TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
-  }
-
   vector<MSSpectrum>::const_iterator it;
   it = findSpectrumByName(selected_spectra, "asp-L.asp-L_m2-1");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = findSpectrumByName(selected_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
+  it = findSpectrumByName(selected_spectra, "asp-L.asp-L_m2-2");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
 
@@ -605,15 +649,7 @@ START_SECTION(void selectSpectra(
   std::vector<MSSpectrum> selected_spectra;
 
   tse.selectSpectra(scored, selected_spectra);
-  TEST_EQUAL(selected_spectra.size(), 2)
-  for (Size i = 0; i < selected_spectra.size(); ++i)
-  {
-    TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
-    TEST_EQUAL(selected_spectra[i].getFloatDataArrays()[1][0] >= min_score, true)
-  }
-
-  tse.selectSpectra(scored, selected_spectra);
-  TEST_EQUAL(selected_spectra.size(), 2)
+  TEST_EQUAL(selected_spectra.size(), 3)
   for (Size i = 0; i < selected_spectra.size(); ++i)
   {
     TEST_NOT_EQUAL(selected_spectra[i].getName(), "")
@@ -625,6 +661,8 @@ START_SECTION(void selectSpectra(
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = findSpectrumByName(selected_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
+  it = findSpectrumByName(selected_spectra, "asp-L.asp-L_m2-2");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
 
@@ -650,13 +688,15 @@ START_SECTION(void extractSpectra(
   tse.extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features);
 
   TEST_EQUAL(extracted_spectra.size(), extracted_features.size())
-  TEST_EQUAL(extracted_spectra.size(), 2)
+  TEST_EQUAL(extracted_spectra.size(), 3)
 
   vector<MSSpectrum>::const_iterator it;
   it = findSpectrumByName(extracted_spectra, "asp-L.asp-L_m2-1");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = findSpectrumByName(extracted_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
+  it = findSpectrumByName(extracted_spectra, "asp-L.asp-L_m2-2");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
 
@@ -678,13 +718,15 @@ START_SECTION(void extractSpectra(
   vector<MSSpectrum> extracted_spectra;
   tse.extractSpectra(experiment, targeted_exp, extracted_spectra);
 
-  TEST_EQUAL(extracted_spectra.size(), 2)
+  TEST_EQUAL(extracted_spectra.size(), 3)
 
   vector<MSSpectrum>::const_iterator it;
   it = findSpectrumByName(extracted_spectra, "asp-L.asp-L_m2-1");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552230834961)
   it = findSpectrumByName(extracted_spectra, "met-L.met-L_m0-0");
   TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 16.0294418334961)
+  it = findSpectrumByName(extracted_spectra, "asp-L.asp-L_m2-2");
+  TEST_REAL_SIMILAR(it->getFloatDataArrays()[1][0], 17.4552)
 }
 END_SECTION
 

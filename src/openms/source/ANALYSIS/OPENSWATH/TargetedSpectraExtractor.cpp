@@ -186,7 +186,6 @@ namespace OpenMS
             feature.setMetaValue("transition_name", transitions[j].getPeptideRef());
             features.push_back(feature);
           }
-          break;
         }
       }
     }
@@ -373,6 +372,10 @@ namespace OpenMS
     const bool compute_features
   ) const
   {
+    if (compute_features && scored_spectra.size() != features.size())
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
     std::unordered_map<std::string,UInt> transition_best_spec;
     for (UInt i = 0; i < scored_spectra.size(); ++i)
     {
