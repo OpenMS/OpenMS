@@ -156,14 +156,25 @@ public:
     OPENMS_DLLAPI ConsensusMap& operator=(const ConsensusMap& source);
 
     /**
-      @brief Add one consensus map to another.
+      @brief Add consensus map entries as new rows.
 
       Consensus elements are merged into one container, simply by appending.
-      ConsensusElementLists are appended.
 
-      @param rhs The consensus map.
+      The number of columns (maximum map index) stays the same.
+
+      @param rhs The consensus map to be merged.
     */
     OPENMS_DLLAPI ConsensusMap& appendRows(const ConsensusMap& rhs);
+
+    /**
+      @brief Add consensus map entries as new columns.
+
+      The number of columns (maximum map index) is the sum of both maps.     
+
+      @param rhs The consensus map to be merged.
+    */
+    OPENMS_DLLAPI ConsensusMap& appendColumns(const ConsensusMap& rhs);
+
 
     /**
       @brief Clears all data and meta data

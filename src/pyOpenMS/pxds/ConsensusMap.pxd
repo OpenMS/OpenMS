@@ -53,6 +53,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void push_back(ConsensusFeature spec) nogil except +
 
         ConsensusMap appendRows(ConsensusMap) nogil except +
+        ConsensusMap appendColumns(ConsensusMap) nogil except +
 
         void clear(bool clear_meta_data) nogil except +
         void clear() nogil except +

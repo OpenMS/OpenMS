@@ -177,20 +177,18 @@ namespace OpenMS
                                     rhs.protein_identifications_.end());
 
     // ensure non-redundant modification parameter
-    for (std::vector<ProteinIdentification>::iterator it_1 = protein_identifications_.begin();
-         it_1 != protein_identifications_.end();
-         ++it_1)
+    for (auto & pi : protein_identifications_)
     {
       std::vector<String>::iterator it_2;
 
       // remove redundant variable modifications
-      std::vector<String>& varMod = const_cast<std::vector<String>&>(it_1->getSearchParameters().variable_modifications);
+      std::vector<String>& varMod = pi.getSearchParameters().variable_modifications;
       sort(varMod.begin(), varMod.end());
       it_2 = unique(varMod.begin(), varMod.end());
       varMod.resize(it_2 - varMod.begin());
 
       // remove redundant fixed modifications
-      std::vector<String>& fixMod = const_cast<std::vector<String>&>(it_1->getSearchParameters().fixed_modifications);
+      std::vector<String>& fixMod = pi.getSearchParameters().fixed_modifications;
       sort(fixMod.begin(), fixMod.end());
       it_2 = unique(fixMod.begin(), fixMod.end());
       fixMod.resize(it_2 - fixMod.begin());
@@ -217,6 +215,88 @@ namespace OpenMS
 
     return *this;
   }
+
+  ConsensusMap& ConsensusMap::appendColumns(const ConsensusMap& rhs)
+  {
+    ConsensusMap empty_map;
+
+    // reset these:
+    RangeManagerType::operator=(empty_map);
+
+    if (!this->getIdentifier().empty() || !rhs.getIdentifier().empty())
+    {
+      LOG_INFO << "DocumentIdentifiers are lost during merge of ConsensusMaps\n";
+    }
+
+    DocumentIdentifier::operator=(empty_map);
+    UniqueIdInterface::operator=(empty_map);
+
+    // append spectra_data information
+    StringList thisRuns_;
+    this->getPrimaryMSRunPath(thisRuns_);
+    StringList rhsRuns_;
+    rhs.getPrimaryMSRunPath(rhsRuns_);
+    thisRuns_.insert(thisRuns_.end(), rhsRuns_.begin(), rhsRuns_.end());
+    this->setPrimaryMSRunPath(thisRuns_);
+    
+    // append dataProcessing
+    data_processing_.insert(data_processing_.end(),
+                            rhs.data_processing_.begin(),
+                            rhs.data_processing_.end());
+
+    // append column headers (file descriptions) and increase column index (map index)
+    Size lhs_map_size = file_description_.size();
+    for (auto const & rhsfd : rhs.file_description_)
+    {
+      file_description_.insert(
+        std::make_pair(lhs_map_size + rhsfd.first, rhsfd.second));
+    }
+
+    // append proteinIdentification
+    protein_identifications_.insert(protein_identifications_.end(),
+                                    rhs.protein_identifications_.begin(),
+                                    rhs.protein_identifications_.end());
+
+    // ensure non-redundant modification parameter
+    for (auto & pi : protein_identifications_)
+    {
+      std::vector<String>::iterator it_2;
+
+      // remove redundant variable modifications
+      std::vector<String>& varMod = pi.getSearchParameters().variable_modifications;
+      sort(varMod.begin(), varMod.end());
+      it_2 = unique(varMod.begin(), varMod.end());
+      varMod.resize(it_2 - varMod.begin());
+
+      // remove redundant fixed modifications
+      std::vector<String>& fixMod = pi.getSearchParameters().fixed_modifications;
+      sort(fixMod.begin(), fixMod.end());
+      it_2 = unique(fixMod.begin(), fixMod.end());
+      fixMod.resize(it_2 - fixMod.begin());
+    }
+
+    // append unassignedPeptideIdentifications
+    unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
+                                               rhs.unassigned_peptide_identifications_.begin(),
+                                               rhs.unassigned_peptide_identifications_.end());
+
+    // append consensusElements to consensusElementList:
+    this->insert(this->end(), rhs.begin(), rhs.end());
+
+    // consistency
+    try
+    {
+      UniqueIdIndexer<ConsensusMap>::updateUniqueIdToIndex();
+    }
+    catch (Exception::Postcondition ) // assign new UID's for conflicting entries
+    {
+      Size replaced_uids =  UniqueIdIndexer<ConsensusMap>::resolveUniqueIdConflicts();
+      LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
+    }
+
+    return *this;
+  }
+
 
   void ConsensusMap::clear(bool clear_meta_data)
   {
