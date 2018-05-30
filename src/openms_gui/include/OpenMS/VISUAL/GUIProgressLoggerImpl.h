@@ -71,7 +71,7 @@ public:
     /**
       @brief Implement ProgressLoggerImpl::nextProgress().
     */
-    void nextProgress(const int current_recursion_depth) const override;
+    SignedSize nextProgress() const override;
     
     /**
       @brief Implement ProgressLoggerImpl::endProgress().

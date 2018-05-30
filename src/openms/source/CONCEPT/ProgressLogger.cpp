@@ -83,7 +83,6 @@ public:
 
     void setProgress(const SignedSize value, const int current_recursion_depth) const override
     {
-      current_ = value;
       if (begin_ == end_)
       {
         cout << '.' << flush;
@@ -99,9 +98,9 @@ public:
         cout << flush;
       }
     }
-    void nextProgress(const int current_recursion_depth) const override
+    SignedSize nextProgress() const override
     {
-      setProgress(current_ + 1, current_recursion_depth);
+      return ++current_;
     }
 
     void endProgress(const int current_recursion_depth) const override
@@ -145,8 +144,9 @@ public:
     {
     }
 
-    void nextProgress(const int /* current_recursion_depth */) const override
+    SignedSize nextProgress() const override
     {
+      return 0;
     }
     
     void endProgress(const int /* current_recursion_depth */) const override
@@ -254,11 +254,12 @@ public:
   }
   void ProgressLogger::nextProgress() const
   {
+    auto p = current_logger_->nextProgress();
     // update only if at least 1 second has passed
     if (last_invoke_ == time(nullptr)) return;
 
     last_invoke_ = time(nullptr);
-    current_logger_->nextProgress(recursion_depth_);
+    current_logger_->setProgress(p, recursion_depth_);
   }
 
   void ProgressLogger::endProgress() const
