@@ -109,9 +109,9 @@ namespace OpenMS
       SampleSection() = default;
 
       SampleSection(
-        std::vector< std::vector < String > > content,
-        std::map< unsigned, Size > sample_to_rowindex,
-        std::map< String, Size > columnname_to_columnindex
+        const std::vector< std::vector < String > >& content,
+        const std::map< unsigned, Size >& sample_to_rowindex,
+        const std::map< String, Size >& columnname_to_columnindex
       );
 
       // Get set of all samples that are present in the sample section
@@ -149,7 +149,7 @@ namespace OpenMS
     // Experimental Design c'tors
     ExperimentalDesign() = default;
 
-    ExperimentalDesign(MSFileSection msfile_section, SampleSection sample_section);
+    ExperimentalDesign(const MSFileSection& msfile_section, const SampleSection& sample_section);
 
     const MSFileSection& getMSFileSection() const;
 
