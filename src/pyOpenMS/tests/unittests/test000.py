@@ -4826,7 +4826,7 @@ def testExperimentalDesign():
      ExperimentalDesignFile.load
      """
     f = pyopenms.ExperimentalDesignFile()
-    ed = pyopenms.ExperimentalDesign()
+    fourplex_fractionated_design = pyopenms.ExperimentalDesign()
     f.load(b"ExperimentalDesign_input_2.tsv", fourplex_fractionated_design)
     assert fourplex_fractionated_design.getNumberOfSamples() == 8
     assert fourplex_fractionated_design.getNumberOfFractions() == 3
