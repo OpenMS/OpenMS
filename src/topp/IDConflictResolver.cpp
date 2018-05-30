@@ -110,46 +110,44 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
-
-    registerStringOption_("method", "<method>", "within_features", "within_features: Peptide features may have been annotated with multiple IDs. One of these PSMs will have the highest score and only that one will remain. Consequently, the total number of peptide features remains unchanged. -among_features: In a feature map multiple features multiple features might have top-scoring IDs. One of these peptide features will have the highest intensity and only that one will remain. Consequently, fewer peptide features will remain in the feature map.", false);
-    setValidStrings_("method", ListUtils::create<String>("within_features,among_features"));
+    registerFlag_("make_unique", "A map may contain multiple features with both identical sequence and charge state. The feature with the highest intensity is very likely the most reliable one. When switched on, the filter removes the sequence annotation from the lower intensity features, thereby resolving the multiplicity. Only the most reliable features maintain annotated.");
   }
 
   ExitCodes main_(int, const char **) override
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
-    String method = getStringOption_("method");
+    bool make_unique =  getFlag_("make_unique");
+    
     FileTypes::Type in_type = FileHandler::getType(in);
-    if (in_type == FileTypes::FEATUREXML)
+    
+    if (in_type == FileTypes::FEATUREXML) // featureXML
     {
       FeatureMap features;
       FeatureXMLFile().load(in, features);
-      if (method == "among_features") 
+      
+      IDConflictResolverAlgorithm::resolve(features);
+      
+      if (make_unique)
       {
         IDConflictResolverAlgorithm::makeUnique(features);
       }
-      else 
-      {
-        IDConflictResolverAlgorithm::resolve(features);
-      }
-      addDataProcessing_(features,
-                         getProcessingInfo_(DataProcessing::FILTERING));
+      
+      addDataProcessing_(features, getProcessingInfo_(DataProcessing::FILTERING));
       FeatureXMLFile().store(out, features);
     }
     else // consensusXML
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
-      if (method == "among_features") 
+      
+      IDConflictResolverAlgorithm::resolve(consensus);
+      
+      if (make_unique)
       {
         IDConflictResolverAlgorithm::makeUnique(consensus);
       }
-      else 
-      {
-        IDConflictResolverAlgorithm::resolve(consensus);
-      }
-      addDataProcessing_(consensus,
-                         getProcessingInfo_(DataProcessing::FILTERING));
+      
+      addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::FILTERING));
       ConsensusXMLFile().store(out, consensus);
     }
     return EXECUTION_OK;
