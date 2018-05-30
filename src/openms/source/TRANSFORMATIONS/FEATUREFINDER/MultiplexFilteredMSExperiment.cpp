@@ -145,7 +145,7 @@ namespace OpenMS
         map.getFileDescriptions()[count].size++;
         
         // give the maps some names (irrelevant for the debug output)
-        ConsensusMap::FileDescription& desc = map.getFileDescriptions()[count];
+        ConsensusMap::ColumnDescription& desc = map.getFileDescriptions()[count];
         std::stringstream ss;
         ss << "satellite_" << count;
         desc.label = ss.str();

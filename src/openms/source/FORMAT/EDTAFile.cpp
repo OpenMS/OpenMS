@@ -156,7 +156,7 @@ namespace OpenMS
 
     SignedSize input_size = input.end() - input.begin();
 
-    ConsensusMap::FileDescription desc;
+    ConsensusMap::ColumnDescription desc;
     desc.filename = filename;
     desc.size = (input_size) - offset;
     consensus_map.getFileDescriptions()[0] = desc;
@@ -271,7 +271,7 @@ namespace OpenMS
     }
 
     // register FileDescriptions
-    ConsensusMap::FileDescription fd;
+    ConsensusMap::ColumnDescription fd;
     fd.filename = filename;
     fd.size = consensus_map.size();
     Size maps = std::max(input_features - 1, Size(1)); // its either a simple feature or a consensus map

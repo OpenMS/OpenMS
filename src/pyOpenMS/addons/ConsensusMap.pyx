@@ -16,19 +16,19 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         cdef FileDescriptions _r = self.inst.get().getFileDescriptions()
         py_result = dict()
         cdef FileDescriptions_iterator it__r = _r.begin()
-        cdef FileDescription item_py_result
+        cdef ColumnDescription item_py_result
         while it__r != _r.end():
-           item_py_result = FileDescription.__new__(FileDescription)
+           item_py_result = ColumnDescription.__new__(ColumnDescription)
            item_py_result.inst = shared_ptr[_FileDescription](new _FileDescription((deref(it__r)).second))
            py_result[<unsigned long int>(deref(it__r).first)] = item_py_result
            inc(it__r)
         return py_result
 
     def setFileDescriptions(self, dict in_0 ):
-        assert isinstance(in_0, dict) and all(isinstance(k, (int, long)) for k in in_0.keys()) and all(isinstance(v, FileDescription) for v in in_0.values()), 'arg in_0 wrong type'
+        assert isinstance(in_0, dict) and all(isinstance(k, (int, long)) for k in in_0.keys()) and all(isinstance(v, ColumnDescription) for v in in_0.values()), 'arg in_0 wrong type'
         cdef FileDescriptions v0
         for key, value in in_0.items():
-           v0[<unsigned long int> key] = deref((<FileDescription>value).inst.get())
+           v0[<unsigned long int> key] = deref((<ColumnDescription>value).inst.get())
 
         # we have to utilize AutowrapRefHolder here, because cython does not
         # like
@@ -43,14 +43,14 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         # the c++ compiler will complain, as cython generates invalid code in
         # this case: Cython creates two statements from the first line:
         #
-        #     FileDescription & ref;   // invalid: ref not initailized
+        #     ColumnDescription & ref;   // invalid: ref not initailized
         #     ref = self.inst.get().getFileDescriptions()
         #
         # wrapping this ref into a class holding the ref and using pointers
         # works. the following code results in c++ code simialar to
         #
-        #    AutowrapRefHolder<FileDescription> * refholder;
-        #    refholder = new AutowrapRefHolder<FileDescription>(self.inst...)
+        #    AutowrapRefHolder<ColumnDescription> * refholder;
+        #    refholder = new AutowrapRefHolder<ColumnDescription>(self.inst...)
         #    refholder.assign(v0)
 
         cdef AutowrapRefHolder[FileDescriptions] * refholder
@@ -59,9 +59,9 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
 
         cdef replace_in_0 = dict()
         cdef FileDescriptions_iterator it_in_0 = v0.begin()
-        cdef FileDescription item_in_0
+        cdef ColumnDescription item_in_0
         while it_in_0 != v0.end():
-           item_in_0 = FileDescription.__new__(FileDescription)
+           item_in_0 = ColumnDescription.__new__(ColumnDescription)
            item_in_0.inst = shared_ptr[_FileDescription](new _FileDescription((deref(it_in_0)).second))
            replace_in_0[<unsigned long int> deref(it_in_0).first] = item_in_0
            inc(it_in_0)

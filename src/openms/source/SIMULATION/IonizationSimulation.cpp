@@ -141,7 +141,7 @@ namespace OpenMS
       experiment[i].getInstrumentSettings().getScanWindows().push_back(sw);
     }
 
-    ConsensusMap::FileDescription map_description;
+    ConsensusMap::ColumnDescription map_description;
     map_description.label = "Simulation (Charge Consensus)";
     map_description.size = features.size();
     charge_consensus.getFileDescriptions()[0] = map_description;

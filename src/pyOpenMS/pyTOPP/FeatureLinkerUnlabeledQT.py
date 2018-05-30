@@ -29,7 +29,7 @@ def link(in_files, out_file, keep_subelements, params):
             f.load(in_file, map_)
 
             # set filedescriptions
-            fd = fds.get(i, pms.FileDescription())
+            fd = fds.get(i, pms.ColumnDescription())
             fd.filename = in_file
             fd.size = map_.size()
             fd.unique_id = map_.getUniqueId()
@@ -49,7 +49,7 @@ def link(in_files, out_file, keep_subelements, params):
         if not keep_subelements:
             for i in range(len(in_files)):
                 # set filedescriptions
-                fd = fds.get(i, pms.FileDescription())
+                fd = fds.get(i, pms.ColumnDescription())
                 fd.filename = in_files[i]
                 fd.size = maps[i].size()
                 fd.unique_id = maps[i].getUniqueId()

@@ -17,19 +17,19 @@ from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMap":
 
-    cdef cppclass FileDescription:
+    cdef cppclass ColumnDescription:
         String filename
         String label
         Size size
         UInt64 unique_id
 
-        FileDescription() nogil except +
-        FileDescription(FileDescription &) nogil except +
+        ColumnDescription() nogil except +
+        ColumnDescription(ColumnDescription &) nogil except +
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work
-    ctypedef libcpp_map[unsigned long int, FileDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
-    ctypedef libcpp_map[unsigned long int, FileDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
+    ctypedef libcpp_map[unsigned long int, ColumnDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
+    ctypedef libcpp_map[unsigned long int, ColumnDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 

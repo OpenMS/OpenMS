@@ -361,11 +361,11 @@ END_SECTION
 
 /////
 
-ConsensusMap::FileDescription* fd_ptr = nullptr;
-ConsensusMap::FileDescription* fd_nullPointer = nullptr;
+ConsensusMap::ColumnDescription* fd_ptr = nullptr;
+ConsensusMap::ColumnDescription* fd_nullPointer = nullptr;
 
-START_SECTION(([ConsensusMap::FileDescription] FileDescription()))
-fd_ptr = new ConsensusMap::FileDescription();
+START_SECTION(([ConsensusMap::ColumnDescription] ColumnDescription()))
+fd_ptr = new ConsensusMap::ColumnDescription();
 TEST_NOT_EQUAL(fd_ptr, fd_nullPointer)
 END_SECTION
 

@@ -235,6 +235,7 @@ protected:
         out_map.getFileDescriptions()[1] = out_map.getFileDescriptions()[0];
         out_map.getFileDescriptions()[0].label = "light";
         out_map.getFileDescriptions()[1].label = "heavy";
+        ms_run_locations.push_back(ms_run_locations[0]);
       }
 
       ////////////////////////////////////////////////////
@@ -301,8 +302,6 @@ protected:
     addDataProcessing_(out_map,
                        getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
 
-    // set primary MS runs
-    out_map.setPrimaryMSRunPath(ms_run_locations);
 
     // sort list of peptide identifications in each consensus feature by map index
     out_map.sortPeptideIdentificationsByMapIndex();

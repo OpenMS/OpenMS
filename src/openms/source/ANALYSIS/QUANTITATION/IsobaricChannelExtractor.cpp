@@ -732,7 +732,7 @@ namespace OpenMS
          cl_it != quant_method_->getChannelInformation().end();
          ++cl_it)
     {
-      ConsensusMap::FileDescription channel_as_map;
+      ConsensusMap::ColumnDescription channel_as_map;
       // label is the channel + description provided in the Params
       channel_as_map.label = quant_method_->getName() + "_" + cl_it->name;
 

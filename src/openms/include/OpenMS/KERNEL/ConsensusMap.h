@@ -104,15 +104,15 @@ public:
 
     using privvec::push_back;
 
-    /// Source file description for input files
-    struct OPENMS_DLLAPI FileDescription :
+    /// Description of the columns in a consensus map
+    struct OPENMS_DLLAPI ColumnDescription :
       public MetaInfoInterface
     {
       /// Default constructor
-      FileDescription();
+      ColumnDescription();
 
       /// Copy constructor
-      FileDescription(const FileDescription&);
+      ColumnDescription(const ColumnDescription&);
 
       /// File name of the file
       String filename;
@@ -129,7 +129,7 @@ public:
     //@{
     typedef std::vector<ConsensusFeature> Base;
     typedef RangeManager<2> RangeManagerType;
-    typedef std::map<UInt64, FileDescription> FileDescriptions;
+    typedef std::map<UInt64, ColumnDescription> FileDescriptions;
     /// Mutable iterator
     typedef std::vector<ConsensusFeature>::iterator Iterator;
     /// Non-mutable iterator
@@ -263,11 +263,10 @@ public:
     /// sets the description of the applied data processing
     OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
-    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    /// set the file paths to the primary MS run (stored in ColumnDescription)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
-    /// get the file path to the first MS run (provide a StringList to emphasize that this returns
-    /// different copies everytime). Overrides the contents of the StringList if the spectra_data MetaValue is present!
+    /// returns the MS run path (stored in ColumnDescription)
     OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
     /// Equality operator
@@ -331,7 +330,7 @@ public:
 protected:
 
     /// Map from index to file description
-    FileDescriptions file_description_;
+    FileDescriptions column_description_;
 
     /// type of experiment (label-free, itraq, ...); see xsd schema
     String experiment_type_;

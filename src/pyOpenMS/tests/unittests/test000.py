@@ -2057,14 +2057,14 @@ def testFeatureXMLFile():
 @report
 def testFileDescription():
     """
-    @tests: FileDescription
-     FileDescription.__init__
-     FileDescription.filename
-     FileDescription.label
-     FileDescription.size
-     FileDescription.unique_id
+    @tests: ColumnDescription
+     ColumnDescription.__init__
+     ColumnDescription.filename
+     ColumnDescription.label
+     ColumnDescription.size
+     ColumnDescription.unique_id
     """
-    fd = pyopenms.FileDescription()
+    fd = pyopenms.ColumnDescription()
     assert isinstance(fd.filename, bytes)
     assert isinstance(fd.label, bytes)
     assert isinstance(fd.size, int)

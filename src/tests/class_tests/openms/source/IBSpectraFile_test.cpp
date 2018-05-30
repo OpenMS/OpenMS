@@ -81,9 +81,9 @@ START_SECTION((void store(const String& filename, const ConsensusMap& cm)))
   // test wrong channel count
   ConsensusMap cm_wrong_channel_count;
   cm_wrong_channel_count.setExperimentType("labeled_MS2");
-  ConsensusMap::FileDescription channel1;
-  ConsensusMap::FileDescription channel2;
-  ConsensusMap::FileDescription channel3;
+  ConsensusMap::ColumnDescription channel1;
+  ConsensusMap::ColumnDescription channel2;
+  ConsensusMap::ColumnDescription channel3;
   cm_wrong_channel_count.getFileDescriptions()[0] = channel1;
   cm_wrong_channel_count.getFileDescriptions()[1] = channel2;
   cm_wrong_channel_count.getFileDescriptions()[2] = channel3;
