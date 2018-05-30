@@ -310,7 +310,8 @@ namespace OpenMS
           if (peak_spline.eval(mz_left) > fwhm_int)
           { // the spline ends before half max is reached -- take the leftmost point (probably an underestimation)
             mz_mid = mz_left;
-          } else
+          }
+          else
           {
             do 
             {
@@ -324,7 +325,7 @@ namespace OpenMS
               {
                 mz_center = mz_mid;
               }
-            } while(fabs(int_mid - fwhm_int) > threshold);
+            } while (fabs(int_mid - fwhm_int) > threshold);
           }
           const double fwhm_left_mz = mz_mid;
 
@@ -334,7 +335,8 @@ namespace OpenMS
           if (peak_spline.eval(mz_right) > fwhm_int)
           { // the spline ends before half max is reached -- take the rightmost point (probably an underestimation)
             mz_mid = mz_right;
-          } else
+          }
+          else
           {
             do 
             {
@@ -349,7 +351,7 @@ namespace OpenMS
                 mz_center = mz_mid;
               }
 
-            } while(fabs(int_mid - fwhm_int) > threshold);
+            } while (fabs(int_mid - fwhm_int) > threshold);
           }
           const double fwhm_right_mz = mz_mid;
           const double fwhm_absolute = fwhm_right_mz - fwhm_left_mz;

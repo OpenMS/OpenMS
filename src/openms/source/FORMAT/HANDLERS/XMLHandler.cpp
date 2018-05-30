@@ -176,7 +176,7 @@ namespace OpenMS
 
     /// handlers which support partial loading, implement this method
     /// @throws Exception::NotImplemented
-    void XMLHandler::setLoadDetail(const LOADDETAIL d)
+    void XMLHandler::setLoadDetail(const LOADDETAIL /*d*/)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
