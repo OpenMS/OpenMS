@@ -88,6 +88,9 @@ public:
   template<class T>
   static void makeUnique(T & map)
   {
+    // unassigned peptide identifications in this map
+    std::vector<PeptideIdentification>& unassigned = map.getUnassignedPeptideIdentifications();
+    
     // A std::map tracking the set of unique features.
     // Uniqueness criterion/key is a pair <charge, sequence> for each feature.
     typedef std::map<std::pair<Int, AASequence>, typename T::value_type*> FeatureSet;
@@ -127,7 +130,9 @@ public:
             
             if (feature_in_set->second->getIntensity() < element.getIntensity()) 
             {
-              // Remove annotations from the old low-intensity feature.
+              // Remove annotations from the old low-intensity feature. But only after moving these annotations to the unassigned list.
+              std::vector<PeptideIdentification>& obsolete = feature_in_set->second->getPeptideIdentifications();
+              unassigned.insert(unassigned.end(), obsolete.begin(), obsolete.end());
               std::vector<PeptideIdentification> pep_ids_empty;
               feature_in_set->second->setPeptideIdentifications(pep_ids_empty);
               
@@ -136,7 +141,9 @@ public:
             }
             else
             {
-              // Remove annotations from the new low-intensity feature.
+              // Remove annotations from the new low-intensity feature. But only after moving these annotations to the unassigned list.
+              std::vector<PeptideIdentification>& obsolete = element.getPeptideIdentifications();
+              unassigned.insert(unassigned.end(), obsolete.begin(), obsolete.end());
               std::vector<PeptideIdentification> pep_ids_empty;
               element.setPeptideIdentifications(pep_ids_empty);
             }
