@@ -145,10 +145,6 @@ public:
     //@}
 
     ///@name lazyload option
-    ///sets whether or not to load only the count
-    void setSizeOnly(bool only);
-    ///returns whether or not to load only meta data
-    bool getSizeOnly() const;
     ///sets whether or not to always append the data to the given map (even if a consumer is given)
     void setAlwaysAppendData(bool only);
     ///returns whether or not to always append the data to the given map (even if a consumer is given)
@@ -221,6 +217,9 @@ public:
     void setMaxDataPoolSize(Size size);
     //@}
 
+    /// do these options skip spectra or chromatograms due to RT or MSLevel filters?
+    bool hasFilters();
+    
 private:
     bool metadata_only_;
     bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
@@ -236,7 +235,6 @@ private:
     DRange<1> intensity_range_;
     std::vector<Int> ms_levels_;
     bool zlib_compression_;
-    bool size_only_;
     bool always_append_data_;
     bool skip_xml_checks_;
     bool sort_spectra_by_mz_;

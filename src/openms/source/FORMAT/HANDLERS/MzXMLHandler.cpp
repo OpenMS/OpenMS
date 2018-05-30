@@ -131,7 +131,7 @@ namespace OpenMS
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-        static bool init_static_members(false);
+      static bool init_static_members(false);
       if (!init_static_members)
       {
         initStaticMembers_();
@@ -283,14 +283,14 @@ namespace OpenMS
         }
 
         logger_.setProgress(scan_count_);
+        ++scan_count_;
 
         if ((options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
           || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
-          || options_.getSizeOnly())
+          || load_detail_ == Internal::XMLHandler::LD_RAWCOUNTS)
         {
           // skip this tag
           skip_spectrum_ = true;
-          ++scan_count_;
           return;
         }
 
@@ -386,9 +386,7 @@ namespace OpenMS
           spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
           warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
         }
-
-        ++scan_count_;
-      }
+      } // END OF <scan>
       else if (tag == "operator")
       {
         exp_->getContacts().resize(1);
@@ -514,9 +512,9 @@ namespace OpenMS
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-        //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
+      //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
-        static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
+      static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
       static const XMLCh* s_scan = xercesc::XMLString::transcode("scan");
 
       open_tags_.pop_back();
@@ -536,10 +534,10 @@ namespace OpenMS
         nesting_level_--;
         OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-          if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
-          {
+        if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
+        {
           populateSpectraWithData_();
-          }
+        }
       }
       //std::cout << " -- End -- " << "\n";
     }

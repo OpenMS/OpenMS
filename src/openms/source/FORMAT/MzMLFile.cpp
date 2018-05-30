@@ -121,7 +121,15 @@ namespace OpenMS
     PeakMap dummy;
     Internal::MzMLHandler handler(dummy, filename, getVersion(), *this);
     handler.setOptions(options_);
-    handler.getOptions().setSizeOnly(true);
+    if (options_.hasFilters())
+    {
+      handler.setLoadDetail(Internal::XMLHandler::LD_COUNTS_WITHOPTIONS);
+    }
+    else
+    { // no filters where specified. Just take the 'counts' attributes from the mzML file and end parsing
+      handler.setLoadDetail(Internal::XMLHandler::LD_RAWCOUNTS);
+    }
+    
     safeParse_(filename, &handler);
     handler.getCounts(scount, ccount);
   }
@@ -177,7 +185,7 @@ namespace OpenMS
     save_(filename, &handler);
   }
 
-  void MzMLFile::storeBuffer(std::string & output, const PeakMap& map) const
+  void MzMLFile::storeBuffer(std::string& output, const PeakMap& map) const
   {
     Internal::MzMLHandler handler(map, "dummy", getVersion(), *this);
     handler.setOptions(options_);
@@ -234,9 +242,9 @@ namespace OpenMS
     Internal::MzMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
 
     // set temporary options for handler
-    tmp_options.setSizeOnly(true);
     tmp_options.setMetadataOnly( skip_full_count );
     handler.setOptions(tmp_options);
+    handler.setLoadDetail(Internal::XMLHandler::LD_RAWCOUNTS);
 
     safeParse_(filename_in, &handler);
 

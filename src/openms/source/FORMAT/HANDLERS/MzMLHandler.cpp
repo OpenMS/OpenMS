@@ -49,61 +49,23 @@ namespace OpenMS
   {
 
     /// Constructor for a read-only handler
-    MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      exp_(&exp),
-      cexp_(nullptr),
-      options_(),
-      spec_(),
-      chromatogram_(),
-      bin_data_(),
-      default_array_length_(0),
-      in_spectrum_list_(false),
-      decoder_(),
-      logger_(logger),
-      consumer_(nullptr),
-      scan_count(0),
-      chromatogram_count(0),
-      skip_chromatogram_(false),
-      skip_spectrum_(false),
-      rt_set_(false)
+    MzMLHandler::MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
+      : MzMLHandler(filename, version, logger)
     {
-      cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-      cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-      cv_.loadFromOBO("UO", File::find("/CV/unit.obo"));
-      cv_.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-      cv_.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
-      CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
-      //~ validator_ = Internal::MzMLValidator(mapping_, cv_);
-
-      // check the version number of the mzML handler
-      if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
-      {
-        LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
-      }
+      exp_ = &exp;
     }
 
     /// Constructor for a write-only handler
-    MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
-      XMLHandler(filename, version),
-      exp_(nullptr),
-      cexp_(&exp),
-      options_(),
-      spec_(),
-      chromatogram_(),
-      bin_data_(),
-      default_array_length_(0),
-      in_spectrum_list_(false),
-      decoder_(),
-      logger_(logger),
-      consumer_(nullptr),
-      scan_count(0),
-      chromatogram_count(0),
-      skip_chromatogram_(false),
-      skip_spectrum_(false),
-      rt_set_(false) // ,
-      // validator_(mapping_, cv_) */
+    MzMLHandler::MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger)
+      : MzMLHandler(filename, version, logger)
+    {
+      cexp_ = &exp;
+    }
+
+    /// delegated c'tor for the common things
+    MzMLHandler::MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger)
+      : XMLHandler(filename, version),
+        logger_(logger)
     {
       cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
       cv_.loadFromOBO("PATO", File::find("/CV/quality.obo"));
@@ -112,7 +74,6 @@ namespace OpenMS
       cv_.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
 
       CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping_);
-      //~ validator_ = Internal::MzMLValidator(mapping_, cv_);
 
       // check the version number of the mzML handler
       if (VersionInfo::VersionDetails::create(version_) == VersionInfo::VersionDetails::EMPTY)
@@ -120,6 +81,7 @@ namespace OpenMS
         LOG_ERROR << "MzMLHandler was initialized with an invalid version number: " << version_ << std::endl;
       }
     }
+
 
     /// Destructor
     MzMLHandler::~MzMLHandler()
@@ -139,13 +101,34 @@ namespace OpenMS
       return options_;
     }
 
+
+    /// handler which support partial loading, implement this method
+    XMLHandler::LOADDETAIL MzMLHandler::getLoadDetail() const
+    {
+      return load_detail_;
+    }
+
+    /// handler which support partial loading, implement this method
+    void MzMLHandler::setLoadDetail(const XMLHandler::LOADDETAIL d)
+    {
+      load_detail_ = d;
+    }
+
     //@}
 
     /// Get the spectra and chromatogram counts of a file
     void MzMLHandler::getCounts(Size& spectra_counts, Size& chromatogram_counts)
     {
-      spectra_counts = scan_count;
-      chromatogram_counts = chromatogram_count;
+      if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
+      { 
+        spectra_counts = scan_count_total_;
+        chromatogram_counts = chrom_count_total_;
+      }
+      else
+      {
+        spectra_counts = scan_count_;
+        chromatogram_counts = chromatogram_count_;
+      }
     }
 
     /// Set the IMSDataConsumer consumer which will consume the read data
@@ -644,11 +627,12 @@ namespace OpenMS
 
     void MzMLHandler::characters(const XMLCh* const chars, const XMLSize_t length)
     {
-
       if (skip_spectrum_ || skip_chromatogram_)
+      {
         return;
+      }
 
-      String& current_tag = open_tags_.back();
+      const String& current_tag = open_tags_.back();
 
       if (current_tag == "binary")
       {
@@ -664,13 +648,14 @@ namespace OpenMS
       }
       else
       {
-        String transcoded_chars2 = sm_.convert(chars);
+        /*String transcoded_chars2 = sm_.convert(chars);
         transcoded_chars2.trim();
         if (transcoded_chars2 != "")
         {
           warning(LOAD, String("Unhandled character content in tag '") + current_tag + "': " +
               transcoded_chars2);
         }
+        */
       }
     }
 
@@ -706,6 +691,12 @@ namespace OpenMS
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
 
+      // do nothing until a spectrum/chromatogram/spectrumList ends
+      if (skip_spectrum_ || skip_chromatogram_)
+      {
+        return;
+      }
+
       //determine parent tag
       String parent_tag;
       if (open_tags_.size() > 1)
@@ -713,13 +704,6 @@ namespace OpenMS
       String parent_parent_tag;
       if (open_tags_.size() > 2)
         parent_parent_tag = *(open_tags_.end() - 3);
-
-      //do nothing until a new spectrum is reached
-      if (tag != "spectrum" && skip_spectrum_)
-        return;
-
-      if (tag != "chromatogram" && skip_chromatogram_)
-        return;
 
       if (tag == "spectrum")
       {
@@ -756,6 +740,12 @@ namespace OpenMS
       }
       else if (tag == "chromatogram")
       {
+        if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
+        { //, but we only want to count
+          skip_chromatogram_ = true; // skip the remaining chrom, until endElement(chromatogram)
+          ++chromatogram_count_;
+        }
+
         chromatogram_ = ChromatogramType();
         default_array_length_ = attributeAsInt_(attributes, s_default_array_length);
         String source_file_ref;
@@ -785,10 +775,20 @@ namespace OpenMS
         if (options_.getMetadataOnly())
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
-        UInt count = attributeAsInt_(attributes, s_count);
-        exp_->reserveSpaceSpectra(count);
-        logger_.startProgress(0, count, "loading spectra list");
+        scan_count_total_ = attributeAsInt_(attributes, s_count);
+        logger_.startProgress(0, scan_count_total_, "loading spectra list");
         in_spectrum_list_ = true;
+        // we only want total scan count and chrom count
+        if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
+        { // in case chromatograms came before spectra, we have all information --> end parsing
+          if (chrom_count_total_ != -1) throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          // or skip the remaining spectra until </spectrumList>
+          skip_spectrum_ = true;
+        }
+        else
+        {
+          exp_->reserveSpaceSpectra(scan_count_total_);
+        }
       }
       else if (tag == "chromatogramList")
       {
@@ -799,10 +799,21 @@ namespace OpenMS
         if (options_.getMetadataOnly())
           throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
 
-        UInt count = attributeAsInt_(attributes, s_count);
-        exp_->reserveSpaceChromatograms(count);
-        logger_.startProgress(0, count, "loading chromatogram list");
+        chrom_count_total_ = attributeAsInt_(attributes, s_count);
+        logger_.startProgress(0, chrom_count_total_, "loading chromatogram list");
         in_spectrum_list_ = false;
+
+        // we only want total scan count and chrom count
+        if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
+        { // in case spectra came before chroms, we have all information --> end parsing
+          if (scan_count_total_ != -1) throw EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          // or skip the remaining chroms until </chromatogramList>
+          skip_chromatogram_ = true;
+        }
+        else
+        {
+          exp_->reserveSpaceChromatograms(chrom_count_total_);
+        }
       }
       else if (tag == "binaryDataArrayList" /* && in_spectrum_list_*/)
       {
@@ -932,8 +943,11 @@ namespace OpenMS
       }
       else if (tag == "mzML")
       {
-        scan_count = 0;
-        chromatogram_count = 0;
+        scan_count_ = 0;
+        chromatogram_count_ = 0;
+        scan_count_total_ = -1;
+        chrom_count_total_ = -1;
+
 
         //check file version against schema version
         String file_version;
@@ -1153,23 +1167,22 @@ namespace OpenMS
 
       if (equal_(qname, s_spectrum))
       {
-
-        // catch errors stemming from confusion about elution time and scan time
-        if (!rt_set_ && spec_.metaValueExists("elution time (seconds)"))
-        {
-          spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
-        }
-        /* this is too hot (could be SRM as well? -- check!):
-           // correct spectrum type if possible (i.e., make it more specific)
-        if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
-        {
-          if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-          else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
-        }
-        */
-
         if (!skip_spectrum_)
         {
+          // catch errors stemming from confusion about elution time and scan time
+          if (!rt_set_ && spec_.metaValueExists("elution time (seconds)"))
+          {
+            spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
+          }
+          /* this is too hot (could be SRM as well? -- check!):
+          // correct spectrum type if possible (i.e., make it more specific)
+          if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
+          {
+          if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
+          else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+          }
+          */
+          
           spectrum_data_.push_back(SpectrumData());
           spectrum_data_.back().default_array_length = default_array_length_;
           spectrum_data_.back().spectrum = spec_;
@@ -1177,23 +1190,30 @@ namespace OpenMS
           {
             spectrum_data_.back().data = bin_data_;
           }
+          if (spectrum_data_.size() >= options_.getMaxDataPoolSize())
+          {
+            populateSpectraWithData_();
+          }
         }
 
-        if (spectrum_data_.size() >= options_.getMaxDataPoolSize())
+        switch (load_detail_)
         {
-          populateSpectraWithData_();
+          case XMLHandler::LD_ALLDATA:
+          case XMLHandler::LD_COUNTS_WITHOPTIONS:
+            skip_spectrum_ = false; // dont skip the next spectrum (unless via options later)
+            break;
+          case XMLHandler::LD_RAWCOUNTS:
+            skip_spectrum_ = true; // we always skip spectra; we only need the outer <spectrumList/chromatogramList count=...>
+            break;
         }
 
-        skip_spectrum_ = false;
         rt_set_ = false;
-        if (options_.getSizeOnly()) {skip_spectrum_ = true; }
-        logger_.setProgress(++scan_count);
+        logger_.nextProgress();
         bin_data_.clear();
         default_array_length_ = 0;
       }
       else if (equal_(qname, s_chromatogram))
       {
-
         if (!skip_chromatogram_)
         {
           chromatogram_data_.push_back(ChromatogramData());
@@ -1203,26 +1223,36 @@ namespace OpenMS
           {
             chromatogram_data_.back().data = bin_data_;
           }
+          if (chromatogram_data_.size() >= options_.getMaxDataPoolSize())
+          {
+            populateChromatogramsWithData_();
+          }
         }
 
-        if (chromatogram_data_.size() >= options_.getMaxDataPoolSize())
+        switch (load_detail_)
         {
-          populateChromatogramsWithData_();
+          case XMLHandler::LD_ALLDATA:
+          case XMLHandler::LD_COUNTS_WITHOPTIONS:
+            skip_chromatogram_ = false; // dont skip the next chrom
+            break;
+          case XMLHandler::LD_RAWCOUNTS:
+            skip_chromatogram_ = true; // we always skip chroms; we only need the outer <spectrumList/chromatogramList count=...>
+            break;
         }
 
-        skip_chromatogram_ = false;
-        if (options_.getSizeOnly()) {skip_chromatogram_ = true; }
-        logger_.setProgress(++chromatogram_count);
+        logger_.nextProgress();
         bin_data_.clear();
         default_array_length_ = 0;
       }
       else if (equal_(qname, s_spectrum_list))
       {
+        skip_spectrum_ = false; // no more spectra to come, so stop skipping (for the LD_RAWCOUNTS case)
         in_spectrum_list_ = false;
         logger_.endProgress();
       }
       else if (equal_(qname, s_chromatogram_list))
       {
+        skip_chromatogram_ = false; // no more chromatograms to come, so stop skipping
         in_spectrum_list_ = false;
         logger_.endProgress();
       }
@@ -1458,7 +1488,7 @@ namespace OpenMS
         {
           spec_.setType(SpectrumSettings::UNKNOWN);
         }
-        //spectrum attribute
+        // spectrum attribute
         else if (accession == "MS:1000511") //ms level
         {
           spec_.setMSLevel(value.toInt());
@@ -1467,6 +1497,15 @@ namespace OpenMS
           {
             skip_spectrum_ = true;
           }
+          else
+          { // MS level is ok
+            if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
+            { //, but we only want to count
+              skip_spectrum_ = true;
+              ++scan_count_;
+            }
+          }
+
         }
         else if (accession == "MS:1000497") //zoom scan
         {
@@ -1965,16 +2004,26 @@ namespace OpenMS
           if (unit_accession == "UO:0000031") //minutes
           {
             spec_.setRT(60.0 * value.toDouble());
-            rt_set_ = true;
           }
           else //seconds
           {
             spec_.setRT(value.toDouble());
-            rt_set_ = true;
           }
-          if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
+          rt_set_ = true;
+          if (options_.hasRTRange())
           {
-            skip_spectrum_ = true;
+            if (!options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
+            {
+              skip_spectrum_ = true;
+            }
+            else
+            { // we are within RT range
+              if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
+              { //, but we only want to count
+                skip_spectrum_ = true;
+                ++scan_count_;
+              }
+            }
           }
         }
         else if (accession == "MS:1000826") //elution time
@@ -3709,7 +3758,7 @@ namespace OpenMS
         os << "\t\t</chromatogramList>" << "\n";
       }
 
-      MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets, chromatograms_offsets);
+      MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets_, chromatograms_offsets_);
       logger_.endProgress();
     }
 
@@ -4657,7 +4706,7 @@ namespace OpenMS
       }
 
       long offset = os.tellp();
-      spectra_offsets.push_back(make_pair(native_id, offset + 3));
+      spectra_offsets_.push_back(make_pair(native_id, offset + 3));
 
       // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
       os << "\t\t\t<spectrum id=\"" << writeXMLEscape(native_id) << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
@@ -5114,7 +5163,7 @@ namespace OpenMS
                                          const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
     {
       long offset = os.tellp();
-      chromatograms_offsets.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
+      chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
 
       // TODO native id with chromatogram=?? prefix?
       // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag

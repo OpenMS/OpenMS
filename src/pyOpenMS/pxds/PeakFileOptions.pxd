@@ -51,7 +51,6 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         bool getSortChromatogramsByRT() nogil except +
 
         void setSizeOnly(bool only) nogil except +
-        bool getSizeOnly() nogil except +
 
         void setFillData(bool only) nogil except +
         bool getFillData() nogil except +
