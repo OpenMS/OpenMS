@@ -4827,7 +4827,9 @@ def testExperimentalDesign():
      """
     f = pyopenms.ExperimentalDesignFile()
     fourplex_fractionated_design = pyopenms.ExperimentalDesign()
-    fourplex_fractionated_design = f.load(b"ExperimentalDesign_input_2.tsv", False)
+    ed_dirname = os.path.dirname(os.path.abspath(__file__))
+    ed_filename = os.path.join(ed_dirname, "ExperimentalDesign_input_2.tsv").encode()
+    fourplex_fractionated_design = f.load(ed_filename, False)
     assert fourplex_fractionated_design.getNumberOfSamples() == 8
     assert fourplex_fractionated_design.getNumberOfFractions() == 3
     assert fourplex_fractionated_design.getNumberOfLabels() == 4
