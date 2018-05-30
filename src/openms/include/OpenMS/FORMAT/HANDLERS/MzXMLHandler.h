@@ -41,16 +41,18 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
-
-#include <stack>
 
 namespace OpenMS
 {
   class MetaInfoInterface;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
 
   namespace Internal
   {
+    
 
     /**
       @brief XML handlers for MzXMLFile

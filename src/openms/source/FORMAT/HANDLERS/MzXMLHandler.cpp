@@ -35,6 +35,9 @@
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+
+#include <stack>
 
 namespace OpenMS
 {
