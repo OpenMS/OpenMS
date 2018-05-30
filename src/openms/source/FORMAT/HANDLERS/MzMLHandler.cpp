@@ -1500,9 +1500,9 @@ namespace OpenMS
           else
           { // MS level is ok
             if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
-            { //, but we only want to count
-              skip_spectrum_ = true;
-              ++scan_count_;
+            { //, and we only want to count
+              // , but do not skip the spectrum yet if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS), since it might be outside the RT range (so should not count)
+              //skip_spectrum_ = false; // it is false right now... keep it that way
             }
           }
 
@@ -2024,6 +2024,11 @@ namespace OpenMS
                 ++scan_count_;
               }
             }
+          }
+          else if (load_detail_ == XMLHandler::LD_COUNTS_WITHOPTIONS)
+          { // all RTs are valid, and the MS level of the current spectrum is in our MSLevels (otherwise we would not be here)
+            skip_spectrum_ = true;
+            ++scan_count_;
           }
         }
         else if (accession == "MS:1000826") //elution time
