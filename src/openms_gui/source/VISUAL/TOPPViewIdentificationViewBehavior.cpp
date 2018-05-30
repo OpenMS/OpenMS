@@ -54,7 +54,7 @@
 using namespace OpenMS;
 using namespace std;
 
-#define DEBUG_IDENTIFICATION_VIEW
+//#define DEBUG_IDENTIFICATION_VIEW
 
 namespace OpenMS
 {
