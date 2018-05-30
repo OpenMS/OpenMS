@@ -23,13 +23,15 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         void getDefaultParameters(Param) nogil except +
 
         void annotateSpectra(libcpp_vector[ MSSpectrum ], TargetedExperiment, libcpp_vector[ MSSpectrum ], FeatureMap) nogil except +
+        void annotateSpectra(libcpp_vector[ MSSpectrum ], TargetedExperiment, libcpp_vector[ MSSpectrum ]) nogil except +
 
         void pickSpectrum(MSSpectrum, MSSpectrum) nogil except +
 
         void scoreSpectra(libcpp_vector[ MSSpectrum ], libcpp_vector[ MSSpectrum ], FeatureMap, libcpp_vector[ MSSpectrum ]) nogil except +
+        void scoreSpectra(libcpp_vector[ MSSpectrum ], libcpp_vector[ MSSpectrum ], libcpp_vector[ MSSpectrum ]) nogil except +
 
         void selectSpectra(libcpp_vector[ MSSpectrum ], FeatureMap, libcpp_vector[ MSSpectrum ], FeatureMap) nogil except +
-
         void selectSpectra(libcpp_vector[ MSSpectrum ], libcpp_vector[ MSSpectrum ]) nogil except +
 
         void extractSpectra(MSExperiment, TargetedExperiment, libcpp_vector[ MSSpectrum ], FeatureMap) nogil except +
+        void extractSpectra(MSExperiment, TargetedExperiment, libcpp_vector[ MSSpectrum ]) nogil except +

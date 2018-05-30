@@ -284,6 +284,8 @@ public slots:
     void updateViewBar();
     /// changes the behavior according to the selected view in the spectra view bar and calls updateSpectraViewBar()
     void viewChanged(int);
+    /// adds empty ID structure to allow manual annotations
+    void viewTabwidgetDoubleClicked(int);
     /// adapts the filter bar to the active window
     void updateFilterBar();
     /// enabled/disabled menu entries depending on the current state
