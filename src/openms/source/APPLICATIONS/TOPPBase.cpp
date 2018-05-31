@@ -105,10 +105,10 @@ namespace OpenMS
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
-    version_(""),
-    verboseVersion_(""),
     working_dir_(""),
     working_dir_keep_debug_lvl_(-1),
+    version_(""),
+    verboseVersion_(""),
     official_(official),
     citations_(citations),
     log_type_(ProgressLogger::NONE),
@@ -1632,19 +1632,19 @@ namespace OpenMS
     QProcess qp;
     qp.start(executable, arguments); // does automatic escaping etc... start
     std::stringstream ss;
-    ss << "COMMAND: " << executable.toStdString();
+    ss << "COMMAND: " << String(executable);
     for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
     {
         ss << " " << it->toStdString();
     }
     LOG_DEBUG << ss.str() << endl;
-    writeLog_("Executing: " + executable.toStdString());
+    writeLog_("Executing: " + String(executable));
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
-      writeLog_("FATAL: External invocation of " + executable.toStdString() + " failed. Standard output and error were:");
+      writeLog_("FATAL: External invocation of " + String(executable) + " failed. Standard output and error were:");
       const QString stdout(qp.readAllStandardOutput());
       const QString stderr(qp.readAllStandardError());
       writeLog_(stdout);
@@ -1654,7 +1654,8 @@ namespace OpenMS
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    writeLog_("Executed " + executable.toStdString() + " successfully!");
+    writeLog_("Executed " + String(executable) + " successfully!");
+    return success;
   }
 
   String TOPPBase::getParamAsString_(const String& key, const String& default_value) const

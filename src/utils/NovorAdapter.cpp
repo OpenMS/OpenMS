@@ -50,6 +50,9 @@
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
+#include <QProcessEnvironment>
+#include <QFileInfo>
+
 #include <fstream>
 
 using namespace OpenMS;
