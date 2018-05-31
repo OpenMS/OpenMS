@@ -56,6 +56,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QProcess>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -106,6 +107,8 @@ namespace OpenMS
     instance_number_(-1),
     version_(""),
     verboseVersion_(""),
+    working_dir_(""),
+    working_dir_keep_debug_lvl_(-1),
     official_(official),
     citations_(citations),
     log_type_(ProgressLogger::NONE),
@@ -140,6 +143,11 @@ namespace OpenMS
       {
         File::remove(log_files[i]);
       }
+    }
+
+    if (!working_dir_.empty())
+    {
+      removeTempDirectory_(working_dir_, working_dir_keep_debug_lvl_);
     }
   }
 
@@ -1591,6 +1599,16 @@ namespace OpenMS
     return temp_dir;
   }
 
+  String TOPPBase::makeAutoRemoveTempDirectory_(Int keep_debug)
+  {
+    if (working_dir_.empty())
+    {
+      working_dir_ = makeTempDirectory_();
+      working_dir_keep_debug_lvl_ = keep_debug;
+    }
+    return working_dir_;
+  }
+
   void TOPPBase::removeTempDirectory_(const String& temp_dir, Int keep_debug) const
   {
     if (temp_dir.empty()) return; // no temp. dir. created
@@ -1607,6 +1625,36 @@ namespace OpenMS
       }
       File::removeDirRecursively(temp_dir);
     }
+  }
+
+  int TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments) const
+  {
+    QProcess qp;
+    qp.start(executable, arguments); // does automatic escaping etc... start
+    std::stringstream ss;
+    ss << "COMMAND: " << executable.toStdString();
+    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+    {
+        ss << " " << it->toStdString();
+    }
+    LOG_DEBUG << ss.str() << endl;
+    writeLog_("Executing: " + executable.toStdString());
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
+    qp.close();
+
+    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+      writeLog_("FATAL: External invocation of " + executable.toStdString() + " failed. Standard output and error were:");
+      const QString stdout(qp.readAllStandardOutput());
+      const QString stderr(qp.readAllStandardError());
+      writeLog_(stdout);
+      writeLog_(stderr);
+      writeLog_(String(qp.exitCode()));
+
+      return EXTERNAL_PROGRAM_ERROR;
+    }
+
+    writeLog_("Executed " + executable.toStdString() + " successfully!");
   }
 
   String TOPPBase::getParamAsString_(const String& key, const String& default_value) const

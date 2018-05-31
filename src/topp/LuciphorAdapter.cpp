@@ -47,10 +47,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QProcess>
-#include <QtCore/QDir>
-#include <QtCore/QTemporaryDir>
+#include <QProcessEnvironment>
 
 #include <cstddef>
 #include <fstream>
@@ -486,27 +483,7 @@ protected:
     }
 
     //tmp_dir
-    String temp_dir = "";
-    QTemporaryDir d{File::getTempDirectory().toQString()};
-
-    if (d.isValid())
-    {
-        temp_dir = d.path().toStdString();
-        if (this->debug_level_ < 2)
-        {
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_dir << "'" << endl;
-        }
-        else
-        {
-          LOG_WARN << "Keeping the temporary files at '" << temp_dir << "'. Set debug level to <2 to remove them." << endl;
-        }
-        d.setAutoRemove(this->debug_level_ < 2);
-    }
-    else
-    {
-      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
-      return CANNOT_WRITE_OUTPUT_FILE;
-    }
+    String temp_dir = makeAutoRemoveTempDirectory_();
 
     // create a temporary config file for LuciPHOr2 parameters
     String conf_file = temp_dir + "luciphor2_input_template.txt";
@@ -541,7 +518,7 @@ protected:
       }
       else
       {
-        LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps."
+        LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
       }
       // create a temporary pepXML file for LuciPHOR2 input
       String id_file_name = File::removeExtension(File::basename(id));
@@ -604,30 +581,7 @@ protected:
     //-------------------------------------------------------------
     // LuciPHOr2
     //-------------------------------------------------------------
-    QProcess qp;
-    qp.start(java_executable.toQString(), process_params); // does automatic escaping etc... start
-    std::stringstream ss;
-    ss << "COMMAND: " << java_executable;
-    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
-    {
-        ss << " " << it->toStdString();
-    }
-    LOG_DEBUG << ss.str() << endl;
-    writeLog_("Executing: " + String(java_executable));
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    qp.close();
-
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-      writeLog_( "FATAL: External invocation of LuciPHOr2 failed. Standard output and error were:");
-      const QString stdout(qp.readAllStandardOutput());
-      const QString stderr(qp.readAllStandardError());
-      writeLog_(stdout);
-      writeLog_(stderr);
-      writeLog_(String(qp.exitCode()));
-
-      return EXTERNAL_PROGRAM_ERROR;
-    }
+    runExternalProcess_(java_executable.toQString(), process_params);
 
     SpectrumLookup lookup;
     lookup.rt_tolerance = 0.05;

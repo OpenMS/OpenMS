@@ -51,9 +51,6 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QProcess>
-#include <QtCore/QTemporaryDir>
 #include <QtCore/QDir>
 
 #include <iostream>
@@ -258,27 +255,7 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = "";
-    QTemporaryDir d{File::getTempDirectory().toQString()};
-
-    if (d.isValid())
-    {
-        tmp_dir = d.path().toStdString();
-        if (this->debug_level_ < 2)
-        {
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << endl;
-        }
-        else
-        {
-          LOG_WARN << "Keeping the temporary files at '" << tmp_dir << "'. Set debug level to <2 to remove them." << endl;
-        }
-        d.setAutoRemove(this->debug_level_ < 2);
-    }
-    else
-    {
-      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
-      return CANNOT_WRITE_OUTPUT_FILE;
-    }
+    String tmp_dir = makeAutoRemoveTempDirectory_();
 
     String output_dir = tmp_dir + "crux-output";
     String out_dir_q = QDir::toNativeSeparators((output_dir + "/").toQString());
@@ -337,32 +314,8 @@ protected:
       //-------------------------------------------------------------
       // run tide-index
       //-------------------------------------------------------------
-      QProcess qp;
-      qp.start(crux_executable.toQString(), process_params); // does automatic escaping etc... start
-      std::stringstream ss;
-      ss << "COMMAND: " << crux_executable;
-      for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
-      {
-          ss << " " << it->toStdString();
-      }
-      LOG_DEBUG << ss.str() << endl;
-      writeLog_("Executing: " + String(crux_executable));
-      const bool success = qp.waitForFinished(-1); // wait till job is finished
-      qp.close();
-
-      if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-      {
-        writeLog_( "FATAL: External invocation of Crux failed. Standard output and error were:");
-        const QString stdout(qp.readAllStandardOutput());
-        const QString stderr(qp.readAllStandardError());
-        writeLog_(stdout);
-        writeLog_(stderr);
-        writeLog_(String(qp.exitCode()));
-
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-
-      writeLog_("Executed Crux (tide-index)!");
+      writeLog_("Executing Crux (tide-index)...");
+      runExternalProcess_(crux_executable.toQString(), process_params);
     }
 
     // run crux tide-search
@@ -407,32 +360,8 @@ protected:
       //-------------------------------------------------------------
       // run tide-index
       //-------------------------------------------------------------
-      QProcess qp;
-      qp.start(crux_executable.toQString(), process_params); // does automatic escaping etc... start
-      std::stringstream ss;
-      ss << "COMMAND: " << crux_executable;
-      for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
-      {
-          ss << " " << it->toStdString();
-      }
-      LOG_DEBUG << ss.str() << endl;
-      writeLog_("Executing: " + String(crux_executable));
-      const bool success = qp.waitForFinished(-1); // wait till job is finished
-      qp.close();
-
-      if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-      {
-        writeLog_( "FATAL: External invocation of Crux failed. Standard output and error were:");
-        const QString stdout(qp.readAllStandardOutput());
-        const QString stderr(qp.readAllStandardError());
-        writeLog_(stdout);
-        writeLog_(stderr);
-        writeLog_(String(qp.exitCode()));
-
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-
-      writeLog_("Executed Crux (tide-search)!");
+      writeLog_("Executed Crux (tide-search)...");
+      runExternalProcess_(crux_executable.toQString(), process_params);
     }
 
     // run crux percolator (currently we dont have much choice in the matter)
@@ -471,34 +400,10 @@ protected:
       process_params << input.toQString();
 
       //-------------------------------------------------------------
-      // run tide-index
+      // run percolator
       //-------------------------------------------------------------
-      QProcess qp;
-      qp.start(crux_executable.toQString(), process_params); // does automatic escaping etc... start
-      std::stringstream ss;
-      ss << "COMMAND: " << crux_executable;
-      for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
-      {
-          ss << " " << it->toStdString();
-      }
-      LOG_DEBUG << ss.str() << endl;
-      writeLog_("Executing: " + String(crux_executable));
-      const bool success = qp.waitForFinished(-1); // wait till job is finished
-      qp.close();
-
-      if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-      {
-        writeLog_( "FATAL: External invocation of Crux failed. Standard output and error were:");
-        const QString stdout(qp.readAllStandardOutput());
-        const QString stderr(qp.readAllStandardError());
-        writeLog_(stdout);
-        writeLog_(stderr);
-        writeLog_(String(qp.exitCode()));
-
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-
-      writeLog_("Executed Crux (percolator)!");
+      writeLog_("Executing Crux (percolator)...");
+      runExternalProcess_(crux_executable.toQString(), process_params);
     }
 
     //-------------------------------------------------------------

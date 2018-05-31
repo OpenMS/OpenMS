@@ -50,8 +50,6 @@
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QDir>
-#include <QtCore/QProcess>
 #include <fstream>
 
 using namespace OpenMS;
@@ -231,27 +229,7 @@ protected:
     //-------------------------------------------------------------
     
     //tmp_dir
-    String tmp_dir = "";
-    QTemporaryDir d{File::getTempDirectory().toQString()};
-
-    if (d.isValid())
-    {
-        tmp_dir = d.path().toStdString();
-        if (this->debug_level_ < 2)
-        {
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << endl;
-        }
-        else
-        {
-          LOG_WARN << "Keeping the temporary files at '" << tmp_dir << "'. Set debug level to <2 to remove them." << endl;
-        }
-        d.setAutoRemove(this->debug_level_ < 2);
-    }
-    else
-    {
-      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
-      return CANNOT_WRITE_OUTPUT_FILE;
-    }
+    String tmp_dir = makeAutoRemoveTempDirectory_();
 
     // parameter file
     String tmp_param = tmp_dir + "param.txt";    
@@ -287,59 +265,7 @@ protected:
 
 
     // print novor command line
-    std::stringstream ss;
-    ss << "COMMAND: " << java_executable;
-    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
-    {
-        ss << " " << it->toStdString();
-    }
-    LOG_DEBUG << ss.str() << endl;
-
-    QProcess qp;
-    writeLog_("Executing: " + String(executable));
-    qp.setWorkingDirectory(path_to_executable);
-    qp.start(java_executable.toQString(), process_params);
-
-    // check if process has started    
-    if (!qp.waitForStarted(-1))
-    {
-      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to start." << std::endl;
-      const QString novor_stdout(qp.readAllStandardOutput());
-      const QString novor_stderr(qp.readAllStandardError());
-      writeLog_(novor_stdout);
-      writeLog_(novor_stderr);
-      writeLog_(String(qp.exitCode()));
-      return EXTERNAL_PROGRAM_ERROR;
-    } 
-   
-    // check if process has finised
-    if (!qp.waitForFinished(-1))
-    {
-      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter failed. Process (java -jar novor.jar ...) was not able to finish." << std::endl;
-      const QString novor_stdout(qp.readAllStandardOutput());
-      const QString novor_stderr(qp.readAllStandardError());
-      writeLog_(novor_stdout);
-      writeLog_(novor_stderr);
-      writeLog_(String(qp.exitCode()));
-      return EXTERNAL_PROGRAM_ERROR;
-    } 
-
-    // see if process was successfull
-    if (qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-      LOG_FATAL_ERROR << "FATAL: Invocation of NovorAdapter  has failed. Error code was: " << qp.exitCode() << std::endl;
-      const QString novor_stdout(qp.readAllStandardOutput());
-      const QString novor_stderr(qp.readAllStandardError());
-      writeLog_(novor_stdout);
-      writeLog_(novor_stderr);
-      writeLog_(String(qp.exitCode()));
-      return EXTERNAL_PROGRAM_ERROR;
-    }
-
-    qp.close();
- 
-
-
+    runExternalProcess_(executable, process_params);
 
     //-------------------------------------------------------------
     // writing output
@@ -425,9 +351,6 @@ protected:
     {
       writeLog_("Novor output is empty! No IdXML output was generated.");
     } 
-
-   // remove tempdir
-   removeTempDir_(tmp_dir.toQString());
 
    return EXECUTION_OK;
   }

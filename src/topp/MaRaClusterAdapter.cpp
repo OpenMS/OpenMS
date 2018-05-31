@@ -41,11 +41,6 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
-#include <QtCore/QTemporaryDir>
 
 #include <iostream>
 #include <cmath>
@@ -323,27 +318,7 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    String temp_directory_body = "";
-    QTemporaryDir d{File::getTempDirectory().toQString()};
-
-    if (d.isValid())
-    {
-        temp_directory_body = d.path().toStdString();
-        if (this->debug_level_ < 2)
-        {
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
-        }
-        else
-        {
-          LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
-        }
-        d.setAutoRemove(this->debug_level_ < 2);
-    }
-    else
-    {
-      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
-      return CANNOT_WRITE_OUTPUT_FILE;
-    }
+    String temp_directory_body = makeAutoRemoveTempDirectory_();
 
     double pcut = getDoubleOption_("pcut");
 
@@ -392,22 +367,7 @@ protected:
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
-
-    QProcess qp;
-    qp.start(maracluster_executable.toQString(), arguments);
-    if (qp.waitForFinished(-1) == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-      writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments.join(" ").toStdString() + "'.");
-      writeLog_("Exit code was: " + String(qp.exitCode()));
-      const QString maracluster_stdout(qp.readAllStandardOutput());
-      const QString maracluster_stderr(qp.readAllStandardError());
-      writeLog_(maracluster_stdout);
-      writeLog_(maracluster_stderr);
-      return EXTERNAL_PROGRAM_ERROR;
-    }
-    writeLog_("Executed maracluster!");
-
-    qp.close();
+    runExternalProcess_(maracluster_executable.toQString(), arguments);
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
@@ -504,20 +464,7 @@ protected:
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      QProcess qp_consensus;
-      qp_consensus.start(maracluster_executable.toQString(), arguments_consensus);
-      if (qp_consensus.waitForFinished(-1) == false || qp_consensus.exitStatus() != 0 || qp_consensus.exitCode() != 0)
-      {
-        writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments_consensus.join(" ").toStdString() + "'.");
-        writeLog_("Exit code was: " + String(qp.exitCode()));
-        const QString maracluster_stdout_consensus(qp_consensus.readAllStandardOutput());
-        const QString maracluster_stderr_consensus(qp_consensus.readAllStandardError());
-        writeLog_(maracluster_stdout_consensus);
-        writeLog_(maracluster_stderr_consensus);
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-      writeLog_("Executed maracluster!");
-      qp_consensus.close();
+      runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
 
       // sort mzML
       FileHandler fh;

@@ -43,9 +43,6 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QProcess>
-#include <QtCore/QTemporaryDir>
-
 #include <fstream>
 
 using namespace OpenMS;
@@ -503,12 +500,8 @@ protected:
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
     String tmp_param = File::getTemporaryFile();
-    int status = QProcess::execute(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str()); // does automatic escaping etc...
-    if (status != 0)
-    {
-      writeLog_("Comet problem in writing the default parameter file. Aborting! Calling command was: '" + comet_executable + " -p \"" + tmp_param + "\"'.\nDoes the Comet executable exist and do you have write access and space in the temp folder?");
-      return EXTERNAL_PROGRAM_ERROR;
-    }
+    writeLog_("Comet is writing the default parameter file...");
+    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str());
 
     String inputfile_name = getStringOption_("in");
     String out = getStringOption_("out");
@@ -535,28 +528,7 @@ protected:
     }
 
     //tmp_dir
-    String tmp_dir = "";
-    QTemporaryDir d{File::getTempDirectory().toQString()};
-
-    if (d.isValid())
-    {
-        tmp_dir = d.path().toStdString();
-        if (this->debug_level_ < 2)
-        {
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << endl;
-        }
-        else
-        {
-          LOG_WARN << "Keeping the temporary files at '" << tmp_dir << "'. Set debug level to <2 to remove them." << endl;
-        }
-        d.setAutoRemove(this->debug_level_ < 2);
-    }
-    else
-    {
-      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
-      return CANNOT_WRITE_OUTPUT_FILE;
-    }
-
+    String tmp_dir = makeAutoRemoveTempDirectory_();
     String tmp_pepxml = tmp_dir + "result.pep.xml";
     String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
@@ -609,31 +581,7 @@ protected:
     // run comet
     //-------------------------------------------------------------
     // Comet execution with the executable and the arguments StringList
-    QProcess qp;
-    qp.start(comet_executable.toQString(), arguments); // does automatic escaping etc... start
-    std::stringstream ss;
-    ss << "COMMAND: " << comet_executable;
-    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
-    {
-        ss << " " << it->toStdString();
-    }
-    LOG_DEBUG << ss.str() << endl;
-    writeLog_("Executing: " + String(comet_executable));
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    qp.close();
-
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-        writeLog_("FATAL: External invocation of Comet failed. Standard output and error were:");
-        const QString stdout(qp.readAllStandardOutput());
-        const QString stderr(qp.readAllStandardError());
-        writeLog_(stdout);
-        writeLog_(stderr);
-        writeLog_(String(qp.exitCode()));
-        return EXTERNAL_PROGRAM_ERROR;
-    }
-
-    writeLog_("Executed Comet!");
+    runExternalProcess_(comet_executable.toQString(), arguments);
 
     //-------------------------------------------------------------
     // writing IdXML output

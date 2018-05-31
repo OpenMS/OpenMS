@@ -44,11 +44,6 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
-#include <QtCore/QTemporaryDir>
-
 #include <iostream>
 #include <cmath>
 #include <string>
@@ -761,27 +756,7 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    String temp_directory_body = "";
-    QTemporaryDir d{File::getTempDirectory().toQString()};
-
-    if (d.isValid())
-    {
-        temp_directory_body = d.path().toStdString();
-        if (this->debug_level_ < 2)
-        {
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
-        }
-        else
-        {
-          LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
-        }
-        d.setAutoRemove(this->debug_level_ < 2);
-    }
-    else
-    {
-      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
-      return CANNOT_WRITE_OUTPUT_FILE;
-    }
+    String temp_directory_body = makeAutoRemoveTempDirectory_();
     
     String txt_designator = File::getUniqueName();
     String pin_file(temp_directory_body + txt_designator + "_pin.tab");
@@ -985,33 +960,7 @@ protected:
     // run percolator
     //-------------------------------------------------------------
     // Percolator execution with the executable and the arguments StringList
-    QProcess qp;
-    qp.start(percolator_executable.toQString(), arguments); // does automatic escaping etc... start
-    std::stringstream ss;
-    ss << "COMMAND: " << percolator_executable;
-    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
-    {
-        ss << " " << it->toStdString();
-    }
-    LOG_DEBUG << ss.str() << endl;
-    writeLog_("Executing: " + String(percolator_executable));
-    const bool success = qp.waitForFinished(-1); // wait till job is finished
-    qp.close();
-
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-      writeLog_("FATAL: External invocation of Percolator failed. Standard output and error were:");
-      const QString stdout(qp.readAllStandardOutput());
-      const QString stderr(qp.readAllStandardError());
-      writeLog_(stdout);
-      writeLog_(stderr);
-      writeLog_(String(qp.exitCode()));
-
-      return EXTERNAL_PROGRAM_ERROR;
-    }
-
-    writeLog_("Executed Percolator!");
-
+    runExternalProcess_(percolator_executable.toQString(), arguments);
 
     //-------------------------------------------------------------
     // reintegrate pout results
