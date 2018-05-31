@@ -535,8 +535,14 @@ protected:
     if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(id, prot_ids, pep_ids);
-      IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
-      
+      if (!pep_ids.empty())
+      {
+        IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
+      }
+      else
+      {
+        LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps."
+      }
       // create a temporary pepXML file for LuciPHOR2 input
       String id_file_name = File::removeExtension(File::basename(id));
       id = temp_dir + id_file_name + ".pepXML";
