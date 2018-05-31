@@ -122,8 +122,8 @@ namespace OpenMS
     {
       if (load_detail_ == XMLHandler::LD_RAWCOUNTS)
       { 
-        spectra_counts = scan_count_total_;
-        chromatogram_counts = chrom_count_total_;
+        spectra_counts = std::max(scan_count_total_, 0); // default is -1; if no specs were found, report 0
+        chromatogram_counts = std::max(chrom_count_total_, 0);
       }
       else
       {
