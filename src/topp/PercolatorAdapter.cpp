@@ -47,6 +47,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
+#include <QtCore/QTemporaryDir>
 
 #include <iostream>
 #include <cmath>
@@ -760,11 +761,28 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
+    String temp_directory_body = "";
+    QTemporaryDir d{File::getTempDirectory().toQString()};
+
+    if (d.isValid())
     {
-      QDir d;
-      d.mkpath(temp_directory_body.toQString());
+        temp_directory_body = d.path().toStdString();
+        if (this->debug_level_ < 2)
+        {
+          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
+        }
+        else
+        {
+          LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
+        }
+        d.setAutoRemove(this->debug_level_ < 2);
     }
+    else
+    {
+      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
+      return CANNOT_WRITE_OUTPUT_FILE;
+    }
+    
     String txt_designator = File::getUniqueName();
     String pin_file(temp_directory_body + txt_designator + "_pin.tab");
     String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
@@ -967,23 +985,32 @@ protected:
     // run percolator
     //-------------------------------------------------------------
     // Percolator execution with the executable and the arguments StringList
-    int status = QProcess::execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
-    if (status != 0)
+    QProcess qp;
+    qp.start(percolator_executable.toQString(), arguments); // does automatic escaping etc... start
+    std::stringstream ss;
+    ss << "COMMAND: " << percolator_executable;
+    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
     {
-      writeLog_("Percolator problem. Aborting! Calling command was: '" + percolator_executable + " \"" + arguments.join("-").toStdString() + "\".");
-      // clean temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory_body);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
-      }
-      else
-      {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
-      }
+        ss << " " << it->toStdString();
+    }
+    LOG_DEBUG << ss.str() << endl;
+    writeLog_("Executing: " + String(percolator_executable));
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
+    qp.close();
+
+    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+      writeLog_("FATAL: External invocation of Percolator failed. Standard output and error were:");
+      const QString stdout(qp.readAllStandardOutput());
+      const QString stderr(qp.readAllStandardError());
+      writeLog_(stdout);
+      writeLog_(stderr);
+      writeLog_(String(qp.exitCode()));
+
       return EXTERNAL_PROGRAM_ERROR;
     }
-    writeLog_("Executed percolator!");
+
+    writeLog_("Executed Percolator!");
 
 
     //-------------------------------------------------------------
@@ -1008,17 +1035,6 @@ protected:
     {
       readProteinPoutAsMap_(pout_target_file_proteins, protein_map);
       readProteinPoutAsMap_(pout_decoy_file_proteins, protein_map);
-    }
-    
-    // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
-    if (this->debug_level_ < 5)
-    {
-      File::removeDirRecursively(temp_directory_body);
-      LOG_WARN << "Removing temporary directory for Percolator in/output. Set debug level to >=5 to keep the temporary files." << endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <5 to remove them." << endl;
     }
 
     // idXML or mzid input

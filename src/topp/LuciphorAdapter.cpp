@@ -49,7 +49,8 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
-#include <QDir>
+#include <QtCore/QDir>
+#include <QtCore/QTemporaryDir>
 
 #include <cstddef>
 #include <fstream>
@@ -277,21 +278,6 @@ protected:
     output << "               ## 4 = write HCD non-parametric models to disk (HCD-mode only option)\n";
   }
   
-  void removeTempDir_(const String& temp_dir)
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      File::removeDirRecursively(temp_dir);
-    }
-  }
-  
   struct LuciphorPSM splitSpecId_(const String& spec_id)
   {
     struct LuciphorPSM l_psm;
@@ -499,11 +485,28 @@ protected:
       writeLog_("The installation of Java was not checked.");
     }
 
-    // create temporary directory
-    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
+    //tmp_dir
+    String temp_dir = "";
+    QTemporaryDir d{File::getTempDirectory().toQString()};
+
+    if (d.isValid())
+    {
+        temp_dir = d.path().toStdString();
+        if (this->debug_level_ < 2)
+        {
+          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_dir << "'" << endl;
+        }
+        else
+        {
+          LOG_WARN << "Keeping the temporary files at '" << temp_dir << "'. Set debug level to <2 to remove them." << endl;
+        }
+        d.setAutoRemove(this->debug_level_ < 2);
+    }
+    else
+    {
+      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
+      return CANNOT_WRITE_OUTPUT_FILE;
+    }
 
     // create a temporary config file for LuciPHOr2 parameters
     String conf_file = temp_dir + "luciphor2_input_template.txt";
@@ -590,12 +593,33 @@ protected:
       process_params << "-XX:MaxPermSize=" + QString::number(java_permgen);
     }
 
-    process_params << "-jar" << executable << conf_file.toQString();                   
-    // execute LuciPHOr2    
-    int status = QProcess::execute(java_executable.toQString(), process_params);
-    if (status != 0)
+    process_params << "-jar" << executable << conf_file.toQString();
+
+    //-------------------------------------------------------------
+    // LuciPHOr2
+    //-------------------------------------------------------------
+    QProcess qp;
+    qp.start(java_executable.toQString(), process_params); // does automatic escaping etc... start
+    std::stringstream ss;
+    ss << "COMMAND: " << java_executable;
+    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
     {
-      writeLog_("Fatal error: Running LuciPHOr2 returned an error code. Does the LuciPHOr2 executable (.jar file) exist?");
+        ss << " " << it->toStdString();
+    }
+    LOG_DEBUG << ss.str() << endl;
+    writeLog_("Executing: " + String(java_executable));
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
+    qp.close();
+
+    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+      writeLog_( "FATAL: External invocation of LuciPHOr2 failed. Standard output and error were:");
+      const QString stdout(qp.readAllStandardOutput());
+      const QString stderr(qp.readAllStandardError());
+      writeLog_(stdout);
+      writeLog_(stderr);
+      writeLog_(String(qp.exitCode()));
+
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -672,8 +696,6 @@ protected:
       pep_out.push_back(new_pep_id);
     }
     IdXMLFile().store(out, prot_ids, pep_out);
-
-    removeTempDir_(temp_dir);
 
     return EXECUTION_OK;
   }

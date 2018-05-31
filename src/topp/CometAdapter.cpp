@@ -44,6 +44,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <QtCore/QProcess>
+#include <QtCore/QTemporaryDir>
 
 #include <fstream>
 
@@ -243,24 +244,6 @@ protected:
     }
 
     return modifications;
-  }
-
-  void removeTempDir_(const String& tmp_dir)
-  {
-    if (tmp_dir.empty()) {return;} // no temporary directory created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) 
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      }
-      File::removeDirRecursively(tmp_dir);
-    }
   }
 
   void createParamFile_(ostream& os)
@@ -523,7 +506,7 @@ protected:
     int status = QProcess::execute(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str()); // does automatic escaping etc...
     if (status != 0)
     {
-      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " -p \"" + tmp_param + "\"'.\nDoes the Comet executable exist?");
+      writeLog_("Comet problem in writing the default parameter file. Aborting! Calling command was: '" + comet_executable + " -p \"" + tmp_param + "\"'.\nDoes the Comet executable exist and do you have write access and space in the temp folder?");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -552,8 +535,28 @@ protected:
     }
 
     //tmp_dir
-    const String tmp_dir = makeTempDirectory_(); //OpenMS::File::getTempDirectory() + "/";
-    writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
+    String tmp_dir = "";
+    QTemporaryDir d{File::getTempDirectory().toQString()};
+
+    if (d.isValid())
+    {
+        tmp_dir = d.path().toStdString();
+        if (this->debug_level_ < 2)
+        {
+          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << endl;
+        }
+        else
+        {
+          LOG_WARN << "Keeping the temporary files at '" << tmp_dir << "'. Set debug level to <2 to remove them." << endl;
+        }
+        d.setAutoRemove(this->debug_level_ < 2);
+    }
+    else
+    {
+      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
+      return CANNOT_WRITE_OUTPUT_FILE;
+    }
+
     String tmp_pepxml = tmp_dir + "result.pep.xml";
     String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
@@ -599,15 +602,38 @@ protected:
     //-------------------------------------------------------------
     String paramP = "-P" + tmp_file;
     String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
-    QStringList process_params;
-    process_params << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
+    QStringList arguments;
+    arguments << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
 
-    status = QProcess::execute(comet_executable.toQString(), process_params); // does automatic escaping etc...
-    if (status != 0)
+    //-------------------------------------------------------------
+    // run comet
+    //-------------------------------------------------------------
+    // Comet execution with the executable and the arguments StringList
+    QProcess qp;
+    qp.start(comet_executable.toQString(), arguments); // does automatic escaping etc... start
+    std::stringstream ss;
+    ss << "COMMAND: " << comet_executable;
+    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
     {
-      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " \"" + inputfile_name + "\"'.\n");
-      return EXTERNAL_PROGRAM_ERROR;
+        ss << " " << it->toStdString();
     }
+    LOG_DEBUG << ss.str() << endl;
+    writeLog_("Executing: " + String(comet_executable));
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
+    qp.close();
+
+    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+        writeLog_("FATAL: External invocation of Comet failed. Standard output and error were:");
+        const QString stdout(qp.readAllStandardOutput());
+        const QString stderr(qp.readAllStandardError());
+        writeLog_(stdout);
+        writeLog_(stderr);
+        writeLog_(String(qp.exitCode()));
+        return EXTERNAL_PROGRAM_ERROR;
+    }
+
+    writeLog_("Executed Comet!");
 
     //-------------------------------------------------------------
     // writing IdXML output
@@ -635,17 +661,6 @@ protected:
       {
         return CANNOT_WRITE_OUTPUT_FILE;
       }
-    }
-
-    // remove tempdir
-    if (this->debug_level_ == 0)
-    {
-        removeTempDir_(tmp_dir);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << std::endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << tmp_pepxml << "'. Set debug level to 0 to remove them." << std::endl;
     }
 
     return EXECUTION_OK;

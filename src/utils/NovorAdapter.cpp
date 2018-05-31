@@ -155,23 +155,6 @@ protected:
 
   }
 
-  // remove temporary folder 
-  void removeTempDir_(const QString& tmp_dir)
-  {
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + ". Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (tmp_dir.isEmpty() == false)
-      {
-        writeDebug_("Deleting temporary directory '" + String(tmp_dir) + "'. Set debug level to 2 or higher to keep it.", 0);
-        File::removeDir(tmp_dir);
-      }
-    }
-  }
-
   void createParamFile_(ofstream& os)
   {
     vector<String> variable_mods = getStringList_("variable_modifications");
@@ -248,8 +231,27 @@ protected:
     //-------------------------------------------------------------
     
     //tmp_dir
-    const String tmp_dir = makeTempDirectory_();
-    writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
+    String tmp_dir = "";
+    QTemporaryDir d{File::getTempDirectory().toQString()};
+
+    if (d.isValid())
+    {
+        tmp_dir = d.path().toStdString();
+        if (this->debug_level_ < 2)
+        {
+          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << endl;
+        }
+        else
+        {
+          LOG_WARN << "Keeping the temporary files at '" << tmp_dir << "'. Set debug level to <2 to remove them." << endl;
+        }
+        d.setAutoRemove(this->debug_level_ < 2);
+    }
+    else
+    {
+      LOG_WARN << "Creating tmp dir was not possible " << d.errorString().toStdString() << endl;
+      return CANNOT_WRITE_OUTPUT_FILE;
+    }
 
     // parameter file
     String tmp_param = tmp_dir + "param.txt";    
@@ -282,8 +284,19 @@ protected:
                    << "-o" << tmp_out.toQString()               
                    << "-p" << tmp_param.toQString()
                    << tmp_mgf.toQString();
-    
+
+
+    // print novor command line
+    std::stringstream ss;
+    ss << "COMMAND: " << java_executable;
+    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
+    {
+        ss << " " << it->toStdString();
+    }
+    LOG_DEBUG << ss.str() << endl;
+
     QProcess qp;
+    writeLog_("Executing: " + String(executable));
     qp.setWorkingDirectory(path_to_executable);
     qp.start(java_executable.toQString(), process_params);
 
@@ -325,14 +338,7 @@ protected:
 
     qp.close();
  
-    // novor command line
-    std::stringstream ss;
-    ss << "COMMAND: " << java_executable;
-    for (QStringList::const_iterator it = process_params.begin(); it != process_params.end(); ++it)
-    {
-        ss << " " << it->toStdString();
-    }
-    LOG_DEBUG << ss.str() << endl;
+
 
 
     //-------------------------------------------------------------
