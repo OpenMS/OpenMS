@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -127,7 +126,6 @@ protected:
 
       /**@name temporary data structures to hold parsed data */
       //@{
-      Base64 decoder_;
       Int nesting_level_;
 
       /**

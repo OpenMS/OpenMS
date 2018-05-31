@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/Base64.h>
 
 namespace OpenMS
 {

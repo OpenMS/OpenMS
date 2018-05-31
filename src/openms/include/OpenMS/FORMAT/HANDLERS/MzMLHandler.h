@@ -46,7 +46,6 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 
@@ -362,9 +361,6 @@ protected:
       std::vector<std::pair<std::string, long> > spectra_offsets_;
       std::vector<std::pair<std::string, long> > chromatograms_offsets_;
       //@}
-
-      /// Decoder/Encoder for Base64-data in MzML
-      Base64 decoder_;
 
       /// Progress logger
       const ProgressLogger& logger_;

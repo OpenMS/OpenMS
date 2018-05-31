@@ -34,9 +34,11 @@
 
 #pragma once
 
-#include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <string>
+#include <vector>
 
 namespace OpenMS
 {
@@ -199,8 +201,6 @@ public:
 private:
 
     void decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig & config);
-
-    Base64 base64coder_;
   };
 
 } //namespace OpenMS

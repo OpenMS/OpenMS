@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
@@ -4956,7 +4957,7 @@ namespace OpenMS
           for (Size p = 0; p < array.size(); ++p)
             data64_to_encode[p] = array[p];
           // TODO also encode float data arrays using numpress?
-          decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+          Base64::encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
           String data_processing_ref_string = "";
           if (array.getDataProcessing().size() != 0)
           {
@@ -4985,7 +4986,7 @@ namespace OpenMS
           std::vector<Int64> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data64_to_encode[p] = array[p];
-          decoder_.encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+          Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
           String data_processing_ref_string = "";
           if (array.getDataProcessing().size() != 0)
           {
@@ -5015,7 +5016,7 @@ namespace OpenMS
           data_to_encode.resize(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data_to_encode[p] = array[p];
-          decoder_.encodeStrings(data_to_encode, encoded_string, options_.getCompression());
+          Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
           String data_processing_ref_string = "";
           if (array.getDataProcessing().size() != 0)
           {
@@ -5138,7 +5139,7 @@ namespace OpenMS
       if (is32bit && no_numpress)
       {
         compression_term = compression_term_no_np; // select the no-numpress term
-        decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
         os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
         os << cv_term_type;
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
@@ -5146,7 +5147,7 @@ namespace OpenMS
       else if (!is32bit && no_numpress)
       {
         compression_term = compression_term_no_np; // select the no-numpress term
-        decoder_.encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
         os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
         os << cv_term_type;
         os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
@@ -5237,7 +5238,7 @@ namespace OpenMS
         for (Size p = 0; p < array.size(); ++p)
           data64_to_encode[p] = array[p];
         // TODO also encode float data arrays using numpress?
-        decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+        Base64::encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
         String data_processing_ref_string = "";
         if (array.getDataProcessing().size() != 0)
         {
@@ -5266,7 +5267,7 @@ namespace OpenMS
         std::vector<Int64> data64_to_encode(array.size());
         for (Size p = 0; p < array.size(); ++p)
           data64_to_encode[p] = array[p];
-        decoder_.encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+        Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
         String data_processing_ref_string = "";
         if (array.getDataProcessing().size() != 0)
         {
@@ -5296,7 +5297,7 @@ namespace OpenMS
         data_to_encode.resize(array.size());
         for (Size p = 0; p < array.size(); ++p)
           data_to_encode[p] = array[p];
-        decoder_.encodeStrings(data_to_encode, encoded_string, options_.getCompression());
+        Base64::encodeStrings(data_to_encode, encoded_string, options_.getCompression());
         String data_processing_ref_string = "";
         if (array.getDataProcessing().size() != 0)
         {
