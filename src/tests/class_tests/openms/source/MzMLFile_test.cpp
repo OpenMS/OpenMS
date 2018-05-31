@@ -285,7 +285,6 @@ START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount
   TEST_EQUAL(spectra_count, 1);
   TEST_EQUAL(chrom_count, 2);
 
-  exit(0);
 }
 END_SECTION
 
