@@ -185,6 +185,8 @@ public:
       @brief The method selects the highest scoring spectrum for each possible
       annotation (i.e., transition name)
 
+      @throw Exception::InvalidSize If `scored_spectra` and `features` sizes don't match.
+
       @param[in] scored_spectra Input annotated and scored spectra
       @param[in] features Input features
       @param[out] selected_spectra Output selected spectra

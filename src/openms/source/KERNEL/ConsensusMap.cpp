@@ -69,7 +69,7 @@ namespace OpenMS
     UniqueIdInterface(),
     UniqueIdIndexer<ConsensusMap>(),
     file_description_(),
-    experiment_type_(),
+    experiment_type_("label-free"),
     protein_identifications_(),
     unassigned_peptide_identifications_(),
     data_processing_()
@@ -102,7 +102,7 @@ namespace OpenMS
     DocumentIdentifier(),
     UniqueIdInterface(),
     file_description_(),
-    experiment_type_(),
+    experiment_type_("label-free"),
     protein_identifications_(),
     unassigned_peptide_identifications_(),
     data_processing_()
@@ -233,7 +233,7 @@ namespace OpenMS
       this->DocumentIdentifier::operator=(DocumentIdentifier());
       clearUniqueId();
       file_description_.clear();
-      experiment_type_.clear();
+      experiment_type_ = "label-free";  // default
       protein_identifications_.clear();
       unassigned_peptide_identifications_.clear();
       data_processing_.clear();
@@ -262,6 +262,13 @@ namespace OpenMS
 
   void ConsensusMap::setExperimentType(const String& experiment_type)
   {
+    if (experiment_type != "label-free"
+      && experiment_type != "labeled_MS1"
+      && experiment_type != "labeled_MS2")
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Unknown experiment type. " + experiment_type + ". Must be one of (label-free, labeled_MS1, labeled_MS2)");      
+    }
     experiment_type_ = experiment_type;
   }
 

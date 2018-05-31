@@ -773,6 +773,7 @@ namespace OpenMS
       html += "<tr>";
       for (const String& cell : row)
       {
+        cout << "cel:: '" << cell << "'" << endl;
         html += "<td align=\"center\">" + cell + "</td>";
       }
       html += "</tr>";
