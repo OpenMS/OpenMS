@@ -124,6 +124,18 @@ namespace OpenMS
       init_();
     }
 
+    /// handler which support partial loading, implement this method
+    XMLHandler::LOADDETAIL MzXMLHandler::getLoadDetail() const
+    {
+      return load_detail_;
+    }
+
+    /// handler which support partial loading, implement this method
+    void MzXMLHandler::setLoadDetail(const XMLHandler::LOADDETAIL d)
+    {
+      load_detail_ = d;
+    }
+
     void MzXMLHandler::startElement(const XMLCh* const /*uri*/,
       const XMLCh* const /*local_name*/, const XMLCh* const qname,
       const xercesc::Attributes& attributes)
