@@ -155,24 +155,24 @@ namespace OpenMS
     {
       setProgress(++progress_);
       Size last_map = attributeAsInt_(attributes, "id");
-      last_meta_ = &consensus_map_->getFileDescriptions()[last_map];
-      consensus_map_->getFileDescriptions()[last_map].filename = attributeAsString_(attributes, "name");
+      last_meta_ = &consensus_map_->getColumnHeaders()[last_map];
+      consensus_map_->getColumnHeaders()[last_map].filename = attributeAsString_(attributes, "name");
       String unique_id;
       if (XMLHandler::optionalAttributeAsString_(unique_id, attributes, "unique_id"))
       {
         UniqueIdInterface tmp;
         tmp.setUniqueId(unique_id);
-        consensus_map_->getFileDescriptions()[last_map].unique_id = tmp.getUniqueId();
+        consensus_map_->getColumnHeaders()[last_map].unique_id = tmp.getUniqueId();
       }
       String label;
       if (XMLHandler::optionalAttributeAsString_(label, attributes, "label"))
       {
-        consensus_map_->getFileDescriptions()[last_map].label = label;
+        consensus_map_->getColumnHeaders()[last_map].label = label;
       }
       UInt size;
       if (XMLHandler::optionalAttributeAsUInt_(size, attributes, "size"))
       {
-        consensus_map_->getFileDescriptions()[last_map].size = size;
+        consensus_map_->getColumnHeaders()[last_map].size = size;
       }
     }
     else if (tag == "consensusElement")
@@ -826,9 +826,9 @@ namespace OpenMS
     }
 
     //file descriptions
-    const ConsensusMap::FileDescriptions& description_vector = consensus_map.getFileDescriptions();
+    const ConsensusMap::ColumnHeaders& description_vector = consensus_map.getColumnHeaders();
     os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
-    for (ConsensusMap::FileDescriptions::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it)
+    for (ConsensusMap::ColumnHeaders::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it)
     {
       setProgress(++progress_);
       os << "\t\t<map id=\"" << it->first;

@@ -492,7 +492,7 @@ namespace OpenMS
   void PeptideAndProteinQuant::readQuantData(ConsensusMap& consensus)
   {
     updateMembers_(); // clear data
-    stats_.n_samples = consensus.getFileDescriptions().size();
+    stats_.n_samples = consensus.getColumnHeaders().size();
 
     for (ConsensusMap::Iterator cons_it = consensus.begin();
          cons_it != consensus.end(); ++cons_it)

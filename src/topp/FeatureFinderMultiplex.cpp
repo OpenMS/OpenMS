@@ -247,7 +247,7 @@ public:
     // annotate maps
     for (unsigned i = 0; i < samples_labels.size(); ++i)
     {
-      ConsensusMap::ColumnDescription& desc = map.getFileDescriptions()[i];
+      ConsensusMap::ColumnHeader& desc = map.getColumnHeaders()[i];
       desc.filename = filename;
       
       if (getParam_().getValue("algorithm:knock_out") == "true")

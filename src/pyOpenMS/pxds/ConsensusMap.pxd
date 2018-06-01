@@ -17,19 +17,19 @@ from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMap":
 
-    cdef cppclass ColumnDescription:
+    cdef cppclass ColumnHeader:
         String filename
         String label
         Size size
         UInt64 unique_id
 
-        ColumnDescription() nogil except +
-        ColumnDescription(ColumnDescription &) nogil except +
+        ColumnHeader() nogil except +
+        ColumnHeader(ColumnHeader &) nogil except +
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work
-    ctypedef libcpp_map[unsigned long int, ColumnDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
-    ctypedef libcpp_map[unsigned long int, ColumnDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
+    ctypedef libcpp_map[unsigned long int, ColumnHeader] ColumnHeaders "OpenMS::ConsensusMap::ColumnHeaders"
+    ctypedef libcpp_map[unsigned long int, ColumnHeader].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::ColumnHeaders::iterator"
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
@@ -99,8 +99,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         void sortByMaps() nogil except +
 
         # wrapped in ../addons/ConsensusMap.pyx:
-        void setFileDescriptions(FileDescriptions &)   #wrap-ignore
-        FileDescriptions & getFileDescriptions()       #wrap-ignore
+        void setColumnHeaders(ColumnHeaders &)   #wrap-ignore
+        ColumnHeaders & getColumnHeaders()       #wrap-ignore
 
         String getExperimentType() nogil except +
         void setExperimentType(String experiment_type) nogil except +

@@ -170,8 +170,8 @@ protected:
 
     writeDebug_("Saving output files", 1);
 
-    cm.getFileDescriptions()[0].filename = infile;
-    cm2.getFileDescriptions()[0].filename = infile;
+    cm.getColumnHeaders()[0].filename = infile;
+    cm2.getColumnHeaders()[0].filename = infile;
 
     //annotate output with data processing info
     addDataProcessing_(map_out, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));

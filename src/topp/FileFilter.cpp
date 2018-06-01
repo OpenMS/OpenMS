@@ -1074,9 +1074,9 @@ protected:
 
           for (IntList::iterator map_it = maps.begin(); map_it != maps.end(); ++map_it)
           {
-            cm_new.getFileDescriptions()[*map_it].filename = consensus_map_filtered.getFileDescriptions()[*map_it].filename;
-            cm_new.getFileDescriptions()[*map_it].size = consensus_map_filtered.getFileDescriptions()[*map_it].size;
-            cm_new.getFileDescriptions()[*map_it].unique_id = consensus_map_filtered.getFileDescriptions()[*map_it].unique_id;
+            cm_new.getColumnHeaders()[*map_it].filename = consensus_map_filtered.getColumnHeaders()[*map_it].filename;
+            cm_new.getColumnHeaders()[*map_it].size = consensus_map_filtered.getColumnHeaders()[*map_it].size;
+            cm_new.getColumnHeaders()[*map_it].unique_id = consensus_map_filtered.getColumnHeaders()[*map_it].unique_id;
           }
 
           cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());

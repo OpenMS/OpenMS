@@ -54,17 +54,17 @@ namespace OpenMS
 
   Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
   {
-    Size number_of_maps = map.getFileDescriptions().size();
+    Size number_of_maps = map.getColumnHeaders().size();
     vector<vector<double> > feature_int(number_of_maps);
     medians.resize(number_of_maps);
 
     // get map with most features, reserve space for feature_int (unequal vector lengths, 0-features omitted)
-    ConsensusMap::FileDescriptions::const_iterator map_with_most_features = map.getFileDescriptions().find(0);
+    ConsensusMap::ColumnHeaders::const_iterator map_with_most_features = map.getColumnHeaders().find(0);
     UInt map_with_most_features_idx = 0;
     for (UInt i = 0; i < number_of_maps; i++)
     {
-      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
-      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
+      if (it == map.getColumnHeaders().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
       feature_int[i].reserve(it->second.size);
 
       if (it->second.size > map_with_most_features->second.size)

@@ -193,9 +193,9 @@ protected:
       {
         FeatureMap tmp;
         f.load(ins[i], tmp);
-        out_map.getFileDescriptions()[i].filename = ins[i];
-        out_map.getFileDescriptions()[i].size = tmp.size();
-        out_map.getFileDescriptions()[i].unique_id = tmp.getUniqueId();
+        out_map.getColumnHeaders()[i].filename = ins[i];
+        out_map.getColumnHeaders()[i].size = tmp.size();
+        out_map.getColumnHeaders()[i].unique_id = tmp.getUniqueId();
 
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -232,9 +232,9 @@ protected:
       // exception for "labeled" algorithms: copy file descriptions
       if (labeled)
       {
-        out_map.getFileDescriptions()[1] = out_map.getFileDescriptions()[0];
-        out_map.getFileDescriptions()[0].label = "light";
-        out_map.getFileDescriptions()[1].label = "heavy";
+        out_map.getColumnHeaders()[1] = out_map.getColumnHeaders()[0];
+        out_map.getColumnHeaders()[0].label = "light";
+        out_map.getColumnHeaders()[1].label = "heavy";
         ms_run_locations.push_back(ms_run_locations[0]);
       }
 
@@ -282,9 +282,9 @@ protected:
       {
         for (Size i = 0; i < ins.size(); ++i)
         {
-          out_map.getFileDescriptions()[i].filename = ins[i];
-          out_map.getFileDescriptions()[i].size = maps[i].size();
-          out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
+          out_map.getColumnHeaders()[i].filename = ins[i];
+          out_map.getColumnHeaders()[i].size = maps[i].size();
+          out_map.getColumnHeaders()[i].unique_id = maps[i].getUniqueId();
         }
       }
       else

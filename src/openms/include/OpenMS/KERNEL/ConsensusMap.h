@@ -105,14 +105,14 @@ public:
     using privvec::push_back;
 
     /// Description of the columns in a consensus map
-    struct OPENMS_DLLAPI ColumnDescription :
+    struct OPENMS_DLLAPI ColumnHeader :
       public MetaInfoInterface
     {
       /// Default constructor
-      ColumnDescription();
+      ColumnHeader();
 
       /// Copy constructor
-      ColumnDescription(const ColumnDescription&);
+      ColumnHeader(const ColumnHeader&);
 
       /// File name of the file
       String filename;
@@ -129,7 +129,7 @@ public:
     //@{
     typedef std::vector<ConsensusFeature> Base;
     typedef RangeManager<2> RangeManagerType;
-    typedef std::map<UInt64, ColumnDescription> FileDescriptions;
+    typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
     /// Mutable iterator
     typedef std::vector<ConsensusFeature>::iterator Iterator;
     /// Non-mutable iterator
@@ -184,13 +184,13 @@ public:
     OPENMS_DLLAPI void clear(bool clear_meta_data = true);
 
     /// Non-mutable access to the file descriptions
-    OPENMS_DLLAPI const FileDescriptions& getFileDescriptions() const;
+    OPENMS_DLLAPI const ColumnHeaders& getColumnHeaders() const;
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI FileDescriptions& getFileDescriptions();
+    OPENMS_DLLAPI ColumnHeaders& getColumnHeaders();
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI void setFileDescriptions(const FileDescriptions& file_description);
+    OPENMS_DLLAPI void setColumnHeaders(const ColumnHeaders& column_description);
 
     /// Non-mutable access to the experiment type
     OPENMS_DLLAPI const String& getExperimentType() const;
@@ -263,10 +263,10 @@ public:
     /// sets the description of the applied data processing
     OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
-    /// set the file paths to the primary MS run (stored in ColumnDescription)
+    /// set the file paths to the primary MS run (stored in ColumnHeaders)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
-    /// returns the MS run path (stored in ColumnDescription)
+    /// returns the MS run path (stored in ColumnHeaders)
     OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
     /// Equality operator
@@ -330,7 +330,7 @@ public:
 protected:
 
     /// Map from index to file description
-    FileDescriptions column_description_;
+    ColumnHeaders column_description_;
 
     /// type of experiment (label-free, itraq, ...); see xsd schema
     String experiment_type_;

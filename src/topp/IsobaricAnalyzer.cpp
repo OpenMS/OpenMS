@@ -305,11 +305,9 @@ protected:
     addDataProcessing_(consensus_map_quant, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // add filename references
-    for (ConsensusMap::FileDescriptions::iterator it = consensus_map_quant.getFileDescriptions().begin();
-         it != consensus_map_quant.getFileDescriptions().end();
-         ++it)
+    for (auto & column : consensus_map_quant.getColumnHeaders())
     {
-      it->second.filename = in;
+      column.second.filename = in;
     }
 
     consensus_map_quant.ensureUniqueId();

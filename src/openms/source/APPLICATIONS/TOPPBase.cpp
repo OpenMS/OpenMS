@@ -2233,9 +2233,9 @@ namespace OpenMS
     //remove absolute map paths
     if (test_mode_)
     {
-      for (Size d = 0; d < map.getFileDescriptions().size(); ++d)
+      for (Size d = 0; d < map.getColumnHeaders().size(); ++d)
       {
-        map.getFileDescriptions()[d].filename = File::basename(map.getFileDescriptions()[d].filename);
+        map.getColumnHeaders()[d].filename = File::basename(map.getColumnHeaders()[d].filename);
       }
     }
   }

@@ -219,10 +219,10 @@ protected:
 
 
     ConsensusMap results_map;
-    results_map.getFileDescriptions()[0].label = "light";
-    results_map.getFileDescriptions()[0].filename = in;
-    results_map.getFileDescriptions()[1].label = "heavy";
-    results_map.getFileDescriptions()[1].filename = in;
+    results_map.getColumnHeaders()[0].label = "light";
+    results_map.getColumnHeaders()[0].filename = in;
+    results_map.getColumnHeaders()[1].label = "heavy";
+    results_map.getColumnHeaders()[1].filename = in;
 
     FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());

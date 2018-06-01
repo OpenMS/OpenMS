@@ -128,7 +128,7 @@ namespace OpenMS
          ++it_elements)
     {
       //find channel_id of current element
-      Int index = Int(cm.getFileDescriptions().find(it_elements->getMapIndex())->second.getMetaValue("channel_id"));
+      Int index = Int(cm.getColumnHeaders().find(it_elements->getMapIndex())->second.getMetaValue("channel_id"));
 #ifdef ISOBARIC_QUANT_DEBUG
       std::cout << "  map_index " << it_elements->getMapIndex() << "-> id " << index << " with intensity " << it_elements->getIntensity() << "\n" << std::endl;
 #endif
@@ -201,7 +201,7 @@ namespace OpenMS
     {
       FeatureHandle handle = *it_elements;
       //find channel_id of current element
-      Int index = Int(consensus_map_out.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_id"));
+      Int index = Int(consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_id"));
       handle.setIntensity(float(m_x(index, 0)));
 
       consensus_map_out[current_cf].insert(handle);

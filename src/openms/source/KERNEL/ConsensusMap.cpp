@@ -43,7 +43,7 @@
 namespace OpenMS
 {
 
-  ConsensusMap::ColumnDescription::ColumnDescription() :
+  ConsensusMap::ColumnHeader::ColumnHeader() :
     MetaInfoInterface(),
     filename(),
     label(),
@@ -52,7 +52,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::ColumnDescription::ColumnDescription(const ConsensusMap::ColumnDescription& other) :
+  ConsensusMap::ColumnHeader::ColumnHeader(const ConsensusMap::ColumnHeader& other) :
     MetaInfoInterface(other),
     filename(other.filename),
     label(other.label),
@@ -154,13 +154,13 @@ namespace OpenMS
     column_description_.insert(rhs.column_description_.begin(), rhs.column_description_.end());
 
     // update filename and map size
-    Map<UInt64, ColumnDescription>::const_iterator it = column_description_.begin();
-    Map<UInt64, ColumnDescription>::const_iterator it2 = rhs.column_description_.begin();
+    Map<UInt64, ColumnHeader>::const_iterator it = column_description_.begin();
+    Map<UInt64, ColumnHeader>::const_iterator it2 = rhs.column_description_.begin();
 
     for (; it != column_description_.end() && it2 != rhs.column_description_.end(); ++it, ++it2)
     {
-      getFileDescriptions()[it->first].filename = "mergedConsensusXMLFile";
-      getFileDescriptions()[it->first].size = it->second.size + it2->second.size;
+      getColumnHeaders()[it->first].filename = "mergedConsensusXMLFile";
+      getColumnHeaders()[it->first].size = it->second.size + it2->second.size;
     }
 
     // append proteinIdentification
@@ -301,19 +301,19 @@ namespace OpenMS
     }
   }
 
-  const ConsensusMap::FileDescriptions& ConsensusMap::getFileDescriptions() const
+  const ConsensusMap::ColumnHeaders& ConsensusMap::getColumnHeaders() const
   {
     return column_description_;
   }
 
-  ConsensusMap::FileDescriptions& ConsensusMap::getFileDescriptions()
+  ConsensusMap::ColumnHeaders& ConsensusMap::getColumnHeaders()
   {
     return column_description_;
   }
 
-  void ConsensusMap::setFileDescriptions(const ConsensusMap::FileDescriptions& file_description)
+  void ConsensusMap::setColumnHeaders(const ConsensusMap::ColumnHeaders& column_description)
   {
-    column_description_ = file_description;
+    column_description_ = column_description;
   }
 
   const String& ConsensusMap::getExperimentType() const
@@ -547,7 +547,7 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map)
   {
-    for (ConsensusMap::FileDescriptions::const_iterator it = cons_map.getFileDescriptions().begin(); it != cons_map.getFileDescriptions().end(); ++it)
+    for (ConsensusMap::ColumnHeaders::const_iterator it = cons_map.getColumnHeaders().begin(); it != cons_map.getColumnHeaders().end(); ++it)
     {
       os << "Map " << it->first << ": " << it->second.filename << " - " << it->second.label << " - " << it->second.size << std::endl;
     }
@@ -613,7 +613,7 @@ namespace OpenMS
     // check file descriptions
     std::set<String> maps;
     String all_maps; // for output later
-    for (FileDescriptions::const_iterator it = column_description_.begin(); it != column_description_.end(); ++it)
+    for (ColumnHeaders::const_iterator it = column_description_.begin(); it != column_description_.end(); ++it)
     {
       String s = String("  file: ") + it->second.filename + " label: " + it->second.label;
       maps.insert(s);

@@ -748,7 +748,7 @@ namespace OpenMS
           feature_handle.setMapIndex(peptide);
           //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
           consensus.insert(feature_handle);
-          consensus_map_.getFileDescriptions()[peptide].size++;
+          consensus_map_.getColumnHeaders()[peptide].size++;
         }
         
         if (!abort)
@@ -908,7 +908,7 @@ namespace OpenMS
           feature_handle.setMapIndex(peptide);
           //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
           consensus.insert(feature_handle);
-          consensus_map_.getFileDescriptions()[peptide].size++;
+          consensus_map_.getColumnHeaders()[peptide].size++;
         }
         
         if (!abort)

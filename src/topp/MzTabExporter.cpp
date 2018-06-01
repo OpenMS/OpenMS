@@ -816,7 +816,7 @@ protected:
       }
 
       // determine number of channels
-      Size n_study_variables = consensus_map.getFileDescriptions().size();
+      Size n_study_variables = consensus_map.getColumnHeaders().size();
 
       MzTabMetaData meta_data;
 

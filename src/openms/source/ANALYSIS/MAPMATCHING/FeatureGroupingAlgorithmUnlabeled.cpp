@@ -97,7 +97,7 @@ namespace OpenMS
     // replace result with temporary map
     out.swap(input[0]);
     // copy back the input maps (they have been deleted while swapping)
-    out.getFileDescriptions() = input[0].getFileDescriptions();
+    out.getColumnHeaders() = input[0].getColumnHeaders();
 
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later)
