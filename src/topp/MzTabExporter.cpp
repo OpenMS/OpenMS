@@ -832,13 +832,26 @@ protected:
       meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
       meta_data.peptide_search_engine_score[1] = MzTabParameter();
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
-      MzTabMSRunMetaData ms_run;
+
       StringList ms_runs;
       consensus_map.getPrimaryMSRunPath(ms_runs); 
 
-      // condense consecutive unique MS runs to get the different MS files 
+      // condense consecutive unique MS runs to get the different MS files
       auto it = std::unique(ms_runs.begin(), ms_runs.end());
-      ms_runs.resize( std::distance(ms_runs.begin(), it));
+      ms_runs.resize(std::distance(ms_runs.begin(), it)); 
+
+      // set run meta data
+      Size run_index{1};
+      for (auto const & m : ms_runs)
+      {
+        MzTabMSRunMetaData mztab_run_metadata;
+        mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
+        mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+        mztab_run_metadata.location = MzTabString(m);
+        meta_data.ms_run[run_index] = mztab_run_metadata;
+        LOG_DEBUG << "Adding MS run for file: " << m << endl;
+        ++run_index;
+      }
 
       mztab.setMetaData(meta_data);
 
