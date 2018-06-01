@@ -41,10 +41,6 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
 
 #include <iostream>
 #include <cmath>
@@ -322,12 +318,7 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
-    writeDebug_("Creating temporary directory '" + temp_directory_body + "'", 1);
-    {
-      QDir d;
-      d.mkpath(temp_directory_body.toQString());
-    }
+    String temp_directory_body = makeAutoRemoveTempDirectory_();
 
     double pcut = getDoubleOption_("pcut");
 
@@ -336,6 +327,7 @@ protected:
     String consensus_output_file(temp_directory_body + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
 
     // Create simple text file with one file path per line
+    // TODO make a bit more exception safe
     ofstream os(input_file_list.c_str());
     map<String,Int> filename_to_file_idx;
     Int file_idx = 0;
@@ -375,31 +367,7 @@ protected:
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
-
-    QProcess qp;
-    qp.start(maracluster_executable.toQString(), arguments);
-    if (qp.waitForFinished(-1) == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-      writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments.join(" ").toStdString() + "'.");
-      const QString maracluster_stdout(qp.readAllStandardOutput());
-      const QString maracluster_stderr(qp.readAllStandardError());
-      writeLog_(maracluster_stdout);
-      writeLog_(maracluster_stderr);
-      // clean temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory_body);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "' Error code was: " << qp.exitCode() << endl;
-      }
-      else
-      {
-         LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them. Error code was: " << qp.exitCode() << endl;
-      }
-      return EXTERNAL_PROGRAM_ERROR;
-    }
-    writeLog_("Executed maracluster!");
-
-    qp.close();
+    runExternalProcess_(maracluster_executable.toQString(), arguments);
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
@@ -496,30 +464,7 @@ protected:
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      QProcess qp_consensus;
-      qp_consensus.start(maracluster_executable.toQString(), arguments_consensus);
-      if (qp_consensus.waitForFinished(-1) == false || qp_consensus.exitStatus() != 0 || qp_consensus.exitCode() != 0)
-      {
-        writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments_consensus.join(" ").toStdString() + "'.");
-        const QString maracluster_stdout_consensus(qp_consensus.readAllStandardOutput());
-        const QString maracluster_stderr_consensus(qp_consensus.readAllStandardError());
-        writeLog_(maracluster_stdout_consensus);
-        writeLog_(maracluster_stderr_consensus);
-        // clean temporary files
-        if (this->debug_level_ < 2)
-        {
-          File::removeDirRecursively(temp_directory_body);
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << qp_consensus.exitCode() << endl;
-        }
-        else
-        {
-          LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << qp_consensus.exitCode() << endl;
-        }
-        return EXTERNAL_PROGRAM_ERROR;
-      }
-      writeLog_("Executed maracluster!");
-      qp_consensus.close();
-    
+      runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
 
       // sort mzML
       FileHandler fh;
@@ -529,17 +474,6 @@ protected:
       fh.loadExperiment(consensus_output_file, exp, in_type, log_type_);
       exp.sortSpectra();
       fh.storeExperiment(consensus_output_file, exp, log_type_);
-
-    }
-
-    if (this->debug_level_ < 5)
-    {
-      File::removeDirRecursively(temp_directory_body);
-      LOG_WARN << "Removing temporary directory for MaRaCluster in/output. Set debug level to >=5 to keep the temporary files." << endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <5 to remove them." << endl;
     }
 
     writeLog_("MaRaClusterAdapter finished successfully!");

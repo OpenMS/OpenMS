@@ -51,10 +51,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QProcess>
-#include <QDir>
-#include <QDebug>
+#include <QtCore/QDir>
+
 #include <iostream>
 #include <fstream>
 
@@ -256,14 +254,14 @@ protected:
       db_name = full_db_name;
     }
 
-    const String tmp_dir = makeTempDirectory_();
+    //tmp_dir
+    String tmp_dir = makeAutoRemoveTempDirectory_();
 
     String output_dir = tmp_dir + "crux-output";
     String out_dir_q = QDir::toNativeSeparators((output_dir + "/").toQString());
     String concat = " --concat T"; // concat target and decoy
     String parser = " --spectrum-parser mstoolkit "; // only this parser correctly parses our .mzML files
 
-    writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
     String tmp_mzml = tmp_dir + "input.mzML";
 
     // Low memory conversion
@@ -313,18 +311,12 @@ protected:
       }
       process_params << db_name.toQString() << idx_name.toQString();
 
-      qDebug() << process_params;
-
-      int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
-      if (status != 0)
-      {
-        writeLog_("Crux problem. Aborting! Calling command was: '" + 
-            crux_executable + " \"" + params + " " + db_name + " " + idx_name + "\"'.\nDoes the Crux executable exist?");
-        return EXTERNAL_PROGRAM_ERROR;
-      }
+      //-------------------------------------------------------------
+      // run tide-index
+      //-------------------------------------------------------------
+      writeLog_("Executing Crux (tide-index)...");
+      runExternalProcess_(crux_executable.toQString(), process_params);
     }
-
-    std::cout << " Done running tide-index ... " << std::endl;
 
     // run crux tide-search
     {
@@ -364,18 +356,13 @@ protected:
         process_params << s.toQString();
       }
       process_params << tmp_mzml.toQString() << idx_name.toQString();
-      qDebug() << process_params;
 
-      int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
-      if (status != 0)
-      {
-        writeLog_("Crux problem. Aborting! Calling command was: '" + 
-            crux_executable + " \"" + params + " " + tmp_mzml + " " + idx_name + "\"'.\nDoes the Crux executable exist?");
-        return EXTERNAL_PROGRAM_ERROR;
-      }
+      //-------------------------------------------------------------
+      // run tide-index
+      //-------------------------------------------------------------
+      writeLog_("Executed Crux (tide-search)...");
+      runExternalProcess_(crux_executable.toQString(), process_params);
     }
-
-    std::cout << " Done running tide-search ... " << std::endl;
 
     // run crux percolator (currently we dont have much choice in the matter)
     if (run_percolator)
@@ -411,17 +398,13 @@ protected:
         process_params << s.toQString();
       }
       process_params << input.toQString();
-      qDebug() << process_params;
 
-      int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
-      if (status != 0)
-      {
-        writeLog_("Crux problem. Aborting! Calling command was: '" + crux_executable + " \"" + inputfile_name + "\"'.\nDoes the Crux executable exist?");
-        return EXTERNAL_PROGRAM_ERROR;
-      }
+      //-------------------------------------------------------------
+      // run percolator
+      //-------------------------------------------------------------
+      writeLog_("Executing Crux (percolator)...");
+      runExternalProcess_(crux_executable.toQString(), process_params);
     }
-
-    std::cout << " Done running percolator ... " << std::endl;
 
     //-------------------------------------------------------------
     // writing IdXML output
@@ -451,9 +434,6 @@ protected:
     }
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
-
-    // remove tempdir
-    removeTempDir_(tmp_dir);
 
     return EXECUTION_OK;
   }
