@@ -1645,10 +1645,10 @@ namespace OpenMS
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_("FATAL: External invocation of " + String(executable) + " failed. Standard output and error were:");
-      const QString stdout(qp.readAllStandardOutput());
-      const QString stderr(qp.readAllStandardError());
-      writeLog_(stdout);
-      writeLog_(stderr);
+      const QString external_sout(qp.readAllStandardOutput());
+      const QString external_serr(qp.readAllStandardError());
+      writeLog_(external_sout);
+      writeLog_(external_serr);
       writeLog_(String(qp.exitCode()));
 
       return EXTERNAL_PROGRAM_ERROR;

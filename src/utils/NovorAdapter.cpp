@@ -268,7 +268,7 @@ protected:
 
 
     // print novor command line
-    runExternalProcess_(executable, process_params);
+    runExternalProcess_(path_to_executable, process_params);
 
     //-------------------------------------------------------------
     // writing output
