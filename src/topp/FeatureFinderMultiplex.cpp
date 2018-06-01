@@ -248,7 +248,8 @@ public:
     for (unsigned i = 0; i < samples_labels.size(); ++i)
     {
       ConsensusMap::ColumnHeader& desc = map.getColumnHeaders()[i];
-      desc.filename = filename;
+      desc.filename = getParam_().getValue("in");;
+      desc.setMetaValue("channel_id", i);
       
       if (getParam_().getValue("algorithm:knock_out") == "true")
       {

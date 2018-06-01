@@ -805,17 +805,17 @@ protected:
       MzTab mztab;
       vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
       vector<String> var_mods, fixed_mods;
-      MzTabString db, db_version;
+      MzTabString db, db_version; 
       if (!prot_ids.empty())
       {
-        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters(); 
         var_mods = sp.variable_modifications;
         fixed_mods = sp.fixed_modifications;
         db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
         db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
       }
 
-      // determine number of channels
+      // determine number of quant. columns
       Size n_study_variables = consensus_map.getColumnHeaders().size();
 
       MzTabMetaData meta_data;
@@ -834,12 +834,11 @@ protected:
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
       MzTabMSRunMetaData ms_run;
       StringList ms_runs;
-      consensus_map.getPrimaryMSRunPath(ms_runs);
-      for (Size i = 0; i != ms_runs.size(); ++i)
-      {
-        ms_run.location = MzTabString(ms_runs[i]);
-        meta_data.ms_run[i + 1] = ms_run;
-      }
+      consensus_map.getPrimaryMSRunPath(ms_runs); 
+
+      // condense consecutive unique MS runs to get the different MS files 
+      auto it = std::unique(ms_runs.begin(), ms_runs.end());
+      ms_runs.resize( std::distance(ms_runs.begin(), it));
 
       mztab.setMetaData(meta_data);
 
@@ -907,7 +906,7 @@ protected:
         rts.push_back(MzTabDouble(c.getRT()));
         rt_list.set(rts);
         row.retention_time = rt_list;
-        MzTabDoubleList rt_window;
+        MzTabDoubleList rt_window;  
         row.retention_time_window = rt_window;
         row.charge = MzTabInteger(c.getCharge());
         row.best_search_engine_score[1] = MzTabDouble();

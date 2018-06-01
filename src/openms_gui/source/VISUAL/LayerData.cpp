@@ -188,17 +188,52 @@ namespace OpenMS
       Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
       if (pa == nullptr) { continue; }
 
-      int tmp_charge(0);
-
       // add new fragment annotation
-      QString peak_anno = pa->getText();      
+      QString peak_anno = pa->getText();     
 
       // read charge and text from annotation item string
+      // we support two notations for the charge suffix: '2+' or '++'
+      // cut and convert the trailing + or - to a proper charge
       int match_pos = reg_exp.indexIn(peak_anno);
+      int tmp_charge(0);
       if (match_pos >= 0)
       {
         tmp_charge = reg_exp.cap(1).toInt();
         peak_anno = peak_anno.left(match_pos);
+      }
+      else
+      {
+        // count number of + and - in suffix (e.g., to support "++" as charge 2 anotation)
+        int plus(0), minus(0);
+        for (int p = (int)peak_anno.size() - 1; p >= 0; ++p)
+        {        
+          if (peak_anno[p] == '+') 
+          { 
+            ++plus;
+            continue;
+          }
+          else if (peak_anno[p] == '-')
+          {
+            --minus;
+            continue;
+          }
+          else // not '+' or '-'?
+          {            
+            if (plus > 0 && minus == 0) // found pluses?
+            { 
+              tmp_charge = plus;
+              peak_anno = peak_anno.left(peak_anno.size() - plus);
+              break;
+            }
+            else if (minus > 0 && plus == 0)  // found minuses?
+            {
+              tmp_charge = -minus;
+              peak_anno = peak_anno.left(peak_anno.size() - minus);
+              break;
+            }
+            break;
+          }
+        }
       }
 
       PeptideHit::PeakAnnotation fa;
@@ -206,6 +241,7 @@ namespace OpenMS
       fa.mz = pa->getPeakPosition()[0];
       fa.intensity = pa->getPeakPosition()[1];
       fa.annotation = peak_anno;
+      
       fas.push_back(fa);
       annotations_changed = true;
     }

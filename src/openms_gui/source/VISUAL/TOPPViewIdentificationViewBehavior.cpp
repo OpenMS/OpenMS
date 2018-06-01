@@ -54,6 +54,8 @@
 using namespace OpenMS;
 using namespace std;
 
+//#define DEBUG_IDENTIFICATION_VIEW
+
 namespace OpenMS
 {
   TOPPViewIdentificationViewBehavior::TOPPViewIdentificationViewBehavior(TOPPViewBase* parent) :
@@ -282,7 +284,7 @@ namespace OpenMS
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present
-    if (widget_1D == nullptr) return;
+    if (widget_1D == nullptr) { return; }
 
     widget_1D->canvas()->activateSpectrum(spectrum_index);
     LayerData& current_layer = widget_1D->canvas()->getCurrentLayer();
@@ -402,12 +404,18 @@ namespace OpenMS
               }
               else if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
               {
-                // @TODO: read ion list from the input file (meta value)
-                static vector<String> top_ions = ListUtils::create<String>("a,b,c");
-                static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
-                String diagram = generateSequenceDiagram_(ph.getSequence(), ph.getPeakAnnotations(),
-                                                          top_ions, bottom_ions);
-                widget_1D->canvas()->setTextBox(diagram.toQString());
+                if (widget_1D->canvas()->isIonLadderVisible())
+                {
+                  // @TODO: read ion list from the input file (meta value)
+                  static vector<String> top_ions = ListUtils::create<String>("a,b,c");
+                  static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
+                  String diagram = generateSequenceDiagram_(
+                    ph.getSequence(), 
+                    ph.getPeakAnnotations(),
+                    top_ions, 
+                    bottom_ions);
+                  widget_1D->canvas()->setTextBox(diagram.toQString());
+                }
               }
               /*
               else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
@@ -623,19 +631,32 @@ namespace OpenMS
 */
 
   template <typename SeqType>
-  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(const SeqType& seq, const vector<PeptideHit::PeakAnnotation>& annotations, const vector<String>& top_ions, const vector<String>& bottom_ions)
+  String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(
+    const SeqType& seq, 
+    const vector<PeptideHit::PeakAnnotation>& annotations, 
+    const vector<String>& top_ions, 
+    const vector<String>& bottom_ions)
   {
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Generating Sequence Diagram: " << endl;
+    #endif
     map<String, set<Size>> ion_pos;
     for (const auto& ann : annotations)
     {
       const String& label = ann.annotation;
+      #ifdef DEBUG_IDENTIFICATION_VIEW
+        cout << "Adding Peak Annotation to Diagram: " << label << endl;
+      #endif
       // expected format: [ion][number][...]
-      if ((label.size() < 2) || !islower(label[0]) || !isdigit(label[1])) continue;
+      if ((label.size() < 2) || !islower(label[0]) || !isdigit(label[1])) { continue; }      
       // cut out the position number:
       Size split = label.find_first_not_of("0123456789", 2);
-      String ion = label.prefix(1) + label.substr(split);
+      String ion = label.prefix(1);
       Size pos = label.substr(1, split - 1).toInt();
       ion_pos[ion].insert(pos);
+      #ifdef DEBUG_IDENTIFICATION_VIEW
+        cout << "Ion: " << ion << " pos: " << pos << endl;
+      #endif
     }
 
     vector<vector<String>> table; // vector of rows
@@ -660,6 +681,10 @@ namespace OpenMS
       table[row_index][0] = "<small>" + ion + "</small>";
       for (Size pos : ion_pos[ion])
       {
+        #ifdef DEBUG_IDENTIFICATION_VIEW
+          cout << "Found ion: " << ion << " pos: " << pos << endl;
+        #endif
+
         Size col_index = 2 * pos;
         if ((row_index == 1) || (table[row_index - 1][col_index].empty()))
         {
@@ -748,12 +773,16 @@ namespace OpenMS
       html += "<tr>";
       for (const String& cell : row)
       {
+        cout << "cel:: '" << cell << "'" << endl;
         html += "<td align=\"center\">" + cell + "</td>";
       }
       html += "</tr>";
     }
     html += "</table>";
 
+    #ifdef DEBUG_IDENTIFICATION_VIEW
+      cout << "Generated html:\n" << html << endl;
+    #endif
     return html;
   }
 

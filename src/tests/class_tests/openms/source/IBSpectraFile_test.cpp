@@ -73,7 +73,7 @@ START_SECTION((void store(const String& filename, const ConsensusMap& cm)))
 {
   // test invalid ConsensusMap
   ConsensusMap cm_no_ms2quant;
-  cm_no_ms2quant.setExperimentType("not-isobaric");
+  cm_no_ms2quant.setExperimentType("labeled_MS1");
 
   IBSpectraFile ibfile_no_ms2quant;
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ibfile_no_ms2quant.store("not-a-file-name", cm_no_ms2quant), "Given ConsensusMap does not hold any isobaric quantification data.")
