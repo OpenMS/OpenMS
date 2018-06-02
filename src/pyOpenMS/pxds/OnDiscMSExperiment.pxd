@@ -17,6 +17,7 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         Size getNrChromatograms() nogil except +
 
         shared_ptr[const ExperimentalSettings] getExperimentalSettings() nogil except +
+        shared_ptr[MSExperiment] getMetaData() nogil except +
 
         MSSpectrum getSpectrum(Size id) nogil except +
         MSChromatogram getChromatogram(Size id) nogil except +
