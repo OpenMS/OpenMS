@@ -17,8 +17,8 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #  MetaInfoInterface
         #  RangeManager1
 
-        # COMMENT: get raw data through get_peaks or by iterating through peaks
-        # COMMENT: set raw data through set_peaks
+        # COMMENT: Note: access raw data through `get_peaks` function (or by iterating through peaks)
+        # COMMENT: Note: set raw data through `set_peaks` function
 
         MSChromatogram() nogil except +
         MSChromatogram(MSChromatogram &) nogil except +
