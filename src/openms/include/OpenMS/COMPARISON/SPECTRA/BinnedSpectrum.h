@@ -83,7 +83,6 @@ public:
       *   bin width = 1.0005     
       *   offset = 0.4
       *   spread should be 0
-      *   	@TODO: Offset is currently not implemented
       *
       * High-resolution MS/MS data:
       *   bin width = 0.02   
@@ -115,7 +114,7 @@ public:
     BinnedSpectrum() {}
 
     /// detailed constructor
-    BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread);
+    BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread, float offset);
 
     /// copy constructor
     BinnedSpectrum(const BinnedSpectrum&) = default;
@@ -141,14 +140,17 @@ public:
       if (unit_ppm_)
       {
         /*
-         * By solving:    mz = MIN_MZ_ * (1.0 + bin_size_)^index for index
-         *     we get: index = floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_))
+         * By solving:    mz = MIN_MZ_ * (1.0 + bin_size_ * 1e-6)^index for index
+         *     we get: index = floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_ * 1e-6))
+         * Note: for ppm we don't need to consider an offset_.
          */  
         return static_cast<SparseVectorIndexType>(floor(log(mz/MIN_MZ_)/log1p(bin_size_ * 1e-6)));
       }
       else 
-      { 
-        return static_cast<SparseVectorIndexType>(floor(mz / bin_size_)); 
+      { // implemented as described in PMC4607604
+        // Note: Consider a peak offset (important for low-resolution data, where most peak boundaries
+        //       may fall on the mass peak apex. See publication for details.).
+        return static_cast<SparseVectorIndexType>(floor((mz / bin_size_ + offset_)); 
       }
     }
 
@@ -162,7 +164,7 @@ public:
       }
       else 
       { 
-        return (i * bin_size_);
+        return ((static_cast<float>(i) - offset_) * bin_size_);
       }
     }
 
@@ -178,7 +180,13 @@ public:
     /// mutable access to the bin container
     SparseVectorType& getBins();
 
-    // immutable access to precursors
+    /// return offset
+    inline float getOffset() const { return offset_; }
+
+    /// set offset
+    inline void setOffset(float offset) { offset_ = offset; }
+
+    /// immutable access to precursors
     const std::vector<Precursor>& getPrecursors() const;
 
     /// mutable access to precursors
@@ -197,6 +205,9 @@ private:
 
     /// absolute bin size or relative bin size
     bool unit_ppm_;
+
+    /// offset of bin start
+    float offset_;
 
     /// bins
     SparseVectorType bins_;

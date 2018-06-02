@@ -46,6 +46,7 @@ namespace OpenMS
     bin_spread_(spread), 
     bin_size_(size),
     unit_ppm_(unit_ppm),
+    offset_(0),
     bins_()
   {
     precursors_ = ps.getPrecursors();
