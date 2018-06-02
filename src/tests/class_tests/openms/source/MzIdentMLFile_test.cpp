@@ -53,16 +53,22 @@ START_TEST(MzIdentMLFile, "$Id")
 
 MzIdentMLFile* ptr = nullptr;
 MzIdentMLFile* nullPointer = nullptr;
+
 START_SECTION((MzIdentMLFile()))
-    ptr = new MzIdentMLFile;
-    TEST_NOT_EQUAL(ptr, nullPointer)
+{
+  ptr = new MzIdentMLFile;
+  TEST_NOT_EQUAL(ptr, nullPointer)
+}
 END_SECTION
 
 START_SECTION((~MzIdentMLFile()))
-    delete ptr;
+{
+  delete ptr;
+}
 END_SECTION
 
 START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
+{
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
   std::vector<String> fm;
@@ -92,8 +98,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,20)
 
   //ProteinGroups not nupported yet, also no ProteinDetection, too few input here
-//  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);
-//  TEST_EQUAL(protein_ids[0].getIndistinguishableProteins().size(), 0);
+  //  TEST_EQUAL(protein_ids[0].getProteinGroups().size(), 0);
+  //  TEST_EQUAL(protein_ids[0].getIndistinguishableProteins().size(), 0);
 
   //protein hit 1
   TEST_EQUAL(protein_ids[0].getHits()[0].getAccession(),"sp|P0A9K9|SLYD_ECOLI")
@@ -119,11 +125,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(peptide_ids[3].getHits()[0].getScore(),211)
   TEST_EQUAL(peptide_ids[3].getHits()[0].getSequence().toString(),"VGAGPFPTELFDETGEFLC(Carbamidomethyl)K")
   TEST_EQUAL(peptide_ids[3].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=15094")
-
+}
 END_SECTION
 
 START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
-
+{
   //store and load data from various sources, starting with idxml, contents already checked above, so checking integrity of the data over repeated r/w
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
@@ -242,10 +248,11 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[2].getHits()[1].getCharge(),peptide_ids2[2].getHits()[1].getCharge())
   for (size_t i = 0; i < peptide_ids[2].getHits()[1].getPeptideEvidences().size(); ++i)
     TEST_EQUAL(peptide_ids[2].getHits()[1].getPeptideEvidences()[i]==peptide_ids2[2].getHits()[1].getPeptideEvidences()[i],true)
-
+}
 END_SECTION
 
 START_SECTION(([EXTRA] multiple runs))
+{
   std::vector<ProteinIdentification> protein_ids, protein_ids2;
   std::vector<PeptideIdentification> peptide_ids, peptide_ids2;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
@@ -263,10 +270,11 @@ START_SECTION(([EXTRA] multiple runs))
   TEST_EQUAL(protein_ids[2].getHits().size(),protein_ids2[2].getHits().size())
 
   TEST_EQUAL(protein_ids[0].getSearchParameters().precursor_mass_tolerance_ppm, true)
-
+}
 END_SECTION
 
 START_SECTION(([EXTRA] psm ranking))
+{
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
@@ -282,9 +290,11 @@ START_SECTION(([EXTRA] psm ranking))
       r = peptide_ids[i].getHits()[j].getRank();
     }
   }
+}
 END_SECTION
 
 START_SECTION(([EXTRA] thresholds))
+{
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
@@ -336,9 +346,11 @@ START_SECTION(([EXTRA] thresholds))
     }
   }
 
-
+}
 END_SECTION
+
 START_SECTION(([EXTRA] regression test for file loading on example files))
+{
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
   String input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_whole.mzid");
@@ -349,11 +361,12 @@ START_SECTION(([EXTRA] regression test for file loading on example files))
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
   input_path = OPENMS_GET_TEST_DATA_PATH("MzIdentML_3runs.mzid");
   MzIdentMLFile().load(input_path, protein_ids, peptide_ids);
-
+}
 END_SECTION
 
 
-//START_SECTION(([EXTRA] compability issues))
+START_SECTION(([EXTRA] compability issues))
+{
 //  MzIdentMLFile mzidfile;
 //  vector<ProteinIdentification> protein_ids;
 //  vector<PeptideIdentification> peptide_ids;
@@ -377,17 +390,19 @@ END_SECTION
 
 //  Misplaced Elements ignored in ParamGroup
 
-//  Converting unknown score type to search engine specific score CV. #should not occurr  scoretype is whatever
+//  Converting unknown score type to search engine specific score CV. #should not occur  scoretype is whatever
 
-//  PSM without peptide evidences reigstered in the given search database found. This will cause an invalid MzIdentML file (which OpenMS still can consume). #might occurr when reading idxml. no protein reference accession
+//  PSM without peptide evidences registered in the given search database found. This will cause an invalid MzIdentML file (which OpenMS still can consume). #might occur when reading idxml. no protein reference accession
 
 //  No RT #might occurr when reading idxml. no rt to peptidehit
 //  No MZ #might occurr when reading idxml. no mz to peptidehit
 
-//  PeptideEvidence without reference to the positional in originating sequence found. #will always occurr when reading idxml  no start end positional arguments
-//END_SECTION
+//  PeptideEvidence without reference to the positional in originating sequence found. #will always occur when reading idxml  no start end positional arguments
+}
+END_SECTION
 
 START_SECTION(([EXTRA] XLMS data labeled cross-linker))
+{
   vector<ProteinIdentification> protein_ids;
   vector<PeptideIdentification> peptide_ids;
   vector<ProteinIdentification> protein_ids2;
@@ -453,10 +468,11 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_pos"), 7)
   TEST_EQUAL(peptide_ids2[0].getHits()[0].getMetaValue("xl_pos2"), 14)
   TEST_EQUAL(peptide_ids2[3].getHits()[0].getMetaValue("xl_type"), "mono-link")
-
+}
 END_SECTION
 
 START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
+{
   vector<ProteinIdentification> protein_ids;
   vector<PeptideIdentification> peptide_ids;
   vector<ProteinIdentification> protein_ids2;
@@ -516,9 +532,7 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[3].getHits()[0].getMetaValue("xl_pos"), 3)
   TEST_EQUAL(peptide_ids2[3].getHits()[0].getMetaValue("xl_pos2"), 9)
   TEST_EQUAL(peptide_ids2[2].getHits()[0].getMetaValue("xl_type"), "mono-link")
-
-
-
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
