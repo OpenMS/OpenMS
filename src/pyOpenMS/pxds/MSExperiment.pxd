@@ -22,30 +22,24 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSExperiment() nogil except +
         MSExperiment(MSExperiment &)  nogil except +
 
-        bool operator==(MSExperiment) nogil except +
-        void reset() nogil except +
-        bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
         
-        void getPrimaryMSRunPath(StringList& toFill) nogil except +
-
-        void swap(MSExperiment) nogil except +
-
-        # Spectra functions
-        void addSpectrum(MSSpectrum spec) nogil except +
-        MSSpectrum operator[](int)      nogil except + # wrap-upper-limit:size()
+        # COMMENT: Spectra functions
+        MSSpectrum operator[](int) nogil except + # wrap-upper-limit:size()
         MSSpectrum getSpectrum(Size id_) nogil except +
+        void addSpectrum(MSSpectrum spec) nogil except +
         void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
         libcpp_vector[MSSpectrum] getSpectra() nogil except +
 
-        libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
-        libcpp_vector[MSSpectrum].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
-
-        # Chromatogram functions
+        # COMMENT: Chromatogram functions
         MSChromatogram getChromatogram(Size id_) nogil except +
         void addChromatogram(MSChromatogram chromatogram) nogil except +
         void setChromatograms(libcpp_vector[MSChromatogram] chromatograms) nogil except +
         libcpp_vector[MSChromatogram] getChromatograms() nogil except +
+
+        # COMMENT: Spectra iteration
+        libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
+        libcpp_vector[MSSpectrum].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
 
         MSChromatogram getTIC() nogil except +
         void clear(bool clear_meta_data) nogil except +
@@ -78,6 +72,13 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         bool isSorted(bool check_mz) nogil except +
         bool isSorted() nogil except +
+
+        void getPrimaryMSRunPath(StringList& toFill) nogil except +
+        void swap(MSExperiment) nogil except +
+
+        bool operator==(MSExperiment) nogil except +
+        void reset() nogil except +
+        bool clearMetaDataArrays() nogil except +
 
         # from MetaInfoInterface:
         void getKeys(libcpp_vector[String] & keys) nogil except +
