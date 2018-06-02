@@ -507,7 +507,8 @@ namespace OpenMS
         LOG_WARN << "Setting empty MS runs paths. Expected " + String(column_description_.size()) << std::endl;
         cd.second.filename = "UKNOWN";
        }
-    } else if (!column_description_.empty() && s.size() != column_description_.size())
+    } 
+    else if (!column_description_.empty() && s.size() != column_description_.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Number of MS runs paths (" + String(s.size()) + 

@@ -231,7 +231,7 @@ protected:
         spectra_paths[i] = File::basename(spectra_paths[i]);
       }
 
-      if(checkUnorderedContent_(spectra_paths, design_filenames) == false)
+      if (checkUnorderedContent_(spectra_paths, design_filenames) == false)
       {
         LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
         LOG_FATAL_ERROR << "Spectra files (consensus map): \n"; 
