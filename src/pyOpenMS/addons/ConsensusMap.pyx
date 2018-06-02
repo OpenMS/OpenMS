@@ -15,11 +15,11 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
 
         cdef ColumnHeaders _r = self.inst.get().getColumnHeaders()
         py_result = dict()
-        cdef FileDescriptions_iterator it__r = _r.begin()
+        cdef ColumnHeaders_iterator it__r = _r.begin()
         cdef ColumnHeader item_py_result
         while it__r != _r.end():
            item_py_result = ColumnHeader.__new__(ColumnHeader)
-           item_py_result.inst = shared_ptr[_FileDescription](new _FileDescription((deref(it__r)).second))
+           item_py_result.inst = shared_ptr[_ColumnHeader](new _ColumnHeader((deref(it__r)).second))
            py_result[<unsigned long int>(deref(it__r).first)] = item_py_result
            inc(it__r)
         return py_result
@@ -58,11 +58,11 @@ from UniqueIdInterface cimport setUniqueId as _setUniqueId
         refholder.assign(v0)
 
         cdef replace_in_0 = dict()
-        cdef FileDescriptions_iterator it_in_0 = v0.begin()
+        cdef ColumnHeaders_iterator it_in_0 = v0.begin()
         cdef ColumnHeader item_in_0
         while it_in_0 != v0.end():
            item_in_0 = ColumnHeader.__new__(ColumnHeader)
-           item_in_0.inst = shared_ptr[_FileDescription](new _FileDescription((deref(it_in_0)).second))
+           item_in_0.inst = shared_ptr[_ColumnHeader](new _ColumnHeader((deref(it_in_0)).second))
            replace_in_0[<unsigned long int> deref(it_in_0).first] = item_in_0
            inc(it_in_0)
         in_0.clear()

@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work
     ctypedef libcpp_map[unsigned long int, ColumnHeader] ColumnHeaders "OpenMS::ConsensusMap::ColumnHeaders"
-    ctypedef libcpp_map[unsigned long int, ColumnHeader].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::ColumnHeaders::iterator"
+    ctypedef libcpp_map[unsigned long int, ColumnHeader].iterator ColumnHeaders_iterator "OpenMS::ConsensusMap::ColumnHeaders::iterator"
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
