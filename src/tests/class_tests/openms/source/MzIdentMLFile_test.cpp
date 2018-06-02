@@ -128,6 +128,15 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 }
 END_SECTION
 
+START_SECTION(void load(const String& filename, Identification& id))
+{
+  OpenMS::Identification identifications;
+  MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), identifications);
+
+  TEST_NOT_EQUAL(identifications.getSpectrumIdentifications().size(), 0)
+}
+END_SECTION
+
 START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
 {
   //store and load data from various sources, starting with idxml, contents already checked above, so checking integrity of the data over repeated r/w
