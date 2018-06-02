@@ -754,7 +754,7 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="scan=1 and & "impsum" <>">6972</offset>
+		<offset idRef="scan=1 and &amp; &quot;impsum&quot; &lt;&gt;">6972</offset>
 		<offset idRef="scan=2">13535</offset>
 		<offset idRef="scan=3">19972</offset>
 		<offset idRef="scan=4">26276</offset>
@@ -776,7 +776,7 @@
 		<offset idRef="scan=20">147886</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC description & "impsum" <>">151792</offset>
+		<offset idRef="TIC description &amp; &quot;impsum&quot; &lt;&gt;">151792</offset>
 	</index>
 </indexList>
 <indexListOffset>153244</indexListOffset>

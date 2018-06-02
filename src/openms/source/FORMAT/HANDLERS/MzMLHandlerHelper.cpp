@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
@@ -117,7 +118,7 @@ namespace OpenMS
         os << "\t<index name=\"spectrum\">\n";
         for (Size i = 0; i < spectra_offsets.size(); i++)
         {
-          os << "\t\t<offset idRef=\"" << spectra_offsets[i].first << "\">" << spectra_offsets[i].second << "</offset>\n";
+          os << "\t\t<offset idRef=\"" << XMLHandler::writeXMLEscape(spectra_offsets[i].first) << "\">" << spectra_offsets[i].second << "</offset>\n";
         }
         os << "\t</index>\n";
       }
@@ -126,7 +127,7 @@ namespace OpenMS
         os << "\t<index name=\"chromatogram\">\n";
         for (Size i = 0; i < chromatograms_offsets.size(); i++)
         {
-          os << "\t\t<offset idRef=\"" << chromatograms_offsets[i].first << "\">" << chromatograms_offsets[i].second << "</offset>\n";
+          os << "\t\t<offset idRef=\"" << XMLHandler::writeXMLEscape(chromatograms_offsets[i].first) << "\">" << chromatograms_offsets[i].second << "</offset>\n";
         }
         os << "\t</index>\n";
       }
