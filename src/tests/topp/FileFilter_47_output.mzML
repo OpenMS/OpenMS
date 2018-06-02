@@ -441,7 +441,7 @@
 		<offset idRef="scan=20">28880</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="TIC description & "impsum" <>">32785</offset>
+		<offset idRef="TIC description &amp; &quot;impsum&quot; &lt;&gt;">32785</offset>
 	</index>
 </indexList>
 <indexListOffset>34237</indexListOffset>
