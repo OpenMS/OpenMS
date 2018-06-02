@@ -97,6 +97,13 @@ public:
 
     // default bin width for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
     static constexpr const float DEFAULT_BIN_WIDTH_HIRES = 0.02;
+
+    /// default bin offset for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
+    static constexpr const float DEFAULT_BIN_OFFSET_HIRES = 0.0;
+
+    /// default bin offset for low-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
+    static constexpr const float DEFAULT_BIN_OFFSET_LOWRES = 0.4;
+
     /// typedef for the underlying sparse vector
     using SparseVectorType = Eigen::SparseVector<float>;
 
@@ -150,7 +157,7 @@ public:
       { // implemented as described in PMC4607604
         // Note: Consider a peak offset (important for low-resolution data, where most peak boundaries
         //       may fall on the mass peak apex. See publication for details.).
-        return static_cast<SparseVectorIndexType>(floor((mz / bin_size_ + offset_)); 
+        return static_cast<SparseVectorIndexType>(floor(mz / bin_size_ + offset_)); 
       }
     }
 
@@ -183,17 +190,14 @@ public:
     /// return offset
     inline float getOffset() const { return offset_; }
 
-    /// set offset
-    inline void setOffset(float offset) { offset_ = offset; }
-
     /// immutable access to precursors
     const std::vector<Precursor>& getPrecursors() const;
 
     /// mutable access to precursors
     std::vector<Precursor>& getPrecursors();
 
-    /// Check if two BinnedSpectrum objects have equally sized bins.
-    //  returns true if bin size and unit are equal, otherwise false
+    /// Check if two BinnedSpectrum objects have equally sized bins and offset.
+    //  returns true if bin size, unit and offset are equal, otherwise false
     static bool isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b);
 
 private:
