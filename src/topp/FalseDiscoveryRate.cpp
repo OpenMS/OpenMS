@@ -195,7 +195,15 @@ protected:
     if (filter_applied)
     {
       IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
-      IDFilter::updateProteinReferences(pep_ids, prot_ids, true);
+
+      if (alg_param.getValue("add_decoy_peptides").toBool() == 1)
+      {
+        IDFilter::updateProteinReferences(pep_ids, prot_ids, false);
+      }
+      else
+      {
+        IDFilter::updateProteinReferences(pep_ids, prot_ids, true);
+      }    
       IDFilter::updateHitRanks(prot_ids);
       IDFilter::updateHitRanks(pep_ids);
       IDFilter::removeEmptyIdentifications(pep_ids);
