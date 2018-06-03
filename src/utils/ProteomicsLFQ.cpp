@@ -195,32 +195,36 @@ protected:
         MzMLFile mzML_file;
         mzML_file.setLogType(log_type_);
 
-        PeakMap ms_raw;
-        mzML_file.load(mz_file, ms_raw);
-
-        if (ms_raw.empty())
-        {
-          LOG_WARN << "The given file does not contain any spectra.";
-          return INCOMPATIBLE_INPUT_DATA;
-        }
-
-        // check if spectra are sorted
-        for (Size i = 0; i < ms_raw.size(); ++i)
-        {
-          if (!ms_raw[i].isSorted())
-          {
-            ms_raw[i].sortByPosition();
-            writeLog_("Info: Sorte peaks by m/z.");
-          }
-        }
-
-        //-------------------------------------------------------------
-        // Centroiding of MS1
-        //-------------------------------------------------------------
-        // TODO: only pick if not already picked (add auto mode that skips already picked ones)
         PeakMap ms_centroided;
-        pp.pickExperiment(ms_raw, ms_centroided, true);
-        ms_raw.clear(true);// free memory of profile PeakMaps
+        {  // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
+          PeakMap ms_raw;
+          mzML_file.load(mz_file, ms_raw);
+
+          if (ms_raw.empty())
+          {
+            LOG_WARN << "The given file does not contain any spectra.";
+            return INCOMPATIBLE_INPUT_DATA;
+          }
+
+          // remove MS2 peak data and check if spectra are sorted
+          for (Size i = 0; i < ms_raw.size(); ++i)
+          {
+            if (ms_raw[i].getMSLevel() == 2)
+            {
+              ms_raw[i].clear(false);
+            }
+            if (!ms_raw[i].isSorted())
+            {
+              ms_raw[i].sortByPosition();
+              writeLog_("Info: Sorted peaks by m/z.");
+            }
+          }
+
+          //-------------------------------------------------------------
+          // Centroiding of MS1
+          //-------------------------------------------------------------
+          pp.pickExperiment(ms_raw, ms_centroided, true);
+        }
 
         // writing picked mzML files for data submission
         // annotate output with data processing info
@@ -267,7 +271,7 @@ protected:
             engine,
             charge,
             true, // prob_correct 
-            false, //split_charge
+            false, // split_charge
             protein_ids,
             peptide_ids,
             unable_to_fit_data,
@@ -289,11 +293,16 @@ protected:
         ff.getMSData().swap(ms_centroided);        
         vector<ProteinIdentification> ext_protein_ids;
         vector<PeptideIdentification> ext_peptide_ids;
-        feature_maps.push_back(FeatureMap());
+
+        // create empty feature map and annotate MS file
+        FeatureMap fm;
+        StringList sl;
+        sl.push_back(mz_file);
+        fm.setPrimaryMSRunPath(sl);
+        feature_maps.push_back(fm);
         ff.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
 
         // TODO: think about external ids ;)
-        // TODO: free memory of centroided PeakMap
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
       }
 
@@ -330,8 +339,7 @@ protected:
       //-------------------------------------------------------------
       linker.group(feature_maps, consensus);
 
-      // free feature maps
-      feature_maps.clear();
+      // end of scope of feature maps
     }
     //-------------------------------------------------------------
     // ConsensusMap normalization
@@ -357,7 +365,7 @@ protected:
     // ID conflict resolution
     //-------------------------------------------------------------
     IDConflictResolverAlgorithm::resolve(consensus);
-    // TODO: check if some consensus ID algorithms are applicable
+    // TODO: maybe check if some consensus ID algorithms are applicable
 
     //-------------------------------------------------------------
     // Protein quantification and export to mzTab

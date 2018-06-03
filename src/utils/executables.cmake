@@ -50,7 +50,6 @@ QCMerger
 QCShrinker
 ProteomicsLFQ
 RNADigestor
-RNPxl
 RNPxlXICFilter
 RNPxlSearch
 RTEvaluation
