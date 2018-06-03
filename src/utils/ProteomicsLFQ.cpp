@@ -216,7 +216,7 @@ protected:
             if (!ms_raw[i].isSorted())
             {
               ms_raw[i].sortByPosition();
-              writeLog_("Info: Sorte peaks by m/z.");
+              writeLog_("Info: Sorted peaks by m/z.");
             }
           }
 
@@ -271,7 +271,7 @@ protected:
             engine,
             charge,
             true, // prob_correct 
-            false, //split_charge
+            false, // split_charge
             protein_ids,
             peptide_ids,
             unable_to_fit_data,
