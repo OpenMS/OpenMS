@@ -32,7 +32,6 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -224,7 +223,6 @@ protected:
           //-------------------------------------------------------------
           // Centroiding of MS1
           //-------------------------------------------------------------
-          // TODO: only pick if not already picked (add auto mode that skips already picked ones)
           pp.pickExperiment(ms_raw, ms_centroided, true);
         }
 
@@ -304,8 +302,6 @@ protected:
         feature_maps.push_back(fm);
         ff.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
 
-        FeatureXMLFile feature_file;
-        feature_file.store(mz_file + ".my_featureXML", feature_maps.back());
         // TODO: think about external ids ;)
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
       }
