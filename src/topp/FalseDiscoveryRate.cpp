@@ -197,7 +197,7 @@ protected:
       IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
 
       // keep decoy peptide hits without decoy protein references if flag is specified
-      if (alg_param.getValue("add_decoy_peptides").toBool() == 1)
+      if (alg_param.getValue("add_decoy_peptides").toBool() == true)
       {
         IDFilter::updateProteinReferences(pep_ids, prot_ids, false);
       }
