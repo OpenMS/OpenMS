@@ -35,6 +35,10 @@
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/FORMAT/Base64.h>
+
+#include <stack>
 
 namespace OpenMS
 {
@@ -95,7 +99,6 @@ namespace OpenMS
       XMLHandler(filename, version),
       exp_(&exp),
       cexp_(nullptr),
-      decoder_(),
       nesting_level_(0),
       skip_spectrum_(false),
       spec_write_counter_(1),
@@ -111,7 +114,6 @@ namespace OpenMS
       XMLHandler(filename, version),
       exp_(nullptr),
       cexp_(&exp),
-      decoder_(),
       nesting_level_(0),
       skip_spectrum_(false),
       spec_write_counter_(1),
@@ -122,13 +124,25 @@ namespace OpenMS
       init_();
     }
 
+    /// handler which support partial loading, implement this method
+    XMLHandler::LOADDETAIL MzXMLHandler::getLoadDetail() const
+    {
+      return load_detail_;
+    }
+
+    /// handler which support partial loading, implement this method
+    void MzXMLHandler::setLoadDetail(const XMLHandler::LOADDETAIL d)
+    {
+      load_detail_ = d;
+    }
+
     void MzXMLHandler::startElement(const XMLCh* const /*uri*/,
       const XMLCh* const /*local_name*/, const XMLCh* const qname,
       const xercesc::Attributes& attributes)
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-        static bool init_static_members(false);
+      static bool init_static_members(false);
       if (!init_static_members)
       {
         initStaticMembers_();
@@ -280,14 +294,14 @@ namespace OpenMS
         }
 
         logger_.setProgress(scan_count_);
+        ++scan_count_;
 
         if ((options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
           || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
-          || options_.getSizeOnly())
+          || load_detail_ == Internal::XMLHandler::LD_RAWCOUNTS)
         {
           // skip this tag
           skip_spectrum_ = true;
-          ++scan_count_;
           return;
         }
 
@@ -383,9 +397,7 @@ namespace OpenMS
           spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
           warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
         }
-
-        ++scan_count_;
-      }
+      } // END OF <scan>
       else if (tag == "operator")
       {
         exp_->getContacts().resize(1);
@@ -511,9 +523,9 @@ namespace OpenMS
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-        //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
+      //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
-        static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
+      static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
       static const XMLCh* s_scan = xercesc::XMLString::transcode("scan");
 
       open_tags_.pop_back();
@@ -533,10 +545,10 @@ namespace OpenMS
         nesting_level_--;
         OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-          if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
-          {
+        if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
+        {
           populateSpectraWithData_();
-          }
+        }
       }
       //std::cout << " -- End -- " << "\n";
     }
@@ -1030,7 +1042,7 @@ namespace OpenMS
           }
 
           String encoded;
-          decoder_.encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
+          Base64::encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
           os << encoded << "</peaks>\n";
         }
         else
@@ -1172,11 +1184,11 @@ namespace OpenMS
         std::vector<double> data;
         if (spectrum_data.compressionType_ == "zlib")
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
+          Base64::decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
         }
         else
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+          Base64::decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
         }
         spectrum_data.char_rest_ = "";
         PeakType peak;
@@ -1198,11 +1210,11 @@ namespace OpenMS
         std::vector<float> data;
         if (spectrum_data.compressionType_ == "zlib")
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
+          Base64::decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
         }
         else
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+          Base64::decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
         }
         spectrum_data.char_rest_ = "";
         PeakType peak;

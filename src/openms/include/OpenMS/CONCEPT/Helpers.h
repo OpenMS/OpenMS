@@ -86,7 +86,7 @@ namespace OpenMS
 
       // check that all elements of a and b are equal using safe comparison
       // (taking NULL into account)
-      for (Size i = 0; i < a.size(); i++)
+      for (typename ContainerType::size_type i = 0; i < a.size(); i++)
       {
         if (!cmpPtrSafe(a[i], b[i]))
         {

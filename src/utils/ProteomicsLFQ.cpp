@@ -71,7 +71,7 @@ class UTILProteomicsLFQ :
 {
 public:
   UTILProteomicsLFQ() :
-    TOPPBase("ProteomicsLFQ", "A standard proteomics LFQ pipeline.")
+    TOPPBase("ProteomicsLFQ", "A standard proteomics LFQ pipeline.", false)
   {
   }
 

@@ -32,7 +32,21 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
+#include <OpenMS/FORMAT/MzMLFile.h>
 namespace OpenMS
 {
+
+  void OnDiscMSExperiment::loadMetaData_(const String& filename)
+  {
+    meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
+
+    MzMLFile f;
+    PeakFileOptions options = f.getOptions();
+    options.setFillData(false);
+    f.setOptions(options);
+    f.load(filename, *meta_ms_experiment_.get());
+  }
 } //namespace OpenMS
 
