@@ -2373,11 +2373,13 @@ namespace OpenMS
       if (consensus_map.getExperimentType() == "label-free")
       {
         quantification_reagent.fromCellString("[MS,MS:1002038,unlabeled sample,]");
-      } else if (consensus_map.getExperimentType() == "labeled_MS1")
+      } 
+      else if (consensus_map.getExperimentType() == "labeled_MS1")
       {
         MzTabParameter quantification_reagent;
         quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS1 labeled sample," + c.second.label + "]");
-      } else if (consensus_map.getExperimentType() == "labeled_MS2")
+      } 
+      else if (consensus_map.getExperimentType() == "labeled_MS2")
       {
         quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS2 labeled sample," + c.second.label + "]");
       }
