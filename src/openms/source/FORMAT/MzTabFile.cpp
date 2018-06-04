@@ -113,7 +113,6 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   map<String, Size> psm_custom_opt_columns;
   map<String, Size> smallmolecule_custom_opt_columns;
 
-  Size count_study_variable_assay_refs = 0;
   Size count_study_variable_description = 0;
   Size count_ms_run_location = 0;
 
@@ -644,19 +643,27 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         Int n = meta_key_fields[0].substitute("study_variable[", "").substitute("]","").trim().toInt();
         String s = cells[2];
         s.substitute("assay[","").substitute("]","");
-        MzTabString p;
-        p.fromCellString(s);
-        mz_tab_metadata.study_variable[n].assay_refs = p;
-        count_study_variable_assay_refs++;
+        vector<String> assays;
+        s.split(',', assays);
+        for (auto a : assays)
+        {
+          a.trim();
+          mz_tab_metadata.study_variable[n].assay_refs.push_back(a.toInt());
+        }
       }
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "sample_refs")
       {
         Int n = meta_key_fields[0].substitute("study_variable[", "").substitute("]","").trim().toInt();
         String s = cells[2];
         s.substitute("sample[","").substitute("]","");
-        MzTabString p;
-        p.fromCellString(s);
-        mz_tab_metadata.study_variable[n].sample_refs = p;
+
+        vector<String> assays;
+        s.split(',', assays);
+        for (auto a : assays)
+        {
+          a.trim();
+          mz_tab_metadata.study_variable[n].sample_refs.push_back(a.toInt());
+        }
       }
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "description")
       {
@@ -1879,15 +1886,27 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
   {
     const MzTabStudyVariableMetaData & smd = it->second;
 
-    if (!smd.assay_refs.isNull())
+    if (!smd.assay_refs.empty())
     {
-      String s = "MTD\tstudy_variable[" + String(it->first) + "]-assay_refs\t" + smd.assay_refs.toCellString();
+      String s = "MTD\tstudy_variable[" + String(it->first) + "]-assay_refs\t";
+      bool first(true);
+      for (auto const & a : smd.assay_refs)
+      {
+        if (!first) { s += ","; } else { first = false; }
+        s += "assay[" + String(a) + "]";
+      }
       sl.push_back(s);
     }
 
-    if (!smd.sample_refs.isNull())
+    if (!smd.sample_refs.empty())
     {
-      String s = "MTD\tstudy_variable[" + String(it->first) + String("]-sample_refs\t") + smd.sample_refs.toCellString();
+      String s = "MTD\tstudy_variable[" + String(it->first) + String("]-sample_refs\t");
+      bool first(true);
+      for (auto const & a : smd.sample_refs)
+      {
+        if (!first) { s += ","; } else { first = false; }
+        s += "sample[" + String(a) + "]";
+      }
       sl.push_back(s);
     }
 

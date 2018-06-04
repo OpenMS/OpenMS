@@ -2321,8 +2321,8 @@ namespace OpenMS
 
       // study variable meta data
       MzTabStudyVariableMetaData sv;
-      MzTabString sv_assay_refs;
-      sv_assay_refs.fromCellString("assay[" + String(i+1)  + "]");
+      vector<int> sv_assay_refs;
+      sv_assay_refs.push_back(i+1);
       sv.assay_refs = sv_assay_refs;
 
       MzTabString sv_description;
