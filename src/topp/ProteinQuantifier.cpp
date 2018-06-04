@@ -333,7 +333,7 @@ public:
 
   TOPPProteinQuantifier() :
     TOPPBase("ProteinQuantifier", "Compute peptide and protein abundances"),
-    algo_params_(), proteins_(), peptides_(), files_(),
+    algo_params_(), proteins_(), peptides_(), columns_headers_(),
     spectral_counting_(false) {}
 
 protected:
@@ -347,7 +347,7 @@ protected:
   Param algo_params_; // parameters for PeptideAndProteinQuant algorithm
   ProteinIdentification proteins_; // protein inference results (proteins)
   vector<PeptideIdentification> peptides_; // protein inference res. (peptides)
-  ConsensusMap::FileDescriptions files_; // information about files involved
+  ConsensusMap::ColumnHeaders columns_headers_; // information about experimental design
   bool spectral_counting_; // quantification based on spectral counting?
 
   void registerOptionsAndFlags_() override
@@ -429,6 +429,7 @@ protected:
         {
           const Size fraction = fa.first;
           for (auto const & ab : fa.second)
+
           {
             out << q.first.toString() << protein << accessions.size() << ab.first;
 
@@ -551,6 +552,7 @@ protected:
         double ref_abundance = q.second.total_abundances.find(1)->second;
         out << 0; // =log(1)/log2;
         for (size_t sample_id = 2; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+
         {
           SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
           out << (pos != q.second.total_abundances.end() ? log(pos->second / ref_abundance) / log2 : 0.0);
@@ -559,10 +561,11 @@ protected:
       // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
       if (print_SILACratios && ed.getNumberOfSamples() == 3)
       {
-        ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
+        ConsensusMap::ColumnHeaders::iterator file_it = columns_headers_.begin();
         double light = q.second.total_abundances.find(1)->second;
         double middle = q.second.total_abundances.find(2)->second;
         double heavy = q.second.total_abundances.find(3)->second;
+
         double log2 = log(2.0);
 
         out << log(heavy / light) / log2
@@ -615,8 +618,8 @@ protected:
     {
       String desc = "# Files/samples associated with abundance values below: ";
       Size counter = 1;
-      for (ConsensusMap::FileDescriptions::iterator it = files_.begin();
-           it != files_.end(); ++it, ++counter)
+      for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
+           it != columns_headers_.end(); ++it, ++counter)
       {
         if (counter > 1) desc += ", ";
         desc += String(counter) + ": '" + it->second.filename + "'";
@@ -753,7 +756,7 @@ protected:
     {
       FeatureMap features;
       FeatureXMLFile().load(in, features);
-      files_[0].filename = in;
+      columns_headers_[0].filename = in;
 
       ed = getExperimentalDesignFeatureMap_(design_file, features);
 
@@ -776,7 +779,7 @@ protected:
       IdXMLFile().load(in, proteins, peptides);
       for (Size i = 0; i < proteins.size(); ++i)
       {
-        files_[i].filename = proteins[i].getIdentifier();
+        columns_headers_[i].filename = proteins[i].getIdentifier();
       }
 
       ed = getExperimentalDesignIds_(design_file, proteins);
@@ -795,7 +798,7 @@ protected:
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
-      files_ = consensus.getFileDescriptions();
+      columns_headers_ = consensus.getColumnHeaders();
 
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);
 

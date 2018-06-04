@@ -209,9 +209,9 @@ protected:
           // keep the same order as they were given in the input independent of
           // which map is the reference.
 
-          dummy.getFileDescriptions()[i].filename = ins[i];
-          dummy.getFileDescriptions()[i].size = tmp_map.size();
-          dummy.getFileDescriptions()[i].unique_id = tmp_map.getUniqueId();
+          dummy.getColumnHeaders()[i].filename = ins[i];
+          dummy.getColumnHeaders()[i].size = tmp_map.size();
+          dummy.getColumnHeaders()[i].unique_id = tmp_map.getUniqueId();
 
           // add protein identifications to result map
           dummy.getProteinIdentifications().insert(
@@ -228,9 +228,9 @@ protected:
         else
         {
           // copy the meta-data from the refernce map
-          dummy.getFileDescriptions()[i].filename = ins[i];
-          dummy.getFileDescriptions()[i].size = ref_size;
-          dummy.getFileDescriptions()[i].unique_id = ref_id;
+          dummy.getColumnHeaders()[i].filename = ins[i];
+          dummy.getColumnHeaders()[i].size = ref_size;
+          dummy.getColumnHeaders()[i].unique_id = ref_id;
 
           // add protein identifications to result map
           dummy.getProteinIdentifications().insert(
@@ -265,7 +265,7 @@ protected:
         dummy.getUnassignedPeptideIdentifications().begin(),
         dummy.getUnassignedPeptideIdentifications().end());
 
-      out_map.setFileDescriptions(dummy.getFileDescriptions());
+      out_map.setColumnHeaders(dummy.getColumnHeaders());
 
       // canonical ordering for checking the results, and the ids have no real meaning anyway
       // the way this was done in DelaunayPairFinder and StablePairFinder
@@ -293,9 +293,9 @@ protected:
       {
         for (Size i = 0; i < ins.size(); ++i)
         {
-          out_map.getFileDescriptions()[i].filename = ins[i];
-          out_map.getFileDescriptions()[i].size = maps[i].size();
-          out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
+          out_map.getColumnHeaders()[i].filename = ins[i];
+          out_map.getColumnHeaders()[i].size = maps[i].size();
+          out_map.getColumnHeaders()[i].unique_id = maps[i].getUniqueId();
         }
       }
       else

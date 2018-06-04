@@ -813,7 +813,7 @@ namespace OpenMS
     if (layer.type == LayerData::DT_CONSENSUS)
     {
       //copy file descriptions
-      map.getFileDescriptions() = layer.getConsensusMap()->getFileDescriptions();
+      map.getColumnHeaders() = layer.getConsensusMap()->getColumnHeaders();
       //Visible area
       double min_rt = getVisibleArea().minPosition()[1];
       double max_rt = getVisibleArea().maxPosition()[1];

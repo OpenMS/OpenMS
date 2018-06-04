@@ -701,14 +701,14 @@ def testConsensusMap():
      ConsensusMap.clearUniqueId
      ConsensusMap.ensureUniqueId
      ConsensusMap.getDataProcessing
-     ConsensusMap.getFileDescriptions
+     ConsensusMap.getColumnHeaders
      ConsensusMap.getProteinIdentifications
      ConsensusMap.getUnassignedPeptideIdentifications
      ConsensusMap.getUniqueId
      ConsensusMap.hasInvalidUniqueId
      ConsensusMap.hasValidUniqueId
      ConsensusMap.setDataProcessing
-     ConsensusMap.setFileDescriptions
+     ConsensusMap.setColumnHeaders
      ConsensusMap.setProteinIdentifications
      ConsensusMap.setUnassignedPeptideIdentifications
      ConsensusMap.setUniqueId
@@ -735,14 +735,14 @@ def testConsensusMap():
     m.clearUniqueId()
     m.ensureUniqueId()
     m.getDataProcessing()
-    m.getFileDescriptions()
+    m.getColumnHeaders()
     m.getProteinIdentifications()
     m.getUnassignedPeptideIdentifications()
     m.getUniqueId()
     m.hasInvalidUniqueId()
     m.hasValidUniqueId()
     m.setDataProcessing
-    m.setFileDescriptions
+    m.setColumnHeaders
     m.setProteinIdentifications
     m.setUnassignedPeptideIdentifications
     m.setUniqueId
@@ -2058,14 +2058,14 @@ def testFeatureXMLFile():
 @report
 def testFileDescription():
     """
-    @tests: FileDescription
-     FileDescription.__init__
-     FileDescription.filename
-     FileDescription.label
-     FileDescription.size
-     FileDescription.unique_id
+    @tests: ColumnHeader
+     ColumnHeader.__init__
+     ColumnHeader.filename
+     ColumnHeader.label
+     ColumnHeader.size
+     ColumnHeader.unique_id
     """
-    fd = pyopenms.FileDescription()
+    fd = pyopenms.ColumnHeader()
     assert isinstance(fd.filename, bytes)
     assert isinstance(fd.label, bytes)
     assert isinstance(fd.size, int)

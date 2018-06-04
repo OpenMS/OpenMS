@@ -69,7 +69,7 @@ namespace OpenMS
          it_elements != cf.end();
          ++it_elements)
     {
-      if (consensus_map.getFileDescriptions().find(it_elements->getMapIndex())->second.getMetaValue("channel_name") == reference_channel_name_)
+      if (consensus_map.getColumnHeaders().find(it_elements->getMapIndex())->second.getMetaValue("channel_name") == reference_channel_name_)
       {
         return it_elements;
       }
@@ -85,8 +85,8 @@ namespace OpenMS
     map_to_vec_index_.clear();
 
     Size index = 0;
-    for (ConsensusMap::FileDescriptions::const_iterator file_it = consensus_map.getFileDescriptions().begin();
-         file_it != consensus_map.getFileDescriptions().end();
+    for (ConsensusMap::ColumnHeaders::const_iterator file_it = consensus_map.getColumnHeaders().begin();
+         file_it != consensus_map.getColumnHeaders().end();
          ++file_it)
     {
       if (file_it->second.getMetaValue("channel_name") == reference_channel_name_)

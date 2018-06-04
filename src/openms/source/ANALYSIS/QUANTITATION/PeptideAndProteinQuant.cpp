@@ -502,7 +502,6 @@ namespace OpenMS
     const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
-
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = ed.getNumberOfFractions();
     stats_.n_ms_files = ed.getNumberOfMSFiles();

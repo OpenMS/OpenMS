@@ -329,6 +329,8 @@ public:
     void setSearchParameters(const SearchParameters& search_parameters);
     /// Returns the search parameters
     const SearchParameters& getSearchParameters() const;
+    /// Returns the search parameters (mutable)
+    SearchParameters& getSearchParameters();    
     /// Returns the identifier
     const String& getIdentifier() const;
     /// Sets the identifier

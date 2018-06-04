@@ -1601,7 +1601,7 @@ namespace OpenMS
     StringList spectra_data;
     feature_map.getPrimaryMSRunPath(spectra_data);
     ms_run.location = spectra_data.empty() ? MzTabString("null") : MzTabString(spectra_data[0]);
-    meta_data.ms_run[1] = ms_run;
+    meta_data.ms_run[1] = ms_run; 
     meta_data.uri[1] = MzTabString(filename);
     meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
     meta_data.peptide_search_engine_score[1] = MzTabParameter();
@@ -1889,7 +1889,7 @@ namespace OpenMS
         StringList ms_run_in_data;
         it->getPrimaryMSRunPath(ms_run_in_data);
         ms_run.location = ms_run_in_data.empty() ? MzTabString("null") : MzTabString(ms_run_in_data[0]);
-        meta_data.ms_run[current_run_index - 1] = ms_run;
+        meta_data.ms_run[current_run_index] = ms_run;
 
         // TODO: add processing information that this file has been exported from "filename"
 
@@ -2228,6 +2228,50 @@ namespace OpenMS
     return mod_list;
   }
 
+
+/*
+ -
+ -      // mandatory meta values
+ -      meta_data.mz_tab_type = MzTabString("Quantification");
+ -      meta_data.mz_tab_mode = MzTabString("Summary");
+ -      meta_data.description = MzTabString("Export from consensusXML");
+ -
+ -      // For consensusXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
+ -      // but only at the study variable variable level.
+ -
+ -      meta_data.variable_mod = generateMzTabStringFromModifications(var_mods);
+ -      meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
+ -      meta_data.peptide_search_engine_score[1] = MzTabParameter();
+ -      meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
+ -
+ -      StringList ms_runs;
+ -      consensus_map.getPrimaryMSRunPath(ms_runs); 
+ -
+ -      // condense consecutive unique MS runs to get the different MS files
+ -      auto it = std::unique(ms_runs.begin(), ms_runs.end());
+ -      ms_runs.resize(std::distance(ms_runs.begin(), it)); 
+ -
+ -      // set run meta data
+ -      Size run_index{1};
+ -      for (auto const & m : ms_runs)
+ -      {
+ -        MzTabMSRunMetaData mztab_run_metadata;
+ -        mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
+ -        mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+ -        mztab_run_metadata.location = MzTabString(m);
+ -        meta_data.ms_run[run_index] = mztab_run_metadata;
+ -        LOG_DEBUG << "Adding MS run for file: " << m << endl;
+ -        ++run_index;
+ -      }
+ -
+ -      mztab.setMetaData(meta_data);
+ -
+ -      // pre-analyze data for occurring meta values at consensus feature and peptide hit level
+ -      // these are used to build optional columns containing the meta values in internal data structures
+ -      set<String> consensus_feature_user_value_keys;
+ */
+
+
   MzTab MzTab::exportConsensusMapToMzTab(
     const ConsensusMap& consensus_map, 
     const String& filename, 
@@ -2258,8 +2302,8 @@ namespace OpenMS
     MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename);
 
     // determine number of channels
-    // TODO: check if/how this works with fractions and multiplexed experiments
-    Size n_study_variables = consensus_map.getFileDescriptions().size();
+    // TODO: adapt for fractionated design    
+    Size n_study_variables = consensus_map.getColumnHeaders().size();
 
     // collect variable and fixed modifications from different runs
     vector<String> var_mods, fixed_mods;
@@ -2300,39 +2344,72 @@ namespace OpenMS
     StringList ms_runs;
     meta_data.ms_run.clear();
     consensus_map.getPrimaryMSRunPath(ms_runs);
-    for (Size i = 0; i != ms_runs.size(); ++i)
-    {
-      MzTabMSRunMetaData ms_run;
-      ms_run.location = MzTabString(ms_runs[i]);
-      MzTabParameter format_param;
-      // format_param.fromCellString("[MS,MS:1000768,Thermo nativeID format]"); //TODO: must be read from mzML and stored as meta information
-      // ms_run.format = format_param;
-      meta_data.ms_run[i + 1] = ms_run;
 
-      // assay meta data
+    // condense consecutive unique MS runs to get the different MS files
+    auto it = std::unique(ms_runs.begin(), ms_runs.end());
+    ms_runs.resize(std::distance(ms_runs.begin(), it)); 
+
+    // set run meta data
+    Size run_index{1};
+    for (auto const & m : ms_runs)
+    {
+      MzTabMSRunMetaData mztab_run_metadata;
+      mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
+      mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+      mztab_run_metadata.location = MzTabString(m);
+      meta_data.ms_run[run_index] = mztab_run_metadata;
+      LOG_DEBUG << "Adding MS run for file: " << m << endl;
+      ++run_index;
+    }
+
+    // assay meta data
+    Size assay_index(0);
+    for (auto const & c : consensus_map.getColumnHeaders())
+    {
       MzTabAssayMetaData assay;    
       MzTabParameter quantification_reagent;
-      quantification_reagent.fromCellString("[MS,MS:1002038,unlabeled sample,]");  //TODO: add support for other labels
+
+      // TODO: check if there are appropriate CV terms
+      if (consensus_map.getExperimentType() == "label-free")
+      {
+        quantification_reagent.fromCellString("[MS,MS:1002038,unlabeled sample,]");
+      } else if (consensus_map.getExperimentType() == "labeled_MS1")
+      {
+        MzTabParameter quantification_reagent;
+        quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS1 labeled sample," + c.second.label + "]");
+      } else if (consensus_map.getExperimentType() == "labeled_MS2")
+      {
+        quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS2 labeled sample," + c.second.label + "]");
+      }
+
+      // look up run index by filename
+      auto it = find_if(meta_data.ms_run.begin(), meta_data.ms_run.end(), 
+        [&c] (const pair<Size, MzTabMSRunMetaData>& m) { return m.second.location.toCellString() == c.second.filename; } );
+      Size run_index = it->first;
+
       assay.quantification_reagent = quantification_reagent;
       MzTabString ms_run_ref;
-      ms_run_ref.fromCellString(String("ms_run[") + String(i+1)  + "]");
+      ms_run_ref.fromCellString(String("ms_run[") + String(run_index)  + "]");
       assay.ms_run_ref = ms_run_ref;
-      meta_data.assay[ i + 1] = assay;
+      meta_data.assay[ assay_index + 1] = assay;
 
       // study variable meta data
       MzTabStudyVariableMetaData sv;
       vector<int> sv_assay_refs;
-      sv_assay_refs.push_back(i+1);
+      sv_assay_refs.push_back(assay_index + 1);
       sv.assay_refs = sv_assay_refs;
 
       MzTabString sv_description;
       sv_description.fromCellString("no description given"); // TODO: read from design file
       sv.description = sv_description;      
-      meta_data.study_variable[ i + 1] = sv;
+      meta_data.study_variable[ assay_index + 1] = sv;
+
+      ++assay_index;
     }
 
     mztab.setMetaData(meta_data);
 
+    // optional meta value columns
     // Pre-analyze data for re-occurring meta values at consensus feature and peptide hit level.
     // These are stored in optional columns.
     set<String> consensus_feature_user_value_keys;

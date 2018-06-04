@@ -141,10 +141,10 @@ namespace OpenMS
       experiment[i].getInstrumentSettings().getScanWindows().push_back(sw);
     }
 
-    ConsensusMap::FileDescription map_description;
+    ConsensusMap::ColumnHeader map_description;
     map_description.label = "Simulation (Charge Consensus)";
     map_description.size = features.size();
-    charge_consensus.getFileDescriptions()[0] = map_description;
+    charge_consensus.getColumnHeaders()[0] = map_description;
   }
 
   void IonizationSimulation::setDefaultParams_()

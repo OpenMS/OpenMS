@@ -119,8 +119,6 @@ protected:
       setValidFormats_("out", ListUtils::create<String>("mzTab"));
     }
 
-
-
     ExitCodes main_(int, const char**) override
     {
       // parameter handling

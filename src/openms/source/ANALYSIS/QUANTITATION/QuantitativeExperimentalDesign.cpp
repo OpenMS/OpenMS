@@ -168,7 +168,7 @@ namespace OpenMS
       {
         it->setMetaValue("experiment", DataValue(experiment));
       }
-      out += map;
+      out.appendRows(map);
     }
     LOG_INFO << endl;
   }
