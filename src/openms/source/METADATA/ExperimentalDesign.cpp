@@ -51,9 +51,9 @@ namespace OpenMS
     using MSFileSection = std::vector<ExperimentalDesign::MSFileSection>;
 
     ExperimentalDesign::SampleSection::SampleSection(
-        std::vector< std::vector < String > > content,
-        std::map< unsigned, Size > sample_to_rowindex,
-        std::map< String, Size > columnname_to_columnindex
+        const std::vector< std::vector < String > >& content,
+        const std::map< unsigned, Size >& sample_to_rowindex,
+        const std::map< String, Size >& columnname_to_columnindex
       ) : 
       content_(content),
       sample_to_rowindex_(sample_to_rowindex),
@@ -62,8 +62,8 @@ namespace OpenMS
     }
 
     ExperimentalDesign::ExperimentalDesign(
-      ExperimentalDesign::MSFileSection msfile_section, 
-      ExperimentalDesign::SampleSection sample_section) : 
+      const ExperimentalDesign::MSFileSection& msfile_section, 
+      const ExperimentalDesign::SampleSection& sample_section) : 
         msfile_section_(msfile_section), 
         sample_section_(sample_section)
     {
@@ -82,13 +82,51 @@ namespace OpenMS
       // each consensus element corresponds to one sample abundance
       size_t sample(1);
       ExperimentalDesign::MSFileSection msfile_section;
+
+      Size fraction_groups_assigned(0);
+      
+      // determine vector of ms file names (in order of appearance)
+      vector<String> msfiles;
+      for (const auto &f : cm.getFileDescriptions())
+      {
+        if (std::find(msfiles.begin(), msfiles.end(), f.second.filename) == msfiles.end())
+        {
+          msfiles.push_back(f.second.filename);
+        }
+      }
+
       for (const auto &f : cm.getFileDescriptions())
       {
         ExperimentalDesign::MSFileSectionEntry r;
         r.path = f.second.filename;
-        r.fraction = f.second.fraction;
+        if (f.second.metaValueExists("fraction"))
+        {
+          r.fraction = static_cast<unsigned int>(f.second.getMetaValue("fraction"));
+
+          if (f.second.metaValueExists("fraction_group"))
+          {
+            r.fraction_group = static_cast<unsigned int>(f.second.getMetaValue("fraction_group"));
+            ++fraction_groups_assigned;
+          }
+          else
+          {
+            // if we have annotated fractions, we need to also know how these are grouped
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              "Fractions annotated but no grouping provided.");
+          }
+        }
+        else
+        { // no fractions and fraction group information annotated, deduce from data
+          LOG_INFO << "No fractions annotated in consensusXML. Assuming unfractionated." << endl;
+          r.fraction = 1;
+
+          // no fractions -> one fraction group for each MS file
+          // to create a unique group identifier [1..n], we take the index of the (unique) filenames  
+          r.fraction_group = (std::find(msfiles.begin(), msfiles.end(), f.second.filename) 
+                            - msfiles.begin())  + 1;
+        }
+
         r.sample = sample;
-        r.fraction_group = f.second.fraction_group;
         if (f.second.metaValueExists("channel_id"))
         {
           r.label = static_cast<unsigned int>(f.second.getMetaValue("channel_id")) + 1;
@@ -101,6 +139,7 @@ namespace OpenMS
         msfile_section.push_back(r);
         ++sample;
       }
+
       experimental_design.setMSFileSection(msfile_section);
       LOG_INFO << "Experimental design (ConsensusMap derived):\n"
                << "  files: " << experimental_design.getNumberOfMSFiles()

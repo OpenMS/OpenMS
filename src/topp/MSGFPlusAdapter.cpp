@@ -46,7 +46,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QProcess>
+#include <QProcessEnvironment>
 
 #include <algorithm>
 #include <fstream>
@@ -449,7 +449,7 @@ protected:
 
     // create temporary directory (and modifications file, if necessary):
     String temp_dir, mzid_temp, mod_file;
-    temp_dir = makeTempDirectory_();
+    temp_dir = makeAutoRemoveTempDirectory_();
     // always create a temporary mzid file first, even if mzid output is requested via "mzid_out"
     // (reason: TOPPAS may pass a filename with wrong extension to "mzid_out", which would cause an error in MzIDToTSVConverter below,
     // so we make sure that we have a properly named mzid file for the converter; see https://github.com/OpenMS/OpenMS/issues/1251)
@@ -524,12 +524,8 @@ protected:
 
     // run MS-GF+ process and create the .mzid file
 
-    int status = QProcess::execute(java_executable.toQString(), process_params);
-    if (status != 0)
-    {
-      writeLog_("Fatal error: Running MS-GF+ returned an error code '" + String(status) + "'. Does the MS-GF+ executable (.jar file) exist?");
-      return EXTERNAL_PROGRAM_ERROR;
-    }
+    writeLog_("Running MSGFPlus search...");
+    runExternalProcess_(java_executable.toQString(), process_params);
 
     //-------------------------------------------------------------
     // create idXML output
@@ -554,12 +550,8 @@ protected:
                        << "-showQValue" << "1"
                        << "-showDecoy" << "1"
                        << "-unroll" << "1";
-        status = QProcess::execute(java_executable.toQString(), process_params);
-        if (status != 0)
-        {
-          writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code '" + String(status) + "'.");
-          return EXTERNAL_PROGRAM_ERROR;
-        }
+        writeLog_("Running MzIDToTSVConverter...");
+        runExternalProcess_(java_executable.toQString(), process_params);
 
         // initialize map
         map<String, vector<float> > rt_mapping;
@@ -752,8 +744,6 @@ protected:
         return CANNOT_WRITE_OUTPUT_FILE;
       }
     }
-
-    removeTempDirectory_(temp_dir);
 
     return EXECUTION_OK;
   }

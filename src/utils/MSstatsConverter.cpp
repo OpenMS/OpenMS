@@ -481,16 +481,16 @@ private:
   public :
       MSstatsLine(
               bool _has_fraction,
-              String _accession,
-              String _sequence,
-              String _precursor_charge,
-              String _fragment_ion,
-              String _frag_charge,
-              String _isotope_label_type,
-              String _condition,
-              String _bioreplicate,
-              String _run,
-              String _fraction
+              const String& _accession,
+              const String& _sequence,
+              const String& _precursor_charge,
+              const String& _fragment_ion,
+              const String& _frag_charge,
+              const String& _isotope_label_type,
+              const String& _condition,
+              const String& _bioreplicate,
+              const String& _run,
+              const String& _fraction
       ): has_fraction_(_has_fraction),
          accession_(_accession),
          sequence_(_sequence),

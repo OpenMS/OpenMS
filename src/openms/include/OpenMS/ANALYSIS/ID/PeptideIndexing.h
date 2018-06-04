@@ -211,19 +211,54 @@ public:
         proteins.reset();
       }
 
-      //-------------------------------------------------------------
-      // parsing parameters
-      //-------------------------------------------------------------
+      //---------------------------------------------------------------
+      // parsing parameters, correcting xtandem and MSGFPlus parameters
+      //---------------------------------------------------------------
       ProteaseDigestion enzyme;
       enzyme.setEnzyme(enzyme_name_);
       enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
 
-      const size_t PROTEIN_CACHE_SIZE = 4e5; // 400k should be enough for most DB's and is not too hard on memory either (~200 MB FASTA)
+      bool xtandem_fix_parameters = true, msgfplus_fix_parameters = true;
+
+      // specificity is none or semi? don't automate xtandem 
+      if (enzyme.getSpecificity() == EnzymaticDigestion::SPEC_SEMI ||
+          enzyme.getSpecificity() == EnzymaticDigestion::SPEC_NONE) 
+      {
+        xtandem_fix_parameters = false;
+      }
+
+      // enzyme is already Trypsin/P? don't automate MSGFPlus
+      if (enzyme.getEnzymeName() == "Trypsin/P") { msgfplus_fix_parameters = false; }
+
+      // determine if search engine is solely xtandem or MSGFPlus
+      for (const auto& prot_id : prot_ids)
+      {
+        if (!msgfplus_fix_parameters && !xtandem_fix_parameters) { break; }
+
+        const std::string& search_engine = prot_id.getSearchEngine();
+        if (search_engine != "XTANDEM") { xtandem_fix_parameters = false; }
+        if (search_engine != "MSGFPLUS" || "MS-GF+") { msgfplus_fix_parameters = false; }
+      }
+
+      //solely xtandem -> enzyme specificity to semi
+      if (xtandem_fix_parameters)
+      {
+        LOG_WARN << "XTandem used but specificity set to full. Setting enzyme specificity to semi specific cleavage to cope with special cutting rules in XTandem." << std::endl; 
+        enzyme.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+      }
+      // solely MSGFPlus -> Trypsin P as enzyme
+      else if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin") 
+      {
+        LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
+        enzyme.setEnzyme("Trypsin/P");
+      }
 
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
       // cache the first proteins
+      const size_t PROTEIN_CACHE_SIZE = 4e5; // 400k should be enough for most DB's and is not too hard on memory either (~200 MB FASTA)
+
       proteins.cacheChunk(PROTEIN_CACHE_SIZE);
 
       if (proteins.empty()) // we do not allow an empty database

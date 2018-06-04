@@ -43,8 +43,6 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QProcess>
-
 #include <fstream>
 
 using namespace OpenMS;
@@ -243,24 +241,6 @@ protected:
     }
 
     return modifications;
-  }
-
-  void removeTempDir_(const String& tmp_dir)
-  {
-    if (tmp_dir.empty()) {return;} // no temporary directory created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + tmp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) 
-      {
-        writeDebug_("Deleting temporary directory '" + tmp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      }
-      File::removeDirRecursively(tmp_dir);
-    }
   }
 
   void createParamFile_(ostream& os)
@@ -520,12 +500,8 @@ protected:
     // do this early, to see if comet is installed
     String comet_executable = getStringOption_("comet_executable");
     String tmp_param = File::getTemporaryFile();
-    int status = QProcess::execute(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str()); // does automatic escaping etc...
-    if (status != 0)
-    {
-      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " -p \"" + tmp_param + "\"'.\nDoes the Comet executable exist?");
-      return EXTERNAL_PROGRAM_ERROR;
-    }
+    writeLog_("Comet is writing the default parameter file...");
+    runExternalProcess_(comet_executable.toQString(), QStringList() << "-p" << tmp_param.c_str());
 
     String inputfile_name = getStringOption_("in");
     String out = getStringOption_("out");
@@ -552,8 +528,7 @@ protected:
     }
 
     //tmp_dir
-    const String tmp_dir = makeTempDirectory_(); //OpenMS::File::getTempDirectory() + "/";
-    writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
+    String tmp_dir = makeAutoRemoveTempDirectory_();
     String tmp_pepxml = tmp_dir + "result.pep.xml";
     String tmp_pin = tmp_dir + "result.pin";
     String default_params = getStringOption_("default_params_file");
@@ -599,15 +574,14 @@ protected:
     //-------------------------------------------------------------
     String paramP = "-P" + tmp_file;
     String paramN = "-N" + File::removeExtension(File::removeExtension(tmp_pepxml));
-    QStringList process_params;
-    process_params << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
+    QStringList arguments;
+    arguments << paramP.toQString() << paramN.toQString() << inputfile_name.toQString();
 
-    status = QProcess::execute(comet_executable.toQString(), process_params); // does automatic escaping etc...
-    if (status != 0)
-    {
-      writeLog_("Comet problem. Aborting! Calling command was: '" + comet_executable + " \"" + inputfile_name + "\"'.\n");
-      return EXTERNAL_PROGRAM_ERROR;
-    }
+    //-------------------------------------------------------------
+    // run comet
+    //-------------------------------------------------------------
+    // Comet execution with the executable and the arguments StringList
+    runExternalProcess_(comet_executable.toQString(), arguments);
 
     //-------------------------------------------------------------
     // writing IdXML output
@@ -635,17 +609,6 @@ protected:
       {
         return CANNOT_WRITE_OUTPUT_FILE;
       }
-    }
-
-    // remove tempdir
-    if (this->debug_level_ == 0)
-    {
-        removeTempDir_(tmp_dir);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << tmp_dir << "'" << std::endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << tmp_pepxml << "'. Set debug level to 0 to remove them." << std::endl;
     }
 
     return EXECUTION_OK;

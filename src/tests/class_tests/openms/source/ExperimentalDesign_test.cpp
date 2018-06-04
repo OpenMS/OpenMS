@@ -335,10 +335,10 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_labelfree.getNumberOfMSFiles(), 2);
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).label, 1); // "channel_id" + 1
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).label, 1); // "channel_id" + 1
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction_group, 1); // only one fraction
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).fraction_group, 1); // only one fraction
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction, 1); 
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction, 1); // only one fraction
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).fraction, 1);
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction_group, 1); // each form a different group
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).fraction_group, 2); 
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).sample, 2);
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "raw_file1.mzML");

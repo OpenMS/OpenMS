@@ -81,7 +81,8 @@ namespace OpenMS
     show_alignment_(false),
     aligned_peaks_mz_delta_(),
     alignment_score_(0),
-    is_swapped_(true)
+    is_swapped_(true),
+    ion_ladder_visible_(true)
   {
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -1325,9 +1326,7 @@ namespace OpenMS
 
   void Spectrum1DCanvas::contextMenuEvent(QContextMenuEvent * e)
   {
-    //Abort if there are no layers
-    if (layers_.empty())
-      return;
+    if (layers_.empty()) { return; }
 
     QMenu * context_menu = new QMenu(this);
     QAction * result = nullptr;
@@ -1346,39 +1345,9 @@ namespace OpenMS
       {
         if (result->text() == "Delete")
         {
-          // Remove peak annotation also from fragment annotations
-          Annotation1DPeakItem * pa = dynamic_cast<Annotation1DPeakItem *>(annot_item);
-          if (pa != nullptr)
-          {
-            // check if present in current fragment annotation vector and also delete from there
-            Size current_spectrum = getCurrentLayer_().getCurrentSpectrumIndex();  
-            MSSpectrum & spectrum = getCurrentLayer_().getPeakDataMuteable()->getSpectrum(current_spectrum);
-
-            // store user fragment annotations
-            vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();
-            int pep_id_index = getCurrentLayer_().peptide_id_index;
-            int pep_hit_index = getCurrentLayer_().peptide_hit_index;
-
-            if (!pep_id.empty() && pep_id_index != -1)
-            {
-              vector<PeptideHit>& hits = pep_id[pep_id_index].getHits();
-
-              if (!hits.empty() && pep_hit_index != -1)
-              {
-                PeptideHit& hit = hits[pep_hit_index];
-
-                vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
-
-                // erase fragment annotations that match the visual peak annotation
-                fas.erase(std::remove_if(fas.begin(), fas.end(),
-                  [pa](const PeptideHit::PeakAnnotation& p)
-                  {
-                   return (fabs(p.mz - pa->getPeakPosition()[0]) < 1e-6);
-                  }), fas.end());
-                hit.setPeakAnnotations(fas);
-              }
-            }
-          }
+          vector<Annotation1DItem *> as;
+          as.push_back(annot_item);          
+          getCurrentLayer_().removePeakAnnotationsFromPeptideHit(as);
           annots_1d.removeSelectedItems();
         }
         else if (result->text() == "Edit")
@@ -1435,6 +1404,7 @@ namespace OpenMS
       settings_menu->addAction("Show/hide axis legends");
       settings_menu->addAction("Style: Stick <--> Area");
       settings_menu->addAction("Intensity: Absolute <--> Percent");
+      settings_menu->addAction("Show/hide ion ladder in ID view");
       settings_menu->addSeparator();
       settings_menu->addAction("Preferences");
 
@@ -1546,6 +1516,11 @@ namespace OpenMS
         else if (result->text() == "Switch to DIA-MS view")
         {
           emit showCurrentPeaksAsDIA();
+        }
+        else if (result->text() == "Show/hide ion ladder in ID view")
+        {
+          // toggle visibility of ion ladder
+          setIonLadderVisible(!isIonLadderVisible());
         }
       }
     }
@@ -2093,5 +2068,18 @@ namespace OpenMS
     return aligned_peaks_indices_;
   }
 
+  void Spectrum1DCanvas::setIonLadderVisible(bool show)
+  {
+    if (ion_ladder_visible_ != show)
+    {
+      ion_ladder_visible_ = show;
+      update_(OPENMS_PRETTY_FUNCTION);
+    }
+  }
+
+  bool Spectrum1DCanvas::isIonLadderVisible() const
+  {
+    return ion_ladder_visible_;
+  }
 
 } //Namespace
