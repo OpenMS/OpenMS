@@ -464,8 +464,8 @@ protected:
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      int exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
-      if (exit_code != 0)
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
+      if (exit_code != EXECUTION_OK)
       {
         return exit_code;
       }

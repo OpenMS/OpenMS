@@ -525,8 +525,8 @@ protected:
     // run MS-GF+ process and create the .mzid file
 
     writeLog_("Running MSGFPlus search...");
-    int exit_code = runExternalProcess_(java_executable.toQString(), process_params);
-    if (exit_code != 0)
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    if (exit_code != EXECUTION_OK)
     {
       return exit_code;
     }

@@ -960,8 +960,8 @@ protected:
     // run percolator
     //-------------------------------------------------------------
     // Percolator execution with the executable and the arguments StringList
-    int exit_code = runExternalProcess_(percolator_executable.toQString(), arguments);
-    if (exit_code != 0)
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
     {
       return exit_code;
     }

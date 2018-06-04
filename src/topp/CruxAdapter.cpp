@@ -411,8 +411,8 @@ protected:
       // run percolator
       //-------------------------------------------------------------
       writeLog_("Executing Crux (percolator)...");
-      int exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
-      if (exit_code != 0)
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
+      if (exit_code != EXECUTION_OK)
       {
         return exit_code;
       }
