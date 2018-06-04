@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -94,6 +94,13 @@ public:
 
     /**
       @brief Only count the number of spectra and chromatograms from a file
+
+      This method honors PeakOptions (if specified) for spectra, i.e. only spectra within the specified
+      RT range and MS levels are counted.
+      If PeakOptions have no filters set (the default), then spectra and chromatogram counts
+      are taken from the counts attribute of the spectrumList/chromatogramList tags (the
+      parsing skips all intermediate data and ends as soon as both counts are available).
+
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);
 

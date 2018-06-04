@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 
 namespace OpenMS
 {
@@ -186,7 +187,7 @@ namespace OpenMS
 
     // Only write the footer if we actually did start writing ... 
     if (started_writing_) 
-      Internal::MzMLHandlerHelper::writeFooter_(ofs_, options_, spectra_offsets, chromatograms_offsets);
+      Internal::MzMLHandlerHelper::writeFooter_(ofs_, options_, spectra_offsets_, chromatograms_offsets_);
 
     delete validator_;
     ofs_.close();

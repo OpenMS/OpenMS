@@ -37,6 +37,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
 

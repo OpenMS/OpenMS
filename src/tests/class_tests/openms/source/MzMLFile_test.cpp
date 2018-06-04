@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -254,6 +254,40 @@ public:
 }
 #endif
 TOLERANCE_ABSOLUTE(0.01)
+
+
+START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount)))
+{
+  MzMLFile file;
+  Size spectra_count, chrom_count;
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 4);
+  TEST_EQUAL(chrom_count, 2);
+  
+  file.getOptions().addMSLevel(2); // only count MS2 scans
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 1);
+  TEST_EQUAL(chrom_count, 2);
+
+  file.getOptions().addMSLevel(1); // only count MS1 + MS2 scans
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 4);
+  TEST_EQUAL(chrom_count, 2);
+
+  file.getOptions().clearMSLevels();
+  file.getOptions().setRTRange(makeRange(5.0, 5.25));
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 2);
+  TEST_EQUAL(chrom_count, 2);
+
+  file.getOptions().addMSLevel(1); // only count MS1 and range
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 1);
+  TEST_EQUAL(chrom_count, 2);
+
+}
+END_SECTION
+
 
 START_SECTION((template <typename MapType> void load(const String& filename, MapType& map)))
 {
@@ -943,16 +977,6 @@ START_SECTION([EXTRA] load intensity range)
 }
 END_SECTION
 
-START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount)))
-{
-  MzMLFile file;
-  file.getOptions().setSizeOnly(true);
-  Size spectra_count, chrom_count;
-  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
-  TEST_EQUAL(spectra_count, 4);
-  TEST_EQUAL(chrom_count, 2);
-}
-END_SECTION
 
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
 {

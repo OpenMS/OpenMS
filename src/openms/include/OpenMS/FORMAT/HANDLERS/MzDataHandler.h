@@ -39,7 +39,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <sstream>
@@ -134,9 +133,6 @@ protected:
       std::vector<String> precisions_;
       std::vector<String> endians_;
       //@}
-
-      /// Decoder/Encoder for Base64-data in MzData
-      Base64 decoder_;
 
       /// Flag that indicates whether this spectrum should be skipped (due to options)
       bool skip_spectrum_;
