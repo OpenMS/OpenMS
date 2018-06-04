@@ -581,8 +581,11 @@ protected:
     // run comet
     //-------------------------------------------------------------
     // Comet execution with the executable and the arguments StringList
-    runExternalProcess_(comet_executable.toQString(), arguments);
-
+    int exit_code = runExternalProcess_(comet_executable.toQString(), arguments);
+    if (exit_code != 0)
+    {
+      return exit_code;
+    }
     //-------------------------------------------------------------
     // writing IdXML output
     //-------------------------------------------------------------

@@ -464,7 +464,11 @@ protected:
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
+      int exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
+      if (exit_code != 0)
+      {
+        return exit_code;
+      }
 
       // sort mzML
       FileHandler fh;

@@ -268,7 +268,11 @@ protected:
 
 
     // print novor command line
-    runExternalProcess_(path_to_executable, process_params);
+    int exit_code = runExternalProcess_(path_to_executable, process_params);
+    if (exit_code != 0)
+    {
+      return exit_code;
+    }
 
     //-------------------------------------------------------------
     // writing output
