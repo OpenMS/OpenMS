@@ -110,13 +110,14 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
-    registerFlag_("resolve_between_features", "A map may contain multiple features with both identical (possibly modified i.e. not stripped) sequence and charge state. The feature with the highest intensity is very likely the most reliable one. When switched on, the filter removes the sequence annotation from the lower intensity features, thereby resolving the multiplicity. Only the most reliable features for each (possibly modified i.e. not stripped) sequence maintain annotated with this peptide sequence.");
+    registerStringOption_("resolve_between_features", "<resolve_between_features>", "off", "A map may contain multiple features with both identical (possibly modified i.e. not stripped) sequence and charge state. The feature with the 'highest intensity' is very likely the most reliable one. When switched on, the filter removes the sequence annotation from the lower intensity features, thereby resolving the multiplicity. Only the most reliable features for each (possibly modified i.e. not stripped) sequence maintain annotated with this peptide sequence.", false);
+    setValidStrings_("resolve_between_features", ListUtils::create<String>("off,highest_intensity"));
   }
 
   ExitCodes main_(int, const char **) override
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
-    bool resolve_between_features =  getFlag_("resolve_between_features");
+    String resolve_between_features = getStringOption_("resolve_between_features");
     
     FileTypes::Type in_type = FileHandler::getType(in);
     
@@ -127,7 +128,7 @@ protected:
       
       IDConflictResolverAlgorithm::resolve(features);
       
-      if (resolve_between_features)
+      if (resolve_between_features=="highest_intensity")
       {
         IDConflictResolverAlgorithm::makeUnique(features);
       }
@@ -142,7 +143,7 @@ protected:
       
       IDConflictResolverAlgorithm::resolve(consensus);
       
-      if (resolve_between_features)
+      if (resolve_between_features=="highest_intensity")
       {
         IDConflictResolverAlgorithm::makeUnique(consensus);
       }
