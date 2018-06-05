@@ -107,7 +107,7 @@ public:
         if (pep_ids.size() != 1)
         {
           // Should never happen. In IDConflictResolverAlgorithm TOPP tool
-          // IDConflictResolverAlgorithm::resolve() in called before IDConflictResolverAlgorithm::makeUnique().
+          // IDConflictResolverAlgorithm::resolve() is called before IDConflictResolverAlgorithm::makeUnique().
           throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Feature does contain multiple identifications.");
         }
 
