@@ -1627,7 +1627,7 @@ namespace OpenMS
     }
   }
 
-  int TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments) const
   {
     QProcess qp;
     qp.start(executable, arguments); // does automatic escaping etc... start
@@ -1655,7 +1655,7 @@ namespace OpenMS
     }
 
     writeLog_("Executed " + String(executable) + " successfully!");
-    return success;
+    return EXECUTION_OK;
   }
 
   String TOPPBase::getParamAsString_(const String& key, const String& default_value) const

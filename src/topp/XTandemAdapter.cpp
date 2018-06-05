@@ -313,7 +313,11 @@ protected:
     //-------------------------------------------------------------
 
     String xtandem_executable(getStringOption_("xtandem_executable"));
-    runExternalProcess_(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     vector<ProteinIdentification> protein_ids;
     ProteinIdentification protein_id;

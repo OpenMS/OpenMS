@@ -525,7 +525,11 @@ protected:
     // run MS-GF+ process and create the .mzid file
 
     writeLog_("Running MSGFPlus search...");
-    runExternalProcess_(java_executable.toQString(), process_params);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     //-------------------------------------------------------------
     // create idXML output
@@ -551,7 +555,11 @@ protected:
                        << "-showDecoy" << "1"
                        << "-unroll" << "1";
         writeLog_("Running MzIDToTSVConverter...");
-        runExternalProcess_(java_executable.toQString(), process_params);
+        exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+        if (exit_code != 0)
+        {
+          return exit_code;
+        }
 
         // initialize map
         map<String, vector<float> > rt_mapping;

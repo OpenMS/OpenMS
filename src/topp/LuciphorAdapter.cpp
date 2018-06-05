@@ -581,7 +581,11 @@ protected:
     //-------------------------------------------------------------
     // LuciPHOr2
     //-------------------------------------------------------------
-    runExternalProcess_(java_executable.toQString(), process_params);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     SpectrumLookup lookup;
     lookup.rt_tolerance = 0.05;
