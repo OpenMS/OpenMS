@@ -464,7 +464,11 @@ protected:
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
+      if (exit_code != EXECUTION_OK)
+      {
+        return exit_code;
+      }
 
       // sort mzML
       FileHandler fh;

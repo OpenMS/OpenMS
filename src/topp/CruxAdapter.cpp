@@ -315,7 +315,11 @@ protected:
       // run tide-index
       //-------------------------------------------------------------
       writeLog_("Executing Crux (tide-index)...");
-      runExternalProcess_(crux_executable.toQString(), process_params);
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
+      if (exit_code != EXECUTION_OK)
+      {
+        return exit_code;
+      }
     }
 
     // run crux tide-search
@@ -361,7 +365,11 @@ protected:
       // run tide-index
       //-------------------------------------------------------------
       writeLog_("Executed Crux (tide-search)...");
-      runExternalProcess_(crux_executable.toQString(), process_params);
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
+      if (exit_code != EXECUTION_OK)
+      {
+        return exit_code;
+      }
     }
 
     // run crux percolator (currently we dont have much choice in the matter)
@@ -403,7 +411,11 @@ protected:
       // run percolator
       //-------------------------------------------------------------
       writeLog_("Executing Crux (percolator)...");
-      runExternalProcess_(crux_executable.toQString(), process_params);
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
+      if (exit_code != EXECUTION_OK)
+      {
+        return exit_code;
+      }
     }
 
     //-------------------------------------------------------------

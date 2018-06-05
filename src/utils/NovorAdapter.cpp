@@ -268,7 +268,11 @@ protected:
 
 
     // print novor command line
-    runExternalProcess_(path_to_executable, process_params);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(path_to_executable, process_params);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     //-------------------------------------------------------------
     // writing output
