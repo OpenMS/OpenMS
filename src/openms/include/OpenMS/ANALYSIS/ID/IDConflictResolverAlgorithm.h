@@ -104,13 +104,15 @@ public:
 
       if (!pep_ids.empty())
       {
-        if (pep_ids.size() != 1) 
+        if (pep_ids.size() != 1)
         {
+          // Should never happen. In IDConflictResolverAlgorithm TOPP tool
+          // IDConflictResolverAlgorithm::resolve() in called before IDConflictResolverAlgorithm::makeUnique().
           throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Feature does contain multiple identifications.");
         }
 
-        // Assumption: first hit returned by `getHits()` has always highest search engine score.
-        // TODO: Is this assumption reasonable or do we need to sort the hits first?
+        // Make sure best hit is in front, i.e. sort hits first.
+        pep_ids.front().sort();
         std::vector<PeptideHit>& hits = pep_ids.front().getHits();
 
         if (!hits.empty()) 
