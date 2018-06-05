@@ -110,7 +110,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
-    registerFlag_("make_unique", "A map may contain multiple features with both identical sequence and charge state. The feature with the highest intensity is very likely the most reliable one. When switched on, the filter removes the sequence annotation from the lower intensity features, thereby resolving the multiplicity. Only the most reliable features maintain annotated.");
+    registerFlag_("make_unique", "A map may contain multiple features with both identical (possibly modified) sequence and charge state. The feature with the highest intensity is very likely the most reliable one. When switched on, the filter removes the sequence annotation from the lower intensity features, thereby resolving the multiplicity. Only the most reliable features for each (possibly modofied i.e. not stripped) sequence maintain annotated.");
   }
 
   ExitCodes main_(int, const char **) override
