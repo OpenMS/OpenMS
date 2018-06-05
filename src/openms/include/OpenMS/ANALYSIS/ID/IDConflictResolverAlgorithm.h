@@ -113,11 +113,11 @@ public:
 
         // Make sure best hit is in front, i.e. sort hits first.
         pep_ids.front().sort();
-        std::vector<PeptideHit>& hits = pep_ids.front().getHits();
+        const std::vector<PeptideHit>& hits = pep_ids.front().getHits();
 
         if (!hits.empty()) 
         {
-          PeptideHit& highest_score_hit = hits.front();
+          const PeptideHit& highest_score_hit = hits.front();
           
           // Pair <charge, sequence> of charge of the new feature and the sequence of its highest scoring peptide hit.
           std::pair<Int, AASequence> pair = std::make_pair(element.getCharge(), highest_score_hit.getSequence());
