@@ -442,13 +442,13 @@ protected:
         std::vector<BinnedSpectrum> binned;
         std::vector<MSSpectrum> similar_spectra;
         MSExperiment exp;
-        const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1);
+        const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
         // calculation of contrast angle (cosine simiarity)
         for (std::vector<size_t>::iterator index_it = index.begin(); index_it != index.end(); ++index_it)
         {
           const MSSpectrum &spectrum = spectra[*index_it];
-          const BinnedSpectrum binned_spectrum(spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1);
+          const BinnedSpectrum binned_spectrum(spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
           BinnedSpectralContrastAngle bspa;
           double cosine_sim = bspa(binned_highest_int, binned_spectrum);
