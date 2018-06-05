@@ -189,6 +189,8 @@ protected:
       //TODO: check if we want to parallelize that
       for (String const & mz_file : ms_files.second) // for each MS file
       {
+        ConsensusMap consensus_fraction;
+
         // TODO: check if s is part of in 
       
         // load raw file
@@ -337,21 +339,24 @@ protected:
       //-------------------------------------------------------------
       // Link all features of this fraction
       //-------------------------------------------------------------
-      linker.group(feature_maps, consensus);
+      linker.group(feature_maps, consensus_fraction);
+
+      // append consensus map calculated for this fraction number
+      consensus.appendColumns(consensus_fraction);
 
       // end of scope of feature maps
     }
+
     //-------------------------------------------------------------
     // ConsensusMap normalization
     //-------------------------------------------------------------
-    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus, 
+    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, 
       ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
       "", 
       "");
 
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
-
 
     //-------------------------------------------------------------
     // Protein inference
