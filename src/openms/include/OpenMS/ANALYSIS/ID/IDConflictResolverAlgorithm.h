@@ -81,9 +81,10 @@ public:
   **/
   static void resolve(ConsensusMap & features);
 
-  /** @brief In a single (feature/consensus) map, peptides with the same sequence and charge states may appear. 
-    Only the feature with the highest intensity will pass this filter. 
-    (Features without any identification pass this filter automatically)
+  /** @brief In a single (feature/consensus) map, features with the same (possibly modified) sequence and charge state may appear.
+    This filter removes the peptide sequence annotations from features, if a higher-intensity feature with the same (charge, sequence)
+    combination exists in the map. The total number of features remains unchanged. In the final output, each (charge, sequence) combination
+    appears only once, i.e. no multiplicities.
   **/
   template<class T>
   static void makeUnique(T & map)
@@ -92,7 +93,7 @@ public:
     std::vector<PeptideIdentification>& unassigned = map.getUnassignedPeptideIdentifications();
     
     // A std::map tracking the set of unique features.
-    // Uniqueness criterion/key is a pair <charge, sequence> for each feature.
+    // Uniqueness criterion/key is a pair <charge, sequence> for each feature. The peptide sequence may be modified, i.e. is not stripped.
     typedef std::map<std::pair<Int, AASequence>, typename T::value_type*> FeatureSet;
     FeatureSet feature_set;
 
