@@ -365,8 +365,8 @@ protected:
       // run tide-index
       //-------------------------------------------------------------
       writeLog_("Executed Crux (tide-search)...");
-      bool exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
-      if (exit_code != 0)
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
+      if (exit_code != EXECUTION_OK)
       {
         return exit_code;
       }
