@@ -350,7 +350,7 @@ protected:
     //-------------------------------------------------------------
     // ConsensusMap normalization
     //-------------------------------------------------------------
-    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, 
+    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus, 
       ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
       "", 
       "");
