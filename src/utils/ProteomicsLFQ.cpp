@@ -56,6 +56,8 @@
 
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+#include <OpenMS/KERNEL/MassTrace.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -204,6 +206,12 @@ protected:
     //quantifier.setLogType(log_type_);
     quantifier.setParameters(pq_param);
 
+    Param mtd_param = getParam_().copy("algorithm:mtd:", true);
+    writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
+
+    Param com_param = getParam_().copy("algorithm:common:", true);
+    writeDebug_("Common parameters passed to both sub-algorithms (mtd and epd)", com_param, 3);
+
     //-------------------------------------------------------------
     // Loading input
     //-------------------------------------------------------------
@@ -230,6 +238,39 @@ protected:
         // load raw file
         MzMLFile mzML_file;
         mzML_file.setLogType(log_type_);
+
+        // setup for fwhm estimation
+        String in_option = getStringOption_("in");
+        MSExperiment ms_peakmap;
+        std::vector<Int> ms_level(1, 1);
+        mzML_file.getOptions().setMSLevels(ms_level);
+        mzML_file.load(in_option, ms_peakmap);
+
+        MassTraceDetection mt_ext;
+        mtd_param.insert("", com_param);
+        mtd_param.remove("chrom_fwhm");
+        mt_ext.setParameters(mtd_param);
+        std::vector<MassTrace> m_traces;
+        mt_ext.run(ms_peakmap, m_traces, 1000);
+
+        double median_fwhm;
+        std::vector<double> fwhm_1000;
+
+        for (auto &m : m_traces)
+        {
+          if (m.getSize() == 0) continue;
+
+          m.updateMeanMZ();
+          m.updateWeightedMZsd();
+
+          // FWHM
+          double fwhm = m.estimateFWHM(true); // smoothed or not?
+          fwhm_1000.push_back(fwhm);
+        }
+
+        median_fwhm = std::accumulate(fwhm_1000.begin(), fwhm_1000.end(), fwhm_1000.size());
+
+        std::cout << "Calculated median fwhm: " << median_fwhm << std::endl;
 
         PeakMap ms_centroided;
         {  // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
