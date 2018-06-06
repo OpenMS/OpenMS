@@ -35,6 +35,12 @@
 project("OpenMS-3rd-party-libs")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-# eol-bspline lib .. note this library will not be compiled
-# but we only expose the sources
+## Note these libraries will not be compiled
+## but we only expose their sources
+
+# eol-bspline lib
 add_subdirectory(eol-bspline)
+
+# evergreen Bayesian inference library (0.9)
+# from TODO
+add_subdirectory(evergreen)

@@ -7,6 +7,7 @@ BilinearInterpolation.h
 BSpline2d.h
 CubicSpline2d.h
 EmgGradientDescent.h
+GridSearch.h
 LinearInterpolation.h
 MathFunctions.h
 NonNegativeLeastSquaresSolver.h

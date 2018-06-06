@@ -5,6 +5,7 @@ set(directory source/APPLICATIONS/UTILS)
 set(UTILS_executables
 AccurateMassSearch
 AssayGeneratorMetabo
+BayesianProteinInference
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector

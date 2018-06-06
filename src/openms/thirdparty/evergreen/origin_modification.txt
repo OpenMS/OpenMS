@@ -1,0 +1,2 @@
+This source code originates from bitbucket orserang evergreen version 0.9 by Oliver Serang.
+It was modified to be included into the OpenMS library by Julianus Pfeuffer.

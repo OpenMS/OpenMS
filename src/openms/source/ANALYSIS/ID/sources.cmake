@@ -6,6 +6,7 @@ set(sources_list
 AccurateMassSearchEngine.cpp
 AhoCorasickAmbiguous.cpp
 AScore.cpp
+BayesianProteinInferenceAlgorithm.cpp
 ConsensusIDAlgorithm.cpp
 ConsensusIDAlgorithmAverage.cpp
 ConsensusIDAlgorithmBest.cpp
@@ -17,10 +18,12 @@ ConsensusIDAlgorithmSimilarity.cpp
 ConsensusIDAlgorithmWorst.cpp
 FalseDiscoveryRate.cpp
 HiddenMarkovModel.cpp
+IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
 IDMapper.cpp
 IDRipper.cpp
 IDDecoyProbability.cpp
+MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp
 ProtonDistributionModel.cpp
