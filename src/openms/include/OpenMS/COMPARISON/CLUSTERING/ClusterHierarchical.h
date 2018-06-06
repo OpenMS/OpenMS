@@ -143,6 +143,7 @@ public:
         @param comparator a BinnedSpectrumCompareFunctor
         @param sz the desired binsize for the @ref BinnedSpectrum s
         @param sp the desired binspread for the @ref BinnedSpectrum s
+        @param offset the desired bins offset for the @ref BinnedSpectrum s
         @param clusterer a clustermethod implementation, base class ClusterFunctor
         @param cluster_tree the vector that will hold the BinaryTreeNodes representing the clustering (for further investigation with the ClusterAnalyzer methods)
         @param original_distance the DistanceMatrix holding the pairwise distances of the elements in @p data, will be made newly if given size does not fit to the number of elements given in @p data
@@ -150,9 +151,15 @@ public:
 
     @ingroup SpectraClustering
     */
-    void cluster(std::vector<PeakSpectrum> & data, const BinnedSpectrumCompareFunctor & comparator, double sz, UInt sp, const ClusterFunctor & clusterer, std::vector<BinaryTreeNode> & cluster_tree, DistanceMatrix<float> & original_distance)
+    void cluster(std::vector<PeakSpectrum> & data, 
+      const BinnedSpectrumCompareFunctor & comparator, 
+      double sz, 
+      UInt sp,
+      float offset, 
+      const ClusterFunctor & clusterer, 
+      std::vector<BinaryTreeNode> & cluster_tree, 
+      DistanceMatrix<float> & original_distance)
     {
-
       std::vector<BinnedSpectrum> binned_data;
       binned_data.reserve(data.size());
 
@@ -160,7 +167,7 @@ public:
       for (Size i = 0; i < data.size(); i++)
       {
         //double sz(2), UInt sp(1);
-        binned_data.push_back(BinnedSpectrum(data[i], sz, false, sp));
+        binned_data.push_back(BinnedSpectrum(data[i], sz, false, sp, offset));
       }
 
       //create distancematrix for data with comparator

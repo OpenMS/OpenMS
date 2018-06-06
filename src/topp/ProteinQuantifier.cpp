@@ -429,7 +429,6 @@ protected:
         {
           const Size fraction = fa.first;
           for (auto const & ab : fa.second)
-
           {
             out << q.first.toString() << protein << accessions.size() << ab.first;
 

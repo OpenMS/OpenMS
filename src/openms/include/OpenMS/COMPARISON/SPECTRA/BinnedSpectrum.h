@@ -83,7 +83,6 @@ public:
       *   bin width = 1.0005     
       *   offset = 0.4
       *   spread should be 0
-      *   	@TODO: Offset is currently not implemented
       *
       * High-resolution MS/MS data:
       *   bin width = 0.02   
@@ -98,6 +97,13 @@ public:
 
     // default bin width for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
     static constexpr const float DEFAULT_BIN_WIDTH_HIRES = 0.02;
+
+    /// default bin offset for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
+    static constexpr const float DEFAULT_BIN_OFFSET_HIRES = 0.0;
+
+    /// default bin offset for low-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
+    static constexpr const float DEFAULT_BIN_OFFSET_LOWRES = 0.4;
+
     /// typedef for the underlying sparse vector
     using SparseVectorType = Eigen::SparseVector<float>;
 
@@ -115,7 +121,7 @@ public:
     BinnedSpectrum() {}
 
     /// detailed constructor
-    BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread);
+    BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread, float offset);
 
     /// copy constructor
     BinnedSpectrum(const BinnedSpectrum&) = default;
@@ -141,14 +147,17 @@ public:
       if (unit_ppm_)
       {
         /*
-         * By solving:    mz = MIN_MZ_ * (1.0 + bin_size_)^index for index
-         *     we get: index = floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_))
+         * By solving:    mz = MIN_MZ_ * (1.0 + bin_size_ * 1e-6)^index for index
+         *     we get: index = floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_ * 1e-6))
+         * Note: for ppm we don't need to consider an offset_.
          */  
         return static_cast<SparseVectorIndexType>(floor(log(mz/MIN_MZ_)/log1p(bin_size_ * 1e-6)));
       }
       else 
-      { 
-        return static_cast<SparseVectorIndexType>(floor(mz / bin_size_)); 
+      { // implemented as described in PMC4607604
+        // Note: Consider a peak offset (important for low-resolution data, where most peak boundaries
+        //       may fall on the mass peak apex. See publication for details.).
+        return static_cast<SparseVectorIndexType>(floor(mz / bin_size_ + offset_)); 
       }
     }
 
@@ -162,7 +171,7 @@ public:
       }
       else 
       { 
-        return (i * bin_size_);
+        return ((static_cast<float>(i) - offset_) * bin_size_);
       }
     }
 
@@ -178,14 +187,17 @@ public:
     /// mutable access to the bin container
     SparseVectorType& getBins();
 
-    // immutable access to precursors
+    /// return offset
+    inline float getOffset() const { return offset_; }
+
+    /// immutable access to precursors
     const std::vector<Precursor>& getPrecursors() const;
 
     /// mutable access to precursors
     std::vector<Precursor>& getPrecursors();
 
-    /// Check if two BinnedSpectrum objects have equally sized bins.
-    //  returns true if bin size and unit are equal, otherwise false
+    /// Check if two BinnedSpectrum objects have equally sized bins and offset.
+    //  returns true if bin size, unit and offset are equal, otherwise false
     static bool isCompatible(const BinnedSpectrum& a, const BinnedSpectrum& b);
 
 private:
@@ -197,6 +209,9 @@ private:
 
     /// absolute bin size or relative bin size
     bool unit_ppm_;
+
+    /// offset of bin start
+    float offset_;
 
     /// bins
     SparseVectorType bins_;

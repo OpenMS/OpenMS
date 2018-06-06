@@ -135,11 +135,8 @@ protected:
     Param alg_param = getParam_().copy("algorithm:", true);
     FalseDiscoveryRate fdr;
 
-    if (!alg_param.empty())
-    {
-      fdr.setParameters(alg_param);
-      writeDebug_("Parameters passed to FalseDiscoveryRate", alg_param, 3);
-    }
+    fdr.setParameters(alg_param);
+    writeDebug_("Parameters passed to FalseDiscoveryRate", alg_param, 3);
 
     // input/output files
     String in = getStringOption_("in");
@@ -198,7 +195,16 @@ protected:
     if (filter_applied)
     {
       IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
-      IDFilter::updateProteinReferences(pep_ids, prot_ids, true);
+
+      // keep decoy peptide hits without decoy protein references if flag is specified
+      if (alg_param.getValue("add_decoy_peptides").toBool() == true)
+      {
+        IDFilter::updateProteinReferences(pep_ids, prot_ids, false);
+      }
+      else
+      {
+        IDFilter::updateProteinReferences(pep_ids, prot_ids, true);
+      }    
       IDFilter::updateHitRanks(prot_ids);
       IDFilter::updateHitRanks(pep_ids);
       IDFilter::removeEmptyIdentifications(pep_ids);
