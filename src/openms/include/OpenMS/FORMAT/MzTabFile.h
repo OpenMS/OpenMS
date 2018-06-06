@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,14 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZTABFILE_H
-#define OPENMS_FORMAT_MZTABFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/MzTab.h>
+
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -146,15 +150,15 @@ protected:
     static String mapSearchEngineScoreToCvParam_(const String& openms_search_engine_name, double score, String score_type);
 
     static String extractNumPeptides_(const String& common_identifier, const String& protein_accession,
-                                      const MapAccPepType& map_run_accesion_to_peptides);
+                                      const MapAccPepType& map_run_accession_to_peptides);
 
     // mzTab definition of distinct
     static String extractNumPeptidesDistinct_(String common_identifier, String protein_accession,
-                                              const MapAccPepType& map_run_accesion_to_peptides);
+                                              const MapAccPepType& map_run_accession_to_peptides);
 
     // same as distinct but additional constraint of uniqueness (=maps to exactly one Protein)
     static String extractNumPeptidesUnambiguous_(String common_identifier, String protein_accession,
-                                                 const MapAccPepType& map_run_accesion_to_peptides);
+                                                 const MapAccPepType& map_run_accession_to_peptides);
 
     static std::map<String, Size> extractNumberOfSubSamples_(const std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids);
 
@@ -167,7 +171,7 @@ protected:
                                   Size run_count,
                                   String input_filename,
                                   bool has_coverage,
-                                  const MapAccPepType& map_run_accesion_to_peptides,
+                                  const MapAccPepType& map_run_accession_to_peptides,
                                   const std::map<String, Size>& map_run_to_num_sub
                                   );
 
@@ -175,4 +179,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_MZTABFILE_H

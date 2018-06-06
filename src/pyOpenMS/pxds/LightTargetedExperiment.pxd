@@ -2,7 +2,7 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" namespace "OpenSwath":
+cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" namespace "OpenSwath":
 
     cdef cppclass LightTransition:
         LightTransition() nogil except +
@@ -41,7 +41,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         LightModification(LightModification) nogil except +
 
         int location
-        libcpp_string unimod_id
+        int unimod_id
 
     cdef cppclass LightCompound:
         LightCompound() nogil except +

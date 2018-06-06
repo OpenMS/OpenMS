@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 
 #include <OpenMS/SYSTEM/SysInfo.h>
@@ -61,7 +60,7 @@ using namespace OpenSwath;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_TICCalculator TICCalculator
+  @page UTILS_TICCalculator TICCalculator
 
   @brief Calculates the TIC of a raw mass spectrometric file. 
   
@@ -71,9 +70,10 @@ using namespace OpenSwath;
   also calculate the TIC with this tool.
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_TICCalculator.cli
+  @verbinclude UTILS_TICCalculator.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_TICCalculator.html
+  @htmlinclude UTILS_TICCalculator.html
+
 */
 
 // We do not want this class to show up in the docu:
@@ -81,10 +81,10 @@ using namespace OpenSwath;
 
 
 class TICConsumer : 
-    public Interfaces::IMSDataConsumer< MSExperiment<> >
+    public Interfaces::IMSDataConsumer
 {
 
-    typedef MSExperiment<> MapType;
+    typedef PeakMap MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
@@ -100,7 +100,7 @@ public:
     nr_peaks(0)
     {}
 
-  void consumeSpectrum(SpectrumType & s)
+  void consumeSpectrum(SpectrumType & s) override
   {
     for (Size i = 0; i < s.size(); i++) 
     { 
@@ -110,9 +110,9 @@ public:
     nr_spectra++;
   }
 
-  void consumeChromatogram(ChromatogramType& /* c */) {}
-  void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {}
-  void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
+  void consumeChromatogram(ChromatogramType& /* c */) override {}
+  void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override {}
+  void setExperimentalSettings(const ExperimentalSettings& /* exp */) override {}
 };
 
 /**
@@ -162,7 +162,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
@@ -179,7 +179,7 @@ protected:
     setValidStrings_("loadData", ListUtils::create<String>(loadData));
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -223,7 +223,7 @@ protected:
       opt.setFillData(load_data); // whether to actually load any data
       opt.setSkipXMLChecks(true); // save time by not checking base64 strings for whitespaces 
       mzml.setOptions(opt);
-      MSExperiment<> map;
+      PeakMap map;
       mzml.load(in, map);
       double TIC = 0.0;
       long int nr_peaks = 0;
@@ -248,7 +248,7 @@ protected:
       
       IndexedMzMLFileLoader imzml;
       // load data from an indexed MzML file
-      OnDiscMSExperiment<> map;
+      OnDiscPeakMap map;
       imzml.load(in, map);
       double TIC = 0.0;
       long int nr_peaks = 0;
@@ -279,7 +279,7 @@ protected:
       imzml.setOptions(opt);
 
       // load data from an indexed MzML file
-      OnDiscMSExperiment<> map;
+      OnDiscPeakMap map;
       map.openFile(in, true);
       map.setSkipXMLChecks(true);
 

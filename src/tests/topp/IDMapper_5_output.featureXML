@@ -19,13 +19,13 @@
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="MS-GF+" search_engine_version="Beta (v9176)">
-		<SearchParameters db="." db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="4294967295" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
-			<VariableModification name="Gln->pyro-Glu (Q)" />
+		<SearchParameters db="." db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+			<VariableModification name="Gln-&gt;pyro-Glu (Q)" />
 			<VariableModification name="Carbamidomethyl (C)" />
 			<VariableModification name="Deamidated (Q)" />
 			<VariableModification name="Deamidated (N)" />
 			<VariableModification name="Oxidation (M)" />
-			<VariableModification name="Glu->pyro-Glu (E)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (E)" />
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
 			<ProteinHit id="PH_0" accession="Q96CX2" score="0" sequence="">
@@ -647,7 +647,7 @@
 				<pt x="2568.41650000002" y="980.503601074219" />
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="MS-GF:RawScore" higher_score_better="true" significance_threshold="0" MZ="977.999633789063" RT="2575.5086" spectrum_reference="controllerType=0 controllerNumber=1 scan=5331" >
-				<PeptideHit score="172" sequence="SPSGGAAGPLLTPSQSLDGSR" charge="2" aa_before="R R" aa_after="R R" protein_refs="PH_1 PH_0">
+				<PeptideHit score="172" sequence="SPSGGAAGPLLTPSQSLDGSR" charge="2" aa_before="R R" aa_after="R R" protein_refs="PH_0 PH_1">
 					<UserParam type="float" name="MS:1002049" value="172"/>
 					<UserParam type="float" name="MS:1002050" value="206"/>
 					<UserParam type="float" name="MS:1002053" value="1.2343127e-10"/>

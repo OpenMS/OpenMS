@@ -14,44 +14,34 @@ from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment[PeakT, ChromoPeakT](ExperimentalSettings, RangeManager2):
+    cdef cppclass MSExperiment(ExperimentalSettings, RangeManager2):
         # wrap-inherits:
         #   ExperimentalSettings
         #   RangeManager2
-        #
-        # wrap-instances:
-        #   MSExperiment := MSExperiment[Peak1D, ChromatogramPeak]
-        #   RichMSExperiment := MSExperiment[RichPeak1D, ChromatogramPeak]
 
         MSExperiment() nogil except +
-        MSExperiment(MSExperiment[PeakT, ChromoPeakT] &)  nogil except +
+        MSExperiment(MSExperiment &)  nogil except +
 
-        bool operator==(MSExperiment[PeakT, ChromatogramPeak]) nogil except +
-        void reset() nogil except +
-        bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
         
-        StringList getPrimaryMSRunPath() nogil except +
+        # COMMENT: Spectra functions
+        MSSpectrum operator[](int) nogil except + # wrap-upper-limit:size()
+        MSSpectrum getSpectrum(Size id_) nogil except +
+        void addSpectrum(MSSpectrum spec) nogil except +
+        void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
+        libcpp_vector[MSSpectrum] getSpectra() nogil except +
 
-        void swap(MSExperiment[PeakT, ChromoPeakT]) nogil except +
+        # COMMENT: Chromatogram functions
+        MSChromatogram getChromatogram(Size id_) nogil except +
+        void addChromatogram(MSChromatogram chromatogram) nogil except +
+        void setChromatograms(libcpp_vector[MSChromatogram] chromatograms) nogil except +
+        libcpp_vector[MSChromatogram] getChromatograms() nogil except +
 
-        # Spectra functions
-        void addSpectrum(MSSpectrum[PeakT] spec) nogil except +
-        MSSpectrum[PeakT] operator[](int)      nogil except + # wrap-upper-limit:size()  # TODO deprecate for 1.12
-        MSSpectrum[PeakT] getSpectrum(Size id_) nogil except +
-        void setSpectra(libcpp_vector[ MSSpectrum[ PeakT ] ] & spectra) nogil except +
-        libcpp_vector[MSSpectrum[PeakT]] getSpectra() nogil except +  # TODO deprecate for 1.12
+        # COMMENT: Spectra iteration
+        libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
+        libcpp_vector[MSSpectrum].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
 
-        libcpp_vector[MSSpectrum[PeakT]].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum[PeakT])
-        libcpp_vector[MSSpectrum[PeakT]].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum[PeakT])
-
-        # Chromatogram functions
-        MSChromatogram[ ChromoPeakT ]  getChromatogram(Size id_) nogil except +
-        void addChromatogram(MSChromatogram[ChromoPeakT] chromatogram) nogil except +
-        void setChromatograms(libcpp_vector[MSChromatogram[ChromoPeakT]] chromatograms) nogil except +
-        libcpp_vector[MSChromatogram[ChromoPeakT]] getChromatograms() nogil except + # TODO deprecate for 1.12
-
-        MSChromatogram[ChromoPeakT] getTIC() nogil except +
+        MSChromatogram getTIC() nogil except +
         void clear(bool clear_meta_data) nogil except +
 
         void updateRanges() nogil except +
@@ -67,7 +57,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         # Size of experiment
         UInt64 getSize() nogil except +
-        int   size() nogil except + # TODO deprecate for 1.12
+        int   size() nogil except +
         void resize(Size s) nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
@@ -82,6 +72,13 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         bool isSorted(bool check_mz) nogil except +
         bool isSorted() nogil except +
+
+        void getPrimaryMSRunPath(StringList& toFill) nogil except +
+        void swap(MSExperiment) nogil except +
+
+        bool operator==(MSExperiment) nogil except +
+        void reset() nogil except +
+        bool clearMetaDataArrays() nogil except +
 
         # from MetaInfoInterface:
         void getKeys(libcpp_vector[String] & keys) nogil except +

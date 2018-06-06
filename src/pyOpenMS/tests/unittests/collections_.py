@@ -39,13 +39,13 @@ class Counter(dict):
         '''List the n most common elements and their counts from the most
         common to the least.  If n is None, then list all element counts.
 
-        >>> Counter('abracadabra').most_common(3)
-        [('a', 5), ('r', 2), ('b', 2)]
+        >>> Counter('abbracadabbra').most_common(3)
+        [('a', 5), ('b', 4), ('r', 2)]
 
         '''        
         if n is None:
-            return sorted(self.iteritems(), key=itemgetter(1), reverse=True)
-        return nlargest(n, self.iteritems(), key=itemgetter(1))
+            return sorted(self.items(), key=itemgetter(1), reverse=True)
+        return nlargest(n, self.items(), key=itemgetter(1))
 
     def elements(self):
         '''Iterator over elements repeating each as many times as its count.
@@ -58,7 +58,7 @@ class Counter(dict):
         elements() will ignore it.
 
         '''
-        for elem, count in self.iteritems():
+        for elem, count in self.items():
             for _ in repeat(None, count):
                 yield elem
 
@@ -83,10 +83,10 @@ class Counter(dict):
 
         '''        
         if iterable is not None:
-            if hasattr(iterable, 'iteritems'):
+            if hasattr(iterable, 'items'):
                 if self:
                     self_get = self.get
-                    for elem, count in iterable.iteritems():
+                    for elem, count in iterable.items():
                         self[elem] = self_get(elem, 0) + count
                 else:
                     dict.update(self, iterable) # fast path when counter is empty

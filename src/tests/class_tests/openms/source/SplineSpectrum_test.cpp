@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ for (int i=0; i < 11; ++i)
     intensity.push_back(Gauss2(418.2+0.1*i));
 }
 
-MSSpectrum<Peak1D> spectrum;
+MSSpectrum spectrum;
 Peak1D peak;
 spectrum.setRT(1789.0714);
 for (size_t i=0; i < mz.size(); ++i)
@@ -77,7 +77,7 @@ for (size_t i=0; i < mz.size(); ++i)
     spectrum.push_back(peak);
 }
 
-SplineSpectrum* nullPointer = 0;
+SplineSpectrum* nullPointer = nullptr;
 SplineSpectrum* ptr;
 
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
@@ -96,7 +96,7 @@ START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<do
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum))
+START_SECTION(SplineSpectrum(MSSpectrum& raw_spectrum))
 	SplineSpectrum spline(spectrum);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
     ptr = new SplineSpectrum(spectrum);
@@ -104,7 +104,7 @@ START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum))
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling))
+START_SECTION(SplineSpectrum(MSSpectrum& raw_spectrum, double scaling))
 	SplineSpectrum spline(spectrum, 0.7);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
     ptr = new SplineSpectrum(spectrum, 0.7);
@@ -122,8 +122,8 @@ START_SECTION(double getMzMax() const)
   TEST_EQUAL(spectrum2.getMzMax(), 419.2);
 END_SECTION
 
-START_SECTION(size_t getSplineCount() const)
-  TEST_EQUAL(spectrum2.getSplineCount(), 2)
+START_SECTION(size_t size() const)
+  TEST_EQUAL(spectrum2.size(), 2)
 END_SECTION
 
 START_SECTION(SplineSpectrum::Navigator getNavigator())
@@ -178,7 +178,7 @@ for (size_t i=0; i<4; ++i)
 SplineSpectrum spectrum3(mz3, intensity3);
 
 START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
-  TEST_EQUAL(spectrum3.getSplineCount(),2);
+  TEST_EQUAL(spectrum3.size(),2);
   TEST_EQUAL(spectrum3.getNavigator().eval(405),0);    // Zero as expected, since 405 is between packages.
   TEST_EQUAL(spectrum3.getNavigator().eval(408),10);    // One might expect zero, but 407.5 is part of the second package.
 END_SECTION

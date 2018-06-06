@@ -93,6 +93,8 @@ static double decodeFixedPoint(
  * Encodes the int x as a number of halfbytes in res. 
  * res_length is incremented by the number of halfbytes, 
  * which will be 1 <= n <= 9
+ *
+ * see header file for a detailed description of the algorithm.
  */
 static void encodeInt(
 		const unsigned int x,
@@ -209,9 +211,29 @@ static void decodeInt(
 
 /////////////////////////////////////////////////////////////
 
+double optimalLinearFixedPointMass(
+		const double *data, 
+		size_t dataSize,
+        double mass_acc
+) {
+	if (dataSize < 3) return 0; // we just encode the first two points as floats
+
+    // We calculate the maximal fixedPoint we need to achieve a specific mass
+    // accuracy. Note that the maximal error we will make by encoding as int is
+    // 0.5 due to rounding errors.
+    double maxFP = 0.5 / mass_acc;
+
+    // There is a maximal value for the FP given by the int length (32bit)
+    // which means we cannot choose a value higher than that. In case we cannot
+    // achieve the desired accuracy, return failure (-1).
+    double maxFP_overflow = optimalLinearFixedPoint(data, dataSize);
+    if (maxFP > maxFP_overflow) return -1;
+
+    return maxFP;
+}
 
 double optimalLinearFixedPoint(
-		const double *data, 
+		const double *data,
 		size_t dataSize
 ) {
 	/*
@@ -355,6 +377,8 @@ size_t decodeLinear(
 	double fixedPoint;
 	
 	//printf("Decoding %d bytes with fixed point %f\n", (int)dataSize, fixedPoint);
+
+	if (dataSize == 8) return 0;
 
 	if (dataSize < 8) 
 		throw "[MSNumpress::decodeLinear] Corrupt input data: not enough bytes to read fixed point! ";
@@ -668,7 +692,8 @@ double optimalSlofFixedPoint(
 		maxDouble = max(maxDouble, x);
 	}
 
-	fp = floor(0xFFFF / maxDouble);
+	// here we use 0xFFFE as maximal value as we add 0.5 during encoding (see encodeSlof)
+	fp = floor(0xFFFE / maxDouble);
 
 	//cout << "    max val: " << maxDouble << endl;
 	//cout << "fixed point: " << fp << endl;
@@ -691,14 +716,14 @@ size_t encodeSlof(
 
 	ri = 8;
 	for (i=0; i<dataSize; i++) {
-		temp = log(data[i]+1) * fixedPoint + 0.5;
+		temp = log(data[i]+1) * fixedPoint;
 
 		if (MS_NUMPRESS_THROW_ON_OVERFLOW && 
 				temp > USHRT_MAX		) {
 			throw "[MSNumpress::encodeSlof] Cannot encode a number that overflows USHRT_MAX.";
 		}
 
-		x = static_cast<unsigned short>(temp);
+		x = static_cast<unsigned short>(temp + 0.5);
 		result[ri++] = x & 0xff;
 		result[ri++] = (x >> 8) & 0xff; 
 	}

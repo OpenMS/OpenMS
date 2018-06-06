@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
     cdef cppclass Matrix[ValueT]:
         # wrap-instances:
         #   MatrixDouble := Matrix[double]
+
         Matrix() nogil except +
         Matrix(Matrix[ValueT]) nogil except +
         Matrix(size_t rows, size_t cols, ValueT value) nogil except +

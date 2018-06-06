@@ -6,6 +6,7 @@ set(sources_list
 BilinearInterpolation.cpp
 BSpline2d.cpp
 CubicSpline2d.cpp
+EmgGradientDescent.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
 NonNegativeLeastSquaresSolver.cpp
@@ -14,7 +15,7 @@ RANSAC.cpp
 RANSACModel.cpp
 RANSACModelLinear.cpp
 RANSACModelQuadratic.cpp
-Spline2d.cpp
+SplineBisection.cpp
 )
 
 ### add path to the filenames

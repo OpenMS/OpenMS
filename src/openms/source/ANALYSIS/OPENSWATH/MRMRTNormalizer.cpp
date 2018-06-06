@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,17 +36,15 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
 #include <OpenMS/MATH/MISC/RANSAC.h> // RANSAC algorithm
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h> // RANSAC model
 
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
-#include <algorithm>
 
 namespace OpenMS
 {
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersRANSAC(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+      const std::vector<std::pair<double, double> >& pairs, double rsq_limit,
       double coverage_limit, size_t max_iterations, double max_rt_threshold, size_t sampling_size)
   {
     size_t n = sampling_size;
@@ -92,7 +90,7 @@ namespace OpenMS
     return new_pairs;
   }
 
-  int MRMRTNormalizer::jackknifeOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::jackknifeOutlierCandidate_(const std::vector<double>& x, const std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and rsq is calculated for
     // the data points with one removed pair. The combination resulting in
@@ -115,7 +113,7 @@ namespace OpenMS
     return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
   }
 
-  int MRMRTNormalizer::residualOutlierCandidate_(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::residualOutlierCandidate_(const std::vector<double>& x, const std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and residuals are calculated for
     // the data points. The one with highest residual error is selected as the outlier candidate. The
@@ -135,8 +133,8 @@ namespace OpenMS
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersIterative(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
-      double coverage_limit, bool use_chauvenet, std::string method)
+      const std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+      double coverage_limit, bool use_chauvenet, const std::string& method)
   {
     if (pairs.size() < 3)
     {
@@ -150,7 +148,7 @@ namespace OpenMS
 
     std::vector<std::pair<double, double> > pairs_corrected;
 
-    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    for (auto it = pairs.begin(); it != pairs.end(); ++it)
     {
       x.push_back(it->first);
       y.push_back(it->second);
@@ -174,7 +172,7 @@ namespace OpenMS
         std::vector<double> residuals;
 
         // calculate residuals
-        for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+        for (auto it = pairs.begin(); it != pairs.end(); ++it)
         {
           double intercept = lin_reg.getIntercept();
           double slope = (double)lin_reg.getSlope();
@@ -246,7 +244,7 @@ namespace OpenMS
     return pairs_corrected;
   }
 
-  bool MRMRTNormalizer::chauvenet(std::vector<double>& residuals, int pos)
+  bool MRMRTNormalizer::chauvenet(const std::vector<double>& residuals, int pos)
   {
     double criterion = 1.0 / (2 * residuals.size());
     double prob = MRMRTNormalizer::chauvenet_probability(residuals, pos);
@@ -262,7 +260,7 @@ namespace OpenMS
     }
   }
 
-  double MRMRTNormalizer::chauvenet_probability(std::vector<double>& residuals, int pos)
+  double MRMRTNormalizer::chauvenet_probability(const std::vector<double>& residuals, int pos)
   {
     double mean = std::accumulate(residuals.begin(), residuals.end(), 0.0) / residuals.size();
     double stdev = std::sqrt(
@@ -276,4 +274,39 @@ namespace OpenMS
     return prob;
   }
 
+  bool MRMRTNormalizer::computeBinnedCoverage(const std::pair<double,double> & rtRange, 
+      const std::vector<std::pair<double, double> > & pairs, int nrBins, 
+      int minPeptidesPerBin, int minBinsFilled)
+  {
+    std::vector<int> binCounter(nrBins, 0);
+    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
+    {
+      double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
+      normRT *= nrBins;
+      int bin = (int)normRT;
+      if (bin >= nrBins)
+      {
+        // this should never happen, but just to make sure
+        std::cerr << "MRMRTNormalizer::computeBinnedCoverage : computed bin was too large (" << 
+          bin << "), setting it to the maximum of " << nrBins - 1 << std::endl;
+        bin = nrBins - 1;
+      }
+      binCounter[ bin ]++;
+    }
+
+    int binsFilled = 0;
+    for (Size i = 0; i < binCounter.size(); i++)
+    {
+      LOG_DEBUG <<" In bin " << i << " out of " << binCounter.size() << 
+        " we have " << binCounter[i] << " peptides " << std::endl;
+      if (binCounter[i] >= minPeptidesPerBin) 
+      {
+        binsFilled++;
+      }
+    }
+
+    return (binsFilled >= minBinsFilled);
+  }
+
 }
+

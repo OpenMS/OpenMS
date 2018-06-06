@@ -56,7 +56,7 @@
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
 		</software>
 		<software id="so_dp_sp_0_pm_7" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="LowMemPeakPickerHiRes_RandomAccess" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="LowMemPeakPickerHiResRandomAccess" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -308,12 +308,10 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="4201.26" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="564.34021" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -326,7 +324,7 @@
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="4428">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -353,12 +351,10 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="4201.49" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="733.9208374" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -371,7 +367,7 @@
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="9656">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -398,12 +394,10 @@
 						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="4201.77" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="504.5991516" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -416,7 +410,7 @@
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="5568">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -465,11 +459,11 @@
 	<index name="spectrum">
 		<offset idRef="scan=12663">20910</offset>
 		<offset idRef="scan=12664">25732</offset>
-		<offset idRef="scan=12665">35098</offset>
-		<offset idRef="scan=12666">52314</offset>
-		<offset idRef="scan=12667">63398</offset>
+		<offset idRef="scan=12665">34786</offset>
+		<offset idRef="scan=12666">51690</offset>
+		<offset idRef="scan=12667">62462</offset>
 	</index>
 </indexList>
-<indexListOffset>68818</indexListOffset>
+<indexListOffset>67882</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

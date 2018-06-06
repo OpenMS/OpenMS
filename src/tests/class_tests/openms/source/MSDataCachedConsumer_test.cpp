@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,8 @@ START_TEST(MSDataCachedConsumer, "$Id$")
 
 using namespace OpenMS;
 
-MSDataCachedConsumer* cached_consumer_ptr = 0;
-MSDataCachedConsumer* cached_consumer_nullPointer = 0;
+MSDataCachedConsumer* cached_consumer_ptr = nullptr;
+MSDataCachedConsumer* cached_consumer_nullPointer = nullptr;
 
 START_SECTION((MSDataCachedConsumer()))
   std::string tmp_filename;
@@ -70,7 +70,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
   NEW_TMP_FILE(tmp_filename);
   MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, false);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
 
@@ -114,7 +114,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
   NEW_TMP_FILE(tmp_filename);
   MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, false);
 
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
 
@@ -149,10 +149,10 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
     NEW_TMP_FILE(tmp_filename);
     MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, true);
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
     TEST_EQUAL(exp.getNrSpectra() > 0, true)
-    MSSpectrum<> first_spectrum = exp.getSpectrum(0);
+    MSSpectrum first_spectrum = exp.getSpectrum(0);
 
     cached_consumer->setExpectedSize(2,0);
 
@@ -170,10 +170,10 @@ START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
     NEW_TMP_FILE(tmp_filename);
     MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, false);
 
-    MSExperiment<> exp;
+    PeakMap exp;
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
     TEST_EQUAL(exp.getNrSpectra() > 0, true)
-    MSSpectrum<> first_spectrum = exp.getSpectrum(0);
+    MSSpectrum first_spectrum = exp.getSpectrum(0);
 
     cached_consumer->setExpectedSize(2,0);
 

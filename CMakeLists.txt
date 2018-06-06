@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -28,17 +28,21 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
 project("OpenMS_host")
 
 #------------------------------------------------------------------------------
 # General CMake definitions & helper
 #------------------------------------------------------------------------------
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+
+# Set C++ version
+SET(CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
@@ -49,16 +53,6 @@ if (NOT CMAKE_SIZEOF_VOID_P)
                       " CMakeCache.txt and rerun CMake again! This is some"
                       " weird CMake bug that seems to appear when updating the"
                       " CMake version.")
-endif()
-
-
-#------------------------------------------------------------------------------
-# -> used from VTK
-# Set a consistent MACOSX_RPATH default across all CMake versions.
-# When CMake 2.8.12 is required, change this default to 1.
-# When CMake 3.0.0 is required, remove this block (see CMP0042).
-if (NOT DEFINED CMAKE_MACOSX_RPATH)
-  set(CMAKE_MACOSX_RPATH 0)
 endif()
 
 #------------------------------------------------------------------------------
@@ -78,9 +72,11 @@ include(Dart)
 # ADDRESS_SANITIZER
 # OPENMS_COVERAGE
 #------------------------------------------------------------------------------
+option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
+option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 
@@ -91,16 +87,19 @@ if(NOT CMAKE_MODULE_PATH)
 	set(CMAKE_MODULE_PATH)
 endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
-
+## CMake looks for the NSIS script in the module path.
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Windows")
 
 #------------------------------------------------------------------------------
 # OpenMS Version Information
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "2")
-set(OPENMS_PACKAGE_VERSION_MINOR "1")
+set(OPENMS_PACKAGE_VERSION_MINOR "4")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
+set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 
+message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION}")
 #------------------------------------------------------------------------------
 # retrieve detailed informations on the working copy (git)
 include(GetGitRevisionDescription)
@@ -110,25 +109,43 @@ if (GIT_TRACKING)
   git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
 endif()
 
-message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
 if(NOT GIT_TRACKING)
   set(OPENMS_GIT_SHORT_SHA1 "disabled")
   set(OPENMS_GIT_SHORT_REFSPEC "disabled")
-  message(STATUS "  [CMake is not tracking Git commits and branching. To enable use '-D GIT_TRACKING=ON'.]")
+  message(STATUS "  [CMake is not tracking Git commits and branching ('-D GIT_TRACKING=Off')]")
 elseif(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
   set(OPENMS_GIT_SHORT_SHA1 "exported")
   set(OPENMS_GIT_SHORT_REFSPEC "exported")
-  message(STATUS "  [CMake is not tracking Git commits and branching. Git not found.]")
+  message(STATUS "  [CMake cannot track Git commits and branching, since Git was not found. ('-D GIT_TRACKING=On')]")
 else()
   # everything found, print some status information
   message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
   message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
   message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
-  message(STATUS "  [CMake is tracking Git commits and branching. To disable use '-D GIT_TRACKING=OFF'.]")
+  message(STATUS "  [CMake is tracking Git commits and branching ('-D GIT_TRACKING=On')]")
 endif()
 
-# add some informations used when building packages
-include(cmake/package_definitions.cmake)
+# Additional versioning information for packaging
+# If it is not built from a release branch (or master) it will add the branch name
+# and the last change date to everything that can handle strings in the version (eg. installer filenames).
+if(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "disabled" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "exported")
+  string(TIMESTAMP DATE "%Y%m%d")
+  set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "${OPENMS_GIT_SHORT_REFSPEC}-${DATE}")
+  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
+elseif(${OPENMS_GIT_SHORT_REFSPEC} MATCHES "release*" OR ${OPENMS_GIT_SHORT_REFSPEC} MATCHES "master")
+  set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "")
+  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}")
+else()
+  string(REPLACE "/" "-" OPENMS_GIT_SHORT_REFSPEC_REPLACED ${OPENMS_GIT_SHORT_REFSPEC})
+  string(REPLACE "_" "-" OPENMS_GIT_SHORT_REFSPEC_REPLACED_AGAIN ${OPENMS_GIT_SHORT_REFSPEC_REPLACED})
+  set(OPENMS_GIT_LC_DATE_LIST "${OPENMS_GIT_LC_DATE}")
+  separate_arguments(OPENMS_GIT_LC_DATE_LIST)
+  list(GET OPENMS_GIT_LC_DATE_LIST 0 OPENMS_GIT_LC_DATE_ONLY)
+  set(OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER "${OPENMS_GIT_SHORT_REFSPEC_REPLACED_AGAIN}-${OPENMS_GIT_LC_DATE_ONLY}")
+  set(OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION}-${OPENMS_PACKAGE_VERSION_PRERELEASE_IDENTIFIER}")
+endif()
+
+
 
 #------------------------------------------------------------------------------
 # Unsupported systems
@@ -192,6 +209,11 @@ if(ADDRESS_SANITIZER)
 endif()
 
 #------------------------------------------------------------------------------
+# Enable fingerid_test
+#------------------------------------------------------------------------------
+option(ENABLE_FINGERID_TEST "Enable test for fingerid (SiriusAdapter)" OFF)
+
+#------------------------------------------------------------------------------
 # Enable Coverage
 #------------------------------------------------------------------------------
 option(OPENMS_COVERAGE "[Clang/GCC only] Enable Coverage testing with gcov/lcov. Requires the Debug build type,
@@ -230,15 +252,40 @@ include (${PROJECT_SOURCE_DIR}/cmake/build_system_macros.cmake)
 include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
 # .. and some to ease preparing the documentation builds
 include (${PROJECT_SOURCE_DIR}/cmake/doc_macros.cmake)
-# .. and some to ease the installation proces
+# .. and some to ease the installation process
 include (${PROJECT_SOURCE_DIR}/cmake/add_library_macros.cmake)
 # .. and some to ease the export process
 include (${PROJECT_SOURCE_DIR}/cmake/export_macros.cmake)
+
+
+#------------------------------------------------------------------------------
+# Initialize package building environment
+set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
+                        "rpm"  # rpm package
+                        "deb"  # deb package
+                        "dmg"  # a drag&drop dmg package for macosx
+                        "nsis") # an NSIS installer for Windows
+
+set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
+is_valid_package(${PACKAGE_TYPE})
+
+## Warn here because you need the signing identity before the app bundles are defined in the
+## src subfolder
+if("${PACKAGE_TYPE}" STREQUAL "dmg")
+  if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "")
+    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY being set. "
+                         "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
+  else()
+    ## CPack has a special variable for it.
+    set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
+  endif()
+endif()
 
 #------------------------------------------------------------------------------
 # Output directories
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
@@ -246,9 +293,9 @@ set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 # define installation subdirectories to allow for custom installations
 # note that all those directories are below CMAKE_INSTALL_PREFIX
 set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
-set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
-set(INSTALL_DOC_DIR share/doc CACHE PATH "Installation directory for documentation")
 set(INSTALL_SHARE_DIR share/OpenMS CACHE PATH "Installation directory for shared data")
+set(INSTALL_DOC_DIR share/doc CACHE PATH "Installation directory for documentation")
+set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
 
 if(WIN32)
   set(DEF_INSTALL_CMAKE_DIR CMake)
@@ -257,37 +304,35 @@ else()
   set(DEF_INSTALL_CMAKE_DIR lib/cmake/OpenMS)
   set(DEF_INSTALL_LIB_DIR lib)
 endif()
+
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory for libraries")
+set(INSTALL_PLUGIN_SUBDIR plugins CACHE PATH "Installation subdirectory under the lib dir for QT plugins")
+set(INSTALL_PLUGIN_DIR ${INSTALL_LIB_DIR}/${INSTALL_PLUGIN_SUBDIR})
+file(RELATIVE_PATH INSTALL_LIB_PATH_REL_TO_BIN /${INSTALL_BIN_DIR} /${INSTALL_LIB_DIR})
+set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SUBDIR})
 
-# Make relative paths absolute (needed later on)
-foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
-  set(var INSTALL_${p}_DIR)
-  if(NOT IS_ABSOLUTE "${${var}}")
-    set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
-  endif()
-endforeach()
+# Never use RPATH. We have other means on every platform.
+# E.g. not yet compatible with our fix_mac_dependencies script.
+SET(CMAKE_MACOSX_RPATH FALSE)
+# macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
+SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
 
 #------------------------------------------------------------------------------
-# lib naming when building with msvc
+# lib naming when building with msvc & convenience location of build.bat
 if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
+	## copy build.bat to root of binary dir to enable convenient invokation (instead of typing path to source dir all the time)
+	if(NOT ("${PROJECT_SOURCE_DIR}" STREQUAL "${PROJECT_BINARY_DIR}"))
+		file(COPY "${PROJECT_SOURCE_DIR}/tools/build.bat" DESTINATION "${PROJECT_BINARY_DIR}")
+	endif()
 endif()
 
 #------------------------------------------------------------------------------
 # setup path for external libs (contrib or system)
 include(${OPENMS_HOST_DIRECTORY}/cmake/setup_lib_find_paths.cmake)
 
-#------------------------------------------------------------------------------
-# Initialize package building environment
-set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
-                        "rpm"  # rpm package
-                        "deb"  # deb package
-                        "dmg") # a drag&drop dmg package for macosx
-
-set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
-is_valid_package(${PACKAGE_TYPE})
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and source files)
@@ -302,7 +347,7 @@ add_subdirectory(doc)
 #------------------------------------------------------------------------------
 # GKN Package building
 #------------------------------------------------------------------------------
-# We will use this path for the KNIME packages and the OS X installer
+# We will use this path for the KNIME packages and the installers
 set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
 
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
@@ -312,19 +357,33 @@ endif()
 
 #------------------------------------------------------------------------------
 # Handle export of targets and install them
-openms_export_targes()
+openms_export_targets()
 install_export_targets()
 
 #------------------------------------------------------------------------------
-# build settings and configs for external code
+# Installation and packaging:
 #------------------------------------------------------------------------------
-# install routines for ..
-if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
-  include(cmake/package_dragndrop_dmg.cmake)
-elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
-  include(cmake/package_rpm.cmake)
-elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. deps
-  include(cmake/package_deb.cmake)
+
+
+# packaging routines:
+if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
+  include(cmake/package_general.cmake)
+  if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
+    include(cmake/package_dragndrop_dmg.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
+    include(cmake/package_rpm.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs
+    include(cmake/package_deb.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "nsis") # .. Windows nsis
+    # For now we use the old NSIS script AS IS
+    # i.e. although CMake runs make install etc. NSIS
+    # will use everything from the usual build folder like before.
+    # TODO automate more and let CMake generate install commands
+    # in the script. Unfortunately we have a lot of specific code in the script.
+    include(cmake/package_nsis.cmake)
+  endif()
+  include(CPack)
+  include(cmake/package_components.cmake)
 endif()
 
 #------------------------------------------------------------------------------

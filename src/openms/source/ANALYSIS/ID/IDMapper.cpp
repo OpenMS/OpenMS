@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
@@ -97,7 +96,7 @@ namespace OpenMS
   }
 
   void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, 
-                          bool measure_from_subelements, bool annotate_ids_with_subelements, const MSExperiment<Peak1D>& spectra)
+                          bool measure_from_subelements, bool annotate_ids_with_subelements, const PeakMap& spectra)
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);
@@ -251,10 +250,12 @@ namespace OpenMS
       if (!map.getProteinIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
-      } else if (!map.getUnassignedPeptideIdentifications().empty())
+      }
+      else if (!map.getUnassignedPeptideIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
-      } else
+      }
+      else
       {
         // No search run identifier given so we create a new one
         empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");
@@ -269,7 +270,7 @@ namespace OpenMS
     for (Size ui = 0; ui != unidentified.size(); ++ui)
     {
       Size spectrum_index = unidentified[ui];
-      const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+      const MSSpectrum& spectrum = spectra[spectrum_index];
       const vector<Precursor>& precursors = spectrum.getPrecursors();
 
       bool precursor_mapped(false);
@@ -327,7 +328,7 @@ namespace OpenMS
                   Size map_index = it_handle->getMapIndex();
 
                   // we use no undesrscore here to be compatible with linkers
-                  precursor_empty_id.setMetaValue("map_index", String(map_index));
+                  precursor_empty_id.setMetaValue("map_index", map_index);
                 }
                 map[cm_index].getPeptideIdentifications().push_back(precursor_empty_id);
                 ++assigned_precursors[spectrum_index];
@@ -369,7 +370,7 @@ namespace OpenMS
   }
 
   void IDMapper::annotate(FeatureMap & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, 
-                          bool use_centroid_rt, bool use_centroid_mz, const MSExperiment<Peak1D>& spectra)
+                          bool use_centroid_rt, bool use_centroid_mz, const PeakMap& spectra)
   {
     // std::cout << "Starting annotation..." << std::endl;
     checkHits_(ids); // check RT and m/z are present
@@ -581,10 +582,12 @@ namespace OpenMS
       if (!map.getProteinIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
-      } else if (!map.getUnassignedPeptideIdentifications().empty())
+      }
+      else if (!map.getUnassignedPeptideIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
-      } else
+      }
+      else
       {
         // add a new search identification run (mandatory)
         empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");
@@ -596,7 +599,7 @@ namespace OpenMS
     for (Size i = 0; i != unidentified.size(); ++i)
     {
       Size spectrum_index = unidentified[i];
-      const MSSpectrum<Peak1D>& spectrum = spectra[spectrum_index];
+      const MSSpectrum& spectrum = spectra[spectrum_index];
       const vector<Precursor>& precursors = spectrum.getPrecursors();
 
       // check if precursor has been identified

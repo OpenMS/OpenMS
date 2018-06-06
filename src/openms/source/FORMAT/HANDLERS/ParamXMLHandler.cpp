@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-
-#include <iostream>
-
-#include <xercesc/sax2/Attributes.hpp>
 
 using namespace xercesc;
 using namespace std;
@@ -207,8 +203,8 @@ namespace OpenMS
         if (description != "")
         {
           description.substitute("#br#", "\n");
-          descriptions_[path_.chop(1)] = description;
         }
+        param_.addSection(path_.chop(1), description);
       }
       else if (element == "ITEMLIST")
       {
@@ -390,15 +386,6 @@ namespace OpenMS
         list_.stringlist.clear();
         list_.intlist.clear();
         list_.doublelist.clear();
-      }
-      else if (element == "PARAMETERS")
-      {
-        //set all descriptions (now the nodes exist...)
-        for (map<String, String>::const_iterator it = descriptions_.begin(); it != descriptions_.end(); ++it)
-        {
-          param_.setSectionDescription(it->first, it->second);
-        }
-        descriptions_.clear();
       }
     }
 

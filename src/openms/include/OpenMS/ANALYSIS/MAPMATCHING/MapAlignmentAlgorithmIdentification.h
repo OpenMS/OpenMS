@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,9 @@
 // $Authors: Eva Lange, Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMIDENTIFICATION_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMIDENTIFICATION_H
+#pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -76,7 +76,7 @@ public:
     MapAlignmentAlgorithmIdentification();
 
     /// Destructor
-    virtual ~MapAlignmentAlgorithmIdentification();
+    ~MapAlignmentAlgorithmIdentification() override;
 
     // Set a reference for the alignment
     template <typename DataType> void setReference(DataType& data)
@@ -95,7 +95,7 @@ public:
     /**
       @brief Align feature maps, consensus maps, peak maps, or peptide identifications.
 
-      @param data Vector of input data (FeatureMap, ConsensusMap, MSExperiment<> or @p vector<PeptideIdentification>) that should be aligned.
+      @param data Vector of input data (FeatureMap, ConsensusMap, PeakMap or @p vector<PeptideIdentification>) that should be aligned.
       @param transformations Vector of RT transformations that will be computed.
       @param reference_index Index in @p data of the reference to align to, if any
     */
@@ -189,7 +189,7 @@ protected:
 
       @return Are the RTs already sorted? (Here: false)
     */
-    bool getRetentionTimes_(MSExperiment<>& experiment, SeqToList& rt_data);
+    bool getRetentionTimes_(PeakMap& experiment, SeqToList& rt_data);
 
     /**
       @brief Collect retention time data ("RT" MetaInfo) from peptide IDs contained in feature maps or consensus maps
@@ -302,4 +302,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMIDENTIFICATION_H

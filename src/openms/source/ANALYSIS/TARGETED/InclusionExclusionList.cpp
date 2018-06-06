@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,11 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 
 #include <fstream>
@@ -160,7 +158,7 @@ namespace OpenMS
   {
     WindowList result;
 
-    EnzymaticDigestion digest;
+    ProteaseDigestion digest;
 
     digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 

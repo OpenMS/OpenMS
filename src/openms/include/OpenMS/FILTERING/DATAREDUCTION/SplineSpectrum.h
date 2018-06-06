@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,10 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H
-#define OPENMS_FILTERING_DATAREDUCTION_SPLINESPECTRUM_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 
 #include <vector>
@@ -53,7 +51,7 @@ namespace OpenMS
  * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
  *
  * @see SplinePackage
- * @see MSSpectrum<Peak1D>
+ * @see MSSpectrum
  */
 class OPENMS_DLLAPI SplineSpectrum
 {
@@ -71,8 +69,8 @@ class OPENMS_DLLAPI SplineSpectrum
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
      */
-    SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum);
-    SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling);
+    SplineSpectrum(MSSpectrum& raw_spectrum);
+    SplineSpectrum(MSSpectrum& raw_spectrum, double scaling);
 
     /**
      * @brief destructor
@@ -95,7 +93,7 @@ class OPENMS_DLLAPI SplineSpectrum
      *  has some usable data to work on.
      *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
      */
-    size_t getSplineCount() const;
+    size_t size() const;
 
     /**
     * @brief iterator class for access of spline packages
@@ -107,6 +105,11 @@ class OPENMS_DLLAPI SplineSpectrum
         * @brief constructor of iterator
         */
         Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
+
+        /**
+        * @brief constructor (for pyOpenMS)
+        */
+        Navigator();
 
         /**
         * @brief destructor
@@ -184,4 +187,3 @@ class OPENMS_DLLAPI SplineSpectrum
 
 }
 
-#endif /* SPLINESPECTRUM_H_ */

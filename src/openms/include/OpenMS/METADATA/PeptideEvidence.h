@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PEPTIDEEVIDENCE_H
-#define OPENMS_METADATA_PEPTIDEEVIDENCE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -64,6 +63,9 @@ public:
     /// constructor
     PeptideEvidence();
 
+    /// constructor
+    PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after);
+
     /// copy constructor
     PeptideEvidence(const PeptideEvidence& source);
 
@@ -82,6 +84,9 @@ public:
 
     /// not equal
     bool operator!=(const PeptideEvidence& rhs) const;
+
+    /// start and end numbers in evidence represent actual numeric indices
+    bool hasValidLimits() const;
 
     /// get the protein accession the peptide matches to. If not available the empty string is returned.
     const String& getProteinAccession() const;
@@ -127,4 +132,3 @@ protected:
 
 }
 
-#endif // OPENMS_METADATA_PEPTIDEEVIDENCE_H

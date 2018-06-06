@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer, Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -43,7 +42,7 @@
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/Enzyme.h>
+#include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -84,21 +83,21 @@ public:
       MzIdentMLHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Destructor
-      virtual ~MzIdentMLHandler();
+      ~MzIdentMLHandler() override;
       //@}
 
 
       // Docu in base class
-      virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+      void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+      void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh* const chars, const XMLSize_t length);
+      void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
       //Docu in base class
-      virtual void writeTo(std::ostream& os);
+      void writeTo(std::ostream& os) override;
 
 protected:
       /// Progress logger
@@ -109,7 +108,7 @@ protected:
       ///Controlled vocabulary for modifications (unimod from OpenMS/share/OpenMS/CV/unimod.obo)
       ControlledVocabulary unimod_;
 
-      //~ MSExperiment<>* ms_exp_;
+      //~ PeakMap* ms_exp_;
 
       ///XML tag parse element
       String tag_;
@@ -147,10 +146,16 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnzyme_(String& s, Enzyme enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params (fixed or variable)
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
+
+      /// Helper method that writes the FragmentAnnotations section of a spectrum identification
+      void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const;
+
+      /// Convenience method to remove the [] from OpenMS internal file uri representation
+      String trimOpenMSfileURI(const String file) const;
 
 private:
       MzIdentMLHandler();
@@ -170,4 +175,3 @@ private:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif

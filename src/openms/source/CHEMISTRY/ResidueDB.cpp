@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,10 +39,10 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
@@ -68,7 +68,7 @@ namespace OpenMS
     {
       return residue_names_.at(name);
     }
-    return 0;
+    return nullptr;
   }
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
@@ -147,6 +147,7 @@ namespace OpenMS
 
       mod_names.push_back(mod->getId());
       mod_names.push_back(mod->getFullName());
+      mod_names.push_back(mod->getFullId());
       const set<String>& mod_synonyms = mod->getSynonyms();
       for (set<String>::const_iterator it = mod_synonyms.begin(); it != mod_synonyms.end(); ++it)
       {
@@ -157,6 +158,7 @@ namespace OpenMS
       {
         for (vector<String>::const_iterator mod_it = mod_names.begin(); mod_it != mod_names.end(); ++mod_it)
         {
+          if ( mod_it->empty() || it->empty() ) continue;
           residue_mod_names_[*it][*mod_it] = r;
         }
       }
@@ -202,7 +204,7 @@ namespace OpenMS
       vector<String> split;
       param.begin().getName().split(':', split);
       String prefix = split[0] + split[1];
-      Residue* res_ptr = 0;
+      Residue* res_ptr = nullptr;
 
       Map<String, String> values;
 
@@ -415,7 +417,7 @@ namespace OpenMS
     // initialize lookup table to null pointer
     for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
     {
-      residue_by_one_letter_code_[i] = 0;
+      residue_by_one_letter_code_[i] = nullptr;
     }
 
     set<Residue*>::iterator it;
@@ -457,6 +459,7 @@ namespace OpenMS
 
   const Residue* ResidueDB::getModifiedResidue(const Residue* residue, const String& modification)
   {
+    OPENMS_PRECONDITION(!modification.empty(), "Modification cannot be empty")
     // search if the mod already exists
     String res_name = residue->getName();
 
@@ -469,6 +472,7 @@ namespace OpenMS
     // terminal mods. don't apply to residue (side chain), so don't consider them:
     const ResidueModification& mod = ModificationsDB::getInstance()->getModification(modification, residue->getOneLetterCode(), ResidueModification::ANYWHERE);
     String id = mod.getId();
+    if (id.empty()) id = mod.getFullId();
 
     if (residue_mod_names_.has(res_name) && residue_mod_names_[res_name].has(id))
     {

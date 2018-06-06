@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERITERATIVE_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERITERATIVE_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -69,7 +68,7 @@ namespace OpenMS
   @brief This class implements a peak-picking algorithm for high-resolution MS
   data (specifically designed for TOF-MS data).
 
-  This peak-picking algorithm detects ion signals in raw data and
+  This peak-picking algorithm detects ion signals in profile data and
   reconstructs the corresponding peak shape by identifying the left and right
   borders of the peak. It reports the area under the peak as intensity and the
   weighted m/z values as the m/z value as well as left/right border.
@@ -137,7 +136,7 @@ public:
       defaultsToParam_();
     }
 
-    void updateMembers_()
+    void updateMembers_() override
     {
       signal_to_noise_ = (double)param_.getValue("signal_to_noise_");
       peak_width_ = (double)param_.getValue("peak_width");
@@ -150,7 +149,7 @@ public:
     }
 
     /// Destructor
-    ~PeakPickerIterative() {}
+    ~PeakPickerIterative() override {}
 
 private:
 
@@ -165,10 +164,9 @@ private:
      * This function implements a single iteration of this algorithm.
      *
     */
-    template <typename PeakType>
-    void pickRecenterPeaks_(const MSSpectrum<PeakType>& input,
+    void pickRecenterPeaks_(const MSSpectrum& input,
                               std::vector<PeakCandidate>& PeakCandidates,
-                              SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> >& snt)
+                              SignalToNoiseEstimatorMedian<MSSpectrum>& snt)
     {
       for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {
@@ -298,8 +296,7 @@ public:
      *
      * The output are the remaining peaks.
     */
-    template <typename PeakType>
-    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
+    void pick(const MSSpectrum& input, MSSpectrum& output)
     {
       // don't pick a spectrum with less than 3 data points
       if (input.size() < 3) return;
@@ -311,11 +308,11 @@ public:
       output.setRT(input.getRT());
       output.setMSLevel(input.getMSLevel());
       output.setName(input.getName());
-      output.setType(SpectrumSettings::PEAKS);
+      output.setType(SpectrumSettings::CENTROID);
       output.getFloatDataArrays().clear();
 
       std::vector<PeakCandidate> PeakCandidates;
-      MSSpectrum<PeakType> picked_spectrum;
+      MSSpectrum picked_spectrum;
 
       // Use the PeakPickerHiRes to find candidates ...
       OpenMS::PeakPickerHiRes pp;
@@ -334,7 +331,7 @@ public:
         if (input[k].getMZ() > picked_spectrum[j].getMZ())
         {
           LOG_DEBUG << "got a value " << k << " @ " << input[k] << std::endl;
-          PeakCandidate pc = { /*.index=*/ k, /*.intensity=*/ picked_spectrum[j].getIntensity(), -1, -1, -1, -1};
+          PeakCandidate pc = { /*.index=*/ static_cast<int>(k), /*.intensity=*/ picked_spectrum[j].getIntensity(), -1, -1, -1, -1};
           newPeakCandidates_.push_back(pc);
           j++;
         }
@@ -344,7 +341,7 @@ public:
       std::sort(PeakCandidates.begin(), PeakCandidates.end(), sort_peaks_by_intensity);
 
       // signal-to-noise estimation
-      SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
+      SignalToNoiseEstimatorMedian<MSSpectrum > snt;
       if (signal_to_noise_ > 0.0)
       {
         Param snt_parameters = snt.getParameters();
@@ -384,7 +381,7 @@ public:
           }
         }
 
-        PeakType peak;
+        Peak1D peak;
         peak.setMZ(PeakCandidates[peak_it].mz);
         peak.setIntensity(PeakCandidates[peak_it].integrated_intensity);
         output.push_back(peak);
@@ -399,8 +396,7 @@ public:
       output.sortByPosition();
     }
 
-    template <typename PeakType>
-    void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
+    void pickExperiment(const PeakMap& input, PeakMap& output)
     {
       // make sure that output is clear
       output.clear(true);
@@ -436,4 +432,3 @@ public:
 
 }
 
-#endif

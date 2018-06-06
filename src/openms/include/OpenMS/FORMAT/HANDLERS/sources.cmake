@@ -6,22 +6,25 @@ set(sources_list_h
 AcqusHandler.h
 FidHandler.h
 IndexedMzMLDecoder.h
+IndexedMzMLHandler.h
 MascotXMLHandler.h
 MzDataHandler.h
+MzIdentMLDOMHandler.h
+MzIdentMLHandler.h
 MzMLHandler.h
 MzMLHandlerHelper.h
 MzMLSpectrumDecoder.h
+MzMLSqliteHandler.h
+MzMLSqliteSwathHandler.h
+MzQuantMLHandler.h
 MzXMLHandler.h
 PTMXMLHandler.h
 ParamXMLHandler.h
 ToolDescriptionHandler.h
+TraMLHandler.h
 UnimodXMLHandler.h
 XMLHandler.h
-XTandemInfileXMLHandler.h
-MzIdentMLHandler.h
-MzIdentMLDOMHandler.h
-MzQuantMLHandler.h
-TraMLHandler.h
+XQuestResultXMLHandler.h
 )
 
 ### add path to the filenames

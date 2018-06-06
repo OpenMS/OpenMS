@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,6 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <algorithm> // for "equal"
 
 using namespace std;
 
@@ -88,7 +85,7 @@ namespace OpenMS
         data.id_count++;
         data.abundances[hit.getCharge()]; // insert empty element for charge
         // add protein accessions:
-        set<String> protein_accessions = hit.extractProteinAccessions();
+        set<String> protein_accessions = hit.extractProteinAccessionsSet();
         data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
       }
     }
@@ -147,7 +144,7 @@ namespace OpenMS
            ++hit_it)
       {
         String seq = hit_it->getSequence().toUnmodifiedString();
-        set<String> accessions = hit_it->extractProteinAccessions();
+        set<String> accessions = hit_it->extractProteinAccessionsSet();
         // If a peptide is seen multiple times, the protein accessions should
         // always be the same, so only the first time it should be necessary to
         // insert them. However, just in case there a differences in the
@@ -495,7 +492,7 @@ namespace OpenMS
   void PeptideAndProteinQuant::readQuantData(ConsensusMap& consensus)
   {
     updateMembers_(); // clear data
-    stats_.n_samples = consensus.getFileDescriptions().size();
+    stats_.n_samples = consensus.getColumnHeaders().size();
 
     for (ConsensusMap::Iterator cons_it = consensus.begin();
          cons_it != consensus.end(); ++cons_it)

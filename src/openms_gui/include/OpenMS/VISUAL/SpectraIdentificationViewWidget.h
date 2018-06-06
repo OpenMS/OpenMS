@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,16 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRAIDENTIFICATIONVIEWWIDGET_H
-#define OPENMS_VISUAL_SPECTRAIDENTIFICATIONVIEWWIDGET_H
+#pragma once
 
 #include <OpenMS/VISUAL/LayerData.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <QWidget>
-#include <QtGui/QLineEdit>
-#include <QtGui/QComboBox>
-#include <QtGui/QTableWidget>
-#include <QtGui/QCheckBox>
+#include <QtWidgets>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QTableWidget>
+#include <QCheckBox>
 
 namespace OpenMS
 {
@@ -58,27 +57,31 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = 0);
+    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
-    virtual ~SpectraIdentificationViewWidget();
+    ~SpectraIdentificationViewWidget() override;
     /// Attach model
     void attachLayer(LayerData* model);
     /// Helper function to block outgoing signals
     bool ignore_update;
 
-    // access the table widget
+    /// Access the table widget
     QTableWidget* getTableWidget();
 public slots:
     /// Rebuild table entries
     void updateEntries();
 signals:
-    void spectrumSelected(int);
+    void spectrumSelected(int, int, int);
     void spectrumDeselected(int);
     void spectrumDoubleClicked(int);
     void showSpectrumAs1D(int);
     void showSpectrumMetaData(int);
     void requestVisibleArea1D(double, double);
 private:
+    void addTextItemToBottomRow_(const QString& text, Size column_index, const QColor& c);
+    void addIntItemToBottomRow_(const Int i, Size column_index, const QColor& c);
+    void addDoubleItemToBottomRow_(const double d, Size column_index, const QColor& c);
+    void addCheckboxItemToBottomRow_(bool selected,  Size column_index, const QColor& c);
     LayerData* layer_;
     QCheckBox* hide_no_identification_;
     QCheckBox* create_rows_for_commmon_metavalue_;
@@ -89,8 +92,10 @@ private slots:
     void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
     /// Export table entries as csv
     void exportEntries_();
-    /// Saves the (potentially filtered) idXML
-    void saveIdXML_();
+    /// Saves the (potentially filtered) IDs as an idXML or mzIdentML file
+    void saveIDs_();
+    /// update PeptideIdentification / PeptideHits, when data in the table changes (status of checkboxes)
+    void updateData_(QTableWidgetItem* item);
     /// Display header context menu
     void headerContextMenu_(const QPoint&);
     /// Cell clicked in table_widget
@@ -98,4 +103,3 @@ private slots:
   };
 }
 
-#endif // OPENMS_VISUAL_SPECTRAIDENTIFICATIONVIEWWIDGET_H

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -13,7 +14,7 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="Toni_20121101_GM_70_Cel_pSILAC_16h_02.raw" location="file:///">
+			<sourceFile id="sf_ru_0" name="Toni_20121101_GM_70_Cel_pSILAC_16h_02.raw" location="file://">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="380f844f478711a45fd7ffac5aabbe32b54b42b9" />
 				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW format" />
 				<cvParam cvRef="MS" accession="MS:1000768" name="Thermo nativeID format" />
@@ -155,7 +156,7 @@
 				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+020"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_2">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
@@ -211,7 +212,7 @@
 				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+020"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_3">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
@@ -267,7 +268,7 @@
 				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+020"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
 				<userParam name="parameter: pc_mz" type="xsd:string" value=":"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_4">
@@ -352,7 +353,7 @@
 				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+020"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_2">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
@@ -408,7 +409,7 @@
 				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+020"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_3">
 				<cvParam cvRef="MS" accession="MS:1001486" name="data filtering" />
@@ -464,7 +465,7 @@
 				<userParam name="parameter: algorithm:SignalToNoise:win_len" type="xsd:double" value="200"/>
 				<userParam name="parameter: algorithm:SignalToNoise:bin_count" type="xsd:integer" value="30"/>
 				<userParam name="parameter: algorithm:SignalToNoise:min_required_elements" type="xsd:integer" value="10"/>
-				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+020"/>
+				<userParam name="parameter: algorithm:SignalToNoise:noise_for_empty_window" type="xsd:double" value="1e+20"/>
 				<userParam name="parameter: pc_mz" type="xsd:string" value="800:900"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_4">
@@ -1183,7 +1184,7 @@
 						</scanWindowList>
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="832.924743652344" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1199,10 +1200,10 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
-						<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="40" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
+							<cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="40" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO"/>
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="6200">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -1220,21 +1221,9 @@
 			</spectrum>
 		</spectrumList>
 		<chromatogramList count="2" defaultDataProcessingRef="dp_sp_0">
-      <chromatogram id="TIC" index="0" defaultArrayLength="0">
-						<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
+			<chromatogram id="TIC" index="0" defaultArrayLength="0">
+				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
 					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -1242,8 +1231,6 @@
 					<product>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -1261,21 +1248,9 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-      <chromatogram id="TIC" index="1" defaultArrayLength="0">
-						<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
+			<chromatogram id="TIC" index="1" defaultArrayLength="0">
+				<cvParam cvRef="MS" accession="MS:1000235" name="total ion current chromatogram" />
 					<precursor>
-						<isolationWindow>
-							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						</isolationWindow>
-						<selectedIonList count="1">
-							<selectedIon>
-								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="0" />
-								<cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="0" unitAccession="MS:1000132" unitName="percent of base peak" unitCvRef="MS" />
-							</selectedIon>
-						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 						</activation>
@@ -1283,8 +1258,6 @@
 					<product>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 					</product>
 				<binaryDataArrayList count="2">
@@ -1302,6 +1275,35 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-    </chromatogramList>
+		</chromatogramList>
 	</run>
 </mzML>
+<indexList count="2">
+	<index name="spectrum">
+		<offset idRef="spectrum=0">37281</offset>
+		<offset idRef="spectrum=1">46298</offset>
+		<offset idRef="spectrum=2">53829</offset>
+		<offset idRef="spectrum=3">63068</offset>
+		<offset idRef="spectrum=4">72645</offset>
+		<offset idRef="spectrum=5">83181</offset>
+		<offset idRef="spectrum=6">94311</offset>
+		<offset idRef="spectrum=7">105136</offset>
+		<offset idRef="spectrum=8">114557</offset>
+		<offset idRef="spectrum=9">124746</offset>
+		<offset idRef="spectrum=10">135763</offset>
+		<offset idRef="spectrum=11">145410</offset>
+		<offset idRef="spectrum=12">155564</offset>
+		<offset idRef="spectrum=13">164442</offset>
+		<offset idRef="spectrum=14">174280</offset>
+		<offset idRef="spectrum=15">184470</offset>
+		<offset idRef="spectrum=16">194850</offset>
+		<offset idRef="spectrum=19">205502</offset>
+	</index>
+	<index name="chromatogram">
+		<offset idRef="TIC">219288</offset>
+		<offset idRef="TIC">220660</offset>
+	</index>
+</indexList>
+<indexListOffset>222066</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATOR_H
-#define OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -53,7 +52,7 @@ namespace OpenMS
     in a given interval [first_,last_).
   */
 
-  template <typename Container = MSSpectrum<> >
+  template <typename Container = MSSpectrum>
   class SignalToNoiseEstimator :
     public DefaultParamHandler, public ProgressLogger
   {
@@ -102,7 +101,7 @@ public:
     }
 
     /// Destructor
-    virtual ~SignalToNoiseEstimator()
+    ~SignalToNoiseEstimator() override
     {}
 
 
@@ -217,4 +216,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif //OPENMS_FILTERING_NOISEESTIMATION_SIGNALTONOISEESTIMATOR_H

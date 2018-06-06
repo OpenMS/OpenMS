@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -109,9 +111,9 @@ protected:
 
   double rt_gap_, rt_offset_; // parameters for RT concatenation
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
-    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML");
+    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,FASTA");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", valid_in);
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
@@ -162,7 +164,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------
@@ -243,8 +245,18 @@ protected:
     {
       ConsensusMap out;
       ConsensusXMLFile fh;
+      // load the metadata from the first file
       fh.load(file_list[0], out);
-      // skip first file
+      // but annotate the origins
+      if (annotate_file_origin)
+      {
+        for (ConsensusMap::iterator it = out.begin(); it != out.end(); ++it)
+        {
+          it->setMetaValue("file_origin", DataValue(file_list[0]));
+        }
+      }
+
+      // skip first file for adding
       for (Size i = 1; i < file_list.size(); ++i)
       {
         ConsensusMap map;
@@ -263,7 +275,7 @@ protected:
           adjustRetentionTimes_(map, trafo_out[i], i == 0);
         }
 
-        out += map;
+        out.appendRows(map);
       }
 
       //-------------------------------------------------------------
@@ -274,6 +286,42 @@ protected:
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
       fh.store(out_file, out);
+    }
+
+    else if (force_type == FileTypes::FASTA)
+    {
+      FASTAFile infile;
+      FASTAFile outfile;
+      vector <FASTAFile::FASTAEntry> entries;
+      vector <FASTAFile::FASTAEntry> temp_entries;
+      vector <FASTAFile::FASTAEntry>::iterator loopiter;
+      vector <FASTAFile::FASTAEntry>::iterator iter;
+
+      for (Size i = 0; i < file_list.size(); ++i)
+      {
+        infile.load(file_list[i], temp_entries);
+        entries.insert(entries.end(), temp_entries.begin(), temp_entries.end());
+      }
+
+      for (loopiter = entries.begin(); loopiter != entries.end(); loopiter = std::next(loopiter))
+      {
+
+        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.headerMatches(*loopiter); });
+
+        if (iter != loopiter)
+        {
+          std::cout << "Warning: Duplicate header, Number: " << std::distance(entries.begin(), loopiter) + 1 << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+        }
+
+        iter = find_if(entries.begin(), loopiter, [&loopiter](const FASTAFile::FASTAEntry& entry) { return entry.sequenceMatches(*loopiter); });
+
+        if (iter != loopiter && iter != entries.end())
+        {
+          std::cout << "Warning: Duplicate sequence, Number: " << std::distance(entries.begin(), loopiter) + 1 << ", ID: " << loopiter->identifier << " is same as Number: " << std::distance(entries.begin(), iter) << ", ID: " << iter->identifier << "\n";
+        }
+      }
+
+      outfile.store(out_file, entries);
     }
 
     else if (force_type == FileTypes::TRAML)
@@ -319,7 +367,7 @@ protected:
       // MS level
       Int ms_level = getIntOption_("raw:ms_level");
 
-      MSExperiment<> out;
+      PeakMap out;
       UInt rt_auto = 0;
       UInt native_id = 0;
       for (Size i = 0; i < file_list.size(); ++i)
@@ -328,7 +376,7 @@ protected:
 
         // load file
         force_type = file_handler.getType(file_list[i]);
-        MSExperiment<> in;
+        PeakMap in;
         file_handler.loadExperiment(filename, in, force_type, log_type_);
 
         if (in.empty() && in.getChromatograms().empty())
@@ -345,7 +393,7 @@ protected:
         }
 
         // handle special raw data options:
-        for (MSExperiment<>::iterator spec_it = in.begin();
+        for (PeakMap::iterator spec_it = in.begin();
              spec_it != in.end(); ++spec_it)
         {
           float rt_final = spec_it->getRT();
@@ -400,13 +448,13 @@ protected:
         }
 
         // add spectra to output
-        for (MSExperiment<>::const_iterator spec_it = in.begin();
+        for (PeakMap::const_iterator spec_it = in.begin();
              spec_it != in.end(); ++spec_it)
         {
           out.addSpectrum(*spec_it);
         }
         // also add the chromatograms
-        for (vector<MSChromatogram<ChromatogramPeak> >::const_iterator
+        for (vector<MSChromatogram >::const_iterator
                chrom_it = in.getChromatograms().begin(); chrom_it != 
                in.getChromatograms().end(); ++chrom_it)
         {
@@ -440,6 +488,7 @@ protected:
   }
 
 };
+
 
 int main(int argc, const char** argv)
 {

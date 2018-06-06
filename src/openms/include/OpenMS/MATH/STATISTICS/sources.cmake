@@ -5,12 +5,14 @@ set(directory include/OpenMS/MATH/STATISTICS)
 set(sources_list_h
 AsymmetricStatistics.h
 AveragePosition.h
+CumulativeBinomial.h
 BasicStatistics.h
 GammaDistributionFitter.h
 GaussFitter.h
 GumbelDistributionFitter.h
 Histogram.h
 LinearRegression.h
+LinearRegressionWithoutIntercept.h
 RegressionUtils.h
 QuadraticRegression.h
 PosteriorErrorProbabilityModel.h

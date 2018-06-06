@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -141,7 +141,7 @@ protected:
 
   String algorithm_; // algorithm for consensus calculation (input parameter)
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("idXML,featureXML,consensusXML"));
@@ -178,7 +178,7 @@ protected:
   }
 
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     Param algo_params;
     if (section == "PEPMatrix")
@@ -206,7 +206,8 @@ protected:
       ProteinIdentification::SearchParameters search_params(it_prot_ids->getSearchParameters());
       std::copy(search_params.fixed_modifications.begin(), search_params.fixed_modifications.end(), std::inserter(fixed_mods_set, fixed_mods_set.end()));
       std::copy(search_params.variable_modifications.begin(), search_params.variable_modifications.end(), std::inserter(var_mods_set, var_mods_set.end()));
-      StringList spectra_data = it_prot_ids->getPrimaryMSRunPath();
+      StringList spectra_data;
+      it_prot_ids->getPrimaryMSRunPath(spectra_data);
       std::copy(spectra_data.begin(), spectra_data.end(), std::inserter(merged_spectra_data, merged_spectra_data.end()));
     }
     ProteinIdentification::SearchParameters search_params;
@@ -272,7 +273,7 @@ protected:
   }
 
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     FileTypes::Type in_type = FileHandler::getType(in);

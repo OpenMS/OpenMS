@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,11 +41,16 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
+#include <OpenMS/KERNEL/ChromatogramTools.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
@@ -75,7 +80,7 @@ using namespace std;
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> any tool operating on the output format</td>
   </tr>
   <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzXML) </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any vendor software exporting supported formats (e.g. mzML) </td>
   </tr>
   </table>
   </CENTER>
@@ -85,6 +90,8 @@ using namespace std;
   the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
   supports traceability of analysis steps.)
 
+  For MaxQuant-flavoured mzXML the use of the advanced option '-force_MaxQuant_compatibility' is recommended.
+
   Many different format conversions are supported, and some may be more useful than others. Depending on the
   file formats involved, information can be lost during conversion, e.g. when converting featureXML to mzData.
   In such cases a warning is shown.
@@ -93,7 +100,7 @@ using namespace std;
   files. If file type determination is not possible, the input or output file type has to be given explicitly.
 
   Conversion with the same output as input format is supported. In some cases, this can be helpful to remove
-  errors from files, to update file formats to new versions, or to check whether information is lost upon
+  errors from files (e.g. the index), to update file formats to new versions, or to check whether information is lost upon
   reading or writing.
 
   Some information about the supported input types:
@@ -147,37 +154,42 @@ public:
   TOPPFileConverter() :
     TOPPBase("FileConverter", "Converts between different MS file formats.")
   {
-
   }
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file to convert.");
-    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
+    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false, true); // for TOPPAS
     String formats("mzData,mzXML,mzML,cachedMzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
     
-    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false);
+    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false, true);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
     formats = "mzData,mzXML,mzML,cachedMzML,dta2d,mgf,featureXML,consensusXML,edta,csv";
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>(formats));
-    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false, true);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
+    registerFlag_("force_MaxQuant_compatibility", "[mzXML output only] Make sure that MaxQuant can read the mzXML and set the msManufacturer to 'Thermo Scientific'.", true);
+    registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
+    registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
 
-    registerFlag_("write_mzML_index", "Add an index to the file when writing mzML files (default: no index)");
+    registerStringOption_("write_scan_index", "<toogle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
+    setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
+    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", true);
+    registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -185,11 +197,27 @@ protected:
 
     //input file names
     String in = getStringOption_("in");
-    bool write_mzML_index = getFlag_("write_mzML_index");
+    bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
+    bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
+    bool force_TPP_compatibility = getFlag_("force_TPP_compatibility");
+    bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
+    bool lossy_compression = getFlag_("lossy_compression");
+    double mass_acc = getDoubleOption_("lossy_mass_accuracy");
 
     //input file type
     FileHandler fh;
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
+
+    // prepare data structures for lossy compression
+    MSNumpressCoder::NumpressConfig npconfig_mz;
+    MSNumpressCoder::NumpressConfig npconfig_int;
+    npconfig_mz.estimate_fixed_point = true; // critical
+    npconfig_int.estimate_fixed_point = true; // critical
+    npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
+    npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
+    npconfig_mz.setCompression("linear");
+    npconfig_int.setCompression("slof");
+    npconfig_mz.linear_fp_mass_acc = mass_acc; // set the desired mass accuracy
 
     if (in_type == FileTypes::UNKNOWN)
     {
@@ -204,7 +232,7 @@ protected:
     }
 
 
-    //output file names and types
+    // output file names and types
     String out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
@@ -228,7 +256,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    typedef MSExperiment<Peak1D> MSExperimentType;
+    typedef PeakMap MSExperimentType;
     MSExperimentType exp;
 
     typedef MSExperimentType::SpectrumType SpectrumType;
@@ -289,7 +317,7 @@ protected:
       f.setLogType(log_type_);
       CachedmzML cacher;
       cacher.setLogType(log_type_);
-      MSExperiment<> tmp_exp;
+      PeakMap tmp_exp;
 
       f.load(in_meta, exp);
       cacher.readMemdump(tmp_exp, in);
@@ -309,7 +337,7 @@ protected:
           exp[i].push_back(tmp_exp[i][j]);
         }
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > old_chromatograms = exp.getChromatograms();
+      std::vector<MSChromatogram > old_chromatograms = exp.getChromatograms();
       for (Size i=0; i < tmp_exp.getChromatograms().size(); ++i)
       {
         for (Size j = 0; j < tmp_exp.getChromatograms()[i].size(); j++)
@@ -325,25 +353,37 @@ protected:
       // We can transform the complete experiment directly without first
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
-      if (in_type == FileTypes::MZML && out_type == FileTypes::MZML)
+
+      if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
       {
+        // Prepare the consumer
         PlainMSDataWritingConsumer consumer(out);
-        consumer.getOptions().setWriteIndex(write_mzML_index);
+        consumer.getOptions().setWriteIndex(write_scan_index);
+        bool skip_full_count = false;
+        // numpress compression
+        if (lossy_compression)
+        {
+          consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+          consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+          consumer.getOptions().setCompression(true);
+        }
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzMLFile mzmlfile; 
-        mzmlfile.setLogType(log_type_);
-        mzmlfile.transform(in, &consumer);
-        return EXECUTION_OK;
-      }
-      else if (in_type == FileTypes::MZXML && out_type == FileTypes::MZML)
-      {
-        PlainMSDataWritingConsumer consumer(out);
-        consumer.getOptions().setWriteIndex(write_mzML_index);
-        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzXMLFile mzxmlfile;
-        mzxmlfile.setLogType(log_type_);
-        mzxmlfile.transform(in, &consumer);
-        return EXECUTION_OK;
+
+        // for different input file type
+        if (in_type == FileTypes::MZML)
+        {
+          MzMLFile mzmlfile;
+          mzmlfile.setLogType(log_type_);
+          mzmlfile.transform(in, &consumer, skip_full_count);
+          return EXECUTION_OK;
+        }
+        else if (in_type == FileTypes::MZXML)
+        {
+          MzXMLFile mzxmlfile;
+          mzxmlfile.setLogType(log_type_);
+          mzxmlfile.transform(in, &consumer, skip_full_count);
+          return EXECUTION_OK;
+        }
       }
       else if (in_type == FileTypes::MZML && out_type == FileTypes::CACHEDMZML)
       {
@@ -353,7 +393,7 @@ protected:
 
         CachedmzML cacher;
         cacher.setLogType(log_type_);
-        MSExperiment<> exp_meta;
+        PeakMap exp_meta;
 
         MSDataCachedConsumer consumer(out);
         MzMLFile().transform(in, &consumer, exp_meta);
@@ -385,8 +425,24 @@ protected:
                                                  CONVERSION_MZML));
       MzMLFile f;
       f.setLogType(log_type_);
-      f.getOptions().setWriteIndex(write_mzML_index);
-      ChromatogramTools().convertSpectraToChromatograms(exp, true);
+      f.getOptions().setWriteIndex(write_scan_index);
+      f.getOptions().setForceTPPCompatability(force_TPP_compatibility);
+      // numpress compression
+      if (lossy_compression)
+      {
+        f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+        f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        f.getOptions().setCompression(true);
+      }
+
+      if (convert_to_chromatograms)
+      {
+        for (auto & s : exp)
+        {
+          s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+        }
+      }
+      ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::MZDATA)
@@ -406,7 +462,9 @@ protected:
                                                  CONVERSION_MZXML));
       MzXMLFile f;
       f.setLogType(log_type_);
-      ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
+      f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
+      f.getOptions().setWriteIndex(write_scan_index);
+      //ChromatogramTools().convertChromatogramsToSpectra<MSExperimentType>(exp);
       f.store(out, exp);
     }
     else if (out_type == FileTypes::DTA2D)
@@ -447,7 +505,8 @@ protected:
         if (uid_postprocessing == "ensure")
         {
           fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        } else if (uid_postprocessing == "reassign")
+        }
+        else if (uid_postprocessing == "reassign")
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
@@ -499,7 +558,8 @@ protected:
         if (uid_postprocessing == "ensure")
         {
           fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        } else if (uid_postprocessing == "reassign")
+        }
+        else if (uid_postprocessing == "reassign")
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }

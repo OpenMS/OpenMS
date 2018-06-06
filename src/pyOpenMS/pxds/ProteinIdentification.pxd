@@ -5,7 +5,7 @@ from String cimport *
 from Types cimport *
 from MetaInfoInterface cimport *
 from ProteinHit cimport *
-from Enzyme cimport *
+from DigestionEnzymeProtein cimport *
 from PeptideIdentification cimport *
 from DateTime cimport *
 
@@ -96,7 +96,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void setIdentifier(String id_) nogil except +
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
-        StringList getPrimaryMSRunPath() nogil except +
+        void getPrimaryMSRunPath(StringList& toFill) nogil except +
 
 cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::ProteinIdentification":
 
@@ -120,7 +120,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
     cdef cppclass SearchParameters(MetaInfoInterface):
         # wrap-inherits:
         #    MetaInfoInterface
-    
+
       SearchParameters()  nogil except +
       SearchParameters(SearchParameters) nogil except +
 
@@ -136,4 +136,4 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
       bool fragment_mass_tolerance_ppm
       double precursor_mass_tolerance            #< Mass tolerance of precursor ions (Dalton)
       bool precursor_mass_tolerance_ppm
-      Enzyme digestion_enzyme            #< The enzyme for cleavage
+      DigestionEnzymeProtein digestion_enzyme            #< The enzyme for cleavage

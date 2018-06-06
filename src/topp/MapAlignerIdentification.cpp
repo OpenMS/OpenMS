@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -170,10 +172,16 @@ private:
         it->fitModel(model_type, model_params);
       }
     }
+  }
+
+  template <typename DataType>
+  void applyTransformations_(vector<DataType>& data,
+    const vector<TransformationDescription>& transformations)
+  {
     for (Size i = 0; i < data.size(); ++i)
     {
-      MapAlignmentTransformer::transformRetentionTimes(data[i], 
-                                                       transformations[i]);
+      MapAlignmentTransformer::transformRetentionTimes(data[i],
+        transformations[i]);
     }
   }
 
@@ -205,7 +213,7 @@ private:
       FileTypes::Type filetype = FileHandler::getType(reference_file);
       if (filetype == FileTypes::MZML)
       {
-        MSExperiment<> experiment;
+        PeakMap experiment;
         MzMLFile().load(reference_file, experiment);
         algorithm.setReference(experiment);
       }
@@ -233,16 +241,18 @@ private:
     return Int(reference_index) - 1; // internally, we count from zero
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     String formats = "featureXML,consensusXML,idXML";
     TOPPMapAlignerBase::registerOptionsAndFlags_(formats, REF_FLEXIBLE);
-
+    // TODO: potentially move to base class so every aligner has to support design
+    registerInputFile_("design", "<file>", "", "input file containing the experimental design", false);
+    setValidFormats_("design", ListUtils::create<String>("tsv"));
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String & section) const override
   {
     if (section == "algorithm")
     {
@@ -257,7 +267,7 @@ private:
     return Param(); // this shouldn't happen
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     ExitCodes return_code = TOPPMapAlignerBase::checkParameters_();
     if (return_code != EXECUTION_OK) return return_code;
@@ -294,8 +304,81 @@ private:
       }
       loadInitialMaps_(feature_maps, input_files, fxml_file);
 
-      performAlignment_(algorithm, feature_maps, transformations,
-                        reference_index);
+      //-------------------------------------------------------------
+      // Extract (optional) fraction identifiers and associate with featureXMLs
+      //-------------------------------------------------------------
+      String design_file = getStringOption_("design");
+
+      // determine map of fractions to runs
+      map<unsigned, vector<String> > frac2files;
+
+      // TODO: check if can be put in common helper function
+      if (!design_file.empty())
+      {
+        // parse design file and determine fractions
+        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file, false);
+
+        // determine if design defines more than one fraction (note: fraction and run IDs are one-based)
+        frac2files = ed.getFractionToMSFilesMapping();
+
+        // check if all fractions have the same number of MS runs associated
+        if (!ed.sameNrOfMSFilesPerFraction())
+        {
+          writeLog_("Error: Number of runs must match for every fraction!");
+          return ILLEGAL_PARAMETERS;
+        }
+      }
+      else // no design file given
+      {
+        for (Size i = 0; i != input_files.size(); ++i)
+        {
+          // TODO: read proper MS file name from meta data
+          frac2files[1].push_back("file" + String(i)); // associate each file with fraction 1
+        }
+      }
+
+      // TODO: check and handle if featureXML order differs from run order
+
+      // perform fraction-based alignment
+      if (frac2files.size() == 1) // group one fraction
+      {
+        performAlignment_(algorithm, feature_maps, transformations,
+          reference_index);
+        applyTransformations_(feature_maps, transformations);
+      }
+      else // group multiple fractions
+      {
+        for (Size i = 1; i <= frac2files.size(); ++i)
+        {
+          vector<FeatureMap> fraction_maps;
+          vector<TransformationDescription> fraction_transformations;
+
+          size_t n_fractions = frac2files.size();
+
+          // TODO FRACTIONS: determine map index based on annotated MS files (getPrimaryMSRuns())
+          for (size_t feature_map_index = 0; 
+            feature_map_index != n_fractions; 
+            ++feature_map_index)
+          {
+            fraction_maps.push_back(feature_maps[feature_map_index]);
+          }
+          performAlignment_(algorithm, fraction_maps, fraction_transformations,
+            reference_index);
+          applyTransformations_(fraction_maps, fraction_transformations);
+
+          // copy into transformations and feature maps
+          transformations.insert(transformations.end(), fraction_transformations.begin(), fraction_transformations.end());
+
+          Size f = 0;
+          for (size_t feature_map_index = 0; 
+            feature_map_index != n_fractions; 
+            ++feature_map_index,
+            ++f)
+          {
+            feature_maps[feature_map_index].swap(fraction_maps[f]);
+          }
+        }
+      }
 
       if (!output_files.empty())
       {
@@ -314,6 +397,7 @@ private:
 
       performAlignment_(algorithm, consensus_maps, transformations,
                         reference_index);
+      applyTransformations_(consensus_maps, transformations);
 
       if (!output_files.empty())
       {
@@ -342,6 +426,7 @@ private:
 
       performAlignment_(algorithm, peptide_ids, transformations,
                         reference_index);
+      applyTransformations_(peptide_ids, transformations);
 
       if (!output_files.empty())
       {

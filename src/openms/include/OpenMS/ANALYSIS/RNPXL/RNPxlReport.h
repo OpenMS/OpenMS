@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,16 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLREPORT_H
-#define OPENMS_ANALYSIS_RNPXL_RNPXLREPORT_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 namespace OpenMS
 {
@@ -65,8 +69,8 @@ struct OPENMS_DLLAPI RNPxlReportRow
   double m_H;
   double m_2H;
   double m_3H;
-  double m_4H;
-  String fragment_annotation_string;  
+  double m_4H;  
+  int rank;
   String getString(const String& separator) const;
 
 };
@@ -85,5 +89,4 @@ struct OPENMS_DLLAPI RNPxlReport
 
 }
 
-#endif
 

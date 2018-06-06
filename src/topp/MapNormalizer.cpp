@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -90,7 +90,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
 
     //-------------------------------------------------------------
@@ -104,7 +104,7 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile f;
     f.load(in, exp);
 
@@ -116,11 +116,11 @@ protected:
     exp.updateRanges();
     double max = exp.getMaxInt() / 100.0;
 
-    for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (it->getMSLevel() < 2)
       {
-        for (MSExperiment<Peak1D>::SpectrumType::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+        for (PeakMap::SpectrumType::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
         {
           it2->setIntensity(it2->getIntensity() / max);
         }
@@ -130,19 +130,19 @@ protected:
 
     /// @todo add chromatogram support for normalization, e.g. for MRM stuff (Andreas)
     /*
-      vector<MSChromatogram<> > chroms = exp.getChromatograms();
+      vector<MSChromatogram > chroms = exp.getChromatograms();
       double sum(0);
-for (vector<MSChromatogram<> >::iterator it = chroms.begin(); it != chroms.end(); ++it)
+for (vector<MSChromatogram >::iterator it = chroms.begin(); it != chroms.end(); ++it)
 {
-  for (MSChromatogram<>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+  for (MSChromatogram::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
   {
               sum += it2->getIntensity();
           }
       }
 
-      for (vector<MSChromatogram<> >::iterator it = chroms.begin(); it != chroms.end(); ++it)
+      for (vector<MSChromatogram >::iterator it = chroms.begin(); it != chroms.end(); ++it)
       {
-          for (MSChromatogram<>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+          for (MSChromatogram::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
           {
               it2->setIntensity(it2->getIntensity() / sum * 1000000.0);
           }

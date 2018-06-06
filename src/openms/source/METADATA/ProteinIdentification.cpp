@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,6 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <sstream>
-#include <algorithm>
 #include <numeric>
 
 
@@ -82,7 +77,7 @@ namespace OpenMS
     fragment_mass_tolerance_ppm(false),
     precursor_mass_tolerance(0.0),
     precursor_mass_tolerance_ppm(false),
-    digestion_enzyme("unknown_enzyme","")
+    digestion_enzyme("unknown_enzyme", "")
   {
   }
 
@@ -250,14 +245,12 @@ namespace OpenMS
   }
 
   /// get the file path to the first MS run
-  StringList ProteinIdentification::getPrimaryMSRunPath() const
+  void ProteinIdentification::getPrimaryMSRunPath(StringList& toFill) const
   {
-    StringList ret;
     if (this->metaValueExists("spectra_data"))
     {
-      ret = this->getMetaValue("spectra_data");
+      toFill = this->getMetaValue("spectra_data");
     }
-    return ret;
   }
 
   ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
@@ -360,7 +353,7 @@ namespace OpenMS
         }
       }
     }
-    
+
     for (Size i = 0; i < protein_hits_.size(); ++i)
     {
       const Size protein_length = protein_hits_[i].getSequence().length();
@@ -369,7 +362,7 @@ namespace OpenMS
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
       }
       vector<bool> covered_amino_acids(protein_length, false);
-      
+
       const String & accession = protein_hits_[i].getAccession();
       double coverage = 0.0;
       if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
@@ -379,12 +372,22 @@ namespace OpenMS
         {
           int start = sit->getStart();
           int stop = sit->getEnd();
-          
+
           if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
           {
-            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              " PeptideEvidence does not contain start or end position. Cannot compute coverage!");
           }
-          
+
+          if (start < 0 || stop < start || stop > static_cast<int>(protein_length))
+          {
+            const String message = " PeptideEvidence (start/end) (" + String(start) + "/" + String(stop) +
+                                   " ) are invalid or point outside of protein '" + accession +
+                                   "' (length: " + String(protein_length) +
+                                   "). Cannot compute coverage!";
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
+          }
+
           std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);
         }
         coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(), covered_amino_acids.end(), 0) / protein_length;
@@ -442,5 +445,11 @@ namespace OpenMS
   {
     return search_parameters_;
   }
+
+  ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters()
+  {
+    return search_parameters_;
+  }
+
 
 } // namespace OpenMS

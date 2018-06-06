@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,12 +31,11 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <cstdlib>
+#include <OpenMS/CONCEPT/Macros.h>
+
 #include <iostream>
 
 using namespace std;
@@ -48,7 +47,7 @@ namespace OpenMS
     name_("unknown"),
     average_weight_(0.0f),
     mono_weight_(0.0f),
-    modification_(0),
+    modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -67,7 +66,7 @@ namespace OpenMS
     formula_(formula),
     average_weight_(0),
     mono_weight_(0),
-    modification_(0),
+    modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -225,21 +224,25 @@ namespace OpenMS
 
   void Residue::setThreeLetterCode(const String& three_letter_code)
   {
+    OPENMS_PRECONDITION(three_letter_code.empty() || three_letter_code.size() == 3, "Three letter code needs to be a String of size 3")
     three_letter_code_ = three_letter_code;
   }
 
   const String& Residue::getThreeLetterCode() const
   {
+    OPENMS_POSTCONDITION(three_letter_code_.empty() || three_letter_code_.size() == 3, "Three letter code needs to be a String of size 3")
     return three_letter_code_;
   }
 
   void Residue::setOneLetterCode(const String& one_letter_code)
   {
+    OPENMS_PRECONDITION(one_letter_code.empty() || one_letter_code.size() == 1, "One letter code needs to be a String of size 1")
     one_letter_code_ = one_letter_code;
   }
 
   const String& Residue::getOneLetterCode() const
   {
+    OPENMS_POSTCONDITION(one_letter_code_.empty() || one_letter_code_.size() == 1, "One letter code needs to be a String of size 1")
     return one_letter_code_;
   }
 
@@ -508,6 +511,12 @@ namespace OpenMS
     {
       mono_weight_ = mod.getMonoMass();
     }
+    // update mono_weight_ by DiffMonoMass, if MonoMass is not known, but DiffMonoMass is
+    // as in the case of XLMOD.obo modifications
+    if ( (mod.getMonoMass() == 0) && (mod.getDiffMonoMass() != 0) )
+    {
+      mono_weight_ += mod.getDiffMonoMass();
+    }
 
     bool updated_formula(false);
     if (!mod.getDiffFormula().isEmpty())
@@ -564,7 +573,7 @@ namespace OpenMS
 
   const String& Residue::getModificationName() const
   {
-    if (modification_ == 0) return String::EMPTY;
+    if (modification_ == nullptr) return String::EMPTY;
     return modification_->getId();
   }
 
@@ -625,7 +634,7 @@ namespace OpenMS
 
   bool Residue::isModified() const
   {
-    return modification_ != 0;
+    return modification_ != nullptr;
   }
 
   bool Residue::hasNeutralLoss() const

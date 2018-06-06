@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -51,8 +51,8 @@ START_TEST(ElementDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-EmpiricalFormula* e_ptr = 0;
-EmpiricalFormula* e_nullPointer = 0;
+EmpiricalFormula* e_ptr = nullptr;
+EmpiricalFormula* e_nullPointer = nullptr;
 const ElementDB * db = ElementDB::getInstance();
 
 START_SECTION(EmpiricalFormula())
@@ -265,6 +265,31 @@ START_SECTION(bool estimateFromWeightAndComp(double average_weight, double C, do
 
 END_SECTION
 
+START_SECTION(bool estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P))
+    EmpiricalFormula ef("C494H776N136O148S4");
+    EmpiricalFormula ef_approx;
+    EmpiricalFormula ef_approx_S;
+    bool return_flag;
+    // Using averagine stoichiometry, excluding sulfur.
+    return_flag = ef_approx_S.estimateFromWeightAndCompAndS(ef.getAverageWeight(), 4, 4.9384, 7.7583, 1.3577, 1.4773, 0);
+    TEST_EQUAL(4, ef_approx_S.getNumberOf(db->getElement("S")));
+
+    // Formula of methionine.
+    EmpiricalFormula ef2("C5H9N1O1S1");
+    // Using averagine stoichiometry, excluding sulfur.
+    return_flag = ef_approx_S.estimateFromWeightAndCompAndS(ef2.getAverageWeight(), 1, 4.9384, 7.7583, 1.3577, 1.4773, 0);
+    // Shouldn't need negative hydrogens for this approximation.
+    TEST_EQUAL(return_flag, true);
+    ef_approx.estimateFromWeightAndComp(ef2.getAverageWeight(), 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+    // The averagine approximation should result in 0 sulfurs.
+    TEST_EQUAL(0, ef_approx.getNumberOf(db->getElement("S")));
+    // But with the sulfur-specified averagine version, we forced it be 1
+    TEST_EQUAL(1, ef_approx_S.getNumberOf(db->getElement("S")));
+    TOLERANCE_ABSOLUTE(1);
+    TEST_REAL_SIMILAR(ef_approx.getAverageWeight(), ef_approx_S.getAverageWeight());
+
+END_SECTION
+
 START_SECTION(double getMonoWeight() const)
   EmpiricalFormula ef("C2");
   const Element* e = db->getElement("C");
@@ -323,12 +348,12 @@ END_SECTION
 
 START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   EmpiricalFormula ef("C");
-  IsotopeDistribution iso = ef.getIsotopeDistribution(20);
+  IsotopeDistribution iso = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(20));
   double result[] = { 0.9893, 0.0107};
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result[i])
   }
 END_SECTION
 
@@ -344,7 +369,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result[i])
   }
 
   precursor_isotopes.clear();
@@ -355,7 +380,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result2[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result2[i])
   }
 
   precursor_isotopes.insert(0);
@@ -365,7 +390,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result3[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result3[i])
   }
 
   precursor_isotopes.insert(2);
@@ -378,7 +403,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result4[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result4[i])
   }
 
   precursor_isotopes.insert(3);
@@ -389,7 +414,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result4[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result4[i])
   }
 
   precursor = EmpiricalFormula("C10H10N10O10S2");
@@ -403,19 +428,19 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   IsotopeDistribution small_iso = small_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
 
   // When we isolate only the M+1 precursor isotope, the big_fragment is more likely to exist as M+1 than M0.
-  TEST_EQUAL(big_iso.getContainer()[0].second < 0.2, true)
-  TEST_EQUAL(big_iso.getContainer()[1].second > 0.8, true)
+  TEST_EQUAL(big_iso.getContainer()[0].getIntensity() < 0.2, true)
+  TEST_EQUAL(big_iso.getContainer()[1].getIntensity() > 0.8, true)
 
   // The small_fragment, however, is more likely to exist as M0 than M+1.
-  TEST_EQUAL(small_iso.getContainer()[0].second > 0.8, true)
-  TEST_EQUAL(small_iso.getContainer()[1].second < 0.2, true)
+  TEST_EQUAL(small_iso.getContainer()[0].getIntensity() > 0.8, true)
+  TEST_EQUAL(small_iso.getContainer()[1].getIntensity() < 0.2, true)
 
   // Since the two fragments also happen to be complementary, their probabilities are perfectly reversed.
   IsotopeDistribution::ConstIterator big_it = big_iso.begin();
   IsotopeDistribution::ConstReverseIterator small_it = small_iso.rbegin();
   for (; big_it != big_iso.end(); ++big_it, ++small_it)
   {
-    TEST_REAL_SIMILAR(big_it->second, small_it->second)
+    TEST_REAL_SIMILAR(big_it->getIntensity(), small_it->getIntensity())
   }
 
 END_SECTION

@@ -1,24 +1,6 @@
 ### the directory name
 set(directory include/OpenMS/FORMAT/OPTIONS)
 
-### list all MOC filenames of the directory here
-set(sources_list
-)
-
-### add path to the filenames
-set(sources)
-foreach(i ${sources_list})
-  list(APPEND sources ${directory}/${i})
-endforeach(i)
-
-### Apply MOC compiler
-QT4_WRAP_CPP(mocced_sources ${sources} OPTIONS ${BOOST_MOC_ARGS})
-
-### pass source file list to the upper instance
-set(OpenMS_sources ${OpenMS_sources} ${mocced_sources})
-
-source_group("Source Files\\OpenMS\\FORMAT\\OPTIONS" FILES ${mocced_sources})
-
 ### list all header files of the directory here
 set(sources_list_h
 FeatureFileOptions.h

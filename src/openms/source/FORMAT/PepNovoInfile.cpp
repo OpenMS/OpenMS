@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,19 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PepNovoInfile.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/PTMXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <algorithm>
-#include <set>
 #include <fstream>
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 
@@ -132,11 +123,11 @@ namespace OpenMS
     }
 
     //cout<<"origin: "<<origin<<"    loc: "<<locations<<endl;
-    if (origin == "C-term")
+    if ((ts == ResidueModification::C_TERM) && (origin == "X"))
     {
       origin = "C_TERM";
     }
-    else if (origin == "N-term")
+    else if ((ts == ResidueModification::N_TERM) && (origin == "X"))
     {
       origin = "N_TERM";
     }

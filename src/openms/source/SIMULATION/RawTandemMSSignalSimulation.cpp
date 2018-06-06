@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,9 +36,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorSet.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -166,7 +163,7 @@ namespace OpenMS
       // sample MS2 spectra for each feature
       AASequence seq = features[i_f].getPeptideIdentifications()[0].getHits()[0].getSequence();
       //TODO: work around RichPeak1D restriction
-      RichPeakSpectrum tmp_spec;
+      PeakSpectrum tmp_spec;
       Int prec_charge = features[i_f].getCharge();
 
       if (tandem_mode && svm_model_charges.count(prec_charge))
@@ -175,7 +172,7 @@ namespace OpenMS
       }
       else
       {
-        simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+        simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
       }
       for (Size peak = 0; peak < tmp_spec.size(); ++peak)
       {
@@ -349,7 +346,7 @@ namespace OpenMS
       {
         double prec_intens = ms2[i].getPrecursors()[id].getIntensity();
         AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
-        RichPeakSpectrum tmp_spec;
+        PeakSpectrum tmp_spec;
 
         Int prec_charge = features[ids[id]].getCharge();
 
@@ -359,7 +356,7 @@ namespace OpenMS
         }
         else
         {
-          simple_generator.getSpectrum(tmp_spec, seq, prec_charge);
+          simple_generator.getSpectrum(tmp_spec, seq, 1, prec_charge);
         }
 
         // scale intensity and copy 

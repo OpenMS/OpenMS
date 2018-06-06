@@ -3,7 +3,6 @@ DartConfiguration.tcl
 /*.cmake
 Testing
 CMakeCache.txt
-contrib
 CMakeFiles
 Makefile
 lib
@@ -11,9 +10,16 @@ bin
 build
 *.user
 *.pyc
+*.DS_Store
 moc_*.cxx*
 .idea
 OpenMS.config
 OpenMS.creator
 OpenMS.files
 OpenMS.includes
+.DS_Store
+src/.DS_Store
+src/openms/.DS_Store
+.vscode
+contrib-build
+openms-build

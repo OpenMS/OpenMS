@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLDOMHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZIDENTMLDOMHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -44,6 +43,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/METADATA/CVTermList.h>
 
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -146,12 +146,14 @@ protected:
       void parseAnalysisSoftwareList_(xercesc::DOMNodeList* analysisSoftwareElements);
       void parseDBSequenceElements_(xercesc::DOMNodeList* dbSequenceElements);
       void parsePeptideElements_(xercesc::DOMNodeList* peptideElements);
-      AASequence parsePeptideSiblings_(xercesc::DOMNodeList* peptideSiblings);
+      //AASequence parsePeptideSiblings_(xercesc::DOMNodeList* peptideSiblings);
+      AASequence parsePeptideSiblings_(xercesc::DOMElement* peptide);
       void parsePeptideEvidenceElements_(xercesc::DOMNodeList* peptideEvidenceElements);
       void parseSpectrumIdentificationElements_(xercesc::DOMNodeList* spectrumIdentificationElements);
       void parseSpectrumIdentificationProtocolElements_(xercesc::DOMNodeList* spectrumIdentificationProtocolElements);
       void parseInputElements_(xercesc::DOMNodeList* inputElements);
       void parseSpectrumIdentificationListElements_(xercesc::DOMNodeList* spectrumIdentificationListElements);
+      void parseSpectrumIdentificationItemSetXLMS(std::set<String>::const_iterator set_it, std::multimap<String, int> xl_val_map, xercesc::DOMElement* element_res, String spectrumID);
       void parseSpectrumIdentificationItemElement_(xercesc::DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref);
       void parseProteinDetectionHypothesisElement_(xercesc::DOMElement* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
@@ -272,8 +274,16 @@ private:
 
       std::list<std::list<String> > hit_pev_; //writing help only
 
+      bool xl_ms_search_; //is true when reading a file containing Cross-Linking MS search results
+      std::map<String, String> xl_id_donor_map_; //mapping Peptide id -> cross-link donor value
+      //std::map<String, String> xl_id_acceptor_map_; //mapping Peptide id -> cross-link acceptor value
+      std::map<String, String> xl_id_acceptor_map_; //mapping  peptide id of acceptor peptide -> cross-link acceptor value
+      std::map<String, SignedSize> xl_donor_pos_map_; //mapping donor value -> cross-link modification location
+      std::map<String, SignedSize> xl_acceptor_pos_map_; //mapping acceptor value -> cross-link modification location
+      std::map<String, double> xl_mass_map_; //mapping Peptide id -> cross-link mass
+      std::map<String, String> xl_mod_map_; //mapping peptide id -> cross-linking reagent name
+
     };
   } // namespace Internal
 } // namespace OpenMS
 
-#endif

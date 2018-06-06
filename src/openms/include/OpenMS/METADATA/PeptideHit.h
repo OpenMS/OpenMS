@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PEPTIDEHIT_H
-#define OPENMS_METADATA_PEPTIDEHIT_H
+#pragma once
 
 #include <vector>
 
@@ -55,6 +54,88 @@ namespace OpenMS
   class OPENMS_DLLAPI PeptideHit :
     public MetaInfoInterface
   {
+public:
+
+    /**
+   * @brief Contains annotations of a peak
+
+      The mz and intensity values contain the same information as a spectrum
+      would have about the peaks, and can be used to map the additional
+      information to the correct peak or reconstruct the annotated spectrum.
+      Additionally the charge of the peak and an arbitrary string annotation
+      can be stored.
+
+      The string annotation can be e.g. a fragment type like "y3".
+      This information can be used e.g. to label peaks in TOPPView.
+
+      The specific application in OpenProXL uses a more complex syntax to
+      define the larger number of different ion types found in XL-MS data.
+
+      In the example "[alpha|ci$y3-H2O-NH3]" "alpha" or "beta" determines on
+      which of the two peptides the fragmentation occurred, "ci" or "xi"
+      determines whether the cross-link and with it the other peptide is
+      contained in the fragment, and the last part is the ion type with the
+      fragmentation position (index) and losses.  The separators "|" and "$"
+      are used to separate the parts easily when parsing the annotation.
+
+   */
+  struct PeakAnnotation
+  {
+    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
+    int charge;
+    double mz;
+    double intensity;
+
+    bool operator<(const PeptideHit::PeakAnnotation& other) const
+    {
+      // sensible to sort first by m/z and charge
+      if (mz < other.mz)
+      {
+        return true;
+      }
+      else if (mz > other.mz)
+      {
+        return false;
+      }
+
+      if (charge < other.charge)
+      {
+        return true;
+      }
+      else if (charge > other.charge)
+      {
+        return false;
+      }
+
+      if (annotation < other.annotation)
+      {
+        return true;
+      }
+      else if (annotation > other.annotation)
+      {
+        return false;
+      }
+
+      if (intensity < other.intensity)
+      {
+        return true;
+      }
+      else if (intensity > other.intensity)
+      {
+        return false;
+      }
+
+      return false;
+    }
+
+    bool operator==(const PeptideHit::PeakAnnotation& other) const
+    {
+      if (charge != other.charge || mz != other.mz || 
+          intensity != other.intensity || annotation != other.annotation) return false;
+      return true;
+    }
+};
+
 public:
 
     /// @name Comparators for PeptideHit and ProteinHit
@@ -209,10 +290,17 @@ public:
 
     /// sets the PSM rank
     void setRank(UInt newrank);
+
+    /// returns the fragment annotations
+    std::vector<PeptideHit::PeakAnnotation> getPeakAnnotations() const;
+
+    /// sets the fragment annotations
+    void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
+
     //@}
 
     /// extracts the set of non-empty protein accessions from peptide evidences
-    std::set<String> extractProteinAccessions() const;
+    std::set<String> extractProteinAccessionsSet() const;
 
 protected:
     AASequence sequence_;
@@ -231,8 +319,10 @@ protected:
 
     /// information on the potential peptides observed through this PSM.
     std::vector<PeptideEvidence> peptide_evidences_;
+
+    /// annotations of fragments in the corresponding spectrum
+    std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_PEPTIDEHIT_H

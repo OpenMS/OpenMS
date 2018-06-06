@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input profile data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -88,12 +88,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return FFSH().getDefaults();
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -107,7 +107,7 @@ protected:
     //-------------------------------------------------------------
     MzMLFile mzMLFile;
     mzMLFile.setLogType(log_type_);
-    MSExperiment<Peak1D> input;
+    PeakMap input;
     mzMLFile.getOptions().addMSLevel(1);
     mzMLFile.load(in, input);
 
@@ -152,7 +152,9 @@ protected:
     {
       output[i].ensureUniqueId();
     }
-    output.setPrimaryMSRunPath(input.getPrimaryMSRunPath());
+    StringList ms_runs;
+    input.getPrimaryMSRunPath(ms_runs);
+    output.setPrimaryMSRunPath(ms_runs);
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;

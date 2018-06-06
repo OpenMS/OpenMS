@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,12 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
-
-#include <sstream>
-#include <iostream>
 
 using namespace std;
 
@@ -102,7 +96,7 @@ namespace OpenMS
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
-           && hits_ == rhs.getHits()
+           && hits_ == rhs.hits_
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
@@ -295,7 +289,7 @@ namespace OpenMS
     std::vector<PeptideHit> filtered;
     for (std::vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
     {
-      set<String> hit_accessions = h_it->extractProteinAccessions();
+      set<String> hit_accessions = h_it->extractProteinAccessionsSet();
       set<String> intersect;
       set_intersection(hit_accessions.begin(), hit_accessions.end(), accession.begin(), accession.end(), std::inserter(intersect, intersect.begin()));
       if (!intersect.empty())
@@ -305,27 +299,5 @@ namespace OpenMS
     }
     return filtered;
   }
-
-  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
-  const DataValue& PeptideIdentification::getMetaValue(const String& name) const
-  {
-    if (name == "RT" || name == "MZ")
-    { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
-      std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
-      exit(1);
-    }
-    return MetaInfoInterface::getMetaValue(name);
-  }
-
-  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
-  void PeptideIdentification::setMetaValue(const String& name, const DataValue& value)
-  {
-    if (name == "RT" || name == "MZ")
-    { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
-      std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
-      exit(1);
-    }
-    MetaInfoInterface::setMetaValue(name, value);
-  }
-
+  
 } // namespace OpenMS

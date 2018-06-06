@@ -7,9 +7,7 @@ from InterfaceDataStructures cimport *
 
 cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass OnDiscMSExperiment[PeakT, ChromoPeakT](ExperimentalSettings):
-        # wrap-instances:
-        #   OnDiscMSExperiment := OnDiscMSExperiment[Peak1D, ChromatogramPeak]
+    cdef cppclass OnDiscMSExperiment(ExperimentalSettings):
 
         OnDiscMSExperiment() nogil except +
         OnDiscMSExperiment(OnDiscMSExperiment &) nogil except +
@@ -19,9 +17,10 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         Size getNrChromatograms() nogil except +
 
         shared_ptr[const ExperimentalSettings] getExperimentalSettings() nogil except +
+        shared_ptr[MSExperiment] getMetaData() nogil except +
 
-        MSSpectrum[PeakT] getSpectrum(Size id) nogil except +
-        MSChromatogram[ChromoPeakT] getChromatogram(Size id) nogil except +
+        MSSpectrum getSpectrum(Size id) nogil except +
+        MSChromatogram getChromatogram(Size id) nogil except +
 
         # TODO decide for 1.12 whether to include those ... 
         shared_ptr[Spectrum] getSpectrumById(int id_) nogil except +

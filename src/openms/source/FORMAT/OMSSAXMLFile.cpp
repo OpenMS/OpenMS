@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ namespace OpenMS
   OMSSAXMLFile::OMSSAXMLFile() :
     XMLHandler("", 1.1),
     XMLFile(),
-    peptide_identifications_(0)
+    peptide_identifications_(nullptr)
   {
     readMappingFile_();
   }
@@ -86,7 +86,7 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
         {
-          set<String> hit_accessions = pit->extractProteinAccessions();
+          set<String> hit_accessions = pit->extractProteinAccessionsSet();
           accessions.insert(hit_accessions.begin(), hit_accessions.end());
         }
       }
@@ -327,14 +327,14 @@ namespace OpenMS
     }
 
     // modifications
-    //<MSHits_mods>
+    ///<MSHits_mods>
     // <MSModHit>
     //  <MSModHit_site>4</MSModHit_site>
     //  <MSModHit_modtype>
     //   <MSMod>2</MSMod>
     //  </MSModHit_modtype>
     // </MSModHit>
-    //</MSHits_mods>
+    ///</MSHits_mods>
 
 
     if (tag_ == "MSHits_mods")

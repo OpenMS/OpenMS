@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -118,9 +117,9 @@ namespace OpenMS
 
   // lists of peptide hits in "maps" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    MSExperiment<>& experiment, SeqToList& rt_data)
+    PeakMap& experiment, SeqToList& rt_data)
   {
-    for (MSExperiment<>::Iterator exp_it = experiment.begin();
+    for (PeakMap::Iterator exp_it = experiment.begin();
          exp_it != experiment.end(); ++exp_it)
     {
       getRetentionTimes_(exp_it->getPeptideIdentifications(), rt_data);
@@ -258,7 +257,9 @@ namespace OpenMS
         {
           if (abs(med_it->second - pos->second) <= max_rt_shift)
           { // found, and satisfies "max_rt_shift" condition!
-            data.push_back(make_pair(med_it->second, pos->second));
+            TransformationDescription::DataPoint point(med_it->second,
+                                                       pos->second, pos->first);
+            data.push_back(point);
           }
           else
           {

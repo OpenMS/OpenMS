@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SPECTRUMLOOKUP_H
-#define OPENMS_METADATA_SPECTRUMLOOKUP_H
+#pragma once
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -111,7 +110,7 @@ namespace OpenMS
       setScanRegExp_(scan_regexp);
       for (Size i = 0; i < n_spectra_; ++i)
       {
-        const MSSpectrum<>& spectrum = spectra[i];
+        const MSSpectrum& spectrum = spectra[i];
         String native_id = spectrum.getNativeID();
         Int scan_no = -1;
         if (!scan_regexp.empty())
@@ -213,6 +212,9 @@ namespace OpenMS
                                  const boost::regex& scan_regexp,
                                  bool no_error = false);
 
+    static Int extractScanNumber(const String& native_id,
+                                 const String& native_id_type_accession);
+
   protected:
 
     /// Named groups recognized in regular expression
@@ -272,4 +274,3 @@ namespace OpenMS
 
 } //namespace OpenMS
 
-#endif // OPENMS_METADATA_SPECTRUMLOOKUP_H

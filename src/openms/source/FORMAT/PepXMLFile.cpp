@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,17 +37,9 @@
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/EnzymesDB.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h> // for "primary_scan_regex"
-#include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
+
 #include <fstream>
-#include <iostream>
-#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -57,9 +49,9 @@ namespace OpenMS
   PepXMLFile::PepXMLFile() :
     XMLHandler("", "1.12"),
     XMLFile("/SCHEMAS/pepXML_v114.xsd", "1.14"),
-    proteins_(NULL),
-    peptides_(NULL),
-    lookup_(NULL),
+    proteins_(nullptr),
+    peptides_(nullptr),
+    lookup_(nullptr),
     scan_map_(),
     analysis_summary_(false),
     keep_native_name_(false),
@@ -119,7 +111,7 @@ namespace OpenMS
       base_name = File::removeExtension(File::basename(mz_file));
       raw_data = FileTypes::typeToName(FileHandler().getTypeByFileName(mz_file));
 
-      MSExperiment<> experiment;
+      PeakMap experiment;
       FileHandler fh;
       fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
       lookup.readSpectra(experiment.getSpectra());
@@ -514,7 +506,7 @@ namespace OpenMS
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
-              if (it->metaValueExists("nextscore"))
+              if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
               }
@@ -523,11 +515,11 @@ namespace OpenMS
                 f << h.getScore() << "\"" << "/>\n";
               }
             }
-            else if (it->metaValueExists("XTandem_score"))
+            else if (h.metaValueExists("XTandem_score"))
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
-              if (it->metaValueExists("nextscore"))
+              if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
               }
@@ -537,6 +529,15 @@ namespace OpenMS
               }
             }
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("E-Value") << "\"" << "/>\n";
+          }
+          else if (search_engine_name == "Comet")
+          {
+            f << "\t\t\t<search_score" << " name=\"xcorr\" value=\"" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
+            f << "\t\t\t<search_score" << " name=\"deltacn\" value=\"" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
+            f << "\t\t\t<search_score" << " name=\"deltacnstar\" value=\"" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
+            f << "\t\t\t<search_score" << " name=\"spscore\" value=\"" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
+            f << "\t\t\t<search_score" << " name=\"sprank\" value=\"" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
+            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
           }
           else if (search_engine_name == "MASCOT")
           {
@@ -567,15 +568,15 @@ namespace OpenMS
           else
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
-
-            if ( it->getScoreType() == "Posterior Error Probability")
-            {
-              double probability = 1.0 - h.getScore();
-              f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
-              f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
-              f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
-              f << "\t\t\t</analysis_result>" << "\n";
-            }
+          }
+          if (it->getScoreType() == "Posterior Error Probability")
+          {
+            f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
+            double probability = 1.0 - h.getScore();
+            f << "\t\t\t<analysis_result" << " analysis=\"peptideprophet\">\n";
+            f << "\t\t\t\t<peptideprophet_result" << " probability=\"" << probability << "\"";
+            f << " all_ntt_prob=\"(0.0000,0.0000," << probability << ")\"/>\n";
+            f << "\t\t\t</analysis_result>" << "\n";
           }
         }
         f << "\t\t</search_hit>" << "\n";
@@ -614,7 +615,7 @@ namespace OpenMS
 
     if (!rt_present) // get RT from experiment
     {
-      if (lookup_ == NULL || lookup_->empty())
+      if (lookup_ == nullptr || lookup_->empty())
       {
         // no lookup given, report non-fatal error
         error(LOAD, "Cannot get RT information - no spectra given");
@@ -707,9 +708,9 @@ namespace OpenMS
     exp_name_.clear();
     prot_id_.clear();
     date_.clear();
-    proteins_ = NULL;
-    peptides_ = NULL;
-    lookup_ = NULL;
+    proteins_ = nullptr;
+    peptides_ = nullptr;
+    lookup_ = nullptr;
     scan_map_.clear();
   }
 
@@ -891,6 +892,11 @@ namespace OpenMS
           {
             value = attributeAsDouble_(attributes, "value");
             peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+          }
+          else if (name == "deltacnstar")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
           }
         }
       }
@@ -1292,7 +1298,7 @@ namespace OpenMS
       fixed_modifications_.clear();
       variable_modifications_.clear();
       params_ = ProteinIdentification::SearchParameters();
-      params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+      params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       String mass_type = attributeAsString_(attributes, "precursor_mass_type");
       if (mass_type == "monoisotopic")
       {
@@ -1350,20 +1356,18 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
-      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_.toLower()))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_);
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
       }
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
+      ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
       enzyme_ = attributeAsString_(attributes, "enzyme");
-      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
-      if (EnzymesDB::getInstance()->hasEnzyme(enzyme_))
+      if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
-        params_.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_.toLower());
+        params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
       }
 
       int mc = attributeAsInt_(attributes, "max_num_internal_cleavages");
@@ -1458,7 +1462,7 @@ namespace OpenMS
       {
         const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
 
-        if (residue == 0)
+        if (residue == nullptr)
         {
           double new_mass = it->massdiff.toDouble();
           if (it->aminoacid == "" && it->terminus =="n")

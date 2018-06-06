@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,8 +41,8 @@
 
 #include "OpenSwathTestHelper.h"
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
@@ -50,12 +50,12 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 ///////////////////////////
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 
 ///////////////////////////
 
@@ -67,8 +67,8 @@ START_TEST(MRMScoring, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-OpenSwath::MRMScoring* ptr = 0;
-OpenSwath::MRMScoring* nullPointer = 0;
+OpenSwath::MRMScoring* ptr = nullptr;
+OpenSwath::MRMScoring* nullPointer = nullptr;
 
 START_SECTION(MRMScoring())
 {
@@ -138,13 +138,12 @@ END_SECTION
 // dia_isotope_scores
 // dia_massdiff_score
 // dia_by_ion_score
-// set_dia_parameters
 START_SECTION((virtual void test_dia_scores()))
 {
   OpenSWATH_Test::MRMTransitionGroupType transition_group;
   transition_group = OpenSWATH_Test::createMockTransitionGroup();
 
-  MSExperiment<Peak1D> swath_map;
+  PeakMap swath_map;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), swath_map);
 
   MRMFeature mrmfeature = OpenSWATH_Test::createMockFeature();
@@ -152,11 +151,11 @@ START_SECTION((virtual void test_dia_scores()))
   int by_charge_state = 1;
 
   // find spectrum that is closest to the apex of the peak (set to 3120) using binary search
-  MSSpectrum<Peak1D> OpenMSspectrum = (*swath_map.RTBegin( 3120 ));
+  MSSpectrum OpenMSspectrum = (*swath_map.RTBegin( 3120 ));
 
   OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-  for(MSSpectrum<>::iterator it = OpenMSspectrum.begin(); it != OpenMSspectrum.end(); it++)
+  for(MSSpectrum::iterator it = OpenMSspectrum.begin(); it != OpenMSspectrum.end(); it++)
   {
     mz_array->data.push_back(it->getMZ());
     intensity_array->data.push_back(it->getIntensity());
@@ -167,7 +166,16 @@ START_SECTION((virtual void test_dia_scores()))
 
   OpenSwath::MRMScoring mrmscore;
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity -- because our peptide does not match with the testdata :-)
+  // diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity -- because our peptide does not match with the testdata :-)
+  Param p_dia = diascoring.getDefaults();
+  p_dia.setValue("dia_extraction_window", 0.05);
+  p_dia.setValue("dia_extraction_unit", "Th");
+  p_dia.setValue("dia_centroided", "false");
+  p_dia.setValue("dia_byseries_intensity_min", 30.0);
+  p_dia.setValue("dia_byseries_ppm_diff", 50.0);
+  p_dia.setValue("dia_nr_isotopes", 4);
+  p_dia.setValue("dia_nr_charges", 4);
+  diascoring.setParameters(p_dia);
 
   // calculate the normalized library intensity (expected value of the intensities)
   // Numpy

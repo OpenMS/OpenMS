@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,10 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-
-#include <vector>
-#include <map>
 
 using std::vector;
 using std::map;
@@ -50,14 +46,14 @@ namespace OpenMS
     // set terminal modifications for modifications without amino acid preference
     for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
     {
-      if (fixed_it->getOrigin() == "N-term")
+      if (fixed_it->getTermSpecificity() == ResidueModification::N_TERM)
       {
         if (!peptide.hasNTerminalModification())
         {
           peptide.setNTerminalModification(fixed_it->getFullName());
         }
       }
-      else if (fixed_it->getOrigin() == "C-term")
+      else if (fixed_it->getTermSpecificity() == ResidueModification::C_TERM)
       {
         if (!peptide.hasCTerminalModification())
         {
@@ -79,7 +75,7 @@ namespace OpenMS
       for (vector<ResidueModification>::const_iterator fixed_it = fixed_mods_begin; fixed_it != fixed_mods_end; ++fixed_it)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode() != fixed_it->getOrigin())
+        if (residue_it->getOneLetterCode()[0] != fixed_it->getOrigin())
         {
           continue;
         }
@@ -142,14 +138,14 @@ namespace OpenMS
     // set terminal modifications for modifications without amino acid preference
     for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
     {
-      if (variable_it->getOrigin() == "N-term")
+      if (variable_it->getTermSpecificity() == ResidueModification::N_TERM)
       {
         if (!peptide.hasNTerminalModification())
         {
           map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
         }
       }
-      else if (variable_it->getOrigin() == "C-term")
+      else if (variable_it->getTermSpecificity() == ResidueModification::C_TERM)
       {
         if (!peptide.hasCTerminalModification())
         {
@@ -172,7 +168,7 @@ namespace OpenMS
       for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode() != variable_it->getOrigin())
+        if (residue_it->getOneLetterCode()[0] != variable_it->getOrigin())
         {
           continue;
         }
@@ -245,8 +241,7 @@ namespace OpenMS
 
         // now enumerate all modifications
         recurseAndGenerateVariableModifiedPeptides_(subset_indices, map_compatibility, 0, peptide, modified_peptides);
-      }
-      while (next_permutation(subset_mask.begin(), subset_mask.end()));
+      } while (next_permutation(subset_mask.begin(), subset_mask.end()));
     }
     // add modified version of the current peptide to the list of all peptides
     all_modified_peptides.insert(all_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
@@ -319,7 +314,7 @@ namespace OpenMS
       for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
       {
         // check if amino acid match between modification and current residue
-        if (residue_it->getOneLetterCode() != variable_it->getOrigin())
+        if (residue_it->getOneLetterCode()[0] != variable_it->getOrigin())
         {
           continue;
         }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#pragma once
 
-#ifndef OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-#define OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
@@ -73,9 +72,9 @@ namespace OpenMS
     /// helper class, describing a lock mass
     struct LockMass
     {
-      double mz; //< m/z of the lock mass (incl. adducts)
-      unsigned int ms_level;   //< MS level where it occurs
-      int charge;     //< charge of the ion (to find isotopes)
+      double mz; ///< m/z of the lock mass (incl. adducts)
+      unsigned int ms_level;   ///< MS level where it occurs
+      int charge;     ///< charge of the ion (to find isotopes)
 
       LockMass(double mz_, int lvl_, int charge_)
         : mz(mz_),
@@ -108,7 +107,7 @@ namespace OpenMS
       @return Number of calibration masses found
 
     */
-    Size fillCalibrants(const MSExperiment<> exp,
+    Size fillCalibrants(const PeakMap exp,
                         const std::vector<InternalCalibration::LockMass>& ref_masses,
                         double tol_ppm,
                         bool lock_require_mono,
@@ -190,7 +189,7 @@ namespace OpenMS
       @return true upon successful calibration
 
     */
-    bool calibrate(MSExperiment<>& exp, 
+    bool calibrate(PeakMap& exp, 
                    const IntList& target_mslvl,
                    MZTrafoModel::MODELTYPE model_type,
                    double rt_chunk,
@@ -222,7 +221,7 @@ namespace OpenMS
       @param target_mslvl List (can be unsorted) of MS levels to calibrate
       @param trafo The calibration function to apply
     */
-    static void applyTransformation(MSExperiment<>::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo);
+    static void applyTransformation(PeakMap::SpectrumType& spec, const IntList& target_mslvl, const MZTrafoModel& trafo);
 
     /*
       @brief Transform spectra from a whole map (data+precursor)
@@ -241,7 +240,7 @@ namespace OpenMS
       @param target_mslvl List (can be unsorted) of MS levels to calibrate
       @param trafo The calibration function to apply
     */
-    static void applyTransformation(MSExperiment<>& exp, const IntList& target_mslvl, const MZTrafoModel& trafo);
+    static void applyTransformation(PeakMap& exp, const IntList& target_mslvl, const MZTrafoModel& trafo);
   
   protected:
     /**
@@ -266,7 +265,7 @@ namespace OpenMS
 
      This method is not exposed as public, because its easy to be misused on spectra while forgetting about the precursors of high-level spectra.
     */
-    static void applyTransformation_(MSExperiment<>::SpectrumType& spec, const MZTrafoModel& trafo);
+    static void applyTransformation_(PeakMap::SpectrumType& spec, const MZTrafoModel& trafo);
 
   private:
     CalibrationData cal_data_;
@@ -276,4 +275,3 @@ namespace OpenMS
   
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H

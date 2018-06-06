@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,8 +70,8 @@ START_TEST(IDMapper, "$Id$")
 
 using namespace std;
 
-IDMapper* ptr = 0;
-IDMapper* nullPointer = 0;
+IDMapper* ptr = nullptr;
+IDMapper* nullPointer = nullptr;
 START_SECTION((IDMapper()))
   ptr = new IDMapper();
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -126,8 +126,8 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   fm.setProteinIdentifications(prids);
 
   // create experiment
-  MSExperiment<> experiment;
-  MSSpectrum<> spectrum;
+  PeakMap experiment;
+  MSSpectrum spectrum;
   Precursor precursor;
   precursor.setMZ(0);
   spectrum.setRT(8.9);
@@ -195,8 +195,8 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>
   TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
 
   // create experiment
-  MSExperiment<> experiment;
-  MSSpectrum<> spectrum;
+  PeakMap experiment;
+  MSSpectrum spectrum;
   Precursor precursor;
   precursor.setMZ(0);
   spectrum.setRT(60);
@@ -506,8 +506,8 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 
   TOLERANCE_ABSOLUTE(0.01);
 
-  MSExperiment<> experiment;
-  MSSpectrum<> spectrum;
+  PeakMap experiment;
+  MSSpectrum spectrum;
 
   // match exactly to the first 10 consensusXML centroids 
   double mzs[10] = { 426.849, 405.85, 506.815, 484.83, 496.244, 430.212, 446.081, 453.233, 400.172, 437.227 }; 

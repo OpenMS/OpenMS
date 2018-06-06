@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,7 @@
 
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 using namespace OpenMS;
@@ -50,7 +50,6 @@ typedef OpenSwath::LightTransition TransitionType;
 OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType getData()
 {
   OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType map;
-  MRMTransitionGroup< MSSpectrum <ChromatogramPeak>,  OpenSwath::LightTransition> trgr;
   return map;
 }
 
@@ -99,8 +98,8 @@ START_TEST(SwathMapMassCorrection, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SwathMapMassCorrection* ptr = 0;
-SwathMapMassCorrection* nullPointer = 0;
+SwathMapMassCorrection* ptr = nullptr;
+SwathMapMassCorrection* nullPointer = nullptr;
 
 START_SECTION(SwathMapMassCorrection())
   ptr = new SwathMapMassCorrection;
@@ -111,7 +110,7 @@ START_SECTION(virtual ~SwathMapMassCorrection())
     delete ptr;
 END_SECTION
 
-START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type))
+START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, std::vector< OpenSwath::SwathMap > & swath_maps, const std::string& corr_type))
 {
 
   // targets for correction are : 500.00, 600.00, 700.00, 800.00
@@ -128,9 +127,9 @@ START_SECTION( static void correctMZ(OpenMS::MRMFeatureFinderScoring::Transition
   transition_group_map["group1"] = transition_group;
 
   // Create a mock spectrum fitting to the transition group
-  boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+  boost::shared_ptr<PeakMap > exp(new PeakMap);
   {
-    MSSpectrum<Peak1D> spec;
+    MSSpectrum spec;
     Peak1D p;
 
     p.setMZ(500.02);

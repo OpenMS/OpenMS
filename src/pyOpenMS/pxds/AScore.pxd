@@ -12,20 +12,19 @@ from PeptideHit cimport *
 
 from MSExperiment cimport *
 from MSSpectrum cimport *
-from RichPeak1D cimport *
+from Peak1D cimport *
 from ChromatogramPeak cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
 
-    cdef cppclass AScore:
-
+    cdef cppclass AScore(DefaultParamHandler):
+        # wrap-inherits:
+        #  DefaultParamHandler
         AScore() nogil except +
         AScore(AScore) nogil except + # wrap-ignore
 
         PeptideHit compute(PeptideHit & hit,
-                           MSSpectrum[Peak1D] & real_spectrum, 
-                           double fragment_mass_tolerance, 
-                           bool fragment_mass_unit_ppm) nogil except +
+                           MSSpectrum & real_spectrum) nogil except +
 
 
     cdef cppclass ProbablePhosphoSites:

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -429,7 +429,9 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
   {
     TransformationModelLinear lm(quant_values, Param());
     double slope, intercept;
-    lm.getParameters(slope, intercept);
+    String x_weight, y_weight;
+    double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
+    lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
     LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
     for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
          it != failed_models.end(); ++it)

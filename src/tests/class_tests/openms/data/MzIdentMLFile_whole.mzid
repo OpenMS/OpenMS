@@ -80,6 +80,12 @@
 			<SearchModification fixedMod="false" massDelta="0" residues="M">
 				<cvParam accession="UNIMOD:35" cvRef="PSI-MS" name="Oxidation"/>
 			</SearchModification>
+                        <SearchModification fixedMod="false" massDelta="42.010565" residues=".">
+                                <SpecificityRules>
+                                        <cvParam accession="MS:1001189" cvRef="PSI-MS" name="modification specificity peptide N-term"/>
+                                </SpecificityRules>
+                                <cvParam accession="UNIMOD:1" cvRef="PSI-MS" name="Acetyl"/>
+                        </SearchModification>
 		</ModificationParams>
 		<Enzymes independent="false">
 			<Enzyme missedCleavages="666" id="1169363841512265175">

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
@@ -60,7 +61,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
@@ -70,8 +70,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
@@ -163,7 +161,7 @@
 
 // those are only added if GUI is enabled
 #ifdef WITH_GUI
-#include <QtGui/QApplication>
+#include <QApplication>
 
 #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
@@ -345,6 +343,7 @@ int main(int argc, char** argv)
   // Simple cases
   //////////////////////////////////
 
+  DOCME(AScore);
   DOCME(BernNorm);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
@@ -370,7 +369,6 @@ int main(int argc, char** argv)
   DOCME(FalseDiscoveryRate);
   DOCME(FeatureDeconvolution);
   DOCME(FeatureDistance);
-  DOCME(FeatureGroupingAlgorithmIdentification); // deprecated
   DOCME(FeatureGroupingAlgorithmLabeled);
   DOCME(FeatureGroupingAlgorithmQT);
   DOCME(FeatureGroupingAlgorithmUnlabeled);
@@ -384,8 +382,6 @@ int main(int argc, char** argv)
   DOCME(IsotopeFitter1D);
   DOCME(IsotopeMarker);
   DOCME(IsotopeModel);
-  DOCME(ItraqChannelExtractor);
-  DOCME(ItraqQuantifier);
   DOCME(TMTSixPlexQuantitationMethod);
   DOCME(ItraqEightPlexQuantitationMethod);
   DOCME(ItraqFourPlexQuantitationMethod);
@@ -395,7 +391,6 @@ int main(int argc, char** argv)
   DOCME(MSSim);
   DOCME(MapAlignmentAlgorithmPoseClustering);
   DOCME(MapAlignmentAlgorithmSpectrumAlignment);
-  DOCME(MapAlignmentAlgorithmIdentification);
   DOCME(MRMFeatureFinderScoring);
   DOCME(MRMTransitionGroupPicker);
   DOCME(NLargest);
@@ -443,7 +438,6 @@ int main(int argc, char** argv)
   DOCME(ProtonDistributionModel);
   DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
-  DOCME(FeatureGroupingAlgorithmIdentification);
   DOCME(OfflinePrecursorIonSelection);
   DOCME(Fitter1D);
   DOCME(EGHModel);
@@ -481,9 +475,6 @@ int main(int argc, char** argv)
   DOCME2(GaussTraceFitter, (GaussTraceFitter()))
   DOCME2(EGHTraceFitter, (EGHTraceFitter()))
 
-  DOCME2(IsobaricChannelExtractor, IsobaricChannelExtractor(new ItraqFourPlexQuantitationMethod()));
-  DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));
-
   // handle GUI documentation separately
 #ifdef WITH_GUI
   // some classes require a QApplication
@@ -492,9 +483,9 @@ int main(int argc, char** argv)
   DOCME(TOPPViewBase);
   DOCME(TOPPASBase);
 
-  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
-  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
-  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
+  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), nullptr));
+  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), nullptr));
+  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), nullptr));
 #endif
 
   return 0;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,6 +86,8 @@ using namespace std;
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureLinkerUnlabeledKD.cli
+ <B>INI file documentation of this tool:</B>
+ @htmlinclude TOPP_FeatureLinkerUnlabeledKD.html
 
  */
 
@@ -104,20 +106,20 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     TOPPFeatureLinkerBase::registerOptionsAndFlags_();
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String & /*section*/) const override
   {
     FeatureGroupingAlgorithmKD algo;
     Param p = algo.getParameters();
     return p;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     FeatureGroupingAlgorithmKD algo;
     return TOPPFeatureLinkerBase::common_main_(&algo);

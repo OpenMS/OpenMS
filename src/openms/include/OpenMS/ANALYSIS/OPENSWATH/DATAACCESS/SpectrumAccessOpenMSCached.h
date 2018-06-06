@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,14 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMSCACHED_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMSCACHED_H
+#pragma once
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <fstream>
 
@@ -64,8 +64,8 @@ namespace OpenMS
   {
 
 public:
-    typedef OpenMS::MSExperiment<Peak1D> MSExperimentType;
-    typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
+    typedef OpenMS::PeakMap MSExperimentType;
+    typedef OpenMS::MSSpectrum MSSpectrumType;
 
     /**
       @brief Constructor, opens the file stream
@@ -81,31 +81,31 @@ public:
     /**
       @brief Destructor
     */
-    ~SpectrumAccessOpenMSCached();
+    ~SpectrumAccessOpenMSCached() override;
 
     /// Copy constructor
     SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs);
 
     /// Light clone operator (actual data will not get copied)
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
-    OpenSwath::SpectrumPtr getSpectrumById(int id);
+    OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
-    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
+    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
 
-    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const;
+    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const override;
 
-    size_t getNrSpectra() const;
+    size_t getNrSpectra() const override;
 
     SpectrumSettings getSpectraMetaInfo(int id) const;
 
-    OpenSwath::ChromatogramPtr getChromatogramById(int id);
+    OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
 
-    size_t getNrChromatograms() const;
+    size_t getNrChromatograms() const override;
 
     ChromatogramSettings getChromatogramMetaInfo(int id) const;
 
-    std::string getChromatogramNativeID(int id) const;
+    std::string getChromatogramNativeID(int id) const override;
 
 private:
 
@@ -128,4 +128,3 @@ private:
 
 } //end namespace
 
-#endif

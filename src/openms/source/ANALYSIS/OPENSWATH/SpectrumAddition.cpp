@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,14 +35,13 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 namespace OpenMS
 {
 
-  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
+  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const std::vector<OpenSwath::SpectrumPtr> all_spectra,
       double sampling_rate, bool filter_zeros)
   {
     if (all_spectra.size() == 1) return all_spectra[0];
@@ -126,12 +125,12 @@ namespace OpenMS
     }
   }
 
-  OpenMS::MSSpectrum<> SpectrumAddition::addUpSpectra(std::vector<OpenMS::MSSpectrum<> > all_spectra, double sampling_rate, bool filter_zeros)
+  OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(const std::vector<OpenMS::MSSpectrum> all_spectra, double sampling_rate, bool filter_zeros)
   {
     if (all_spectra.size() == 1) return all_spectra[0];
-    if (all_spectra.empty()) return MSSpectrum<>();
+    if (all_spectra.empty()) return MSSpectrum();
     // ensure first one is not empty
-    if (all_spectra[0].empty() ) return MSSpectrum<>();
+    if (all_spectra[0].empty() ) return MSSpectrum();
 
     // find global min and max -> use as start/endpoints for resampling
     double min = all_spectra[0][0].getMZ();
@@ -167,9 +166,9 @@ namespace OpenMS
 
     // generate the resampled peaks at positions origin+i*spacing_
     int number_resampled_points = (max - min) / sampling_rate + 1;
-    MSSpectrum<> resampled_peak_container;
+    MSSpectrum resampled_peak_container;
     resampled_peak_container.resize(number_resampled_points);
-    MSSpectrum<>::iterator it = resampled_peak_container.begin();
+    MSSpectrum::iterator it = resampled_peak_container.begin();
     for (int i = 0; i < number_resampled_points; ++i)
     {
       it->setMZ(min + i * sampling_rate);
@@ -179,11 +178,11 @@ namespace OpenMS
 
     // resample all spectra and add to master spectrum
     LinearResamplerAlign lresampler;
-    MSSpectrum<> master_spectrum = resampled_peak_container;
+    MSSpectrum master_spectrum = resampled_peak_container;
     for (Size curr_sp = 0; curr_sp < all_spectra.size(); curr_sp++)
     {
-      MSSpectrum<> input_spectrum;
-      MSSpectrum<> output_spectrum = resampled_peak_container;
+      MSSpectrum input_spectrum;
+      MSSpectrum output_spectrum = resampled_peak_container;
 
       lresampler.raster(all_spectra[curr_sp].begin(), all_spectra[curr_sp].end(), output_spectrum.begin(), output_spectrum.end());
 
@@ -200,7 +199,7 @@ namespace OpenMS
     }
     else
     {
-      MSSpectrum<> master_spectrum_filtered;
+      MSSpectrum master_spectrum_filtered;
       for (Size i = 0; i < master_spectrum.size(); ++i)
       {
         if (master_spectrum[i].getIntensity() > 0)

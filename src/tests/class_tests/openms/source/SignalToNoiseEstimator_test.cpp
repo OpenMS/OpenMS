@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,8 +67,8 @@ class TestSignalToNoiseEstimator
 
   protected:
 
-  virtual void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_)
-      throw()
+  void computeSTN_(const PeakIterator& scan_first_, const PeakIterator& scan_last_)
+      throw() override
   {
     if (scan_first_ == scan_last_)
     {
@@ -84,8 +84,8 @@ START_TEST(SignalToNoiseEstimator, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TestSignalToNoiseEstimator* ptr = 0;
-TestSignalToNoiseEstimator* nullPointer = 0;
+TestSignalToNoiseEstimator* ptr = nullptr;
+TestSignalToNoiseEstimator* nullPointer = nullptr;
 START_SECTION((SignalToNoiseEstimator()))
 	ptr = new TestSignalToNoiseEstimator();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -94,7 +94,7 @@ END_SECTION
 
 START_SECTION((SignalToNoiseEstimator(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   sne.init(spec.begin(), spec.end());
   TestSignalToNoiseEstimator sne_copy(sne);
 	NOT_TESTABLE
@@ -103,7 +103,7 @@ END_SECTION
 
 START_SECTION((SignalToNoiseEstimator& operator=(const SignalToNoiseEstimator &source)))
   TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   sne.init(spec.begin(), spec.end());
   TestSignalToNoiseEstimator sne_copy;
   sne_copy = sne;
@@ -118,14 +118,14 @@ END_SECTION
 
 START_SECTION((virtual void init(const PeakIterator& it_begin, const PeakIterator& it_end)))
   TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   sne.init(spec.begin(), spec.end());
 	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((virtual void init(const Container& c)))
   TestSignalToNoiseEstimator sne;
-  MSSpectrum<> spec;
+  MSSpectrum spec;
   sne.init(spec);
 	NOT_TESTABLE
 END_SECTION

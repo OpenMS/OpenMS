@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/HANDLERS/UnimodXMLHandler.h>
-#include <xercesc/sax2/Attributes.hpp>
 
 using namespace std;
 using namespace xercesc;
@@ -48,7 +47,7 @@ namespace OpenMS
       XMLHandler(filename, "2.0"),
       avge_mass_(0.0),
       mono_mass_(0.0),
-      modification_(0),
+      modification_(nullptr),
       modifications_(mods)
     {
     }
@@ -76,8 +75,8 @@ namespace OpenMS
         // deleted this in the unimod.xml file
         modification_->setFullName(full_name);
 
-        String record_id(attributeAsString_(attributes, "record_id"));
-        modification_->setUniModAccession("UniMod:" + record_id);
+        Int record_id(attributeAsInt_(attributes, "record_id"));
+        modification_->setUniModRecordId(record_id);
         return;
       }
 
@@ -92,7 +91,7 @@ namespace OpenMS
         modification_->setSourceClassification(classification);
 
         // allowed site
-        String site(attributeAsString_(attributes, "site"));
+        String site = attributeAsString_(attributes, "site");
         //sites_.push_back(site);
 
         // allowed positions
@@ -102,44 +101,33 @@ namespace OpenMS
         {
           position = ResidueModification::ANYWHERE;
         }
+        else if (pos == "Protein N-term")
+        {
+          position = ResidueModification::N_TERM;
+        }
+        else if (pos == "Protein C-term")
+        {
+          position = ResidueModification::C_TERM;
+        }
+        else if (pos == "Any C-term")
+        {
+          position = ResidueModification::C_TERM;
+        }
+        else if (pos == "Any N-term")
+        {
+          position = ResidueModification::N_TERM;
+        }
         else
         {
-          if (pos == "Protein N-term")
-          {
-            position = ResidueModification::N_TERM;
-          }
-          else
-          {
-            if (pos == "Protein C-term")
-            {
-              position = ResidueModification::C_TERM;
-            }
-            else
-            {
-              if (pos == "Any C-term")
-              {
-                position = ResidueModification::C_TERM;
-              }
-              else
-              {
-                if (pos == "Any N-term")
-                {
-                  position = ResidueModification::N_TERM;
-                }
-                else
-                {
-                  warning(LOAD, String("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
-                }
-              }
-            }
-          }
+          warning(LOAD, String("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
         }
 
         if (!pos.hasSubstring("Protein"))
         {
           was_valid_peptide_modification_ = true;
           term_specs_.push_back(position);
-          sites_.push_back(site);
+          if (site.size() > 1) site = "X"; // C-term/N-term
+          sites_.push_back(site[0]);
         }
         else
         {
@@ -160,16 +148,16 @@ namespace OpenMS
       if (tag_ == "umod:delta" || tag_ == "delta")
       {
         // avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >
-        avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass"))))).toDouble();
-        mono_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass"))))).toDouble();
+        avge_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("avge_mass").c_str())))).toDouble();
+        mono_mass_ = String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mono_mass").c_str())))).toDouble();
         return;
       }
 
       // <umod:element symbol="H" number="1"/>
       if (tag_ == "umod:element")
       {
-        String symbol = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("symbol"))));
-        String num = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("number"))));
+        String symbol = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("symbol").c_str())));
+        String num = sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("number").c_str())));
         String isotope, tmp_symbol;
         for (Size i = 0; i != symbol.size(); ++i)
         {
@@ -193,9 +181,7 @@ namespace OpenMS
           formula = tmp_symbol + num;
         }
         diff_formula_ += EmpiricalFormula(formula);
-
       }
-
     }
 
     void UnimodXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
@@ -210,7 +196,7 @@ namespace OpenMS
         modification_->setDiffFormula(diff_formula_);
         for (Size i = 0; i != sites_.size(); ++i)
         {
-          ResidueModification * new_mod = new ResidueModification(*modification_);
+          ResidueModification* new_mod = new ResidueModification(*modification_);
           new_mod->setOrigin(sites_[i]);
           new_mod->setTermSpecificity(term_specs_[i]);
           new_mod->setNeutralLossDiffFormula(neutral_loss_diff_formulas_[i]);

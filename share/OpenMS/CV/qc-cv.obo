@@ -455,3 +455,17 @@ remark: TIC plot is MS:1000235
  def: "The number of identified features reported." [PXS:QC]
  is_a: QC:0000045 ! MS quantification result details
  is_a: QC:0000025 ! MS identification result details
+
+[Term]
+ id: QC:0000059
+ name: IS-1A
+ def: "The number of 10fold jumps in MS1 Intensity" [PXS:QC]
+ is_a: QC:0000045 ! MS quantification result details
+ is_a: QC:0000025 ! MS identification result details
+
+[Term]
+ id: QC:0000060
+ name: IS-1B
+ def: "The number of 10fold dumps in MS1 Intensity" [PXS:QC]
+ is_a: QC:0000045 ! MS quantification result details
+ is_a: QC:0000025 ! MS identification result details

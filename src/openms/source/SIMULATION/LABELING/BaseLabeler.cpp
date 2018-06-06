@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,8 +125,8 @@ namespace OpenMS
 
   void BaseLabeler::mergeProteinAccessions_(Feature& target, const Feature& source) const
   {
-    std::set<String> target_acc = target.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
-    std::set<String> source_acc = source.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+    std::set<String> target_acc = target.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessionsSet();
+    std::set<String> source_acc = source.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessionsSet();
 
     // merge
     target_acc.insert(source_acc.begin(), source_acc.end());
@@ -183,8 +183,8 @@ namespace OpenMS
     // initialize submaps in consensus map
     for (Map<UInt64, Size>::Iterator it = features_per_labeled_map.begin(); it != features_per_labeled_map.end(); ++it)
     {
-      new_cm.getFileDescriptions()[it->first].size = it->second;
-      new_cm.getFileDescriptions()[it->first].unique_id = simulated_features.getUniqueId();
+      new_cm.getColumnHeaders()[it->first].size = it->second;
+      new_cm.getColumnHeaders()[it->first].unique_id = simulated_features.getUniqueId();
     }
 
     for (ConsensusMap::iterator cm_iter = consensus_.begin(); cm_iter != consensus_.end(); ++cm_iter)

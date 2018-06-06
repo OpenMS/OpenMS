@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
 // Derived classes are included here
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
-#include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -51,8 +49,6 @@ namespace OpenMS
   //register products here
   void FeatureGroupingAlgorithm::registerChildren()
   {
-    // deprecated:
-    // Factory<FeatureGroupingAlgorithm>::registerProduct ( FeatureGroupingAlgorithmIdentification::getProductName(), &FeatureGroupingAlgorithmIdentification::create );
     Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmLabeled::getProductName(), &FeatureGroupingAlgorithmLabeled::create);
     Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmUnlabeled::getProductName(), &FeatureGroupingAlgorithmUnlabeled::create);
     Factory<FeatureGroupingAlgorithm>::registerProduct(FeatureGroupingAlgorithmQT::getProductName(), &FeatureGroupingAlgorithmQT::create);
@@ -84,17 +80,17 @@ namespace OpenMS
   {
     // accumulate file descriptions from the input maps:
     // cout << "Updating file descriptions..." << endl;
-    out.getFileDescriptions().clear();
+    out.getColumnHeaders().clear();
     // mapping: (map index, original id) -> new id
     map<pair<Size, UInt64>, Size> mapid_table;
     for (Size i = 0; i < maps.size(); ++i)
     {
       const ConsensusMap& consensus = maps[i];
-      for (ConsensusMap::FileDescriptions::const_iterator desc_it = consensus.getFileDescriptions().begin(); desc_it != consensus.getFileDescriptions().end(); ++desc_it)
+      for (ConsensusMap::ColumnHeaders::const_iterator desc_it = consensus.getColumnHeaders().begin(); desc_it != consensus.getColumnHeaders().end(); ++desc_it)
       {
         Size counter = mapid_table.size();
         mapid_table[make_pair(i, desc_it->first)] = counter;
-        out.getFileDescriptions()[counter] = desc_it->second;
+        out.getColumnHeaders()[counter] = desc_it->second;
       }
     }
 

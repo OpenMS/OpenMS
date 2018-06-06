@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/fa/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_16772366217575462398" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="1">
+		<map id="0" name="" label="decharged features" size="24">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_9850914649229975897" quality="0">
+			<centroid rt="102" mz="300.000670404656" it="900"/>
+			<groupedElementList>
+				<element map="0" id="100" rt="102" mz="298.992724" it="100" charge="-1"/>
+				<element map="0" id="101" rt="102" mz="148.992724" it="100" charge="-2"/>
+				<element map="0" id="102" rt="102" mz="280.98161" it="100" charge="-1"/>
+				<element map="0" id="103" rt="102" mz="320.974666" it="100" charge="-1"/>
+				<element map="0" id="104" rt="102" mz="334.969402" it="100" charge="-1"/>
+				<element map="0" id="105" rt="102" mz="336.948606" it="100" charge="-1"/>
+				<element map="0" id="106" rt="102" mz="378.918885" it="100" charge="-1"/>
+				<element map="0" id="107" rt="102" mz="98.992724" it="100" charge="-3"/>
+				<element map="0" id="108" rt="102" mz="344.998201" it="100" charge="-1"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[-3, -2, -1]"/>
+			<UserParam type="int" name="distinct_charges_size" value="3"/>
+			<UserParam type="int" name="pure_proton_features" value="3"/>
+		</consensusElement>
+		<consensusElement id="e_6880193271103366492" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="9" rt="100" mz="101.007276" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+3H"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_3204005357819090916" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="10" rt="100" mz="108.33459" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+2H+Na"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_10426138329936021616" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="11" rt="100" mz="115.661904" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+H+2Na; Fiehn contained wrong 1 after decimal point!"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_2383276411667268957" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="12" rt="100" mz="122.989218" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+3Na"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_1724540965148085580" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="4" rt="100" mz="151.007276" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+2H"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_12089703765419726127" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="5" rt="100" mz="159.52055" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+H+NH4"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_14478002218863592706" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="6" rt="100" mz="161.998247" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+H+Na"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_4111330096031897197" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="7" rt="100" mz="169.985217" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+H+K"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_2751474909210888071" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="8" rt="100" mz="172.989218" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+2Na"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_15077792389597376379" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="15" rt="100" mz="301.007276" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+H; all adducts/masses according to Fiehn MS-Adduct-Calculator"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_13609274597567497170" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100" mz="318.033823" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+NH4"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_13285034069144910286" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="2" rt="100" mz="322.989218" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+Na"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_17354379264752523808" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="3" rt="100" mz="338.963158" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+K"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_9230425309037047512" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="13" rt="100" mz="342.033823" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+ACN+H (C2H3N)"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_8433547158073717133" quality="0">
+			<centroid rt="100" mz="0" it="100"/>
+			<groupedElementList>
+				<element map="0" id="14" rt="100" mz="344.97116" it="100"/>
+			</groupedElementList>
+			<UserParam type="string" name="label" value="M+2Na-H"/>
+			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="is_single_feature" value="1"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

@@ -1,0 +1,42 @@
+
+-- General information --
+
+File name: fasta-example.fa
+File type: fasta
+Warning: Duplicate header, #7, ID: crab_chick = #2, ID: crab_chick
+Warning: Duplicate header, #10, ID: crab_squac = #9, ID: crab_squac
+Warning: Duplicate sequence, #10, ID: crab_squac == #9, ID: crab_squac
+
+Number of sequences   : 11
+# duplicated headers  : 2 (18.1%)
+# duplicated sequences: 1 (9%) [by exact string matching]
+Total amino acids     : 1933
+
+Amino acid counts: 
+*	2
+-	5
+A	87
+C	2
+D	122
+E	154
+F	132
+G	87
+H	86
+I	115
+K	108
+L	168
+M	39
+N	21
+P	179
+Q	49
+R	152
+S	184
+T	82
+V	114
+W	24
+Y	21
+Ambiguous amino acids (B/Z/X)  : 0 (0%)
+                      (B/Z/X/I): 115 (5.94%)
+
+
+

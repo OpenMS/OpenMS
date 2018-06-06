@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,17 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
+
+#include <boost/math/special_functions/binomial.hpp>
+
 #include <iostream>
+
 
 using namespace std;
 
@@ -47,8 +54,7 @@ namespace OpenMS
 {
   EmpiricalFormula::EmpiricalFormula() :
     charge_(0)
-  {
-  }
+  {}
 
   EmpiricalFormula::EmpiricalFormula(const EmpiricalFormula& formula) :
     formula_(formula.formula_),
@@ -66,6 +72,7 @@ namespace OpenMS
     formula_[element] = number;
     charge_ = charge;
   }
+
 
   EmpiricalFormula::~EmpiricalFormula()
   {
@@ -99,6 +106,48 @@ namespace OpenMS
       weight += it->first->getAverageWeight() * (double)it->second;
     }
     return weight;
+  }
+
+  double EmpiricalFormula::calculateTheoreticalIsotopesNumber() const
+  {
+    double total = 1;
+    for (const auto& element : formula_)
+    {
+      UInt non_trace_isotopes = 0;
+      const auto& distr = element.first->getIsotopeDistribution();
+      for (auto isotope : distr)
+      {
+        if (isotope.getIntensity() != 0)
+        {
+          non_trace_isotopes++;
+        }
+      }
+      if (non_trace_isotopes>1 && element.second!=1)
+      {
+        total *= boost::math::binomial_coefficient<double>(UInt(element.second), non_trace_isotopes);
+      }
+      else
+      {
+        total *= element.second*non_trace_isotopes;
+      }
+    }
+    return total;
+  }
+
+  bool EmpiricalFormula::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
+  {
+    const ElementDB* db = ElementDB::getInstance();
+
+    double remaining_weight = average_weight - S * db->getElement("S")->getAverageWeight();
+
+    // The number of sulfurs is set to 0 because we're explicitly specifying their count.
+    // We propagate the return value to let the programmer know if the approximation succeeded
+    // without requesting a negative number of hydrogens.
+    bool ret = estimateFromWeightAndComp(remaining_weight, C, H, N, O, 0.0, P);
+
+    formula_.at(db->getElement("S")) = S;
+
+    return ret;
   }
 
   bool EmpiricalFormula::estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P)
@@ -138,19 +187,11 @@ namespace OpenMS
     return true;
   }
 
-  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
+  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(const IsotopePatternGenerator& solver) const
   {
-    IsotopeDistribution result(max_depth);
-    MapType_::const_iterator it = formula_.begin();
-    for (; it != formula_.end(); ++it)
-    {
-      IsotopeDistribution tmp = it->first->getIsotopeDistribution();
-      tmp.setMaxIsotope(max_depth);
-      result += tmp * it->second;
-    }
-    result.renormalize();
-    return result;
+    return solver.run(*this);
   }
+
 
   IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
   {
@@ -160,11 +201,12 @@ namespace OpenMS
     // Treat *this as the fragment molecule
     EmpiricalFormula complementary_fragment = precursor-*this;
 
-    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(max_depth);
-    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(max_depth);
+    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
+    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
 
     IsotopeDistribution result;
-    result.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
+    CoarseIsotopePatternGenerator solver;
+    result = solver.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
 
     // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)
     result.renormalize();
@@ -626,4 +668,4 @@ namespace OpenMS
     }
   }
 
-}
+} // namespace OpenMS

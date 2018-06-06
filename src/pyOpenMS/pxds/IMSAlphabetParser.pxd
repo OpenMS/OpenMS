@@ -7,6 +7,7 @@ from libcpp.string cimport string as libcpp_string
 #     
 #     cdef cppclass IMSAlphabetParser: # [AlphabetElementType,Container,InputSource]:
 #         IMSAlphabetParser(IMSAlphabetParser) nogil except + #wrap-ignore
+
 #         void load(libcpp_string & fname) nogil except +
 #         # ContainerType getElements() nogil except +
 #         # void parse(InputSource & is_) nogil except +

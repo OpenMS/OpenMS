@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,10 @@
 #include <OpenMS/FORMAT/CachedMzML.h>
 ///////////////////////////
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
 
@@ -46,7 +50,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-CachedmzML cacheFile(std::string & tmp_filename, MSExperiment<>& exp)
+CachedmzML cacheFile(std::string & tmp_filename, PeakMap& exp)
 {
   NEW_TMP_FILE(tmp_filename);
 
@@ -68,8 +72,8 @@ START_TEST(CachedmzML, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CachedmzML* ptr = 0;
-CachedmzML* nullPointer = 0;
+CachedmzML* ptr = nullptr;
+CachedmzML* nullPointer = nullptr;
 
 START_SECTION(CachedmzML())
 {
@@ -92,7 +96,7 @@ START_SECTION(( [EXTRA] testCaching))
   NEW_TMP_FILE(tmp_filename);
 
   // Load experiment
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
@@ -109,19 +113,43 @@ START_SECTION(( [EXTRA] testCaching))
     TEST_EQUAL(spectra_index.size(), 4)
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
-    // retrieve the spectrum
+    // retrieve the spectrum (old interface)
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     int ms_level = -1;
     double rt = -1.0;
-    for (int i = 0; i  < 4; i++)
+    for (int i = 0; i < 4; i++)
     {
       ifs_.seekg(spectra_index[i]);
       CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+      TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(i).size())
+      TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(i).size())
+    }
+
+    // retrieve the spectrum (new interface)
+    ms_level = -1;
+    rt = -1.0;
+    for (int i = 0; i < 4; i++)
+    {
+      ifs_.seekg(spectra_index[i]);
+      std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readSpectrumFast(ifs_, ms_level, rt);
+      TEST_EQUAL(darray.size() >= 2, true)
+      mz_array = darray[0];
+      intensity_array = darray[1];
 
       TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(i).size())
       TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(i).size())
     }
+
+    // test spec 1
+    ifs_.seekg(spectra_index[1]);
+    std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readSpectrumFast(ifs_, ms_level, rt);
+    TEST_EQUAL(darray.size(), 4)
+    TEST_EQUAL(darray[0]->description, "") // mz
+    TEST_EQUAL(darray[1]->description, "") // intensity
+    TEST_EQUAL(darray[2]->description, "signal to noise array")
+    TEST_EQUAL(darray[3]->description, "user-defined name")
+
   }
 
   // Check whether chromatograms were written to disk correctly...
@@ -135,10 +163,23 @@ START_SECTION(( [EXTRA] testCaching))
     // retrieve the chromatogram
     OpenSwath::BinaryDataArrayPtr time_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    for (int i = 0; i  < 2; i++)
+    for (int i = 0; i < 2; i++)
     {
       ifs_.seekg(chrom_index[i]);
       CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_);
+
+      TEST_EQUAL(time_array->data.size(), exp.getChromatogram(i).size())
+      TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(i).size())
+    }
+
+    // retrieve the chromatogram (new interface)
+    for (int i = 0; i < 2; i++)
+    {
+      ifs_.seekg(chrom_index[i]);
+      std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readChromatogramFast(ifs_);
+      TEST_EQUAL(darray.size() >= 2, true)
+      time_array = darray[0];
+      intensity_array = darray[1];
 
       TEST_EQUAL(time_array->data.size(), exp.getChromatogram(i).size())
       TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(i).size())
@@ -153,7 +194,7 @@ START_SECTION(( void writeMemdump(MapType& exp, String out )))
   NEW_TMP_FILE(tmp_filename);
 
   // Load experiment
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
@@ -172,7 +213,7 @@ START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMe
   NEW_TMP_FILE(tmp_filename);
 
   // Load experiment
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
@@ -180,7 +221,7 @@ START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMe
   // Cache the experiment to a temporary file
   CachedmzML cache;
 
-  MSExperiment<> meta_exp;
+  PeakMap meta_exp;
   // without adding the cache value, the meta data of the two experiments should be equal
   cache.writeMetadata(exp, tmp_filename, false);
   MzMLFile().load(tmp_filename, meta_exp);
@@ -199,17 +240,17 @@ END_SECTION
 // Create a single CachedMzML file and use it for the following computations
 // (may be somewhat faster)
 std::string tmp_filename;
-MSExperiment<> exp;
+PeakMap exp;
 CachedmzML cache_ = cacheFile(tmp_filename, exp);
 
 START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
 {
 
   std::string tmp_filename;
-  MSExperiment<> exp;
+  PeakMap exp;
   CachedmzML cache = cacheFile(tmp_filename, exp);
 
-  MSExperiment<> exp_new;
+  PeakMap exp_new;
   cache.readMemdump(exp_new, tmp_filename);
 
   TEST_EQUAL(exp_new.size(), exp.size())
@@ -227,7 +268,7 @@ START_SECTION(( void createMemdumpIndex(String filename) ))
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   // Load experiment
-  MSExperiment<> exp;
+  PeakMap exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
   // Cache the experiment to a temporary file

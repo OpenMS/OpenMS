@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,11 @@
 #define OPENMS_IS_BIG_ENDIAN false
 #endif
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/InspectOutfile.h>
+#include <QRegExp>
 
-#include <set>
+#include <fstream>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunreachable-code"
@@ -432,24 +434,27 @@ namespace OpenMS
           {
             accession = line.substr(pos1, pos2 - pos1);
             if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+            {
               accession_type = "SwissProt";
+            }
             else
+            {
               accession.clear();
+            }
           }
         }
         if (accession.empty())
         {
           accession_type = "gi";
           if (snd != String::npos)
+          {
             accession = line.substr(3, snd - 4);
+          }
           else
           {
-            if (snd == String::npos)
-              snd = line.find(' ', 3);
-            if (snd != String::npos)
-              accession = line.substr(3, snd - 3);
-            else
-              accession = line.substr(3);
+            snd = line.find(' ', 3);
+            if (snd != String::npos) accession = line.substr(3, snd - 3);
+            else accession = line.substr(3);
           }
         }
       }
@@ -522,7 +527,7 @@ namespace OpenMS
     const vector<pair<String, vector<pair<Size, Size> > > >& files_and_peptide_identification_with_scan_number,
     vector<PeptideIdentification>& ids)
   {
-    MSExperiment<> experiment;
+    PeakMap experiment;
     String type;
 
     for (vector<pair<String, vector<pair<Size, Size> > > >::const_iterator fs_i = files_and_peptide_identification_with_scan_number.begin(); fs_i != files_and_peptide_identification_with_scan_number.end(); ++fs_i)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,8 +88,8 @@ using namespace std;
     The calculated quality parameters or data compiled as attachments for easy plotting input include file origin, spectra distribution, aquisition details, ion current stability ( & TIC ), id accuracy statistics and feature statistics.
     The MS experiments base name is used as name to the qcML element that is comprising all quality parameter values for the given run (including the given downstream analysis data).
     
-    - @p id produces quality parameter values for the identification file;
-    - @p feature produces quality parameter values for the feature file;
+    - @p id produces quality parameter values for the identification file; this file should contain either only the final psm to each spectrum (1 PeptideHit per identified spectrum) or have the PeptideHits sorted to 'best' first, where 'best' depends on the use case.
+    - @p feature produces quality parameter values for the feature file; this file can be either mapped or unmapped, the latter reulting in less metrics available.
     - @p consensus produces quality parameter values for the consensus file;
     some quality parameter calculation are only available if both feature and ids are given.
     - @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
@@ -116,12 +116,18 @@ class TOPPQCCalculator :
 {
 public:
   TOPPQCCalculator() :
-    TOPPBase("QCCalculator", "Calculates basic quality parameters from MS experiments and subsequent analysis data as identification or feature detection.", false)
+    TOPPBase("QCCalculator", 
+      "Calculates basic quality parameters from MS experiments and subsequent analysis data as identification or feature detection.", 
+      false, 
+      {{ "Walzer M, Pernas LE, Nasso S, Bittremieux W, Nahnsen S, Kelchtermans P,  Martens, L", 
+         "qcML: An Exchange Format for Quality Control Metrics from Mass Spectrometry Experiments", 
+         "Molecular & Cellular Proteomics 2014; 13(8)" , "10.1074/mcp.M113.035907"
+      }})
   {
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -149,7 +155,56 @@ protected:
     return error;
   }
 
-  ExitCodes main_(int, const char**)
+//  void calculateSNident (PeptideHit& hit, MSSpectrum& spec)
+//  {
+    // TODO
+//  }
+
+  float calculateSNmedian (MSSpectrum& spec, bool norm = true)
+  {
+    if (spec.size() == 0) return 0;
+    float median = 0;
+    float maxi = 0;
+    spec.sortByIntensity();
+    
+    if (spec.size() % 2 == 0)
+    {
+      median = (spec[spec.size() / 2 - 1].getIntensity() + spec[spec.size() / 2].getIntensity()) / 2;
+    }
+    else
+    {
+      median = spec[spec.size() / 2].getIntensity();
+    }
+    maxi = spec.back().getIntensity();
+    if (!norm)
+    {
+      float sn_by_max2median = maxi / median;
+      return sn_by_max2median;
+    }
+
+    float sign_int= 0;
+    float nois_int = 0;
+    size_t sign_cnt= 0;
+    size_t nois_cnt = 0;
+    for (MSSpectrum::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+    {
+      if (pt->getIntensity() <= median)
+      {
+        ++nois_cnt;
+        nois_int += pt->getIntensity();
+      }
+      else
+      {
+        ++sign_cnt;
+        sign_int += pt->getIntensity();
+      }
+    }
+    float sn_by_max2median_norm = (sign_int / sign_cnt) / (nois_int / nois_cnt);
+
+    return sn_by_max2median_norm;
+  }
+
+  ExitCodes main_(int, const char**) override
   {
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
@@ -157,11 +212,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String inputfile_id               = getStringOption_("id");
-    String inputfile_feature       = getStringOption_("feature");
-    String inputfile_consensus  = getStringOption_("consensus");
-    String inputfile_raw            = getStringOption_("in");
-    String outputfile_name       = getStringOption_("out");
+    String inputfile_id = getStringOption_("id");
+    String inputfile_feature = getStringOption_("feature");
+    String inputfile_consensus = getStringOption_("consensus");
+    String inputfile_raw = getStringOption_("in");
+    String outputfile_name = getStringOption_("out");
 
     //~ bool Ms1(getFlag_("MS1"));
     //~ bool Ms2(getFlag_("MS2"));
@@ -177,12 +232,12 @@ protected:
      QcMLFile qcmlfile;
 
     //-------------------------------------------------------------
-    // MS  aqiusition
+    // MS acquisition
     //------------------------------------------------------------
     String base_name = QFileInfo(QString::fromStdString(inputfile_raw)).baseName();
 
     cout << "Reading mzML file..." << endl;
-    MSExperiment<Peak1D> exp;
+    PeakMap exp;
     MzMLFile().load(inputfile_raw, exp);
     
     //---prep input
@@ -235,7 +290,7 @@ protected:
     qp.value = exp.getDateTime().getDate();
     qcmlfile.addRunQualityParameter(base_name, qp);
 
-    //---precursors at
+    //---precursors and SN
     QcMLFile::Attachment at;
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000044";
@@ -254,6 +309,8 @@ protected:
     at.colTypes.push_back("MS:1000894_[sec]");  // RT
     at.colTypes.push_back("MS:1000040");  // MZ
     at.colTypes.push_back("MS:1000041");  // charge
+    at.colTypes.push_back("S/N");  // S/N
+    at.colTypes.push_back("peak count");  // peak count
     for (Size i = 0; i < exp.size(); ++i)
     {
       mslevelcounts[exp[i].getMSLevel()]++;
@@ -271,6 +328,8 @@ protected:
         row.push_back(exp[i].getRT());
         row.push_back(exp[i].getPrecursors().front().getMZ());
         row.push_back(exp[i].getPrecursors().front().getCharge());
+        row.push_back(calculateSNmedian(exp[i]));
+        row.push_back(exp[i].size());
         at.tableRows.push_back(row);
       }
     }
@@ -391,7 +450,6 @@ protected:
 
     at.colTypes.push_back("MS:1000894_[sec]");
     at.colTypes.push_back("MS:1000285");
-    UInt max = 0;
     Size below_10k = 0;
     std::vector<OpenMS::Chromatogram> chroms = exp.getChromatograms();
     if (!chroms.empty()) //real TIC from the mzML
@@ -408,11 +466,11 @@ protected:
               ++below_10k;
             }
             std::vector<String> row;
-            row.push_back(chroms[t][i].getRT()*60);
+            row.push_back(chroms[t][i].getRT() * 60);
             row.push_back(sum);
             at.tableRows.push_back(row);
           }
-          break;//what if there are more than one? should generally not be though ...
+          break;  // what if there are more than one? should generally not be though ...
         }
       }
       qcmlfile.addRunAttachment(base_name, at);
@@ -452,8 +510,13 @@ protected:
 
     at.colTypes.push_back("MS:1000894_[sec]");
     at.colTypes.push_back("MS:1000285");
-    max = 0;
+    at.colTypes.push_back("S/N");
+    at.colTypes.push_back("peak count");
+    Size prev = 0;
     below_10k = 0;
+    Size jumps = 0;
+    Size drops = 0;
+    Size fact = 10;
     for (Size i = 0; i < exp.size(); ++i)
     {
       if (exp[i].getMSLevel() == 1)
@@ -463,17 +526,24 @@ protected:
         {
           sum += exp[i][j].getIntensity();
         }
-        if (sum > max)
+        if (prev > 0 && sum > fact * prev)  // no jumps after complete drops (or [re]starts)
         {
-          max = sum;
+          ++jumps;
+        }
+        else if (sum < fact*prev)
+        {
+          ++drops;
         }
         if (sum < 10000)
         {
           ++below_10k;
         }
+        prev = sum;
         std::vector<String> row;
         row.push_back(exp[i].getRT());
         row.push_back(sum);
+        row.push_back(calculateSNmedian(exp[i]));
+        row.push_back(exp[i].size());
         at.tableRows.push_back(row);
       }
     }
@@ -491,10 +561,41 @@ protected:
     }
     catch (...)
     {
-      qp.name = "percentage of tic slumps"; ///< Name
+      qp.name = "percentage of ric slumps"; ///< Name
     }
     qcmlfile.addRunQualityParameter(base_name, qp);
 
+    qp = QcMLFile::QualityParameter();
+    qp.id = base_name + "_ricjump"; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000059";
+    qp.value = String(jumps);
+    try
+    {
+      const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
+      qp.name = term.name; ///< Name
+    }
+    catch (...)
+    {
+      qp.name = "IS-1A"; ///< Name
+    }
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    qp = QcMLFile::QualityParameter();
+    qp.id = base_name + "_ricdump"; ///< Identifier
+    qp.cvRef = "QC"; ///< cv reference
+    qp.cvAcc = "QC:0000060";
+    qp.value = String(drops);
+    try
+    {
+      const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);
+      qp.name = term.name; ///< Name
+    }
+    catch (...)
+    {
+      qp.name = "IS-1B"; ///< Name
+    }
+    qcmlfile.addRunQualityParameter(base_name, qp);
 
     //---injection times MSn
     at = QcMLFile::Attachment();
@@ -756,6 +857,7 @@ protected:
       at.colTypes.push_back("Charge");
       at.colTypes.push_back("TheoreticalWeight");
       at.colTypes.push_back("delta_ppm");
+//      at.colTypes.push_back("S/N");
       for (UInt w = 0; w < var_mods.size(); ++w)
       {
         at.colTypes.push_back(String(var_mods[w]).substitute(' ', '_'));
@@ -770,7 +872,7 @@ protected:
           std::vector<String> row;
           row.push_back(it->getRT());
           row.push_back(it->getMZ());
-          PeptideHit tmp = it->getHits().front(); //TODO depends on score & sort
+          PeptideHit tmp = it->getHits().front();  //N.B.: depends on score & sort
           vector<UInt> pep_mods;
           for (UInt w = 0; w < var_mods.size(); ++w)
           {
@@ -794,12 +896,14 @@ protected:
               }
             }
           }
+
           row.push_back(tmp.getScore());
           row.push_back(tmp.getSequence().toString().removeWhitespaces());
           row.push_back(tmp.getCharge());
           row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
           double dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), it->getMZ(), true));
           row.push_back(String(dppm));
+//          row.push_back(String(calculateSNident(tmp)));
           deltas.push_back(dppm);
           for (UInt w = 0; w < var_mods.size(); ++w)
           {

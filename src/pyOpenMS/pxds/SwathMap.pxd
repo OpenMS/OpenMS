@@ -1,9 +1,9 @@
-from Types  cimport *
+from Types cimport *
 from smart_ptr cimport shared_ptr
 from OpenSwathDataStructures cimport *
 from ISpectrumAccess cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>" namespace "OpenSwath":
+cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>" namespace "OpenSwath":
 
     cdef cppclass SwathMap:
 
@@ -15,7 +15,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h
         double center
         bool ms1
 
-        # TODO we would need to support abstract base classes for this ... 
-        # OpenSwath::SpectrumAccessPtr sptr;
+        # COMMENT: access through
+        # COMMENT:  - getSpectrumPtr
+        # COMMENT:  - setSpectrumPtr
         shared_ptr[ISpectrumAccess] sptr # wrap-ignore
 

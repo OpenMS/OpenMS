@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -64,7 +64,7 @@ class TOPPBaseTest
 #else
       putenv(var);
 #endif
-      main(0,0);
+      main(0,nullptr);
     }
 
     TOPPBaseTest(int argc ,const char** argv)
@@ -79,7 +79,7 @@ class TOPPBaseTest
       main(argc,argv);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerStringOption_("stringoption","<string>","string default","string description",false);
       registerIntOption_("intoption","<int>",4711,"int description",false);
@@ -145,7 +145,7 @@ class TOPPBaseTest
       return getFlag_(name);
     }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
@@ -165,7 +165,7 @@ class TOPPBaseTest
       outputFileWritable_(filename, param_name);
     }
 
-    void addDataProcessing(MSExperiment<>& map, DataProcessing::ProcessingAction action)
+    void addDataProcessing(PeakMap& map, DataProcessing::ProcessingAction action)
     {
     	DataProcessing dp = getProcessingInfo_(action);
 
@@ -200,7 +200,7 @@ class TOPPBaseTestNOP
 #else
       putenv(var);
 #endif
-      main(0,0);
+      main(0,nullptr);
     }
 
     TOPPBaseTestNOP(int argc , const char** argv)
@@ -215,7 +215,7 @@ class TOPPBaseTestNOP
       main(argc,argv);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerStringOption_("stringoption","<string>","","string description");
       registerIntOption_("intoption","<int>",0,"int description",false);
@@ -255,7 +255,7 @@ class TOPPBaseTestNOP
       return getDoubleList_(name);
     }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
@@ -274,15 +274,15 @@ class TOPPBaseTestParam: public TOPPBase
 #else
       putenv(var);
 #endif
-      main(0, 0);
+      main(0, nullptr);
     }
 
-    virtual void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerFullParam_(test_param_);
     }
 
-    virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+    ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
     {
       return EXECUTION_OK;
     }
@@ -306,7 +306,7 @@ public:
     : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", false)
   {}
 
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
   }
 
@@ -321,7 +321,7 @@ public:
     return main(argc, argv);
   }
 
-  virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+  ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
   {
     static char* var = (char *)("OPENMS_DISABLE_UPDATE_CHECK=ON");
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -343,14 +343,14 @@ public:
   : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", false)
   {}
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerStringOption_("stringoption","<string>","","string description");
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("other", "Other parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String & section) const override
   {
     Param p;
     if (section == "algorithm")
@@ -377,7 +377,7 @@ public:
     return main(argc, argv);
   }
 
-  virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
+  ExitCodes main_(int /*argc*/ , const char** /*argv*/) override
   {
     return EXECUTION_OK;
   }
@@ -399,9 +399,9 @@ public:
 
 /////////////////////////////////////////////////////////////
 
-TOPPBaseTest* ptr = 0;
-TOPPBaseTest* nullPointer = 0;
-START_SECTION((TOPPBase(const String& name, const String& description, bool official = true, bool id_tag_support = false, bool require_args = true, const String& version = "")))
+TOPPBaseTest* ptr = nullptr;
+TOPPBaseTest* nullPointer = nullptr;
+START_SECTION(TOPPBase(const String& name, const String& description, bool official = true, const std::vector<Citation>& citations = {}))
 	ptr = new TOPPBaseTest();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
@@ -713,7 +713,7 @@ START_SECTION(([EXTRA]void parseRange_(const String& text, double& low, double& 
 END_SECTION
 
 START_SECTION(([EXTRA] data processing methods))
-	MSExperiment<> exp;
+	PeakMap exp;
 	exp.resize(2);
 
 	TOPPBaseTest topp;

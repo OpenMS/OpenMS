@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,7 +90,7 @@ using namespace std;
  How to find suitable parameters and details of the different algorithms implemented are described
  in the @ref TOPP_example_featuredetection "TOPP tutorial".
 
- Specialized tools are available for some experimental techniques: @ref TOPP_ITRAQAnalyzer.
+ Specialized tools are available for some experimental techniques: @ref TOPP_IsobaricAnalyzer.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureFinderCentroided.cli
@@ -144,7 +144,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -161,12 +161,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //input file names
     String in = getStringOption_("in");
@@ -194,7 +194,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType  spectrum_type = exp[0].getType();
 
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       if (!getFlag_("force"))
       {
@@ -215,7 +215,9 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    features.setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+    StringList ms_runs;
+    exp.getPrimaryMSRunPath(ms_runs);
+    features.setPrimaryMSRunPath(ms_runs);
 
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);

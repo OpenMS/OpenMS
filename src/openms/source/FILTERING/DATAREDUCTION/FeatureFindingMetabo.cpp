@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,22 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
-#include <vector>
-#include <map>
-#include <algorithm>
-#include <numeric>
-#include <sstream>
 #include <fstream>
 
 #include <boost/dynamic_bitset.hpp>
 
 #ifdef _OPENMP
-#include <omp.h>
 #endif
 
 // #define FFM_DEBUG
@@ -147,6 +140,37 @@ namespace OpenMS
     return tmp_hulls;
   }
 
+  std::vector< OpenMS::MSChromatogram > FeatureHypothesis::getChromatograms(UInt64 feature_id) const
+  {
+    double mz = iso_pattern_[0]->getCentroidMZ();
+    Precursor prec;
+    prec.setMZ(mz);
+    prec.setCharge(charge_);
+    prec.setMetaValue("peptide_sequence", String(feature_id));
+
+    std::vector< OpenMS::MSChromatogram > tmp_chromatograms;
+    for (Size mt_idx = 0; mt_idx < iso_pattern_.size(); ++mt_idx)
+    {
+      OpenMS::MSChromatogram chromatogram;
+
+      for (MassTrace::const_iterator l_it = iso_pattern_[mt_idx]->begin(); l_it != iso_pattern_[mt_idx]->end(); ++l_it)
+      {
+        ChromatogramPeak peak;
+        peak.setRT((*l_it).getRT());
+        peak.setIntensity((*l_it).getIntensity());
+        chromatogram.push_back(peak);
+      }
+      chromatogram.setNativeID(String(feature_id) + "_" + String(mt_idx));
+      chromatogram.setName(String(feature_id) + "_" + String(mt_idx));
+      chromatogram.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+      chromatogram.setPrecursor(prec);
+      chromatogram.sortByPosition();
+
+      tmp_chromatograms.push_back(chromatogram);
+    }
+    return tmp_chromatograms;
+  }
+
   OpenMS::String FeatureHypothesis::getLabel() const
   {
     return ListUtils::concatenate(getLabels(), "_");
@@ -211,7 +235,7 @@ namespace OpenMS
     if (iso_pattern_.empty())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-        "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
+                                    "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
     }
     return iso_pattern_[0]->getCentroidMZ();
   }
@@ -265,6 +289,12 @@ namespace OpenMS
     defaults_.setValue("report_convex_hulls", "false", "Augment each reported feature with the convex hull of the underlying mass traces (increases featureXML file size considerably).");
     defaults_.setValidStrings("report_convex_hulls", ListUtils::create<String>("false,true"));
 
+    defaults_.setValue("report_chromatograms", "false", "Adds Chromatogram for each reported feature (Output in mzml).");
+    defaults_.setValidStrings("report_chromatograms", ListUtils::create<String>("false,true"));
+
+    defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
+    defaults_.setValidStrings("remove_single_traces", ListUtils::create<String>("false,true"));
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -292,15 +322,18 @@ namespace OpenMS
 
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
     report_convex_hulls_ = param_.getValue("report_convex_hulls").toBool();
+    report_chromatograms_ = param_.getValue("report_chromatograms").toBool();
+
+    remove_single_traces_ = param_.getValue("remove_single_traces").toBool();
   }
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
   {
-    IsotopeDistribution isodist(hypo_ints.size());
-    isodist.estimateFromPeptideWeight(mol_weight);
+    CoarseIsotopePatternGenerator solver(hypo_ints.size());
+    auto isodist = solver.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
-    std::vector<std::pair<Size, double> > averagine_dist = isodist.getContainer();
+    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
@@ -309,9 +342,9 @@ namespace OpenMS
         max_int = hypo_ints[i];
       }
 
-      if (averagine_dist[i].second > theo_max_int)
+      if (averagine_dist[i].getIntensity() > theo_max_int)
       {
-        theo_max_int = averagine_dist[i].second;
+        theo_max_int = averagine_dist[i].getIntensity();
       }
     }
 
@@ -319,7 +352,7 @@ namespace OpenMS
     std::vector<double> averagine_ratios, hypo_isos;
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
-      averagine_ratios.push_back(averagine_dist[i].second / theo_max_int);
+      averagine_ratios.push_back(averagine_dist[i].getIntensity() / theo_max_int);
       hypo_isos.push_back(hypo_ints[i] / max_int);
     }
 
@@ -412,7 +445,7 @@ namespace OpenMS
     std::string scale_filename = File::find(search_name + ".scale");
 
     isotope_filt_svm_ = svm_load_model(model_filename.c_str());
-    if (isotope_filt_svm_ == NULL)
+    if (isotope_filt_svm_ == nullptr)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Loading " + model_filename + " failed", model_filename);
@@ -706,9 +739,10 @@ namespace OpenMS
     } // end for charge
   } // end of findLocalFeatures_(...)
 
-  void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap)
+  void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap& output_featmap, std::vector<std::vector< OpenMS::MSChromatogram > >& output_chromatograms)
   {
     output_featmap.clear();
+    output_chromatograms.clear();
 
     if (input_mtraces.empty()) 
     {
@@ -744,6 +778,7 @@ namespace OpenMS
     // Step 2 Iterate through all mass traces to find likely matches 
     // and generate isotopic / charge hypotheses
     // *********************************************************** //
+
     std::vector<FeatureHypothesis> feat_hypos;
     Size progress(0);
 #ifdef _OPENMP
@@ -845,9 +880,16 @@ namespace OpenMS
         continue;
       }
 
+      // filter out single traces if option is set
+      if (remove_single_traces_ && feat_hypos[hypo_idx].getCharge() == 0)
+      {
+        continue;
+      }
+
       //
       // Now accept hypothesis
       //
+
       Feature f;
       f.setRT(feat_hypos[hypo_idx].getCentroidRT());
       f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
@@ -876,14 +918,21 @@ namespace OpenMS
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
+      f.applyMemberFunction(&UniqueIdInterface::setUniqueId);
       output_featmap.push_back(f);
 
+      if (report_chromatograms_)
+      {
+        output_chromatograms.push_back(feat_hypos[hypo_idx].getChromatograms(f.getUniqueId()));
+      }
       // add used traces to exclusion map
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
       {
         trace_excl_map[labels[lab_idx]] = true;
       }
     }
+    output_featmap.setUniqueId(UniqueIdGenerator::getUniqueId());
+    output_featmap.sortByMZ();
   } // end of FeatureFindingMetabo::run
   
 }

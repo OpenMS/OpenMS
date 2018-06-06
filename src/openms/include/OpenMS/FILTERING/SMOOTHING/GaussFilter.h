@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,14 @@
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
-#define OPENMS_FILTERING_SMOOTHING_GAUSSFILTER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilterAlgorithm.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <cmath>
@@ -80,31 +80,30 @@ public:
     GaussFilter();
 
     /// Destructor
-    virtual ~GaussFilter();
+    ~GaussFilter() override;
 
-    /**
-      @brief Smoothes an MSSpectrum containing profile data.
+      /**
+        @brief Smoothes an MSSpectrum containing profile data.
 
-      Convolutes the filter and the profile data and writes the result back to the spectrum.
+        Convolutes the filter and the profile data and writes the result back to the spectrum.
 
         @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
-    */
-    template <typename PeakType>
-    void filter(MSSpectrum<PeakType> & spectrum)
+      */
+    void filter(MSSpectrum & spectrum)
     {
       typedef std::vector<double> ContainerT;
 
       // make sure the right data type is set
-      spectrum.setType(SpectrumSettings::RAWDATA);
+      spectrum.setType(SpectrumSettings::PROFILE);
       bool found_signal = false;
-      Size data_size = spectrum.size();
+      const Size data_size = spectrum.size();
       ContainerT mz_in(data_size), int_in(data_size), mz_out(data_size), int_out(data_size);
 
       // copy spectrum to container
       for (Size p = 0; p < spectrum.size(); ++p)
       {
         mz_in[p] = spectrum[p].getMZ();
-        int_in[p] = spectrum[p].getIntensity();
+        int_in[p] = static_cast<double>(spectrum[p].getIntensity());
       }
 
       // apply filter
@@ -119,7 +118,7 @@ public:
         String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your profile data. Try to use a bigger width.";
         if (spectrum.getRT() > 0.0)
         {
-          error_message += String(" The error occured in the spectrum with retention time ") + spectrum.getRT() + ".";
+          error_message += String(" The error occurred in the spectrum with retention time ") + spectrum.getRT() + ".";
         }
         LOG_ERROR << error_message << std::endl;
       }
@@ -136,9 +135,9 @@ public:
       }
     }
 
-    template <typename PeakType>
-    void filter(MSChromatogram<PeakType> & chromatogram)
+    void filter(MSChromatogram & chromatogram)
     {
+      typedef std::vector<double> ContainerT;
 
       if (param_.getValue("use_ppm_tolerance").toBool())
       {
@@ -146,27 +145,52 @@ public:
           "GaussFilter: Cannot use ppm tolerance on chromatograms");
       }
 
-      MSSpectrum<PeakType> filter_spectra;
-      for (typename MSChromatogram<PeakType>::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
+      bool found_signal = false;
+      const Size data_size = chromatogram.size();
+      ContainerT rt_in(data_size), int_in(data_size), rt_out(data_size), int_out(data_size);
+
+      // copy spectrum to container
+      for (Size p = 0; p < chromatogram.size(); ++p)
       {
-        filter_spectra.push_back(*it);
-      }
-      filter(filter_spectra);
-      chromatogram.clear(false);
-      for (typename MSSpectrum<PeakType>::const_iterator it = filter_spectra.begin(); it != filter_spectra.end(); ++it)
-      {
-        chromatogram.push_back(*it);
+        rt_in[p] = chromatogram[p].getRT();
+        int_in[p] = chromatogram[p].getIntensity();
       }
 
+      // apply filter
+      ContainerT::iterator mz_out_it = rt_out.begin();
+      ContainerT::iterator int_out_it = int_out.begin();
+      found_signal = gauss_algo_.filter(rt_in.begin(), rt_in.end(), int_in.begin(), mz_out_it, int_out_it);
+
+      // If all intensities are zero in the scan and the scan has a reasonable size, throw an exception.
+      // This is the case if the Gaussian filter is smaller than the spacing of raw data
+      if (!found_signal && chromatogram.size() >= 3)
+      {
+        String error_message = "Found no signal. The Gaussian width is probably smaller than the spacing in your chromatogram data. Try to use a bigger width.";
+        if (chromatogram.getMZ() > 0.0)
+        {
+          error_message += String(" The error occurred in the chromatogram with m/z time ") + chromatogram.getMZ() + ".";
+        }
+        LOG_ERROR << error_message << std::endl;
+      }
+      else
+      {
+        // copy the new data into the spectrum
+        ContainerT::iterator mz_it = rt_out.begin();
+        ContainerT::iterator int_it = int_out.begin();
+        for (Size p = 0; mz_it != rt_out.end(); mz_it++, int_it++, p++)
+        {
+          chromatogram[p].setIntensity(*int_it);
+          chromatogram[p].setMZ(*mz_it);
+        }
+      }
     }
 
     /**
       @brief Smoothes an MSExperiment containing profile data.
 
-        @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
-          */
-    template <typename PeakType>
-    void filterExperiment(MSExperiment<PeakType> & map)
+      @exception Exception::IllegalArgument is thrown, if the @em gaussian_width parameter is too small.
+    */
+    void filterExperiment(PeakMap & map)
     {
       Size progress = 0;
       startProgress(0, map.size() + map.getChromatograms().size(), "smoothing data");
@@ -191,8 +215,7 @@ protected:
     double spacing_;
 
     // Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
   };
 
 } // namespace OpenMS
-#endif

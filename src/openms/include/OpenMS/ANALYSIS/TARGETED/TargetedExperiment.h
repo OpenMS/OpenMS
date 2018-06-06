@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H
-#define OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
@@ -41,6 +40,7 @@
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/Software.h>
+#include <OpenMS/METADATA/SourceFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
 #include <vector>
@@ -176,7 +176,9 @@ public:
 
     const std::vector<Protein> & getProteins() const;
 
-    const Protein & getProteinByRef(const String & ref);
+    const Protein & getProteinByRef(const String & ref) const;
+
+    bool hasProtein(const String & ref) const;
 
     void addProtein(const Protein & protein);
 
@@ -191,9 +193,13 @@ public:
 
     const std::vector<Peptide> & getPeptides() const;
 
-    const Peptide & getPeptideByRef(const String & ref);
+    bool hasPeptide(const String & ref) const;
 
-    const Compound & getCompoundByRef(const String & ref);
+    const Peptide & getPeptideByRef(const String & ref) const;
+
+    bool hasCompound(const String & ref) const;
+
+    const Compound & getCompoundByRef(const String & ref) const;
 
     void addPeptide(const Peptide & rhs);
 
@@ -245,15 +251,15 @@ public:
 
       Returns false if the file is valid.
     */
-    bool containsInvalidReferences();
+    bool containsInvalidReferences() const;
 
 protected:
 
-    void createProteinReferenceMap_();
+    void createProteinReferenceMap_() const;
 
-    void createPeptideReferenceMap_();
+    void createPeptideReferenceMap_() const;
 
-    void createCompoundReferenceMap_();
+    void createCompoundReferenceMap_() const;
 
     std::vector<CV> cvs_;
 
@@ -281,17 +287,17 @@ protected:
 
     std::vector<SourceFile> source_files_;
 
-    ProteinReferenceMapType protein_reference_map_;
+    mutable ProteinReferenceMapType protein_reference_map_;
 
-    bool protein_reference_map_dirty_;
+    mutable bool protein_reference_map_dirty_;
 
-    PeptideReferenceMapType peptide_reference_map_;
+    mutable PeptideReferenceMapType peptide_reference_map_;
 
-    bool peptide_reference_map_dirty_;
+    mutable bool peptide_reference_map_dirty_;
 
-    CompoundReferenceMapType compound_reference_map_;
+    mutable CompoundReferenceMapType compound_reference_map_;
 
-    bool compound_reference_map_dirty_;
+    mutable bool compound_reference_map_dirty_;
 
   };
 
@@ -302,4 +308,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_TARGETED_TARGETEDEXPERIMENT_H

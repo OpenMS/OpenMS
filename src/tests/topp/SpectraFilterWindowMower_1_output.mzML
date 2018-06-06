@@ -177,12 +177,10 @@
 						<userParam name="AcqComment" type="xsd:string" value="Acquisition 2"/>
 					</scan>
 				</scanList>
-			<precursorList count="1">
+				<precursorList count="1">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="0" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
 						<selectedIonList count="1">
 							<selectedIon>
@@ -194,12 +192,12 @@
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000509" name="activation energy" value="3.4" unitAccession="UO:0000266" unitName="electronvolt" unitCvRef="UO" />
 							<cvParam cvRef="MS" accession="MS:1000133" name="collision-induced dissociation" />
-						<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
-						<userParam name="IonSelectionComment" type="xsd:string" value="selected"/>
-						<userParam name="ActivationComment" type="xsd:string" value="active"/>
+							<userParam name="URL" type="xsd:string" value="www.open-ms.de"/>
+							<userParam name="IonSelectionComment" type="xsd:string" value="selected"/>
+							<userParam name="ActivationComment" type="xsd:string" value="active"/>
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="2">
 					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -254,9 +252,9 @@
 	<index name="spectrum">
 		<offset idRef="spectrum=1">8712</offset>
 		<offset idRef="spectrum=2">10236</offset>
-		<offset idRef="spectrum=3">14146</offset>
+		<offset idRef="spectrum=3">13837</offset>
 	</index>
 </indexList>
-<indexListOffset>16113</indexListOffset>
+<indexListOffset>15804</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,7 @@ using namespace OpenMS;
   This module extracts ion traces (extracted ion chromatograms or XICs) from a
   file containing spectra.  The masses at which the chromatograms should be
   extracted are stored in a TraML file and the result is stored in a mzML file
-  holding chromatograms. This tool is designed to extract chromatogams from
+  holding chromatograms. This tool is designed to extract chromatograms from
   SWATH (data independent acquisition) data (see ref[1]), thus it will extract
   the masses found in the product ion section of the TraML transitions,
   returning as many chromatograms as input transitions were provided.
@@ -129,9 +129,9 @@ public:
 
 protected:
 
-  typedef MSExperiment<Peak1D> MapType;
+  typedef PeakMap MapType;
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -146,16 +146,18 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false);
-    registerDoubleOption_("mz_window", "<double>", 0.05, "Extraction window in m/z dimension (in Thomson, to use ppm see -ppm flag). This is the full window size, e.g. 100 ppm would extract 50 ppm on either side.", false);
+
     registerDoubleOption_("rt_window", "<double>", -1, "Extraction window in RT dimension (-1 means extract over the whole range). This is the full window size, e.g. a value of 1000 seconds would extract 500 seconds on either side.", false);
+    registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in milliseconds). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side.", false);
+    registerDoubleOption_("mz_window", "<double>", 0.05, "Extraction window in m/z dimension (in Thomson, to use ppm see -ppm flag). This is the full window size, e.g. 100 ppm would extract 50 ppm on either side.", false);
     setMinFloat_("mz_window", 0.0);
+    registerFlag_("ppm", "m/z extraction_window is in ppm");
 
     registerFlag_("is_swath", "Set this flag if the data is SWATH data");
-    registerFlag_("ppm", "m/z extraction_window is in ppm");
 
     registerFlag_("extract_MS1", "Extract the MS1 transitions based on the precursor values in the TraML file");
 
-    registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false);
+    registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true); // required, advanced
     StringList model_types;
     model_types.push_back("tophat");
     model_types.push_back("bartlett"); // bartlett if we use zeros at the end
@@ -167,17 +169,18 @@ protected:
   void registerModelOptions_(const String & default_model)
   {
     registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
-    registerStringOption_("model:type", "<name>", default_model, "Type of model", false);
+    registerStringOption_("model:type", "<name>", default_model, "Type of model", false, true);
     StringList model_types;
     TransformationDescription::getModelTypes(model_types);
-    if (!ListUtils::contains(model_types, default_model)) {
+    if (!ListUtils::contains(model_types, default_model))
+    {
       model_types.insert(model_types.begin(), default_model);
     }
     setValidStrings_("model:type", model_types);
-    registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
+    registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.", true);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char **) override
   {
     StringList file_list = getStringList_("in");
     String tr_file_str = getStringOption_("tr");
@@ -188,6 +191,7 @@ protected:
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_window");
     double rt_extraction_window = getDoubleOption_("rt_window");
+    double im_window = getDoubleOption_("ion_mobility_window");
 
     String extraction_function = getStringOption_("extraction_function");
 
@@ -211,7 +215,7 @@ protected:
     const char * tr_file = tr_file_str.c_str();
 
     MapType out_exp;
-    std::vector< OpenMS::MSChromatogram<> > chromatograms;
+    std::vector< OpenMS::MSChromatogram > chromatograms;
     TraMLFile traml;
     OpenMS::TargetedExperiment targeted_exp;
 
@@ -226,7 +230,7 @@ protected:
 #endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+      boost::shared_ptr<PeakMap > exp(new PeakMap);
       MzMLFile f;
       // Logging and output to the console
       // IF_MASTERTHREAD f.setLogType(log_type_); 
@@ -286,7 +290,7 @@ protected:
           }
         }
         extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
-            mz_extraction_window, ppm, extraction_function);
+            mz_extraction_window, ppm, im_window, extraction_function);
 
 #ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)

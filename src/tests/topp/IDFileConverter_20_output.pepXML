@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<msms_pipeline_analysis date="2007-12-05T17:49:46" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd" summary_xml=".xml">
+<msms_run_summary base_name="IDFileConverter_20_output" raw_data_type="raw" raw_data=".mzML" search_engine="RNPxlSearch">
+	<sample_enzyme name="unknown_enzyme">
+		<specificity cut="" sense="C"/>
+	</sample_enzyme>
+	<search_summary base_name="IDFileConverter_20_output" search_engine="RNPxlSearch" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" out_data_type="" out_data="" search_id="1">
+		<search_database local_path="/nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/RNPxlSearch_1_input.fasta" type="AA"/>
+		<aminoacid_modification aminoacid="M" massdiff="15.994915" mass="147.0354000171" variable="Y" binary="N" description="Oxidation (M)"/>
+	</search_summary>
+	<spectrum_query spectrum="IDFileConverter_20_output.1.1.2" start_scan="1" end_scan="1" precursor_neutral_mass="1117.5251393925" assumed_charge="2" index="0" retention_time_sec="17.7875061035156" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="AEADNLDDKK" peptide_prev_aa="K" peptide_next_aa="L" protein="Cas7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1117.5251393925" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="9.86006552204339"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.2.2.2" start_scan="2" end_scan="2" precursor_neutral_mass="873.4919861373" assumed_charge="2" index="1" retention_time_sec="18.3059501647949" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="LDSKGNIK" peptide_prev_aa="R" peptide_next_aa="R" protein="Cas6e" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="873.4919861373" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="2.79755043400589"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.3.3.3" start_scan="3" end_scan="3" precursor_neutral_mass="868.444306914" assumed_charge="3" index="2" retention_time_sec="25.1164321899414" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="YTPYLGR" peptide_prev_aa="R" peptide_next_aa="R" protein="Cas5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="868.444306914" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="1.44784824988925"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.4.4.2" start_scan="4" end_scan="4" precursor_neutral_mass="1030.519598233" assumed_charge="2" index="3" retention_time_sec="26.2365341186523" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="DYHTVLGAR" peptide_prev_aa="R" peptide_next_aa="E" protein="Cas5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1030.519598233" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="12.3144737201537"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.5.5.2" start_scan="5" end_scan="5" precursor_neutral_mass="1275.6782859667" assumed_charge="2" index="4" retention_time_sec="26.4131374359131" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="KSEQTTGISLGR" peptide_prev_aa="K" peptide_next_aa="A" protein="Cse2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1275.6782859667" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="18.3117572884299"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.6.6.3" start_scan="6" end_scan="6" precursor_neutral_mass="2159.0283585298" assumed_charge="3" index="5" retention_time_sec="28.4869823455811" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="VEDVHPISERPQYFSGDGK" peptide_prev_aa="R" peptide_next_aa="S" protein="Cas6e" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2159.0283585298" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="14.2795101186323"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.7.7.2" start_scan="7" end_scan="7" precursor_neutral_mass="1005.5495013925" assumed_charge="2" index="6" retention_time_sec="28.67844581604" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="FDQKIIDK" peptide_prev_aa="R" peptide_next_aa="T" protein="Cas7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1005.5495013925" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="3.93052836710287"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.8.8.2" start_scan="8" end_scan="8" precursor_neutral_mass="1588.7416320476" assumed_charge="2" index="7" retention_time_sec="31.8116321563721" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="AWQQLDNGSCAQIR" peptide_prev_aa="R" peptide_next_aa="R" protein="Cse2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1588.7416320476" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="11.3207393778068"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.9.9.2" start_scan="9" end_scan="9" precursor_neutral_mass="712.5210991692" assumed_charge="2" index="8" retention_time_sec="33.2371559143066" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="LLKVLK" peptide_prev_aa="K" peptide_next_aa="E" protein="Cas7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="712.5210991692" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="2.84705874192179"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.10.10.2" start_scan="10" end_scan="10" precursor_neutral_mass="1126.671013871" assumed_charge="2" index="9" retention_time_sec="33.7913818359375" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="VLKEDIAAIR" peptide_prev_aa="K" peptide_next_aa="V" protein="Cas7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1126.671013871" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="9.42808190903302"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.11.11.2" start_scan="11" end_scan="11" precursor_neutral_mass="1255.5610720291" assumed_charge="2" index="10" retention_time_sec="34.0160827636719" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="MATSGMMTELGK" peptide_prev_aa="R" peptide_next_aa="V" protein="Cas7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1255.5610720291" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="20.1586790788374"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.12.12.2" start_scan="12" end_scan="12" precursor_neutral_mass="970.461613693" assumed_charge="2" index="11" retention_time_sec="34.0715484619141" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="MVFCLSAGK" peptide_prev_aa="R" peptide_next_aa="N" protein="Cse2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="970.461613693" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<modification_info modified_peptide="M[147]VFCLSAGK">
+				<mod_aminoacid_mass position="1" mass="147.0354000171"/>
+			</modification_info>
+			<search_score name="hyperscore" value="5.63336918367706"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.13.13.2" start_scan="13" end_scan="13" precursor_neutral_mass="1568.6963217776" assumed_charge="2" index="12" retention_time_sec="36.528003692627" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="DDMNMQKDAIFGGK" peptide_prev_aa="R" peptide_next_aa="R" protein="Cas7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1568.6963217776" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="14.5055571948003"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.14.14.2" start_scan="14" end_scan="14" precursor_neutral_mass="1559.8406617323" assumed_charge="2" index="13" retention_time_sec="36.7670631408691" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="TLALLSGKSVDEAEK" peptide_prev_aa="K" peptide_next_aa="I" protein="Cas7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1559.8406617323" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="9.082211643947"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.15.15.2" start_scan="15" end_scan="15" precursor_neutral_mass="1145.5757165201" assumed_charge="2" index="14" retention_time_sec="37.0982551574707" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="ALYTFAEGFK" peptide_prev_aa="K" peptide_next_aa="N" protein="Cse1" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1145.5757165201" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="14.4890454322742"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.16.16.2" start_scan="16" end_scan="16" precursor_neutral_mass="1341.6829759029" assumed_charge="2" index="15" retention_time_sec="37.5358963012695" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="LVQPFGWENPR" peptide_prev_aa="R" peptide_next_aa="H" protein="Cse2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1341.6829759029" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="4.91927542093883"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.17.17.2" start_scan="17" end_scan="17" precursor_neutral_mass="1070.5430362182" assumed_charge="2" index="16" retention_time_sec="37.8638763427734" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="DEPMITLPR" peptide_prev_aa="R" peptide_next_aa="Q" protein="Cas5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="1070.5430362182" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="10.3619242341366"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.18.18.2" start_scan="18" end_scan="18" precursor_neutral_mass="920.4578477716" assumed_charge="2" index="17" retention_time_sec="39.1179161071777" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="MLTWWGK" peptide_prev_aa="R" peptide_next_aa="R" protein="Cse2" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="920.4578477716" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="2.542118002741"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.19.19.3" start_scan="19" end_scan="19" precursor_neutral_mass="2257.1062305788" assumed_charge="3" index="18" retention_time_sec="39.8525009155273" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="LAGPMQAWGQPTFEGTRPTGR" peptide_prev_aa="R" peptide_next_aa="F" protein="Cas5" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2257.1062305788" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="5.48453806508593"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+	<spectrum_query spectrum="IDFileConverter_20_output.20.20.3" start_scan="20" end_scan="20" precursor_neutral_mass="2476.2822825187" assumed_charge="3" index="19" retention_time_sec="40.0377769470215" >
+	<search_result>
+		<search_hit hit_rank="1" peptide="SGYYAQNIGESSLRTIHLAQLR" peptide_prev_aa="K" peptide_next_aa="D" protein="Cas7" num_tot_proteins="1" num_matched_ions="0" tot_num_ions="0" calc_neutral_pep_mass="2476.2822825187" massdiff="0.0" num_tol_term="1" num_missed_cleavages="0" is_rejected="0" protein_descr="Protein No. 1">
+			<search_score name="hyperscore" value="5.11542392111397"/>
+		</search_hit>
+	</search_result>
+	</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

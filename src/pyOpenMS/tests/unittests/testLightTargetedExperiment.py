@@ -17,7 +17,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
 
         lm = pyopenms.LightModification()
         lm.location = 13
-        lm.unimod_id = b"ID"
+        lm.unimod_id = 4
 
         self.lm = lm
 
@@ -57,7 +57,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
     @staticmethod
     def _test_light_modification(lm):
         assert lm.location == 13
-        assert lm.unimod_id == b"ID"
+        assert lm.unimod_id == 4
 
     @staticmethod
     def _test_light_peptide(lpep):

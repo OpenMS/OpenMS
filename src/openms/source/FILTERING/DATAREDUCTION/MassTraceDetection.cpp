@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,15 +34,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <vector>
-#include <map>
-#include <algorithm>
-#include <numeric>
-#include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -95,12 +87,12 @@ namespace OpenMS
     return;
   }
 
-  void MassTraceDetection::run(MSExperiment<Peak1D>::ConstAreaIterator& begin,
-                               MSExperiment<Peak1D>::ConstAreaIterator& end,
+  void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
+                               PeakMap::ConstAreaIterator& end,
                                std::vector<MassTrace>& found_masstraces)
   {
-    MSExperiment<Peak1D> map;
-    MSSpectrum<Peak1D> current_spectrum;
+    PeakMap map;
+    MSSpectrum current_spectrum;
 
     if (begin == end)
     {
@@ -195,7 +187,7 @@ namespace OpenMS
   }
 
 
-  void MassTraceDetection::run(const MSExperiment<Peak1D>& input_exp, std::vector<MassTrace>& found_masstraces)
+  void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces)
   {
     // make sure the output vector is empty
     found_masstraces.clear();
@@ -203,7 +195,7 @@ namespace OpenMS
     // gather all peaks that are potential chromatographic peak apices
     //   - use work_exp for actual work (remove peaks below noise threshold)
     //   - store potential apices in chrom_apices
-    MSExperiment<Peak1D> work_exp;
+    PeakMap work_exp;
     MapIdxSortedByInt chrom_apices;
 
     Size total_peak_count(0);
@@ -215,7 +207,7 @@ namespace OpenMS
     // *********************************************************** //
     //  Step 1: Detecting potential chromatographic apices
     // *********************************************************** //
-    for (MSExperiment<Peak1D>::ConstIterator it = input_exp.begin(); it != input_exp.end(); ++it)
+    for (PeakMap::ConstIterator it = input_exp.begin(); it != input_exp.end(); ++it)
     {
       // check if this is a MS1 survey scan
       if (it->getMSLevel() != 1) continue;
@@ -237,7 +229,7 @@ namespace OpenMS
           ++total_peak_count;
         }
       }
-      MSExperiment<Peak1D>::SpectrumType tmp_spec(*it);
+      PeakMap::SpectrumType tmp_spec(*it);
       tmp_spec.select(indices_passing);
       work_exp.addSpectrum(tmp_spec);
       spec_offsets.push_back(spec_offsets.back() + tmp_spec.size());
@@ -264,7 +256,7 @@ namespace OpenMS
 
   void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apices,
                                 const Size total_peak_count, 
-                                const MSExperiment<Peak1D>& work_exp, 
+                                const PeakMap& work_exp, 
                                 const std::vector<Size>& spec_offsets,
                                 std::vector<MassTrace>& found_masstraces)
   {
@@ -360,7 +352,7 @@ namespace OpenMS
         // *********************************************************** //
         if ((trace_down_idx > 0) && toggle_down)
         {
-          const MSSpectrum<>& spec_trace_down = work_exp[trace_down_idx - 1];
+          const MSSpectrum& spec_trace_down = work_exp[trace_down_idx - 1];
           if (!spec_trace_down.empty())
           {
             Size next_down_peak_idx = spec_trace_down.findNearest(centroid_mz);
@@ -438,7 +430,7 @@ namespace OpenMS
         // *********************************************************** //
         if ((trace_up_idx < work_exp.size() - 1) && toggle_up)
         {
-          const MSSpectrum<>& spec_trace_up = work_exp[trace_up_idx + 1];
+          const MSSpectrum& spec_trace_up = work_exp[trace_up_idx + 1];
           if (!spec_trace_up.empty())
           {
             Size next_up_peak_idx = spec_trace_up.findNearest(centroid_mz);

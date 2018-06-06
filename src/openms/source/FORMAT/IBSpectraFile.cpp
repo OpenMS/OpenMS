@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -122,15 +121,15 @@ namespace OpenMS
     }
 
     // we take the mapcount as approximation
-    if (cm.getFileDescriptions().size() == 4)
+    if (cm.getColumnHeaders().size() == 4)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqFourPlexQuantitationMethod);
     }
-    else if (cm.getFileDescriptions().size() == 6)
+    else if (cm.getColumnHeaders().size() == 6)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new TMTSixPlexQuantitationMethod);
     }
-    else if (cm.getFileDescriptions().size() == 8)
+    else if (cm.getColumnHeaders().size() == 8)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqEightPlexQuantitationMethod);
     }
@@ -240,7 +239,7 @@ namespace OpenMS
       {
         // protein name:
         const PeptideHit& peptide_hit = cFeature.getPeptideIdentifications()[0].getHits()[0];
-        std::set<String> protein_accessions = peptide_hit.extractProteinAccessions();
+        std::set<String> protein_accessions = peptide_hit.extractProteinAccessionsSet();
         if (protein_accessions.size() != 1)
         {
           if (!allow_non_unique) continue; // we only want unique peptides

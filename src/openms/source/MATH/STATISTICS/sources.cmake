@@ -6,11 +6,13 @@ set(sources_list
 AsymmetricStatistics.cpp
 AveragePosition.cpp
 BasicStatistics.cpp
+CumulativeBinomial.cpp
 GammaDistributionFitter.cpp
 GaussFitter.cpp
 GumbelDistributionFitter.cpp
 Histogram.cpp
 LinearRegression.cpp
+LinearRegressionWithoutIntercept.cpp
 PosteriorErrorProbabilityModel.cpp
 QuadraticRegression.cpp
 ROCCurve.cpp

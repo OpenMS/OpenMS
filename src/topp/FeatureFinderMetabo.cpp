@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,18 +114,21 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Centroided mzML file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
+    registerOutputFile_("out_chrom", "<file>", "", "Optional mzML file with chromatograms", false);
+    setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
+
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String& /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     Param combined;
     Param p_com;
@@ -154,13 +157,14 @@ protected:
 
     Param p_ffm = FeatureFindingMetabo().getDefaults();
     p_ffm.remove("chrom_fwhm");
+    p_ffm.remove("report_chromatograms");
     combined.insert("ffm:", p_ffm);
     combined.setSectionDescription("ffm", "FeatureFinder parameters (assembling mass traces to charged features)");
 
     return combined;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------
@@ -169,13 +173,14 @@ protected:
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    String out_chrom = getStringOption_("out_chrom");
 
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
-    MSExperiment<Peak1D> ms_peakmap;
+    PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     mz_data_file.getOptions().setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
@@ -190,7 +195,7 @@ protected:
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
 
-    if (spectrum_type == SpectrumSettings::RAWDATA)
+    if (spectrum_type == SpectrumSettings::PROFILE)
     {
       if (!getFlag_("force"))
       {
@@ -231,7 +236,6 @@ protected:
 
     mtdet.run(ms_peakmap, m_traces);
 
-
     //-------------------------------------------------------------
     // configure and run elution peak detection
     //-------------------------------------------------------------
@@ -270,9 +274,6 @@ protected:
       }
     }
 
-
-//    std::cout << "m_traces: " << m_traces_final.size() << std::endl;
-
     //-------------------------------------------------------------
     // configure and run feature finding
     //-------------------------------------------------------------
@@ -280,13 +281,19 @@ protected:
     ffm_param.insert("", common_param);
     ffm_param.remove("noise_threshold_int");
     ffm_param.remove("chrom_peak_snr");
+    String report_chromatograms = out_chrom.empty() ? "false" : "true";
+    ffm_param.setValue("report_chromatograms", report_chromatograms);
 
     FeatureMap feat_map;
-    feat_map.setPrimaryMSRunPath(ms_peakmap.getPrimaryMSRunPath());
+    StringList ms_runs;
+    ms_peakmap.getPrimaryMSRunPath(ms_runs);
+    feat_map.setPrimaryMSRunPath(ms_runs);
+
+    std::vector< std::vector< OpenMS::MSChromatogram > > feat_chromatograms;
 
     FeatureFindingMetabo ffmet;
     ffmet.setParameters(ffm_param);
-    ffmet.run(m_traces_final, feat_map);
+    ffmet.run(m_traces_final, feat_map, feat_chromatograms);
 
     Size trace_count(0);
     for (Size i = 0; i < feat_map.size(); ++i)
@@ -296,18 +303,44 @@ protected:
       trace_count += (Size) feat_map[i].getMetaValue("num_of_masstraces");
     }
 
+    if (trace_count != m_traces_final.size())
+    {
+      if (ffm_param.getValue("remove_single_traces").toBool() == false)
+      { 
+        LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
+        return UNEXPECTED_RESULT;
+      }
+      else
+      {
+        LOG_INFO << "FF-Metabo: " << (m_traces_final.size() - trace_count) << " unassembled traces have been removed." << std::endl;
+      }     
+    }
+
     LOG_INFO << "-- FF-Metabo stats --\n"
              << "Input traces:    " << m_traces_final.size() << "\n"
              << "Output features: " << feat_map.size() << " (total trace count: " << trace_count << ")" << std::endl;
 
-    if (trace_count != m_traces_final.size())
+    // store chromatograms
+    if (!out_chrom.empty())
     {
-      LOG_ERROR << "FF-Metabo: Internal error. Not all mass traces have been assembled to features! Aborting." << std::endl;
-      return UNEXPECTED_RESULT;
+        if (feat_chromatograms.size() == feat_map.size())
+        {
+          MSExperiment out_exp;
+            for (Size i = 0; i < feat_chromatograms.size(); ++i)
+            {
+                for (Size j = 0; j < feat_chromatograms[i].size(); ++j)
+                {
+                    out_exp.addChromatogram(feat_chromatograms[i][j]);
+                }
+            }
+          MzMLFile().store(out_chrom, out_exp);
+        }
+        else
+        {
+            LOG_ERROR << "FF-Metabo: Internal error. The number of features (" << feat_chromatograms.size() << ") and chromatograms (" << feat_map.size() << ") are different! Aborting." << std::endl;
+            return UNEXPECTED_RESULT;
+        }
     }
-
-    feat_map.sortByMZ();
-    feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // store ionization mode of spectra (useful for post-processing by AccurateMassSearch tool)
     if (feat_map.size() > 0)
@@ -319,9 +352,7 @@ protected:
       }
       // concat to single string
       StringList sl_pols;
-      for (set<IonSource::Polarity>::const_iterator it = pols.begin();
-           it != pols.end();
-           ++it)
+      for (set<IonSource::Polarity>::const_iterator it = pols.begin(); it != pols.end(); ++it)
       {
         sl_pols.push_back(String(IonSource::NamesOfPolarity[*it]));
       }

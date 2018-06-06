@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>" namesp
 
         FeatureFinder()      nogil except +
         void run(String algorithm_name,
-                 MSExperiment[Peak1D, ChromatogramPeak] & input_map,
+                 MSExperiment & input_map,
                  FeatureMap & feats,
                  Param & param,
                  FeatureMap & seeds

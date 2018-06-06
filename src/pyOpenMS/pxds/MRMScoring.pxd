@@ -8,10 +8,11 @@ from ISpectrumAccess cimport *
 # from Scoring cimport *
 from LightTargetedExperiment cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath":
+cdef extern from "<OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath":
     
     cdef cppclass MRMScoring "OpenSwath::MRMScoring":
         MRMScoring(MRMScoring) nogil except + #wrap-ignore
+
         # TODO create class for XCorrMatrix
         # XCorrMatrixType  getXCorrMatrix() nogil except +
         # NAMESPACE # # POINTER # void initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize) nogil except +

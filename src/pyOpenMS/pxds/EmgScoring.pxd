@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>" namespace
     cdef cppclass EmgScoring "OpenMS::EmgScoring":
         EmgScoring() nogil except +
         EmgScoring(EmgScoring) nogil except + #wrap-ignore
+
         void setFitterParam(Param param) nogil except +
         Param getDefaults() nogil except +
         # TEMPLATE # double calcElutionFitScore(MRMFeature &mrmfeature, MRMTransitionGroup[ SpectrumType, TransitionT ] &transition_group) nogil except +

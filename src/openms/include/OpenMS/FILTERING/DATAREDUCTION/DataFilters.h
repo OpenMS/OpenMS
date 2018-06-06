@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_DATAFILTERS_H
-#define OPENMS_FILTERING_DATAREDUCTION_DATAFILTERS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -161,8 +160,7 @@ public:
     bool passes(const ConsensusFeature & consensus_feature) const;
 
     ///Returns if the @p peak fulfills the current filter criteria
-    template <class PeakType>
-    inline bool passes(const MSSpectrum<PeakType> & spectrum, Size peak_index) const
+    inline bool passes(const MSSpectrum & spectrum, Size peak_index) const
     {
       if (!is_active_) return true;
 
@@ -194,7 +192,7 @@ public:
         }
         else if (filter.field == META_DATA)
         {
-          const typename MSSpectrum<PeakType>::FloatDataArrays & f_arrays = spectrum.getFloatDataArrays();
+          const typename MSSpectrum::FloatDataArrays & f_arrays = spectrum.getFloatDataArrays();
           //find the right meta data array
           SignedSize f_index = -1;
           for (Size j = 0; j < f_arrays.size(); ++j)
@@ -214,7 +212,7 @@ public:
           }
 
           //if float array not found, search in integer arrays
-          const typename MSSpectrum<PeakType>::IntegerDataArrays & i_arrays = spectrum.getIntegerDataArrays();
+          const typename MSSpectrum::IntegerDataArrays & i_arrays = spectrum.getIntegerDataArrays();
           //find the right meta data array
           SignedSize i_index = -1;
           for (Size j = 0; j < i_arrays.size(); ++j)
@@ -284,4 +282,3 @@ protected:
 
 } //namespace
 
-#endif

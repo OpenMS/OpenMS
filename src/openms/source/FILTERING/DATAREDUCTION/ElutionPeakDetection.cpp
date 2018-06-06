@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,8 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
-#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-
-#include <algorithm>
-#include <numeric>
-#include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -569,15 +564,19 @@ namespace OpenMS
     // looking at the unit test, this method gives better fits than lowess smoothing
     // reference paper uses lowess smoothing
 
-    MSSpectrum<PeakType> spectrum;
-    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
+    MSSpectrum spectrum;
+    for (Size i = 0; i != mt.getSize(); ++i)
+    {
+      spectrum.push_back(Peak1D(mt[i].getRT(), mt[i].getIntensity()));
+    }
+
     SavitzkyGolayFilter sg;
     Param param;
     param.setValue("polynomial_order", 2);
     param.setValue("frame_length", std::max(3, win_size)); // frame length must be at least polynomial_order+1, otherwise SG will fail
     sg.setParameters(param);
     sg.filter(spectrum);
-    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
+    MSSpectrum::iterator iter = spectrum.begin();
     std::vector<double> smoothed_intensities;
     for (; iter != spectrum.end(); ++iter)
     {

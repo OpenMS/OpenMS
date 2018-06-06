@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -215,7 +215,7 @@ protected:
     }
   }
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     addEmptyLine_();
 
@@ -223,9 +223,9 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mono mass tolerance.", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor monoisotopic mass tolerance.", false);
 
-    registerStringOption_("precursor_mass_tolerance_unit", "<unit>", "Da", "Unit to be used for precursor mass tolerance.", false);
+    registerStringOption_("precursor_mass_tolerance_unit", "<unit>", "ppm", "Unit to be used for precursor mass tolerance.", false);
     setValidStrings_("precursor_mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
     registerFlag_("precursor_mass_tolerance_avg", "If this flag is set, the average mass is used in the precursor mass tolerance.");
@@ -239,11 +239,9 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""),
-                        "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""),
-                        "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'.", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     addEmptyLine_();
@@ -276,7 +274,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String tmp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
     {
@@ -466,7 +464,7 @@ protected:
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
 
-    MSExperiment<> exp;
+    PeakMap exp;
     if (File::exists(pep_file))
     {
       MzMLFile fh;
@@ -515,7 +513,9 @@ protected:
 
     if (!protein_identifications.empty())
     {
-      protein_identifications[0].setPrimaryMSRunPath(exp.getPrimaryMSRunPath());
+      StringList ms_runs;
+      exp.getPrimaryMSRunPath(ms_runs);
+      protein_identifications[0].setPrimaryMSRunPath(ms_runs);
     }
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_identifications);
     return EXECUTION_OK;

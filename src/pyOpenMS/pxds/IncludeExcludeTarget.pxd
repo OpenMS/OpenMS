@@ -9,11 +9,11 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "
     cdef cppclass IncludeExcludeTarget :
         IncludeExcludeTarget() nogil except +
         IncludeExcludeTarget(IncludeExcludeTarget) nogil except +
-        void setName(String & name) nogil except +
+        void setName(const String & name) nogil except +
         String  getName() nogil except +
-        void setPeptideRef(String & peptide_ref) nogil except +
+        void setPeptideRef(const String & peptide_ref) nogil except +
         String  getPeptideRef() nogil except +
-        void setCompoundRef(String & compound_ref) nogil except +
+        void setCompoundRef(const String & compound_ref) nogil except +
         String  getCompoundRef() nogil except +
         void setPrecursorMZ(double mz) nogil except +
         double getPrecursorMZ() nogil except +

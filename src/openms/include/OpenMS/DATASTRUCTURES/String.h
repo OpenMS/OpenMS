@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,12 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_STRING_H
-#define OPENMS_DATASTRUCTURES_STRING_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <algorithm> // for "min"
 #include <string>
 #include <vector>
 
@@ -492,7 +492,7 @@ public:
     }
 
     // construct from other view
-    StringView(const StringView & s) : begin_(s.begin_), size_(s.size_) 
+    StringView(const StringView& s) : begin_(s.begin_), size_(s.size_) 
     {
     }
 
@@ -517,13 +517,13 @@ public:
     }
 
     /// create view that references a substring of the original string
-    inline StringView substr(Size start_index, Size end_index) const
+    inline StringView substr(Size start, Size length) const
     {
       if (!size_) return *this;
 
       StringView sv(*this);
-      sv.begin_ = begin_ + start_index;
-      sv.size_ = end_index - start_index + 1;
+      sv.begin_ = begin_ + start;
+      sv.size_ = std::min(length, sv.size_ - start);
       return sv;
     }
     
@@ -541,10 +541,9 @@ public:
     }
 
     private:
-      const char * begin_;
+      const char* begin_;
       Size size_;
   }; 
 
-}// namespace OPENMS
+} // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_STRING_H

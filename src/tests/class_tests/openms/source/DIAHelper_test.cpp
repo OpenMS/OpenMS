@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,20 +35,20 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #ifdef USE_BOOST_UNIT_TEST
+
+// include boost unit test framework
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE MyTest
-
 #include <boost/test/unit_test.hpp>
-
-// make work with OpenMS
-#define START_TEST(val)
-#define END_TEST
-#define END_SECTION
-
+// macros for boost
 #define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
 #define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, boost::test_tools::fraction_tolerance(1.e-5) ));
-#include <iomanip>
+  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, EPS_05 ));
+#define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
+#define END_SECTION
+#define START_TEST(var1, var2)
+#define END_TEST
+
 #else
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
@@ -56,6 +56,8 @@
 
 #include <iterator>
 #include <iomanip>
+
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -70,12 +72,18 @@ START_TEST(DIAHelper, "$Id$")
 
 START_SECTION([EXTRA] getBYSeries_test)
 {
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "true",
+      "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  generator.setParameters(p);
+
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
-  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries);
+  OpenMS::DIAHelpers::getBYSeries(a, bseries, yseries, &generator);
   bseries.clear();
-  OpenMS::DIAHelpers::getTheorMasses(a, bseries);
+  OpenMS::DIAHelpers::getTheorMasses(a, bseries, &generator);
 
 }
 END_SECTION
@@ -150,11 +158,18 @@ END_SECTION
 
 START_SECTION([EXTRA] simulateSpectrumFromAASequence_test)
 {
+  TheoreticalSpectrumGenerator generator;
+  Param p;
+  p.setValue("add_metainfo", "false",
+             "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
+  p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
+  generator.setParameters(p);
+
   String sequence = "SYVAWDR";
   OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
   std::vector<double> masses1;
   std::vector<std::pair<double, double> > tmp, out;
-  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp);
+  OpenMS::DIAHelpers::simulateSpectrumFromAASequence(a, masses1, tmp, &generator);
 
   std::copy(masses1.begin(), masses1.end(),
       std::ostream_iterator<double>(std::cout, " "));

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_SWATHFILECONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_SWATHFILECONSUMER_H
+#pragma once
 
 #include <boost/cast.hpp>
 
 // Datastructures
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
@@ -52,6 +51,7 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -98,11 +98,11 @@ namespace OpenMS
    *
    */
   class OPENMS_DLLAPI FullSwathFileConsumer :
-    public Interfaces::IMSDataConsumer<>
+    public Interfaces::IMSDataConsumer
   {
 
 public:
-    typedef MSExperiment<> MapType;
+    typedef PeakMap MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
@@ -132,10 +132,10 @@ public:
       use_external_boundaries_ = !swath_map_boundaries_.empty();
     }
 
-    ~FullSwathFileConsumer() {}
+    ~FullSwathFileConsumer() override {}
 
-    void setExpectedSize(Size, Size) {}
-    void setExperimentalSettings(const ExperimentalSettings& exp) {settings_ = exp; }
+    void setExpectedSize(Size, Size) override {}
+    void setExperimentalSettings(const ExperimentalSettings& exp) override {settings_ = exp; }
 
     /**
      * @brief Populate the vector of swath maps after consuming all spectra.
@@ -193,7 +193,7 @@ public:
     }
 
     /// Consume a chromatogram -> should not happen when dealing with SWATH maps
-    void consumeChromatogram(MapType::ChromatogramType&)
+    void consumeChromatogram(MapType::ChromatogramType&) override
     {
       std::cerr << "Read chromatogram while reading SWATH files, did not expect that!" << std::endl;
     }
@@ -203,7 +203,7 @@ public:
      * one of n MS2 (SWATH) scans
      *
      */
-    void consumeSpectrum(MapType::SpectrumType& s)
+    void consumeSpectrum(MapType::SpectrumType& s) override
     {
       if (!consuming_possible_)
       {
@@ -306,12 +306,12 @@ protected:
     std::vector<OpenSwath::SwathMap> swath_map_boundaries_;
 
     /// A list of SWATH maps and the MS1 map
-    std::vector<boost::shared_ptr<MSExperiment<> > > swath_maps_;
-    boost::shared_ptr<MSExperiment<> > ms1_map_;
+    std::vector<boost::shared_ptr<PeakMap > > swath_maps_;
+    boost::shared_ptr<PeakMap > ms1_map_;
 
     /// The Experimental settings
     // (MSExperiment has no constructor using ExperimentalSettings)
-    MSExperiment<> settings_;
+    PeakMap settings_;
 
     /// Whether further spectra can still be consumed
     bool consuming_possible_;
@@ -335,7 +335,7 @@ protected:
   {
 
 public:
-    typedef MSExperiment<> MapType;
+    typedef PeakMap MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
@@ -347,11 +347,11 @@ public:
 protected:
     void addNewSwathMap_()
     {
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
+      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       swath_maps_.push_back(exp);
     }
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
       while (swath_maps_.size() <= swath_nr)
       {
@@ -363,11 +363,11 @@ protected:
 
     void addMS1Map_()
     {
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
+      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       ms1_map_ = exp;
     }
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s)
+    void consumeMS1Spectrum_(MapType::SpectrumType& s) override
     {
       if (!ms1_map_)
       {
@@ -376,7 +376,7 @@ protected:
       ms1_map_->addSpectrum(s);
     }
 
-    void ensureMapsAreFilled_() {}
+    void ensureMapsAreFilled_() override {}
   };
 
   /**
@@ -393,12 +393,12 @@ protected:
   {
 
 public:
-    typedef MSExperiment<> MapType;
+    typedef PeakMap MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
     CachedSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
-      ms1_consumer_(NULL),
+      ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
       basename_(basename),
@@ -409,7 +409,7 @@ public:
     CachedSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
             String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
-      ms1_consumer_(NULL),
+      ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
       basename_(basename),
@@ -417,7 +417,7 @@ public:
       nr_ms2_spectra_(nr_ms2_spectra)
     {}
 
-    ~CachedSwathFileConsumer()
+    ~CachedSwathFileConsumer() override
     {
       // Properly delete the MSDataCachedConsumer -> free memory and _close_ file stream
       while (!swath_consumers_.empty())
@@ -425,10 +425,10 @@ public:
         delete swath_consumers_.back();
         swath_consumers_.pop_back();
       }
-      if (ms1_consumer_ != NULL)
+      if (ms1_consumer_ != nullptr)
       {
         delete ms1_consumer_;
-        ms1_consumer_ = NULL;
+        ms1_consumer_ = nullptr;
       }
     }
 
@@ -442,11 +442,11 @@ protected:
       swath_consumers_.push_back(consumer);
 
       // maps for meta data
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
+      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       swath_maps_.push_back(exp);
     }
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
       while (swath_maps_.size() <= swath_nr)
       {
@@ -462,13 +462,13 @@ protected:
       String cached_file = meta_file + ".cached";
       ms1_consumer_ = new MSDataCachedConsumer(cached_file, true);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
+      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       ms1_map_ = exp;
     }
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s)
+    void consumeMS1Spectrum_(MapType::SpectrumType& s) override
     {
-      if (ms1_consumer_ == NULL)
+      if (ms1_consumer_ == nullptr)
       {
         addMS1Map_();
       }
@@ -476,10 +476,10 @@ protected:
       ms1_map_->addSpectrum(s); // append for the metadata (actual data is deleted)
     }
 
-    void ensureMapsAreFilled_()
+    void ensureMapsAreFilled_() override
     {
       size_t swath_consumers_size = swath_consumers_.size();
-      bool have_ms1 = (ms1_consumer_ != NULL);
+      bool have_ms1 = (ms1_consumer_ != nullptr);
 
       // Properly delete the MSDataCachedConsumer -> free memory and _close_ file stream
       // The file streams to the cached data on disc can and should be closed
@@ -494,15 +494,15 @@ protected:
         delete swath_consumers_.back();
         swath_consumers_.pop_back();
       }
-      if (ms1_consumer_ != NULL)
+      if (ms1_consumer_ != nullptr)
       {
         delete ms1_consumer_;
-        ms1_consumer_ = NULL;
+        ms1_consumer_ = nullptr;
       }
 
       if (have_ms1)
       {
-        boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+        boost::shared_ptr<PeakMap > exp(new PeakMap);
         String meta_file = cachedir_ + basename_ + "_ms1.mzML";
         // write metadata to disk and store the correct data processing tag
         CachedmzML().writeMetadata(*ms1_map_, meta_file, true);
@@ -515,7 +515,7 @@ protected:
 #endif
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_consumers_size); i++)
       {
-        boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+        boost::shared_ptr<PeakMap > exp(new PeakMap);
         String meta_file = cachedir_ + basename_ + "_" + String(i) +  ".mzML";
         // write metadata to disk and store the correct data processing tag
         CachedmzML().writeMetadata(*swath_maps_[i], meta_file, true);
@@ -538,7 +538,7 @@ protected:
    *
    * Writes all spectra immediately to disk to an mzML file location using the
    * PlainMSDataWritingConsumer. Internally, it handles n+1 (n SWATH + 1 MS1
-   * map) objects of MSDataCachedConsumerwhich can consume the spectra and
+   * map) objects of MSDataCachedConsumer which can consume the spectra and
    * write them to disk immediately.
    *
    */
@@ -547,12 +547,12 @@ protected:
   {
 
 public:
-    typedef MSExperiment<> MapType;
+    typedef PeakMap MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
     MzMLSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
-      ms1_consumer_(NULL),
+      ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
       basename_(basename),
@@ -563,7 +563,7 @@ public:
     MzMLSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
             String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
-      ms1_consumer_(NULL),
+      ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
       basename_(basename),
@@ -571,7 +571,7 @@ public:
       nr_ms2_spectra_(nr_ms2_spectra)
     {}
 
-    ~MzMLSwathFileConsumer()
+    ~MzMLSwathFileConsumer() override
     {
       deleteSetNull_();
     }
@@ -586,10 +586,10 @@ protected:
         delete swath_consumers_.back();
         swath_consumers_.pop_back();
       }
-      if (ms1_consumer_ != NULL)
+      if (ms1_consumer_ != nullptr)
       {
         delete ms1_consumer_;
-        ms1_consumer_ = NULL;
+        ms1_consumer_ = nullptr;
       }
     }
 
@@ -597,11 +597,12 @@ protected:
     {
       String mzml_file = cachedir_ + basename_ + "_" + String(swath_consumers_.size()) +  ".mzML";
       PlainMSDataWritingConsumer* consumer = new PlainMSDataWritingConsumer(mzml_file);
+      consumer->getOptions().setCompression(true);
       consumer->setExpectedSize(nr_ms2_spectra_[swath_consumers_.size()], 0);
       swath_consumers_.push_back(consumer);
     }
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
       // only use swath_maps_ to count how many we have already added
       while (swath_consumers_.size() <= swath_nr)
@@ -617,13 +618,14 @@ protected:
       String mzml_file = cachedir_ + basename_ + "_ms1.mzML";
       ms1_consumer_ = new PlainMSDataWritingConsumer(mzml_file);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
-      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
+      ms1_consumer_->getOptions().setCompression(true);
+      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
       // ms1_map_ = exp;
     }
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s)
+    void consumeMS1Spectrum_(MapType::SpectrumType& s) override
     {
-      if (ms1_consumer_ == NULL)
+      if (ms1_consumer_ == nullptr)
       {
         addMS1Map_();
       }
@@ -631,7 +633,7 @@ protected:
       s.clear(false);
     }
 
-    void ensureMapsAreFilled_()
+    void ensureMapsAreFilled_() override
     {
       deleteSetNull_();
     }
@@ -647,4 +649,3 @@ protected:
 
 }
 
-#endif

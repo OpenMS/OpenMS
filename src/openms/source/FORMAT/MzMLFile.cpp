@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,14 +29,17 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
+
+#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
+#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 namespace OpenMS
 {
@@ -66,7 +69,7 @@ namespace OpenMS
     options_ = options;
   }
 
-  //reimplemented in order to handle index MzML
+  // reimplemented in order to handle index MzML
   bool MzMLFile::isValid(const String& filename, std::ostream& os)
   {
     //determine if this is indexed mzML or not
@@ -94,11 +97,11 @@ namespace OpenMS
 
   bool MzMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
   {
-    //load mapping
+    // load mapping
     CVMappings mapping;
     CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping);
 
-    //load cvs
+    // load cvs
     ControlledVocabulary cv;
     cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
@@ -106,7 +109,7 @@ namespace OpenMS
     cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
     cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
 
-    //validate
+    // validate
     Internal::MzMLValidator v(mapping, cv);
     bool result = v.validate(filename, errors, warnings);
 
@@ -115,19 +118,20 @@ namespace OpenMS
 
   void MzMLFile::loadSize(const String& filename, Size& scount, Size& ccount)
   {
-    typedef MSExperiment<> MapType;
-
-    MapType dummy;
-    bool size_only_before_ = options_.getSizeOnly();
-    options_.setSizeOnly(true);
-    Internal::MzMLHandler<MapType> handler(dummy, filename, getVersion(), *this);
+    PeakMap dummy;
+    Internal::MzMLHandler handler(dummy, filename, getVersion(), *this);
     handler.setOptions(options_);
-
-    // TODO catch errors as above ?
-    parse_(filename, &handler);
-
+    if (options_.hasFilters())
+    {
+      handler.setLoadDetail(Internal::XMLHandler::LD_COUNTS_WITHOPTIONS);
+    }
+    else
+    { // no filters where specified. Just take the 'counts' attributes from the mzML file and end parsing
+      handler.setLoadDetail(Internal::XMLHandler::LD_RAWCOUNTS);
+    }
+    
+    safeParse_(filename, &handler);
     handler.getCounts(scount, ccount);
-    options_.setSizeOnly(size_only_before_);
   }
 
   void MzMLFile::safeParse_(const String& filename, Internal::XMLHandler* handler)
@@ -150,6 +154,104 @@ namespace OpenMS
       mess.append(e.getName());
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, mess);
     }
+  }
+
+  void MzMLFile::loadBuffer(const std::string& buffer, PeakMap& map)
+  {
+    map.reset();
+
+    Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
+    handler.setOptions(options_);
+    parseBuffer_(buffer, &handler);
+  }
+
+  void MzMLFile::load(const String& filename, PeakMap& map)
+  {
+    map.reset();
+
+    //set DocumentIdentifier
+    map.setLoadedFileType(filename);
+    map.setLoadedFilePath(filename);
+
+    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    handler.setOptions(options_);
+    safeParse_(filename, &handler);
+  }
+
+  void MzMLFile::store(const String& filename, const PeakMap& map) const
+  {
+    Internal::MzMLHandler handler(map, filename, getVersion(), *this);
+    handler.setOptions(options_);
+    save_(filename, &handler);
+  }
+
+  void MzMLFile::storeBuffer(std::string& output, const PeakMap& map) const
+  {
+    Internal::MzMLHandler handler(map, "dummy", getVersion(), *this);
+    handler.setOptions(options_);
+    {
+      std::stringstream os;
+
+      //set high precision for writing of floating point numbers
+      os.precision(writtenDigits(double()));
+
+      // write data and close stream
+      handler.writeTo(os);
+      output = os.str();
+    }
+  }
+
+  void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count, bool skip_first_pass)
+  {
+    // First pass through the file -> get the meta-data and hand it to the consumer
+    if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
+
+    // Second pass through the data, now read the spectra!
+    {
+      PeakMap dummy;
+      Internal::MzMLHandler handler(dummy, filename_in, getVersion(), *this);
+      handler.setOptions(options_);
+      handler.setMSDataConsumer(consumer);
+      safeParse_(filename_in, &handler);
+    }
+  }
+
+  void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, PeakMap& map, bool skip_full_count, bool skip_first_pass)
+  {
+    // First pass through the file -> get the meta-data and hand it to the consumer
+    if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
+
+    // Second pass through the data, now read the spectra!
+    {
+      PeakFileOptions tmp_options(options_);
+      Internal::MzMLHandler handler(map, filename_in, getVersion(), *this);
+      tmp_options.setAlwaysAppendData(true);
+      handler.setOptions(tmp_options);
+      handler.setMSDataConsumer(consumer);
+
+      safeParse_(filename_in, &handler);
+    }
+  }
+
+  void MzMLFile::transformFirstPass_(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count)
+  {
+    // Create temporary objects and counters
+    PeakFileOptions tmp_options(options_);
+    Size scount = 0, ccount = 0;
+    PeakMap experimental_settings;
+    Internal::MzMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
+
+    // set temporary options for handler
+    tmp_options.setMetadataOnly( skip_full_count );
+    handler.setOptions(tmp_options);
+    handler.setLoadDetail(Internal::XMLHandler::LD_RAWCOUNTS);
+
+    safeParse_(filename_in, &handler);
+
+    // After parsing, collect information
+    handler.getCounts(scount, ccount);
+    consumer->setExpectedSize(scount, ccount);
+    consumer->setExperimentalSettings(experimental_settings);
   }
 
 } // namespace OpenMS

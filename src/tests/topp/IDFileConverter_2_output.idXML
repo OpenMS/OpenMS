@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
-<IdXML version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="./current.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 		<FixedModification name="Carbamidomethyl (C)" />
 		<VariableModification name="Ammonia-loss (N-term C)" />
@@ -56,11 +56,11 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="538.605091698567" RT="1.3653" >
-			<PeptideHit score="8" sequence=".(Glu->pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R X X" aa_after="E X X" protein_refs="PH_0 PH_1 PH_2" >
+			<PeptideHit score="8" sequence=".(Glu-&gt;pyro-Glu)ELNKEMAAEKAKAAAG" charge="3" aa_before="R X X" aa_after="E X X" protein_refs="PH_0 PH_1 PH_2" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="637.8851750319" RT="1.719" >
-			<PeptideHit score="7.7" sequence=".(Gln->pyro-Glu)QLPGVNIKPVVK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3" >
+			<PeptideHit score="7.7" sequence=".(Gln-&gt;pyro-Glu)QLPGVNIKPVVK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_3" >
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="678.3847250319" RT="2.0436" >

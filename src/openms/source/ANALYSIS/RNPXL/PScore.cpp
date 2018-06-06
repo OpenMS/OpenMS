@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/PScore.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
-#include <vector>
-#include <map>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 using std::map;
 using std::vector;
@@ -102,7 +101,7 @@ namespace OpenMS
 
   map<Size, PeakSpectrum > PScore::calculatePeakLevelSpectra(const PeakSpectrum& spec, const vector<Size>& ranks, Size min_level, Size max_level)
   {
-    map<Size, MSSpectrum<Peak1D> > peak_level_spectra;
+    map<Size, MSSpectrum > peak_level_spectra;
 
     if (spec.empty()) return peak_level_spectra;
 
@@ -127,15 +126,15 @@ namespace OpenMS
     return peak_level_spectra;
   }
 
-  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<RichPeakSpectrum> & theo_spectra, double mz_window)
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<PeakSpectrum> & theo_spectra, double mz_window)
   {
     AScore a_score_algorithm; // TODO: make the cumulative score function static
 
     double best_pscore = 0.0;
 
-    for (vector<RichPeakSpectrum>::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
+    for (vector<PeakSpectrum>::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
     {
-      const RichPeakSpectrum& theo_spectrum = *theo_spectra_it;
+      const PeakSpectrum& theo_spectrum = *theo_spectra_it;
 
       // number of theoretical ions for current spectrum
       Size N = theo_spectrum.size();
@@ -146,7 +145,7 @@ namespace OpenMS
         const PeakSpectrum& exp_spectrum = l_it->second;
 
         Size matched_peaks(0);
-        for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+        for (PeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
         {
           const double& theo_mz = theo_peak_it->getMZ();
 
@@ -176,7 +175,7 @@ namespace OpenMS
     return best_pscore;
   }
 
-  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const RichPeakSpectrum & theo_spectrum, double mz_window)
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const PeakSpectrum & theo_spectrum, double mz_window)
   {
     AScore a_score_algorithm; // TODO: make the cumulative score function static
 
@@ -191,7 +190,7 @@ namespace OpenMS
       const PeakSpectrum& exp_spectrum = l_it->second;
 
       Size matched_peaks(0);
-      for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+      for (PeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
       {
         const double& theo_mz = theo_peak_it->getMZ();
 

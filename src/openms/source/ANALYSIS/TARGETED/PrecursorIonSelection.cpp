@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
-#include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 
@@ -306,7 +305,7 @@ namespace OpenMS
         std::cout << hits[h].getScore() << " >= " << new_pep_ids[i].getSignificanceThreshold() << " "
                   << hits[h].getMetaValue("Rank") << std::endl;
 #endif
-        std::set<String> protein_accessions = hits[h].extractProteinAccessions();
+        std::set<String> protein_accessions = hits[h].extractProteinAccessionsSet();
         std::set<String>::const_iterator acc_it = protein_accessions.begin();
         for (; acc_it != protein_accessions.end(); ++acc_it)
         {
@@ -661,7 +660,7 @@ namespace OpenMS
   void PrecursorIonSelection::simulateRun(FeatureMap& features, std::vector<PeptideIdentification>& pep_ids,
                                           std::vector<ProteinIdentification>& prot_ids,
                                           PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                          String path, MSExperiment<>& experiment, String precursor_path)
+                                          String path, PeakMap& experiment, String precursor_path)
   {
     convertPeptideIdScores_(pep_ids);
     if (param_.getValue("type") == "ILP_IPS")
@@ -735,10 +734,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
     std::vector<ProteinIdentification> curr_prot_ids, all_prot_ids;
 
-    std::ofstream* precs = 0;
-    if (precursor_path != "")
-      precs = new std::ofstream(precursor_path.c_str());
-
+    std::ofstream precs(precursor_path.c_str());
 #ifdef PIS_DEBUG
     std::cout << max_iteration_ << std::endl;
 #endif
@@ -765,9 +761,9 @@ namespace OpenMS
                   <<  new_features[c].getMetaValue("msms_score");
 #endif
 
-        if (precursor_path != "")
+        if (precs.good())
         {
-          (*precs) << new_features[c].getRT() << " " << new_features[c].getMZ() << " " << new_features[c].getIntensity() << std::endl;
+          precs << new_features[c].getRT() << " " << new_features[c].getMZ() << " " << new_features[c].getIntensity() << std::endl;
         }
 
 
@@ -805,7 +801,7 @@ namespace OpenMS
           for (UInt pep_hit = 0; pep_hit < pep_hits.size(); ++pep_hit)
           {
             // get their accessions
-            std::set<String> accs = pep_hits[pep_hit].extractProteinAccessions();
+            std::set<String> accs = pep_hits[pep_hit].extractProteinAccessionsSet();
             //std::cout << accs.size() << std::endl;
             const std::vector<ProteinIdentification>& prot_ids = features.getProteinIdentifications();
             // get ProteinIds for accession and save them
@@ -977,11 +973,9 @@ namespace OpenMS
 
     }
 #endif
-
-
   }
 
-  void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, MSExperiment<>& experiment,
+  void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, PeakMap& experiment,
                                                       std::vector<PeptideIdentification>& param_pep_ids,
                                                       std::vector<ProteinIdentification>& prot_ids,
                                                       PrecursorIonSelectionPreprocessing& preprocessed_db,
@@ -1083,10 +1077,7 @@ namespace OpenMS
       }
     }
 
-    std::ofstream* precs = 0;
-    if (precursor_path != "")
-      precs = new std::ofstream(precursor_path.c_str());
-
+    std::ofstream precs(precursor_path.c_str());
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
     std::vector<ProteinIdentification> curr_prot_ids;
 #ifdef PIS_DEBUG
@@ -1120,9 +1111,9 @@ namespace OpenMS
       // go through the new compounds
       for (UInt c = 0; c < new_features.size(); ++c)
       {
-        if (precursor_path != "")
+        if (precs.good())
         {
-          (*precs) << new_features[c].getRT() << " " << new_features[c].getMZ() << " " << new_features[c].getIntensity() << std::endl;
+          precs << new_features[c].getRT() << " " << new_features[c].getMZ() << " " << new_features[c].getIntensity() << std::endl;
         }
 
         //#ifdef PIS_DEBUG
@@ -1161,7 +1152,7 @@ namespace OpenMS
                     << pep_ids[0].getSignificanceThreshold() << " "
                     << pep_ids[0].getHits()[0].getMetaValue("Rank");
 
-          std::set<String> protein_accessions = pep_ids[0].getHits()[0].extractProteinAccessions();
+          std::set<String> protein_accessions = pep_ids[0].getHits()[0].extractProteinAccessionsSet();
           if (!protein_accessions.empty())
           {
             String acc = *protein_accessions.begin();
@@ -1237,8 +1228,6 @@ namespace OpenMS
       //                std::cout << new_features.size() << " compounds for msms"<< std::endl;
       // #endif
     } //while(new_features.size() > 0 && iteration < max_iteration)
-
-
 
 #ifdef PIS_DEBUG
     std::map<String, std::set<String> >::iterator pic_iter = prot_id_counter_.begin();

@@ -1,0 +1,21 @@
+# path to visual studio redistributable (has to match your CMake generator)
+!define VS_REDISTRIBUTABLE_PATH "@VC_REDIST_PATH@"
+!define VS_REDISTRIBUTABLE_EXE "@VC_REDIST_EXE@"
+# define your platform:
+!define PLATFORM "@PLATFORM@"
+# path to OpenMS - packaging tree (where all the install stuff lands during CPack)
+!define OPENMSPACKAGEDIR "${PACKAGING_DIR}"
+# path to OpenMS - build tree
+!define OPENMSBINDIR "${PACKAGING_DIR}/@INSTALL_BIN_DIR@"
+!define OPENMSLIBDIR "${PACKAGING_DIR}/@INSTALL_LIB_DIR@"
+!define OPENMSSHAREDIR "${PACKAGING_DIR}/@INSTALL_SHARE_DIR@"
+# path to OpenMS - source tree
+!define OPENMSDIRSRC "@PROJECT_SOURCE_DIR@"
+!define NSISRESOURCES "@PROJECT_SOURCE_DIR@/cmake/Windows"
+# path to OpenMS - doc
+!define OPENMSDOCDIR "${PACKAGING_DIR}/@INSTALL_DOC_DIR@"
+# path to Thirdparty executables
+!define THIRDPARTYDIR "${PACKAGING_DIR}/@INSTALL_SHARE_DIR@/THIRDPARTY"
+# version string (does not need to be only numbers, in contrast to VERSION_LONG which has to have 4 number levels)
+!define VERSION "@OPENMS_PACKAGE_VERSION_FULLSTRING@"
+
