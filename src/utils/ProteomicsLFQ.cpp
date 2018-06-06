@@ -185,12 +185,11 @@ protected:
     for (auto const ms_files : frac2ms) // for each fraction->ms file(s)
     {
       vector<FeatureMap> feature_maps;
+      ConsensusMap consensus_fraction;      
 
       //TODO: check if we want to parallelize that
       for (String const & mz_file : ms_files.second) // for each MS file
       {
-        ConsensusMap consensus_fraction;
-
         // TODO: check if s is part of in 
       
         // load raw file
