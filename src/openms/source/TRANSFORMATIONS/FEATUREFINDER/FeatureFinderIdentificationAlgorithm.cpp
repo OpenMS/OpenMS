@@ -790,6 +790,11 @@ namespace OpenMS
       RTMap& rt_internal = ref_rt_map[peptide_ref].first;
       RTMap& rt_external = ref_rt_map[peptide_ref].second;
 
+      if (rt_internal.empty() && rt_external.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "RT internal and external are both empty.");
+      }
+
       if (!rt_internal.empty()) // validate based on internal IDs
       {
         // map IDs to features (based on RT):
@@ -832,7 +837,7 @@ namespace OpenMS
         feat_it->setMetaValue("feature_class", "unknown");
         // add "dummy" peptide identification:
         PeptideIdentification id = *(rt_external.begin()->second);
-        id.clearMetaInfo();
+        id.clearMetaInfo();        
         id.setMetaValue("FFId_category", "implied");
         id.setRT(feat_it->getRT());
         id.setMZ(feat_it->getMZ());

@@ -37,6 +37,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
@@ -81,9 +83,9 @@ protected:
   {
     registerInputFileList_("in", "<file list>", StringList(), "input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFileList_("in_ids", "<file list>", StringList(), "unfiltered identifications");
-    setValidFormats_("in_ids", ListUtils::create<String>("idXML,mzId"));
-    registerInputFile_("design", "<file>", "", "design file");
+    registerInputFileList_("ids", "<file list>", StringList(), "unfiltered identifications");
+    setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
+    registerInputFile_("design", "<file>", "", "design file", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out", "<file>", "", "output mzTab file");
@@ -122,22 +124,55 @@ protected:
     // Read tool parameters
     StringList in = getStringList_("in");
     String out = getStringOption_("out");
-    StringList in_ids = getStringList_("in_ids");
+    StringList in_ids = getStringList_("ids");
     String design_file = getStringOption_("design");
- 
+
     if (in.size() != in_ids.size())
     {
-      // TODO: fail, # of files must match 
+      throw Exception::InvalidParameter(__FILE__, __LINE__, 
+        OPENMS_PRETTY_FUNCTION, "Number of id and spectra files don't match.");
     }
   
     // map between mzML file and corresponding id file
     map<String, String> mzfile2idfile;
     for (Size i = 0; i != in.size(); ++i)
     {
-      mzfile2idfile[in[i]] = in_ids[i];
+      const String& in_abs_path = File::absolutePath(in[i]);
+      const String& id_abs_path = File::absolutePath(in_ids[i]);
+      mzfile2idfile[in_abs_path] = id_abs_path;
+      LOG_DEBUG << "Spectra: " << in[i] << "\t Ids: " << in_ids[i] << endl;
+      if (!File::exists(in[i]))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Spectra file '" + in[i] + "' does not exist.");
+      }
+
+      if (!File::exists(in_ids[i]))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Id file '" + in[i] + "' does not exist.");
+      }
     }
  
-    ExperimentalDesign design = ExperimentalDesignFile::load(design_file, false);
+    ExperimentalDesign design;
+    if (!design_file.empty())
+    { 
+      design = ExperimentalDesignFile::load(design_file, false);
+    }
+    else
+    {  // default to unfractionated design
+      ExperimentalDesign::MSFileSection msfs;
+      Size count{1};
+      for (String & s : in)
+      {
+        ExperimentalDesign::MSFileSectionEntry e;
+        e.fraction = 1;
+        e.fraction_group = count;
+        e.label = 1;
+        e.path = s;
+        e.sample = count;
+      }
+    }
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
 
     Param pp_param = getParam_().copy("Centroiding:", true);
@@ -148,9 +183,6 @@ protected:
 
     Param ff_param = getParam_().copy("Peptide Quantification:", true);
     writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ff_param, 3);
-    FeatureFinderIdentificationAlgorithm ff;
-    ff.getProgressLogger().setLogType(log_type_);
-    ff.setParameters(ff_param);
 
     Param ma_param = getParam_().copy("Alignment:", true);
     writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
@@ -290,8 +322,7 @@ protected:
 
         //-------------------------------------------------------------
         // Feature detection
-        //-------------------------------------------------------------
-        ff.getMSData().swap(ms_centroided);        
+        //-------------------------------------------------------------   
         vector<ProteinIdentification> ext_protein_ids;
         vector<PeptideIdentification> ext_peptide_ids;
 
@@ -301,6 +332,11 @@ protected:
         sl.push_back(mz_file);
         fm.setPrimaryMSRunPath(sl);
         feature_maps.push_back(fm);
+
+        FeatureFinderIdentificationAlgorithm ff;
+        ff.getMSData().swap(ms_centroided);     
+        ff.getProgressLogger().setLogType(log_type_);
+        ff.setParameters(ff_param);
         ff.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
 
         // TODO: think about external ids ;)
@@ -316,7 +352,7 @@ protected:
       aligner.align(feature_maps, transformations, reference_index);
 
       // find model parameters:
-      Param model_params = aligner.getDefaults().copy("model:", true);
+      Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
       String model_type = model_params.getValue("type");
 
       if (model_type != "none")
