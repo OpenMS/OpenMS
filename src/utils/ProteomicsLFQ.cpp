@@ -139,7 +139,7 @@ protected:
       const String& in_abs_path = File::absolutePath(in[i]);
       const String& id_abs_path = File::absolutePath(in_ids[i]);
       mzfile2idfile[in_abs_path] = id_abs_path;
-      LOG_DEBUG << "Spectra: " << in[i] << "\t Ids: " << in_ids[i] << endl;
+      writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
       if (!File::exists(in[i]))
       {
         throw Exception::FileNotFound(__FILE__, __LINE__, 
@@ -213,12 +213,11 @@ protected:
       ConsensusMap consensus_fraction;      
 
       // debug output
-      LOG_DEBUG << "Processing fraction number: " << ms_files.first << endl; 
-      LOG_DEBUG << "Files: " << endl; 
+      writeDebug_("Processing fraction number: " + String(ms_files.first) + "\nFiles: ",  1);
       
       for (String const & mz_file : ms_files.second) // for each MS file
       {
-        LOG_DEBUG << mz_file << endl;          
+        writeDebug_(mz_file,  1);
       }
 
       //TODO: check if we want to parallelize that
@@ -364,7 +363,7 @@ protected:
       model_params = model_params.copy(model_type + ":", true);
       for (TransformationDescription & t : transformations)
       {
-        LOG_DEBUG << "Using " << t.getDataPoints().size() << " points in fit." << endl; 
+        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
         if (t.getDataPoints().size() > 10)
         {
           t.fitModel(model_type, model_params);
@@ -381,7 +380,7 @@ protected:
       //-------------------------------------------------------------
       // Link all features of this fraction
       //-------------------------------------------------------------
-      LOG_DEBUG << "Linking: " << feature_maps.size() << " features" << endl;
+      writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
       FeatureGroupingAlgorithmQT linker;
       linker.setParameters(fl_param);      
       linker.group(feature_maps, consensus_fraction);
@@ -394,11 +393,12 @@ protected:
         consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
         ++j;
       }
+
       // assign unique ids
-     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+      consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
       // annotate output with data processing info
-     addDataProcessing_(consensus_fraction,
+      addDataProcessing_(consensus_fraction,
                        getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
 
 
@@ -406,7 +406,7 @@ protected:
       consensus_fraction.sortPeptideIdentificationsByMapIndex();
 
       ConsensusXMLFile().store("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction);
-      LOG_DEBUG << "to produce a consensus map with " << consensus_fraction.getColumnHeaders().size() << " columns." << endl;
+      writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
 
       //-------------------------------------------------------------
       // ID conflict resolution
@@ -441,7 +441,13 @@ protected:
     // TODO: maybe check if some consensus ID algorithms are applicable
 
     //-------------------------------------------------------------
-    // Protein quantification and export to mzTab
+    // Peptide quantification
+    //-------------------------------------------------------------
+    quantifier.readQuantData(consensus, design);
+    quantifier.quantifyPeptides(infered_peptides); 
+
+    //-------------------------------------------------------------
+    // Protein quantification
     //-------------------------------------------------------------
     // TODO: ProteinQuantifier on (merged?) consensusXML (with 1% FDR?) + inference ids (unfiltered?)? 
     if (infered_protein_groups.getIndistinguishableProteins().empty())
@@ -453,8 +459,6 @@ protected:
        "No information on indistinguishable protein groups found.");
     }
 
-    quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides(infered_peptides); 
     quantifier.quantifyProteins(infered_protein_groups);
 
     //-------------------------------------------------------------
