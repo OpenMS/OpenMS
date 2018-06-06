@@ -39,9 +39,8 @@
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -96,7 +95,7 @@ protected:
     Param pp_defaults = PeakPickerHiRes().getDefaults();
     Param ff_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
-    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
+    Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
     Param pep_defaults = Math::PosteriorErrorProbabilityModel().getParameters();
     //Param pi_defaults = ProteinInferenceAlgorithmXX().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
@@ -188,7 +187,7 @@ protected:
     writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
 
     Param fl_param = getParam_().copy("Linking:", true);
-    writeDebug_("Parameters passed to FeatureGroupingAlgorithmKD algorithm", fl_param, 3);
+    writeDebug_("Parameters passed to FeatureGroupingAlgorithmQT algorithm", fl_param, 3);
 
     Param pep_param = getParam_().copy("Posterior Error Probability:", true);
     writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
@@ -383,10 +382,29 @@ protected:
       // Link all features of this fraction
       //-------------------------------------------------------------
       LOG_DEBUG << "Linking: " << feature_maps.size() << " features" << endl;
-      FeatureGroupingAlgorithmKD linker;
-      linker.setLogType(log_type_);
-      linker.setParameters(fl_param);
+      FeatureGroupingAlgorithmQT linker;
+      linker.setParameters(fl_param);      
       linker.group(feature_maps, consensus_fraction);
+
+      Size j(0);
+      for (String const & mz_file : ms_files.second) // for each MS file
+      {
+        consensus_fraction.getColumnHeaders()[j].label = "label-free";
+        consensus_fraction.getColumnHeaders()[j].filename = mz_file;
+        consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
+        ++j;
+      }
+      // assign unique ids
+     consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+      // annotate output with data processing info
+     addDataProcessing_(consensus_fraction,
+                       getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+
+
+      // sort list of peptide identifications in each consensus feature by map index
+      consensus_fraction.sortPeptideIdentificationsByMapIndex();
+
       ConsensusXMLFile().store("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction);
       LOG_DEBUG << "to produce a consensus map with " << consensus_fraction.getColumnHeaders().size() << " columns." << endl;
 
