@@ -53,7 +53,7 @@ private:
     }
 
 public:
-    TableDependency<Label> createProteinFactor(Label id);
+    TableDependency<Label> createProteinFactor(Label id, int nrMissingPeps = 0);
 
     TableDependency<Label> createPeptideEvidenceFactor(Label id, double prob);
 
@@ -103,8 +103,14 @@ MessagePasserFactory<L>::MessagePasserFactory(double alpha_, double beta_, doubl
 }
 
 template <typename L>
-TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id) {
-  double table[] = {1 - gamma, gamma};
+TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, int nrMissingPeps) {
+  double prior = gamma;
+  if (nrMissingPeps > 0)
+  {
+    double powFactor = std::pow(1.0 - alpha, -nrMissingPeps);
+    prior = -prior/(prior * powFactor - prior - powFactor);
+  }
+  double table[] = {1.0 - prior, prior};
   LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
   return TableDependency<L>(lpmf,p);
 }

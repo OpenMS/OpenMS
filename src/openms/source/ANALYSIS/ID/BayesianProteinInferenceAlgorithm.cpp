@@ -77,7 +77,7 @@ namespace OpenMS
         // TODO use directed graph? But finding "non-strong" connected components in a directed graph is not
         // out of the box supported by boost
         std::vector<IDBoostGraph::vertex_t> in{};
-        std::vector<IDBoostGraph::vertex_t> out{};
+        //std::vector<IDBoostGraph::vertex_t> out{};
 
         for (; ui != ui_end; ++ui)
         {
@@ -85,7 +85,7 @@ namespace OpenMS
           boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
           in.clear();
-          out.clear();
+          //out.clear();
 
           for (; nbIt != nbIt_end; ++nbIt)
           {
@@ -93,28 +93,29 @@ namespace OpenMS
             {
               in.push_back(*nbIt);
             }
-            else
+            /*else
             {
               out.push_back(*nbIt);
-            }
+            }*/
           }
 
           //TODO introduce an enum for the types to make it more clear.
           //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
-          if (fg[*ui].which() == 2)
+
+          if (fg[*ui].which() == 3) // pep
           {
-            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
-            for (auto const& o : out)
-            {
-              bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[o])->getPeptideEvidences().size(), *ui, o));
-              bigb.insert_dependency(mpf.createPeptideEvidenceFactor(o, boost::get<PeptideHit*>(fg[o])->getScore()));
-            }
+            bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[*ui])->getPeptideEvidences().size(), in[0], *ui));
+            bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<PeptideHit*>(fg[*ui])->getScore()));
           }
-          else if (fg[*ui].which() == 1)
+          else if (fg[*ui].which() == 2) // pep group
           {
             bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
           }
-          else if (fg[*ui].which() == 0)
+          else if (fg[*ui].which() == 1) // prot group
+          {
+            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
+          }
+          else if (fg[*ui].which() == 0) // prot
           {
             //TODO allow an already present prior probability here
             bigb.insert_dependency(mpf.createProteinFactor(*ui));
@@ -193,7 +194,9 @@ namespace OpenMS
      * - use own groups (and regularize)
      * - use own priors
      * - multiple runs
+     * - what to do about multiple charge states or modded peptides
      * - use add. pep. infos (rt, ms1dev)
+     * - add dependencies on peptides in same feature and psms to same peptide (so that there is competition)
      * - ...
      */
 
@@ -282,18 +285,20 @@ namespace OpenMS
     ed.setEnzyme(&enzyme);
     ed.setMissedCleavages(missed_cleavages);
 
+    std::vector<StringView> tempDigests{};
     // if not annotated, assign max nr of digests
     for (auto& protein : proteinIDs[0].getHits())
     {
       // check for existing max nr peptides metavalue annotation
-      if (!protein.metaValueExists("nrTheoreticalDigests"))
+      if (!protein.metaValueExists("missingTheorDigests"))
       {
         if(!protein.getSequence().empty())
         {
-          std::vector<StringView> tempDigests{};
+          tempDigests.clear();
           //TODO check which peptide lengths we should support. Parameter?
-          Size maxPeps = ed.digestUnmodified(protein.getSequence(), tempDigests);
-          protein.setMetaValue("nrTheoreticalDigests", maxPeps);
+          Size nrDiscarded = ed.digestUnmodified(protein.getSequence(), tempDigests);
+          //TODO add the discarded digestions products, too?
+          protein.setMetaValue("missingTheorDigests", tempDigests.size());
         }
         else
         {
@@ -301,10 +306,6 @@ namespace OpenMS
           std::cerr << "Protein sequence not annotated" << std::endl;
         }
       }
-      // check for and get protein sequence
-
-      // digest protein seq. and get nr of digests
-      //
     }
 
     //TODO would be better if we set this after inference but only here we currently have
@@ -318,13 +319,15 @@ namespace OpenMS
     ibg.computeConnectedComponents();
     ibg.annotateIndistinguishableGroups();
 
-    //TODO if we only perform group inference I think we should use another functor.
-    // It is too different from the normal type of inference, since we kind of create a new "protein-like" entity
-    // for every indist group
+    //TODO how to perform group inference
+    // Three options:
+    // -collapse proteins to groups beforehand and run inference
+    // -use the automatically created indist. groups and report their posterior
+    // -calculate prior from proteins for the group beforehand and remove proteins from network (saves computation
+    //  because messages are not passed from prots to groups anymore.
 
-    //TODO perform parameter search here with Statistics::rocN(50), a lambda for convex combination and the difference
-    //between target-decoy and posterior FDR (to be implemented)
-    //Use gold search that goes deeper into the grid where it finds the best value.
+
+    //TODO Use gold search that goes deeper into the grid where it finds the best value.
     //We have to do it on a whole dataset basis though (all CCs). -> I have to refactor to actually store as much
     //as possible (it would be cool to store the inference graph but this is probably not possible bc that is why
     //I split up in CCs.
@@ -332,9 +335,9 @@ namespace OpenMS
 
     vector<double> gamma_search{0.5};
     vector<double> beta_search{0.001};
+    vector<double> alpha_search{0.1, 0.3, 0.5, 0.7, 0.9};
     //Percolator settings
     //vector<double> alpha_search{0.008, 0.032, 0.128};
-    vector<double> alpha_search{0.1, 0.3, 0.5, 0.7, 0.9};
 
     GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
 
@@ -344,7 +347,6 @@ namespace OpenMS
     gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
 
     std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
-
 
     //TODO write graphfile?
     //TODO let user modify Grid for GridSearch and/or provide some more default settings

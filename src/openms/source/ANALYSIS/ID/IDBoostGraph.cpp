@@ -85,7 +85,10 @@ namespace OpenMS
         for (auto const & proteinAcc : pepIt->extractProteinAccessionsSet())
         {
           // assumes protein is present
-          IDPointer prot(accession_map.find(std::string(proteinAcc))->second);
+          auto accToPHit = accession_map.find(std::string(proteinAcc));
+          int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
+          accToPHit->second->setMetaValue("missingTheorDigests", )
+          IDPointer prot(accToPHit->second);
           vertex_t protV = addVertexWithLookup_(prot, vertex_map);
           boost::add_edge(protV, pepV, g);
         }
@@ -226,7 +229,7 @@ namespace OpenMS
           }
         }
 
-        // add the protein groups to the underlying datastructure
+        // add the protein groups to the graph
         // and edges from the groups to the proteins for quick access
         for (auto const& pepsToGrps : indistProteins)
         {
@@ -255,7 +258,7 @@ namespace OpenMS
         }
 
 
-        // Refilter graph and cluster peptides
+        // Refilter graph and cluster peptides (TODO check if refiltering is actually necessary)
         FilteredGraph fgNew(g,
                             [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
                             [& i, this](vertex_t v) { return componentProperty_[v] == i; });
@@ -266,7 +269,6 @@ namespace OpenMS
         {
           IDBoostGraph::IDPointer curr_idObj = fgNew[*uiNew];
           //TODO introduce an enum for the types to make it more clear.
-          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
           if (curr_idObj.which() == 3) //peptide: find peptide clusters
           {
             //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
