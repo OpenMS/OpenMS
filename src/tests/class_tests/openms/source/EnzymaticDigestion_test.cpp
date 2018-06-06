@@ -291,6 +291,15 @@ START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<Stri
     ed.setEnzyme(ProteaseDB::getInstance()->getEnzyme("unspecific cleavage"));
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 11 * 10 / 2)
+
+    // digest with min/max length
+    ed.digestUnmodified(s, out, 5, 6);
+    for (auto & a : out)
+    {
+      TEST_EQUAL(a.getString().size() == 5 
+      || a.getString().size() == 6, true)    
+    }
+
     s = "ABC";
     ed.digestUnmodified(s, out);
     TEST_EQUAL(out.size(), 4 * 3 / 2);
