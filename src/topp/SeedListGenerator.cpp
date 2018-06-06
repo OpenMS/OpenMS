@@ -149,7 +149,7 @@ protected:
       {
         ConsensusMap consensus;
         ConsensusXMLFile().load(in, consensus);
-        num_maps = consensus.getFileDescriptions().size();
+        num_maps = consensus.getColumnHeaders().size();
         if (out.size() != num_maps)
         {
           writeLog_("Error: expected " + String(num_maps) +

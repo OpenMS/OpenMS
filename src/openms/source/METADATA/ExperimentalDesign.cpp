@@ -87,7 +87,7 @@ namespace OpenMS
       
       // determine vector of ms file names (in order of appearance)
       vector<String> msfiles;
-      for (const auto &f : cm.getFileDescriptions())
+      for (const auto &f : cm.getColumnHeaders())
       {
         if (std::find(msfiles.begin(), msfiles.end(), f.second.filename) == msfiles.end())
         {
@@ -95,7 +95,7 @@ namespace OpenMS
         }
       }
 
-      for (const auto &f : cm.getFileDescriptions())
+      for (const auto &f : cm.getColumnHeaders())
       {
         ExperimentalDesign::MSFileSectionEntry r;
         r.path = f.second.filename;

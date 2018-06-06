@@ -51,10 +51,11 @@ int main(int argc, const char** argv)
   feature_file.load(tutorial_data_path + "/data/Tutorial_Unlabeled_2.featureXML", maps[1]);
 
   ConsensusMap out;
-  out.getFileDescriptions()[0].filename = "/data/Tutorial_Unlabeled_1.featureXML";
-  out.getFileDescriptions()[0].size = maps[0].size();
-  out.getFileDescriptions()[1].filename = "/data/Tutorial_Unlabeled_2.featureXML";
-  out.getFileDescriptions()[1].size = maps[1].size();
+  out.getColumnHeaders()[0].filename = "/data/Tutorial_Unlabeled_1.mzML";
+  out.getColumnHeaders()[0].size = maps[0].size();
+  out.getColumnHeaders()[1].filename = "/data/Tutorial_Unlabeled_2.mzML";
+  out.getColumnHeaders()[1].size = maps[1].size();
+
 
   FeatureGroupingAlgorithmUnlabeled algorithm;
   // ... set parameters

@@ -4,9 +4,10 @@ MTD	mzTab-type	Quantification
 MTD	description	Export from featureXML
 MTD	peptide_search_engine_score[1]	null
 MTD	psm_search_engine_score[1]	null
-MTD	uri[1]	MzTabExporter_3_input.featureXML
+MTD	uri[1]	/Users/timosachsenberg/oms/src/tests/topp/MzTabExporter_3_input.featureXML
 MTD	fixed_mod[1]	[MS, MS:1002453, No fixed modifications searched, ]
 MTD	variable_mod[1]	[MS, MS:1002454, No variable modifications searched, ]
+MTD	ms_run[1]-location	file://tmp/mzTabtest.mzML
 
 PEH	sequence	accession	unique	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	modifications	retention_time	retention_time_window	charge	mass_to_charge	spectra_ref	peptide_abundance_study_variable[1]	peptide_abundance_stdev_study_variable[1]	peptide_abundance_std_error_study_variable[1]	opt_global_modified_sequence
 PEP	null	null	null	null	null	null	null	null	null	nan	4653.2085|4656.91012	3	nan	null	3693.05004882812	null	null	null

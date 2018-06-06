@@ -593,12 +593,12 @@ protected:
       }
 
       // file descriptions
-      const ConsensusMap::FileDescriptions &descs = cons.getFileDescriptions();
+      const ConsensusMap::ColumnHeaders& descs = cons.getColumnHeaders();
       if (!descs.empty())
       {
         os << "File descriptions:"
            << "\n";
-        for (ConsensusMap::FileDescriptions::const_iterator it = descs.begin(); it != descs.end(); ++it)
+        for (ConsensusMap::ColumnHeaders::const_iterator it = descs.begin(); it != descs.end(); ++it)
         {
           os << "  " << it->second.filename << ":"
              << "\n"

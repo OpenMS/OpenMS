@@ -156,10 +156,10 @@ namespace OpenMS
 
     SignedSize input_size = input.end() - input.begin();
 
-    ConsensusMap::FileDescription desc;
+    ConsensusMap::ColumnHeader desc;
     desc.filename = filename;
     desc.size = (input_size) - offset;
-    consensus_map.getFileDescriptions()[0] = desc;
+    consensus_map.getColumnHeaders()[0] = desc;
 
     // parsing features
     consensus_map.reserve(input_size);
@@ -270,8 +270,8 @@ namespace OpenMS
       consensus_map.push_back(cf);
     }
 
-    // register FileDescriptions
-    ConsensusMap::FileDescription fd;
+    // register ColumnHeaders
+    ConsensusMap::ColumnHeader fd;
     fd.filename = filename;
     fd.size = consensus_map.size();
     Size maps = std::max(input_features - 1, Size(1)); // its either a simple feature or a consensus map
@@ -279,7 +279,7 @@ namespace OpenMS
     for (Size i = 0; i < maps; ++i)
     {
       fd.label = String("EDTA_Map ") + String(i);
-      consensus_map.getFileDescriptions()[i] = fd;
+      consensus_map.getColumnHeaders()[i] = fd;
     }
 
   }

@@ -162,13 +162,13 @@ namespace OpenMS
   void ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(const ConsensusMap& map, vector<vector<double> >& out_intensities)
   {
     //reserve space for out_intensities (unequal vector lengths, 0-features omitted)
-    Size number_of_maps = map.getFileDescriptions().size();
+    Size number_of_maps = map.getColumnHeaders().size();
     out_intensities.clear();
     out_intensities.resize(number_of_maps);
     for (UInt i = 0; i < number_of_maps; i++)
     {
-      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
-      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
+      if (it == map.getColumnHeaders().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
       out_intensities[i].reserve(it->second.size);
     }
     //fill out_intensities
@@ -187,7 +187,7 @@ namespace OpenMS
   {
     //assumes the input map and feature_ints are in the same order as in the beginning,
     //although feature_ints has normalized values now (but the same ranks as before)
-    Size number_of_maps = map.getFileDescriptions().size();
+    Size number_of_maps = map.getColumnHeaders().size();
     ConsensusMap::ConstIterator cf_it;
     vector<Size> progress_indices(number_of_maps);
     for (cf_it = map.begin(); cf_it != map.end(); ++cf_it)

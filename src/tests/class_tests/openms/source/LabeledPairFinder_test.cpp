@@ -147,10 +147,10 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	TEST_EXCEPTION(Exception::IllegalArgument,pm.run(vector<ConsensusMap>(),output));
 	vector<ConsensusMap> input(1);
 	MapConversion::convert(5,features,input[0]);
-	output.getFileDescriptions()[5].label = "light";
-	output.getFileDescriptions()[5].filename = "filename";
-	output.getFileDescriptions()[8] = output.getFileDescriptions()[5];
-	output.getFileDescriptions()[8].label = "heavy";
+	output.getColumnHeaders()[5].label = "light";
+	output.getColumnHeaders()[5].filename = "filename";
+	output.getColumnHeaders()[8] = output.getColumnHeaders()[5];
+	output.getColumnHeaders()[8].label = "heavy";
 
 	pm.run(input,output);
 
@@ -177,10 +177,10 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	ConsensusMap output2;
 	vector<ConsensusMap> input2(1);
 	MapConversion::convert(5,features2,input2[0]);
-	output2.getFileDescriptions()[5].label = "light";
-	output2.getFileDescriptions()[5].filename = "filename";
-	output2.getFileDescriptions()[8] = output.getFileDescriptions()[5];
-	output2.getFileDescriptions()[8].label = "heavy";
+	output2.getColumnHeaders()[5].label = "light";
+	output2.getColumnHeaders()[5].filename = "filename";
+	output2.getColumnHeaders()[8] = output.getColumnHeaders()[5];
+	output2.getColumnHeaders()[8].label = "heavy";
 	pm2.run(input2,output2);
 	TEST_EQUAL(output2.size(),250);
 END_SECTION

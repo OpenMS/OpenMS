@@ -223,7 +223,7 @@ protected:
       {
         spectra_paths = reannotate_filenames;
       }
-      ConsensusMap::FileDescriptions &file_descriptions = consensus_map.getFileDescriptions(); // needed for label_id
+      ConsensusMap::ColumnHeaders& column_headers = consensus_map.getColumnHeaders(); // needed for label_id
 
       // Reduce spectra path to the basename of the files
       for (Size i = 0; i < spectra_paths.size(); ++i)
@@ -231,10 +231,21 @@ protected:
         spectra_paths[i] = File::basename(spectra_paths[i]);
       }
 
-      fatalErrorIf_(
-          checkUnorderedContent_(spectra_paths, design_filenames) == false,
-          "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design",
-          ILLEGAL_PARAMETERS);
+      if (checkUnorderedContent_(spectra_paths, design_filenames) == false)
+      {
+        LOG_FATAL_ERROR << "The filenames (extension ignored) in the consensusXML file are not the same as in the experimental design" << endl;
+        LOG_FATAL_ERROR << "Spectra files (consensus map): \n"; 
+        for (auto const & s : spectra_paths)
+        {
+          LOG_FATAL_ERROR << s << endl;
+        }
+        LOG_FATAL_ERROR << "Spectra files (design): \n"; 
+        for (auto const & s : design_filenames)
+        {
+          LOG_FATAL_ERROR << s << endl;
+        }
+        return ILLEGAL_PARAMETERS;
+      };
 
       // Extract information from the consensus features.
       for (const ConsensusFeature &consensus_feature : consensus_map)
@@ -258,7 +269,7 @@ protected:
           // else get the label_id form the file description MetaValue
           cf_labels.push_back(
             isLabelFree ? label_lfq
-                        : Int(file_descriptions[fit->getMapIndex()].getMetaValue("label_id"))
+                        : Int(column_headers[fit->getMapIndex()].getMetaValue("label_id"))
           );
         }
         consensus_feature_labels.push_back(cf_labels);

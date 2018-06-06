@@ -81,12 +81,12 @@ START_SECTION((void store(const String& filename, const ConsensusMap& cm)))
   // test wrong channel count
   ConsensusMap cm_wrong_channel_count;
   cm_wrong_channel_count.setExperimentType("labeled_MS2");
-  ConsensusMap::FileDescription channel1;
-  ConsensusMap::FileDescription channel2;
-  ConsensusMap::FileDescription channel3;
-  cm_wrong_channel_count.getFileDescriptions()[0] = channel1;
-  cm_wrong_channel_count.getFileDescriptions()[1] = channel2;
-  cm_wrong_channel_count.getFileDescriptions()[2] = channel3;
+  ConsensusMap::ColumnHeader channel1;
+  ConsensusMap::ColumnHeader channel2;
+  ConsensusMap::ColumnHeader channel3;
+  cm_wrong_channel_count.getColumnHeaders()[0] = channel1;
+  cm_wrong_channel_count.getColumnHeaders()[1] = channel2;
+  cm_wrong_channel_count.getColumnHeaders()[2] = channel3;
 
   IBSpectraFile ibfile_wrong_channel_count;
   TEST_EXCEPTION_WITH_MESSAGE(Exception::InvalidParameter, ibfile_wrong_channel_count.store("not-a-file-name", cm_wrong_channel_count), "Could not guess isobaric quantification data from ConsensusMap due to non-matching number of input maps.")

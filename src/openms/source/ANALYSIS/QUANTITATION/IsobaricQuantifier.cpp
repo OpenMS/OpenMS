@@ -142,7 +142,7 @@ namespace OpenMS
       {
         if (it_elements->getIntensity() == 0)
         {
-          String ch_index = consensus_map_out.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name");
+          String ch_index = consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_name");
           ++stats_.empty_channels[ch_index];
         }
       }

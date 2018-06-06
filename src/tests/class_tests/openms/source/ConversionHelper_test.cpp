@@ -64,7 +64,7 @@ START_SECTION((template < typename FeatureT > static void convert(UInt64 const i
   MapConversion::convert(33,fm,cm);
 
   TEST_EQUAL(cm.size(),3);
-  TEST_EQUAL(cm.getFileDescriptions()[33].size,3);
+  TEST_EQUAL(cm.getColumnHeaders()[33].size,3);
   for ( UInt i = 0; i < 3; ++i )
   {
     TEST_EQUAL(cm[i].size(),1);
@@ -77,7 +77,7 @@ START_SECTION((template < typename FeatureT > static void convert(UInt64 const i
 cm.clear();
 MapConversion::convert(33,fm,cm,2);
 TEST_EQUAL(cm.size(),2);
-TEST_EQUAL(cm.getFileDescriptions()[33].size,3);
+TEST_EQUAL(cm.getColumnHeaders()[33].size,3);
 
 }
 END_SECTION

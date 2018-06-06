@@ -172,8 +172,8 @@ namespace OpenMS
       }
 
       // sort ratios map-wise and take median
-      for (ConsensusMap::FileDescriptions::const_iterator it_file = consensus_map.getFileDescriptions().begin();
-           it_file != consensus_map.getFileDescriptions().end();
+      for (ConsensusMap::ColumnHeaders::const_iterator it_file = consensus_map.getColumnHeaders().begin();
+           it_file != consensus_map.getColumnHeaders().end();
            ++it_file)
       {
         if (ratios.has(it_file->first))
