@@ -544,6 +544,7 @@ set(transformations_executables_list
   GaussFitter1D_test
   GaussModel_test
   GaussTraceFitter_test
+  IDConflictResolverAlgorithm_test
   InterpolationModel_test
   IsotopeFitter1D_test
   IsotopeModel_test
