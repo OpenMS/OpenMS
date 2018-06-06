@@ -46,15 +46,25 @@ START_SECTION(resolveBetweenFeatures())
   FeatureMap map;
   Feature f1;
   Feature f2;
+  Feature f3;
+  Feature f4;
 
   PeptideHit hit;
   hit.setScore(23);
-  hit.setSequence(AASequence::fromString("ELVIS"));
+  hit.setSequence(AASequence::fromString("MORRISSEY"));
   PeptideIdentification id;
   id.insertHit(hit);
   std::vector<PeptideIdentification> ids;
   ids.push_back(id);
-
+  
+  PeptideHit hit2;
+  hit2.setScore(23);
+  hit2.setSequence(AASequence::fromString("M(Oxidation)ORRISSEY"));
+  PeptideIdentification id2;
+  id2.insertHit(hit2);
+  std::vector<PeptideIdentification> ids2;
+  ids2.push_back(id2);
+  
   f1.setRT(1600.5);
   f1.setMZ(400.7);
   f1.setIntensity(1000.0);
@@ -69,6 +79,20 @@ START_SECTION(resolveBetweenFeatures())
   f2.setOverallQuality(1.0);
   f2.setPeptideIdentifications(ids);
   
+  f3.setRT(1600.5);
+  f3.setMZ(400.7);
+  f3.setIntensity(1000.0);
+  f3.setCharge(3);
+  f3.setOverallQuality(1.0);
+  f3.setPeptideIdentifications(ids);
+  
+  f4.setRT(1600.5);
+  f4.setMZ(400.7);
+  f4.setIntensity(1001.0);
+  f4.setCharge(2);
+  f4.setOverallQuality(1.0);
+  f4.setPeptideIdentifications(ids2);
+  
   map.push_back(f1);
   map.push_back(f2);
   
@@ -77,18 +101,30 @@ START_SECTION(resolveBetweenFeatures())
   for (FeatureMap::ConstIterator it = map.begin(); it != map.end(); ++it)
   {
     
-    if (it->getIntensity() == 1000.0)
+    if ((it->getIntensity() == 1000.0) && (it->getCharge() == 2))
     {
       // This identification was removed by the resolveBetweenFeatures() method.
       TEST_EQUAL(it->getPeptideIdentifications().empty(), true)
     }
       
-    if (it->getIntensity() == 10000.0)
+    if ((it->getIntensity() == 10000.0) && (it->getCharge() == 2))
     {
       // This identification remains unchanged by the resolveBetweenFeatures() method.
       TEST_EQUAL(it->getPeptideIdentifications().empty(), false)
     }
-      
+    
+    if ((it->getIntensity() == 1000.0) && (it->getCharge() == 3))
+    {
+      // This identification remains unchanged by the resolveBetweenFeatures() method.
+      TEST_EQUAL(it->getPeptideIdentifications().empty(), false)
+    }
+    
+    if ((it->getIntensity() == 1001.0) && (it->getCharge() == 2))
+    {
+      // This identification remains unchanged by the resolveBetweenFeatures() method.
+      TEST_EQUAL(it->getPeptideIdentifications().empty(), false)
+    }
+
   }
       
 }
