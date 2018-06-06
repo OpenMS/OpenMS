@@ -187,11 +187,8 @@ protected:
     Param ma_param = getParam_().copy("Alignment:", true);
     writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
 
-    Param fl_param = getParam_().copy("Linker:", true);
+    Param fl_param = getParam_().copy("Linking:", true);
     writeDebug_("Parameters passed to FeatureGroupingAlgorithmKD algorithm", fl_param, 3);
-    FeatureGroupingAlgorithmKD linker;
-    linker.setLogType(log_type_);
-    linker.setParameters(fl_param);
 
     Param pep_param = getParam_().copy("Posterior Error Probability:", true);
     writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
@@ -385,12 +382,18 @@ protected:
       //-------------------------------------------------------------
       // Link all features of this fraction
       //-------------------------------------------------------------
+      LOG_DEBUG << "Linking: " << feature_maps.size() << " features" << endl;
+      FeatureGroupingAlgorithmKD linker;
+      linker.setLogType(log_type_);
+      linker.setParameters(fl_param);
       linker.group(feature_maps, consensus_fraction);
+      ConsensusXMLFile().store("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction);
+      LOG_DEBUG << "to produce a consensus map with " << consensus_fraction.getColumnHeaders().size() << " columns." << endl;
 
       //-------------------------------------------------------------
       // ID conflict resolution
       //-------------------------------------------------------------
-      IDConflictResolverAlgorithm::resolve(consensus);
+      IDConflictResolverAlgorithm::resolve(consensus_fraction);
 
       //-------------------------------------------------------------
       // ConsensusMap normalization
