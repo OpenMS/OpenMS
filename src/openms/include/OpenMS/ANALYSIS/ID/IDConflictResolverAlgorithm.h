@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser, Lucia Espona $
+// $Authors: Hendrik Weisser, Lucia Espona, Moritz Freidank $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_IDCONFLICTRESOLVERALGORITHM
@@ -87,7 +87,7 @@ public:
     appears only once, i.e. no multiplicities.
   **/
   template<class T>
-  static void makeUnique(T & map)
+  static void resolveBetweenFeatures(T & map)
   {
     // unassigned peptide identifications in this map
     std::vector<PeptideIdentification>& unassigned = map.getUnassignedPeptideIdentifications();
@@ -108,7 +108,7 @@ public:
         if (pep_ids.size() != 1)
         {
           // Should never happen. In IDConflictResolverAlgorithm TOPP tool
-          // IDConflictResolverAlgorithm::resolve() is called before IDConflictResolverAlgorithm::makeUnique().
+          // IDConflictResolverAlgorithm::resolve() is called before IDConflictResolverAlgorithm::resolveBetweenFeatures().
           throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Feature does contain multiple identifications.");
         }
 

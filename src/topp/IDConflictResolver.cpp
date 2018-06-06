@@ -130,7 +130,7 @@ protected:
       
       if (resolve_between_features=="highest_intensity")
       {
-        IDConflictResolverAlgorithm::makeUnique(features);
+        IDConflictResolverAlgorithm::resolveBetweenFeatures(features);
       }
       
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::FILTERING));
@@ -145,7 +145,7 @@ protected:
       
       if (resolve_between_features=="highest_intensity")
       {
-        IDConflictResolverAlgorithm::makeUnique(consensus);
+        IDConflictResolverAlgorithm::resolveBetweenFeatures(consensus);
       }
       
       addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::FILTERING));

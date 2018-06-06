@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser, Lucia Espona $
+// $Authors: Hendrik Weisser, Lucia Espona, Moritz Freidank $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
