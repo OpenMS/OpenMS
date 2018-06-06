@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import pyopenms
 import copy
+import os
 
 from pyopenms import String as s
 
@@ -700,14 +701,14 @@ def testConsensusMap():
      ConsensusMap.clearUniqueId
      ConsensusMap.ensureUniqueId
      ConsensusMap.getDataProcessing
-     ConsensusMap.getFileDescriptions
+     ConsensusMap.getColumnHeaders
      ConsensusMap.getProteinIdentifications
      ConsensusMap.getUnassignedPeptideIdentifications
      ConsensusMap.getUniqueId
      ConsensusMap.hasInvalidUniqueId
      ConsensusMap.hasValidUniqueId
      ConsensusMap.setDataProcessing
-     ConsensusMap.setFileDescriptions
+     ConsensusMap.setColumnHeaders
      ConsensusMap.setProteinIdentifications
      ConsensusMap.setUnassignedPeptideIdentifications
      ConsensusMap.setUniqueId
@@ -734,14 +735,14 @@ def testConsensusMap():
     m.clearUniqueId()
     m.ensureUniqueId()
     m.getDataProcessing()
-    m.getFileDescriptions()
+    m.getColumnHeaders()
     m.getProteinIdentifications()
     m.getUnassignedPeptideIdentifications()
     m.getUniqueId()
     m.hasInvalidUniqueId()
     m.hasValidUniqueId()
     m.setDataProcessing
-    m.setFileDescriptions
+    m.setColumnHeaders
     m.setProteinIdentifications
     m.setUnassignedPeptideIdentifications
     m.setUniqueId
@@ -2057,14 +2058,14 @@ def testFeatureXMLFile():
 @report
 def testFileDescription():
     """
-    @tests: FileDescription
-     FileDescription.__init__
-     FileDescription.filename
-     FileDescription.label
-     FileDescription.size
-     FileDescription.unique_id
+    @tests: ColumnHeader
+     ColumnHeader.__init__
+     ColumnHeader.filename
+     ColumnHeader.label
+     ColumnHeader.size
+     ColumnHeader.unique_id
     """
-    fd = pyopenms.FileDescription()
+    fd = pyopenms.ColumnHeader()
     assert isinstance(fd.filename, bytes)
     assert isinstance(fd.label, bytes)
     assert isinstance(fd.size, int)
@@ -4807,6 +4808,40 @@ def testModificationsDB():
     m = mdb.getBestModificationByMonoMass( 999999999, 0.20, b"T", pyopenms.ResidueModification.TermSpecificity.ANYWHERE)
     assert m is None
 
+@report
+def testExperimentalDesign():
+    """
+    @tests: ExperimentalDesign
+     ExperimentalDesign.__init__
+     ExperimentalDesign.getNumberOfSamples() == 8
+     ExperimentalDesign.getNumberOfFractions() == 3
+     ExperimentalDesign.getNumberOfLabels() == 4
+     ExperimentalDesign.getNumberOfMSFiles() == 6
+     ExperimentalDesign.getNumberOfFractionGroups() == 2
+     ExperimentalDesign.getSample(1, 1) == 1
+     ExperimentalDesign.getSample(2, 4) == 8
+     ExperimentalDesign.isFractionated()
+     ExperimentalDesign.sameNrOfMSFilesPerFraction()
+
+     ExperimentalDesignFile.__init__
+     ExperimentalDesignFile.load
+     """
+    f = pyopenms.ExperimentalDesignFile()
+    fourplex_fractionated_design = pyopenms.ExperimentalDesign()
+    ed_dirname = os.path.dirname(os.path.abspath(__file__))
+    ed_filename = os.path.join(ed_dirname, "ExperimentalDesign_input_2.tsv").encode()
+    fourplex_fractionated_design = f.load(ed_filename, False)
+    assert fourplex_fractionated_design.getNumberOfSamples() == 8
+    assert fourplex_fractionated_design.getNumberOfFractions() == 3
+    assert fourplex_fractionated_design.getNumberOfLabels() == 4
+    assert fourplex_fractionated_design.getNumberOfMSFiles() == 6
+    assert fourplex_fractionated_design.getNumberOfFractionGroups() == 2
+    assert fourplex_fractionated_design.getSample(1, 1) == 1
+    assert fourplex_fractionated_design.getSample(2, 4) == 8
+    assert fourplex_fractionated_design.isFractionated()
+    assert fourplex_fractionated_design.sameNrOfMSFilesPerFraction()
+ 
+@report
 def testString():
     pystr = pyopenms.String()
     pystr = pyopenms.String("blah")
@@ -4852,5 +4887,3 @@ def testString():
     pystr1 = pyopenms.String(u"bläh")
     pystr2 = pyopenms.String(u"bläh")
     assert(pystr1 == pystr2)
-
-

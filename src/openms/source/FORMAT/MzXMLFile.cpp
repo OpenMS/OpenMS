@@ -125,10 +125,9 @@ namespace OpenMS
     Internal::MzXMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
 
     // set temporary options for handler
-    tmp_options.setSizeOnly(true);
     tmp_options.setMetadataOnly( skip_full_count );
     handler.setOptions(tmp_options);
-
+    handler.setLoadDetail(Internal::XMLHandler::LD_RAWCOUNTS);
     parse_(filename_in, &handler);
 
     // After parsing, collect information

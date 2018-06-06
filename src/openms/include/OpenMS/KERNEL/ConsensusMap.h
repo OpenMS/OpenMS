@@ -104,17 +104,17 @@ public:
 
     using privvec::push_back;
 
-    /// Source file description for input files
-    struct OPENMS_DLLAPI FileDescription :
+    /// Description of the columns in a consensus map
+    struct OPENMS_DLLAPI ColumnHeader :
       public MetaInfoInterface
     {
       /// Default constructor
-      FileDescription();
+      ColumnHeader();
 
       /// Copy constructor
-      FileDescription(const FileDescription&);
+      ColumnHeader(const ColumnHeader&);
 
-      /// File name of the file
+      /// File name of the mzML file
       String filename;
       /// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation
       String label;
@@ -129,7 +129,7 @@ public:
     //@{
     typedef std::vector<ConsensusFeature> Base;
     typedef RangeManager<2> RangeManagerType;
-    typedef std::map<UInt64, FileDescription> FileDescriptions;
+    typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
     /// Mutable iterator
     typedef std::vector<ConsensusFeature>::iterator Iterator;
     /// Non-mutable iterator
@@ -156,15 +156,25 @@ public:
     OPENMS_DLLAPI ConsensusMap& operator=(const ConsensusMap& source);
 
     /**
-      @brief Add one consensus map to another.
+      @brief Add consensus map entries as new rows.
 
       Consensus elements are merged into one container, simply by appending.
-      ConsensusElementLists are appended.
-      Information on map lists ......
 
-      @param rhs The consensus map.
+      The number of columns (maximum map index) stays the same.
+
+      @param rhs The consensus map to be merged.
     */
-    OPENMS_DLLAPI ConsensusMap& operator+=(const ConsensusMap& rhs);
+    OPENMS_DLLAPI ConsensusMap& appendRows(const ConsensusMap& rhs);
+
+    /**
+      @brief Add consensus map entries as new columns.
+
+      The number of columns (maximum map index) is the sum of both maps.     
+
+      @param rhs The consensus map to be merged.
+    */
+    OPENMS_DLLAPI ConsensusMap& appendColumns(const ConsensusMap& rhs);
+
 
     /**
       @brief Clears all data and meta data
@@ -174,13 +184,13 @@ public:
     OPENMS_DLLAPI void clear(bool clear_meta_data = true);
 
     /// Non-mutable access to the file descriptions
-    OPENMS_DLLAPI const FileDescriptions& getFileDescriptions() const;
+    OPENMS_DLLAPI const ColumnHeaders& getColumnHeaders() const;
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI FileDescriptions& getFileDescriptions();
+    OPENMS_DLLAPI ColumnHeaders& getColumnHeaders();
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI void setFileDescriptions(const FileDescriptions& file_description);
+    OPENMS_DLLAPI void setColumnHeaders(const ColumnHeaders& column_description);
 
     /// Non-mutable access to the experiment type
     OPENMS_DLLAPI const String& getExperimentType() const;
@@ -253,11 +263,10 @@ public:
     /// sets the description of the applied data processing
     OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
-    /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
+    /// set the file paths to the primary MS run (stored in ColumnHeaders)
     OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
 
-    /// get the file path to the first MS run (provide a StringList to emphasize that this returns
-    /// different copies everytime). Overrides the contents of the StringList if the spectra_data MetaValue is present!
+    /// returns the MS run path (stored in ColumnHeaders)
     OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
 
     /// Equality operator
@@ -321,10 +330,10 @@ public:
 protected:
 
     /// Map from index to file description
-    FileDescriptions file_description_;
+    ColumnHeaders column_description_;
 
-    /// type of experiment (label-free, itraq, ...); see xsd schema
-    String experiment_type_;
+    /// type of experiment (label-free, labeled_MS1, labeled_MS2)
+    String experiment_type_ = "label-free";
 
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;

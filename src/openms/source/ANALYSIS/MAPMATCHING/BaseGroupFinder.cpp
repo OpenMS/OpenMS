@@ -70,7 +70,7 @@ namespace OpenMS
     for (Size i = 0; i < maps.size(); ++i)
     {
       const ConsensusMap& map = maps[i];
-      for (ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().begin(); it != map.getFileDescriptions().end(); ++it)
+      for (ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().begin(); it != map.getColumnHeaders().end(); ++it)
       {
         if (used_ids.find(it->first) != used_ids.end())
         {

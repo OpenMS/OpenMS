@@ -121,15 +121,15 @@ namespace OpenMS
     }
 
     // we take the mapcount as approximation
-    if (cm.getFileDescriptions().size() == 4)
+    if (cm.getColumnHeaders().size() == 4)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqFourPlexQuantitationMethod);
     }
-    else if (cm.getFileDescriptions().size() == 6)
+    else if (cm.getColumnHeaders().size() == 6)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new TMTSixPlexQuantitationMethod);
     }
-    else if (cm.getFileDescriptions().size() == 8)
+    else if (cm.getColumnHeaders().size() == 8)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqEightPlexQuantitationMethod);
     }

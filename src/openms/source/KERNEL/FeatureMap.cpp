@@ -368,6 +368,12 @@ namespace OpenMS
     if (this->metaValueExists("spectra_data"))
     {
       toFill = this->getMetaValue("spectra_data");
+    }          
+     
+    if (toFill.empty())
+    {
+      LOG_WARN << "No MS run annotated in feature map. Setting to 'UNKNOWN' " << std::endl;
+      toFill.push_back("UNKNOWN");
     }
   }
 

@@ -81,7 +81,8 @@ namespace OpenMS
     show_alignment_(false),
     aligned_peaks_mz_delta_(),
     alignment_score_(0),
-    is_swapped_(true)
+    is_swapped_(true),
+    ion_ladder_visible_(true)
   {
     //Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
@@ -679,24 +680,31 @@ namespace OpenMS
 
   void Spectrum1DCanvas::paint(QPainter * painter, QPaintEvent * e)
   {
-    //Fill background if no layer is present
+    // Fill background if no layer is present
     if (getLayerCount() == 0)
     {
-      painter->fillRect(0, 0, this->width(), this->height(), QColor(param_.getValue("background_color").toQString()));
+      painter->fillRect(0, 
+        0, 
+        width(), 
+        height(), 
+        QColor(param_.getValue("background_color").toQString()));
       e->accept();
       return;
     }
 
     QTime timer;
-    if (show_timing_)
-    {
-      timer.start();
-    }
+    if (show_timing_) { timer.start(); }
 
     QPoint begin, end;
 
-    painter->fillRect(0, 0, this->width(), this->height(), QColor(param_.getValue("background_color").toQString()));
+    // clear
+    painter->fillRect(0, 
+      0, 
+      this->width(), 
+      this->height(), 
+      QColor(param_.getValue("background_color").toQString()));
 
+    // gridlines
     emit recalculateAxes();
     paintGridLines_(*painter);
 
@@ -705,32 +713,33 @@ namespace OpenMS
     {
       const LayerData & layer = getLayer(i);
 
-      if (layer.type != LayerData::DT_PEAK)  // skip non peak data layer
-      {
-        continue;
-      }
+      // skip non peak data layer
+      if (layer.type != LayerData::DT_PEAK) { continue; }
 
-      const ExperimentType::SpectrumType & spectrum = layer.getCurrentSpectrum();
       if (layer.visible)
       {
+        const ExperimentType::SpectrumType & spectrum = layer.getCurrentSpectrum();
+
+        // get default icon and peak color
         QPen icon_pen = QPen(QColor(layer.param.getValue("icon_color").toQString()), 1);
         QPen pen(QColor(layer.param.getValue("peak_color").toQString()), 1);
         pen.setStyle(peak_penstyle_[i]);
+
         // TODO option for variable pen width
         // pen.setWidthF(1.5);
         painter->setPen(pen);
         updatePercentageFactor_(i);
         vbegin = getLayer_(i).getCurrentSpectrum().MZBegin(visible_area_.minX());
         vend = getLayer_(i).getCurrentSpectrum().MZEnd(visible_area_.maxX());
+
         // draw dashed elongations for pairs of peaks annotated with a distance
-        for (Annotations1DContainer::ConstIterator it = layer.getCurrentAnnotations().begin();
+        for (auto it = layer.getCurrentAnnotations().begin();
              it != layer.getCurrentAnnotations().end(); ++it)
         {
           Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(*it);
           if (distance_item)
           {
-            QPoint from;
-            QPoint to;
+            QPoint from, to;
             dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer.flipped);
 
             dataToWidget(distance_item->getStartPoint().getX(), getVisibleArea().maxY(), to, layer.flipped);
@@ -751,7 +760,6 @@ namespace OpenMS
           {
             if (layer.filters.passes(spectrum, it - spectrum.begin()))
             {
-
               // use peak colors stored in the layer, if available
               if (layer.peak_colors_1d.size() == spectrum.size())
               {
@@ -759,6 +767,19 @@ namespace OpenMS
                 Size peak_index = std::distance(spectrum.begin(), it);
                 pen.setColor(layer.peak_colors_1d[peak_index]);
                 painter->setPen(pen);
+              }
+              
+              // Warn if non-empty peak color array present but size doesn't match number of peaks
+              // This indicates a bug but we gracefuly just issue a warning
+              if (!layer.peak_colors_1d.empty() && 
+               layer.peak_colors_1d.size() < spectrum.size())
+              {
+                LOG_ERROR << "Peak color array size (" 
+                  << layer.peak_colors_1d.size() 
+                  << ") doesn't match number of peaks ("
+                  << spectrum.size()
+                  << ") in spectrum." 
+                  << endl;
               }
 
               dataToWidget(*it, end, layer.flipped);
@@ -822,7 +843,7 @@ namespace OpenMS
         // draw a legend
         if (param_.getValue("show_legend").toBool())
         {
-          SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
+          const SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
           double xpos = getVisibleArea().maxX() - (getVisibleArea().maxX() - getVisibleArea().minX()) * 0.1;
           SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(xpos), PeakType::IntensityLess());
           if (tmp != spectrum.end())
@@ -984,11 +1005,12 @@ namespace OpenMS
     QPen pen(QColor(layer.param.getValue("annotation_color").toQString()));
     QPen selected_pen;
 
-    //make selected items a little brighter
+    // make selected items a little brighter
     int sel_red = pen.color().red() + 50;
     int sel_green = pen.color().green() + 50;
     int sel_blue = pen.color().blue() + 50;
-    //check if rgb out of bounds
+
+    // check if rgb out of bounds
     sel_red = sel_red > 255 ? 255 : sel_red;
     sel_green = sel_green > 255 ? 255 : sel_green;
     sel_blue = sel_blue > 255 ? 255 : sel_blue;
@@ -1109,7 +1131,7 @@ namespace OpenMS
     {
       (*getCurrentLayer_().getPeakDataMuteable())[i].sortByPosition();
     }
-    getCurrentLayer_().getCurrentSpectrum().sortByPosition();
+    getCurrentLayer_().sortCurrentSpectrumByPosition();
 
     getCurrentLayer_().annotations_1d.resize(getCurrentLayer_().getPeakData()->size());
 
@@ -1241,7 +1263,7 @@ namespace OpenMS
       double local_max  = -numeric_limits<double>::max();
       for (Size i = 0; i < getLayerCount(); ++i)
       {
-        SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
+        const SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
         SpectrumConstIteratorType tmp  = max_element(spectrum.MZBegin(visible_area_.minX()), spectrum.MZEnd(visible_area_.maxX()), PeakType::IntensityLess());
         if (tmp != spectrum.end() && tmp->getIntensity() > local_max)
         {
@@ -1304,9 +1326,7 @@ namespace OpenMS
 
   void Spectrum1DCanvas::contextMenuEvent(QContextMenuEvent * e)
   {
-    //Abort if there are no layers
-    if (layers_.empty())
-      return;
+    if (layers_.empty()) { return; }
 
     QMenu * context_menu = new QMenu(this);
     QAction * result = nullptr;
@@ -1325,38 +1345,9 @@ namespace OpenMS
       {
         if (result->text() == "Delete")
         {
-          // Remove peak annotation also from fragment annotations
-          Annotation1DPeakItem * pa = dynamic_cast<Annotation1DPeakItem *>(annot_item);
-          if (pa != nullptr)
-          {
-            // check if present in current fragment annotation vector and also delete from there
-            MSSpectrum & spectrum = getCurrentLayer_().getCurrentSpectrum();
-
-            // store user fragment annotations
-            vector<PeptideIdentification>& pep_id = spectrum.getPeptideIdentifications();
-            int pep_id_index = getCurrentLayer_().peptide_id_index;
-            int pep_hit_index = getCurrentLayer_().peptide_hit_index;
-
-            if (!pep_id.empty() && pep_id_index != -1)
-            {
-              vector<PeptideHit>& hits = pep_id[pep_id_index].getHits();
-
-              if (!hits.empty() && pep_hit_index != -1)
-              {
-                PeptideHit& hit = hits[pep_hit_index];
-
-                vector<PeptideHit::PeakAnnotation> fas = hit.getPeakAnnotations();
-
-                // erase fragment annotations that match the visual peak annotation
-                fas.erase(std::remove_if(fas.begin(), fas.end(),
-                  [pa](const PeptideHit::PeakAnnotation& p)
-                  {
-                   return (fabs(p.mz - pa->getPeakPosition()[0]) < 1e-6);
-                  }), fas.end());
-                hit.setPeakAnnotations(fas);
-              }
-            }
-          }
+          vector<Annotation1DItem *> as;
+          as.push_back(annot_item);          
+          getCurrentLayer_().removePeakAnnotationsFromPeptideHit(as);
           annots_1d.removeSelectedItems();
         }
         else if (result->text() == "Edit")
@@ -1413,6 +1404,7 @@ namespace OpenMS
       settings_menu->addAction("Show/hide axis legends");
       settings_menu->addAction("Style: Stick <--> Area");
       settings_menu->addAction("Intensity: Absolute <--> Percent");
+      settings_menu->addAction("Show/hide ion ladder in ID view");
       settings_menu->addSeparator();
       settings_menu->addAction("Preferences");
 
@@ -1524,6 +1516,11 @@ namespace OpenMS
         else if (result->text() == "Switch to DIA-MS view")
         {
           emit showCurrentPeaksAsDIA();
+        }
+        else if (result->text() == "Show/hide ion ladder in ID view")
+        {
+          // toggle visibility of ion ladder
+          setIonLadderVisible(!isIonLadderVisible());
         }
       }
     }
@@ -2071,5 +2068,18 @@ namespace OpenMS
     return aligned_peaks_indices_;
   }
 
+  void Spectrum1DCanvas::setIonLadderVisible(bool show)
+  {
+    if (ion_ladder_visible_ != show)
+    {
+      ion_ladder_visible_ = show;
+      update_(OPENMS_PRETTY_FUNCTION);
+    }
+  }
+
+  bool Spectrum1DCanvas::isIonLadderVisible() const
+  {
+    return ion_ladder_visible_;
+  }
 
 } //Namespace

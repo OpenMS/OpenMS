@@ -198,6 +198,17 @@ public:
     return f_.atEnd() && offsets_.empty();
   }
 
+  /// resets reading of the FASTA file, enables fresh reading of the FASTA from the beginning
+  void reset()
+  {
+    f_.setPosition(0);
+    offsets_.clear();
+    data_fg_.clear();
+    data_bg_.clear();
+    chunk_offset_ = 0;
+  }
+
+
   /** @brief NOT the number of entries in the FASTA file, but merely the number of already read entries (since we do not know how many are still to come)
 
       @note Data in the background cache is included here, i.e. access to size()-1 using readAt() might be slow 
@@ -303,6 +314,13 @@ public:
   size_t size() const
   {
     return data_.size();
+  }
+
+  /// required for template parameters!
+  void reset()
+  {
+    activate_count_ = 0;
+    cache_count_ = 0;
   }
 
 private:

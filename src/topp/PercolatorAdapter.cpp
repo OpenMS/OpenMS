@@ -44,10 +44,6 @@
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
-
 #include <iostream>
 #include <cmath>
 #include <string>
@@ -760,11 +756,8 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
-    {
-      QDir d;
-      d.mkpath(temp_directory_body.toQString());
-    }
+    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    
     String txt_designator = File::getUniqueName();
     String pin_file(temp_directory_body + txt_designator + "_pin.tab");
     String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
@@ -967,24 +960,11 @@ protected:
     // run percolator
     //-------------------------------------------------------------
     // Percolator execution with the executable and the arguments StringList
-    int status = QProcess::execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
-    if (status != 0)
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
     {
-      writeLog_("Percolator problem. Aborting! Calling command was: '" + percolator_executable + " \"" + arguments.join("-").toStdString() + "\".");
-      // clean temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory_body);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
-      }
-      else
-      {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
-      }
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
-    writeLog_("Executed percolator!");
-
 
     //-------------------------------------------------------------
     // reintegrate pout results
@@ -1008,17 +988,6 @@ protected:
     {
       readProteinPoutAsMap_(pout_target_file_proteins, protein_map);
       readProteinPoutAsMap_(pout_decoy_file_proteins, protein_map);
-    }
-    
-    // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
-    if (this->debug_level_ < 5)
-    {
-      File::removeDirRecursively(temp_directory_body);
-      LOG_WARN << "Removing temporary directory for Percolator in/output. Set debug level to >=5 to keep the temporary files." << endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <5 to remove them." << endl;
     }
 
     // idXML or mzid input

@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 
+#include <OpenMS/FORMAT/Base64.h>
+
 namespace OpenMS
 {
 
@@ -46,7 +48,6 @@ namespace OpenMS
       cexp_(nullptr),
       peak_count_(0),
       meta_id_descs_(),
-      decoder_(),
       skip_spectrum_(false),
       logger_(logger)
     {
@@ -59,7 +60,6 @@ namespace OpenMS
       cexp_(&exp),
       peak_count_(0),
       meta_id_descs_(),
-      decoder_(),
       skip_spectrum_(false),
       logger_(logger)
     {
@@ -508,12 +508,12 @@ namespace OpenMS
           if (endians_[i] == "big")
           {
             //std::cout << "nr. " << i << ": decoding as high-precision big endian" << std::endl;
-            decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded_double);
+            Base64::decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded_double);
           }
           else
           {
             //std::cout << "nr. " << i << ": decoding as high-precision little endian" << std::endl;
-            decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded_double);
+            Base64::decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded_double);
           }
           // push_back the decoded double data - and an empty one into
           // the dingle-precision vector, so that we don't mess up the index
@@ -526,12 +526,12 @@ namespace OpenMS
           if (endians_[i] == "big")
           {
             //std::cout << "nr. " << i << ": decoding as low-precision big endian" << std::endl;
-            decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded);
+            Base64::decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded);
           }
           else
           {
             //std::cout << "nr. " << i << ": decoding as low-precision little endian" << std::endl;
-            decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded);
+            Base64::decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded);
           }
           //std::cout << "list size: " << decoded.size() << std::endl;
           decoded_list_.push_back(decoded);
@@ -1499,7 +1499,7 @@ namespace OpenMS
       }
 
       String str;
-      decoder_.encode(data_to_encode_, Base64::BYTEORDER_LITTLEENDIAN, str);
+      Base64::encode(data_to_encode_, Base64::BYTEORDER_LITTLEENDIAN, str);
       data_to_encode_.clear();
       os << "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\""
          << size << "\">"

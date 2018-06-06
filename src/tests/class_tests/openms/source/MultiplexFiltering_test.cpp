@@ -37,6 +37,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 using namespace OpenMS;
 
 START_TEST(MultiplexFiltering, "$Id$")

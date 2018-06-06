@@ -142,14 +142,14 @@ namespace OpenMS
         feature_handle.setMapIndex(count);
         
         consensus.insert(feature_handle);
-        map.getFileDescriptions()[count].size++;
+        map.getColumnHeaders()[count].size++;
         
         // give the maps some names (irrelevant for the debug output)
-        ConsensusMap::FileDescription& desc = map.getFileDescriptions()[count];
+        ConsensusMap::ColumnHeader& col = map.getColumnHeaders()[count];
         std::stringstream ss;
         ss << "satellite_" << count;
-        desc.label = ss.str();
-        desc.filename = "satellites";
+        col.label = ss.str();
+        col.filename = "satellites";
        
         ++count;
       }

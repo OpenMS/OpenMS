@@ -40,6 +40,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 using namespace OpenMS;
 
 START_TEST(MultiplexFilteringProfile, "$Id$")

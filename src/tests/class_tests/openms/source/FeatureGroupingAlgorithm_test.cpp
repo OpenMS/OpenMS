@@ -56,8 +56,8 @@ namespace OpenMS
 		public:
 			void group(const vector< FeatureMap >&, ConsensusMap& map) override
 			{
-			  map.getFileDescriptions()[0].filename = "bla";
-				map.getFileDescriptions()[0].size = 5;
+			  map.getColumnHeaders()[0].filename = "bla";
+				map.getColumnHeaders()[0].size = 5;
 			}
 	};
 }
@@ -83,7 +83,7 @@ START_SECTION((virtual void group(const vector< FeatureMap > &maps, ConsensusMap
 	vector< FeatureMap > in;
 	ConsensusMap map;
 	fga.group(in,map);
-	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")
+	TEST_EQUAL(map.getColumnHeaders()[0].filename, "bla")
 END_SECTION
 
 START_SECTION((static void registerChildren()))
@@ -97,14 +97,14 @@ END_SECTION
 START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, ConsensusMap& out) const))
 {
 	vector<ConsensusMap> maps(2);
-	maps[0].getFileDescriptions()[0].filename = "file1";
-	maps[0].getFileDescriptions()[0].size = 1;
-	maps[0].getFileDescriptions()[1].filename = "file2";
-	maps[0].getFileDescriptions()[1].size = 1;
-	maps[1].getFileDescriptions()[0].filename = "file3";
-	maps[1].getFileDescriptions()[0].size = 1;
-	maps[1].getFileDescriptions()[1].filename = "file4";
-	maps[1].getFileDescriptions()[1].size = 1;
+	maps[0].getColumnHeaders()[0].filename = "file1";
+	maps[0].getColumnHeaders()[0].size = 1;
+	maps[0].getColumnHeaders()[1].filename = "file2";
+	maps[0].getColumnHeaders()[1].size = 1;
+	maps[1].getColumnHeaders()[0].filename = "file3";
+	maps[1].getColumnHeaders()[0].size = 1;
+	maps[1].getColumnHeaders()[1].filename = "file4";
+	maps[1].getColumnHeaders()[1].size = 1;
 
 	Feature feat1, feat2, feat3, feat4;
 
@@ -134,9 +134,9 @@ START_SECTION((void transferSubelements(const vector<ConsensusMap>& maps, Consen
 
 	algo->transferSubelements(maps, out);
 
-	TEST_EQUAL(out.getFileDescriptions().size(), 4);
-	TEST_EQUAL(out.getFileDescriptions()[0].filename, "file1");
-	TEST_EQUAL(out.getFileDescriptions()[3].filename, "file4");
+	TEST_EQUAL(out.getColumnHeaders().size(), 4);
+	TEST_EQUAL(out.getColumnHeaders()[0].filename, "file1");
+	TEST_EQUAL(out.getColumnHeaders()[3].filename, "file4");
 	TEST_EQUAL(out.size(), 1);
 	TEST_EQUAL(out[0].size(), 4);
 

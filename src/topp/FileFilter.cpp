@@ -319,7 +319,7 @@ protected:
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:int_precision", ListUtils::create<String>("32,64"));
-    registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
+    registerStringOption_("peak_options:indexed_file", "true or false", "true", "Whether to add an index to the file when writing", false);
     setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
 
     registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
@@ -1074,9 +1074,9 @@ protected:
 
           for (IntList::iterator map_it = maps.begin(); map_it != maps.end(); ++map_it)
           {
-            cm_new.getFileDescriptions()[*map_it].filename = consensus_map_filtered.getFileDescriptions()[*map_it].filename;
-            cm_new.getFileDescriptions()[*map_it].size = consensus_map_filtered.getFileDescriptions()[*map_it].size;
-            cm_new.getFileDescriptions()[*map_it].unique_id = consensus_map_filtered.getFileDescriptions()[*map_it].unique_id;
+            cm_new.getColumnHeaders()[*map_it].filename = consensus_map_filtered.getColumnHeaders()[*map_it].filename;
+            cm_new.getColumnHeaders()[*map_it].size = consensus_map_filtered.getColumnHeaders()[*map_it].size;
+            cm_new.getColumnHeaders()[*map_it].unique_id = consensus_map_filtered.getColumnHeaders()[*map_it].unique_id;
           }
 
           cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());

@@ -59,7 +59,7 @@ namespace OpenMS
     //check that the number of maps is ok
     if (maps.size() != 1)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Exactly one map must be given!");
-    if (out.getFileDescriptions().size() != 2)
+    if (out.getColumnHeaders().size() != 2)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Two file descriptions must be set in 'out'!");
 
     //initialize LabeledPairFinder

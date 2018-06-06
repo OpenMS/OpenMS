@@ -29,40 +29,26 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow, Hannes Roest $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Helpers.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
-#include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
+
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/FORMAT/Base64.h>
-#include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/CONCEPT/Helpers.h>
 
-#include <OpenMS/SYSTEM/File.h>
-
-#include <sstream>
-#include <boost/shared_ptr.hpp>
-#include <iostream>
-
-#include <QRegExp>
 
 //MISSING:
 // - more than one selected ion per precursor (warning if more than one)
@@ -85,9 +71,13 @@
 
 namespace OpenMS
 {
-  class ControlledVocabulary;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
   namespace Internal
   {
+    class MzMLValidator;
 
     /**
         @brief XML handler for MzMLFile
@@ -106,9 +96,9 @@ namespace OpenMS
         @todo replace hardcoded cv stuff with more flexible handling via obo r/w.
     */
 
-	typedef PeakMap MapType;
-	typedef MSSpectrum SpectrumType;
-	typedef MSChromatogram ChromatogramType;
+	  typedef PeakMap MapType;
+	  typedef MSSpectrum SpectrumType;
+	  typedef MSChromatogram ChromatogramType;
 
     class OPENMS_DLLAPI MzMLHandler :
       public XMLHandler
@@ -118,7 +108,7 @@ public:
       //@{
 
       /// Constructor for a read-only  handler
-      MzMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger);
+      MzMLHandler(MapType& exp, const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a write-only handler
       MzMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger);
@@ -156,35 +146,28 @@ public:
       //@{
 
       /// Set the peak file options
-      void setOptions(const PeakFileOptions& opt)
-      {
-        options_ = opt;
-        spectrum_data_.reserve(options_.getMaxDataPoolSize());
-        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
-      }
+      void setOptions(const PeakFileOptions& opt);
 
       /// Get the peak file options
-      PeakFileOptions& getOptions()
-      {
-        return options_;
-      }
+      PeakFileOptions& getOptions();
 
       //@}
 
       /// Get the spectra and chromatogram counts of a file
-      void getCounts(Size& spectra_counts, Size& chromatogram_counts)
-      {
-        spectra_counts = scan_count;
-        chromatogram_counts = chromatogram_count;
-      }
+      void getCounts(Size& spectra_counts, Size& chromatogram_counts);
 
       /// Set the IMSDataConsumer consumer which will consume the read data
-      void setMSDataConsumer(Interfaces::IMSDataConsumer* consumer)
-      {
-        consumer_ = consumer;
-      }
+      void setMSDataConsumer(Interfaces::IMSDataConsumer* consumer);
+
+      /// handler which support partial loading, implement this method
+      virtual LOADDETAIL getLoadDetail() const override;
+
+      /// handler which support partial loading, implement this method
+      virtual void setLoadDetail(const LOADDETAIL d) override;
 
 protected:
+      /// delegated constructor for the two public versions
+      MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger);
 
       /// Peak type
       typedef MapType::PeakType PeakType;
@@ -204,7 +187,7 @@ protected:
       void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
-      void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
+      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
 
       /**
           @brief Populate all spectra on the stack with data from input
@@ -212,7 +195,7 @@ protected:
           Will populate all spectra on the current work stack with data (using
           multiple threads if available) and append them to the result.
       */
-      void populateSpectraWithData();
+      void populateSpectraWithData_();
 
       /**
           @brief Populate all chromatograms on the stack with data from input
@@ -220,7 +203,7 @@ protected:
           Will populate all chromatograms on the current work stack with data (using
           multiple threads if available) and append them to the result.
       */
-      void populateChromatogramsWithData();
+      void populateChromatogramsWithData_();
 
       void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
                                 const Size n, SpectrumType& spectrum) const;
@@ -251,14 +234,53 @@ protected:
                                           ChromatogramType& inp_chromatogram);
 
       template <typename DataType>
-      void writeBinaryDataArray(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type);
+      void writeBinaryDataArray_(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type);
 
       void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector< ConstDataProcessingPtr > >& dps, Internal::MzMLValidator& validator);
 
+      /// Fills the current chromatogram with data points and meta data
+      void fillChromatogramData_();
+
+      /// Handles CV terms
+      void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, /*  const String & cvref, */ const String& accession, const String& name, const String& value, const String& unit_accession = "");
+
+      /// Handles user terms
+      void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
+
+      /// Writes user terms
+      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, Internal::MzMLValidator& validator) const;
+
+      /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
+      ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
+
+      /// Helper method that writes a software
+      void writeSoftware_(std::ostream& os, const String& id, const Software& software, Internal::MzMLValidator& validator);
+
+      /// Helper method that writes a source file
+      void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, Internal::MzMLValidator& validator);
+
+      /// Helper method that writes a data processing list
+      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, Internal::MzMLValidator& validator);
+
+      /// Helper method that write precursor information from spectra and chromatograms
+      void writePrecursor_(std::ostream& os, const Precursor& precursor, Internal::MzMLValidator& validator);
+
+      /// Helper method that write precursor information from spectra and chromatograms
+      void writeProduct_(std::ostream& os, const Product& product, Internal::MzMLValidator& validator);
+
+      /// Helper method to write an CV based on a meta value
+      String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
+
+      /// Helper method to validate if the given CV is allowed in the current location (path)
+      bool validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const;
+
+
+      // MEMBERS
+
       /// map pointer for reading
-      MapType* exp_;
+      MapType* exp_{ nullptr };
       /// map pointer for writing
-      const MapType* cexp_;
+      const MapType* cexp_{ nullptr };
 
       /// Options that can be set for loading/storing
       PeakFileOptions options_;
@@ -270,11 +292,17 @@ protected:
       /// The current chromatogram
       ChromatogramType chromatogram_;
       /// The spectrum data (or chromatogram data)
-      std::vector<BinaryData> data_;
+      std::vector<BinaryData> bin_data_;
       /// The default number of peaks in the current spectrum
       Size default_array_length_;
       /// Flag that indicates that we're inside a spectrum (in contrast to a chromatogram)
-      bool in_spectrum_list_;
+      bool in_spectrum_list_{ false };
+      /// Flag that indicates whether this spectrum should be skipped (e.g. due to options)
+      bool skip_spectrum_{ false };
+      /// Flag that indicates whether this chromatogram should be skipped (e.g. due to options)
+      bool skip_chromatogram_{ false };
+      /// Remember whether the RT of the spectrum was set or not
+      bool rt_set_{ false };
       /// Id of the current list. Used for referencing param group, source file, sample, software, ...
       String current_id_;
       /// The referencing param groups: id => array (accession, value)
@@ -330,78 +358,28 @@ protected:
       //@}
       /**@name temporary data structures to hold written data */
       //@{
-      std::vector<std::pair<std::string, long> > spectra_offsets;
-      std::vector<std::pair<std::string, long> > chromatograms_offsets;
+      std::vector<std::pair<std::string, long> > spectra_offsets_;
+      std::vector<std::pair<std::string, long> > chromatograms_offsets_;
       //@}
-
-      /// Decoder/Encoder for Base64-data in MzML
-      Base64 decoder_;
 
       /// Progress logger
       const ProgressLogger& logger_;
 
       /// Consumer class to work on spectra
-      Interfaces::IMSDataConsumer* consumer_;
+      Interfaces::IMSDataConsumer* consumer_{ nullptr };
 
       /// Counting spectra and chromatograms
-      UInt scan_count;
-      UInt chromatogram_count;
-
-      /// Flag that indicates whether this spectrum should be skipped (due to options)
-      bool skip_chromatogram_;
-      bool skip_spectrum_;
-
-      // Remember whether the RT of the spectrum was set or not
-      bool rt_set_;
+      UInt scan_count_{ 0 };  //< number of scans which pass the options-filter
+      UInt chromatogram_count_{ 0 }; //< number of chromatograms which pass the options-filter
+      Int scan_count_total_{ -1 }; //< total number of scans in mzML file (according to 'count' attribute)
+      Int chrom_count_total_{ -1 }; //< total number of chromatograms in mzML file (according to 'count' attribute)
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
       CVMappings mapping_;
-      //~ Internal::MzMLValidator validator_;
 
       ///Count of selected ions
-      UInt selected_ion_count_;
-
-      /*
-      /// Fills the current spectrum with peaks and meta data
-      void fillData_();
-      */
-
-      /// Fills the current chromatogram with data points and meta data
-      void fillChromatogramData_();
-
-      /// Handles CV terms
-      void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, /*  const String & cvref, */ const String& accession, const String& name, const String& value, const String& unit_accession = "");
-
-      /// Handles user terms
-      void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
-
-      /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, Internal::MzMLValidator& validator) const;
-
-      /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
-      ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
-
-      /// Helper method that writes a software
-      void writeSoftware_(std::ostream& os, const String& id, const Software& software, Internal::MzMLValidator& validator);
-
-      /// Helper method that writes a source file
-      void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, Internal::MzMLValidator& validator);
-
-      /// Helper method that writes a data processing list
-      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, Internal::MzMLValidator& validator);
-
-      /// Helper method that write precursor information from spectra and chromatograms
-      void writePrecursor_(std::ostream& os, const Precursor& precursor, Internal::MzMLValidator& validator);
-
-      /// Helper method that write precursor information from spectra and chromatograms
-      void writeProduct_(std::ostream& os, const Product& product, Internal::MzMLValidator& validator);
-
-      /// Helper method to write an CV based on a meta value
-      String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
-
-      /// Helper method to validate if the given CV is allowed in the current location (path)
-      bool validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const;
+      UInt selected_ion_count_{ 0 };
     };
 
     //--------------------------------------------------------------------------------

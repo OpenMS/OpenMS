@@ -732,7 +732,7 @@ namespace OpenMS
          cl_it != quant_method_->getChannelInformation().end();
          ++cl_it)
     {
-      ConsensusMap::FileDescription channel_as_map;
+      ConsensusMap::ColumnHeader channel_as_map;
       // label is the channel + description provided in the Params
       channel_as_map.label = quant_method_->getName() + "_" + cl_it->name;
 
@@ -744,7 +744,7 @@ namespace OpenMS
       channel_as_map.setMetaValue("channel_id", cl_it->id);
       channel_as_map.setMetaValue("channel_description", cl_it->description);
       channel_as_map.setMetaValue("channel_center", cl_it->center);
-      consensus_map.getFileDescriptions()[index] = channel_as_map;
+      consensus_map.getColumnHeaders()[index] = channel_as_map;
       ++index;
     }
   }

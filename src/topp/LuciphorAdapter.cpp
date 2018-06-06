@@ -47,9 +47,7 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QProcess>
-#include <QDir>
+#include <QProcessEnvironment>
 
 #include <cstddef>
 #include <fstream>
@@ -277,21 +275,6 @@ protected:
     output << "               ## 4 = write HCD non-parametric models to disk (HCD-mode only option)\n";
   }
   
-  void removeTempDir_(const String& temp_dir)
-  {
-    if (temp_dir.empty()) return; // no temp. dir. created
-
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      File::removeDirRecursively(temp_dir);
-    }
-  }
-  
   struct LuciphorPSM splitSpecId_(const String& spec_id)
   {
     struct LuciphorPSM l_psm;
@@ -499,11 +482,8 @@ protected:
       writeLog_("The installation of Java was not checked.");
     }
 
-    // create temporary directory
-    String temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
-    writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
-    QDir d;
-    d.mkpath(temp_dir.toQString());
+    //tmp_dir
+    String temp_dir = makeAutoRemoveTempDirectory_();
 
     // create a temporary config file for LuciPHOr2 parameters
     String conf_file = temp_dir + "luciphor2_input_template.txt";
@@ -532,8 +512,14 @@ protected:
     if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(id, prot_ids, pep_ids);
-      IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
-      
+      if (!pep_ids.empty())
+      {
+        IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
+      }
+      else
+      {
+        LOG_WARN << "No PeptideIdentifications found in the IdXMLFile. Please check your previous steps.\n";
+      }
       // create a temporary pepXML file for LuciPHOR2 input
       String id_file_name = File::removeExtension(File::basename(id));
       id = temp_dir + id_file_name + ".pepXML";
@@ -590,13 +576,15 @@ protected:
       process_params << "-XX:MaxPermSize=" + QString::number(java_permgen);
     }
 
-    process_params << "-jar" << executable << conf_file.toQString();                   
-    // execute LuciPHOr2    
-    int status = QProcess::execute(java_executable.toQString(), process_params);
-    if (status != 0)
+    process_params << "-jar" << executable << conf_file.toQString();
+
+    //-------------------------------------------------------------
+    // LuciPHOr2
+    //-------------------------------------------------------------
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    if (exit_code != EXECUTION_OK)
     {
-      writeLog_("Fatal error: Running LuciPHOr2 returned an error code. Does the LuciPHOr2 executable (.jar file) exist?");
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
 
     SpectrumLookup lookup;
@@ -672,8 +660,6 @@ protected:
       pep_out.push_back(new_pep_id);
     }
     IdXMLFile().store(out, prot_ids, pep_out);
-
-    removeTempDir_(temp_dir);
 
     return EXECUTION_OK;
   }

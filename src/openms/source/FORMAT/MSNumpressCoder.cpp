@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
 
+#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/MATH/MISC/MSNumpress.h>
 #include <boost/math/special_functions/fpclassify.hpp> // boost::math::isfinite
 // #define NUMPRESS_DEBUG
@@ -59,7 +60,7 @@ namespace OpenMS
     // Encode in base64 and compress
     std::vector<String> tmp;
     tmp.push_back(result);
-    base64coder_.encodeStrings(tmp, result, zlib_compression, false);
+    Base64::encodeStrings(tmp, result, zlib_compression, false);
   }
 
   void MSNumpressCoder::encodeNP(const std::vector<float> & in, String & result,
@@ -73,7 +74,7 @@ namespace OpenMS
       bool zlib_compression, const NumpressConfig & config)
   {
     QByteArray base64_uncompressed;
-    base64coder_.decodeSingleString(in, base64_uncompressed, zlib_compression);
+    Base64::decodeSingleString(in, base64_uncompressed, zlib_compression);
 
     // Create a temporary string (*not* null-terminated) to hold the data
     std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size());

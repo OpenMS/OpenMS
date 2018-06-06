@@ -53,7 +53,6 @@ namespace OpenMS
     intensity_range_(),
     ms_levels_(),
     zlib_compression_(false),
-    size_only_(false),
     always_append_data_(false),
     skip_xml_checks_(false),
     sort_spectra_by_mz_(true),
@@ -81,7 +80,6 @@ namespace OpenMS
     intensity_range_(options.intensity_range_),
     ms_levels_(options.ms_levels_),
     zlib_compression_(options.zlib_compression_),
-    size_only_(options.size_only_),
     always_append_data_(options.always_append_data_),
     skip_xml_checks_(options.skip_xml_checks_),
     sort_spectra_by_mz_(options.sort_spectra_by_mz_),
@@ -141,7 +139,7 @@ namespace OpenMS
   void PeakFileOptions::setRTRange(const DRange<1>& range)
   {
     rt_range_ = range;
-    has_rt_range_ = true;
+    has_rt_range_ = !rt_range_.isEmpty();
   }
 
   bool PeakFileOptions::hasRTRange() const
@@ -225,17 +223,7 @@ namespace OpenMS
   {
     return zlib_compression_;
   }
-
-  bool PeakFileOptions::getSizeOnly() const
-  {
-    return size_only_;
-  }
-
-  void PeakFileOptions::setSizeOnly(bool size_only)
-  {
-    size_only_ = size_only;
-  }
-
+  
   bool PeakFileOptions::getAlwaysAppendData() const
   {
     return always_append_data_;
@@ -348,6 +336,11 @@ namespace OpenMS
   void PeakFileOptions::setMaxDataPoolSize(Size size)
   {
     maximal_data_pool_size_ = size;
+  }
+
+  bool PeakFileOptions::hasFilters()
+  {
+    return (has_rt_range_ || hasMSLevels());
   }
 
 } // namespace OpenMS

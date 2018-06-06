@@ -67,7 +67,12 @@ public:
       @brief Implement ProgressLoggerImpl::setProgress().
     */
     void setProgress(const SignedSize value, const int /* current_recursion_depth */) const override;
-
+    
+    /**
+      @brief Implement ProgressLoggerImpl::nextProgress().
+    */
+    SignedSize nextProgress() const override;
+    
     /**
       @brief Implement ProgressLoggerImpl::endProgress().
     */
@@ -80,6 +85,7 @@ private:
     mutable QProgressDialog* dlg_;
     mutable SignedSize begin_;
     mutable SignedSize end_;
+    mutable SignedSize current_;
   };
 }
 

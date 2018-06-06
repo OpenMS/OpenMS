@@ -47,8 +47,6 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtCore/QProcess>
-
 #include <fstream>
 
 using namespace OpenMS;
@@ -198,7 +196,7 @@ protected:
     }
 
     // write input xml file
-    String temp_directory = makeTempDirectory_();
+    String temp_directory = makeAutoRemoveTempDirectory_();
     String input_filename = temp_directory + "tandem_input.xml";
     String tandem_input_filename = in;
     String tandem_output_filename = temp_directory + "tandem_output.xml";
@@ -315,13 +313,10 @@ protected:
     //-------------------------------------------------------------
 
     String xtandem_executable(getStringOption_("xtandem_executable"));
-    int status = QProcess::execute(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
-    if (status != 0)
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(xtandem_executable.toQString(), QStringList(input_filename.toQString())); // does automatic escaping etc...
+    if (exit_code != EXECUTION_OK)
     {
-      writeLog_("X! Tandem problem. Aborting! Calling command was: '" + xtandem_executable + " \"" + input_filename + "\"'.\nDoes the X! Tandem executable exist?");
-      // clean temporary files
-      removeTempDirectory_(temp_directory);
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
 
     vector<ProteinIdentification> protein_ids;
@@ -401,9 +396,6 @@ protected:
 
       IdXMLFile().store(out, protein_ids, peptide_ids);
     }
-
-    /// Deletion of temporary files
-    removeTempDirectory_(temp_directory);
 
     // some stats (note that only MS2 spectra were loaded into "exp"):
     Int percent = peptide_ids.size() * 100.0 / exp.size();
