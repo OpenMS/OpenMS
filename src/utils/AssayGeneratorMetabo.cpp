@@ -43,6 +43,8 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -77,16 +79,14 @@ using namespace std;
   Please provide a list of features found in the data (featureXML).
 
   Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
-  can be applied using the AccurateMassSearch feautreXML output.
-
-  Note: Please set the "report_confex_hulls" parameter to "true" when using the FFM.
+  can be added using the AccurateMassSearch feautreXML output.
 
   If the FFM featureXML is used the "use_known_unknowns" flag is used automatically.
 
   Internal procedure AssayGeneratorMetabo:
   1. Input mzML and featureXML
   2. Annotate precursor mz and intensity
-  3. Filter feature by convexhull size
+  3. Filter feature by number of masstraces
   4. Assign precursors to specific feature
   5. Extract feature meta information (if possible)
   6. Find MS2 spectrum with highest intensity precursor for one feature
@@ -145,6 +145,8 @@ protected:
     registerStringOption_("method", "<choice>", "highest_intensity", "",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
+    registerDoubleOption_("signal_to_noise", "<s/n ratio>", 0, "Write peaks with S/N > signal_to_noise values only", false);
+
     registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
     registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
     setValidStrings_("precursor_mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
@@ -159,7 +161,8 @@ protected:
 
     registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectras of same precursor used for consensus spectrum", false);
 
-    registerIntOption_("filter_by_convex_hulls", "<num>", 2, "Features have to have at least x MassTraces", false);
+    registerIntOption_("filter_by_num_masstraces", "<num>", 2, "Features have to have at least x MassTraces", false);
+    setMinInt_("filter_by_num_masstraces", 1);
 
     registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
 
@@ -297,6 +300,8 @@ protected:
     String method = getStringOption_("method");
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
 
+    double sn = getDoubleOption_("signal_to_noise");
+
     double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
     String unit_prec = getStringOption_("precursor_mz_tolerance_unit");
     bool ppm_prec = unit_prec == "ppm" ? true : false;
@@ -309,7 +314,7 @@ protected:
     double precursor_mz_distance = getDoubleOption_("precursor_mz_distance");
 
     double cosine_sim_threshold = getDoubleOption_("cosine_similarity_threshold");
-    unsigned int hull_size_filter = getIntOption_("filter_by_convex_hulls");
+    unsigned int num_masstrace_filter = getIntOption_("filter_by_num_masstraces");
     double transition_threshold = getDoubleOption_("transition_threshold");
     bool use_known_unknowns = getFlag_("use_known_unknowns");
 
@@ -330,6 +335,24 @@ protected:
       }
     }
 
+    // TODO: check if signal to noise filter works
+    // calculate S/N values and delete data points below S/N threshold
+    if (sn > 0)
+    {
+      SignalToNoiseEstimatorMedian<PeakMap::SpectrumType> snm;
+      Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
+      snm.setParameters(dc_param);
+      for (PeakMap::Iterator it = spectra.begin(); it != spectra.end(); ++it)
+      {
+        snm.init(it->begin(), it->end());
+        for (PeakMap::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
+        {
+          if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
+        }
+        it->erase(remove_if(it->begin(), it->end(), InIntensityRange<PeakMap::PeakType>(1, numeric_limits<PeakMap::PeakType::IntensityType>::max(), true)), it->end());
+      }
+    }
+
     // load featurexml
     FeatureXMLFile fxml;
     FeatureMap feature_map;
@@ -341,14 +364,6 @@ protected:
     {
       if (it->getSoftware().getName() == "FeatureFinderMetabo")
       {
-        // check if convex hulls parameter was used in the FeatureFinderMetabo
-        if (it->getMetaValue("parameter: algorithm:ffm:report_convex_hulls") != "true")
-        {
-          throw Exception::InvalidParameter(__FILE__,
-                                            __LINE__,
-                                            OPENMS_PRETTY_FUNCTION,
-                                            "Please provide a valid feature XML file with reported convex hulls.");
-        }
         // if id information is missing set use_known_unknowns to true
         if (feature_map.getProteinIdentifications().empty())
         {
@@ -360,11 +375,12 @@ protected:
     // annotate precursor mz and intensity
     annotatePrecursorIntensity(spectra, pre_recal_win, ppm_recal);
 
-    // filter feature by convexhull size
+    // filter feature by number of masstraces
     auto map_it = remove_if(feature_map.begin(), feature_map.end(),
-                                                 [&hull_size_filter](const Feature& f) -> bool
+                                                 [&num_masstrace_filter](const Feature& f) -> bool
                                                  {
-                                                   return f.getConvexHulls().size() < hull_size_filter;
+                                                   unsigned int n_masstraces = f.getMetaValue("num_of_masstraces");
+                                                   return n_masstraces <= num_masstrace_filter;
                                                  });
     feature_map.erase(map_it, feature_map.end());
 
@@ -504,6 +520,10 @@ protected:
 
       AssayRow row;
       int transition_counter = 1;
+
+      // TODO: Other datastructure (min/max transitions) - min -> transitions with highest intensity?
+      // TODO: Put stuff in vector first? then sort by intensity? maybe map Transition intensity: everything else
+      // TODO: Think about it if you have multiple files
 
       for (MSSpectrum::iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
