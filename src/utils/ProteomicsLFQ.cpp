@@ -340,19 +340,24 @@ protected:
       //-------------------------------------------------------------
       linker.group(feature_maps, consensus_fraction);
 
+      //-------------------------------------------------------------
+      // ID conflict resolution
+      //-------------------------------------------------------------
+      IDConflictResolverAlgorithm::resolve(consensus);
+
+      //-------------------------------------------------------------
+      // ConsensusMap normalization
+      //-------------------------------------------------------------
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus, 
+        ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
+        "", 
+        "");
+
       // append consensus map calculated for this fraction number
       consensus.appendColumns(consensus_fraction);
 
       // end of scope of feature maps
     }
-
-    //-------------------------------------------------------------
-    // ConsensusMap normalization
-    //-------------------------------------------------------------
-    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus, 
-      ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
-      "", 
-      "");
 
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
@@ -365,10 +370,6 @@ protected:
     ProteinIdentification infered_protein_groups;
     vector<PeptideIdentification> infered_peptides;
 
-    //-------------------------------------------------------------
-    // ID conflict resolution
-    //-------------------------------------------------------------
-    IDConflictResolverAlgorithm::resolve(consensus);
     // TODO: maybe check if some consensus ID algorithms are applicable
 
     //-------------------------------------------------------------
