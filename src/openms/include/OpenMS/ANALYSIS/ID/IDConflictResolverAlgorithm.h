@@ -59,8 +59,6 @@ using namespace std;
     The peptide identifications are filtered so that only one identification
     with a single hit (with the best score) is associated to each feature. (If
     two IDs have the same best score, either one of them may be selected.)
-
-
 */
 
 namespace OpenMS
