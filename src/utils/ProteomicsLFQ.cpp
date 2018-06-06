@@ -186,10 +186,7 @@ protected:
 
     Param ma_param = getParam_().copy("Alignment:", true);
     writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
-    MapAlignmentAlgorithmIdentification aligner;
-    aligner.setLogType(log_type_);
-    aligner.setParameters(ma_param);
-   
+
     Param fl_param = getParam_().copy("Linker:", true);
     writeDebug_("Parameters passed to FeatureGroupingAlgorithmKD algorithm", fl_param, 3);
     FeatureGroupingAlgorithmKD linker;
@@ -218,6 +215,15 @@ protected:
     {
       vector<FeatureMap> feature_maps;
       ConsensusMap consensus_fraction;      
+
+      // debug output
+      LOG_DEBUG << "Processing fraction number: " << ms_files.first << endl; 
+      LOG_DEBUG << "Files: " << endl; 
+      
+      for (String const & mz_file : ms_files.second) // for each MS file
+      {
+        LOG_DEBUG << mz_file << endl;          
+      }
 
       //TODO: check if we want to parallelize that
       for (String const & mz_file : ms_files.second) // for each MS file
@@ -347,18 +353,23 @@ protected:
       // Align all features of this fraction
       //-------------------------------------------------------------
       vector<TransformationDescription> transformations;
+   
       //TODO: check if we need to set reference
       Size reference_index(0);
+      MapAlignmentAlgorithmIdentification aligner;
+      aligner.setLogType(log_type_);
+      aligner.setParameters(ma_param);
       aligner.align(feature_maps, transformations, reference_index);
+
 
       // find model parameters:
       Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
       String model_type = model_params.getValue("type");
-
-      if (model_type != "none")
+      model_params = model_params.copy(model_type + ":", true);
+      for (TransformationDescription & t : transformations)
       {
-        model_params = model_params.copy(model_type + ":", true);
-        for (TransformationDescription t : transformations)
+        LOG_DEBUG << "Using " << t.getDataPoints().size() << " points in fit." << endl; 
+        if (t.getDataPoints().size() > 10)
         {
           t.fitModel(model_type, model_params);
         }
@@ -369,7 +380,7 @@ protected:
       {
         MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
           transformations[i]);
-      }                                     
+      }
 
       //-------------------------------------------------------------
       // Link all features of this fraction
@@ -384,7 +395,7 @@ protected:
       //-------------------------------------------------------------
       // ConsensusMap normalization
       //-------------------------------------------------------------
-      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus, 
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, 
         ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
         "", 
         "");
@@ -392,7 +403,7 @@ protected:
       // append consensus map calculated for this fraction number
       consensus.appendColumns(consensus_fraction);
 
-      // end of scope of feature maps
+      // end of scope of fraction related data
     }
 
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
