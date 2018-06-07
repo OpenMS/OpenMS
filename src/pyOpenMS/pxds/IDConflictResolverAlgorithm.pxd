@@ -6,10 +6,9 @@ from DefaultParamHandler cimport *
 cdef extern from "<OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>" namespace "OpenMS":
 
     cdef cppclass IDConflictResolverAlgorithm(DefaultParamHandler):
-
-        # wrap-inherits:
-        #    DefaultParamHandler
-        IDConflictResolverAlgorithm()      nogil except +
+        IDConflictResolverAlgorithm() nogil except +
+        
+        IDConflictResolverAlgorithm(IDConflictResolverAlgorithm) nogil except + # wrap-ignore
 
         void resolve(FeatureMap& features) nogil except +
 
