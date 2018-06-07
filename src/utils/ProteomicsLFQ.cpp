@@ -475,7 +475,7 @@ protected:
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
     MzTab m = MzTab::exportConsensusMapToMzTab(consensus, String("null"), report_unidentified_features, report_unmapped);
-    MzTabFile().store(out, m);    
+    MzTabFile().store(out, m);
 
     return EXECUTION_OK;
   }

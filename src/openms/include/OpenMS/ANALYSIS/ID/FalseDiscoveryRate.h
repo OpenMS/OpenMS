@@ -89,21 +89,21 @@ public:
     @param fwd_ids forward protein identifications
     @param rev_ids reverse protein identifications
     */
-    void apply(std::vector<ProteinIdentification>& fwd_ids, std::vector<ProteinIdentification>& rev_ids);
+    void apply(std::vector<ProteinIdentification>& fwd_ids, std::vector<ProteinIdentification>& rev_ids) const;
 
     /**
     @brief Calculate the FDR of one run from a concatenated sequence db search
 
     @param ids protein identifications, containing target and decoy hits
     */
-    void apply(std::vector<ProteinIdentification>& ids);
+    void apply(std::vector<ProteinIdentification>& ids) const;
 
     /**
     @brief Calculate the FDR based on PEPs pr PPs (if present) and modifies the IDs inplace
 
     @param ids protein identifications, containing PEP scores (not necessarily) annotated with target decoy.
     */
-    void applyEstimated(std::vector<ProteinIdentification>& ids);
+    void applyEstimated(std::vector<ProteinIdentification>& ids) const;
 
     /**
     @brief Calculate a linear combination of the area of the difference in estimated vs. empirical (TD) FDR
@@ -130,17 +130,32 @@ private:
     FalseDiscoveryRate & operator=(const FalseDiscoveryRate &);
 
     //TODO we could add identifier here. If we need to combine runs.
-    void getScores_(std::vector<std::pair<double,bool>>& scores_labels, const ProteinIdentification & id);
+    void getScores_(
+      std::vector<std::pair<double,bool>>& scores_labels, 
+      const ProteinIdentification & id) const;
 
-    void getScores_(std::vector<std::pair<double,bool>>& scores_labels, const std::vector<PeptideIdentification> & ids, bool all_hits, int charge, String identifier);
-    void getScores_(std::vector<std::pair<double,bool>>& scores_labels, const std::vector<PeptideIdentification> & targets, const std::vector<PeptideIdentification> & decoys, bool all_hits, int charge, const String& identifier);
+    void getScores_(
+      std::vector<std::pair<double,bool>>& scores_labels, 
+      const std::vector<PeptideIdentification> & ids, 
+      bool all_hits, 
+      int charge, String identifier) const;
 
+    void getScores_(
+      std::vector<std::pair<double,bool>>& scores_labels, 
+      const std::vector<PeptideIdentification> & targets, 
+      const std::vector<PeptideIdentification> & decoys, 
+      bool all_hits, 
+      int charge, 
+      const String& identifier) const;
 
-
-    void setScores_(const std::map<double,double>& scores_to_FDR, std::vector<PeptideIdentification> & id, const std::string& score_type, bool higher_better);
+    void setScores_(
+      const std::map<double,double>& scores_to_FDR, 
+      std::vector<PeptideIdentification> & id, 
+      const std::string& score_type, 
+      bool higher_better) const;
 
     template <typename IDType>
-    void setScores_(const std::map<double,double>& scores_to_FDR, IDType & id, const std::string& score_type, bool higher_better)
+    void setScores_(const std::map<double,double>& scores_to_FDR, IDType & id, const std::string& score_type, bool higher_better) const
     {
       String old_score_type = id.getScoreType() + "_score";
       id.setScoreType(score_type);
@@ -154,7 +169,7 @@ private:
     }
 
     template <typename IDType>
-    void checkTDAnnotation_ (const IDType & id)
+    void checkTDAnnotation_ (const IDType & id) const
     {
       for (auto const& hit : id.getHits())
       {
@@ -207,19 +222,20 @@ private:
 
 
     template <typename HitType>
-    std::pair<double,bool> getScoreLabel_ (const HitType& hit, std::function<bool(const HitType&)> fun){
+    std::pair<double,bool> getScoreLabel_(const HitType& hit, std::function<bool(const HitType&)> fun) const
+    {
       return std::make_pair(hit.getScore(), fun(hit));
     }
 
 
     /// calculates the fdr given two vectors of scores and fills a map for lookup in scores_to_FDR
-    void calculateFDRs_(Map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better);
+    void calculateFDRs_(Map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
 
     /// calculates an estimated FDR (based on P(E)Ps) given a vector of score value pairs and fills a map for lookup
     /// in scores_to_FDR
     void calculateEstimatedQVal_(std::map<double, double> &scores_to_FDR,
                                  std::vector<std::pair<double, bool>> &scores_labels,
-                                 bool higher_score_better);
+                                 bool higher_score_better) const;
 
     /// calculates the FDR with a basic and faster algorithm
     void calculateFDRBasic_(std::map<double,double>& scores_to_FDR, std::vector<std::pair<double,bool>>& scores_labels, bool qvalue, bool higher_score_better);

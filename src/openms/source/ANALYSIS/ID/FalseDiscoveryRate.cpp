@@ -764,7 +764,7 @@ namespace OpenMS
   }
 
   //TODO iterate over the vector. to be consistent with old interface
-  void FalseDiscoveryRate::applyEstimated(std::vector<ProteinIdentification> &ids)
+  void FalseDiscoveryRate::applyEstimated(std::vector<ProteinIdentification> &ids) const
   {
     //Note: this is actually unused because I think with that approach you will always get q-values.
     //bool q_value = !param_.getValue("no_qvalues").toBool();
@@ -929,7 +929,7 @@ namespace OpenMS
 
   void FalseDiscoveryRate::calculateEstimatedQVal_(std::map<double, double> &scores_to_FDR,
                                                    std::vector<std::pair<double, bool>> &scores_labels,
-                                                   bool higher_score_better)
+                                                   bool higher_score_better) const
   {
     if (higher_score_better)
     { // decreasing
@@ -1013,7 +1013,9 @@ namespace OpenMS
   }
 
 
-  void FalseDiscoveryRate::getScores_(std::vector<std::pair<double,bool>>& scores_labels, const ProteinIdentification & id)
+  void FalseDiscoveryRate::getScores_(
+    std::vector<std::pair<double,bool>>& scores_labels, 
+    const ProteinIdentification & id) const
   {
     checkTDAnnotation_(id);
     scores_labels.reserve(scores_labels.size() + id.getHits().size());
@@ -1023,7 +1025,12 @@ namespace OpenMS
 
   }
 
-  void FalseDiscoveryRate::getScores_(std::vector<std::pair<double,bool>>& scores_labels, const std::vector<PeptideIdentification> & ids, bool all_hits, int charge, String identifier)
+  void FalseDiscoveryRate::getScores_(
+    std::vector<std::pair<double,bool>>& scores_labels, 
+    const std::vector<PeptideIdentification> & ids, 
+    bool all_hits, 
+    int charge, 
+    String identifier) const
   {
 
     {
@@ -1048,7 +1055,7 @@ namespace OpenMS
     }
   }
 
-  void FalseDiscoveryRate::getScores_(std::vector<std::pair<double,bool>>& scores_labels, const std::vector<PeptideIdentification> & targets, const std::vector<PeptideIdentification> & decoys, bool all_hits, int charge, const String& identifier)
+  void FalseDiscoveryRate::getScores_(std::vector<std::pair<double,bool>>& scores_labels, const std::vector<PeptideIdentification> & targets, const std::vector<PeptideIdentification> & decoys, bool all_hits, int charge, const String& identifier) const
   {
 
     for (const PeptideIdentification& id : targets)
@@ -1092,7 +1099,7 @@ namespace OpenMS
   }
 
 
-  void FalseDiscoveryRate::setScores_(const std::map<double,double>& scores_to_FDR, vector<PeptideIdentification> & ids, const string& score_type, bool higher_better)
+  void FalseDiscoveryRate::setScores_(const std::map<double,double>& scores_to_FDR, vector<PeptideIdentification> & ids, const string& score_type, bool higher_better) const
   {
     for (auto& id : ids)
     {

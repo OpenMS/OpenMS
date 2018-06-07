@@ -87,7 +87,7 @@ namespace OpenMS
           // assumes protein is present
           auto accToPHit = accession_map.find(std::string(proteinAcc));
           int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
-          accToPHit->second->setMetaValue("missingTheorDigests", )
+          accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
           IDPointer prot(accToPHit->second);
           vertex_t protV = addVertexWithLookup_(prot, vertex_map);
           boost::add_edge(protV, pepV, g);

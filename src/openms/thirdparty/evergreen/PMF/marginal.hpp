@@ -8,7 +8,7 @@
 
 
 // Empirically chosen:
-inline const unsigned long SIZE_WHERE_NAIVE_MARGINAL_BECOMES_SLOWER = 32;
+const unsigned long SIZE_WHERE_NAIVE_MARGINAL_BECOMES_SLOWER = 32;
 
 // Naive marginal: more optimized than the obvious version; saves
 // time by iterating over new tuple and then inside that iterating
