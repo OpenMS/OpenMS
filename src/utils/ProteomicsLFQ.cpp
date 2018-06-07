@@ -31,6 +31,7 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -90,7 +91,7 @@ protected:
     setValidFormats_("design", ListUtils::create<String>("tsv"));
 
     registerOutputFile_("out", "<file>", "", "output mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("tsv")); // TODO: add file extension for mzTab
+    setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     /// TODO: think about export of quality control files (qcML?)
 
@@ -237,39 +238,6 @@ protected:
         MzMLFile mzML_file;
         mzML_file.setLogType(log_type_);
 
-        // setup for fwhm estimation
-        String in_option = getStringOption_("in");
-        MSExperiment ms_peakmap;
-        std::vector<Int> ms_level(1, 1);
-        mzML_file.getOptions().setMSLevels(ms_level);
-        mzML_file.load(in_option, ms_peakmap);
-
-        MassTraceDetection mt_ext;
-        mtd_param.insert("", com_param);
-        mtd_param.remove("chrom_fwhm");
-        mt_ext.setParameters(mtd_param);
-        std::vector<MassTrace> m_traces;
-        mt_ext.run(ms_peakmap, m_traces, 1000);
-
-        double median_fwhm;
-        std::vector<double> fwhm_1000;
-
-        for (auto &m : m_traces)
-        {
-          if (m.getSize() == 0) continue;
-
-          m.updateMeanMZ();
-          m.updateWeightedMZsd();
-
-          // FWHM
-          double fwhm = m.estimateFWHM(true); // smoothed or not?
-          fwhm_1000.push_back(fwhm);
-        }
-
-        median_fwhm = std::accumulate(fwhm_1000.begin(), fwhm_1000.end(), fwhm_1000.size());
-
-        std::cout << "Calculated median fwhm: " << median_fwhm << std::endl;
-
         PeakMap ms_centroided;
         {  // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
           PeakMap ms_raw;
@@ -361,6 +329,30 @@ protected:
             writeLog_(String("Data might not be well fitted for search engine: ") + engine);
           }
         }        
+
+        //////////////////////////////////////////
+        // Chromatographic parameter estimation
+        //////////////////////////////////////////
+        MassTraceDetection mt_ext;
+        mtd_param.insert("", com_param);
+        mtd_param.remove("chrom_fwhm");
+        mt_ext.setParameters(mtd_param);
+        std::vector<MassTrace> m_traces;
+        mt_ext.run(ms_centroided, m_traces, 1000);
+
+        std::vector<double> fwhm_1000;
+        for (auto &m : m_traces)
+        {
+          if (m.getSize() == 0) continue;
+          m.updateMeanMZ();
+          m.updateWeightedMZsd();
+          double fwhm = m.estimateFWHM(false);
+          fwhm_1000.push_back(fwhm);
+        }
+
+        double median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
+
+        LOG_INFO << "Median FWHM: " << median_fwhm << std::endl;
 
         //-------------------------------------------------------------
         // Feature detection
@@ -468,6 +460,9 @@ protected:
       // end of scope of fraction related data
     }
 
+    MzTab m_tmp = MzTab::exportConsensusMapToMzTab(consensus, String("null"), false, false);
+    MzTabFile().store(String("tmp_") + out, m_tmp);
+
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
 
@@ -485,7 +480,8 @@ protected:
     // Peptide quantification
     //-------------------------------------------------------------
     quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides(infered_peptides); 
+    quantifier.quantifyPeptides(infered_peptides);
+
 
     //-------------------------------------------------------------
     // Protein quantification
