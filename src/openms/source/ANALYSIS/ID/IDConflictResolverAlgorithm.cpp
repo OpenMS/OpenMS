@@ -43,12 +43,22 @@ namespace OpenMS
   {
     resolveConflict_(features);
   }
-
+  
   void IDConflictResolverAlgorithm::resolve(ConsensusMap & features)
   {
     resolveConflict_(features);
   }
-
+  
+  void IDConflictResolverAlgorithm::resolveBetweenFeatures(FeatureMap & features)
+  {
+    resolveBetweenFeatures_(features);
+  }
+  
+  void IDConflictResolverAlgorithm::resolveBetweenFeatures(ConsensusMap & features)
+  {
+    resolveBetweenFeatures_(features);
+  }
+  
   // static
   void IDConflictResolverAlgorithm::resolveConflict_(
     vector<PeptideIdentification> & peptides, 
