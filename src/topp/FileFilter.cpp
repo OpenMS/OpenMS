@@ -139,6 +139,7 @@ public:
   }
 
 private:
+
   static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, 
                                      const StringList& whitelist, 
                                      const String& sequence_comparison_method) 
@@ -406,6 +407,7 @@ protected:
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+
     addEmptyLine_();
     // XXX: Change description
     registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist  / accessions_whitelist");
