@@ -78,24 +78,6 @@
 using namespace OpenMS;
 using namespace std;
 
-/*
-  TODO:
-   - proper C-term N-term handling of terminal modifications that can be at every amino acid
-
-        // should be something like this: check if AA of modification and peptide match
-        if (origin != aa_seq[pos].getOneLetterCode() && origin != "C-term" && origin != "N-term")
-        {
-          continue;
-        }
-
-  // check for common annotation error in unimod
-  if ((origin == "C-term" || origin == "N-term") && term_specifity == ResidueModification::ANYWHERE)
-        {
-          continue;
-        }
-
-*/
-
 class SimpleSearchEngine :
     public TOPPBase
 {
@@ -115,7 +97,9 @@ class SimpleSearchEngine :
 
   public:
     SimpleSearchEngine() :
-      TOPPBase("SimpleSearchEngine", "Annotates MS/MS spectra using SimpleSearchEngine.", false)
+      TOPPBase("SimpleSearchEngine", 
+        "Annotates MS/MS spectra using SimpleSearchEngine.", 
+        false)
     {
     }
 
@@ -463,7 +447,6 @@ class SimpleSearchEngine :
       // set minimum / maximum size of peptide after digestion
       Size min_peptide_length = getIntOption_("peptide:min_size");
       Size max_peptide_length = getIntOption_("peptide:max_size");
-
       Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
@@ -485,7 +468,7 @@ class SimpleSearchEngine :
         digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length, max_peptide_length);
 
         for (auto const & c : current_digest)
-        {
+        { 
           if (c.getString().has('X')) { continue; }
         
           bool already_processed = false;
@@ -628,7 +611,6 @@ class SimpleSearchEngine :
       param_pi.setValue("enzyme:name", getStringOption_("enzyme"));
       param_pi.setValue("enzyme:specificity", "full");
       param_pi.setValue("missing_decoy_action", "silent");
-      param_pi.setValue("log", getStringOption_("log"));
       indexer.setParameters(param_pi);
 
       PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
