@@ -267,6 +267,14 @@ protected:
           // Centroiding of MS1
           //-------------------------------------------------------------
           pp.pickExperiment(ms_raw, ms_centroided, true);
+          
+          //-------------------------------------------------------------
+          // TODO: HighRes Precursor Mass Correction
+          //-------------------------------------------------------------
+          
+          //-------------------------------------------------------------
+          // TODO: Internal Calibration with high-confidence IDs
+          //-------------------------------------------------------------
         }
 
         // writing picked mzML files for data submission
