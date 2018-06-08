@@ -134,7 +134,7 @@ class TOPPHiResPrecursorMassCorrector :
       setValidFormats_("out_csv", ListUtils::create<String>("csv"));
     }
 
-    void getPrecursors_(const PeakMap & exp, vector<Precursor> & precursors, vector<double> & precursors_rt, vector<Size> precursor_scan_index)
+    static void getPrecursors_(const PeakMap & exp, vector<Precursor> & precursors, vector<double> & precursors_rt, vector<Size> precursor_scan_index)
     {
       for (Size i = 0; i != exp.size(); ++i)
       {
@@ -214,7 +214,13 @@ class TOPPHiResPrecursorMassCorrector :
       }
     }
 
-    set<Size> correctToNearestMS1Peak(PeakMap & exp, double mz_tolerance, bool ppm, vector<double> & deltaMZs, vector<double> & mzs, vector<double> & rts)
+    static set<Size> correctToNearestMS1Peak(
+      PeakMap & exp, 
+      double mz_tolerance, 
+      bool ppm, 
+      vector<double> & deltaMZs, 
+      vector<double> & mzs, 
+      vector<double> & rts)
     {
       set<Size> corrected_precursors;
       // load experiment and extract precursors
@@ -283,7 +289,12 @@ class TOPPHiResPrecursorMassCorrector :
     }
 
     //Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
-    set<Size> correctToHighestIntensityMS1Peak(PeakMap & exp, double mz_tolerance, vector<double> & deltaMZs, vector<double> & mzs, vector<double> & rts)
+    static set<Size> correctToHighestIntensityMS1Peak(
+      PeakMap & exp, 
+      double mz_tolerance, 
+      vector<double> & deltaMZs, 
+      vector<double> & mzs, 
+      vector<double> & rts)
     {
       set<Size> corrected_precursors;
       // load experiment and extract precursors
@@ -344,7 +355,6 @@ class TOPPHiResPrecursorMassCorrector :
         corrected_prec.setMZ(highest_peak_mz);
         exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
         corrected_precursors.insert(precursor_spectrum_idx);
-
       }
 
       if (count_error_highest_intenstiy != 0)

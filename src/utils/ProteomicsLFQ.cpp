@@ -39,6 +39,9 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+#include <OpenMS/DATASTRUCTURES/CalibrationData.h>
+#include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
+#include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
@@ -173,9 +176,20 @@ protected:
         e.label = 1;
         e.path = s;
         e.sample = count;
-      }
+        msfs.push_back(e);
+      }      
+      design.setMSFileSection(msfs);
     }
     std::map<unsigned int, std::vector<String> > frac2ms = design.getFractionToMSFilesMapping();
+
+    for (auto & f : frac2ms)
+    {
+      writeDebug_("Fraction " + String(f.first) + ":", 10);
+      for (auto s : f.second)
+      {
+        writeDebug_("MS file: " + String(s), 10);
+      }
+    }
 
     Param pp_param = getParam_().copy("Centroiding:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
@@ -229,7 +243,6 @@ protected:
         writeDebug_(mz_file,  1);
       }
 
-      //TODO: check if we want to parallelize that
       for (String const & mz_file : ms_files.second) // for each MS file
       {
         // TODO: check if s is part of in 
@@ -270,11 +283,7 @@ protected:
           
           //-------------------------------------------------------------
           // TODO: HighRes Precursor Mass Correction
-          //-------------------------------------------------------------
-          
-          //-------------------------------------------------------------
-          // TODO: Internal Calibration with high-confidence IDs
-          //-------------------------------------------------------------
+          //-------------------------------------------------------------          
         }
 
         // writing picked mzML files for data submission
@@ -284,15 +293,53 @@ protected:
         // mzML_file.store(OUTPUTFILENAME, ms_centroided);
         // TODO: free all MS2 spectra (to release memory!)
 
+        vector<ProteinIdentification> protein_ids;
+        vector<PeptideIdentification> peptide_ids;
+        const String& mz_file_abs_path = File::absolutePath(mz_file);
+        const String& id_file_abs_path = File::absolutePath(mzfile2idfile[mz_file_abs_path]);
+        IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
+
+        //-------------------------------------------------------------
+        // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
+        // TODO: check if this improves targeted extraction
+        //-------------------------------------------------------------
+        InternalCalibration ic;
+        ic.setLogType(log_type_);
+        ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
+        bool use_RANSAC = true;
+        MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
+        Size RANSAC_initial_points = 3;
+        Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
+        MZTrafoModel::setRANSACParams(p);
+        // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
+        MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
+
+        IntList ms_level = {1};
+        double rt_chunk = 300.0; // 5 minutes
+        String qc_residual_path, qc_residual_png_path;
+        if (debug_level_ >= 1)
+        {
+          const String & id_basename = File::basename(id_file_abs_path);
+          qc_residual_path = id_basename + "qc_residuals.tsv";
+          qc_residual_png_path = id_basename + "qc_residuals.png";
+        } 
+
+        if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
+                      10.0,
+                      1.0, 
+                      "",                      
+                      "",
+                      qc_residual_path,
+                      qc_residual_png_path,
+                      "Rscript"))
+        {
+          LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
+          return UNEXPECTED_RESULT;
+        }
+
         //-------------------------------------------------------------
         // Posterior Error Probability calculation
         //-------------------------------------------------------------
-        
-        // TODO: load id file for this MS file
-
-        vector<ProteinIdentification> protein_ids;
-        vector<PeptideIdentification> peptide_ids;
-        IdXMLFile().load(mzfile2idfile[mz_file], protein_ids, peptide_ids);
 
         map<String, vector<vector<double> > > all_scores = Math::PosteriorErrorProbabilityModel::extractAndTransformScores(
           protein_ids, 

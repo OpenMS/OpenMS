@@ -229,6 +229,9 @@ namespace OpenMS
       pid.sort();
       int q = pid.getHits()[0].getCharge();
       double mz_ref = pid.getHits()[0].getSequence().getMonoWeight(OpenMS::Residue::Full, q) / q;
+
+      // Only use ID if precursor m/z and theoretical mass don't deviate too much.
+      // as they may occur due to isotopic peak misassignments
       if (tol_ppm < Math::getPPMAbs(it->getMZ(), mz_ref)) continue;
 
       const double weight = 1.0;
@@ -493,7 +496,7 @@ namespace OpenMS
     }
     if (post_ppm_MAD < fabs(MAD_ppm_after))
     {
-      LOG_INFO << "Post calibration median threshold (" << post_ppm_MAD << " ppm) not reached (median = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
+      LOG_INFO << "Post calibration MAD threshold (" << post_ppm_MAD << " ppm) not reached (MAD = |" << MAD_ppm_after << "| ppm). Failed to calibrate!" << std::endl;
       return false;
     }
 
