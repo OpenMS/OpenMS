@@ -160,6 +160,7 @@ class SimpleSearchEngine :
       registerIntOption_("peptide:min_size", "<num>", 7, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
       registerIntOption_("peptide:max_size", "<num>", 40, "Maximum size a peptide must have after digestion to be considered in the search (0 = disabled).", false, true);
       registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
+      registerStringOption_("peptide:motif", "<regex>", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.", false);
 
       registerTOPPSubsection_("report", "Reporting Options");
       registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
@@ -328,6 +329,8 @@ class SimpleSearchEngine :
       String in_mzml = getStringOption_("in");
       String in_db = getStringOption_("database");
       String out_idxml = getStringOption_("out");
+      const String peptide_motif = getStringOption_("peptide:motif");      
+      boost::regex peptide_motif_regex(peptide_motif);
 
       Int min_precursor_charge = getIntOption_("precursor:min_charge");
       Int max_precursor_charge = getIntOption_("precursor:max_charge");
@@ -470,6 +473,9 @@ class SimpleSearchEngine :
         for (auto const & c : current_digest)
         { 
           if (c.getString().has('X')) { continue; }
+
+          // if a peptide motif is provided skip all peptides without match
+          if (!peptide_motif.empty() && !boost::regex_match(c.getString(), peptide_motif_regex)) { continue; }          
         
           bool already_processed = false;
 #ifdef _OPENMP
