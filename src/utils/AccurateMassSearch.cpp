@@ -97,7 +97,7 @@ protected:
     registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
     setValidFormats_("out_annotation", ListUtils::create<String>("featureXML,consensusXML"));
