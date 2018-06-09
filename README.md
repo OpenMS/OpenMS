@@ -37,8 +37,11 @@ Berlin, and the ETH Zürich.
 
 Features
 --------
-- Core C++ library
-- TOPP Tools, 150+ analysis tools (150+), covering most MS and LC-MS data processing and mining tasks. 
+- Core C++ library under three-clause BSD licence.
+- Python bindings to the C++ API through pyOpenMS.
+- Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks. 
+- Powerful 2D and 3D visualization tools (TOPPView)
+- Support for most MS identification and quantification workflows (label-free, isobaric and stable isotope).
 - Support for all major platforms (Windows [XP, 7, 8, 10], macOS and Linux).
 
 Licence
