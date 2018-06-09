@@ -46,6 +46,50 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  LayerData::ExperimentSharedPtrType prepareChromatogram(Size index, LayerData::ExperimentSharedPtrType exp_sptr, LayerData::ODExperimentSharedPtrType ondisc_sptr)
+  {
+    // create a managed pointer fill it with a spectrum containing the chromatographic data
+    LayerData::ExperimentSharedPtrType chrom_exp_sptr(new LayerData::ExperimentType());
+    chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
+    LayerData::ExperimentType::SpectrumType spectrum;
+
+    // retrieve chromatogram (either from in-memory or on-disc representation)
+    MSChromatogram current_chrom;
+    current_chrom = exp_sptr->getChromatograms()[index];
+    if (current_chrom.empty() )
+    {
+      current_chrom = ondisc_sptr->getChromatogram(index);
+    }
+
+    // fill "dummy" spectrum with chromatogram data
+    for (Size i = 0; i != current_chrom.size(); ++i)
+    {
+      const ChromatogramPeak & cpeak = current_chrom[i];
+      Peak1D peak1d;
+      peak1d.setMZ(cpeak.getRT());
+      peak1d.setIntensity(cpeak.getIntensity());
+      spectrum.push_back(peak1d);
+    }
+
+    // Add at least one data point to the chromatogram, otherwise
+    // "addLayer" will fail and a segfault occurs later
+    if (current_chrom.empty()) 
+    {
+      Peak1D peak1d(-1, 0);
+      spectrum.push_back(peak1d);
+    }
+
+    // store peptide_sequence if available
+    if (current_chrom.getPrecursor().metaValueExists("peptide_sequence"))
+    {
+      chrom_exp_sptr->setMetaValue("peptide_sequence", current_chrom.getPrecursor().getMetaValue("peptide_sequence"));
+    }
+
+    chrom_exp_sptr->addSpectrum(spectrum);
+    return chrom_exp_sptr;
+  }
+
   TOPPViewSpectraViewBehavior::TOPPViewSpectraViewBehavior(TOPPViewBase * parent) :
     tv_(parent)
   {
@@ -59,39 +103,26 @@ namespace OpenMS
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
     LayerData::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    auto ondisc_sptr = layer.getOnDiscPeakData();
 
     // open new 1D widget
     Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
 
     if (layer.type == LayerData::DT_CHROMATOGRAM)
     {
-      // fix legend if its a chromatogram
+      ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
+
+      // fix legend and set layer name
+      caption = layer.name + "[" + index + "]";
       w->xAxis()->setLegend("Time [sec]");
 
-      // create a managed pointer fill it with a spectrum containing the chromatographic data
-      ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
-      chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
-      SpectrumType spectrum;
-      const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[index];
-      for (Size i = 0; i != current_chrom.size(); ++i)
-      {
-        const ChromatogramPeak & cpeak = current_chrom[i];
-        Peak1D peak1d;
-        peak1d.setMZ(cpeak.getRT());
-        peak1d.setIntensity(cpeak.getIntensity());
-        spectrum.push_back(peak1d);
-      }
-      chrom_exp_sptr->addSpectrum(spectrum);
-
-      caption = layer.name + "[" + index + "]";
-      //add chromatogram data as peak spectrum
-      LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-      if (!w->canvas()->addLayer(chrom_exp_sptr, od_dummy, layer.filename))
+      // add chromatogram data as peak spectrum
+      if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
       {
         return;
       }
       w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-
+      w->canvas()->activateSpectrum(0);
     }
     else if (layer.type == LayerData::DT_PEAK)
     {
@@ -102,6 +133,7 @@ namespace OpenMS
       {
         return;
       }
+      w->canvas()->activateSpectrum(index);
     }
     else
     {
@@ -110,8 +142,6 @@ namespace OpenMS
       QMessageBox::critical(w, "Error", "Cannot open data that is neither chromatogram nor spectrum data. Aborting!");
       return;
     }
-
-    w->canvas()->activateSpectrum(index);
 
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
@@ -161,6 +191,7 @@ namespace OpenMS
     // where multiple (SRM) traces are shown together
     LayerData & layer = const_cast<LayerData&>(tv_->getActiveCanvas()->getCurrentLayer());
     ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
+    auto ondisc_sptr = layer.getOnDiscPeakData();
 
     // string for naming the different chromatogram layers with their index
     String chromatogram_caption;
@@ -172,8 +203,9 @@ namespace OpenMS
     // fix legend if its a chromatogram
     w->xAxis()->setLegend("Time [sec]");
 
-    for (Size index = 0; index != indices.size(); ++index)
+    for (auto index_ : indices)
     {
+      int index = indices[index_];
       // create a managed pointer fill it with a spectrum containing the chromatographic data
       ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
       chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
@@ -181,26 +213,18 @@ namespace OpenMS
       SpectrumType spectrum;
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
-        const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[indices[index]];
-        for (Size i = 0; i != current_chrom.size(); ++i)
-        {
-          const ChromatogramPeak & cpeak = current_chrom[i];
-          Peak1D peak1d;
-          peak1d.setMZ(cpeak.getRT());
-          peak1d.setIntensity(cpeak.getIntensity());
-          spectrum.push_back(peak1d);
-        }
-        chrom_exp_sptr->addSpectrum(spectrum);
+        ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
-        caption = caption + " [" + indices[index] + "];";
-        chromatogram_caption = layer.name + "[" + indices[index] + "]";
-        //add chromatogram data as peak spectrum
-        LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-        if (!w->canvas()->addLayer(chrom_exp_sptr, od_dummy, layer.filename))
+        // fix legend and set layer name
+        caption = caption + " [" + index + "];";
+        chromatogram_caption = layer.name + "[" + index + "]";
+
+        // add chromatogram data as peak spectrum
+        if (!w->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, layer.filename))
         {
           return;
         }
-        w->canvas()->activateSpectrum(*indices.begin());
+        w->canvas()->activateSpectrum(index_);
         w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), chromatogram_caption);
         w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
 
@@ -250,6 +274,7 @@ namespace OpenMS
       // first get raw data (the full experiment with all chromatograms), we
       // only need to grab the ones with the desired indices
       ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
+      auto ondisc_sptr = layer.getOnDiscPeakData();
 
       const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
       String fname = layer.filename;
@@ -261,32 +286,13 @@ namespace OpenMS
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
       }
 
-      // create a managed pointer fill it with a spectrum containing the chromatographic data
-      ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
-      SpectrumType spectrum;
-      const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[index];
-      for (Size i = 0; i != current_chrom.size(); ++i)
-      {
-        const ChromatogramPeak & cpeak = current_chrom[i];
-        Peak1D peak1d;
-        peak1d.setMZ(cpeak.getRT());
-        peak1d.setIntensity(cpeak.getIntensity());
-        spectrum.push_back(peak1d);
-      }
+      ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
-      // Add at least one data point to the chromatogram, otherwise
-      // "addLayer" will fail and a segfault occurs later
-      if (current_chrom.empty()) 
-      {
-        Peak1D peak1d(-1, 0);
-        spectrum.push_back(peak1d);
-      }
-
-      chrom_exp_sptr->addSpectrum(spectrum);
+      // fix legend and set layer name
       caption = lname + "[" + index + "]";
-      //add chromatogram data as peak spectrum
-      LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-      if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, od_dummy, fname))
+
+      // add chromatogram data as peak spectrum
+      if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, fname))
       {
         return;
       }
@@ -323,10 +329,10 @@ namespace OpenMS
     String fname = layer.filename;
     if (layer.chromatogram_flag_set())
     {
-
       // first get raw data (the full experiment with all chromatograms), we
       // only need to grab the ones with the desired indices
       ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
+      auto ondisc_sptr = layer.getOnDiscPeakData();
 
       Size layercount = widget_1d->canvas()->getLayerCount();
       for (Size i = 0; i != layercount; ++i)
@@ -334,45 +340,26 @@ namespace OpenMS
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
       }
 
-      for (Size index = 0; index != indices.size(); ++index)
+      for (auto index_ : indices)
       {
-        // create a managed pointer fill it with a spectrum containing the chromatographic data
-        ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
-        SpectrumType spectrum;
-        const MSChromatogram & current_chrom = exp_sptr->getChromatograms()[indices[index]];
-        for (Size i = 0; i != current_chrom.size(); ++i)
+        int index = indices[index_];
+        ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
+
+        // get caption (either chromatogram idx or peptide sequence, if available)
+        caption = fname + "[" + index + "]";
+        if (chrom_exp_sptr->metaValueExists("peptide_sequence"))
         {
-          const ChromatogramPeak & cpeak = current_chrom[i];
-          Peak1D peak1d;
-          peak1d.setMZ(cpeak.getRT());
-          peak1d.setIntensity(cpeak.getIntensity());
-          spectrum.push_back(peak1d);
-        }
-        
-        // Add at least one data point to the chromatogram, otherwise
-        // "addLayer" will fail and a segfault occurs later
-        if (current_chrom.empty()) 
-        {
-          Peak1D peak1d(-1, 0);
-          spectrum.push_back(peak1d);
+          caption = String(chrom_exp_sptr->getMetaValue("peptide_sequence")) + "[" + index + "]";
         }
 
-        chrom_exp_sptr->addSpectrum(spectrum);
-        caption = fname + "[" + indices[index] + "]";
-        if (current_chrom.getPrecursor().metaValueExists("peptide_sequence"))
-        {
-          caption = String(current_chrom.getPrecursor().getMetaValue("peptide_sequence")) + "[" + indices[index] + "]";
-        }
-        //add chromatogram data as peak spectrum
-        LayerData::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-        if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, od_dummy, fname))
+        // add chromatogram data as peak spectrum
+        if (!widget_1d->canvas()->addLayer(chrom_exp_sptr, ondisc_sptr, fname))
         {
           return;
         }
         widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
         widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
-        widget_1d->canvas()->activateSpectrum(indices[index]);
-        //widget_1d->canvas()->activateSpectrum(0);
+        widget_1d->canvas()->activateSpectrum(index_);
 
         widget_1d->canvas()->getCurrentLayer().name = caption;
         widget_1d->canvas()->getCurrentLayer().filename = fname;
@@ -380,7 +367,7 @@ namespace OpenMS
         //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
         widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
         widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "true");
-        widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", indices[index]);
+        widget_1d->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
       }
 
       tv_->updateLayerBar();
@@ -406,3 +393,4 @@ namespace OpenMS
   }
 
 } // OpenMS
+
