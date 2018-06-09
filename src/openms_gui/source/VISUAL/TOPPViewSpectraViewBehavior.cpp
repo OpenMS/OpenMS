@@ -206,11 +206,6 @@ namespace OpenMS
 
     for (auto index : indices)
     {
-      // create a managed pointer fill it with a spectrum containing the chromatographic data
-      ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
-      chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
-
-      SpectrumType spectrum;
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
@@ -228,6 +223,11 @@ namespace OpenMS
         w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
 
         w->canvas()->getCurrentLayer().getChromatogramData() = exp_sptr; // save the original chromatogram data so that we can access it later
+
+        //this is a hack to store that we have chromatogram data, that we selected multiple ones and which one we selected
+        w->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("is_chromatogram", "true");
+        w->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("multiple_select", "true");
+        w->canvas()->getCurrentLayer().getPeakDataMuteable()->setMetaValue("selected_chromatogram", index);
 
         // set visible area to visible area in 2D view
         // switch X/Y because now we want to have RT on the x-axis and not m/z
