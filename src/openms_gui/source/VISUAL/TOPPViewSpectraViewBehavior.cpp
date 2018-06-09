@@ -185,6 +185,7 @@ namespace OpenMS
 
   void TOPPViewSpectraViewBehavior::showSpectrumAs1D(std::vector<int, std::allocator<int> > indices)
   {
+
     // basic behavior 1
 
     // show multiple spectra together is only used for chromatograms directly
@@ -203,9 +204,8 @@ namespace OpenMS
     // fix legend if its a chromatogram
     w->xAxis()->setLegend("Time [sec]");
 
-    for (auto index_ : indices)
+    for (auto index : indices)
     {
-      int index = indices[index_];
       // create a managed pointer fill it with a spectrum containing the chromatographic data
       ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
       chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
@@ -224,7 +224,6 @@ namespace OpenMS
         {
           return;
         }
-        w->canvas()->activateSpectrum(index_);
         w->canvas()->setLayerName(w->canvas()->activeLayerIndex(), chromatogram_caption);
         w->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
 
@@ -296,8 +295,9 @@ namespace OpenMS
       {
         return;
       }
+
       widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
-      widget_1d->canvas()->activateSpectrum(index);
+      widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
 
       widget_1d->canvas()->getCurrentLayer().name = caption;
       widget_1d->canvas()->getCurrentLayer().filename = fname;
@@ -340,9 +340,8 @@ namespace OpenMS
         widget_1d->canvas()->removeLayer(0); // remove layer 0 until there are no more layers
       }
 
-      for (auto index_ : indices)
+      for (auto index : indices)
       {
-        int index = indices[index_];
         ExperimentSharedPtrType chrom_exp_sptr = prepareChromatogram(index, exp_sptr, ondisc_sptr);
 
         // get caption (either chromatogram idx or peptide sequence, if available)
@@ -357,9 +356,9 @@ namespace OpenMS
         {
           return;
         }
+
         widget_1d->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
         widget_1d->canvas()->setIntensityMode(Spectrum1DCanvas::IM_NONE);
-        widget_1d->canvas()->activateSpectrum(index_);
 
         widget_1d->canvas()->getCurrentLayer().name = caption;
         widget_1d->canvas()->getCurrentLayer().filename = fname;
