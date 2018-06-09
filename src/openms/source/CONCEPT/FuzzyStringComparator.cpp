@@ -398,18 +398,19 @@ namespace OpenMS
                   {
                     ratio = 1.0 / ratio;
                   }
+
                   // by now, we are sure that ratio >= 1
                   if (ratio > ratio_max_) // update running max
                   {
-                    ratio_max_ = ratio;
                     line_num_1_max_ = line_num_1_;
                     line_num_2_max_ = line_num_2_;
                     line_str_1_max_ = line_str_1;
                     line_str_2_max_ = line_str_2;
-                    if (ratio_max_ > ratio_max_allowed_)
+                    if (ratio > ratio_max_allowed_)
                     {
                       if (!is_absdiff_small_)
                       {
+                        ratio_max_ = ratio;
                         reportFailure_("ratio of numbers is too large");
                         continue;
                       }
@@ -506,6 +507,7 @@ namespace OpenMS
           );
 
       } // while ( input_line_1_ || input_line_2_ )
+
       if (input_line_1_.ok() && !input_line_2_.ok())
       {
         reportFailure_("line from input_2 is shorter than line from input_1");
