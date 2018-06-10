@@ -54,7 +54,8 @@ namespace OpenMS
   {
     LOG_DEBUG << "performRTNormalization method starting" << std::endl;
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
-    simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt, sonar, load_into_memory);
+    TransformationDescription trafo; // dummy
+    simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, sonar, load_into_memory);
 
     // debug output of the iRT chromatograms
     if (irt_mzml_out.empty() && debug_level > 1)
@@ -280,10 +281,13 @@ namespace OpenMS
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenMS::MSChromatogram > & chromatograms,
+    const TransformationDescription& trafo,
     const ChromExtractParams & cp,
     bool sonar,
     bool load_into_memory)
   {
+    TransformationDescription trafo_inverse = trafo;
+    trafo_inverse.invert();
 
     this->startProgress(0, 1, "Extract iRT chromatograms");
 #ifdef _OPENMP
@@ -312,7 +316,7 @@ namespace OpenMS
             current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
           }
 
-          extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
+          prepareExtractionCoordinates_(tmp_out, coordinates, transition_exp_used, false, trafo_inverse, cp);
           extractor.extractChromatograms(current_swath_map, tmp_out, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.im_extraction_window, cp.extraction_function);
           extractor.return_chromatogram(tmp_out, coordinates,
@@ -594,7 +598,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathWorkflow::MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
+  void OpenSwathWorkflowBase::MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
                                          std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
                                          Interfaces::IMSDataConsumer * chromConsumer,
                                          const ChromExtractParams & cp,
@@ -901,12 +905,12 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathWorkflow::prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
-                                                        std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates, 
-                                                        const OpenSwath::LightTargetedExperiment & transition_exp_used, 
-                                                        const bool ms1,
-                                                        const TransformationDescription trafo_inverse, 
-                                                        const ChromExtractParams & cp) const
+  void OpenSwathWorkflowBase::prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
+                                                            std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates, 
+                                                            const OpenSwath::LightTargetedExperiment & transition_exp_used, 
+                                                            const bool ms1,
+                                                            const TransformationDescription trafo_inverse, 
+                                                            const ChromExtractParams & cp) const
   {
     if (cp.rt_extraction_window < 0)
     {
