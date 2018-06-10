@@ -66,7 +66,8 @@ public:
     std::vector<ProteinIdentification> proteins,
     std::vector<PeptideIdentification> peptides_ext,
     std::vector<ProteinIdentification> proteins_ext,
-    FeatureMap& features
+    FeatureMap& features,
+    const FeatureMap& seeds = FeatureMap()
     );
 
   void runOnCandidates(FeatureMap& features);
@@ -222,7 +223,7 @@ protected:
   void getRTRegions_(ChargeMap& peptide_data, std::vector<RTRegion>& rt_regions) const;
 
   void annotateFeaturesFinalizeAssay_(
-    FeatureMap& features, 
+    FeatureMap& features,
     std::map<Size, std::vector<PeptideIdentification*> >& feat_ids,
     RTMap& rt_internal);
 

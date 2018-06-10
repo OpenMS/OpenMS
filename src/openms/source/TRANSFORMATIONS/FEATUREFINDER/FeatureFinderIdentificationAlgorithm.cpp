@@ -167,7 +167,8 @@ namespace OpenMS
     vector<ProteinIdentification> proteins,
     vector<PeptideIdentification> peptides_ext,
     vector<ProteinIdentification> proteins_ext,
-    FeatureMap& features
+    FeatureMap& features,
+    const FeatureMap& seeds
     )
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
@@ -246,12 +247,58 @@ namespace OpenMS
     //-------------------------------------------------------------
     LOG_INFO << "Preparing mapping of peptide data..." << endl;
     peptide_map_.clear();
+
+    // Reserve enough space for all possible seeds
+    peptides.reserve(peptides.size() + seeds.size());
+
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
       addPeptideToMap_(*pep_it, peptide_map_);
       pep_it->setMetaValue("FFId_category", "internal");
     }
+
+    // TODO make sure that only assembled traces (more than one trace -> has a charge)
+    // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
+    for (FeatureMap::Iterator f_it; f_it != seeds.end(); ++f_it)
+    {
+      // TODO: check if already a peptide in peptide_map_ that is close in RT and MZ
+      // if so don't add seed
+      bool peptide_already_exists = false;
+      for (const auto & peptide : peptides)
+      {
+        auto seed_RT = static_cast<double>(f_it->getRT());
+        auto seed_MZ = static_cast<double>(f_it->getMZ());
+        double peptide_RT = peptide.getRT();
+        double peptide_MZ = peptide.getMZ();
+
+        // RT or MZ values in range of 0.1%? -> peptide already exists -> don't add seed
+        if (abs(seed_RT - peptide_RT) <= 0.001 * peptide_RT
+                || abs(seed_MZ - peptide_MZ) <= 0.001 * peptide_RT)
+        {
+          peptide_already_exists = true;
+          break;
+        }
+      }
+
+      if (!peptide_already_exists)
+      {
+        peptides.push_back(PeptideIdentification());
+        PeptideHit seed_hit;
+        // seed_hit.setCharge(f_it->getCharge());
+        // std::unique_ptr<AASequence> seq(new AASequence());
+        // seed_hit.setSequence("XXX"); how to set sequence?
+        vector<PeptideHit> seed_hits;
+        seed_hits.push_back(seed_hit);
+        peptides.back().setHits(seed_hits);
+        peptides.back().setRT(f_it->getRT());
+        peptides.back().setMZ(f_it->getMZ());
+        peptides.back().setMetaValue("FFId_category", "internal");
+        addPeptideToMap_(peptides.back(), peptide_map_);
+      }
+    }
+
+
     n_internal_peps_ = peptide_map_.size();
     for (vector<PeptideIdentification>::iterator pep_it =
            peptides_ext.begin(); pep_it != peptides_ext.end(); ++pep_it)
@@ -424,7 +471,7 @@ namespace OpenMS
     // same peptide sequence may be quantified based on internal and external
     // IDs if charge states differ!
     set<AASequence> quantified_internal, quantified_all;
-    for (auto const f : features)
+    for (auto const &f : features)
     {
       const PeptideIdentification& pep_id = f.getPeptideIdentifications()[0];
       const AASequence& seq = pep_id.getHits()[0].getSequence();
