@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrafoXML version="1.1" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<Transformation name="linear">
+		<Param  type="string" name="symmetric_regression" value="false"/>
+		<Param  type="float" name="span" value="0.666666666666667"/>
+		<Param  type="int" name="num_nodes" value="5"/>
+		<Param  type="string" name="x_weight" value=""/>
+		<Param  type="string" name="y_weight" value=""/>
+		<Param  type="float" name="x_datum_min" value="1e-15"/>
+		<Param  type="float" name="x_datum_max" value="1e+15"/>
+		<Param  type="float" name="y_datum_min" value="1e-15"/>
+		<Param  type="float" name="y_datum_max" value="1e+15"/>
+		<Param  type="float" name="slope" value="1.00420902693575"/>
+		<Param  type="float" name="intercept" value="-11.4372062523721"/>
+		<Pairs count="4">
+			<Pair from="9.99999952316284" to="0"/>
+			<Pair from="32.404443581899" to="25"/>
+			<Pair from="209" to="200"/>
+			<Pair from="68" to="50"/>
+		</Pairs>
+	</Transformation>
+</TrafoXML>
