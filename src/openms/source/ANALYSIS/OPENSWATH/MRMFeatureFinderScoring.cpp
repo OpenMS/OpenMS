@@ -43,6 +43,9 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
+// Helpers
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+
 #include <boost/range/adaptor/map.hpp>
 #include <boost/foreach.hpp>
 
@@ -220,6 +223,16 @@ namespace OpenMS
     // Step 3
     //
     // Go through all transition groups: first create consensus features, then score them
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param trgroup_picker_param = param_.copy("TransitionGroupPicker:", true);
+    // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score
+    if (su_.use_total_mi_score_)
+    {
+      trgroup_picker_param.setValue("compute_total_mi", "true");
+    }
+    trgroup_picker.setParameters(trgroup_picker_param);
+
     Size progress = 0;
     startProgress(0, transition_group_map.size(), "picking peaks");
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
@@ -232,16 +245,6 @@ namespace OpenMS
         continue;
       }
 
-      MRMTransitionGroupPicker trgroup_picker;
-      Param trgroup_picker_param = param_.copy("TransitionGroupPicker:", true);
-
-      // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score
-      if (su_.use_total_mi_score_)
-      {
-        trgroup_picker_param.setValue("compute_total_mi", "true");
-      }
-
-      trgroup_picker.setParameters(trgroup_picker_param);
       trgroup_picker.pickTransitionGroup(transition_group);
       scorePeakgroups(trgroup_it->second, trafo, swath_maps, output);
     }
@@ -627,7 +630,10 @@ namespace OpenMS
         {
           // try to identify the correct precursor native id
           String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
-          if (precursor_chrom_id.hasSuffix("_Precursor_i0")) {precursor_id = precursor_chrom_id;}
+          if (OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0) == precursor_chrom_id)
+          {
+            precursor_id = precursor_chrom_id;
+          }
         }
 
         OpenSwath_Scores scores;
