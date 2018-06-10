@@ -1,3 +1,4 @@
+from Types cimport *
 from MSExperiment cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
@@ -19,6 +20,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>" namespa
         MassTraceDetection()      nogil except +
 
         void run(MSExperiment & input_map,
-                libcpp_vector[Kernel_MassTrace] & traces
+                libcpp_vector[Kernel_MassTrace] & traces,
+                Size max_traces
                 ) nogil except +
 
