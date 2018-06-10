@@ -39,7 +39,7 @@ namespace OpenMS
 {
 
   TransformationDescription OpenSwathRetentionTimeNormalization::performRTNormalization(
-    const OpenMS::TargetedExperiment & irt_transitions,
+    const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     double min_rsq,
     double min_coverage,
@@ -88,7 +88,7 @@ namespace OpenMS
   }
 
   TransformationDescription OpenSwathRetentionTimeNormalization::RTNormalization(
-    const TargetedExperiment& transition_exp_,
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenMS::MSChromatogram >& chromatograms,
     double min_rsq,
     double min_coverage,
@@ -101,9 +101,6 @@ namespace OpenMS
   {
     LOG_DEBUG << "Start of RTNormalization method" << std::endl;
     this->startProgress(0, 1, "Retention time normalization");
-
-    OpenSwath::LightTargetedExperiment targeted_exp;
-    OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, targeted_exp);
 
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
     if (estimateBestPeptides)
@@ -281,7 +278,7 @@ namespace OpenMS
 
   void OpenSwathRetentionTimeNormalization::simpleExtractChromatograms(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
-    const OpenMS::TargetedExperiment & irt_transitions,
+    const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenMS::MSChromatogram > & chromatograms,
     const ChromExtractParams & cp,
     bool sonar,
@@ -298,7 +295,7 @@ namespace OpenMS
       if (!swath_maps[map_idx].ms1) // skip MS1
       {
 
-        TargetedExperiment transition_exp_used;
+        OpenSwath::LightTargetedExperiment transition_exp_used;
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
         if (transition_exp_used.getTransitions().size() > 0) // skip if no transitions found

@@ -125,7 +125,7 @@ namespace OpenMS
      *        iRT chromatograms will be stored in this file)
      *
     */
-    TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
+    TransformationDescription performRTNormalization(const OpenSwath::LightTargetedExperiment & irt_transitions,
       std::vector< OpenSwath::SwathMap > & swath_maps,
       double min_rsq,
       double min_coverage,
@@ -155,7 +155,7 @@ namespace OpenMS
      * @note: This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
     */
-    TransformationDescription RTNormalization(const TargetedExperiment& transition_exp_,
+    TransformationDescription RTNormalization(const OpenSwath::LightTargetedExperiment& transition_exp_,
       const std::vector< OpenMS::MSChromatogram >& chromatograms,
       double min_rsq,
       double min_coverage,
@@ -168,7 +168,7 @@ namespace OpenMS
 
     /// Simple method to extract chromatograms (for the RT-normalization peptides)
     void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                    const OpenMS::TargetedExperiment & irt_transitions,
+                                    const OpenSwath::LightTargetedExperiment & irt_transitions,
                                     std::vector< OpenMS::MSChromatogram > & chromatograms,
                                     const ChromExtractParams & cp, bool sonar, bool load_into_memory);
 
