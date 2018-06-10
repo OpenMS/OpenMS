@@ -39,7 +39,7 @@
 #include <iomanip>
 #include <iostream>
 
-#define DEBUG_FUZZY
+// #define DEBUG_FUZZY
 
 namespace OpenMS
 {
