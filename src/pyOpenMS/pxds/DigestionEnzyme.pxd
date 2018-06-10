@@ -8,10 +8,10 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
     
     cdef cppclass DigestionEnzyme "OpenMS::DigestionEnzyme":
         DigestionEnzyme(DigestionEnzyme) nogil except +
-        DigestionEnzyme(const String & name, const String & cleavage_regex, const libcpp_set[ String ] & synonyms, String regex_description) nogil except +
+        DigestionEnzyme(const String & name, const String & cleavage_regex, libcpp_set[ String ] & synonyms, String regex_description) nogil except +
         void setName(const String & name) nogil except +
         String getName() nogil except +
-        void setSynonyms(const libcpp_set[ String ] & synonyms) nogil except +
+        void setSynonyms(libcpp_set[ String ] & synonyms) nogil except +
         void addSynonym(const String & synonym) nogil except +
         libcpp_set[ String ] getSynonyms() nogil except +
         void setRegEx(const String & cleavage_regex) nogil except +
