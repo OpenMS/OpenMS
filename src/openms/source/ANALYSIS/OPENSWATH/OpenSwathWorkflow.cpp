@@ -913,13 +913,13 @@ namespace OpenMS
   {
     if (cp.rt_extraction_window < 0)
     {
-      prepare_coordinates_sub(chrom_list, coordinates, transition_exp_used, cp.rt_extraction_window, ms1);
+      ChromatogramExtractor::prepare_coordinates(chrom_list, coordinates, transition_exp_used, cp.rt_extraction_window, ms1);
     }
     else
     {
       // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
       // Then correct the start/end positions and add the extra_rt_extract parameter
-      prepare_coordinates_sub(chrom_list, coordinates, transition_exp_used, 0.0, ms1);
+      ChromatogramExtractor::prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, ms1);
       for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
       {
         it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
@@ -928,87 +928,6 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathWorkflow::prepare_coordinates_sub(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms, 
-                                                  std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates, 
-                                                  const OpenSwath::LightTargetedExperiment & transition_exp_used, 
-                                                  const double rt_extraction_window,
-                                                  const bool ms1) const
-  {
-    // hash of the peptide reference containing all transitions
-    std::map<String, std::vector<const OpenSwath::LightTransition*> > peptide_trans_map;
-    for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
-    {
-      peptide_trans_map[transition_exp_used.getTransitions()[i].getPeptideRef()].push_back(&transition_exp_used.getTransitions()[i]);
-    }
-    std::map<String, const OpenSwath::LightCompound*> trans_peptide_map;
-    for (Size i = 0; i < transition_exp_used.getCompounds().size(); i++)
-    {
-      trans_peptide_map[transition_exp_used.getCompounds()[i].id] = &transition_exp_used.getCompounds()[i];
-    }
-
-    // Determine iteration size:
-    // When extracting MS1/precursor transitions, we iterate over compounds.
-    // Otherwise (for SWATH/fragment ions), we iterate over the transitions.
-    Size itersize;
-    if (ms1)
-    {
-      itersize = transition_exp_used.getCompounds().size();
-    }
-    else
-    {
-      itersize = transition_exp_used.getTransitions().size();
-    }
-
-    for (Size i = 0; i < itersize; i++)
-    {
-      OpenSwath::ChromatogramPtr s(new OpenSwath::Chromatogram);
-      output_chromatograms.push_back(s);
-
-      ChromatogramExtractor::ExtractionCoordinates coord;
-      OpenSwath::LightCompound pep;
-      OpenSwath::LightTransition transition;
-
-      if (ms1)
-      {
-        pep = transition_exp_used.getCompounds()[i];
-
-        // Catch cases where a compound has no transitions
-        if (peptide_trans_map.count(pep.id) == 0 )
-        {
-          LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
-          coord.rt_start = -1;
-          coord.rt_end = -2; // create negative range
-          coord.id = pep.id;
-          coordinates.push_back(coord);
-          continue;
-        }
-
-        // This is slightly awkward but the m/z of the precursor is *not*
-        // stored in the precursor object but only in the transition object
-        // itself. So we have to get the first transition to look it up.
-        transition = (*peptide_trans_map[pep.id][0]);
-        coord.mz = transition.getPrecursorMZ();
-        coord.id = pep.id;
-      }
-      else
-      {
-        transition = transition_exp_used.getTransitions()[i];
-        pep = (*trans_peptide_map[transition.getPeptideRef()]);
-        coord.mz = transition.getProductMZ();
-        coord.mz_precursor = transition.getPrecursorMZ();
-        coord.id = transition.getNativeID();
-      }
-
-      double rt = pep.rt;
-      coord.ion_mobility = pep.getDriftTime();
-      coord.rt_start = rt - rt_extraction_window / 2.0;
-      coord.rt_end = rt + rt_extraction_window / 2.0;
-      coordinates.push_back(coord);
-    }
-
-    // sort result
-    std::sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
-  }
 }
 
 // OpenSwathWorkflowSonar

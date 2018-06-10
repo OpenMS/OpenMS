@@ -340,24 +340,6 @@ namespace OpenMS
       const bool ms1, const TransformationDescription trafo_inverse,
       const ChromExtractParams & cp) const;
 
-    /** @brief Simple function to prepare extraction coordinates
-     *
-     * This will take the targeted experiment and prepare extraction
-     * coordinates (either MS1 or MS2) for extraction by the
-     * ChromatogramExtractor.
-     *
-     * @param output_chromatograms Output of chromatograms (will be filled with empty chromatogram ptrs)
-     * @param coordinates Output of extraction coordinates (will be filled with matching extraction coordinates)
-     * @param transition_exp_used The transition experiment used to create the coordinates
-     * @param rt_extraction_window Window for retention time extraction
-     * @param ms1 Whether extraction coordinates should be created for MS1 (if false, it will be for MS2)
-     *
-    */
-    void prepare_coordinates_sub(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-      std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
-      const OpenSwath::LightTargetedExperiment & transition_exp_used,
-      const double rt_extraction_window, const bool ms1) const;
-
     /**
      * @brief Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
      *
