@@ -442,6 +442,11 @@ protected:
     registerFlag_("ppm", "m/z extraction_window is in ppm");
     registerFlag_("sonar", "data is scanning SWATH data");
 
+    registerDoubleOption_("mz_extraction_window_ms1", "<double>", 0.05, "Extraction window used in MS1 (in ppm)", false);
+    setMinFloat_("mz_extraction_window_ms1", 0.0);
+    registerStringOption_("mz_extraction_window_ms1_unit", "<name>", "Th", "Unit of the MS1 m/z extraction window", false, true);
+    setValidStrings_("mz_extraction_window_ms1_unit", ListUtils::create<String>("ppm,Th"));
+
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false, true);
 
@@ -770,6 +775,8 @@ protected:
     int batchSize = (int)getIntOption_("batchSize");
     Size debug_level = (Size)getIntOption_("debug");
 
+    double mz_extraction_window_ms1 = getDoubleOption_("mz_extraction_window_ms1");
+
     double min_rsq = getDoubleOption_("min_rsq");
     double min_coverage = getDoubleOption_("min_coverage");
 
@@ -845,6 +852,9 @@ protected:
     cp_irt.rt_extraction_window = -1; // extract the whole RT range
     cp_irt.mz_extraction_window = irt_mz_extraction_window;
     cp_irt.ppm                  = irt_ppm;
+
+    ChromExtractParams cp_ms1 = cp;
+    cp_ms1.mz_extraction_window = mz_extraction_window_ms1;
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
     Param tsv_reader_param = getParam_().copy("Library:", true);
@@ -1020,14 +1030,14 @@ protected:
     {
       OpenSwathWorkflowSonar wf(use_ms1_traces);
       wf.setLogType(log_type_);
-      wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
+      wf.performExtractionSonar(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
     else
     {
       OpenSwathWorkflow wf(use_ms1_traces);
       wf.setLogType(log_type_);
-      wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
+      wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
           out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
     }
 

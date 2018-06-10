@@ -409,6 +409,7 @@ namespace OpenMS
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const TransformationDescription trafo,
     const ChromExtractParams & cp,
+    const ChromExtractParams & cp_ms1,
     const Param & feature_finder_param,
     const OpenSwath::LightTargetedExperiment& transition_exp,
     FeatureMap& out_featureFile,
@@ -434,7 +435,7 @@ namespace OpenMS
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
-    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp,
+    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
                    transition_exp, trafo_inverse, load_into_memory, ms1_only);
 
     if (ms1_only && !use_ms1_traces_)
@@ -939,6 +940,7 @@ namespace OpenMS
            const std::vector< OpenSwath::SwathMap > & swath_maps,
            const TransformationDescription trafo,
            const ChromExtractParams & cp,
+           const ChromExtractParams & cp_ms1,
            const Param & feature_finder_param,
            const OpenSwath::LightTargetedExperiment& transition_exp,
            FeatureMap& out_featureFile,
@@ -964,7 +966,7 @@ namespace OpenMS
 
       // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
       std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
-      MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp,
+      MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
                      transition_exp, trafo_inverse, load_into_memory);
 
       ///////////////////////////////////////////////////////////////////////////
