@@ -49,7 +49,7 @@ namespace OpenMS
 {
 
   void SwathMapMassCorrection::correctMZ(
-    const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+    const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     const std::string& corr_type,
     const double mz_extr_window,
@@ -81,7 +81,7 @@ namespace OpenMS
     {
 
       // we need at least one feature to find the best one
-      auto transition_group = &trgroup_it->second;
+      auto transition_group = trgroup_it->second;
       if (transition_group->getFeatures().size() == 0)
       {
         continue;
