@@ -350,9 +350,9 @@ protected:
         InternalCalibration ic;
         ic.setLogType(log_type_);
         ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
-        bool use_RANSAC = true;
         MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
-        Size RANSAC_initial_points = 3;
+        bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
+        Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
         Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
         MZTrafoModel::setRANSACParams(p);
         // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
