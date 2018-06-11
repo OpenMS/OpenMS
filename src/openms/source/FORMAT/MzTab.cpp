@@ -506,10 +506,13 @@ namespace OpenMS
 
   void MzTabSpectraRef::setSpecRef(String spec_ref)
   {
-    assert(!spec_ref.empty());
     if (!spec_ref.empty())
     {
       spec_ref_ = spec_ref;
+    }
+    else
+    {
+      LOG_WARN << "Spectrum reference not set." << endl;
     }
   }
 
@@ -2079,8 +2082,15 @@ namespace OpenMS
       size_t run_index = map_pep_idx_2_run[psm_id];
       MzTabSpectraRef spec_ref;
       row.spectra_ref.setMSFile(run_index);
-      row.spectra_ref.setSpecRef(spectrum_nativeID);
-
+      if (spectrum_nativeID.empty())
+      {
+        LOG_WARN << "spectrum_reference not set in ID with precursor (RT, m/z) " << it->getRT() << ", " << it->getMZ() << endl;
+      }
+      else
+      {
+        row.spectra_ref.setSpecRef(spectrum_nativeID);
+      }
+      
       // only consider best peptide hit for export
       const PeptideHit& best_ph = it->getHits()[0];
       const AASequence& aas = best_ph.getSequence();

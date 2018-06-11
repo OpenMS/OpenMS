@@ -336,13 +336,12 @@ protected:
         const String& id_file_abs_path = File::absolutePath(mzfile2idfile[mz_file_abs_path]);
         IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
 
-/*
         // reannotate spectrum references
         SpectrumMetaDataLookup::addMissingSpectrumReferences(
           peptide_ids, 
           id_file_abs_path,
-          false);
-*/
+          true);
+
         //-------------------------------------------------------------
         // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
         // TODO: check if this improves targeted extraction
@@ -668,7 +667,6 @@ protected:
     }
 
     quantifier.quantifyProteins(infered_protein_groups[0]);
-
     //-------------------------------------------------------------
     // Export of MzTab file as final output
     //-------------------------------------------------------------
