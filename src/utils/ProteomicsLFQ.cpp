@@ -282,12 +282,12 @@ protected:
           pp.pickExperiment(ms_raw, ms_centroided, true);
           
           //-------------------------------------------------------------
-          // TODO: HighRes Precursor Mass Correction
+          // HighRes Precursor Mass Correction
           //-------------------------------------------------------------
           std::vector<double> deltaMZs, mzs, rts;
           std::set<Size> corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(
             ms_centroided, 
-            10.0, // check if we can estimate this from data
+            0.01, // check if we can estimate this from data
             deltaMZs, 
             mzs, 
             rts
