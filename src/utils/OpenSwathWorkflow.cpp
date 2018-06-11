@@ -78,13 +78,9 @@
 
 using namespace OpenMS;
 
-static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const std::pair<double,double> & right)
-{
-  return left.first < right.first;
-}
-
 // OpenMS base classes
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/OpenSwathBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 //-------------------------------------------------------------
@@ -385,12 +381,12 @@ static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const s
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 class TOPPOpenSwathWorkflow
-  : public TOPPBase
+  : public TOPPOpenSwathBase 
 {
 public:
 
   TOPPOpenSwathWorkflow()
-    : TOPPBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", false)
+    : TOPPOpenSwathBase("OpenSwathWorkflow", "Complete workflow to run OpenSWATH", false)
   {
   }
 
@@ -581,160 +577,6 @@ protected:
     }
   }
 
-  void loadSwathFiles(StringList& file_list, bool split_file, String tmp, String readoptions,
-    boost::shared_ptr<ExperimentalSettings > & exp_meta,
-    std::vector< OpenSwath::SwathMap > & swath_maps)
-  {
-    SwathFile swath_file;
-    swath_file.setLogType(log_type_);
-
-    if (split_file || file_list.size() > 1)
-    {
-      // TODO cannot use data reduction here any more ...
-      swath_maps = swath_file.loadSplit(file_list, tmp, exp_meta, readoptions);
-    }
-    else
-    {
-      FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
-      if (in_file_type == FileTypes::MZML)
-      {
-        swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions);
-      }
-      else if (in_file_type == FileTypes::MZXML)
-      {
-        swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
-      }
-      else if (in_file_type == FileTypes::SQMASS)
-      {
-        swath_maps = swath_file.loadSqMass(file_list[0], exp_meta);
-      }
-      else
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Input file needs to have ending mzML or mzXML");
-      }
-    }
-  }
-
-  /**
-   * @brief Load the retention time transformation file
-   *
-   * This function will create the retention time transformation either by
-   * loading a provided .trafoXML file or determine it from the data itself by
-   * extracting the transitions specified in the irt_tr_file TraML file.
-   *
-   * @param trafo_in Input trafoXML file (if not empty, transformation will be
-   *                 loaded from this file)
-   * @param irt_tr_file  Input TraML file containing transitions (if trafo_in
-   *                     is empty, this file will be loaded and transitions
-   *                     will be extracted)
-   * @param swath_maps The raw data (swath maps)
-   * @param min_rsq Minimal R^2 value that is expected for the RT regression
-   * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
-   * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
-   * @param cp_irt Parameter set for the chromatogram extraction
-   * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-   * @param mz_correction_function If correction in m/z is desired, which function should be used
-   * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
-   * @param irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
-   *        the transformation parameters will be stored in this file)
-   * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
-   *        iRT chromatograms will be stored in this file)
-   *
-   *
-   */
-  TransformationDescription loadTrafoFile(String trafo_in,
-        String irt_tr_file,
-        std::vector< OpenSwath::SwathMap > & swath_maps,
-        double min_rsq,
-        double min_coverage,
-        const Param& feature_finder_param,
-        const ChromExtractParams& cp_irt,
-        const Param& irt_detection_param,
-        const String & mz_correction_function,
-        Size debug_level,
-        bool sonar,
-        bool load_into_memory,
-        const String& irt_trafo_out,
-        const String& irt_mzml_out)
-  {
-    TransformationDescription trafo_rtnorm;
-
-    if (!trafo_in.empty())
-    {
-      // get read RT normalization file
-      TransformationXMLFile trafoxml;
-      trafoxml.load(trafo_in, trafo_rtnorm, false);
-      Param model_params = getParam_().copy("model:", true);
-      model_params.setValue("symmetric_regression", "false");
-      model_params.setValue("span", irt_detection_param.getValue("lowess:span"));
-      model_params.setValue("num_nodes", irt_detection_param.getValue("b_spline:num_nodes"));
-      String model_type = irt_detection_param.getValue("alignmentMethod");
-      trafo_rtnorm.fitModel(model_type, model_params);
-    }
-    else if (!irt_tr_file.empty())
-    {
-      // Loading iRT file
-      std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
-      TraMLFile traml;
-      FileTypes::Type tr_type = FileHandler::getType(irt_tr_file);
-      Param tsv_reader_param = TransitionTSVFile().getDefaults();
-      OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
-
-      // perform extraction
-      OpenSwathRetentionTimeNormalization wf;
-      wf.setLogType(log_type_);
-      trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-      feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, irt_mzml_out,
-      debug_level, sonar, load_into_memory);
-
-      if (!irt_trafo_out.empty())
-      {
-        TransformationXMLFile().store(irt_trafo_out, trafo_rtnorm);
-      }
-    }
-    return trafo_rtnorm;
-  }
-
-
-  OpenSwath::LightTargetedExperiment loadTransitionList(const FileTypes::Type& tr_type,
-                                                        const String& tr_file,
-                                                        const Param& tsv_reader_param)
-  {
-    OpenSwath::LightTargetedExperiment transition_exp;
-    ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
-    if (tr_type == FileTypes::TRAML)
-    {
-      progresslogger.startProgress(0, 1, "Load TraML file");
-      TargetedExperiment targeted_exp;
-      TraMLFile().load(tr_file, targeted_exp);
-      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
-      progresslogger.endProgress();
-    }
-    else if (tr_type == FileTypes::PQP)
-    {
-      progresslogger.startProgress(0, 1, "Load PQP file");
-      TransitionPQPFile().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
-      progresslogger.endProgress();
-    }
-    else if (tr_type == FileTypes::TSV)
-    {
-      progresslogger.startProgress(0, 1, "Load TSV file");
-      TransitionTSVFile tsv_reader;
-      tsv_reader.setParameters(tsv_reader_param);
-      tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
-      progresslogger.endProgress();
-    }
-    else
-    {
-      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
-      // return PARSE_ERROR;
-      throw 0;
-    }
-    return transition_exp;
-  }
-
   ExitCodes main_(int, const char **) override
   {
     ///////////////////////////////////
@@ -911,69 +753,13 @@ protected:
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
-
-    // (i) Load files
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
-    loadSwathFiles(file_list, split_file, tmp, readoptions, exp_meta, swath_maps);
-
-    // (ii) Allow the user to specify the SWATH windows
-    if (!swath_windows_file.empty())
+    if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp, readoptions, 
+                        swath_windows_file, min_upper_edge_dist, force,
+                        sort_swath_maps, sonar))
     {
-      SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
-    }
-
-    for (Size i = 0; i < swath_maps.size(); i++)
-    {
-      LOG_DEBUG << "Found swath map " << i
-        << " with lower " << swath_maps[i].lower
-        << " and upper " << swath_maps[i].upper
-        << " and " << swath_maps[i].sptr->getNrSpectra()
-        << " spectra." << std::endl;
-    }
-
-    // (iii) Sanity check: there should be no overlap between the windows:
-    std::vector<std::pair<double, double> > sw_windows;
-    for (Size i = 0; i < swath_maps.size(); i++)
-    {
-      if (!swath_maps[i].ms1)
-      {
-        sw_windows.push_back(std::make_pair(swath_maps[i].lower, swath_maps[i].upper));
-      }
-    }
-    std::sort(sw_windows.begin(), sw_windows.end(), SortPairDoubleByFirst);
-
-    for (Size i = 1; i < sw_windows.size(); i++)
-    {
-      double lower_map_end = sw_windows[i-1].second - min_upper_edge_dist;
-      double upper_map_start = sw_windows[i].first;
-      LOG_DEBUG << "Extraction will go up to " << lower_map_end << " and continue at " << upper_map_start << std::endl;
-
-      if (upper_map_start - lower_map_end > 0.01)
-      {
-        LOG_WARN << "Extraction will have a gap between " << lower_map_end << " and " << upper_map_start << std::endl;
-        if (!force)
-        {
-          LOG_ERROR << "Extraction windows have a gap. Will abort (override with -force)" << std::endl;
-          return PARSE_ERROR;
-        }
-      }
-
-      if (sonar) {continue;} // skip next step as expect them to overlap ...
-
-      if (lower_map_end - upper_map_start > 0.01)
-      {
-        LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << std::endl;
-        LOG_WARN << "This will lead to multiple extraction of the transitions in the overlapping region" <<
-                    "which will lead to duplicated output. It is very unlikely that you want this." << std::endl;
-        LOG_WARN << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
-        if (!force)
-        {
-          LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
-          return PARSE_ERROR;
-        }
-      }
-
+      return PARSE_ERROR;
     }
 
     ///////////////////////////////////
@@ -1029,45 +815,7 @@ protected:
     // Either use chrom.mzML or sqlite DB
     ///////////////////////////////////
     Interfaces::IMSDataConsumer * chromatogramConsumer;
-    if (!out_chrom.empty())
-    {
-      if (out_chrom.hasSuffix(".sqMass"))
-      {
-        bool full_meta = false; // can lead to very large files in memory
-        bool lossy_compression = true;
-        chromatogramConsumer = new MSDataSqlConsumer(out_chrom, 500, full_meta, lossy_compression);
-      }
-      else
-      {
-        PlainMSDataWritingConsumer * chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
-        int expected_chromatograms = transition_exp.transitions.size();
-        chromConsumer->setExpectedSize(0, expected_chromatograms);
-        chromConsumer->setExperimentalSettings(*exp_meta);
-        chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
-        chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
-
-        // prepare data structures for lossy compression
-        MSNumpressCoder::NumpressConfig npconfig_mz;
-        MSNumpressCoder::NumpressConfig npconfig_int;
-        npconfig_mz.estimate_fixed_point = true; // critical
-        npconfig_int.estimate_fixed_point = true; // critical
-        npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
-        npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
-        npconfig_mz.setCompression("linear");
-        npconfig_int.setCompression("slof");
-        npconfig_mz.linear_fp_mass_acc = 0.05; // set the desired RT accuracy in seconds
-
-        chromConsumer->getOptions().setNumpressConfigurationMassTime(npconfig_mz);
-        chromConsumer->getOptions().setNumpressConfigurationIntensity(npconfig_int);
-        chromConsumer->getOptions().setCompression(true);
-
-        chromatogramConsumer = chromConsumer;
-      }
-    }
-    else
-    {
-      chromatogramConsumer = new NoopMSDataWritingConsumer("");
-    }
+    prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom);
 
     ///////////////////////////////////
     // Extract and score
