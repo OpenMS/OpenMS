@@ -287,12 +287,28 @@ protected:
           std::vector<double> deltaMZs, mzs, rts;
           std::set<Size> corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(
             ms_centroided, 
-            0.01, // check if we can estimate this from data
+            0.01, // check if we can estimate this from data (here it is given in m/z not ppm)
             deltaMZs, 
             mzs, 
             rts
             );      
           writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
+          if (!deltaMZs.empty())
+          {
+            vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
+            for (Size i = 0; i != deltaMZs.size(); ++i)
+            {
+              deltaMZs_ppm.push_back(Math::getPPM(mzs[i], mzs[i] + deltaMZs[i]));
+              deltaMZs_ppmabs.push_back(Math::getPPMAbs(mzs[i], mzs[i] + deltaMZs[i]));
+            }
+
+            double median = Math::median(deltaMZs_ppm.begin(), deltaMZs_ppm.end());
+            double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
+            double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
+            double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
+            writeLog_("Precursor correction (ppm):\n  median = " + String(median) + "  MAD = " + String(MAD)
+                     +"\n  median (abs.) = " + String(median_abs) + "  MAD = " + String(MAD_abs));
+          }
         }
 
         // writing picked mzML files for data submission

@@ -200,6 +200,7 @@ using namespace std;
         if (left == right || left->getMZ() > mz + mz_tolerance)
         {
           count_error_highest_intenstiy += 1;
+          continue;
         }
 
         MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
