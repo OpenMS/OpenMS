@@ -408,7 +408,11 @@ protected:
 
     // one of the following two needs to be set
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
-    setValidFormats_("tr_irt", ListUtils::create<String>("traML"));
+    setValidFormats_("tr_irt", ListUtils::create<String>("traML,tsv,pqp"));
+
+    // one of the following two needs to be set
+    registerInputFile_("tr_irt_nonlinear", "<file>", "", "transition file ('TraML')", false);
+    setValidFormats_("tr_irt_nonlinear", ListUtils::create<String>("traML,tsv,pqp"));
 
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
@@ -457,7 +461,7 @@ protected:
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache,cacheWorkingInMemory,workingInMemory"));
 
     registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
-    setValidStrings_("mz_correction_function", ListUtils::create<String>("none,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
+    setValidStrings_("mz_correction_function", ListUtils::create<String>("none,regression_delta_ppm,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
     registerDoubleOption_("irt_mz_extraction_window", "<double>", 0.05, "Extraction window used for iRT and m/z correction (in Thomson, use ppm use -ppm flag)", false, true);
     registerFlag_("ppm_irtwindow", "iRT m/z extraction_window is in ppm", true);
 
@@ -639,15 +643,23 @@ protected:
    *
    *
    */
-  TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
-    std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-    const Param& feature_finder_param, const ChromExtractParams& cp_irt,
-    const Param& irt_detection_param, const String & mz_correction_function,
-    Size debug_level, bool sonar, bool load_into_memory, const String& irt_trafo_out,
-    const String& irt_mzml_out)
+  TransformationDescription loadTrafoFile(String trafo_in,
+        String irt_tr_file,
+        std::vector< OpenSwath::SwathMap > & swath_maps,
+        double min_rsq,
+        double min_coverage,
+        const Param& feature_finder_param,
+        const ChromExtractParams& cp_irt,
+        const Param& irt_detection_param,
+        const String & mz_correction_function,
+        Size debug_level,
+        bool sonar,
+        bool load_into_memory,
+        const String& irt_trafo_out,
+        const String& irt_mzml_out)
   {
     TransformationDescription trafo_rtnorm;
-    
+
     if (!trafo_in.empty())
     {
       // get read RT normalization file
@@ -752,6 +764,7 @@ protected:
     String out_osw = getStringOption_("out_osw");
 
     String irt_tr_file = getStringOption_("tr_irt");
+    String nonlinear_irt_tr_file = getStringOption_("tr_irt_nonlinear");
     String trafo_in = getStringOption_("rt_norm");
 
     String out_chrom = getStringOption_("out_chrom");
@@ -968,10 +981,48 @@ protected:
     ///////////////////////////////////
     String irt_trafo_out = debug_params.getValue("irt_trafo");
     String irt_mzml_out = debug_params.getValue("irt_mzml");
-    TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
-        irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
-        cp_irt, irt_detection_param, mz_correction_function, debug_level,
-        sonar, load_into_memory, irt_trafo_out, irt_mzml_out);
+    TransformationDescription trafo_rtnorm;
+    if (nonlinear_irt_tr_file.empty())
+    {
+      trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file, swath_maps,
+                                   min_rsq, min_coverage, feature_finder_param,
+                                   cp_irt, irt_detection_param, mz_correction_function, debug_level,
+                                   sonar, load_into_memory, irt_trafo_out, irt_mzml_out);
+    }
+    else
+    {
+      ///////////////////////////////////
+      // First perform a simple linear transform, then do a second, nonlinear one
+      ///////////////////////////////////
+
+      Param linear_irt = irt_detection_param;
+      linear_irt.setValue("alignmentMethod", "linear");
+      trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file, swath_maps,
+                                   min_rsq, min_coverage, feature_finder_param,
+                                   cp_irt, linear_irt, "none", debug_level,
+                                   sonar, load_into_memory, irt_trafo_out, irt_mzml_out);
+
+      cp_irt.rt_extraction_window = 900; // extract some substantial part of the RT range (should be covered by linear correction)
+      cp_irt.rt_extraction_window = 600; // extract some substantial part of the RT range (should be covered by linear correction)
+
+      ///////////////////////////////////
+      // Get the secondary transformation (nonlinear)
+      ///////////////////////////////////
+      OpenSwath::LightTargetedExperiment transition_exp_nl;
+      transition_exp_nl = loadTransitionList(FileHandler::getType(nonlinear_irt_tr_file), nonlinear_irt_tr_file, tsv_reader_param);
+
+      std::vector< OpenMS::MSChromatogram > chromatograms;
+      OpenSwathRetentionTimeNormalization wf;
+      wf.setLogType(log_type_);
+      wf.simpleExtractChromatograms(swath_maps, transition_exp_nl, chromatograms,
+                                    trafo_rtnorm, cp_irt, sonar, load_into_memory);
+
+      trafo_rtnorm = wf.RTNormalization(transition_exp_nl, chromatograms, min_rsq,
+                                        min_coverage, feature_finder_param, irt_detection_param,
+                                        swath_maps, mz_correction_function,
+                                        cp_irt.mz_extraction_window, cp_irt.ppm);
+
+    }
 
     ///////////////////////////////////
     // Set up chromatogram output
