@@ -44,7 +44,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-
+#include <OpenMS/CONCEPT/Exception.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -157,7 +157,7 @@ protected:
     registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
     setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
 
-    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [Da]", false);
+    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds]", false);
 
     registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectras of same precursor used for consensus spectrum", false);
 
@@ -225,21 +225,20 @@ protected:
 
     // get tolerance window and left/right iterator
     std::pair<double,double> tolerance_window = Math::getTolWindow(test_mz, tolerance, ppm);
+
+    // Here left has to be smaller than right
+    OPENMS_PRECONDITION(tolerance_window.first < tolerance_window.second, "Left has to be smaller than right");
+
     MSSpectrum::ConstIterator left = spectrum1.MZBegin(tolerance_window.first);
     MSSpectrum::ConstIterator right = spectrum1.MZBegin(tolerance_window.second);
 
     // no MS1 precursor peak in +- tolerance window found
-    if (left == right || left > right)
+    if (left == right)
     {
         return -1;
     }
 
     MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
-
-    if (max_intensity_it == right || max_intensity_it == left)
-    {
-      return -1;
-    }
 
     return max_intensity_it - spectrum1.begin();
   }
@@ -300,6 +299,7 @@ protected:
     String method = getStringOption_("method");
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
 
+
     double sn = getDoubleOption_("signal_to_noise");
 
     double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
@@ -336,6 +336,7 @@ protected:
     }
 
     // TODO: check if signal to noise filter works
+    // TODO: signal to noise not working correctly (further parameter needed - win_len, min_required_elements)
     // calculate S/N values and delete data points below S/N threshold
     if (sn > 0)
     {
@@ -380,7 +381,7 @@ protected:
                                                  [&num_masstrace_filter](const Feature& f) -> bool
                                                  {
                                                    unsigned int n_masstraces = f.getMetaValue("num_of_masstraces");
-                                                   return n_masstraces <= num_masstrace_filter;
+                                                   return n_masstraces < num_masstrace_filter;
                                                  });
     feature_map.erase(map_it, feature_map.end());
 
@@ -418,6 +419,11 @@ protected:
         String adduct_prefix = adduct.prefix(';').trim();
         String adduct_suffix = adduct.suffix(';').trim();
         adduct = "["+adduct_prefix+"]"+adduct_suffix;
+
+        std::cout << "feature_id: " << min_distance_feature->getUniqueId();
+        std::cout << "description: " << description << std::endl;
+        std::cout << "sumformula: " << sumformula << std::endl;
+        std::cout << "adduct: " << adduct << std::endl;
       }
 
       // check if known unknown should be used
@@ -432,23 +438,38 @@ protected:
       std::vector<size_t> index = it->second;
       for (std::vector<size_t>::iterator index_it = index.begin(); index_it != index.end(); ++index_it)
       {
+        std::cout << "index: " << *index_it << std::endl;
         const MSSpectrum &spectrum = spectra[*index_it];
+        std::cout << "MSSpectrum_rt: " << spectrum.getRT() << std::endl;
         const vector<Precursor> &precursor = spectrum.getPrecursors();
+
+        for (auto pit = precursor.begin(); pit != precursor.end(); ++pit)
+        {
+          // TODO: Problem is that the spectrum seem to be empty.
+          std::cout << "precursor_mz: " << pit->getMZ() << std::endl;
+        }
 
         // get m/z and intensity of precursor
         // only spectra with precursors are in the map, therefore no need to check for their presence
         double precursor_mz = precursor[0].getMZ();
+
+        // TODO: Issue - there is no precursor intensity assigned to the ms2 precursor
         float precursor_int = precursor[0].getIntensity();
+
+        std::cout << "precursor_int:" << precursor_int << std::endl;
 
         // spectrum with highest intensity precursor
         if (precursor_int > highest_precursor_int)
         {
           highest_precursor_int = precursor_int;
           highest_precursor_mz = precursor_mz;
-          highest_precursor_int_spectrum = spectra[*index_it];
+          highest_precursor_int_spectrum = spectrum;
         }
         transition_spectrum = highest_precursor_int_spectrum;
       }
+
+      std::cout << "transition_spectrum_rt: " << transition_spectrum.getRT() << std::endl;
+      std::cout << "transition_spectrum: " << transition_spectrum << std::endl;
 
       // if only one MS2 is available and the consensus method is used - jump right to the transition list calculation
       // fallback: highest intensity precursor
