@@ -114,9 +114,11 @@ using namespace std;
         // get parent (MS1) of precursor spectrum
         rt_it = exp.getPrecursorSpectrum(rt_it);
 
-        if (rt_it->getMSLevel() != 1)
+        if (rt_it == exp.end() 
+        || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "Error: no MS1 spectrum for this precursor" << endl;
+          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
+          continue;          
         }
 
         //cout << rt_it->getRT() << " " << rt_it->size() << endl;
@@ -172,13 +174,8 @@ using namespace std;
 
       for (Size i = 0; i != precursors_rt.size(); ++i)
       {
-        // get precursor rt
-        double rt = precursors_rt[i];
-
-        // get precursor MZ
-        double mz = precursors[i].getMZ();
-
-        // cout << rt << " " << mz << endl;
+        double rt = precursors_rt[i]; // get precursor rt        
+        double mz = precursors[i].getMZ(); // get precursor MZ
 
         // retrieves iterator of the MS2 fragment sprectrum
         MSExperiment::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
@@ -189,9 +186,11 @@ using namespace std;
         // get parent (MS1) of precursor spectrum
         rt_it = exp.getPrecursorSpectrum(rt_it);
 
-        if (rt_it->getMSLevel() != 1)
+        if (rt_it == exp.end() 
+        || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "Error: no MS1 spectrum for this precursor" << endl;
+          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
+          continue;
         }
 
         MSSpectrum::ConstIterator left = rt_it->MZBegin(mz - mz_tolerance);
