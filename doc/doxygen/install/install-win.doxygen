@@ -117,8 +117,8 @@
     <ol>
       <li>non-commercial:
         <ol>
-          <li>install perl (e.g. Strawberry Perl) and git
-          <li>download <b>Qt5 source</b> via git:
+          <li>install perl (e.g. Strawberry Perl), Python and git
+          <li>download <b>Qt5 source</b> via git or as a source package from the website:
             \code
             git clone git://github.com/qt/qt5 --branch 5.9 qt-5.9
             \endcode
@@ -133,9 +133,10 @@
             \endcode
           <li>if you have multiple versions of VS installed you might need to provide the <tt>-platform</tt> param for the next configure command (e.g., <tt>-platform win32-msvc2012</tt>)
           <li>To save disk space, we use the -prefix switch do install only the required parts of Qt to a new directory of your choice (called <tt>&lt;path-to-qt&gt;</tt>, e.g. <tt>c:/dev/Qt/5.9/</tt>).
-              Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers)
+              Check more options and supported compilers here: http://doc.qt.io/qt-5/configure-options.html (especially for developers). Note that part of Qt requires Python to compile, so its a good idea to add the Python executable to your path
             \code
-            configure -release -nomake example -nomake demos -nomake tests -opensource -confirm-license -prefix <path-to-qt> -platform win32-msvc
+            PATH=%PATH%;C:\Python27\
+            configure -opensource -skip speech -skip location -nomake tests -nomake examples -confirm-license -opengl dynamic -prefix <path-to-qt> -platform win32-msvc 
             \endcode
           <li>
             \code
@@ -276,8 +277,16 @@
   MSBuild.exe <solution.sln> /maxcpucount /target:<target> /p:Configuration=<Config>
   \endcode
 
-  @note Since the call can be a bit lengthy, there is a batch file in <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied there by cmake for convenience), which allows to build the most important targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short notation. Call it without arguments to see its usage help text.
+  @note Since the call can be a bit lengthy, there is a batch file in
+  <tt>OpenMS/tools/build.bat</tt> and in the root of your build tree (copied
+  there by cmake for convenience), which allows to build the most important
+  targets (TOPP, UTILS, Gui, Tests, Doc) in Release or Debug using very short
+  notation. Call it without arguments to see its usage help text. For example
+  to build only the OpenMS library in release mode, call
 
+  \code
+  build OpenMS r
+  \endcode
 
 
 */

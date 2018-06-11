@@ -64,13 +64,13 @@ public:
 
     ~FeatureOpenMS() override;
 
-    void getRT(std::vector<double>& rt) override;
+    void getRT(std::vector<double>& rt) const override;
 
-    void getIntensity(std::vector<double>& intens) override;
+    void getIntensity(std::vector<double>& intens) const override;
 
-    float getIntensity() override;
+    float getIntensity() const override;
 
-    double getRT() override;
+    double getRT() const override;
 
 private:
     Feature* feature_;
@@ -97,11 +97,11 @@ public:
 
     std::vector<std::string> getPrecursorIDs() const override;
 
-    float getIntensity() override;
+    float getIntensity() const override;
 
-    double getRT() override;
+    double getRT() const override;
 
-    size_t size() override;
+    size_t size() const override;
 
 private:
     const MRMFeature& mrmfeature_;
@@ -128,12 +128,12 @@ public:
     {
     }
 
-    std::size_t size() override
+    std::size_t size() const override
     {
       return trgroup_.size();
     }
 
-    std::vector<std::string> getNativeIDs() override
+    std::vector<std::string> getNativeIDs() const override
     {
       std::vector<std::string> result;
       for (std::size_t i = 0; i < this->size(); i++)
@@ -143,7 +143,7 @@ public:
       return result;
     }
 
-    void getLibraryIntensities(std::vector<double>& intensities) override
+    void getLibraryIntensities(std::vector<double>& intensities) const override
     {
       trgroup_.getLibraryIntensity(intensities);
     }

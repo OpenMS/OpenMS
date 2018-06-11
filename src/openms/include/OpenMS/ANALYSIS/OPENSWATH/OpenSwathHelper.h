@@ -51,6 +51,14 @@ namespace OpenMS
 public:
 
     /**
+      @brief Compute unique precursor identifier
+    */
+    static String computePrecursorId(const String& transition_group_id, int isotope)
+    {
+      return transition_group_id + "_Precursor_i" + String(isotope);
+    }
+
+    /**
       @brief Select transitions between lower and upper and write them into the new TargetedExperiment
 
       Version for the OpenMS TargetedExperiment

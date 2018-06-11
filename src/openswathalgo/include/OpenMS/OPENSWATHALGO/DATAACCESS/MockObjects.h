@@ -56,13 +56,13 @@ public:
 
     ~MockFeature() override;
 
-    void getRT(std::vector<double>& rt) override;
+    void getRT(std::vector<double>& rt) const override;
 
-    void getIntensity(std::vector<double>& intens) override;
+    void getIntensity(std::vector<double>& intens) const override;
 
-    float getIntensity() override;
+    float getIntensity() const override;
 
-    double getRT() override;
+    double getRT() const override;
 
     std::vector<double> m_rt_vec;
     std::vector<double> m_intensity_vec;
@@ -90,11 +90,11 @@ public:
 
     std::vector<std::string> getPrecursorIDs() const override;
 
-    float getIntensity() override;
+    float getIntensity() const override;
 
-    double getRT() override;
+    double getRT() const override;
 
-    size_t size() override;
+    size_t size() const override;
 
     std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
     std::map<std::string, boost::shared_ptr<MockFeature> > m_precursor_features;
@@ -114,11 +114,11 @@ public:
 
     ~MockTransitionGroup() override;
 
-    std::size_t size() override;
+    std::size_t size() const override;
 
-    std::vector<std::string> getNativeIDs() override;
+    std::vector<std::string> getNativeIDs() const override;
 
-    void getLibraryIntensities(std::vector<double>& intensities) override;
+    void getLibraryIntensities(std::vector<double>& intensities) const override;
 
     std::size_t m_size;
     std::vector<std::string> m_native_ids;
