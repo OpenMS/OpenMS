@@ -57,7 +57,7 @@ namespace OpenMS
 
     defaults_.setValue("sn_win_len", 1000.0, "Signal to noise window length.");
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
-    defaults_.setValue("write_sn_log_messages", "true", "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin");
+    defaults_.setValue("write_sn_log_messages", "false", "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin");
     defaults_.setValidStrings("write_sn_log_messages", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
