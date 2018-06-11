@@ -26,7 +26,7 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+//  
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg $
@@ -42,6 +42,7 @@
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
+#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
@@ -56,7 +57,6 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
-
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/KERNEL/MassTrace.h>
@@ -283,7 +283,16 @@ protected:
           
           //-------------------------------------------------------------
           // TODO: HighRes Precursor Mass Correction
-          //-------------------------------------------------------------          
+          //-------------------------------------------------------------
+          std::vector<double> deltaMZs, mzs, rts;
+          std::set<Size> corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(
+            ms_centroided, 
+            10.0, // check if we can estimate this from data
+            deltaMZs, 
+            mzs, 
+            rts
+            );      
+          writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
         }
 
         // writing picked mzML files for data submission
@@ -326,15 +335,14 @@ protected:
 
         if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
                       10.0,
-                      1.0, 
+                      5.0, 
                       "",                      
                       "",
                       qc_residual_path,
                       qc_residual_png_path,
                       "Rscript"))
         {
-          LOG_ERROR << "\nCalibration failed. See error message above!" << std::endl;
-          return UNEXPECTED_RESULT;
+          LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;          
         }
 
         //-------------------------------------------------------------
