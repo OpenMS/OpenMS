@@ -117,7 +117,7 @@ using namespace std;
         if (rt_it == exp.end() 
         || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
+          LOG_WARN << "No MS1 spectrum for this precursor" << endl;
           continue;          
         }
 
@@ -189,7 +189,7 @@ using namespace std;
         if (rt_it == exp.end() 
         || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "Warning: no MS1 spectrum for this precursor." << endl;
+          LOG_WARN << "No MS1 spectrum for this precursor." << endl;
           continue;
         }
 

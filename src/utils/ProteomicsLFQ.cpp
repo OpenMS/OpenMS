@@ -58,6 +58,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
@@ -306,8 +308,8 @@ protected:
             double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
             double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
             double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
-            writeLog_("Precursor correction (ppm):\n  median = " + String(median) + "  MAD = " + String(MAD)
-                     +"\n  median (abs.) = " + String(median_abs) + "  MAD = " + String(MAD_abs));
+            writeLog_("Precursor correction:\n  median = " + String(median) + " ppm  MAD = " + String(MAD)
+                     +"\n  median (abs.) = " + String(median_abs) + " ppm  MAD = " + String(MAD_abs));
           }
         }
 
@@ -459,43 +461,50 @@ protected:
       //-------------------------------------------------------------
       // Align all features of this fraction
       //-------------------------------------------------------------
-      vector<TransformationDescription> transformations;
-   
-      //TODO: check if we need to set reference
-      Size reference_index(0);
-      MapAlignmentAlgorithmIdentification aligner;
-      aligner.setLogType(log_type_);
-      aligner.setParameters(ma_param);
-      aligner.align(feature_maps, transformations, reference_index);
-
-
-      // find model parameters:
-      Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
-      String model_type = model_params.getValue("type");
-      model_params = model_params.copy(model_type + ":", true);
-      for (TransformationDescription & t : transformations)
+      if (feature_maps.size() > 1) // do we have several maps to align / link?
       {
-        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
-        if (t.getDataPoints().size() > 10)
+        vector<TransformationDescription> transformations;
+    
+        //TODO: check if we need to set reference
+        Size reference_index(0);
+        MapAlignmentAlgorithmIdentification aligner;
+        aligner.setLogType(log_type_);
+        aligner.setParameters(ma_param);
+        aligner.align(feature_maps, transformations, reference_index);
+
+
+        // find model parameters:
+        Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
+        String model_type = model_params.getValue("type");
+        model_params = model_params.copy(model_type + ":", true);
+        for (TransformationDescription & t : transformations)
         {
-          t.fitModel(model_type, model_params);
+          writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
+          if (t.getDataPoints().size() > 10)
+          {
+            t.fitModel(model_type, model_params);
+          }
         }
-      }
 
-      // Apply transformations
-      for (Size i = 0; i < feature_maps.size(); ++i)
+        // Apply transformations
+        for (Size i = 0; i < feature_maps.size(); ++i)
+        {
+          MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
+            transformations[i]);
+        }
+
+        //-------------------------------------------------------------
+        // Link all features of this fraction
+        //-------------------------------------------------------------
+        writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
+        FeatureGroupingAlgorithmQT linker;
+        linker.setParameters(fl_param);      
+        linker.group(feature_maps, consensus_fraction);
+      }
+      else // only one feature map
       {
-        MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
-          transformations[i]);
+        MapConversion::convert(0, feature_maps.back(), consensus_fraction);                           
       }
-
-      //-------------------------------------------------------------
-      // Link all features of this fraction
-      //-------------------------------------------------------------
-      writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
-      FeatureGroupingAlgorithmQT linker;
-      linker.setParameters(fl_param);      
-      linker.group(feature_maps, consensus_fraction);
 
       Size j(0);
       for (String const & mz_file : ms_files.second) // for each MS file
