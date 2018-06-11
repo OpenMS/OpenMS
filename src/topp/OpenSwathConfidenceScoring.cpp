@@ -68,7 +68,7 @@ using namespace std;
     This is an implementation of the SRM scoring algorithm described in:
 
     Malmstroem, L.; Malmstroem, J.; Selevsek, N.; Rosenberger, G. & Aebersold, R.:\n
-    <a href="http://dx.doi.org/10.1021/pr200844d">Automated workflow for large-scale selected reaction monitoring experiments.</a>\n
+    <a href="https://doi.org/10.1021/pr200844d">Automated workflow for large-scale selected reaction monitoring experiments.</a>\n
     J. Proteome Res., 2012, 11, 1644-1653
 
     It has been adapted for the scoring of OpenSwath results.
