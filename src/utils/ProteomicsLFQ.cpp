@@ -57,12 +57,17 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+
+#include <OpenMS/FILTERING/ID/IDFilter.h>
+
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -92,8 +97,12 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFileList_("ids", "<file list>", StringList(), "unfiltered identifications");
     setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
+
     registerInputFile_("design", "<file>", "", "design file", false);
     setValidFormats_("design", ListUtils::create<String>("tsv"));
+
+    registerInputFile_("fasta", "<file>", "", "fasta file", false);
+    setValidFormats_("fasta", ListUtils::create<String>("fasta"));
 
     registerOutputFile_("out", "<file>", "", "output mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
@@ -133,6 +142,7 @@ protected:
     String out = getStringOption_("out");
     StringList in_ids = getStringList_("ids");
     String design_file = getStringOption_("design");
+    String in_db = getStringOption_("fasta");
 
     if (in.size() != in_ids.size())
     {
@@ -326,6 +336,13 @@ protected:
         const String& id_file_abs_path = File::absolutePath(mzfile2idfile[mz_file_abs_path]);
         IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
 
+/*
+        // reannotate spectrum references
+        SpectrumMetaDataLookup::addMissingSpectrumReferences(
+          peptide_ids, 
+          id_file_abs_path,
+          false);
+*/
         //-------------------------------------------------------------
         // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
         // TODO: check if this improves targeted extraction
@@ -548,9 +565,10 @@ protected:
       // end of scope of fraction related data
     }
 
+/*
     MzTab m_tmp = MzTab::exportConsensusMapToMzTab(consensus, String("null"), false, false);
     MzTabFile().store(String("tmp_") + out, m_tmp);
-
+*/
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
 
@@ -559,10 +577,76 @@ protected:
     //-------------------------------------------------------------
     // TODO: ProteinInference on merged ids (how merged?)
     // TODO: Output coverage on protein and group level
-    ProteinIdentification infered_protein_groups;
-    vector<PeptideIdentification> infered_peptides;
 
-    // TODO: maybe check if some consensus ID algorithms are applicable
+
+    //-------------------------------------------------------------
+    // Protein inference
+    //-------------------------------------------------------------
+    // TODO: Implement inference
+
+    vector<PeptideIdentification> infered_peptides;
+    vector<ProteinIdentification> infered_protein_groups(1, ProteinIdentification());
+
+    // currenty no proper inference implemented - just extract from consensusMap
+    infered_peptides = consensus.getUnassignedPeptideIdentifications();
+    for (ConsensusMap::Iterator cons_it = consensus.begin();
+          cons_it != consensus.end(); ++cons_it)
+    {
+      infered_peptides.insert(infered_peptides.end(),
+                      cons_it->getPeptideIdentifications().begin(),
+                      cons_it->getPeptideIdentifications().end());
+      cons_it->getPeptideIdentifications().clear();
+    }
+
+    // reindex peptides to proteins and keep only unique peptides
+    if (!in_db.empty())
+    {
+      PeptideIndexing indexer;
+      Param param_pi = indexer.getParameters();
+      param_pi.setValue("enzyme:specificity", "none");
+      param_pi.setValue("missing_decoy_action", "silent");
+      indexer.setParameters(param_pi);
+
+      FASTAFile fastaFile;
+      vector<FASTAFile::FASTAEntry> fasta_db;
+      fastaFile.load(in_db, fasta_db);
+
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, infered_protein_groups, infered_peptides);
+
+      if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
+          (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
+      {
+        if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
+        {
+          return INPUT_FILE_EMPTY;       
+        }
+        else if (indexer_exit == PeptideIndexing::UNEXPECTED_RESULT)
+        {
+          return UNEXPECTED_RESULT;
+        }
+        else
+        {
+          return UNKNOWN_ERROR;
+        }
+      } 
+
+      // merge (and make unique) protein identifications (for now)
+      set<String> accessions;
+      for (auto & p : infered_protein_groups)
+      {      
+        for (auto & h : p.getHits()) 
+        { 
+          const String & accession = h.getAccession();
+          ProteinIdentification::ProteinGroup pg;
+          pg.accessions.push_back(accession);
+          infered_protein_groups[0].insertIndistinguishableProteins(pg);
+          infered_protein_groups[0].insertProteinGroup(pg);
+        }
+      }
+
+      // only keep unique peptides (for now)
+      IDFilter::keepUniquePeptidesPerProtein(infered_peptides);
+    }
 
     //-------------------------------------------------------------
     // Peptide quantification
@@ -570,12 +654,11 @@ protected:
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides(infered_peptides);
 
-
     //-------------------------------------------------------------
     // Protein quantification
     //-------------------------------------------------------------
     // TODO: ProteinQuantifier on (merged?) consensusXML (with 1% FDR?) + inference ids (unfiltered?)? 
-    if (infered_protein_groups.getIndistinguishableProteins().empty())
+    if (infered_protein_groups[0].getIndistinguishableProteins().empty())
     {
       throw Exception::MissingInformation(
        __FILE__, 
@@ -584,7 +667,7 @@ protected:
        "No information on indistinguishable protein groups found.");
     }
 
-    quantifier.quantifyProteins(infered_protein_groups);
+    quantifier.quantifyProteins(infered_protein_groups[0]);
 
     //-------------------------------------------------------------
     // Export of MzTab file as final output
@@ -592,9 +675,9 @@ protected:
 
     // Annotate quants to protein(groups) for easier export in mzTab
     auto const & protein_quants = quantifier.getProteinResults();
-    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups);
+    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0]);
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
-    proteins.insert(proteins.begin(), infered_protein_groups); // insert inference information as first protein identification
+    proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
 
     // Fill MzTab with meta data and quants annotated in identification data structure
     const bool report_unmapped(true);
