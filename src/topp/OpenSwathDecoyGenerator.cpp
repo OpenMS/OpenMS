@@ -129,6 +129,7 @@ protected:
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
 
     registerDoubleOption_("min_decoy_fraction", "<double>", 0.8, "Minimum fraction of decoy / target peptides and proteins", false, true);
+    registerDoubleOption_("aim_decoy_fraction", "<double>", 1.0, "Number of decoys the algorithm should generate (if unequal to 1, the algorithm will randomly select N peptides for decoy generation)", false, true);
 
     registerIntOption_("shuffle_max_attempts", "<int>", 30, "shuffle: maximum attempts to lower the amino acid sequence identity between target and decoy for the shuffle algorithm", false, true);
     registerDoubleOption_("shuffle_sequence_identity_threshold", "<double>", 0.5, "shuffle: target-decoy amino acid sequence identity threshold for the shuffle algorithm", false, true);
@@ -184,6 +185,7 @@ protected:
     String decoy_tag = getStringOption_("decoy_tag");
 
     double min_decoy_fraction = getDoubleOption_("min_decoy_fraction");
+    double aim_decoy_fraction = getDoubleOption_("aim_decoy_fraction");
 
     Int max_attempts = getIntOption_("shuffle_max_attempts");
     double identity_threshold = getDoubleOption_("shuffle_sequence_identity_threshold");
@@ -246,7 +248,13 @@ protected:
     decoys.setLogType(ProgressLogger::CMD);
 
     LOG_INFO << "Generate decoys" << std::endl;
-    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, max_attempts, identity_threshold, precursor_mz_shift, product_mz_shift, product_mz_threshold, allowed_fragment_types, allowed_fragment_charges, enable_detection_specific_losses, enable_detection_unspecific_losses);
+    decoys.generateDecoys(targeted_exp, targeted_decoy, method,
+                          aim_decoy_fraction, decoy_tag, max_attempts,
+                          identity_threshold, precursor_mz_shift,
+                          product_mz_shift, product_mz_threshold,
+                          allowed_fragment_types, allowed_fragment_charges,
+                          enable_detection_specific_losses,
+                          enable_detection_unspecific_losses);
 
     // Check if we have enough peptides left
     LOG_INFO << "Number of target peptides: " << targeted_exp.getPeptides().size() << std::endl;

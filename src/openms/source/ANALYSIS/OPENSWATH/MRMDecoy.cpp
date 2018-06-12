@@ -337,7 +337,8 @@ namespace OpenMS
   }
 
   void MRMDecoy::generateDecoys(const OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                const String& method, const String& decoy_tag, const int max_attempts, const double identity_threshold,
+                                const String& method, const double aim_decoy_fraction,
+                                const String& decoy_tag, const int max_attempts, const double identity_threshold,
                                 const double precursor_mz_shift, const double product_mz_shift, const double product_mz_threshold,
                                 const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges,
                                 const bool enable_specific_losses, const bool enable_unspecific_losses, const int round_decPow) const
@@ -353,13 +354,34 @@ namespace OpenMS
       proteins.push_back(protein);
     }
 
+    srand(time(0));
+    std::vector<size_t> item_list, selection_list;
+    item_list.reserve(exp.getPeptides().size());
+    for (Size k = 0; k < exp.getPeptides().size(); k++) {item_list.push_back(k);}
+
+    if ( aim_decoy_fraction > 1.0 )
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decoy fraction needs to be less than zero");
+    }
+    else if ( aim_decoy_fraction < 1.0)
+    {
+      std::random_shuffle(item_list.begin(), item_list.end());
+      selection_list.reserve(aim_decoy_fraction * exp.getPeptides().size());
+      Size k = 0;
+      while (selection_list.size() < aim_decoy_fraction * exp.getPeptides().size())
+      {
+        selection_list.push_back( item_list[ k++ % item_list.size() ]);
+      }
+    }
+    else {selection_list = item_list;}
+
     std::vector<String> exclusion_peptides;
     // Go through all peptides and apply the decoy method to the sequence
     // (pseudo-reverse, reverse or shuffle). Then set the peptides and proteins of the decoy
     // experiment.
     Size progress = 0;
-    startProgress(0, exp.getPeptides().size(), "Generating decoy peptides");
-    for (Size pep_idx = 0; pep_idx < exp.getPeptides().size(); ++pep_idx)
+    startProgress(0, selection_list.size(), "Generating decoy peptides");
+    for (auto pep_idx : selection_list)
     {
       setProgress(++progress);
 
@@ -429,6 +451,7 @@ namespace OpenMS
 
       String peptide_ref = pep_it->first;
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
+      if (!dec.hasPeptide(decoy_peptide_ref)) {continue;}
       const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
 
       const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
@@ -440,8 +463,12 @@ namespace OpenMS
       if (decoy_peptide.hasCharge()) {decoy_charge = decoy_peptide.getChargeState();}
       if (target_peptide.hasCharge()) {target_charge = target_peptide.getChargeState();}
 
-      MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
-      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_charge, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, round_decPow);
+      MRMIonSeries::IonSeries decoy_ionseries = mrmis.getIonSeries(decoy_peptide_sequence, decoy_charge,
+            fragment_types, fragment_charges, enable_specific_losses,
+            enable_unspecific_losses, round_decPow);
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(target_peptide_sequence, target_charge,
+            fragment_types, fragment_charges, enable_specific_losses,
+            enable_unspecific_losses, round_decPow);
 
       for (Size i = 0; i < pep_it->second.size(); i++)
       {
@@ -480,10 +507,11 @@ namespace OpenMS
         else
         {
           // transition could not be annotated, remove whole peptide
-            exclusion_peptides.push_back(decoy_tr.getPeptideRef());
+          exclusion_peptides.push_back(decoy_tr.getPeptideRef());
           LOG_DEBUG << "[peptide] Skipping " << decoy_tr.getPeptideRef() << " due to missing annotation" << std::endl;
-          }
+        }
       } // end loop over transitions
+
     } // end loop over peptides
     endProgress();
 

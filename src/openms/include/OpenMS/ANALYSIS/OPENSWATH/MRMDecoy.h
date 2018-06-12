@@ -114,6 +114,7 @@ public:
     void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec,
                         const String& method,
+                        const double aim_decoy_fraction,
                         const String& decoy_tag,
                         const int max_attempts,
                         const double identity_threshold,
