@@ -393,7 +393,7 @@ namespace OpenMS
 
     if ( aim_decoy_fraction > 1.0 )
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decoy fraction needs to be less than zero");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Decoy fraction needs to be less than one (values larger than one currently not supported).");
     }
     else if ( aim_decoy_fraction < 1.0)
     {
