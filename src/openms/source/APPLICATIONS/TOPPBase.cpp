@@ -1627,9 +1627,13 @@ namespace OpenMS
     }
   }
 
-  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments) const
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
   {
     QProcess qp;
+    if (!workdir.isEmpty())
+    {
+      qp.setWorkingDirectory(workdir);
+    }
     qp.start(executable, arguments); // does automatic escaping etc... start
     std::stringstream ss;
     ss << "COMMAND: " << String(executable);
@@ -1640,7 +1644,7 @@ namespace OpenMS
     LOG_DEBUG << ss.str() << endl;
     writeLog_("Executing: " + String(executable));
     const bool success = qp.waitForFinished(-1); // wait till job is finished
-    qp.close();
+    
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
@@ -1650,10 +1654,11 @@ namespace OpenMS
       writeLog_(external_sout);
       writeLog_(external_serr);
       writeLog_(String(qp.exitCode()));
-
+      qp.close();
       return EXTERNAL_PROGRAM_ERROR;
     }
 
+    qp.close();
     writeLog_("Executed " + String(executable) + " successfully!");
     return EXECUTION_OK;
   }
