@@ -34,9 +34,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-
 
 namespace OpenMS
 {
@@ -221,39 +221,39 @@ namespace OpenMS
       // the new sequence.
       if (attempts % 10 == 9)
       {
-          OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
-          int res_pos = (pseudoRNG() % aa_size);
-          int pep_pos = -1;
-          size_t pos_trials = 0;
-          while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
-          {
+        OpenMS::AASequence shuffled_sequence = TargetedExperimentHelper::getAASequence(shuffled);
+        int res_pos = (pseudoRNG() % aa_size);
+        int pep_pos = -1;
+        size_t pos_trials = 0;
+        while (pep_pos < 0 && pos_trials < shuffled_sequence.size())
+        {
           // select position to mutate (and ensure we are not changing N/C terminus or any modified position doing it)
-            pep_pos = (pseudoRNG() % shuffled_sequence.size());
+          pep_pos = (pseudoRNG() % shuffled_sequence.size());
           if (shuffled_sequence[pep_pos].isModified() || (pep_pos == 0) || (pep_pos == (int)(shuffled_sequence.size() - 1)))
+          {
+            pep_pos = -1;
+          }
+          else
+          {
+            if (pep_pos == 0)
             {
-              pep_pos = -1;
+              shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
+            }
+            else if (pep_pos == (int)(shuffled_sequence.size() - 1))
+            {
+              shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
             }
             else
             {
-              if (pep_pos == 0)
-              {
-                shuffled_sequence = AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
-              }
-              else if (pep_pos == (int)(shuffled_sequence.size() - 1))
-              {
-                shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]);
-              }
-              else
-              {
-                shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
-              }
+              shuffled_sequence = shuffled_sequence.getPrefix(pep_pos) + AASequence::fromString(aa[res_pos]) + shuffled_sequence.getSuffix(shuffled_sequence.size() - pep_pos - 1);
             }
-            ++pos_trials;
           }
-          shuffled.sequence = shuffled_sequence.toUnmodifiedString();
-          peptide = shuffled;
+          ++pos_trials;
         }
-        }
+        shuffled.sequence = shuffled_sequence.toUnmodifiedString();
+        peptide = shuffled;
+      }
+    }
 
     return shuffled;
   }
@@ -263,9 +263,8 @@ namespace OpenMS
       const String& const_pattern)
   {
     OpenMS::TargetedExperiment::Peptide reversed = peptide;
-    {
-      // Block tryptic residues and N-/C-terminus from shuffling
-      MRMDecoy::IndexType idx = MRMDecoy::findFixedResidues(peptide.sequence, keepN, keepC, const_pattern);
+    // Block tryptic residues and N-/C-terminus from shuffling
+    MRMDecoy::IndexType idx = MRMDecoy::findFixedResidues(peptide.sequence, keepN, keepC, const_pattern);
 
     std::vector<Size> peptide_index;
     for (Size i = 0; i < peptide.sequence.size(); i++)
@@ -273,43 +272,42 @@ namespace OpenMS
       peptide_index.push_back(i);
     }
 
-      // we erase the indices where K/P/R are (from the back / in reverse order
-      // to not delete indices we access later)
-      for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
+    // we erase the indices where K/P/R are (from the back / in reverse order
+    // to not delete indices we access later)
+    for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
     {
-        peptide_index.erase(peptide_index.begin() + *it);
-        }
-
-      // reverse the peptide index
-      std::reverse(peptide_index.begin(), peptide_index.end());
-
-      // re-insert the missing K/P/R at the appropriate places
-      for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
-  {
-        peptide_index.insert(peptide_index.begin() + *it, *it);
+      peptide_index.erase(peptide_index.begin() + *it);
     }
 
-      // use the reversed index to create the new peptide sequence and
-      // then to place the modifications at their appropriate places (make sure
-      // that the modifications are placed with their initial amino acids).
-      for (Size i = 0; i < peptide_index.size(); i++)
+    // reverse the peptide index
+    std::reverse(peptide_index.begin(), peptide_index.end());
+
+    // re-insert the missing K/P/R at the appropriate places
+    for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
     {
-        reversed.sequence[i] = peptide.sequence[peptide_index[i]];
-      }
-      for (Size j = 0; j < reversed.mods.size(); j++)
-      {
+      peptide_index.insert(peptide_index.begin() + *it, *it);
+    }
+
+    // use the reversed index to create the new peptide sequence and
+    // then to place the modifications at their appropriate places (make sure
+    // that the modifications are placed with their initial amino acids).
+    for (Size i = 0; i < peptide_index.size(); i++)
+    {
+      reversed.sequence[i] = peptide.sequence[peptide_index[i]];
+    }
+    for (Size j = 0; j < reversed.mods.size(); j++)
+    {
       for (Size k = 0; k < peptide_index.size(); k++)
       {
-          // C and N terminal mods are implicitly not reversed because they live at positions -1 and sequence.size()
-          if (boost::numeric_cast<int>(peptide_index[k]) == reversed.mods[j].location)
+        // C and N terminal mods are implicitly not reversed because they live at positions -1 and sequence.size()
+        if (boost::numeric_cast<int>(peptide_index[k]) == reversed.mods[j].location)
         {
-            reversed.mods[j].location = boost::numeric_cast<int>(k);
+          reversed.mods[j].location = boost::numeric_cast<int>(k);
           break;
         }
       }
     }
-      return reversed;
-    }
+    return reversed;
   }
 
   OpenMS::TargetedExperiment::Peptide MRMDecoy::pseudoreversePeptide_(
