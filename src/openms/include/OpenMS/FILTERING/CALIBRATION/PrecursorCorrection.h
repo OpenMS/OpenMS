@@ -52,10 +52,11 @@
 namespace OpenMS
 {
 
+extern OPENMS_DLLAPI const std::string precursor_correction_csv_header;
+
 class OPENMS_DLLAPI PrecursorCorrection
 {
     public:
-    static const std::string csv_header;
 
     static void getPrecursors(
         const MSExperiment & exp, 
@@ -104,7 +105,4 @@ class OPENMS_DLLAPI PrecursorCorrection
  
     static bool compatible_(const Feature& feature, double pc_mz, double mz_tolerance, Size max_trace_number = 2, int debug_level = 0);
 };
-
-const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
-
 }

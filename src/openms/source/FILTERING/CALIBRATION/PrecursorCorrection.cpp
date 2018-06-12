@@ -39,10 +39,15 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-using namespace OpenMS;
+
 using namespace std;
 
-   void PrecursorCorrection::getPrecursors(
+namespace OpenMS
+{
+
+    const std::string precursor_correction_csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
+
+    void PrecursorCorrection::getPrecursors(
        const MSExperiment & exp, 
        vector<Precursor> & precursors, 
        vector<double> & precursors_rt, 
@@ -69,7 +74,7 @@ using namespace std;
       csv_file << setprecision(9);
 
       // header
-      csv_file << ListUtils::concatenate(ListUtils::create<String>(csv_header), "\t") << "\n";
+      csv_file << ListUtils::concatenate(ListUtils::create<String>(precursor_correction_csv_header), "\t") << "\n";
 
       // entries
       for (vector<double>::const_iterator it = deltaMZs.begin(); it != deltaMZs.end(); ++it)
@@ -225,7 +230,7 @@ using namespace std;
 
       if (count_error_highest_intenstiy != 0)
       {
-        LOG_WARN << "Error: The method highest_intensity_peak failed" << count_error_highest_intenstiy << "times." << endl;
+        LOG_WARN << "Error: The method highest_intensity_peak failed " << count_error_highest_intenstiy << " times." << endl;
       }
 
       return corrected_precursors;
@@ -432,4 +437,5 @@ using namespace std;
         return false;
       }
     }
+}
 
