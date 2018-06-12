@@ -147,7 +147,7 @@
   <TransitionList>
     <Transition id="DECOY_1_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5_y5_1" peptideRef="DECOY_8_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.3017" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.301727709851" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="459.2674" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -159,7 +159,7 @@
     </Transition>
     <Transition id="DECOY_2_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5_y21_3" peptideRef="DECOY_8_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.3017" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.301727709851" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="601.3476" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -171,7 +171,7 @@
     </Transition>
     <Transition id="DECOY_3_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5_b6_1" peptideRef="DECOY_8_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.3017" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.301727709851" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="709.2974" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -183,7 +183,7 @@
     </Transition>
     <Transition id="DECOY_4_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5_b9_1" peptideRef="DECOY_8_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.3017" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.301727709851" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1113.5034" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -195,7 +195,7 @@
     </Transition>
     <Transition id="DECOY_5_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5_y23_3" peptideRef="DECOY_8_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.3017" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.301727709851" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="685.7322" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -207,7 +207,7 @@
     </Transition>
     <Transition id="DECOY_AAAAAK.exclude_similar_test1" peptideRef="DECOY_AAAAAK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="251.75" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="168.204309548138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="180.6157" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -220,7 +220,7 @@
     </Transition>
     <Transition id="DECOY_AAAAAK.exclude_similar_test2" peptideRef="DECOY_AAAAAK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="251.75" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="168.204309548138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="144.4253" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -233,7 +233,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.ADVTPADFSEWSK.2_y9_1.light" peptideRef="DECOY_ADVTPADFSEWSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="726.935" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="726.935717950121" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="963.4782" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -246,7 +246,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.ADVTPADFSEWSK.2_y9_2.light" peptideRef="DECOY_ADVTPADFSEWSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="726.935" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="726.935717950121" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="482.2427" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -259,7 +259,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.DGLDAASYYAPVR.2_y7_1.light" peptideRef="DECOY_DGLDAASYYAPVR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="699.438" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="699.438427434171" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="717.3526" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -272,7 +272,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.DGLDAASYYAPVR.2_y8_1.light" peptideRef="DECOY_DGLDAASYYAPVR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="699.438" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="699.438427434171" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="804.3846" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -285,7 +285,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.GAGSSEPVTGLDAK.2_y8_1.light" peptideRef="DECOY_GAGSSEPVTGLDAK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="644.922" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="644.922610386321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="732.3523" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -298,7 +298,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.GAGSSEPVTGLDAK.2_y6_1.light" peptideRef="DECOY_GAGSSEPVTGLDAK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="644.922" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="644.922610386321" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="506.2569" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -311,7 +311,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.GTFIIDPAAVIR.2_y6_1.light" peptideRef="DECOY_GTFIIDPAAVIR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="636.969" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="636.969165513921" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="706.4246" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -324,7 +324,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.GTFIIDPAAVIR.2_y8_1.light" peptideRef="DECOY_GTFIIDPAAVIR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="636.969" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="636.969165513921" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="918.5043" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -337,7 +337,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.GTFIIDPGGVIR.2_y6_1.light" peptideRef="DECOY_GTFIIDPGGVIR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="622.953" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="622.953515450121" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="706.4246" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -350,7 +350,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.GTFIIDPGGVIR.2_y7_1.light" peptideRef="DECOY_GTFIIDPGGVIR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="622.953" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="622.953515450121" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="821.4516" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -363,7 +363,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.LFLQFGAQGSPFLK.2_y9_1.light" peptideRef="DECOY_LFLQFGAQGSPFLK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="777.029" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="777.029754769121" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1051.5935" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -376,7 +376,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.LFLQFGAQGSPFLK.2_y10_1.light" peptideRef="DECOY_LFLQFGAQGSPFLK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="777.029" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="777.029754769121" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1108.615" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -389,7 +389,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.LGGNEQVTR.2_y8_1.light" peptideRef="DECOY_LGGNEQVTR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.357" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.356708051371" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="872.4585" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -402,7 +402,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.LGGNEQVTR.2_y4_1.light" peptideRef="DECOY_LGGNEQVTR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.357" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.356708051371" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="402.2459" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -415,7 +415,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.TPVISGGPYEYR.2_y8_1.light" peptideRef="DECOY_TPVISGGPYEYR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="669.938" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="669.938062918221" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="786.4468" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -428,7 +428,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.TPVISGGPYEYR.2_y9_1.light" peptideRef="DECOY_TPVISGGPYEYR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="669.938" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="669.938062918221" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="883.4996" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -441,7 +441,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.TPVITGAPYEYR.2_y8_1.light" peptideRef="DECOY_TPVITGAPYEYR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.953" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.953712982021" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="814.4781" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -454,7 +454,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.TPVITGAPYEYR.2_y7_1.light" peptideRef="DECOY_TPVITGAPYEYR">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.953" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.953712982021" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="743.441" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -467,7 +467,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.VEATFGVDESNAK.2_b8_1.light" peptideRef="DECOY_VEATFGVDESNAK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.927" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.927892918221" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="820.3472" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -480,7 +480,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.VEATFGVDESNAK.2_y9_1.light" peptideRef="DECOY_VEATFGVDESNAK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.927" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.927892918221" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="965.4938" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -493,7 +493,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.YILAGVENSK.2_y8_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="892.5138" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -506,7 +506,7 @@
     </Transition>
     <Transition id="DECOY_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="664.4028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -519,7 +519,7 @@
     </Transition>
     <Transition id="DECOY_copy1_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="664.4028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -532,7 +532,7 @@
     </Transition>
     <Transition id="DECOY_copy2_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="664.4028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -545,7 +545,7 @@
     </Transition>
     <Transition id="DECOY_copy3_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="664.4028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -558,7 +558,7 @@
     </Transition>
     <Transition id="DECOY_copy4_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="664.4028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -571,7 +571,7 @@
     </Transition>
     <Transition id="DECOY_copy5_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="664.4028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -584,7 +584,7 @@
     </Transition>
     <Transition id="DECOY_copy6_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="664.4028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
@@ -597,7 +597,7 @@
     </Transition>
     <Transition id="DECOY_copy7_AQRT.YILAGVENSK.2_y6_1.light" peptideRef="DECOY_YILAGVENSK">
       <Precursor>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="547.398041742771" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="664.4028" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
