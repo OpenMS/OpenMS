@@ -2501,6 +2501,7 @@ namespace OpenMS
       row.best_search_engine_score[1] = MzTabDouble();
 
       // initialize columns
+      LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
       for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
       {
         row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();

@@ -676,17 +676,20 @@ protected:
     // Annotate quants to protein(groups) for easier export in mzTab
     auto const & protein_quants = quantifier.getProteinResults();
 
+    // PeptideAndProteinQuant::Statistics stats = quantifier.getStatistics();
+
     // annnotaes final quantities to proteins and protein groups in the ID data structure
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0]);
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
 
+/*
     if (debug_level_ >= 666)
     {
       ConsensusXMLFile().store("debug_result.consensusXML", consensus);
       writeDebug_("to produce a consensus map with: " + String(consensus.getColumnHeaders().size()) + " columns.", 1);
     }
-
+*/
     // Fill MzTab with meta data and quants annotated in identification data structure
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
