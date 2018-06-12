@@ -375,11 +375,11 @@ namespace OpenMS
     {
       data.back().meta.setName(name);
 
-      // time array is given in minutes instead of seconds, we need to convert
-      if (accession == "MS:1000595" && unit_accession == "UO:0000031")
-      {
-        data.back().unit_multiplier = 60.0;
-      }
+      // // time array is given in minutes instead of seconds, we need to convert
+      // if (accession == "MS:1000595" && unit_accession == "UO:0000031")
+      // {
+      //   data.back().unit_multiplier = 60.0;
+      // }
     }
     else
     {
