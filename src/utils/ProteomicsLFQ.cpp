@@ -339,7 +339,7 @@ protected:
         // reannotate spectrum references
         SpectrumMetaDataLookup::addMissingSpectrumReferences(
           peptide_ids, 
-          id_file_abs_path,
+          mz_file_abs_path,
           true);
 
         //-------------------------------------------------------------
@@ -680,7 +680,11 @@ protected:
     // Fill MzTab with meta data and quants annotated in identification data structure
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
-    MzTab m = MzTab::exportConsensusMapToMzTab(consensus, String("null"), report_unidentified_features, report_unmapped);
+    MzTab m = MzTab::exportConsensusMapToMzTab(
+      consensus, 
+      String("null"), 
+      report_unidentified_features, 
+      report_unmapped);
     MzTabFile().store(out, m);
 
     return EXECUTION_OK;
