@@ -611,7 +611,6 @@ namespace OpenMS
   }
 
 
-  // FRACTIONS: DONE
   void PeptideAndProteinQuant::updateMembers_()
   {
     // reset everything:

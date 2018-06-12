@@ -603,7 +603,6 @@ protected:
       infered_peptides.insert(infered_peptides.end(),
                       cons_it->getPeptideIdentifications().begin(),
                       cons_it->getPeptideIdentifications().end());
-      cons_it->getPeptideIdentifications().clear();
     }
 
     // reindex peptides to proteins and keep only unique peptides
