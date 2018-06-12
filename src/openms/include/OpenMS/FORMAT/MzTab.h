@@ -476,7 +476,7 @@ protected:
     MzTabParameter quantification_reagent;
     std::map<Size, MzTabModificationMetaData> quantification_mod;
     MzTabString sample_ref;
-    MzTabString ms_run_ref;
+    std::vector<int> ms_run_ref; // adapted to address https://github.com/HUPO-PSI/mzTab/issues/26
   };
 
   struct OPENMS_DLLAPI MzTabCVMetaData

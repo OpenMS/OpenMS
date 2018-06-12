@@ -42,6 +42,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 
 using namespace std;
 
@@ -2311,9 +2312,9 @@ namespace OpenMS
     // Export protein/-group quantifications (stored as meta value in protein IDs)
     MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename);
 
-    // determine number of channels
-    // TODO: adapt for fractionated design    
-    Size n_study_variables = consensus_map.getColumnHeaders().size();
+    // determine number of samples
+    ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);  
+    Size n_study_variables = ed.getNumberOfSamples();
 
     // collect variable and fixed modifications from different runs
     vector<String> var_mods, fixed_mods;
@@ -2372,10 +2373,16 @@ namespace OpenMS
       ++run_index;
     }
 
+    // assay index (and sample index) must be unique numbers 1..n
+    // fraction_group + label define the quant. values of an assay
+    auto pl2fg = ed.getPathLabelToFractionGroupMapping(false);
+
     // assay meta data
-    Size assay_index(0);
     for (auto const & c : consensus_map.getColumnHeaders())
     {
+      auto pl = make_pair(c.second.filename, 1); // TODO: only label-free here -> adapt to multiplexed
+      Size assay_index = pl2fg[pl]; // TODO: adapt for multiplexed
+
       MzTabAssayMetaData assay;    
       MzTabParameter quantification_reagent;
 
@@ -2400,23 +2407,14 @@ namespace OpenMS
       Size run_index = it->first;
 
       assay.quantification_reagent = quantification_reagent;
-      MzTabString ms_run_ref;
-      ms_run_ref.fromCellString(String("ms_run[") + String(run_index)  + "]");
-      assay.ms_run_ref = ms_run_ref;
-      meta_data.assay[ assay_index + 1] = assay;
-
+      meta_data.assay[assay_index].ms_run_ref.push_back(run_index);
+      
       // study variable meta data
-      MzTabStudyVariableMetaData sv;
-      vector<int> sv_assay_refs;
-      sv_assay_refs.push_back(assay_index + 1);
-      sv.assay_refs = sv_assay_refs;
-
       MzTabString sv_description;
-      sv_description.fromCellString("no description given"); // TODO: read from design file
-      sv.description = sv_description;      
-      meta_data.study_variable[ assay_index + 1] = sv;
-
-      ++assay_index;
+      meta_data.study_variable[assay_index].description.fromCellString("no description given");
+      IntList al;
+      al.push_back(assay_index);
+      meta_data.study_variable[assay_index].assay_refs = al;
     }
 
     mztab.setMetaData(meta_data);
@@ -2518,7 +2516,11 @@ namespace OpenMS
       ConsensusFeature::HandleSetType fs = c.getFeatures();
       for (auto fit = fs.begin(); fit != fs.end(); ++fit)
       {
-        Size study_variable = fit->getMapIndex() + 1;
+        // convert from column index to study variable index
+        const String filename = consensus_map.getColumnHeaders().at(fit->getMapIndex()).filename;
+        auto pl = make_pair(filename, 1); // TODO: only label-free here -> adapt to multiplexed
+        Size study_variable = pl2fg[pl]; // TODO: adapt for multiplexed 
+
         row.peptide_abundance_stdev_study_variable[study_variable];
         row.peptide_abundance_std_error_study_variable[study_variable];
         row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());

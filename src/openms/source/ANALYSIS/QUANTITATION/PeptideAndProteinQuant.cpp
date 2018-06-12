@@ -529,11 +529,8 @@ namespace OpenMS
         // so we need to convert between them
         //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
         size_t row = f.getMapIndex();
-        LOG_DEBUG "row: " << row << endl;
         size_t fraction = ed.getMSFileSection()[row].fraction;
-        LOG_DEBUG "fraction: " << fraction << endl;
         size_t sample = ed.getMSFileSection()[row].sample;
-        LOG_DEBUG "sample: " << sample << endl;
         quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
       }
     }

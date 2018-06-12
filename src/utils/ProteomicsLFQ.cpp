@@ -525,9 +525,13 @@ protected:
       Size j(0);
       for (String const & mz_file : ms_files.second) // for each MS file
       {
+        const Size fraction = ms_files.first;
+        const Size fraction_group = j + 1;
         consensus_fraction.getColumnHeaders()[j].label = "label-free";
         consensus_fraction.getColumnHeaders()[j].filename = mz_file;
         consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
+        consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction", fraction);
+        consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction_group", fraction_group);
         ++j;
       }
 
@@ -567,16 +571,6 @@ protected:
       // end of scope of fraction related data
     }
 
-    if (debug_level_ >= 666)
-    {
-      ConsensusXMLFile().store("debug_consensus_merged.consensusXML", consensus);
-      writeDebug_("to produce a consensus map with: " + String(consensus.getColumnHeaders().size()) + " columns.", 1);
-    }
-
-/*
-    MzTab m_tmp = MzTab::exportConsensusMapToMzTab(consensus, String("null"), false, false);
-    MzTabFile().store(String("tmp_") + out, m_tmp);
-*/
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
 
@@ -686,6 +680,12 @@ protected:
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0]);
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
+
+    if (debug_level_ >= 666)
+    {
+      ConsensusXMLFile().store("debug_result.consensusXML", consensus);
+      writeDebug_("to produce a consensus map with: " + String(consensus.getColumnHeaders().size()) + " columns.", 1);
+    }
 
     // Fill MzTab with meta data and quants annotated in identification data structure
     const bool report_unmapped(true);
