@@ -142,6 +142,8 @@ protected:
     registerStringOption_("allowed_fragment_charges", "<type>", "1,2,3,4", "allowed fragment charge states", false, true);
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed", true);
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed", true);
+    registerStringOption_("switchKR", "<true/false>", "false", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
+    setValidStrings_("switchKR", ListUtils::create<String>(String("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);
   }
@@ -198,6 +200,7 @@ protected:
     String allowed_fragment_charges_string = getStringOption_("allowed_fragment_charges");
     bool enable_detection_specific_losses = getFlag_("enable_detection_specific_losses");
     bool enable_detection_unspecific_losses = getFlag_("enable_detection_unspecific_losses");
+    bool switchKR = getStringOption_("switchKR") == "true";
 
     bool separate = getFlag_("separate");
 
@@ -249,7 +252,7 @@ protected:
 
     LOG_INFO << "Generate decoys" << std::endl;
     decoys.generateDecoys(targeted_exp, targeted_decoy, method,
-                          aim_decoy_fraction, decoy_tag, max_attempts,
+                          aim_decoy_fraction, switchKR, decoy_tag, max_attempts,
                           identity_threshold, precursor_mz_shift,
                           product_mz_shift, product_mz_threshold,
                           allowed_fragment_types, allowed_fragment_charges,

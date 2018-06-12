@@ -322,6 +322,40 @@ namespace OpenMS
     return MRMDecoy::reversePeptide(peptide, false, false);
   }
 
+
+  void switchKR(OpenMS::TargetedExperiment::Peptide& peptide)
+  {
+    static std::string aa[] =
+    {
+      "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
+      "Y", "V"
+    };
+    int aa_size = 17;
+
+    static boost::mt19937 generator(42);
+    static boost::uniform_int<> uni_dist;
+    static boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
+
+    Size lastAA = peptide.sequence.size() -1;
+    if (peptide.sequence[lastAA] == 'K')
+    {
+      std::cout << " last AA " << peptide.sequence[lastAA]  << std::endl;
+      peptide.sequence[lastAA] = 'R';
+      std::cout << " last AA " << peptide.sequence[lastAA]  << std::endl;
+      std::cout << " after " << peptide.sequence << std::endl;
+    }
+    else if (peptide.sequence[lastAA] == 'R')
+    {
+       peptide.sequence[lastAA] = 'K';
+    }
+    else
+    {
+      // randomize
+      int res_pos = (pseudoRNG() % aa_size);
+      peptide.sequence[lastAA] = (char)aa[res_pos][0];
+    }
+  }
+
   bool MRMDecoy::hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const
   {
     for (Size j = 0; j < peptide.mods.size(); j++)
@@ -335,7 +369,7 @@ namespace OpenMS
   }
 
   void MRMDecoy::generateDecoys(const OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                const String& method, const double aim_decoy_fraction,
+                                const String& method, const double aim_decoy_fraction, const bool do_switchKR,
                                 const String& decoy_tag, const int max_attempts, const double identity_threshold,
                                 const double precursor_mz_shift, const double product_mz_shift, const double product_mz_threshold,
                                 const std::vector<String>& fragment_types, const std::vector<size_t>& fragment_charges,
@@ -399,10 +433,11 @@ namespace OpenMS
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
-      }
+        }
         else
         {
           peptide = MRMDecoy::pseudoreversePeptide_(peptide);
+          if (do_switchKR) switchKR(peptide);
         }
       }
       else if (method == "reverse")
@@ -412,7 +447,7 @@ namespace OpenMS
         {
           LOG_DEBUG << "[peptide] Skipping " << peptide.id << " due to C/N-terminal modifications" << std::endl;
           exclusion_peptides.push_back(peptide.id);
-      }
+        }
         else
         {
           peptide = MRMDecoy::reversePeptide_(peptide);
@@ -421,6 +456,7 @@ namespace OpenMS
       else if (method == "shuffle")
       {
         peptide = MRMDecoy::shufflePeptide(peptide, identity_threshold, -1, max_attempts);
+        if (do_switchKR) switchKR(peptide);
       }
 
       for (Size prot_idx = 0; prot_idx < peptide.protein_refs.size(); ++prot_idx)
@@ -468,6 +504,10 @@ namespace OpenMS
             fragment_types, fragment_charges, enable_specific_losses,
             enable_unspecific_losses, round_decPow);
 
+      // Compute (new) decoy precursor m/z based on the K/R replacement and the AA changes in the shuffle algorithm
+      double decoy_precursor_mz = decoy_peptide_sequence.getMonoWeight(Residue::Full, decoy_charge) / decoy_charge;
+      decoy_precursor_mz += precursor_mz_shift; // fix for TOPPView: Duplicate precursor MZ is not displayed.
+
       for (Size i = 0; i < pep_it->second.size(); i++)
       {
         const ReactionMonitoringTransition tr = *(pep_it->second[i]);
@@ -481,7 +521,7 @@ namespace OpenMS
 
         decoy_tr.setNativeID(decoy_tag + tr.getNativeID());
         decoy_tr.setDecoyTransitionType(ReactionMonitoringTransition::DECOY);
-        decoy_tr.setPrecursorMZ(tr.getPrecursorMZ() + precursor_mz_shift); // fix for TOPPView: Duplicate precursor MZ is not displayed.
+        decoy_tr.setPrecursorMZ(decoy_precursor_mz);
 
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition
