@@ -104,7 +104,7 @@ public:
     /// Statistics for processing summary
     struct Statistics
     {
-      /// number of samples
+      /// number of samples (or assays in mzTab terms)
       Size n_samples;
 
       /// number of fractions

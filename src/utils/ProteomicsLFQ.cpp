@@ -542,8 +542,11 @@ protected:
       // sort list of peptide identifications in each consensus feature by map index
       consensus_fraction.sortPeptideIdentificationsByMapIndex();
 
-      ConsensusXMLFile().store("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction);
-      writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
+      if (debug_level_ >= 666)
+      {
+        ConsensusXMLFile().store("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction);
+        writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
+      }
 
       //-------------------------------------------------------------
       // ID conflict resolution
@@ -562,6 +565,12 @@ protected:
       consensus.appendColumns(consensus_fraction);
 
       // end of scope of fraction related data
+    }
+
+    if (debug_level_ >= 666)
+    {
+      ConsensusXMLFile().store("debug_consensus_merged.consensusXML", consensus);
+      writeDebug_("to produce a consensus map with: " + String(consensus.getColumnHeaders().size()) + " columns.", 1);
     }
 
 /*
@@ -673,6 +682,8 @@ protected:
 
     // Annotate quants to protein(groups) for easier export in mzTab
     auto const & protein_quants = quantifier.getProteinResults();
+
+    // annnotaes final quantities to proteins and protein groups in the ID data structure
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0]);
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
