@@ -239,7 +239,7 @@ namespace OpenMS
     // append proteinIdentification
     protein_identifications_.insert(protein_identifications_.end(),
                                     rhs.protein_identifications_.begin(),
-                                    rhs.protein_identifications_.end());
+                                    rhs.protein_identifications_.end());    
 
     // ensure non-redundant modification parameter
     for (auto & pi : protein_identifications_)
@@ -259,13 +259,40 @@ namespace OpenMS
       fixMod.resize(it_2 - fixMod.begin());
     }
 
-    // append unassignedPeptideIdentifications
-    unassigned_peptide_identifications_.insert(unassigned_peptide_identifications_.end(),
-                                               rhs.unassigned_peptide_identifications_.begin(),
-                                               rhs.unassigned_peptide_identifications_.end());
+    // append unassigned identifications and update map index:
+    for (PeptideIdentification pid : rhs.unassigned_peptide_identifications_)
+    {
+      if (pid.metaValueExists("map_index"))
+      {
+        Size old_index = pid.getMetaValue("map_index");
+        pid.setMetaValue("map_index", lhs_map_size + old_index);
+      }
+      unassigned_peptide_identifications_.push_back(pid);
+    }
 
-    // append consensusElements to consensusElementList:
-    this->insert(this->end(), rhs.begin(), rhs.end());
+    // append consensusElements to consensusElementList and update map index:
+    for (ConsensusFeature cf : rhs)
+    {
+      for (PeptideIdentification & pid : cf.getPeptideIdentifications())
+      {
+        if (pid.metaValueExists("map_index"))
+        {
+          Size old_index = pid.getMetaValue("map_index");
+          pid.setMetaValue("map_index", lhs_map_size + old_index);
+        }
+      }
+      
+      // we can't directly update the map index of consensus features
+      // so we need to create a temporary one.
+      ConsensusFeature new_cf;
+      for (ConsensusFeature::const_iterator it = cf.begin(); it != cf.end(); ++it)
+      {
+        new_cf.insert(lhs_map_size + it->getMapIndex() , cf);
+      }
+      new_cf.getPeptideIdentifications() = cf.getPeptideIdentifications();
+      
+      push_back(new_cf);
+    }
 
     // consistency
     try
