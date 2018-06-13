@@ -1834,9 +1834,8 @@ namespace OpenMS
           // First entry might be the inference result without (single) associated ms_run. We skip it.
           if (has_inference_data && it == prot_ids.begin()) { continue; }          
           
-          LOG_DEBUG << "MzTab: Protein ID identifier: " << it->getIdentifier() << " run index: " << run_index << endl;
-
           map_id_to_run[it->getIdentifier()] = run_index;
+          
           ++run_index;
         }
 

@@ -357,7 +357,25 @@ protected:
         id_msfile_ref.push_back(mz_file);
         protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
         protein_ids[0].setMetaValue("fraction_group", fraction_group);
-        protein_ids[0].setMetaValue("fraction", fraction);        
+        protein_ids[0].setMetaValue("fraction", fraction);
+
+        // update identifers to make them unique 
+        // fixes some bugs related to users splitting the original mzML and id files before running the analysis
+        // in that case these files might have the same identifier
+        const String old_identifier = protein_ids[0].getIdentifier();
+        const String new_identifier = old_identifier + "_" + String(fraction_group) + "F" + String(fraction);
+        protein_ids[0].setIdentifier(new_identifier);
+        for (auto & p : peptide_ids)
+        {
+          if (p.getIdentifier() == old_identifier)
+          {
+            p.setIdentifier(new_identifier);
+          }
+          else
+          {
+            LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl;
+          }
+        }
 
         // reannotate spectrum references
         SpectrumMetaDataLookup::addMissingSpectrumReferences(
