@@ -405,7 +405,10 @@ namespace OpenMS
         selection_list.push_back( item_list[ k++ % item_list.size() ]);
       }
     }
-    else {selection_list = item_list;}
+    else
+    {
+      selection_list = item_list;
+    }
 
     std::vector<String> exclusion_peptides;
     // Go through all peptides and apply the decoy method to the sequence
