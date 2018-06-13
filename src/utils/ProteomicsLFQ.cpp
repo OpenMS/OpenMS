@@ -552,7 +552,8 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
             transformations[i]);
         }
-
+        addDataProcessing_(consensus_fraction,
+                       getProcessingInfo_(DataProcessing::ALIGNMENT));
         //-------------------------------------------------------------
         // Link all features of this fraction
         //-------------------------------------------------------------
@@ -560,6 +561,9 @@ protected:
         FeatureGroupingAlgorithmQT linker;
         linker.setParameters(fl_param);      
         linker.group(feature_maps, consensus_fraction);
+        addDataProcessing_(consensus_fraction,
+                       getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+
       }
       else // only one feature map
       {
@@ -585,11 +589,6 @@ protected:
 
       // assign unique ids
       consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-      // annotate output with data processing info
-      addDataProcessing_(consensus_fraction,
-                       getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
-
 
       // sort list of peptide identifications in each consensus feature by map index
       consensus_fraction.sortPeptideIdentificationsByMapIndex();
