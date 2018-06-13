@@ -75,6 +75,9 @@ namespace OpenMS
     {
       ExperimentalDesign experimental_design;
 
+      // one of label-free, labeled_MS1, labeled_MS2
+      const String & experiment_type = cm.getExperimentType();
+
       // path of the original MS run (mzML / raw file)
       StringList ms_run_paths;
       cm.getPrimaryMSRunPath(ms_run_paths);
@@ -125,7 +128,6 @@ namespace OpenMS
                             - msfiles.begin())  + 1;
         }
 
-        r.sample = r.fraction_group; // TODO: adapt for multiplexed data
         if (f.second.metaValueExists("channel_id"))
         {
           r.label = static_cast<unsigned int>(f.second.getMetaValue("channel_id")) + 1;
@@ -135,6 +137,16 @@ namespace OpenMS
           LOG_WARN << "No channel id annotated in consensusXML. Assuming label-free." << endl;
           r.label = 1;
         }
+
+        if (experiment_type == "label-free")
+        {
+          r.sample = r.fraction_group;
+        }
+        else // MS1 or MS2 labeled
+        {
+          r.sample = r.label;
+        }
+
         msfile_section.push_back(r);
       }
 
