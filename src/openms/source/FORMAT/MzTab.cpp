@@ -2387,28 +2387,42 @@ namespace OpenMS
     // fraction_group + label define the quant. values of an assay
     auto pl2fg = ed.getPathLabelToFractionGroupMapping(false);
 
+    const String & experiment_type = consensus_map.getExperimentType();    
+
     // assay meta data
     for (auto const & c : consensus_map.getColumnHeaders())
     {
-      auto pl = make_pair(c.second.filename, 1); // TODO: only label-free here -> adapt to multiplexed
-      Size assay_index = pl2fg[pl]; // TODO: adapt for multiplexed
-
+      Size assay_index{1};
+      
       MzTabAssayMetaData assay;    
       MzTabParameter quantification_reagent;
-
-      // TODO: check if there are appropriate CV terms
-      if (consensus_map.getExperimentType() == "label-free")
+      if (experiment_type == "label-free")
       {
         quantification_reagent.fromCellString("[MS,MS:1002038,unlabeled sample,]");
+        auto pl = make_pair(c.second.filename, 1); // TODO: only label-free here -> adapt to multiplexed
+        assay_index = pl2fg[pl];
       } 
-      else if (consensus_map.getExperimentType() == "labeled_MS1")
+      else if (experiment_type == "labeled_MS1")
       {
-        MzTabParameter quantification_reagent;
+        // TODO: check if there are appropriate CV terms
         quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS1 labeled sample," + c.second.label + "]");
+        Size label{1};
+        if (c.second.metaValueExists("channel_id"))
+        {
+          label = static_cast<unsigned int>(c.second.getMetaValue("channel_id")) + 1;
+        }
+        assay_index = label;
       } 
-      else if (consensus_map.getExperimentType() == "labeled_MS2")
+      else if (experiment_type == "labeled_MS2")
       {
+        // TODO: check if there are appropriate CV terms
         quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS2 labeled sample," + c.second.label + "]");
+        Size label{1};
+        if (c.second.metaValueExists("channel_id"))
+        {
+          label = static_cast<unsigned int>(c.second.getMetaValue("channel_id")) + 1;
+        }
+        assay_index = label;
       }
 
       // look up run index by filename
@@ -2416,7 +2430,7 @@ namespace OpenMS
         [&c] (const pair<Size, MzTabMSRunMetaData>& m) { return m.second.location.toCellString() == c.second.filename; } );
       Size run_index = it->first;
 
-      assay.quantification_reagent = quantification_reagent;
+      meta_data.assay[assay_index].quantification_reagent = quantification_reagent;
       meta_data.assay[assay_index].ms_run_ref.push_back(run_index);
       
       // study variable meta data
