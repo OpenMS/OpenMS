@@ -93,9 +93,9 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<file list>", StringList(), "input files");
+    registerInputFileList_("in", "<file list>", StringList(), "Input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFileList_("ids", "<file list>", StringList(), "unfiltered identifications");
+    registerInputFileList_("ids", "<file list>", StringList(), "Unfiltered identifications. Must be provided in Same order as spectra files.");
     setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
@@ -133,9 +133,7 @@ protected:
   {
     //-------------------------------------------------------------
     // Parameter handling
-    //-------------------------------------------------------------
-
-    // TODO: check handling of single MS file and n-MS files of a single run
+    //-------------------------------------------------------------    
 
     // Read tool parameters
     StringList in = getStringList_("in");
@@ -144,36 +142,19 @@ protected:
     String design_file = getStringOption_("design");
     String in_db = getStringOption_("fasta");
 
+    // Validate parameters
     if (in.size() != in_ids.size())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, 
         OPENMS_PRETTY_FUNCTION, "Number of id and spectra files don't match.");
     }
-  
-    // map between mzML file and corresponding id file
-    map<String, String> mzfile2idfile;
-    for (Size i = 0; i != in.size(); ++i)
-    {
-      const String& in_abs_path = File::absolutePath(in[i]);
-      const String& id_abs_path = File::absolutePath(in_ids[i]);
-      mzfile2idfile[in_abs_path] = id_abs_path;
-      writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
-      if (!File::exists(in[i]))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Spectra file '" + in[i] + "' does not exist.");
-      }
 
-      if (!File::exists(in_ids[i]))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Id file '" + in[i] + "' does not exist.");
-      }
-    }
- 
+    //-------------------------------------------------------------
+    // Experimental design: read or generate default
+    //-------------------------------------------------------------      
     ExperimentalDesign design;
     if (!design_file.empty())
-    { 
+    { // load from file
       design = ExperimentalDesignFile::load(design_file, false);
     }
     else
@@ -203,11 +184,31 @@ protected:
       }
     }
 
+    // Map between mzML file and corresponding id file
+    // Here we currently assume that these are provided in the exact same order.
+    // In the future, we could warn or reorder them based on the annotated primaryMSRunPath in the ID file.
+    map<String, String> mzfile2idfile;
+    for (Size i = 0; i != in.size(); ++i)
+    {
+      const String& in_abs_path = File::absolutePath(in[i]);
+      const String& id_abs_path = File::absolutePath(in_ids[i]);
+      mzfile2idfile[in_abs_path] = id_abs_path;      
+      writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
+      if (!File::exists(in[i]))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Spectra file '" + in[i] + "' does not exist.");
+      }
+
+      if (!File::exists(in_ids[i]))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Id file '" + in[i] + "' does not exist.");
+      }    
+    }
+
     Param pp_param = getParam_().copy("Centroiding:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
-    PeakPickerHiRes pp;
-    pp.setLogType(log_type_);
-    pp.setParameters(pp_param);
 
     Param ff_param = getParam_().copy("Peptide Quantification:", true);
     writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ff_param, 3);
@@ -220,17 +221,11 @@ protected:
 
     Param pep_param = getParam_().copy("Posterior Error Probability:", true);
     writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
-    Math::PosteriorErrorProbabilityModel PEP_model;
-    // PEP_model.setLogType(log_type_); TODO: add to PEP
-    PEP_model.setParameters(pep_param);
 
     // TODO: inference parameter
 
     Param pq_param = getParam_().copy("Protein Quantification:", true);
     writeDebug_("Parameters passed to PeptideAndProteinQuant algorithm", pq_param, 3);
-    PeptideAndProteinQuant quantifier;
-    //quantifier.setLogType(log_type_);
-    quantifier.setParameters(pq_param);
 
     Param mtd_param = getParam_().copy("algorithm:mtd:", true);
     writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
@@ -245,26 +240,28 @@ protected:
     for (auto const ms_files : frac2ms) // for each fraction->ms file(s)
     {
       vector<FeatureMap> feature_maps;
-      ConsensusMap consensus_fraction;      
+      ConsensusMap consensus_fraction;
+      const Size fraction = ms_files.first;
 
       // debug output
-      writeDebug_("Processing fraction number: " + String(ms_files.first) + "\nFiles: ",  1);
+      writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
       
-      for (String const & mz_file : ms_files.second) // for each MS file
+      // for each MS file
+      for (String const & mz_file : ms_files.second) 
       {
         writeDebug_(mz_file,  1);
       }
 
-      for (String const & mz_file : ms_files.second) // for each MS file
-      {
-        // TODO: check if s is part of in 
-      
+      // for each MS file
+      Size fraction_group{1};
+      for (String const & mz_file : ms_files.second)
+      {     
         // load raw file
         MzMLFile mzML_file;
         mzML_file.setLogType(log_type_);
 
         PeakMap ms_centroided;
-        {  // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
+        { // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
           PeakMap ms_raw;
           mzML_file.load(mz_file, ms_raw);
 
@@ -291,6 +288,9 @@ protected:
           //-------------------------------------------------------------
           // Centroiding of MS1
           //-------------------------------------------------------------
+          PeakPickerHiRes pp;
+          pp.setLogType(log_type_);
+          pp.setParameters(pp_param);
           pp.pickExperiment(ms_raw, ms_centroided, true);
           
           //-------------------------------------------------------------
@@ -335,6 +335,29 @@ protected:
         const String& mz_file_abs_path = File::absolutePath(mz_file);
         const String& id_file_abs_path = File::absolutePath(mzfile2idfile[mz_file_abs_path]);
         IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
+
+        if (protein_ids.size() != 1)
+        {
+          LOG_FATAL_ERROR << "Exactly one protein identification runs must be annotated in " << id_file_abs_path << endl;
+          return ExitCodes::INCOMPATIBLE_INPUT_DATA;     
+        }
+
+        // annotate experimental design
+        StringList id_msfile_ref;
+        protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
+        if (id_msfile_ref.empty())
+        {
+          LOG_DEBUG << "MS run path not set in ID file." << endl;
+        }
+        else
+        {
+          // TODO: we could add a check (e.g., matching base name) here
+          id_msfile_ref.clear();
+        }                
+        id_msfile_ref.push_back(mz_file);
+        protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
+        protein_ids[0].setMetaValue("fraction_group", fraction_group);
+        protein_ids[0].setMetaValue("fraction", fraction);        
 
         // reannotate spectrum references
         SpectrumMetaDataLookup::addMissingSpectrumReferences(
@@ -382,6 +405,8 @@ protected:
         //-------------------------------------------------------------
         // Posterior Error Probability calculation
         //-------------------------------------------------------------
+        Math::PosteriorErrorProbabilityModel PEP_model;
+        PEP_model.setParameters(pep_param);
 
         map<String, vector<vector<double> > > all_scores = Math::PosteriorErrorProbabilityModel::extractAndTransformScores(
           protein_ids, 
@@ -459,9 +484,9 @@ protected:
 
         // create empty feature map and annotate MS file
         FeatureMap fm;
-        StringList sl;
-        sl.push_back(mz_file);
-        fm.setPrimaryMSRunPath(sl);
+        StringList feature_msfile_ref;
+        feature_msfile_ref.push_back(mz_file);
+        fm.setPrimaryMSRunPath(feature_msfile_ref);
         feature_maps.push_back(fm);
 
         FeatureFinderIdentificationAlgorithm ff;
@@ -472,6 +497,7 @@ protected:
 
         // TODO: think about external ids ;)
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
+        ++fraction_group;
       }
 
       //-------------------------------------------------------------
@@ -481,13 +507,13 @@ protected:
       {
         vector<TransformationDescription> transformations;
     
-        //TODO: check if we need to set reference
-        Size reference_index(0);
+        // Determine reference from data, otherwise a change in order of input files
+        // leads to slightly different results
+        const int reference_index(-1); // set no reference (determine from data)
         MapAlignmentAlgorithmIdentification aligner;
         aligner.setLogType(log_type_);
         aligner.setParameters(ma_param);
         aligner.align(feature_maps, transformations, reference_index);
-
 
         // find model parameters:
         Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
@@ -522,8 +548,12 @@ protected:
         MapConversion::convert(0, feature_maps.back(), consensus_fraction);                           
       }
 
+      ////////////////////////////////////////////////////////////
+      // Annotate experimental design in consensus map
+      ////////////////////////////////////////////////////////////
       Size j(0);
-      for (String const & mz_file : ms_files.second) // for each MS file
+      // for each MS file (as provided in the experimental design)
+      for (String const & mz_file : ms_files.second) 
       {
         const Size fraction = ms_files.first;
         const Size fraction_group = j + 1;
@@ -571,6 +601,9 @@ protected:
       // end of scope of fraction related data
     }
 
+    consensus.sortByPosition();
+    consensus.sortPeptideIdentificationsByMapIndex();
+
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
 
@@ -585,7 +618,6 @@ protected:
     // Protein inference
     //-------------------------------------------------------------
     // TODO: Implement inference
-
     vector<PeptideIdentification> infered_peptides;
     vector<ProteinIdentification> infered_protein_groups(1, ProteinIdentification());
 
@@ -652,6 +684,8 @@ protected:
     //-------------------------------------------------------------
     // Peptide quantification
     //-------------------------------------------------------------
+    PeptideAndProteinQuant quantifier;
+    quantifier.setParameters(pq_param);
     quantifier.readQuantData(consensus, design);
     quantifier.quantifyPeptides(infered_peptides);
 
@@ -676,26 +710,26 @@ protected:
     // Annotate quants to protein(groups) for easier export in mzTab
     auto const & protein_quants = quantifier.getProteinResults();
 
-    // PeptideAndProteinQuant::Statistics stats = quantifier.getStatistics();
-
     // annnotaes final quantities to proteins and protein groups in the ID data structure
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0]);
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
 
-/*
+    // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
+    proteins[0].setSearchEngine("Fido"); 
+    proteins[0].setIdentifier("Fido"); 
+
     if (debug_level_ >= 666)
     {
-      ConsensusXMLFile().store("debug_result.consensusXML", consensus);
-      writeDebug_("to produce a consensus map with: " + String(consensus.getColumnHeaders().size()) + " columns.", 1);
+      ConsensusXMLFile().store("debug_consensus.consensusXML", consensus);
     }
-*/
+
     // Fill MzTab with meta data and quants annotated in identification data structure
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
     MzTab m = MzTab::exportConsensusMapToMzTab(
       consensus, 
-      String("null"), 
+      String("null"),   
       report_unidentified_features, 
       report_unmapped);
     MzTabFile().store(out, m);

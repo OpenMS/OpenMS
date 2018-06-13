@@ -44,6 +44,8 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
+#include <tuple>
+
 using namespace std;
 
 namespace OpenMS
@@ -1756,6 +1758,7 @@ namespace OpenMS
   {
     LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
     vector<PeptideIdentification> pep_ids = peptide_ids;
+
     MzTab mztab;
     MzTabMetaData meta_data;
     vector<String> var_mods, fixed_mods;
@@ -1787,7 +1790,11 @@ namespace OpenMS
       } 
 
       // TODO: maybe use something different to determine if it is inference data
-      bool has_inference_data = prot_ids[0].getSearchEngine() == "Fido" ? true : false; 
+      bool has_inference_data = prot_ids[0].getSearchEngine() == "Fido" ? true : false;
+      if (has_inference_data)
+      {
+        LOG_DEBUG << "MzTab: Inference data provided." << std::endl;
+      }
 
       MzTabParameter protein_score_type;
       protein_score_type.fromCellString("[,," + prot_ids[0].getSearchEngine() + ",]"); // TODO: check if we need one for every run (should not be redundant!)
@@ -1825,7 +1832,10 @@ namespace OpenMS
         for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it)
         {
           // First entry might be the inference result without (single) associated ms_run. We skip it.
-          if (has_inference_data && it == prot_ids.begin()) { continue; }
+          if (has_inference_data && it == prot_ids.begin()) { continue; }          
+          
+          LOG_DEBUG << "MzTab: Protein ID identifier: " << it->getIdentifier() << " run index: " << run_index << endl;
+
           map_id_to_run[it->getIdentifier()] = run_index;
           ++run_index;
         }
@@ -2171,6 +2181,7 @@ namespace OpenMS
     }
 
     mztab.setMetaData(meta_data);
+
     mztab.setPSMSectionRows(rows);
 
     return mztab;

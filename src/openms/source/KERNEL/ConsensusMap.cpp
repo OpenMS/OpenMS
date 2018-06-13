@@ -285,6 +285,12 @@ namespace OpenMS
       // we can't directly update the map index of consensus features
       // so we need to create a temporary one.
       ConsensusFeature new_cf;
+      new_cf.setCharge(cf.getCharge());
+      new_cf.setRT(cf.getRT());
+      new_cf.setQuality(cf.getQuality());
+      new_cf.setIntensity(cf.getIntensity());
+      new_cf.setWidth(cf.getWidth());
+      
       for (ConsensusFeature::const_iterator it = cf.begin(); it != cf.end(); ++it)
       {
         new_cf.insert(lhs_map_size + it->getMapIndex() , cf);
