@@ -2541,10 +2541,34 @@ namespace OpenMS
       ConsensusFeature::HandleSetType fs = c.getFeatures();
       for (auto fit = fs.begin(); fit != fs.end(); ++fit)
       {
-        // convert from column index to study variable index
-        const String filename = consensus_map.getColumnHeaders().at(fit->getMapIndex()).filename;
-        auto pl = make_pair(filename, 1); // TODO: only label-free here -> adapt to multiplexed
-        Size study_variable = pl2fg[pl]; // TODO: adapt for multiplexed 
+        Size study_variable{1};
+        const int index = fit->getMapIndex();
+        const ConsensusMap::ColumnHeader& ch = consensus_map.getColumnHeaders().at(index);
+
+        if (experiment_type == "label-free")
+        {
+          // convert from column index to study variable index
+          auto pl = make_pair(ch.filename, 1);
+          study_variable = pl2fg[pl];
+        } 
+        else if (experiment_type == "labeled_MS1")
+        {
+          Size label{1};
+          if (ch.metaValueExists("channel_id"))
+          {
+            label = static_cast<unsigned int>(ch.getMetaValue("channel_id")) + 1;
+          }
+          study_variable = label;
+        } 
+        else if (experiment_type == "labeled_MS2")
+        {
+          Size label{1};
+          if (ch.metaValueExists("channel_id"))
+          {
+            label = static_cast<unsigned int>(ch.getMetaValue("channel_id")) + 1;
+          }
+          study_variable = label;
+        }
 
         row.peptide_abundance_stdev_study_variable[study_variable];
         row.peptide_abundance_std_error_study_variable[study_variable];
