@@ -44,6 +44,7 @@
 #include <OpenMS/FILTERING/CALIBRATION/MZTrafoModel.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
@@ -99,7 +100,8 @@ protected:
     /// TODO: think about export of quality control files (qcML?)
 
     Param pp_defaults = PeakPickerHiRes().getDefaults();
-    Param ff_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
+    Param ffm_defaults = FeatureFindingMetabo().getDefaults();
+    Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
     Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
     Param pep_defaults = Math::PosteriorErrorProbabilityModel().getParameters();
@@ -108,7 +110,8 @@ protected:
 
     Param combined;
     combined.insert("Centroiding:", pp_defaults);
-    combined.insert("Peptide Quantification:", ff_defaults);
+    combined.insert("Assembling: ", ffm_defaults);
+    combined.insert("Peptide Quantification:", ffi_defaults);
     combined.insert("Alignment:", ma_defaults);
     combined.insert("Linking:", fl_defaults);
     // combined.insert("Protein Inference:", pi_defaults);
@@ -185,7 +188,7 @@ protected:
     for (auto & f : frac2ms)
     {
       writeDebug_("Fraction " + String(f.first) + ":", 10);
-      for (auto s : f.second)
+      for (const auto & s : f.second)
       {
         writeDebug_("MS file: " + String(s), 10);
       }
@@ -197,8 +200,11 @@ protected:
     pp.setLogType(log_type_);
     pp.setParameters(pp_param);
 
-    Param ff_param = getParam_().copy("Peptide Quantification:", true);
-    writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ff_param, 3);
+    Param ffm_param = getParam_().copy("Assembling: ", true);
+    writeDebug_("Parameters passed to FeatureFindingMetabo algorithm", ffm_param, 3);
+
+    Param ffi_param = getParam_().copy("Peptide Quantification:", true);
+    writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
     Param ma_param = getParam_().copy("Alignment:", true);
     writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
@@ -230,7 +236,7 @@ protected:
     // Loading input
     //-------------------------------------------------------------
     ConsensusMap consensus;
-    for (auto const ms_files : frac2ms) // for each fraction->ms file(s)
+    for (auto const &ms_files : frac2ms) // for each fraction->ms file(s)
     {
       vector<FeatureMap> feature_maps;
       ConsensusMap consensus_fraction;      
@@ -326,7 +332,7 @@ protected:
 
         if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
                       10.0,
-                      1.0, 
+                      1.5,
                       "",                      
                       "",
                       qc_residual_path,
@@ -422,11 +428,26 @@ protected:
         fm.setPrimaryMSRunPath(sl);
         feature_maps.push_back(fm);
 
-        FeatureFinderIdentificationAlgorithm ff;
-        ff.getMSData().swap(ms_centroided);     
-        ff.getProgressLogger().setLogType(log_type_);
-        ff.setParameters(ff_param);
-        ff.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
+        ///////////////////////////////////////////////
+        std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
+
+        FeatureFindingMetabo ffm;
+        ffm_param.setValue("algorithm:ffm:mz_scoring_13C", true);
+        ffm_param.setValue("algorithm:ffm:isotope_filtering_model", "peptides");
+        ffm_param.setValue("algorithm:ffm:remove_single_traces", true);
+        ffm_param.setValue("algorithm:common:chrom_fwhm", median_fwhm);
+        ffm_param.setValue("algorithm:ffm:charge_lower_bound", 2);
+        ffm_param.setValue("algorithm:ffm:charge_upper_bound", 5);
+        ffm_param.setValue("remove_single_traces", false); //does this even exist?
+        ffm.setLogType(log_type_);
+        ffm.setParameters(ffi_param);
+        ffm.run(m_traces, fm, chromatograms);
+
+        FeatureFinderIdentificationAlgorithm ffi;
+        ffi.getMSData().swap(ms_centroided);
+        ffi.getProgressLogger().setLogType(log_type_);
+        ffi.setParameters(ffi_param);
+        ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
 
         // TODO: think about external ids ;)
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)

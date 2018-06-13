@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
@@ -262,7 +261,7 @@ namespace OpenMS
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
     for (FeatureMap::Iterator f_it; f_it != seeds.end(); ++f_it)
     {
-      // TODO: check if already a peptide in peptide_map_ that is close in RT and MZ
+      // check if already a peptide in peptide_map_ that is close in RT and MZ
       // if so don't add seed
       bool peptide_already_exists = false;
       for (const auto & peptide : peptides)
@@ -274,7 +273,7 @@ namespace OpenMS
 
         // RT or MZ values in range of 0.1%? -> peptide already exists -> don't add seed
         if (abs(seed_RT - peptide_RT) <= 0.001 * peptide_RT
-                || abs(seed_MZ - peptide_MZ) <= 0.001 * peptide_RT)
+                && abs(seed_MZ - peptide_MZ) <= 0.001 * peptide_RT)
         {
           peptide_already_exists = true;
           break;
@@ -286,8 +285,9 @@ namespace OpenMS
         peptides.push_back(PeptideIdentification());
         PeptideHit seed_hit;
         // seed_hit.setCharge(f_it->getCharge());
-        // std::unique_ptr<AASequence> seq(new AASequence());
-        // seed_hit.setSequence("XXX"); how to set sequence?
+        AASequence some_seq = AASequence::fromString("xxx");
+        std::unique_ptr<AASequence> seq(new AASequence(some_seq));
+        seed_hit.setSequence(*seq);
         vector<PeptideHit> seed_hits;
         seed_hits.push_back(seed_hit);
         peptides.back().setHits(seed_hits);
