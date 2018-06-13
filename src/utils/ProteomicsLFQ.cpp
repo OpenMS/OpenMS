@@ -110,7 +110,7 @@ protected:
 
     Param combined;
     combined.insert("Centroiding:", pp_defaults);
-    combined.insert("Assembling: ", ffm_defaults);
+    combined.insert("Assembling:", ffm_defaults);
     combined.insert("Peptide Quantification:", ffi_defaults);
     combined.insert("Alignment:", ma_defaults);
     combined.insert("Linking:", fl_defaults);
@@ -200,7 +200,7 @@ protected:
     pp.setLogType(log_type_);
     pp.setParameters(pp_param);
 
-    Param ffm_param = getParam_().copy("Assembling: ", true);
+    Param ffm_param = getParam_().copy("Assembling:", true);
     writeDebug_("Parameters passed to FeatureFindingMetabo algorithm", ffm_param, 3);
 
     Param ffi_param = getParam_().copy("Peptide Quantification:", true);
@@ -422,32 +422,41 @@ protected:
         vector<PeptideIdentification> ext_peptide_ids;
 
         // create empty feature map and annotate MS file
-        FeatureMap fm;
+        FeatureMap seeds;
         StringList sl;
         sl.push_back(mz_file);
-        fm.setPrimaryMSRunPath(sl);
-        feature_maps.push_back(fm);
+        seeds.setPrimaryMSRunPath(sl);
+        feature_maps.push_back(seeds);
 
         ///////////////////////////////////////////////
+        // Run MTD before FFM
+        MassTraceDetection mt_ext_full;
+        mtd_param.insert("", com_param);
+        mtd_param.remove("chrom_fwhm");
+        mt_ext.setParameters(mtd_param);
+        std::vector<MassTrace> m_traces_full;
+        mt_ext.run(ms_centroided, m_traces_full);
+
         std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
 
         FeatureFindingMetabo ffm;
-        ffm_param.setValue("algorithm:ffm:mz_scoring_13C", true);
-        ffm_param.setValue("algorithm:ffm:isotope_filtering_model", "peptides");
-        ffm_param.setValue("algorithm:ffm:remove_single_traces", true);
-        ffm_param.setValue("algorithm:common:chrom_fwhm", median_fwhm);
-        ffm_param.setValue("algorithm:ffm:charge_lower_bound", 2);
-        ffm_param.setValue("algorithm:ffm:charge_upper_bound", 5);
-        ffm_param.setValue("remove_single_traces", false); //does this even exist?
+        ffm_param.setValue("mz_scoring_13C", "true");
+        ffm_param.setValue("isotope_filtering_model", "peptides");
+        ffm_param.setValue("remove_single_traces", "true");
+        ffm_param.setValue("chrom_fwhm", median_fwhm);
+        ffm_param.setValue("charge_lower_bound", 2);
+        ffm_param.setValue("charge_upper_bound", 5);
+        ffm_param.setValue("report_chromatograms", "false");
         ffm.setLogType(log_type_);
-        ffm.setParameters(ffi_param);
-        ffm.run(m_traces, fm, chromatograms);
+        ffm.setParameters(ffm_param);
+        ffm.run(m_traces_full, seeds, chromatograms);
 
         FeatureFinderIdentificationAlgorithm ffi;
         ffi.getMSData().swap(ms_centroided);
         ffi.getProgressLogger().setLogType(log_type_);
+        ffi_param.setValue("detect:peak_width", 5 * median_fwhm);
         ffi.setParameters(ffi_param);
-        ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
+        ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back(), seeds);
 
         // TODO: think about external ids ;)
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)

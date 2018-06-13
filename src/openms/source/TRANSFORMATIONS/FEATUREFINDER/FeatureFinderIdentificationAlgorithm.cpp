@@ -272,8 +272,8 @@ namespace OpenMS
         double peptide_MZ = peptide.getMZ();
 
         // RT or MZ values in range of 0.1%? -> peptide already exists -> don't add seed
-        if (abs(seed_RT - peptide_RT) <= 0.001 * peptide_RT
-                && abs(seed_MZ - peptide_MZ) <= 0.001 * peptide_RT)
+        if (abs(seed_RT - peptide_RT) <= peak_width_
+                && abs(seed_MZ - peptide_MZ) <= 0.001 * peptide_MZ)
         {
           peptide_already_exists = true;
           break;
@@ -284,10 +284,9 @@ namespace OpenMS
       {
         peptides.push_back(PeptideIdentification());
         PeptideHit seed_hit;
-        // seed_hit.setCharge(f_it->getCharge());
-        AASequence some_seq = AASequence::fromString("xxx");
-        std::unique_ptr<AASequence> seq(new AASequence(some_seq));
-        seed_hit.setSequence(*seq);
+        seed_hit.setCharge(f_it->getCharge());
+        AASequence some_seq = AASequence::fromString("XXX");
+        seed_hit.setSequence(some_seq);
         vector<PeptideHit> seed_hits;
         seed_hits.push_back(seed_hit);
         peptides.back().setHits(seed_hits);
@@ -566,44 +565,80 @@ namespace OpenMS
            cm_it != pm_it->second.end(); ++cm_it)
       {
         Int charge = cm_it->first;
-        double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
-        LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
-        peptide.setChargeState(charge);
-        String peptide_id = peptide.sequence + "/" + String(charge);
-
-        // we want to detect one feature per peptide and charge state - if there
-        // are multiple RT regions, group them together:
-        peptide.setPeptideGroupLabel(peptide_id);
-        peptide.rts.clear();
-        Size counter = 0;
-        // accumulate IDs over multiple regions:
-        RTMap& internal_ids = ref_rt_map[peptide_id].first;
-        RTMap& external_ids = ref_rt_map[peptide_id].second;
-        for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
-             reg_it != rt_regions.end(); ++reg_it)
+        if (peptide.sequence == "XXX") // seed
         {
-          if (reg_it->ids.count(charge))
+          auto & intern_rt2pepid = cm_it->second.first;
+          for (const auto & pep_id : intern_rt2pepid)
           {
-            LOG_DEBUG << "Region " << counter + 1 << " (RT: "
-                      << float(reg_it->start) << "-" << float(reg_it->end)
-                      << ", size " << float(reg_it->end - reg_it->start) << ")"
-                      << std::endl;
+            double mz = pep_id.second->getMZ();
+            LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
 
-            peptide.id = peptide_id;
-            if (rt_regions.size() > 1) peptide.id += ":" + String(++counter);
+            // get isotope distribution for peptide:
+            Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
+            CoarseIsotopePatternGenerator generator(n_isotopes_);
 
-            // store beginning and end of RT region:
+            IsotopeDistribution iso_dist = generator.estimateFromPeptideWeight(mz * charge - charge * Constants::PROTON_MASS_U);
+            if (isotope_pmin_ > 0.0)
+            {
+              iso_dist.trimLeft(isotope_pmin_);
+              iso_dist.trimRight(isotope_pmin_);
+              iso_dist.renormalize();
+            }
+
+            peptide.setChargeState(charge);
+            String peptide_id = peptide.sequence + String(mz) + "/" + String(charge);
+            peptide.setPeptideGroupLabel(peptide_id);
             peptide.rts.clear();
-            addPeptideRT_(peptide, reg_it->start);
-            addPeptideRT_(peptide, reg_it->end);
+            RTMap& internal_ids = ref_rt_map[peptide_id].first;
+            addPeptideRT_(peptide, pep_id.first - 30.0);
+            addPeptideRT_(peptide, pep_id.first + 30.0);
             library_.addPeptide(peptide);
             generateTransitions_(peptide.id, mz, charge, iso_dist);
+            internal_ids.insert(pep_id);
           }
-          internal_ids.insert(reg_it->ids[charge].first.begin(),
-                              reg_it->ids[charge].first.end());
-          external_ids.insert(reg_it->ids[charge].second.begin(),
-                              reg_it->ids[charge].second.end());
         }
+        else
+        {
+          double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
+          LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
+          peptide.setChargeState(charge);
+          String peptide_id = peptide.sequence + "/" + String(charge);
+
+          // we want to detect one feature per peptide and charge state - if there
+          // are multiple RT regions, group them together:
+          peptide.setPeptideGroupLabel(peptide_id);
+          peptide.rts.clear();
+          Size counter = 0;
+          // accumulate IDs over multiple regions:
+          RTMap& internal_ids = ref_rt_map[peptide_id].first;
+          RTMap& external_ids = ref_rt_map[peptide_id].second;
+          for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
+               reg_it != rt_regions.end(); ++reg_it)
+          {
+            if (reg_it->ids.count(charge))
+            {
+              LOG_DEBUG << "Region " << counter + 1 << " (RT: "
+                        << float(reg_it->start) << "-" << float(reg_it->end)
+                        << ", size " << float(reg_it->end - reg_it->start) << ")"
+                        << std::endl;
+
+              peptide.id = peptide_id;
+              if (rt_regions.size() > 1) peptide.id += ":" + String(++counter);
+
+              // store beginning and end of RT region:
+              peptide.rts.clear();
+              addPeptideRT_(peptide, reg_it->start);
+              addPeptideRT_(peptide, reg_it->end);
+              library_.addPeptide(peptide);
+              generateTransitions_(peptide.id, mz, charge, iso_dist);
+            }
+            internal_ids.insert(reg_it->ids[charge].first.begin(),
+                                reg_it->ids[charge].first.end());
+            external_ids.insert(reg_it->ids[charge].second.begin(),
+                                reg_it->ids[charge].second.end());
+          }
+        }
+
       }
     }
 
