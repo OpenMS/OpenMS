@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 namespace OpenMS
 {
@@ -548,5 +549,63 @@ namespace OpenMS
 
   bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const {
     return a.getRT() < b.getRT();
+  }
+
+  const MSSpectrum::StringDataArray& MSSpectrum::getStringDataArrayByName(const String& name) const
+  {
+    return getTypeDataArrayByName(this->getStringDataArrays(), name);
+  }
+
+  MSSpectrum::StringDataArray& MSSpectrum::getStringDataArrayByName(const String& name)
+  {
+    return getTypeDataArrayByName(this->getStringDataArrays(), name);
+  }
+
+  const MSSpectrum::FloatDataArray& MSSpectrum::getFloatDataArrayByName(const String& name) const
+  {
+    return getTypeDataArrayByName(this->getFloatDataArrays(), name);
+  }
+
+  MSSpectrum::FloatDataArray& MSSpectrum::getFloatDataArrayByName(const String& name)
+  {
+    return getTypeDataArrayByName(this->getFloatDataArrays(), name);
+  }
+
+  const MSSpectrum::IntegerDataArray& MSSpectrum::getIntegerDataArrayByName(const String& name) const
+  {
+    return getTypeDataArrayByName(this->getIntegerDataArrays(), name);
+  }
+
+  MSSpectrum::IntegerDataArray& MSSpectrum::getIntegerDataArrayByName(const String& name)
+  {
+    return getTypeDataArrayByName(this->getIntegerDataArrays(), name);
+  }
+
+  template<typename DataArrayT>
+  DataArrayT const & MSSpectrum::getTypeDataArrayByName(
+    std::vector<DataArrayT> const & das,
+    const String & name
+  ) const
+  {
+    typename std::vector<DataArrayT>::const_iterator it = getDataArrayByName(das, name);
+    if (it == das.cend())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+    }
+    return *it;
+  }
+
+  template<typename DataArrayT>
+  DataArrayT & MSSpectrum::getTypeDataArrayByName(
+    std::vector<DataArrayT> & das,
+    const String & name
+  )
+  {
+    typename std::vector<DataArrayT>::iterator it = getDataArrayByName(das, name);
+    if (it == das.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
+    }
+    return *it;
   }
 }

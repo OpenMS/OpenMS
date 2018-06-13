@@ -249,6 +249,73 @@ public:
 
     /// Sets the integer meta data arrays
     void setIntegerDataArrays(const IntegerDataArrays& ida);
+
+    /**
+      Return the `StringDataArray` with the given name
+
+      @throw Exception::ElementNotFound if no matching `StringDataArray` is found
+
+      @param[in] name The desired data array's name
+
+      @return The const reference to the found data array
+    */
+    const MSSpectrum::StringDataArray& getStringDataArrayByName(const String& name) const;
+
+    /**
+      Return the `StringDataArray` with the given name
+
+      @throw Exception::ElementNotFound if no matching `StringDataArray` is found
+
+      @param[in] name The desired data array's name
+
+      @return The mutable reference to the found data array
+    */
+    MSSpectrum::StringDataArray& getStringDataArrayByName(const String& name);
+
+    /**
+      Return the `FloatDataArray` with the given name
+
+      @throw Exception::ElementNotFound if no matching `FloatDataArray` is found
+
+      @param[in] name The desired data array's name
+
+      @return The const reference to the found data array
+    */
+    const MSSpectrum::FloatDataArray& getFloatDataArrayByName(const String& name) const;
+
+    /**
+      Return the `FloatDataArray` with the given name
+
+      @throw Exception::ElementNotFound if no matching `FloatDataArray` is found
+
+      @param[in] name The desired data array's name
+
+      @return The mutable reference to the found data array
+    */
+    MSSpectrum::FloatDataArray& getFloatDataArrayByName(const String& name);
+
+    /**
+      Return the `IntegerDataArray` with the given name
+
+      @throw Exception::ElementNotFound if no matching `IntegerDataArray` is found
+
+      @param[in] name The desired data array's name
+
+      @return The const reference to the found data array
+    */
+    const MSSpectrum::IntegerDataArray& getIntegerDataArrayByName(const String& name) const;
+
+    /**
+      Return the `IntegerDataArray` with the given name
+
+      @throw Exception::ElementNotFound if no matching `IntegerDataArray` is found
+
+      @param[in] name The desired data array's name
+
+      @return The mutable reference to the found data array
+    */
+    MSSpectrum::IntegerDataArray& getIntegerDataArrayByName(const String& name);
+
     //@}
 
     ///@name Sorting peaks
@@ -483,6 +550,37 @@ protected:
 
     /// Integer data arrays
     IntegerDataArrays integer_data_arrays_;
+
+private:
+    /**
+      Return the `DataArray` with the given name
+
+      @throw Exception::ElementNotFound if no matching `DataArray` is found
+
+      @param[in] name The desired data array's name
+
+      @return The const reference to the found data array
+    */
+    template<typename DataArrayT>
+    DataArrayT const & getTypeDataArrayByName(
+      std::vector<DataArrayT> const & da,
+      const String& name
+    ) const;
+
+    /**
+      Return the `DataArray` with the given name
+
+      @throw Exception::ElementNotFound if no matching `DataArray` is found
+
+      @param[in] name The desired data array's name
+
+      @return The mutable reference to the found data array
+    */
+    template<typename DataArrayT>
+    DataArrayT & getTypeDataArrayByName(
+      std::vector<DataArrayT> & da,
+      const String& name
+    );
   };
 
   inline std::ostream& operator<<(std::ostream& os, const MSSpectrum& spec)

@@ -1285,6 +1285,210 @@ START_SECTION(inline IntegerDataArray& getIntegerDataArrayByName(String name))
 }
 END_SECTION
 
+START_SECTION(const MSSpectrum::StringDataArray& getStringDataArrayByName(const String& name) const)
+{
+  MSSpectrum ds;
+  MSSpectrum::StringDataArray sa;
+  MSSpectrum::StringDataArrays SDAs;
+
+  sa.push_back("1");
+  sa.setName("s1");
+  SDAs.push_back(sa);
+
+  sa.front() = "2";
+  sa.setName("s2");
+  SDAs.push_back(sa);
+
+  sa.front() = "3";
+  sa.setName("s3");
+  SDAs.push_back(sa);
+
+  ds.setStringDataArrays(SDAs);
+
+  const MSSpectrum::StringDataArray& da1c = ds.getStringDataArrayByName("s1");
+  TEST_STRING_EQUAL(da1c.getName(), "s1")
+  TEST_STRING_EQUAL(da1c.front(), "1")
+
+  const MSSpectrum::StringDataArray& da3c = ds.getStringDataArrayByName("s3");
+  TEST_STRING_EQUAL(da3c.getName(), "s3")
+  TEST_STRING_EQUAL(da3c.front(), "3")
+
+  TEST_EXCEPTION(Exception::ElementNotFound, ds.getStringDataArrayByName("s5"))
+}
+END_SECTION
+
+START_SECTION(MSSpectrum::StringDataArray& getStringDataArrayByName(const String& name))
+{
+  MSSpectrum ds;
+  MSSpectrum::StringDataArray sa;
+  MSSpectrum::StringDataArrays SDAs;
+
+  sa.push_back("1");
+  sa.setName("s1");
+  SDAs.push_back(sa);
+
+  sa.front() = "2";
+  sa.setName("s2");
+  SDAs.push_back(sa);
+
+  sa.front() = "3";
+  sa.setName("s3");
+  SDAs.push_back(sa);
+
+  ds.setStringDataArrays(SDAs);
+
+  MSSpectrum::StringDataArray& da1 = ds.getStringDataArrayByName("s1");
+  TEST_STRING_EQUAL(da1.getName(), "s1")
+  TEST_STRING_EQUAL(da1.front(), "1")
+  da1.front() = "1.5";
+  TEST_STRING_EQUAL(da1.front(), "1.5")
+
+  MSSpectrum::StringDataArray& da3 = ds.getStringDataArrayByName("s3");
+  TEST_STRING_EQUAL(da3.getName(), "s3")
+  TEST_STRING_EQUAL(da3.front(), "3")
+  da3.front() = "3.5";
+  TEST_STRING_EQUAL(da3.front(), "3.5")
+
+  TEST_EXCEPTION(Exception::ElementNotFound, ds.getStringDataArrayByName("s4"))
+}
+END_SECTION
+
+START_SECTION(const MSSpectrum::FloatDataArray& getFloatDataArrayByName(const String& name) const)
+{
+  MSSpectrum ds;
+  MSSpectrum::FloatDataArray fa;
+  MSSpectrum::FloatDataArrays FDAs;
+
+  fa.push_back(1.0);
+  fa.setName("f1");
+  FDAs.push_back(fa);
+
+  fa.front() = 2.0;
+  fa.setName("f2");
+  FDAs.push_back(fa);
+
+  fa.front() = 3.0;
+  fa.setName("f3");
+  FDAs.push_back(fa);
+
+  ds.setFloatDataArrays(FDAs);
+
+  const MSSpectrum::FloatDataArray& da1c = ds.getFloatDataArrayByName("f1");
+  TEST_STRING_EQUAL(da1c.getName(), "f1")
+  TEST_REAL_SIMILAR(da1c.front(), 1.0)
+
+  const MSSpectrum::FloatDataArray& da3c = ds.getFloatDataArrayByName("f3");
+  TEST_STRING_EQUAL(da3c.getName(), "f3")
+  TEST_REAL_SIMILAR(da3c.front(), 3.0)
+
+  TEST_EXCEPTION(Exception::ElementNotFound, ds.getFloatDataArrayByName("f4"))
+}
+END_SECTION
+
+START_SECTION(MSSpectrum::FloatDataArray& getFloatDataArrayByName(const String& name))
+{
+  MSSpectrum ds;
+  MSSpectrum::FloatDataArray fa;
+  MSSpectrum::FloatDataArrays FDAs;
+
+  fa.push_back(1.0);
+  fa.setName("f1");
+  FDAs.push_back(fa);
+
+  fa.front() = 2.0;
+  fa.setName("f2");
+  FDAs.push_back(fa);
+
+  fa.front() = 3.0;
+  fa.setName("f3");
+  FDAs.push_back(fa);
+
+  ds.setFloatDataArrays(FDAs);
+
+  MSSpectrum::FloatDataArray& da1 = ds.getFloatDataArrayByName("f1");
+  TEST_STRING_EQUAL(da1.getName(), "f1")
+  TEST_REAL_SIMILAR(da1.front(), 1.0)
+  da1.front() = 1.5;
+  TEST_REAL_SIMILAR(da1.front(), 1.5)
+
+  MSSpectrum::FloatDataArray& da3 = ds.getFloatDataArrayByName("f3");
+  TEST_STRING_EQUAL(da3.getName(), "f3")
+  TEST_REAL_SIMILAR(da3.front(), 3.0)
+  da3.front() = 3.5;
+  TEST_REAL_SIMILAR(da3.front(), 3.5)
+
+  TEST_EXCEPTION(Exception::ElementNotFound, ds.getFloatDataArrayByName("f4"))
+}
+END_SECTION
+
+START_SECTION(const MSSpectrum::IntegerDataArray& getIntegerDataArrayByName(const String& name) const)
+{
+  MSSpectrum ds;
+  MSSpectrum::IntegerDataArray ia;
+  MSSpectrum::IntegerDataArrays IDAs;
+
+  ia.push_back(1);
+  ia.setName("i1");
+  IDAs.push_back(ia);
+
+  ia.front() = 2;
+  ia.setName("i2");
+  IDAs.push_back(ia);
+
+  ia.front() = 3;
+  ia.setName("i3");
+  IDAs.push_back(ia);
+
+  ds.setIntegerDataArrays(IDAs);
+
+  const MSSpectrum::IntegerDataArray& da1c = ds.getIntegerDataArrayByName("i1");
+  TEST_STRING_EQUAL(da1c.getName(), "i1")
+  TEST_EQUAL(da1c.front(), 1)
+
+  const MSSpectrum::IntegerDataArray& da3c = ds.getIntegerDataArrayByName("i3");
+  TEST_STRING_EQUAL(da3c.getName(), "i3")
+  TEST_EQUAL(da3c.front(), 3)
+
+  TEST_EXCEPTION(Exception::ElementNotFound, ds.getIntegerDataArrayByName("i4"))
+}
+END_SECTION
+
+START_SECTION(MSSpectrum::IntegerDataArray& getIntegerDataArrayByName(const String& name))
+{
+  MSSpectrum ds;
+  MSSpectrum::IntegerDataArray ia;
+  MSSpectrum::IntegerDataArrays IDAs;
+
+  ia.push_back(1);
+  ia.setName("i1");
+  IDAs.push_back(ia);
+
+  ia.front() = 2;
+  ia.setName("i2");
+  IDAs.push_back(ia);
+
+  ia.front() = 3;
+  ia.setName("i3");
+  IDAs.push_back(ia);
+
+  ds.setIntegerDataArrays(IDAs);
+
+  MSSpectrum::IntegerDataArray& da1 = ds.getIntegerDataArrayByName("i1");
+  TEST_STRING_EQUAL(da1.getName(), "i1")
+  TEST_EQUAL(da1.front(), 1.0)
+  da1.front() = 2;
+  TEST_EQUAL(da1.front(), 2)
+
+  MSSpectrum::IntegerDataArray& da3 = ds.getIntegerDataArrayByName("i3");
+  TEST_STRING_EQUAL(da3.getName(), "i3")
+  TEST_EQUAL(da3.front(), 3)
+  da3.front() = 4;
+  TEST_EQUAL(da3.front(), 4)
+
+  TEST_EXCEPTION(Exception::ElementNotFound, ds.getIntegerDataArrayByName("i4"))
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
