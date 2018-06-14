@@ -54,7 +54,8 @@
 
 #include <fstream>
 
-class QStringList;
+#include <QStringList>
+
 
 namespace OpenMS
 {
