@@ -124,6 +124,7 @@ protected:
     registerFlag_("concat", "Naive merging of PSMs from different search engines: concatenate multiple search results instead of merging on scan level. Only valid together with -multiple_search_engines flag.", true);
     registerFlag_("impute", "Will instead of discarding all PSM not unanimously detected by all SE, impute missing values by their respective scores min/max observed. Only valid together with -multiple_search_engines flag.", true);
     registerFlag_("limit_imputation", "Will impute missing scores with the worst numerical limit (instead of min/max observed) of the respective score. Only valid together with -multiple_search_engines flag.", true);
+    registerStringOption_("peptide_motif", "<regex>", "", "If set, only peptides that contain this motif (provided as RegEx) will be considered.", false);
   }
   
   ExitCodes main_(int, const char**) override
@@ -148,6 +149,7 @@ protected:
     }
     
     const String out(getStringOption_("out"));
+    const String peptide_motif = getStringOption_("peptide_motif");
 
     //-------------------------------------------------------------
     // read input
@@ -250,6 +252,11 @@ protected:
     {
       LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
+    }
+
+    if (!peptide_motif.empty())
+    {
+      PercolatorFeatureSetHelper::addMotifRegExFeatures(all_peptide_ids, feature_set, peptide_motif);
     }
 
     String run_identifier = all_protein_ids.front().getIdentifier();

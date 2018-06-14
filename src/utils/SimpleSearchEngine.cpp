@@ -554,7 +554,6 @@ class SimpleSearchEngine :
               const PeakSpectrum& exp_spectrum = spectra[scan_index];
               // const int& charge = exp_spectrum.getPrecursors()[0].getCharge();
               const double& score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
-
               if (score == 0) { continue; } // no hit?
 
               // add peptide hit

@@ -96,7 +96,15 @@ namespace OpenMS
          * Concatenates SearchParameter of multiple search engine runs and merges PeptideEvidences, collects used search engines in MetaInfo for collection in addMULTISEFeatures for feature registration.
          */
         static void mergeMULTISEProteinIds(std::vector<ProteinIdentification>& all_protein_ids, std::vector<ProteinIdentification>& new_protein_ids);
-        
+
+        /**
+         * @brief addMotifRegExFeatures
+         * @param peptide_ids PeptideIdentification vector to create Percolator features in
+         * @param feature_set register of added features
+         *
+         * Creates and adds a binary feature if hit sequence matches a provided regex and registers them in feature_set. PSMFeatureExtractor should be run with the peptide_motif flag providing the regex as string.
+         */
+        static void addMotifRegExFeatures(std::vector<PeptideIdentification>& peptide_ids, StringList& feature_set,const OpenMS::String& peptide_motif);        
 
         /**
          * @brief addMSGFFeatures

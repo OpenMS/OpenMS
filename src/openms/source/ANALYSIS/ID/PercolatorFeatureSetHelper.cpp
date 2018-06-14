@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+	// --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -34,11 +34,43 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <boost/regex.hpp>
+
+
+
 
 using namespace std;
+using namespace OpenMS;
 
 namespace OpenMS
 {    
+    void PercolatorFeatureSetHelper::addMotifRegExFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set,const OpenMS::String& peptide_motif)
+    {
+      feature_set.push_back("MotifRegEx:match");
+      boost::regex peptide_motif_regex(peptide_motif);
+
+      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      {
+        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        {
+          String sequence = hit->getSequence().toUnmodifiedString();
+
+          // set motif regex feature to 1 if hit sequence matches provided regex
+          if (boost::regex_match(sequence, peptide_motif_regex))
+          {
+
+            hit->setMetaValue("MotifRegEx:match", 1);
+
+          } else {
+
+            hit->setMetaValue("MotifRegEx:match", 0);
+
+          }
+        }
+      }
+    }
+
+
     void PercolatorFeatureSetHelper::addMSGFFeatures(vector<PeptideIdentification>& peptide_ids, StringList& feature_set)
     {
       feature_set.push_back("MS:1002049"); // unchanged RawScore
