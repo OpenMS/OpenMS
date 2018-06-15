@@ -711,7 +711,7 @@ protected:
       infered_protein_groups[0].computeCoverage(infered_peptides);
 
       // determine observed modifications (exclude fixed mods)
-      StringList fixed_mods = {"Carbamidomethyl (C)"};  // TODO: read from search settings
+      StringList fixed_mods = {"Carbamidomethyl"};  // TODO: read from search settings, make specific to amino acid (site)
       infered_protein_groups[0].computeModifications(infered_peptides, fixed_mods);
     }
 

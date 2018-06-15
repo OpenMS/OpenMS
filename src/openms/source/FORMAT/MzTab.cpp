@@ -2081,7 +2081,6 @@ namespace OpenMS
           // determine group leader
           const ProteinHit& leader_protein = protein_hits[*protein_hits_idx.begin()];
 
-
           MzTabProteinSectionRow protein_row;
           protein_row.database = db; // Name of the protein database.
           protein_row.database_version = db_version; // String Version of the protein database.
@@ -2179,8 +2178,12 @@ namespace OpenMS
             MzTabString unimod_accession = MzTabString(unimod.toUpper());
             mztab_mod.setModificationIdentifier(unimod_accession);
             vector<std::pair<Size, MzTabParameter> > pos;
-            pos.push_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
+            
+            // mzTab position is one-based, internal is 0-based so we need to +1
+            pos.push_back(make_pair(m.first + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
             mztab_mod.setPositionsAndParameters(pos);
+            vector<MzTabModification> mztab_mods(1, mztab_mod);
+            modifications.set(mztab_mods);
           }
           protein_row.modifications = modifications;
 /*
