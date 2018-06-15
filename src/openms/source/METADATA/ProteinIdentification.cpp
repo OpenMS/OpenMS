@@ -436,6 +436,92 @@ namespace OpenMS
     }
   }
 
+  void ProteinIdentification::computeModifications(
+    const std::vector<PeptideIdentification>& pep_ids, 
+    const StringList & skip_modifications)
+  {
+    //map protein accession to observed position,modifications pairs
+    map<String, set<pair<Size, ResidueModification>>> prot2mod;
+
+    for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
+    {
+      // peptide hits
+      const PeptideIdentification & peptide_id = pep_ids[pep_i];
+      const vector<PeptideHit> peptide_hits = peptide_id.getHits();
+      for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
+      {
+        const PeptideHit & peptide_hit = peptide_hits[ph_i];
+        const AASequence & aas = peptide_hit.getSequence();
+        const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
+
+        // skip unmodified peptides
+        if (aas.isModified() == false) { continue; }
+
+        if (aas.isModified())
+        {
+          if (aas.hasNTerminalModification())
+          {
+            const ResidueModification * res_mod = aas.getNTerminalModification();
+            // skip mod?
+            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+            {
+              for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+              {
+                const String & acc = ph_evidences[phe_i].getProteinAccession();
+                const Size mod_pos = ph_evidences[phe_i].getStart(); // mod at N terminus
+                prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+              }
+            }
+          }
+
+          for (Size ai = 0; ai != aas.size(); ++ai)
+          {
+            if (aas[ai].isModified())
+            {
+              const ResidueModification * res_mod = aas[ai].getModification();
+
+              if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+              {
+                for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+                {
+                  const String & acc = ph_evidences[phe_i].getProteinAccession();
+                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai 
+                  prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+                }
+              }
+            }
+          }
+
+          if (aas.hasCTerminalModification())
+          {
+            const ResidueModification * res_mod = aas.getCTerminalModification();
+            // skip mod?
+            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+            {
+              for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+              {
+                const String & acc = ph_evidences[phe_i].getProteinAccession();
+                const Size mod_pos = ph_evidences[phe_i].getEnd(); // mod at C terminus
+                prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (Size i = 0; i < protein_hits_.size(); ++i)
+    {
+      const String & accession = protein_hits_[i].getAccession();
+      if (prot2mod.find(accession) != prot2mod.end())
+      {
+        protein_hits_[i].setModifications(prot2mod[accession]);
+      }
+    }
+  }
+
+
+
   bool ProteinIdentification::isHigherScoreBetter() const
   {
     return higher_score_better_;

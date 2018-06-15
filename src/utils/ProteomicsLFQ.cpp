@@ -256,14 +256,15 @@ protected:
       Size fraction_group{1};
       for (String const & mz_file : ms_files.second)
       {     
-        // load raw file
-        MzMLFile mzML_file;
-        mzML_file.setLogType(log_type_);
-
         PeakMap ms_centroided;
         { // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
+          // load raw file
+          MzMLFile mzML_file;
+          mzML_file.setLogType(log_type_);
+
           PeakMap ms_raw;
           mzML_file.load(mz_file, ms_raw);
+          ms_raw.clearMetaDataArrays();
 
           if (ms_raw.empty())
           {
@@ -276,7 +277,7 @@ protected:
           {
             if (ms_raw[i].getMSLevel() == 2)
             {
-              ms_raw[i].clear(false);
+              ms_raw[i].clear(false);  // delete MS2 peaks
             }
             if (!ms_raw[i].isSorted())
             {
@@ -292,7 +293,7 @@ protected:
           pp.setLogType(log_type_);
           pp.setParameters(pp_param);
           pp.pickExperiment(ms_raw, ms_centroided, true);
-          
+           
           //-------------------------------------------------------------
           // HighRes Precursor Mass Correction
           //-------------------------------------------------------------
@@ -628,7 +629,7 @@ protected:
     // Protein inference
     //-------------------------------------------------------------
     // TODO: ProteinInference on merged ids (how merged?)
-    // TODO: Output coverage on protein and group level
+    // TODO: Output coverage on protein (and group level?)
 
 
     //-------------------------------------------------------------
@@ -640,12 +641,17 @@ protected:
 
     // currenty no proper inference implemented - just extract from consensusMap
     infered_peptides = consensus.getUnassignedPeptideIdentifications();
-    for (ConsensusMap::Iterator cons_it = consensus.begin();
-          cons_it != consensus.end(); ++cons_it)
+    for (ConsensusFeature & c : consensus)
     {
       infered_peptides.insert(infered_peptides.end(),
-                      cons_it->getPeptideIdentifications().begin(),
-                      cons_it->getPeptideIdentifications().end());
+                      c.getPeptideIdentifications().begin(),
+                      c.getPeptideIdentifications().end());
+    }
+    for (auto & p : infered_peptides)
+    {
+      // We need to set the common identifier for the final inference result.
+      // see below and in MzTab.cpp
+      p.setIdentifier("Fido"); 
     }
 
     // reindex peptides to proteins and keep only unique peptides
@@ -653,14 +659,14 @@ protected:
     {
       PeptideIndexing indexer;
       Param param_pi = indexer.getParameters();
-      param_pi.setValue("enzyme:specificity", "none");
+      param_pi.setValue("enzyme:specificity", "none");  // TODO: derive from id files?  
       param_pi.setValue("missing_decoy_action", "silent");
+      param_pi.setValue("write_protein_sequence", "true");
+      param_pi.setValue("write_protein_description", "true");
       indexer.setParameters(param_pi);
 
-      FASTAFile fastaFile;
-      vector<FASTAFile::FASTAEntry> fasta_db;
-      fastaFile.load(in_db, fasta_db);
-
+      // stream data in fasta file
+      FASTAContainer<TFI_File> fasta_db(in_db);
       PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, infered_protein_groups, infered_peptides);
 
       if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
@@ -680,22 +686,33 @@ protected:
         }
       } 
 
-      // merge (and make unique) protein identifications (for now)
-      set<String> accessions;
+      // ensure that only one final inference result is generated
+      assert(infered_protein_groups.size() == 1);
+
+      // merge (unique) protein identifications
       for (auto & p : infered_protein_groups)
-      {      
+      { 
+        // copy hits to protein groups (required for export in mzTab)
         for (auto & h : p.getHits()) 
         { 
-          const String & accession = h.getAccession();
+          const String & a = h.getAccession();
           ProteinIdentification::ProteinGroup pg;
-          pg.accessions.push_back(accession);
+          pg.accessions.push_back(a);
           infered_protein_groups[0].insertIndistinguishableProteins(pg);
-          infered_protein_groups[0].insertProteinGroup(pg);
+          infered_protein_groups[0].insertProteinGroup(pg);          
         }
+        p.setIdentifier("Fido"); 
       }
 
       // only keep unique peptides (for now)
       IDFilter::keepUniquePeptidesPerProtein(infered_peptides);
+
+      // compute coverage
+      infered_protein_groups[0].computeCoverage(infered_peptides);
+
+      // determine observed modifications (exclude fixed mods)
+      StringList fixed_mods = {"Carbamidomethyl (C)"};  // TODO: read from search settings
+      infered_protein_groups[0].computeModifications(infered_peptides, fixed_mods);
     }
 
     //-------------------------------------------------------------
@@ -731,13 +748,14 @@ protected:
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0]);
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
-
-    // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
-    proteins[0].setSearchEngine("Fido"); 
-    proteins[0].setIdentifier("Fido"); 
+    proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
 
     if (debug_level_ >= 666)
     {
+      // Note: idXML and consensusXML doesn't support writing quantification at protein groups
+      // Note: consensusXML currently doesn't support writing out inference data
+      // (they are neverless stored and passed to mzTab for proper export)
+      IdXMLFile().store("debug_ids.idXML", proteins, infered_peptides);
       ConsensusXMLFile().store("debug_consensus.consensusXML", consensus);
     }
 

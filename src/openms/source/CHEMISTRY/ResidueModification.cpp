@@ -109,6 +109,52 @@ namespace OpenMS
     return *this;
   }
 
+  bool ResidueModification::operator<(const ResidueModification& rhs) const
+  {
+    return std::tie(
+           id_,
+           full_id_,
+           psi_mod_accession_,
+           unimod_record_id_,
+           full_name_,
+           name_,
+           term_spec_,
+           origin_,
+           classification_,
+           average_mass_,
+           mono_mass_,
+           diff_average_mass_,
+           diff_mono_mass_,
+           formula_,
+           diff_formula_,
+           synonyms_,
+           neutral_loss_diff_formula_,
+           neutral_loss_mono_mass_,
+           neutral_loss_average_mass_
+    ) < std::tie(
+           rhs.id_,
+           rhs.full_id_,
+           rhs.psi_mod_accession_,
+           rhs.unimod_record_id_,
+           rhs.full_name_,
+           rhs.name_,
+           rhs.term_spec_,
+           rhs.origin_,
+           rhs.classification_,
+           rhs.average_mass_,
+           rhs.mono_mass_,
+           rhs.diff_average_mass_,
+           rhs.diff_mono_mass_,
+           rhs.formula_,
+           rhs.diff_formula_,
+           rhs.synonyms_,
+           rhs.neutral_loss_diff_formula_,
+           rhs.neutral_loss_mono_mass_,
+           rhs.neutral_loss_average_mass_
+    );
+  }
+
+
   bool ResidueModification::operator==(const ResidueModification& rhs) const
   {
     return id_ == rhs.id_ &&

@@ -668,4 +668,16 @@ namespace OpenMS
     }
   }
 
+  bool EmpiricalFormula::operator<(const EmpiricalFormula& rhs) const
+  {
+   return std::tie(
+      formula_, 
+      charge_
+   ) < std::tie(
+      rhs.formula_, 
+      rhs.charge_
+   );
+  }
+
+
 } // namespace OpenMS

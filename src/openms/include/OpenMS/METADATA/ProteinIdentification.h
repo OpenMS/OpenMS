@@ -101,9 +101,6 @@ public:
       */
       bool operator<(const ProteinGroup& rhs) const;
 
-      /// Group coverage
-      double coverage = -1; //< 0..1, -1 = not set
-
       /// Float data arrays
       /**
       @name data array methods
@@ -310,6 +307,17 @@ public:
     */
     void computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
     //@}
+
+    /**
+       @brief Compute the modifications of all ProteinHits given PeptideHits
+      
+      For every protein accession, the pair of position and modification is returned.
+      Because fixed modifications might not be of interest, a list can be provided to skip those.
+    */
+    void computeModifications(
+      const std::vector<PeptideIdentification>& pep_ids, 
+      const StringList & skip_modifications);
+
 
     ///@name General information
     //@{
