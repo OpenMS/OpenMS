@@ -2,7 +2,7 @@ from MSExperiment cimport *
 from String cimport *
 from libcpp.vector cimport vector as libcpp_vector
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MSPMetaboFile.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FORMAT/MSPMetaboFile.h>" namespace "OpenMS":
 
     cdef cppclass MSPMetaboFile "OpenMS::MSPMetaboFile":
 
