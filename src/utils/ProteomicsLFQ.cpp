@@ -750,6 +750,7 @@ protected:
     proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
     proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
 
+    consensus.resolveUniqueIdConflicts(); // TODO: find out why this is needed to get proper UIDs in consensus
     if (debug_level_ >= 666)
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
