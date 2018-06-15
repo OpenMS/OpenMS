@@ -143,6 +143,8 @@ protected:
     registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
     registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered", false, false);
 
+    registerFlag_("precursor:include_unknown_charge", "Include MS2 spectra with unknown precursor charge - try to match them in any possible charge between 'min_charge' and 'max_charge', at the risk of a higher error rate", false);
+
     registerFlag_("precursor:use_avg_mass", "Use average instead of monoisotopic precursor masses (appropriate for low-resolution instruments)", false);
 
     // Whether to look for precursors with salt adducts
@@ -422,7 +424,7 @@ protected:
   }
 
 
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge)
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool negative_mode, Int min_charge, Int max_charge, bool include_unknown_charge)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -527,6 +529,10 @@ protected:
       if (n_inferred_charge)
       {
         LOG_INFO << "Inferred charge states for " << n_inferred_charge << " spectra." << endl;
+      }
+      if (n_zero_charge - n_inferred_charge > 0)
+      {
+        LOG_INFO << "Spectra without charge information will be " << (include_unknown_charge ? "included in the processing" : "skipped") << " (see parameter 'precursor:include_unknown_charge')" << endl;
       }
     }
   }
@@ -738,6 +744,7 @@ protected:
     map<double, String> adduct_masses;
     adduct_masses[0.0] = ""; // always consider "no adduct"
     bool use_adducts = getFlag_("precursor:use_adducts");
+    bool include_unknown_charge = getFlag_("precursor:include_unknown_charge");
     bool single_charge_spectra = getFlag_("decharge_ms2");
     if (use_adducts)
     {
@@ -810,7 +817,7 @@ protected:
     preprocessSpectra_(spectra, search_param.fragment_mass_tolerance,
                        search_param.fragment_tolerance_ppm,
                        single_charge_spectra, negative_mode, min_charge,
-                       max_charge);
+                       max_charge, include_unknown_charge);
     progresslogger.endProgress();
     LOG_DEBUG << "preprocessed spectra: " << spectra.getNrSpectra() << endl;
 
@@ -833,7 +840,14 @@ protected:
       Int precursor_charge = precursors[0].getCharge();
       if (precursor_charge == 0) // charge information missing
       {
-        possible_charges = search_param.charges; // try all allowed charges
+        if (include_unknown_charge)
+        {
+          possible_charges = search_param.charges; // try all allowed charges
+        }
+        else
+        {
+          continue; // skip
+        }
       }
       // compare to charge parameters (the charge value in mzML seems to be
       // always positive, so compare by absolute value in negative mode):
