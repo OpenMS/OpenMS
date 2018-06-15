@@ -82,7 +82,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
   // Check whether it was written to disk correctly...
   {
     // Create the index from the given file
-    CachedmzML cache;
+    Internal::CachedMzMLHandler cache;
     cache.createMemdumpIndex(tmp_filename);
     std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
@@ -93,14 +93,14 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
     ifs_.seekg(spectra_index[0]);
     int ms_level = -1;
     double rt = -1.0;
-    CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+    Internal::CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
     TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(0).size())
     TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(0).size())
 
     // retrieve the spectrum
     ifs_.seekg(spectra_index[1]);
-    CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+    Internal::CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
     TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(1).size())
     TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(1).size())
@@ -125,7 +125,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
   // Check whether it was written to disk correctly...
   {
     // Create the index from the given file
-    CachedmzML cache;
+    Internal::CachedMzMLHandler cache;
     cache.createMemdumpIndex(tmp_filename);
     std::vector<std::streampos> chrom_index = cache.getChromatogramIndex();;
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
@@ -134,7 +134,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
     OpenSwath::BinaryDataArrayPtr time_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     ifs_.seekg(chrom_index[0]);
-    CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_);
+    Internal::CachedMzMLHandler::readChromatogramFast(time_array, intensity_array, ifs_);
 
     TEST_EQUAL(time_array->data.size(), exp.getChromatogram(0).size())
     TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(0).size())
@@ -204,7 +204,7 @@ START_SECTION([EXTRA] test empty file)
   // Check whether it was written to disk correctly...
   {
     // Create the index from the given file
-    CachedmzML cache;
+    Internal::CachedMzMLHandler cache;
     cache.createMemdumpIndex(tmp_filename);
     std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
     TEST_EQUAL(cache.getSpectraIndex().size(), 0)
