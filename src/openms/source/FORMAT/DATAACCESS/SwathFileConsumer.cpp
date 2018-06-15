@@ -32,6 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+
 namespace OpenMS
 {
 

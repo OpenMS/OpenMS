@@ -291,7 +291,7 @@ namespace OpenMS
     // Create new consumer, transform infile, write out metadata
     MSDataCachedConsumer* cachedConsumer = new MSDataCachedConsumer(cached_file, true);
     MzMLFile().transform(in, cachedConsumer, *experiment_metadata.get());
-    CachedmzML().writeMetadata(*experiment_metadata.get(), meta_file, true);
+    CachedMzMLHandler().writeMetadata(*experiment_metadata.get(), meta_file, true);
     delete cachedConsumer; // ensure that filestream gets closed
 
     boost::shared_ptr<PeakMap > exp(new PeakMap);
