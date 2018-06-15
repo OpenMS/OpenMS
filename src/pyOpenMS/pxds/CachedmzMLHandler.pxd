@@ -6,7 +6,7 @@ from String cimport *
 from ProgressLogger cimport *
 from streampos cimport *
 
-cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>" namespace "OpenMS::Internal":
 
     # Do not use this class directly, rather use SpectrumAccessOpenMSCached
 
