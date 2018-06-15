@@ -77,7 +77,7 @@ namespace OpenMS
         "Error while changing position of input stream pointer.", filename_cached_);
     }
 
-    CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+    Internal::CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
     OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
     sptr->setMZArray(mz_array);
@@ -112,7 +112,7 @@ namespace OpenMS
         "Error while changing position of input stream pointer.", filename_cached_);
     }
 
-    CachedMzMLHandler::readChromatogramFast(rt_array, intensity_array, ifs_);
+    Internal::CachedMzMLHandler::readChromatogramFast(rt_array, intensity_array, ifs_);
 
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
     cptr->setTimeArray(rt_array);

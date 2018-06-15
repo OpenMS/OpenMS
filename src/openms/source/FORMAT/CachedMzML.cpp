@@ -76,7 +76,7 @@ namespace OpenMS
     filename_ = filename;
 
     // Create the index from the given file
-    CachedMzMLHandler cache;
+    Internal::CachedMzMLHandler cache;
     cache.createMemdumpIndex(filename_cached_);
     spectra_index_ = cache.getSpectraIndex();
     chrom_index_ = cache.getChromatogramIndex();;
@@ -102,7 +102,7 @@ namespace OpenMS
     }
 
     MSSpectrum s = meta_ms_experiment_.getSpectrum(id);
-    CachedMzMLHandler::readSpectrum(s, ifs_);
+    Internal::CachedMzMLHandler::readSpectrum(s, ifs_);
     return s;
   }
 
@@ -120,7 +120,7 @@ namespace OpenMS
     }
 
     MSChromatogram c = meta_ms_experiment_.getChromatogram(id);
-    CachedMzMLHandler::readChromatogram(c, ifs_);
+    Internal::CachedMzMLHandler::readChromatogram(c, ifs_);
     return c;
   }
 
@@ -136,8 +136,8 @@ namespace OpenMS
 
   void CachedmzML::store(const String& filename, const PeakMap& map)
   {
-    CachedMzMLHandler().writeMemdump(map, filename + ".cached");
-    CachedMzMLHandler().writeMetadata_x(map, filename, true);
+    Internal::CachedMzMLHandler().writeMemdump(map, filename + ".cached");
+    Internal::CachedMzMLHandler().writeMetadata_x(map, filename, true);
   }
 
   void CachedmzML::load(const String& filename, CachedmzML& map)

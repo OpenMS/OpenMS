@@ -52,7 +52,7 @@ namespace OpenMS
       cached to disk using the functions provided in CachedMzMLHandler.
     */
     class OPENMS_DLLAPI MSDataCachedConsumer :
-      public CachedMzMLHandler,
+      public Internal::CachedMzMLHandler,
       public Interfaces::IMSDataConsumer
     {
       typedef MSSpectrum SpectrumType;

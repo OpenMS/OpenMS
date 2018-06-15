@@ -49,24 +49,6 @@
 using namespace OpenMS;
 using namespace std;
 
-
-#if 0
-void cacheFile(CachedmzML& cache, std::string & tmp_filename, PeakMap& exp)
-{
-  NEW_TMP_FILE(tmp_filename);
-
-  // Load experiment
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
-  TEST_EQUAL(exp.getNrSpectra() > 0, true)
-  TEST_EQUAL(exp.getNrChromatograms() > 0, true)
-
-  // Cache the experiment to a temporary file
-  cache.writeMemdump(exp, tmp_filename);
-  // Create the index from the given file
-  cache.createMemdumpIndex(tmp_filename);
-}
-#endif
-
 START_TEST(CachedmzML, "$Id$")
 
 /////////////////////////////////////////////////////////////

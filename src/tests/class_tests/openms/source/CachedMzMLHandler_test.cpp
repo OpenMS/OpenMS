@@ -47,8 +47,8 @@
 #pragma clang diagnostic ignored "-Wshadow"
 
 using namespace OpenMS;
+using namespace OpenMS::Internal;
 using namespace std;
-
 
 void cacheFile(CachedMzMLHandler& cache, std::string & tmp_filename, PeakMap& exp)
 {
