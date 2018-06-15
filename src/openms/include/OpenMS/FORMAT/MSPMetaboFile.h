@@ -84,7 +84,7 @@ public:
       @param[in] filename Path to the MSP input file
       @param[out] library The variable into which the extracted information will be saved
 
-      @throw FileNotFound is thrown if the file could not be found
+      @throw FileNotFound If the file could not be found
     */
     void load(const String& filename, MSExperiment& library);
 
@@ -109,6 +109,9 @@ private:
       - Name field is present and not empty
       - The number of peaks parsed matches the value of Num Peaks
       - A spectrum of the same name has not already been added
+
+      @throw MissingInformation If the spectrum doesn't have a name or Num Peaks info is missing
+      @throw ParseError If Num Peaks' value doesn't match with the number of raw peaks parsed
 
       @param[in/out] spectrum The spectrum to be added
       @param[out] library The spectrum is added into this `MSExperiment` library
