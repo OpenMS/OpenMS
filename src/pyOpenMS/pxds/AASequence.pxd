@@ -28,7 +28,12 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns the peptide as string without any modifications
         String toUnmodifiedString() nogil except +
 
+        # returns the peptide as string without any modifications
+        String toUniModString() nogil except +
+
         # returns the peptide as a pepXML style bracket string . fixed modifications are omitted
+        String toBracketString() nogil except +
+        String toBracketString(bool integer_mass) nogil except +
         String toBracketString(bool integer_mass, libcpp_vector[String] fixed_modifications) nogil except +
 
         # set the modification of the residue at position index
@@ -106,4 +111,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence
 
         # static members
         AASequence fromString(String s, bool permissive) nogil except +  # wrap-attach:AASequence
+
+        # static members
+        AASequence fromString(String s) nogil except +  # wrap-attach:AASequence
 
