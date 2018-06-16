@@ -28,7 +28,12 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns the peptide as string without any modifications
         String toUnmodifiedString() nogil except +
 
+        # returns the peptide as string without any modifications
+        String toUniModString() nogil except +
+
         # returns the peptide as a pepXML style bracket string . fixed modifications are omitted
+        String toBracketString() nogil except +
+        String toBracketString(bool integer_mass) nogil except +
         String toBracketString(bool integer_mass, libcpp_vector[String] fixed_modifications) nogil except +
 
         # set the modification of the residue at position index
@@ -54,12 +59,15 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         Residue getResidue(Size index) nogil except +
 
         # returns the formula of the peptide
+        EmpiricalFormula getFormula() nogil except +
         EmpiricalFormula getFormula(ResidueType type_, Int charge) nogil except +
 
         # returns the average weight of the peptide
+        double getAverageWeight() nogil except +
         double getAverageWeight(ResidueType type_, Int charge) nogil except +
 
         # returns the mono isotopic weight of the peptide
+        double getMonoWeight() nogil except +
         double getMonoWeight(ResidueType type_, Int charge) nogil except +
 
         # returns the number of residues
@@ -106,4 +114,12 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence
 
         # static members
         AASequence fromString(String s, bool permissive) nogil except +  # wrap-attach:AASequence
+
+        # TODO: autowrap 0.18 will allow this
+        #
+        # # static members
+        # AASequence fromString(String s, bool permissive) nogil except +  # wrap-attach:AASequence wrap-as:fromStringPermissive
+        #
+        # # static members
+        # AASequence fromString(String s) nogil except +  # wrap-attach:AASequence
 
