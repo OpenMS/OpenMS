@@ -253,6 +253,7 @@ START_SECTION((static void addMotifRegExFeatures(std::vector< PeptideIdentificat
     StringList fs;
     std::vector< PeptideIdentification > motif_pids;
     std::vector< ProteinIdentification > motif_pods;
+    const OpenMS::String motif = "H.*";
 
     IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("motif.regex.idXML"), motif_pods, motif_pids);
     PercolatorFeatureSetHelper::addMotifRegExFeatures(motif_pids, fs);
@@ -264,7 +265,7 @@ START_SECTION((static void addMotifRegExFeatures(std::vector< PeptideIdentificat
     ABORT_IF(!check_proids(motif_check_pods, motif_pods, fs));
 
     //check regex
-    ABORT_IF(!check_regex(peptide_motif));
+    ABORT_IF(!check_regex(motif));
 }
 END_SECTION
 
