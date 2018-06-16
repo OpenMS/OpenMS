@@ -2178,7 +2178,7 @@ namespace OpenMS
             MzTabString unimod_accession = MzTabString(unimod.toUpper());
             mztab_mod.setModificationIdentifier(unimod_accession);
             vector<std::pair<Size, MzTabParameter> > pos;
-            
+
             // mzTab position is one-based, internal is 0-based so we need to +1
             pos.push_back(make_pair(m.first + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
             mztab_mod.setPositionsAndParameters(pos);
@@ -2186,14 +2186,39 @@ namespace OpenMS
             modifications.set(mztab_mods);
           }
           protein_row.modifications = modifications;
+
+          if (leader_protein.metaValueExists("num_psms_ms_run"))
+          {
+            const IntList& il = leader_protein.getMetaValue("num_psms_ms_run");
+            for (Size i = 0; i != il.size(); ++i)
+            {
+              protein_row.num_psms_ms_run[i+1] = MzTabInteger(il[i]);
+            }
+          }
+
+          if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
+          {
+            const IntList& il = leader_protein.getMetaValue("num_peptides_distinct_ms_run");
+            for (Size i = 0; i != il.size(); ++i)
+            {
+              protein_row.num_peptides_distinct_ms_run[i+1] = MzTabInteger(il[i]);
+            }
+          }
+
+          if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
+          {
+            const IntList& il = leader_protein.getMetaValue("num_peptides_unique_ms_run");
+            for (Size i = 0; i != il.size(); ++i)
+            {
+              protein_row.num_peptides_unique_ms_run[i+1] = MzTabInteger(il[i]);
+            }
+          }
+
 /*
 TODO:
+Not sure how to handle these:
        // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
        // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
-These can be calculate from the run level Protein/PeptideIdentifications (not the one marked as FIDO) 
-       // std::map<Size, MzTabInteger> num_psms_ms_run; // number of PSMs identifying this protein (run level)
-       // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run; // number of distinct peptides identifying this protein (run level)
-       // std::map<Size, MzTabInteger> num_peptides_unique_ms_run; // number of unique peptides identifying this protein (run level)
 */
 
           // Add protein(group) row to MzTab 

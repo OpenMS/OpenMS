@@ -520,8 +520,6 @@ namespace OpenMS
     }
   }
 
-
-
   bool ProteinIdentification::isHigherScoreBetter() const
   {
     return higher_score_better_;
@@ -576,6 +574,5 @@ namespace OpenMS
   {
     return search_parameters_;
   }
-
 
 } // namespace OpenMS

@@ -513,8 +513,8 @@ protected:
         ff.getProgressLogger().setLogType(log_type_);
         ff.setParameters(ff_param);
         ff.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
+        // TODO: think about external ids ;) / maybe for replicates?
 
-        // TODO: think about external ids ;)
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
         ++fraction_group;
       }
@@ -639,7 +639,7 @@ protected:
     vector<PeptideIdentification> infered_peptides;
     vector<ProteinIdentification> infered_protein_groups(1, ProteinIdentification());
 
-    // currenty no proper inference implemented - just extract from consensusMap
+    // first handle unique peptides and indistinguishable groups
     infered_peptides = consensus.getUnassignedPeptideIdentifications();
     for (ConsensusFeature & c : consensus)
     {
@@ -647,8 +647,31 @@ protected:
                       c.getPeptideIdentifications().begin(),
                       c.getPeptideIdentifications().end());
     }
+
     for (auto & p : infered_peptides)
     {
+      // annotate experimental design meta data to merged PeptideIdentifications (the infered peptides)
+      // so we can track their origin
+      const String& old_identifier = p.getIdentifier();
+      vector<ProteinIdentification> & protein_ids = consensus.getProteinIdentifications();
+      auto it = std::find_if(protein_ids.begin(), protein_ids.end(), [&old_identifier](const ProteinIdentification & prot_id)
+        {
+          return prot_id.getIdentifier() == old_identifier;
+        });
+     
+      if (it != protein_ids.end())
+      {
+        p.setMetaValue("fraction", it->getMetaValue("fraction"));
+        p.setMetaValue("fraction_group", it->getMetaValue("fraction_group"));
+        StringList spectra_data;
+        it->getPrimaryMSRunPath(spectra_data);
+        p.setMetaValue("spectra_data", spectra_data[0]);
+      }
+      else
+      {
+        // TODO: throw exception
+      }
+
       // We need to set the common identifier for the final inference result.
       // see below and in MzTab.cpp
       p.setIdentifier("Fido"); 
@@ -713,6 +736,88 @@ protected:
       // determine observed modifications (exclude fixed mods)
       StringList fixed_mods = {"Carbamidomethyl"};  // TODO: read from search settings, make specific to amino acid (site)
       infered_protein_groups[0].computeModifications(infered_peptides, fixed_mods);
+
+      /////////////////////////////////////////
+      // annotate some mzTab related protein statistics
+
+      map<String, map<String, Size >> acc2psms; // map runpath->accession->#PSMs (how many PSMs identify a protein in every run)
+      // Note: only helpful if the PSM maps to one protein (or an indistinguishable group) - probably not helpful for shared peptides/PSMs 
+
+      // distinct peptides: different if umodified sequence is different (charge state or modified forms of same peptide are not counted separately) 
+      map<String, map<String, set<String>>> acc2distinct_peptides; // map runpath->accession->set of distinct peptides
+      // unique peptides (not shared)
+      map<String, map<String, set<String>>> acc2unique_peptides;
+      for (Size pep_i = 0; pep_i != infered_peptides.size(); ++pep_i)
+      {
+        // peptide hits
+        const PeptideIdentification & peptide_id = infered_peptides[pep_i];
+        const String & runpath = peptide_id.getMetaValue("spectra_data");
+        const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
+
+        for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
+        {
+          const PeptideHit & peptide_hit = peptide_hits[ph_i];
+          const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
+          if (ph_evidences.empty()) continue; // TODO: check
+          const AASequence & aas = peptide_hit.getSequence();
+          const String & seq_nomod = aas.toUnmodifiedString();          
+
+          // unique peptide? store peptide sequence in map runpath->protein accession
+          if (peptide_hit.extractProteinAccessionsSet().size() == 1) // == unique Note: we need to check the set as the vector may contain several references into the same protein
+          {
+            // 
+            const String acc = *(peptide_hit.extractProteinAccessionsSet().begin());
+            acc2unique_peptides[runpath][acc].insert(seq_nomod);
+          } 
+
+          for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+          {
+            const String acc = ph_evidences[phe_i].getProteinAccession();
+
+            // count PSM for the referenced protein
+            acc2psms[runpath][acc] += 1; 
+            // side note: proteins in indistinguishable groups will have the same numbers of PSMs associated
+
+            // store (later: count) unmodified peptide sequences referencing the protein
+            acc2distinct_peptides[runpath][acc].insert(seq_nomod);
+          }
+        }
+      }
+
+      // store run level mzTab statistics in protein hits of inference run (=final result)
+      for (auto & p : infered_protein_groups[0].getHits())
+      {
+        const String acc = p.getAccession();
+        
+        IntList npsms, ndistinct, nunique;
+
+        // TODO: validate somehow that the order of MS run interation is correct/identical in every part of this tool
+        for (auto const ms_files : frac2ms) // for each fraction->ms file(s)
+        {
+          for (const String & runpath : ms_files.second)
+          {
+            if (acc2psms.at(runpath).count(acc) > 0)
+            {
+              npsms.push_back(acc2psms.at(runpath).at(acc));
+            }
+            if (acc2distinct_peptides.at(runpath).count(acc) > 0)
+            {
+              auto distinct_peptides = acc2distinct_peptides.at(runpath).at(acc);
+              ndistinct.push_back(acc2distinct_peptides.at(runpath).at(acc).size());
+            }
+            
+            if (acc2unique_peptides.at(runpath).count(acc) > 0)
+            {
+              nunique.push_back(acc2unique_peptides.at(runpath).at(acc).size());
+            }
+          }
+        }
+
+        // will be exported in mzTab PRT section
+        p.setMetaValue("num_psms_ms_run", npsms);
+        p.setMetaValue("num_peptides_distinct_ms_run", ndistinct);
+        p.setMetaValue("num_peptides_unique_ms_run", nunique);
+      }
     }
 
     //-------------------------------------------------------------
