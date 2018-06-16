@@ -59,12 +59,15 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         Residue getResidue(Size index) nogil except +
 
         # returns the formula of the peptide
+        EmpiricalFormula getFormula() nogil except +
         EmpiricalFormula getFormula(ResidueType type_, Int charge) nogil except +
 
         # returns the average weight of the peptide
+        double getAverageWeight() nogil except +
         double getAverageWeight(ResidueType type_, Int charge) nogil except +
 
         # returns the mono isotopic weight of the peptide
+        double getMonoWeight() nogil except +
         double getMonoWeight(ResidueType type_, Int charge) nogil except +
 
         # returns the number of residues
