@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDigestion.h>" namespace "OpenMS":
       String getEnzymeName() nogil except +
       void setEnzyme(String name) nogil except +
 
+      Size digest(AASequence & protein, libcpp_vector[AASequence] & output) nogil except +
       Size digest(AASequence & protein, libcpp_vector[AASequence] & output, Size min_length, Size max_length) nogil except +
       Size peptideCount(AASequence & protein) nogil except +
 

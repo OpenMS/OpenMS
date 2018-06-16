@@ -305,6 +305,14 @@ START_SECTION(String toString() const)
   TEST_EQUAL(String(str).hasSubstring("C2"), true)
 END_SECTION
 
+    
+START_SECTION(std::map<std::string, int> toMap() const)
+  EmpiricalFormula ef("C2H5");
+  auto m = ef.toMap();
+  TEST_EQUAL(m["C"], 2)
+  TEST_EQUAL(m["H"], 5)
+END_SECTION
+
 START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&)))
   stringstream ss;
   EmpiricalFormula ef("C2H5");
