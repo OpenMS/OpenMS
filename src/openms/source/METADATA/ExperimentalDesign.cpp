@@ -134,7 +134,10 @@ namespace OpenMS
         }
         else
         {
-          LOG_WARN << "No channel id annotated in consensusXML. Assuming label-free." << endl;
+          if (experiment_type != "label-free")
+          {
+            LOG_WARN << "No channel id annotated in consensusXML. Assuming one channel." << endl;
+          }
           r.label = 1;
         }
 
