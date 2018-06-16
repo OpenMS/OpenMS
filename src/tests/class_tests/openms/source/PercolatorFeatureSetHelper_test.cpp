@@ -119,7 +119,7 @@ IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc_check.idXML"), msgf_che
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("xtandem.topperc_check.idXML"), xtandem_check_pods, xtandem_check_pids);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("combined.merge.perco.in.idXML"), merge_check_pods, merge_check_pids);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("combined.concat.perco.in.idXML"), concat_check_pods, concat_check_pids);
-IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("motif.regex.idXML"), motif_check_pods, motif_check_pids);
+IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("motif.regex_check.idXML"), motif_check_pods, motif_check_pids);
 
 START_SECTION((static void concatMULTISEPeptideIds(std::vector< PeptideIdentification > &all_peptide_ids, std::vector< PeptideIdentification > &new_peptide_ids, String search_engine)))
 {
