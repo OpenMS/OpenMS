@@ -36,6 +36,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <boost/regex.hpp>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
@@ -43,6 +44,19 @@
 
 using namespace OpenMS;
 using namespace std;
+
+bool check_regex(const OpenMS::String& peptide_motif)
+{
+    try
+    {
+      boost::regex peptide_motif_regex(peptide_motif);
+      boost::regex_match(const OpenMS::String "TESTPEPTIDE", peptide_motif_regex);
+      return true;
+    } catch (boost::regex_error& e) {
+      // Syntax error in the regular expression
+      return false;
+    }
+}
 
 bool check_pepids(vector<PeptideIdentification> check, vector<PeptideIdentification> against)
 {
@@ -91,18 +105,21 @@ std::vector< PeptideIdentification > comet_check_pids;
 std::vector< PeptideIdentification > msgf_check_pids;
 std::vector< PeptideIdentification > xtandem_check_pids;
 std::vector< PeptideIdentification > merge_check_pids;
+std::vector< PeptideIdentification > motif_check_pids;
 std::vector< PeptideIdentification > concat_check_pids;
 std::vector< ProteinIdentification > comet_check_pods;
 std::vector< ProteinIdentification > msgf_check_pods;
 std::vector< ProteinIdentification > xtandem_check_pods;
 std::vector< ProteinIdentification > concat_check_pods;
 std::vector< ProteinIdentification > merge_check_pods;
+std::vector< ProteinIdentification > motif_check_pods;
 
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("comet.topperc_check.idXML"), comet_check_pods, comet_check_pids);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("msgf.topperc_check.idXML"), msgf_check_pods, msgf_check_pids);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("xtandem.topperc_check.idXML"), xtandem_check_pods, xtandem_check_pids);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("combined.merge.perco.in.idXML"), merge_check_pods, merge_check_pids);
 IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("combined.concat.perco.in.idXML"), concat_check_pods, concat_check_pids);
+IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("motif.regex.idXML"), motif_check_pods, motif_check_pids);
 
 START_SECTION((static void concatMULTISEPeptideIds(std::vector< PeptideIdentification > &all_peptide_ids, std::vector< PeptideIdentification > &new_peptide_ids, String search_engine)))
 {
@@ -228,6 +245,26 @@ START_SECTION((static void addCOMETFeatures(std::vector< PeptideIdentification >
 
     //check registration of percolator features for adapter
     ABORT_IF(!check_proids(comet_check_pods, comet_pods, fs));
+}
+END_SECTION
+
+START_SECTION((static void addMotifRegExFeatures(std::vector< PeptideIdentification > &peptide_ids, StringList &feature_set, const OpenMS::String& peptide_motif)))
+{
+    StringList fs;
+    std::vector< PeptideIdentification > motif_pids;
+    std::vector< ProteinIdentification > motif_pods;
+
+    IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("motif.regex.idXML"), motif_pods, motif_pids);
+    PercolatorFeatureSetHelper::addMotifRegExFeatures(motif_pids, fs);
+
+    //check completeness of feature construction
+    ABORT_IF(!check_pepids(motif_check_pids, motif_pids));
+
+    //check registration of percolator features for adapter
+    ABORT_IF(!check_proids(motif_check_pods, motif_pods, fs));
+
+    //check regex
+    ABORT_IF(!check_regex(peptide_motif));
 }
 END_SECTION
 
