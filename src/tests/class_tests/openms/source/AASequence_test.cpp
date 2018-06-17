@@ -1171,6 +1171,33 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(aaNoMod.getCTerminalModificationName(), "")
   TEST_EQUAL(aaNtermMod.getCTerminalModificationName(), "")
   TEST_EQUAL(aaCtermMod.getCTerminalModificationName(), "Label:18O(2)")
+
+  vector<String> fixed_mods;
+  TEST_STRING_EQUAL(aaNoMod.toBracketString(true, fixed_mods), "DFPIANGER");
+  TEST_STRING_EQUAL(aaNoMod.toBracketString(false, fixed_mods), "DFPIANGER");
+  TEST_STRING_EQUAL(aaNtermMod.toBracketString(true, fixed_mods), "n[29]DFPIANGER");
+  TEST_STRING_EQUAL(aaNtermMod.toBracketString(false, fixed_mods), "n[29.0391250319]DFPIANGER");
+  TEST_STRING_EQUAL(aaCtermMod.toBracketString(true, fixed_mods), "DFPIANGERc[21]");
+  TEST_STRING_EQUAL(aaCtermMod.toBracketString(false, fixed_mods), "DFPIANGERc[21.0112310319]");
+
+  TEST_STRING_EQUAL(aaNoMod.toUniModString(), "DFPIANGER");
+  TEST_STRING_EQUAL(aaNtermMod.toUniModString(), ".(UniMod:36)DFPIANGER");
+  TEST_STRING_EQUAL(aaCtermMod.toUniModString(), "DFPIANGER.(UniMod:193)");
+
+  // Test equivalence
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString(".(UniMod:36)DFPIANGER."))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString(".(Dimethyl)DFPIANGER."))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString("n[29]DFPIANGER"))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString("n[29.0391250319]DFPIANGER"))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString(".[29]DFPIANGER."))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString(".[29.0391250319]DFPIANGER."))
+
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.(UniMod:193)"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.(Label:18O(2))"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGERc[21]"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGERc[21.0112310319]"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.[21]"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.[21.0112310319]"))
 }
 END_SECTION
 
