@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CONCEPT/Constants.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
@@ -879,81 +879,100 @@ namespace OpenMS
     return os;
   }
 
-  String::ConstIterator AASequence::parseModRoundBrackets_(
-    const String::ConstIterator str_it, const String& str, AASequence& aas, bool dot_notation, bool dot_terminal)
+  String::ConstIterator AASequence::parseModRoundBrackets_(const String::ConstIterator str_it,
+                                                           const String& str,
+                                                           AASequence& aas,
+                                                           const ResidueModification::TermSpecificity& specificity)
   {
     OPENMS_PRECONDITION(*str_it == '(', "Modification must start with '('.");
+
     String::ConstIterator mod_start = str_it;
     String::ConstIterator mod_end = ++mod_start;
     Size open_brackets = 1;
     while (mod_end != str.end())
     {
-      if (*mod_end == ')') --open_brackets;
-      else if (*mod_end == '(') ++open_brackets;
-      if (!open_brackets) break;
+      if (*mod_end == ')')
+      {
+        --open_brackets;
+      }
+      else if (*mod_end == '(')
+      {
+        ++open_brackets;
+      }
+
+      if (!open_brackets)
+      {
+        break;
+      }
       ++mod_end;
     }
+
+    // Extract the actual modification as string
     std::string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, str,
           "Cannot convert string to peptide modification: missing ')'");
     }
+
     ModificationsDB* mod_db = ModificationsDB::getInstance();
-    if (aas.peptide_.empty()) // start of peptide -> N-terminal modification?
+
+    // start of peptide -> N-terminal modification?
+    if (aas.peptide_.empty() || specificity == ResidueModification::N_TERM) 
     {
-      aas.n_term_mod_ = &(mod_db->getModification(mod, "",
-                                                    ResidueModification::N_TERM));
+      aas.n_term_mod_ = &(mod_db->getModification(mod, "", ResidueModification::N_TERM));
       return mod_end;
     }
 
     const String& res = aas.peptide_.back()->getOneLetterCode();
+    if (specificity == ResidueModification::C_TERM) 
+    {
+      aas.c_term_mod_ = &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
+      return mod_end;
+    }
+
     try
     {
-      aas.peptide_.back() = ResidueDB::getInstance()->
-        getModifiedResidue(aas.peptide_.back(), mod);
+      aas.peptide_.back() = ResidueDB::getInstance()->getModifiedResidue(aas.peptide_.back(), mod);
     }
     catch (Exception::InvalidValue) // no such mod for this residue
     {
-      if (std::distance(mod_end, str.end()) == 1) // C-terminal mod.?
+      // TODO: get rid of this code path, its deprecated and is only a hack for
+      // C-terminal modifications that don't use the dot notation
+      if (std::distance(mod_end, str.end()) == 1) // potentially a C-terminal mod without explicitly declaring it using dot notation?
       {
-        if (dot_notation)
+        // old ambiguous notation: Modification might be at last amino acid or at C-terminus
+        try
         {
-          if (dot_terminal)
-          {
-            const ResidueModification* term_mod =
-              &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
-            aas.c_term_mod_ = term_mod;
-          }
+          // this might throw ElementNotFound, but so be it:
+          const ResidueModification* term_mod = &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
+          aas.c_term_mod_ = term_mod;
         }
-        else // old ambiguous notation: Modification might be at last amino acid or at C-terminus
-        {
-          try
-          {
-            // this might throw ElementNotFound, but so be it:
-            const ResidueModification* term_mod =
-              &(mod_db->getModification(mod, res, ResidueModification::C_TERM));
-            aas.c_term_mod_ = term_mod;
-          }
-          catch (Exception::ElementNotFound& /* e */)
-          { // just do nothing, the mod is presumably a non-terminal one
-          }
+        catch (Exception::ElementNotFound& /* e */)
+        { // just do nothing, the mod is presumably a non-terminal one
         }
       }
-      else throw; // re-throw the InvalidValue
+      else
+      {
+        throw; // re-throw the InvalidValue
+      }
     }
 
     return mod_end;
   }
 
-  String::ConstIterator AASequence::parseModSquareBrackets_(
-    const String::ConstIterator str_it, const String& str, AASequence& aas,
-    const ResidueModification::TermSpecificity& specificity)
+  String::ConstIterator AASequence::parseModSquareBrackets_(const String::ConstIterator str_it,
+                                                            const String& str,
+                                                            AASequence& aas,
+                                                            const ResidueModification::TermSpecificity& specificity)
   {
     OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
+
     String::ConstIterator mod_start = str_it;
     String::ConstIterator mod_end = ++mod_start;
-    while ((mod_end != str.end()) && (*mod_end != ']')) ++mod_end;
+    while ((mod_end != str.end()) && (*mod_end != ']')) {++mod_end;}
+
+    // Extract the actual modification as string
     std::string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
@@ -1289,7 +1308,7 @@ namespace OpenMS
      
       if (*str_it == '(')
       {
-        str_it = parseModRoundBrackets_(str_it, peptide, aas, dot_notation, dot_terminal);
+        str_it = parseModRoundBrackets_(str_it, peptide, aas, specificity);
       }
       else if (*str_it == '[')
       {
