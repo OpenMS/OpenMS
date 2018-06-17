@@ -75,16 +75,18 @@ namespace OpenMS
     {
       ExperimentalDesign experimental_design;
 
+      // one of label-free, labeled_MS1, labeled_MS2
+      const String & experiment_type = cm.getExperimentType();
+
       // path of the original MS run (mzML / raw file)
       StringList ms_run_paths;
       cm.getPrimaryMSRunPath(ms_run_paths);
       
-      // each consensus element corresponds to one sample abundance
-      size_t sample(1);
+      // Note: consensus elements of the same fraction group corresponds to one sample abundance
       ExperimentalDesign::MSFileSection msfile_section;
 
       Size fraction_groups_assigned(0);
-      
+
       // determine vector of ms file names (in order of appearance)
       vector<String> msfiles;
       for (const auto &f : cm.getColumnHeaders())
@@ -126,26 +128,37 @@ namespace OpenMS
                             - msfiles.begin())  + 1;
         }
 
-        r.sample = sample;
         if (f.second.metaValueExists("channel_id"))
         {
           r.label = static_cast<unsigned int>(f.second.getMetaValue("channel_id")) + 1;
         }
         else
         {
-          LOG_WARN << "No channel id annotated in consensusXML. Assuming label-free." << endl;
+          if (experiment_type != "label-free")
+          {
+            LOG_WARN << "No channel id annotated in consensusXML. Assuming one channel." << endl;
+          }
           r.label = 1;
         }
+
+        if (experiment_type == "label-free")
+        {
+          r.sample = r.fraction_group;
+        }
+        else // MS1 or MS2 labeled
+        {
+          r.sample = r.label;
+        }
+
         msfile_section.push_back(r);
-        ++sample;
       }
 
       experimental_design.setMSFileSection(msfile_section);
-      LOG_INFO << "Experimental design (ConsensusMap derived):\n"
-               << "  files: " << experimental_design.getNumberOfMSFiles()
-               << "  fractions: " << experimental_design.getNumberOfFractions()
-               << "  labels: " << experimental_design.getNumberOfLabels()
-               << "  samples: " << experimental_design.getNumberOfSamples() << "\n"
+      LOG_DEBUG << "Experimental design (ConsensusMap derived):\n"
+               << "  Files: " << experimental_design.getNumberOfMSFiles()
+               << "  Fractions: " << experimental_design.getNumberOfFractions()
+               << "  Labels: " << experimental_design.getNumberOfLabels()
+               << "  Samples: " << experimental_design.getNumberOfSamples() << "\n"
                << endl;
       return experimental_design;
     }

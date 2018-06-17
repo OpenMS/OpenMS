@@ -333,6 +333,9 @@ public:
 
     /// inequality operator
     bool operator!=(const ResidueModification& modification) const;
+
+    /// less operator
+    bool operator<(const ResidueModification& modification) const;
     //@}
 
 protected:

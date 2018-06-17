@@ -496,7 +496,6 @@ namespace OpenMS
   }
 
 
-  // FRACTIONS: DONE
   void PeptideAndProteinQuant::readQuantData(
     ConsensusMap& consensus, 
     const ExperimentalDesign& ed)
@@ -505,6 +504,11 @@ namespace OpenMS
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = ed.getNumberOfFractions();
     stats_.n_ms_files = ed.getNumberOfMSFiles();
+
+    LOG_DEBUG << "Reading quant data: " << endl;
+    LOG_DEBUG << "  MS files        : " << stats_.n_ms_files << endl;
+    LOG_DEBUG << "  Fractions       : " << stats_.n_fractions << endl;
+    LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;    
 
     for (auto & c : consensus)
     {
@@ -524,7 +528,7 @@ namespace OpenMS
         // indices in experimental design are 1-based (as in text file)
         // so we need to convert between them
         //TODO MULTIPLEXED: needs to be adapted for multiplexed experiments
-        size_t row = f.getMapIndex();  
+        size_t row = f.getMapIndex();
         size_t fraction = ed.getMSFileSection()[row].fraction;
         size_t sample = ed.getMSFileSection()[row].sample;
         quantifyFeature_(f, fraction, sample, hit); // updates "stats_.quant_features"
@@ -604,7 +608,6 @@ namespace OpenMS
   }
 
 
-  // FRACTIONS: DONE
   void PeptideAndProteinQuant::updateMembers_()
   {
     // reset everything:

@@ -632,11 +632,17 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         mz_tab_metadata.cv[n].url = p;
       }
       else if (meta_key.hasPrefix("assay[") && meta_key_fields[1] == "ms_run_ref")
-      {
+      {               
         Int n = meta_key_fields[0].substitute("assay[", "").substitute("]","").trim().toInt();
-        MzTabString p;
-        p.fromCellString(cells[2]);
-        mz_tab_metadata.assay[n].ms_run_ref = p;
+        String s = cells[2];
+        s.substitute("ms_run[","").substitute("]","");
+        vector<String> ms_run;
+        s.split(',', ms_run);
+        for (auto a : ms_run)
+        {
+          a.trim();
+          mz_tab_metadata.assay[n].ms_run_ref.push_back(a.toInt());
+        }
       }
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "assay_refs")
       {
@@ -1877,8 +1883,17 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
       sl.push_back(s);
     }
 
-    String s = "MTD\tassay[" + String(it->first) + String("]-ms_run_ref\t") + amd.ms_run_ref.toCellString();
-    sl.push_back(s);
+    if (!amd.ms_run_ref.empty())
+    {
+      String s = "MTD\tassay[" + String(it->first) + "]-ms_run_ref\t";
+      bool first(true);
+      for (auto const & a : amd.ms_run_ref)
+      {
+        if (!first) { s += ","; } else { first = false; }
+        s += "ms_run[" + String(a) + "]";
+      }
+      sl.push_back(s);
+    }
   }
 
 

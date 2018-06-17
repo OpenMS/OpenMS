@@ -42,6 +42,9 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
+
+#include <tuple>
 
 using namespace std;
 
@@ -506,10 +509,13 @@ namespace OpenMS
 
   void MzTabSpectraRef::setSpecRef(String spec_ref)
   {
-    assert(!spec_ref.empty());
     if (!spec_ref.empty())
     {
       spec_ref_ = spec_ref;
+    }
+    else
+    {
+      LOG_WARN << "Spectrum reference not set." << endl;
     }
   }
 
@@ -1752,6 +1758,7 @@ namespace OpenMS
   {
     LOG_INFO << "exporting identifications: \"" << filename << "\" to mzTab: " << std::endl;
     vector<PeptideIdentification> pep_ids = peptide_ids;
+
     MzTab mztab;
     MzTabMetaData meta_data;
     vector<String> var_mods, fixed_mods;
@@ -1782,8 +1789,12 @@ namespace OpenMS
         quant_study_variables = p.getFloatDataArrays()[0].size();
       } 
 
-      // TODO: maybe use something different to determine if it is inference data
-      bool has_inference_data = prot_ids[0].getSearchEngine() == "Fido" ? true : false; 
+      // TODO: use a different identifier to determine if it is inference data (check other places!)
+      bool has_inference_data = prot_ids[0].getSearchEngine() == "Fido" ? true : false;
+      if (has_inference_data)
+      {
+        LOG_DEBUG << "MzTab: Inference data provided." << std::endl;
+      }
 
       MzTabParameter protein_score_type;
       protein_score_type.fromCellString("[,," + prot_ids[0].getSearchEngine() + ",]"); // TODO: check if we need one for every run (should not be redundant!)
@@ -1796,6 +1807,7 @@ namespace OpenMS
         var_mods.insert(std::end(var_mods), std::begin(sp.variable_modifications), std::end(sp.variable_modifications));
         fixed_mods.insert(std::end(fixed_mods), std::begin(sp.fixed_modifications), std::end(sp.fixed_modifications));
       }
+
       // make mods unique
       std::sort(var_mods.begin(), var_mods.end());
       auto v_it = std::unique(var_mods.begin(), var_mods.end()); 
@@ -1821,8 +1833,10 @@ namespace OpenMS
         for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it)
         {
           // First entry might be the inference result without (single) associated ms_run. We skip it.
-          if (has_inference_data && it == prot_ids.begin()) { continue; }
+          if (has_inference_data && it == prot_ids.begin()) { continue; }          
+          
           map_id_to_run[it->getIdentifier()] = run_index;
+          
           ++run_index;
         }
 
@@ -1865,24 +1879,63 @@ namespace OpenMS
       // TODO: sp.digestion_enzyme
       // TODO: sp.missed_cleavages
 
-      ////////////////////////////////////////////////////////////////
-      // generate protein section
-      MzTabProteinSectionRows protein_rows;
-
-      Size current_run_index(1);
-      for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it, ++current_run_index)
+      // map (indist.)protein groups to their protein hits (by index).
+      map<Size, set<Size>> ind2prot; // indistinguishable protein groups
+      map<Size, set<Size>> pg2prot; // general protein groups
+      if (has_inference_data)
       {
-        std::vector<ProteinIdentification::ProteinGroup> protein_groups;
-        std::vector<ProteinHit> protein_hits; 
+        const std::vector<ProteinHit> proteins = prot_ids.front().getHits();
 
-        // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
-        // We skip the more extensive reporting of single proteins and general groups with complex shared peptide relations. 
-        if (quant_study_variables == 0)
-        {
-          protein_hits = it->getHits();        
-          protein_groups = it->getProteinGroups();
+        // map indistinguishable groups to the contained proteins
+        const std::vector<ProteinIdentification::ProteinGroup>& indist_groups = prot_ids.front().getIndistinguishableProteins();
+        Size ind_idx{0};
+        for (const ProteinIdentification::ProteinGroup & p : indist_groups) 
+        { 
+          for (const String & a : p.accessions)
+          {
+            // find protein corresponding to accession stored in group
+            auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph) 
+              {
+                return ph.getAccession() == a;
+              }
+            );
+            if (it == proteins.end()) { continue; };
+            Size protein_index = std::distance(proteins.begin(), it);
+            ind2prot[ind_idx].insert(protein_index);
+          }
+          ++ind_idx;
         }
 
+        // map general protein groups to the contained proteins
+        const std::vector<ProteinIdentification::ProteinGroup>& protein_groups = prot_ids.front().getProteinGroups();
+        Size pg_idx{0};
+        for (const ProteinIdentification::ProteinGroup & p : protein_groups) 
+        { 
+          for (const String & a : p.accessions)
+          {
+            // find protein corresponding to accession stored in group
+            auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph) 
+              {
+                return ph.getAccession() == a;
+              }
+            );
+            if (it == proteins.end()) { continue; };
+            Size protein_index = std::distance(proteins.begin(), it);
+            pg2prot[pg_idx].insert(protein_index);
+          }
+        }
+        ++pg_idx;
+      }
+        
+      ////////////////////////////////////////////////////////////////
+      // generate protein section
+
+      MzTabProteinSectionRows protein_rows;
+
+      Size current_run_index(1); // TODO: is this needed here ?
+      for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it, ++current_run_index)
+      {
+        const std::vector<ProteinHit>& protein_hits = it->getHits(); 
         const std::vector<ProteinIdentification::ProteinGroup>& indist_groups = it->getIndistinguishableProteins();
 
         MzTabMSRunMetaData ms_run;
@@ -1908,10 +1961,26 @@ namespace OpenMS
             protein_hit_user_value_keys.insert(s);
           }
         } 
-
         // we do not want descriptions twice
         protein_hit_user_value_keys.erase("Description");
 
+
+        // We only report quantitative data for indistinguishable groups (which may be composed of single proteins).
+        // We skip the more extensive reporting of general groups with complex shared peptide relations. 
+        std::vector<ProteinIdentification::ProteinGroup> protein_groups;
+        if (quant_study_variables == 0)
+        {
+          protein_groups = it->getProteinGroups();
+        }
+
+        /*
+        * protein_hits are supposed to contain all infered proteins (single proteins and part of groups) 
+        * indist_groups define the indistinguishable groups and reference proteins in protein_hits
+        * protein_groups define general protein groups and reference proteins in protein_hits
+        */
+       if (!has_inference_data)
+       {
+              
         for (Size i = 0; i != protein_hits.size(); ++i)
         {
           const ProteinHit& hit = protein_hits[i];
@@ -1932,7 +2001,20 @@ namespace OpenMS
        // std::map<Size, MzTabInteger> num_psms_ms_run;
        // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
        // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
-       // MzTabModificationList modifications; // Modifications identified in the protein. TODO: mandatory
+          MzTabModificationList modifications; // Modifications identified in the protein.
+          const std::set<pair<Size, ResidueModification>>& leader_mods = hit.getModifications();
+          for (auto const & m : leader_mods)
+          {
+            MzTabModification mztab_mod;
+            String unimod = m.second.getUniModAccession();
+            MzTabString unimod_accession = MzTabString(unimod.toUpper());
+            mztab_mod.setModificationIdentifier(unimod_accession);
+            vector<std::pair<Size, MzTabParameter> > pos;
+            pos.push_back(make_pair(m.first, MzTabParameter())); // position, parameter pair (e.g. FLR)
+            mztab_mod.setPositionsAndParameters(pos);
+          }
+          protein_row.modifications = modifications;
+
        // MzTabString uri; // Location of the protein’s source entry.
        // MzTabStringList go_terms; // List of GO terms for the protein.
           double coverage = hit.getCoverage();
@@ -1976,9 +2058,8 @@ namespace OpenMS
           ambiguity_members.set(entries);
           protein_row.ambiguity_members = ambiguity_members; // Alternative protein identifications.
           protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
-
-          double coverage = group.coverage; // TODO: create getter / setter for coverage
-          if (coverage >= 0) { protein_row.protein_coverage = MzTabDouble(coverage); }
+      
+          protein_row.protein_coverage = MzTabDouble(); 
 
           MzTabOptionalColumnEntry opt_column_entry;
           opt_column_entry.first = "opt_global_protein_group_type";
@@ -1986,12 +2067,20 @@ namespace OpenMS
           protein_row.opt_.push_back(opt_column_entry);
           protein_rows.push_back(protein_row);
         }
+       }
 
         /////////////////////////////////////////////////////////////
         // reporting of protein groups composed of indistinguishable proteins
         for (Size i = 0; i != indist_groups.size(); ++i)
         {
           const ProteinIdentification::ProteinGroup& group = indist_groups[i];
+
+          // get references (indices) into proteins vector
+          const set<Size> & protein_hits_idx = ind2prot[i];
+
+          // determine group leader
+          const ProteinHit& leader_protein = protein_hits[*protein_hits_idx.begin()];
+
           MzTabProteinSectionRow protein_row;
           protein_row.database = db; // Name of the protein database.
           protein_row.database_version = db_version; // String Version of the protein database.
@@ -2000,23 +2089,41 @@ namespace OpenMS
           MzTabStringList ambiguity_members;
           ambiguity_members.setSeparator(',');
           vector<MzTabString> entries;
+
+          // set accession and description to first element of group
+          protein_row.accession = MzTabString(leader_protein.getAccession());
+          
+          // TODO: check with standard if it is important to also place leader at first position 
+          //       (because order in set and vector may differ)
           for (Size j = 0; j != group.accessions.size() ; ++j)
           {
-            // set accession and description to first element of group
-            if (j == 0) { protein_row.accession = MzTabString(group.accessions[j]); }
             entries.push_back(MzTabString(group.accessions[j]));
           }
           ambiguity_members.set(entries);
           protein_row.ambiguity_members = ambiguity_members; // set of indistinguishable proteins
-          double coverage = group.coverage;
-          if (coverage >= 0) { protein_row.protein_coverage = MzTabDouble(coverage); }
 
+          // annotate if group contains only one or multiple proteins
           MzTabOptionalColumnEntry opt_column_entry;
           opt_column_entry.first = "opt_global_protein_group_type";
-          opt_column_entry.second = MzTabString("indistinguishable_group");
+          if (group.accessions.size() == 1)
+          {
+            opt_column_entry.second = MzTabString("single_protein");          
+          }
+          else // more than one member
+          {
+            opt_column_entry.second = MzTabString("indistinguishable_proteins");          
+          }
           protein_row.opt_.push_back(opt_column_entry);
-          protein_row.best_search_engine_score[1] = MzTabDouble(group.probability);
-          
+
+          // column: coverage
+          // calculate mean coverage from individual protein coverages
+          double coverage{0};
+          for (const Size & prot_idx : protein_hits_idx)
+          {
+            coverage += (1.0 / (double)protein_hits_idx.size()) * protein_hits[prot_idx].getCoverage();
+          }
+          if (coverage >= 0) { protein_row.protein_coverage = MzTabDouble(coverage); }
+                    
           // Store quantitative value attached to abundances in study variables
           if (group.getFloatDataArrays().size() == 1 
             && group.getFloatDataArrays()[0].getName() == "abundances")
@@ -2031,7 +2138,90 @@ namespace OpenMS
               protein_row.protein_abundance_std_error_study_variable[i] = MzTabDouble();
               ++i;
             }
-          } 
+          }
+
+          // add protein description of first (leader) protein
+          protein_row.description = MzTabString(leader_protein.getDescription());
+          protein_row.taxid = (leader_protein.metaValueExists("TaxID")) ? 
+            MzTabInteger(static_cast<int>(leader_protein.getMetaValue("TaxID"))) :
+            MzTabInteger();
+
+          protein_row.species = (leader_protein.metaValueExists("Species")) ? 
+            MzTabString(leader_protein.getMetaValue("Species")) :
+            MzTabString();
+
+          protein_row.uri = (leader_protein.metaValueExists("URI")) ? 
+            MzTabString(leader_protein.getMetaValue("URI")) :
+            MzTabString();
+
+          if (leader_protein.metaValueExists("GO"))
+          { 
+            StringList sl = leader_protein.getMetaValue("GO");
+            String s;
+            s.concatenate(sl.begin(), sl.end(), ",");
+            protein_row.go_terms.fromCellString(s);
+          }
+
+          protein_row.best_search_engine_score[1] = MzTabDouble(group.probability); // TODO: group probability or search engine score?
+
+          protein_row.reliability = MzTabInteger();
+
+          MzTabParameterList search_engine; // Search engine(s) identifying the protein.
+          protein_row.search_engine = search_engine;
+
+          MzTabModificationList modifications; // Modifications identified in the protein.
+          const std::set<pair<Size, ResidueModification>>& leader_mods = leader_protein.getModifications();
+          for (auto const & m : leader_mods)
+          {
+            MzTabModification mztab_mod;
+            String unimod = m.second.getUniModAccession();
+            MzTabString unimod_accession = MzTabString(unimod.toUpper());
+            mztab_mod.setModificationIdentifier(unimod_accession);
+            vector<std::pair<Size, MzTabParameter> > pos;
+
+            // mzTab position is one-based, internal is 0-based so we need to +1
+            pos.push_back(make_pair(m.first + 1, MzTabParameter())); // position, parameter pair (e.g. FLR)
+            mztab_mod.setPositionsAndParameters(pos);
+            vector<MzTabModification> mztab_mods(1, mztab_mod);
+            modifications.set(mztab_mods);
+          }
+          protein_row.modifications = modifications;
+
+          if (leader_protein.metaValueExists("num_psms_ms_run"))
+          {
+            const IntList& il = leader_protein.getMetaValue("num_psms_ms_run");
+            for (Size i = 0; i != il.size(); ++i)
+            {
+              protein_row.num_psms_ms_run[i+1] = MzTabInteger(il[i]);
+            }
+          }
+
+          if (leader_protein.metaValueExists("num_peptides_distinct_ms_run"))
+          {
+            const IntList& il = leader_protein.getMetaValue("num_peptides_distinct_ms_run");
+            for (Size i = 0; i != il.size(); ++i)
+            {
+              protein_row.num_peptides_distinct_ms_run[i+1] = MzTabInteger(il[i]);
+            }
+          }
+
+          if (leader_protein.metaValueExists("num_peptides_unique_ms_run"))
+          {
+            const IntList& il = leader_protein.getMetaValue("num_peptides_unique_ms_run");
+            for (Size i = 0; i != il.size(); ++i)
+            {
+              protein_row.num_peptides_unique_ms_run[i+1] = MzTabInteger(il[i]);
+            }
+          }
+
+/*
+TODO:
+Not sure how to handle these:
+       // std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
+       // std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+*/
+
+          // Add protein(group) row to MzTab 
           protein_rows.push_back(protein_row);
         }
       }
@@ -2079,8 +2269,15 @@ namespace OpenMS
       size_t run_index = map_pep_idx_2_run[psm_id];
       MzTabSpectraRef spec_ref;
       row.spectra_ref.setMSFile(run_index);
-      row.spectra_ref.setSpecRef(spectrum_nativeID);
-
+      if (spectrum_nativeID.empty())
+      {
+        LOG_WARN << "spectrum_reference not set in ID with precursor (RT, m/z) " << it->getRT() << ", " << it->getMZ() << endl;
+      }
+      else
+      {
+        row.spectra_ref.setSpecRef(spectrum_nativeID);
+      }
+      
       // only consider best peptide hit for export
       const PeptideHit& best_ph = it->getHits()[0];
       const AASequence& aas = best_ph.getSequence();
@@ -2160,6 +2357,7 @@ namespace OpenMS
     }
 
     mztab.setMetaData(meta_data);
+
     mztab.setPSMSectionRows(rows);
 
     return mztab;
@@ -2301,9 +2499,9 @@ namespace OpenMS
     // Export protein/-group quantifications (stored as meta value in protein IDs)
     MzTab mztab = exportIdentificationsToMzTab(prot_ids, pep_ids, filename);
 
-    // determine number of channels
-    // TODO: adapt for fractionated design    
-    Size n_study_variables = consensus_map.getColumnHeaders().size();
+    // determine number of samples
+    ExperimentalDesign ed = ExperimentalDesign::fromConsensusMap(consensus_map);  
+    Size n_study_variables = ed.getNumberOfSamples();
 
     // collect variable and fixed modifications from different runs
     vector<String> var_mods, fixed_mods;
@@ -2362,26 +2560,46 @@ namespace OpenMS
       ++run_index;
     }
 
+    // assay index (and sample index) must be unique numbers 1..n
+    // fraction_group + label define the quant. values of an assay
+    auto pl2fg = ed.getPathLabelToFractionGroupMapping(false);
+
+    const String & experiment_type = consensus_map.getExperimentType();    
+
     // assay meta data
-    Size assay_index(0);
     for (auto const & c : consensus_map.getColumnHeaders())
     {
+      Size assay_index{1};
+      
       MzTabAssayMetaData assay;    
       MzTabParameter quantification_reagent;
-
-      // TODO: check if there are appropriate CV terms
-      if (consensus_map.getExperimentType() == "label-free")
+      if (experiment_type == "label-free")
       {
         quantification_reagent.fromCellString("[MS,MS:1002038,unlabeled sample,]");
+        auto pl = make_pair(c.second.filename, 1); // TODO: only label-free here -> adapt to multiplexed
+        assay_index = pl2fg[pl];
       } 
-      else if (consensus_map.getExperimentType() == "labeled_MS1")
+      else if (experiment_type == "labeled_MS1")
       {
-        MzTabParameter quantification_reagent;
+        // TODO: check if there are appropriate CV terms
         quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS1 labeled sample," + c.second.label + "]");
+        Size label{1};
+        if (c.second.metaValueExists("channel_id"))
+        {
+          label = static_cast<unsigned int>(c.second.getMetaValue("channel_id")) + 1;
+        }
+        assay_index = label;
       } 
-      else if (consensus_map.getExperimentType() == "labeled_MS2")
+      else if (experiment_type == "labeled_MS2")
       {
+        // TODO: check if there are appropriate CV terms
         quantification_reagent.fromCellString("[MS,MS:XXXXXX,MS2 labeled sample," + c.second.label + "]");
+        Size label{1};
+        if (c.second.metaValueExists("channel_id"))
+        {
+          label = static_cast<unsigned int>(c.second.getMetaValue("channel_id")) + 1;
+        }
+        assay_index = label;
       }
 
       // look up run index by filename
@@ -2389,24 +2607,15 @@ namespace OpenMS
         [&c] (const pair<Size, MzTabMSRunMetaData>& m) { return m.second.location.toCellString() == c.second.filename; } );
       Size run_index = it->first;
 
-      assay.quantification_reagent = quantification_reagent;
-      MzTabString ms_run_ref;
-      ms_run_ref.fromCellString(String("ms_run[") + String(run_index)  + "]");
-      assay.ms_run_ref = ms_run_ref;
-      meta_data.assay[ assay_index + 1] = assay;
-
+      meta_data.assay[assay_index].quantification_reagent = quantification_reagent;
+      meta_data.assay[assay_index].ms_run_ref.push_back(run_index);
+      
       // study variable meta data
-      MzTabStudyVariableMetaData sv;
-      vector<int> sv_assay_refs;
-      sv_assay_refs.push_back(assay_index + 1);
-      sv.assay_refs = sv_assay_refs;
-
       MzTabString sv_description;
-      sv_description.fromCellString("no description given"); // TODO: read from design file
-      sv.description = sv_description;      
-      meta_data.study_variable[ assay_index + 1] = sv;
-
-      ++assay_index;
+      meta_data.study_variable[assay_index].description.fromCellString("no description given");
+      IntList al;
+      al.push_back(assay_index);
+      meta_data.study_variable[assay_index].assay_refs = al;
     }
 
     mztab.setMetaData(meta_data);
@@ -2493,6 +2702,7 @@ namespace OpenMS
       row.best_search_engine_score[1] = MzTabDouble();
 
       // initialize columns
+      LOG_DEBUG << "Initializing study variables:" << n_study_variables << endl;
       for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
       {
         row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
@@ -2508,7 +2718,35 @@ namespace OpenMS
       ConsensusFeature::HandleSetType fs = c.getFeatures();
       for (auto fit = fs.begin(); fit != fs.end(); ++fit)
       {
-        Size study_variable = fit->getMapIndex() + 1;
+        Size study_variable{1};
+        const int index = fit->getMapIndex();
+        const ConsensusMap::ColumnHeader& ch = consensus_map.getColumnHeaders().at(index);
+
+        if (experiment_type == "label-free")
+        {
+          // convert from column index to study variable index
+          auto pl = make_pair(ch.filename, 1);
+          study_variable = pl2fg[pl];
+        } 
+        else if (experiment_type == "labeled_MS1")
+        {
+          Size label{1};
+          if (ch.metaValueExists("channel_id"))
+          {
+            label = static_cast<unsigned int>(ch.getMetaValue("channel_id")) + 1;
+          }
+          study_variable = label;
+        } 
+        else if (experiment_type == "labeled_MS2")
+        {
+          Size label{1};
+          if (ch.metaValueExists("channel_id"))
+          {
+            label = static_cast<unsigned int>(ch.getMetaValue("channel_id")) + 1;
+          }
+          study_variable = label;
+        }
+
         row.peptide_abundance_stdev_study_variable[study_variable];
         row.peptide_abundance_std_error_study_variable[study_variable];
         row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());

@@ -34,6 +34,7 @@
 
 #include <OpenMS/METADATA/ProteinHit.h>
 
+
 using namespace std;
 
 namespace OpenMS
@@ -69,7 +70,8 @@ namespace OpenMS
     rank_(source.rank_),
     accession_(source.accession_),
     sequence_(source.sequence_),
-    coverage_(source.coverage_)
+    coverage_(source.coverage_),
+    modifications_(source.modifications_)
   {
   }
 
@@ -92,6 +94,7 @@ namespace OpenMS
     sequence_ = source.sequence_;
     accession_ = source.accession_;
     coverage_ = source.coverage_;
+    modifications_ = source.modifications_;
 
     return *this;
   }
@@ -111,7 +114,8 @@ namespace OpenMS
            && rank_ == rhs.rank_
            && accession_ == rhs.accession_
            && sequence_ == rhs.sequence_
-           && coverage_ == rhs.coverage_;
+           && coverage_ == rhs.coverage_
+           && modifications_ == rhs.modifications_;
   }
 
   // inequality operator
@@ -193,5 +197,16 @@ namespace OpenMS
   {
     coverage_ = coverage;
   }
+
+  const set<pair<Size, ResidueModification> >& ProteinHit::getModifications() const
+  {
+    return modifications_;
+  }
+
+  void ProteinHit::setModifications(std::set<std::pair<Size, ResidueModification> >& mods)
+  {
+    modifications_ = mods;
+  }
+
 
 } // namespace OpenMS
