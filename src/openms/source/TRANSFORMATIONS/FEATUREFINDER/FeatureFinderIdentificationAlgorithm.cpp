@@ -560,11 +560,11 @@ namespace OpenMS
           for (const auto & pep_id : intern_rt2pepid)
           {
             double mz = pep_id.second->getMZ();
-            LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
+            LOG_DEBUG << "Seed Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
 
             // get isotope distribution for peptide:
             Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
-            CoarseIsotopePatternGenerator generator(n_isotopes_);
+            CoarseIsotopePatternGenerator generator(n_isotopes);
 
             IsotopeDistribution iso_dist = generator.estimateFromPeptideWeight(mz * charge - charge * Constants::PROTON_MASS_U);
             if (isotope_pmin_ > 0.0)
