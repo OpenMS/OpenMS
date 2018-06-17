@@ -1247,7 +1247,7 @@ namespace OpenMS
     for (String::ConstIterator str_it = peptide.begin();
          str_it != peptide.end(); ++str_it)
     {
-      // skip (optional) terminal delimiters
+      // skip (optional) terminal delimiters, but remember that last character was a terminal one
       if (*str_it == '.') 
       {
         dot_notation = true;
@@ -1259,6 +1259,7 @@ namespace OpenMS
       const Residue* r = rdb->getResidue(*str_it); // "isalpha" check not needed
       if (r)
       {
+        dot_terminal = false; // since we found an AA, we are not at a terminal position any more
         aas.peptide_.push_back(r);
         continue;
       }
@@ -1270,9 +1271,6 @@ namespace OpenMS
       //     - otherwise we can be sure we are dealing with an internal modification
       ResidueModification::TermSpecificity specificity = ResidueModification::ANYWHERE;
 
-      //   at the terminus we assume we are dealing with a N- or C-terminal modifications
-
-      // make str_it point on '[' and set specificity if we are dealing with a terminus
       if (str_it == peptide.begin() || (dot_notation && dot_terminal && aas.peptide_.empty()) )
       {
         specificity = ResidueModification::N_TERM;
@@ -1295,7 +1293,6 @@ namespace OpenMS
       }
       else if (*str_it == '[')
       {
-
         str_it = parseModSquareBrackets_(str_it, peptide, aas, specificity);
       }
       else
