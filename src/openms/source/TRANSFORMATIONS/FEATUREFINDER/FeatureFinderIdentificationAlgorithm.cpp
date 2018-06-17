@@ -259,7 +259,7 @@ namespace OpenMS
 
     // TODO make sure that only assembled traces (more than one trace -> has a charge)
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
-    for (FeatureMap::Iterator f_it; f_it != seeds.end(); ++f_it)
+    for (FeatureMap::ConstIterator f_it = seeds.begin(); f_it != seeds.end(); ++f_it)
     {
       // check if already a peptide in peptide_map_ that is close in RT and MZ
       // if so don't add seed
@@ -544,17 +544,6 @@ namespace OpenMS
       peptide.protein_refs = vector<String>(current_accessions.begin(),
                                             current_accessions.end());
 
-      // get isotope distribution for peptide:
-      Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
-      IsotopeDistribution iso_dist = 
-        seq.getFormula(Residue::Full, 0).getIsotopeDistribution(CoarseIsotopePatternGenerator(n_isotopes));
-      if (isotope_pmin_ > 0.0)
-      {
-        iso_dist.trimLeft(isotope_pmin_);
-        iso_dist.trimRight(isotope_pmin_);
-        iso_dist.renormalize();
-      }
-
       // get regions in which peptide elutes (ideally only one):
       std::vector<RTRegion> rt_regions;
       getRTRegions_(pm_it->second, rt_regions);
@@ -599,6 +588,17 @@ namespace OpenMS
         }
         else
         {
+          // get isotope distribution for peptide:
+          Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
+          IsotopeDistribution iso_dist = 
+            seq.getFormula(Residue::Full, 0).getIsotopeDistribution(CoarseIsotopePatternGenerator(n_isotopes));
+          if (isotope_pmin_ > 0.0)
+          {
+            iso_dist.trimLeft(isotope_pmin_);
+            iso_dist.trimRight(isotope_pmin_);
+            iso_dist.renormalize();
+          }
+
           double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
           LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
           peptide.setChargeState(charge);
