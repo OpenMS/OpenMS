@@ -18,6 +18,16 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         #    UniqueIdInterface
         #    Peak2D
 
+        # wrap-doc:
+        #   A consensus feature spanning multiple LC-MS/MS experiments.
+        #   -----
+        #   A ConsensusFeature represents analytes that have been
+        #   quantified across multiple LC-MS/MS experiments. Each analyte in a
+        #   ConsensusFeature is linked to its original LC-MS/MS run through a
+        #   unique identifier.
+        #   -----
+        #   Get access to the underlying features through getFeatureList()
+
         ConsensusFeature() nogil except +
         ConsensusFeature(ConsensusFeature &) nogil except +
         ConsensusFeature(UInt64, Peak2D, UInt64) nogil except +
