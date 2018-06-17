@@ -56,8 +56,8 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         String toString() nogil except +
 
         # returns the formula as a hash
-        libcpp_map[libcpp_string, int] toMap() nogil except + # wrap-as:getElementalComposition
-        # wrap-doc:Get elemental composition as a hash { 'Symbol' : NrAtoms}
+        libcpp_map[libcpp_string, int] toMap() nogil except + #wrap-as:getElementalComposition wrap-doc:Get elemental composition as a hash {'Symbol' -> NrAtoms}
+
 
         # returns true if the formula does not contain a element
         bool isEmpty() nogil except +
