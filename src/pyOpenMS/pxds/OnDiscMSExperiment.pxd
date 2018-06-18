@@ -16,6 +16,8 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         Size getNrSpectra() nogil except +
         Size getNrChromatograms() nogil except +
 
+        # COMMENT: only retrieves experiment meta data (no actual data in spectra/chromatograms)
+        # COMMENT: useful for filtering by attributes to then retrieve data
         shared_ptr[const ExperimentalSettings] getExperimentalSettings() nogil except +
         shared_ptr[MSExperiment] getMetaData() nogil except +
 

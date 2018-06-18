@@ -626,6 +626,7 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumHelpers_test
     StatsHelpers_test
     CachedMzML_test
+    CachedMzMLHandler_test
   )
 endif(NOT DISABLE_OPENSWATH)
 
