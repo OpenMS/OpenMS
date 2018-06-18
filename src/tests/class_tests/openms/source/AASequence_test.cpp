@@ -1198,6 +1198,29 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGERc[21.0112310319]"))
   TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.[21]"))
   TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.[21.0112310319]"))
+
+  // Test "forbidden combinations" on the N/C terminal end
+
+  // UniMod 10 can only occur on C-terminal peptide on an M
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("DFPIANGER.(UniMod:10)")) // not just any C-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("DFPIANGEM(UniMod:10)R.")) // not just any M is allowed
+  TEST_EQUAL( AASequence::fromString(".DFPIANGEM.(UniMod:10)"), AASequence::fromString(".DFPIANGEM.(UniMod:10)") )
+  TEST_EQUAL( AASequence::fromString(".DFPIANGEM(UniMod:10)"), AASequence::fromString(".DFPIANGEM.(UniMod:10)") )
+
+  // UniMod 385 can only occur on N-terminal peptide on an C
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:385).DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:385)DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:385)CFPIANGER.")) // not just any C is allowed
+  TEST_EQUAL(AASequence::fromString(".DN(UniMod:385)CFPIANGER."), AASequence::fromString(".DN(UniMod:385)CFPIANGER.")) // any N is allowed
+  TEST_EQUAL(AASequence::fromString("(UniMod:385).CFPIANGER."), AASequence::fromString("(UniMod:385).CFPIANGER."))
+  TEST_EQUAL(AASequence::fromString("(UniMod:385)CFPIANGER."), AASequence::fromString("(UniMod:385).CFPIANGER."))
+
+  // UniMod 1009 can only occur on N-terminal peptide on an C
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:1009).DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:1009)DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:1009)CFPIANGER.")) // not just any C is allowed
+  TEST_EQUAL(AASequence::fromString("(UniMod:1009).CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
+  TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER.")) 
 }
 END_SECTION
 

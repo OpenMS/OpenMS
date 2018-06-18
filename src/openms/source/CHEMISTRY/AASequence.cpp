@@ -917,10 +917,16 @@ namespace OpenMS
 
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
-    // start of peptide -> N-terminal modification?
+    // First search for N or C terminal modifications (start of peptide indicates N-terminal modification as well)
     if (aas.peptide_.empty() || specificity == ResidueModification::N_TERM) 
     {
-      aas.n_term_mod_ = &(mod_db->getModification(mod, "", ResidueModification::N_TERM));
+      // Advance iterator one or two positions (we may or may not have a dot
+      // after the closing bracket) to point to the first AA of the peptide.
+      String::ConstIterator next_aa = mod_end;
+      ++next_aa;
+      if (*next_aa == '.') ++next_aa;
+
+      aas.n_term_mod_ = &(mod_db->getModification(mod, String(*next_aa), ResidueModification::N_TERM));
       return mod_end;
     }
 
