@@ -42,6 +42,8 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
+#include <cmath>
+
 using namespace std;
 
 namespace OpenMS
@@ -157,7 +159,7 @@ namespace OpenMS
     return bs;
   }
 
-  String AASequence::toBracketString(bool integer_mass, const vector<String> & fixed_modifications) const
+  String AASequence::toBracketString(bool integer_mass, bool mass_delta, const vector<String> & fixed_modifications) const
   {
     const AASequence & seq = *this;
 
@@ -173,14 +175,15 @@ namespace OpenMS
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), nterm_mod_name) == fixed_modifications.end())
       {
         double nominal_mass = Residue::getInternalToNTerm().getMonoWeight() + mod.getDiffMonoMass();
-        if (mod.isUserDefined()) nominal_mass = mod.getDiffMonoMass(); // just get input mass
+        if (mass_delta) nominal_mass = mod.getDiffMonoMass();
+        String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
         {
-          bs += "n[" + String(static_cast<int>(nominal_mass)) + "]";
+          bs += "n[" + sign + String(std::round(nominal_mass)) + "]";
         }
         else
         {
-          bs += "n[" + String(nominal_mass) + "]";
+          bs += "n[" + sign + String(nominal_mass) + "]";
         }
       }
     }
@@ -196,15 +199,16 @@ namespace OpenMS
         const String & mod_name = mod.getFullId();
         if (std::find(fixed_modifications.begin(), fixed_modifications.end(), mod_name) == fixed_modifications.end())
         {
+          double nominal_mass = r.getMonoWeight(Residue::Internal);
+          if (mass_delta) nominal_mass = mod.getDiffMonoMass();
+          String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
           if (integer_mass)
           {
-            const double residue_mono_mass = r.getMonoWeight(Residue::Internal);
-            bs += aa + "[" + static_cast<int>(residue_mono_mass) + "]"; 
+            bs += aa + "[" + sign + String(std::round(nominal_mass)) + "]"; 
           }
           else
           {
-            const double residue_mono_mass = r.getMonoWeight(Residue::Internal);
-            bs += aa + "[" + residue_mono_mass + "]"; 
+            bs += aa + "[" + sign + String(nominal_mass) + "]"; 
           }
         }
         else
@@ -227,14 +231,15 @@ namespace OpenMS
       if (std::find(fixed_modifications.begin(), fixed_modifications.end(), cterm_mod_name) == fixed_modifications.end())
       {
         double nominal_mass = Residue::getInternalToCTerm().getMonoWeight() + mod.getDiffMonoMass();
-        if (mod.isUserDefined()) nominal_mass = mod.getDiffMonoMass(); // just get input mass
+        if (mass_delta) nominal_mass = mod.getDiffMonoMass();
+        String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
         if (integer_mass)
         {
-          bs += "c[" + String(static_cast<int>(nominal_mass)) + "]";
+          bs += "c[" + sign + String(std::round(nominal_mass)) + "]";
         }
         else
         {
-          bs += "c[" + String(nominal_mass) + "]";
+          bs += "c[" + sign + String(nominal_mass) + "]";
         }
       }
     }
