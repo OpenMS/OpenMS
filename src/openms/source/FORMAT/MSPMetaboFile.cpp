@@ -66,7 +66,7 @@ namespace OpenMS
     boost::cmatch m;
     boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
     boost::regex re_points_line("^\\d");
-    boost::regex re_point("(\\d+)[: ](\\d+);? ?");
+    boost::regex re_point("(\\d+(?:\\.\\d+)?)[: ](\\d+(?:\\.\\d+)?);? ?");
     boost::regex re_metadatum(" *([^;\r\n]+): ([^;\r\n]+)");
 
     while (!ifs.eof())
@@ -83,7 +83,6 @@ namespace OpenMS
           const double position { std::stod(m[1]) };
           const double intensity { std::stod(m[2]) };
           spectrum.push_back( Peak1D(position, intensity) );
-          // LOG_DEBUG << position << " " << intensity << "; ";
         } while ( boost::regex_search(m[0].second, m, re_point) );
       }
       // Name
