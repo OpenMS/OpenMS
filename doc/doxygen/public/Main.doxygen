@@ -97,7 +97,6 @@
 				Documentation:
 				<UL>
 				  <LI> @subpage OpenMS_tutorial
-				  <LI> @subpage pyOpenMS
 					<LI> @subpage external_code
 				</UL>
 
