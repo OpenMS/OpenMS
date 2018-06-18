@@ -1003,15 +1003,19 @@ namespace OpenMS
     // handle N-term modification
     if (specificity == ResidueModification::N_TERM) 
     {
+      // Advance iterator one or two positions (we may or may not have a dot
+      // after the closing bracket) to point to the first AA of the peptide.
+      String::ConstIterator next_aa = mod_end;
+      ++next_aa;
+      if (*next_aa == '.') ++next_aa;
+
       if (delta_mass) // N-terminal mod specified by delta mass [+123.4]
       {
         std::vector<String> term_mods;
-        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, "",
-                                                  ResidueModification::N_TERM);
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
         if (!term_mods.empty())
         {
-          aas.n_term_mod_ = &(mod_db->getModification(
-                                term_mods[0], "", ResidueModification::N_TERM));
+          aas.n_term_mod_ = &(mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM));
           return mod_end;
         }
         LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
@@ -1020,12 +1024,10 @@ namespace OpenMS
       {
         double mod_mass = mass - Residue::getInternalToNTerm().getMonoWeight(); // here we need to subtract the N-Term mass
         std::vector<String> term_mods;
-        mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, "",
-                                                ResidueModification::N_TERM);
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, String(*next_aa), ResidueModification::N_TERM);
         if (!term_mods.empty())
         {
-          aas.n_term_mod_ = &(mod_db->getModification(
-                                term_mods[0], "", ResidueModification::N_TERM));
+          aas.n_term_mod_ = &(mod_db->getModification(term_mods[0], String(*next_aa), ResidueModification::N_TERM));
           return mod_end;
         }
         LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << std::endl;
@@ -1109,15 +1111,15 @@ namespace OpenMS
     }
     else if (specificity == ResidueModification::C_TERM)
     {
+      residue = aas.peptide_.back();
       if (delta_mass) // C-terminal mod specified by delta mass [+123.4]
       {
         std::vector<String> term_mods;
-        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, "",
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mass, tolerance, residue->getOneLetterCode(),
                                                   ResidueModification::C_TERM);
         if (!term_mods.empty())
         {
-          aas.c_term_mod_ = &(mod_db->getModification(
-                                term_mods[0], "", ResidueModification::C_TERM));
+          aas.c_term_mod_ = &(mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM));
           return mod_end;
         }
         LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
@@ -1126,12 +1128,11 @@ namespace OpenMS
       {
         double mod_mass = mass - Residue::getInternalToCTerm().getMonoWeight(); // here we need to subtract the C-Term mass
         std::vector<String> term_mods;
-        mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, "",
+        mod_db->searchModificationsByDiffMonoMass(term_mods, mod_mass, tolerance, residue->getOneLetterCode(),
                                                 ResidueModification::C_TERM);
         if (!term_mods.empty())
         {
-          aas.c_term_mod_ = &(mod_db->getModification(
-                                term_mods[0], "", ResidueModification::C_TERM));
+          aas.c_term_mod_ = &(mod_db->getModification(term_mods[0], residue->getOneLetterCode(), ResidueModification::C_TERM));
           return mod_end;
         }
         LOG_WARN << "Warning: unknown C-terminal modification '" + mod + "' - adding it to the database" << std::endl;
