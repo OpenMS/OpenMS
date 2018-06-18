@@ -1,6 +1,5 @@
 from MSExperiment cimport *
 from String cimport *
-from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/FORMAT/MSPMetaboFile.h>" namespace "OpenMS":
 
