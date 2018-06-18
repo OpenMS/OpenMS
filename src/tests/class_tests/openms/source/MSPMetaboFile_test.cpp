@@ -81,43 +81,43 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   MSSpectrum::StringDataArrays::const_iterator it;
 
   it = getDataArrayByName(SDAs1, "Synon");
-  if (it == SDAs1.cend()) return 1; // implement a test macro for iterators?
+  TEST_EQUAL(it == SDAs1.cend(), false)
   TEST_EQUAL(it->size(), 2)
   TEST_STRING_EQUAL((*it)[0], "name2 of 1st")
   TEST_STRING_EQUAL((*it)[1], "name3 of firsttt")
 
   it = getDataArrayByName(SDAs1, "Formula");
-  if (it == SDAs1.cend()) return 1;
+  TEST_EQUAL(it == SDAs1.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "A11B22C333")
 
   it = getDataArrayByName(SDAs1, "MW");
-  if (it == SDAs1.cend()) return 1;
+  TEST_EQUAL(it == SDAs1.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "156")
 
   it = getDataArrayByName(SDAs1, "CAS#");
-  if (it == SDAs1.cend()) return 1;
+  TEST_EQUAL(it == SDAs1.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "0123-45-6")
 
   it = getDataArrayByName(SDAs1, "NIST#");
-  if (it == SDAs1.cend()) return 1;
+  TEST_EQUAL(it == SDAs1.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "654321")
 
   it = getDataArrayByName(SDAs1, "DB#");
-  if (it == SDAs1.cend()) return 1;
+  TEST_EQUAL(it == SDAs1.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "1")
 
   it = getDataArrayByName(SDAs1, "Comments");
-  if (it == SDAs1.cend()) return 1;
+  TEST_EQUAL(it == SDAs1.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "Some comment")
 
   it = getDataArrayByName(SDAs1, "Num Peaks");
-  if (it == SDAs1.cend()) return 1;
+  TEST_EQUAL(it == SDAs1.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "14")
 
@@ -137,43 +137,43 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   const MSSpectrum::StringDataArrays& SDAs2 = s2.getStringDataArrays();
 
   it = getDataArrayByName(SDAs2, "Synon");
-  if (it == SDAs2.cend()) return 1;
+  TEST_EQUAL(it == SDAs2.cend(), false)
   TEST_EQUAL(it->size(), 2)
   TEST_STRING_EQUAL((*it)[0], "name2 of 2nd")
   TEST_STRING_EQUAL((*it)[1], "name3 of seconddd")
 
   it = getDataArrayByName(SDAs2, "Formula");
-  if (it == SDAs2.cend()) return 1;
+  TEST_EQUAL(it == SDAs2.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "A44B55C666")
 
   it = getDataArrayByName(SDAs2, "MW");
-  if (it == SDAs2.cend()) return 1;
+  TEST_EQUAL(it == SDAs2.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "589")
 
   it = getDataArrayByName(SDAs2, "CAS#");
-  if (it == SDAs2.cend()) return 1;
+  TEST_EQUAL(it == SDAs2.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "3210-45-6")
 
   it = getDataArrayByName(SDAs2, "NIST#");
-  if (it == SDAs2.cend()) return 1;
+  TEST_EQUAL(it == SDAs2.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "789564")
 
   it = getDataArrayByName(SDAs2, "DB#");
-  if (it == SDAs2.cend()) return 1;
+  TEST_EQUAL(it == SDAs2.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "2")
 
   it = getDataArrayByName(SDAs2, "Comments");
-  if (it == SDAs2.cend()) return 1;
+  TEST_EQUAL(it == SDAs2.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "Some other comment")
 
   it = getDataArrayByName(SDAs2, "Num Peaks");
-  if (it == SDAs2.cend()) return 1;
+  TEST_EQUAL(it == SDAs2.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "15")
 
@@ -193,41 +193,41 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   const MSSpectrum::StringDataArrays& SDAs3 = s3.getStringDataArrays();
 
   it = getDataArrayByName(SDAs3, "Synon");
-  if (it == SDAs3.cend()) return 1;
+  TEST_EQUAL(it == SDAs3.cend(), false)
   TEST_EQUAL(it->size(), 2)
   TEST_STRING_EQUAL((*it)[0], "name2 of 3rd")
   TEST_STRING_EQUAL((*it)[1], "name3 of thirddd")
 
   it = getDataArrayByName(SDAs3, "Formula");
-  if (it == SDAs3.cend()) return 1;
+  TEST_EQUAL(it == SDAs3.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "A12B12C123")
 
   it = getDataArrayByName(SDAs3, "MW");
-  if (it == SDAs3.cend()) return 1;
+  TEST_EQUAL(it == SDAs3.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "562")
 
   it = getDataArrayByName(SDAs3, "CAS#");
-  if (it == SDAs3.cend()) return 1;
+  TEST_EQUAL(it == SDAs3.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "4210-47-4")
 
   it = getDataArrayByName(SDAs3, "NIST#");
-  if (it == SDAs3.cend()) return 1;
+  TEST_EQUAL(it == SDAs3.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "749514")
 
   it = getDataArrayByName(SDAs3, "DB#");
-  if (it == SDAs3.cend()) return 1;
+  TEST_EQUAL(it == SDAs3.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "3")
 
   it = getDataArrayByName(SDAs3, "Comments");
-  if (it != SDAs3.cend()) return 1; // this spectrum doesn't have a comment
+  TEST_EQUAL(it == SDAs3.cend(), true) // this spectrum doesn't have a comment
 
   it = getDataArrayByName(SDAs3, "Num Peaks");
-  if (it == SDAs3.cend()) return 1;
+  TEST_EQUAL(it == SDAs3.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL(it->front(), "16")
 
@@ -264,7 +264,7 @@ START_SECTION(void pushParsedInfoToNamedDataArray(
 
   TEST_EQUAL(SDAs.size(), 1)
   it = getDataArrayByName(SDAs, field_synon);
-  if (it == SDAs.cend()) return 1;
+  TEST_EQUAL(it == SDAs.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL((*it)[0], synon1)
 
@@ -272,7 +272,7 @@ START_SECTION(void pushParsedInfoToNamedDataArray(
 
   TEST_EQUAL(SDAs.size(), 1)
   it = getDataArrayByName(SDAs, field_synon);
-  if (it == SDAs.cend()) return 1;
+  TEST_EQUAL(it == SDAs.cend(), false)
   TEST_EQUAL(it->size(), 2)
   TEST_STRING_EQUAL((*it)[0], synon1)
   TEST_STRING_EQUAL((*it)[1], synon2)
@@ -284,7 +284,7 @@ START_SECTION(void pushParsedInfoToNamedDataArray(
 
   TEST_EQUAL(SDAs.size(), 2)
   it = getDataArrayByName(SDAs, field_comments);
-  if (it == SDAs.cend()) return 1;
+  TEST_EQUAL(it == SDAs.cend(), false)
   TEST_EQUAL(it->size(), 1)
   TEST_STRING_EQUAL((*it)[0], comment)
 }
