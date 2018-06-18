@@ -35,8 +35,8 @@
 #include <OpenMS/FORMAT/MSPMetaboFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
+#include <boost/regex.hpp>
 #include <fstream>
-#include <regex>
 
 namespace OpenMS
 {
@@ -63,20 +63,20 @@ namespace OpenMS
     MSSpectrum spectrum;
     spectrum.setMetaValue("is_valid", 0); // to avoid adding invalid spectra to the library
 
-    std::cmatch m;
-    std::regex re_name("^Name: (.+)");
-    std::regex re_points_line("^\\d");
-    std::regex re_point("(\\d+)[: ](\\d+);? ?");
-    std::regex re_metadatum(" *([^;\r\n]+): ([^;\r\n]+)");
+    boost::cmatch m;
+    boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
+    boost::regex re_points_line("^\\d");
+    boost::regex re_point("(\\d+)[: ](\\d+);? ?");
+    boost::regex re_metadatum(" *([^;\r\n]+): ([^;\r\n]+)");
 
     while (!ifs.eof())
     {
       ifs.getline(line, BUFSIZE);
       // Peaks
-      if (std::regex_search(line, m, re_points_line))
+      if (boost::regex_search(line, m, re_points_line))
       {
         // LOG_DEBUG << "re_points_line\n";
-        std::regex_search(line, m, re_point);
+        boost::regex_search(line, m, re_point);
         do
         {
           // LOG_DEBUG << "{" << m[1] << "} {" << m[2] << "}; ";
@@ -84,10 +84,10 @@ namespace OpenMS
           const double intensity { std::stod(m[2]) };
           spectrum.push_back( Peak1D(position, intensity) );
           // LOG_DEBUG << position << " " << intensity << "; ";
-        } while ( std::regex_search(m[0].second, m, re_point) );
+        } while ( boost::regex_search(m[0].second, m, re_point) );
       }
       // Name
-      else if (std::regex_search(line, m, re_name))
+      else if (boost::regex_search(line, m, re_name))
       {
         addSpectrumToLibrary(spectrum, library);
         // LOG_DEBUG << "\n\nName: " << m[1] << "\n";
@@ -96,10 +96,10 @@ namespace OpenMS
         spectrum.setMetaValue("is_valid", 1);
       }
       // Other metadata
-      else if (std::regex_search(line, m, re_metadatum))
+      else if (boost::regex_search(line, m, re_metadatum))
       {
         pushParsedInfoToNamedDataArray(spectrum, String(m[1]), String(m[2]));
-        while (std::regex_search(m[0].second, m, re_metadatum))
+        while (boost::regex_search(m[0].second, m, re_metadatum))
         {
           pushParsedInfoToNamedDataArray(spectrum, String(m[1]), String(m[2]));
         }
