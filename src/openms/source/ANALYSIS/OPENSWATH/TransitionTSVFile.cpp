@@ -365,8 +365,9 @@ namespace OpenMS
       !extractName<bool>(mytransition.identifying_transition, "IdentifyingTransition", tmp_line, header_dict);
       !extractName<bool>(mytransition.quantifying_transition, "quantifying_transition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.quantifying_transition, "QuantifyingTransition", tmp_line, header_dict) &&
-      !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict) && // Skyline
-      !extractName(peptidoforms, "Peptidoforms", tmp_line, header_dict);
+      !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict); // Skyline
+
+      extractName(peptidoforms, "Peptidoforms", tmp_line, header_dict);
       peptidoforms.split('|', mytransition.peptidoforms);
 
       //// Targeted Metabolomics
