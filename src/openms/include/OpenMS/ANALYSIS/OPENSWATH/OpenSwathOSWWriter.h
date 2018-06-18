@@ -426,13 +426,16 @@ namespace OpenMS
 
             for (int i = 0; i < id_target_num_transitions; ++i)
             {
-              if (id_target_total_mi[i] == "") {
+              if (id_target_total_mi[i] == "")
+              {
                 id_target_total_mi[i] = "NULL";
               }
-              if (id_target_ind_mi_score[i] == "") {
+              if (id_target_ind_mi_score[i] == "")
+              {
                 id_target_ind_mi_score[i] = "NULL";
               }
-              if (id_target_ind_mi_ratio_score[i] == "") {
+              if (id_target_ind_mi_ratio_score[i] == "")
+              {
                 id_target_ind_mi_ratio_score[i] = "NULL";
               }
 
@@ -495,13 +498,16 @@ namespace OpenMS
 
             for (int i = 0; i < feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt(); ++i)
             {
-              if (id_decoy_total_mi[i] == "") {
+              if (id_decoy_total_mi[i] == "")
+              {
                 id_decoy_total_mi[i] = "NULL";
               }
-              if (id_decoy_ind_mi_score[i] == "") {
+              if (id_decoy_ind_mi_score[i] == "")
+              {
                 id_decoy_ind_mi_score[i] = "NULL";
               }
-              if (id_decoy_ind_mi_ratio_score[i] == "") {
+              if (id_decoy_ind_mi_ratio_score[i] == "")
+              {
                 id_decoy_ind_mi_ratio_score[i] = "NULL";
               }
 
