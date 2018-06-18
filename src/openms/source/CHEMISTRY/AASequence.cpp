@@ -112,13 +112,15 @@ namespace OpenMS
     if (seq.hasNTerminalModification())
     {
       const ResidueModification& mod = *(seq.getNTerminalModification());
+      double nominal_mass = mod.getDiffMonoMass();
+      String sign = (nominal_mass > 0) ? "+" : "";
       if (mod.getUniModRecordId() > -1)
       {
         bs += ".(" + mod.getUniModAccession() + ")";
       }
       else
       {
-        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+        bs += ".[" + sign + String(mod.getDiffMonoMass()) + "]";
       }
     }
 
@@ -153,7 +155,9 @@ namespace OpenMS
       }
       else
       {
-        bs += ".[" + String(mod.getDiffMonoMass()) + "]";
+        double nominal_mass = mod.getDiffMonoMass();
+        String sign = (nominal_mass > 2) ? "+" : "";
+        bs += ".[" + sign + String(nominal_mass) + "]";
       }
     }
     return bs;
