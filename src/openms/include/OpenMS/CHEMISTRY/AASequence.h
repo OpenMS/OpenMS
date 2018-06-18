@@ -102,6 +102,16 @@ namespace OpenMS
       no formula for them).  However, they have an influence on getMonoWeight()
       and getAverageWeight()!
 
+      @note For C/N terminal modifications, the absolute mass is assumed to be
+      1 (H) for the N-terminus and 17 (OH) for the C-terminus, therefore a
+      modification specified as absolute n[43]PEPTIDE would translate to
+      n[+42]PEPTIDE using relative masses. By default, OpenMS uses and assumes
+      relative masses for unknown C/N terminal modification due to the
+      possibility of obtaining negative absolute masses for some modifications,
+      e.g. n[-2]PEPTIDE could be a loss of 2 Th (relative mass of -2) or a
+      loss of 3 Th (absolute mass if -2).
+      See also this discussion: https://groups.google.com/forum/#!topic/comet-ms/EA4TqXy-W8A
+
       @ingroup Chemistry
   */
   class OPENMS_DLLAPI AASequence
@@ -405,7 +415,9 @@ protected:
         Uses round brackets when possible (id is known) or square brackets for
         unknown modifications where only the mass is known.
 
-        i.e.: .n[43]PEPC(Carbamidomethyl)PEPM[147]PEPR.[16]
+        i.e.: .[+42]PEPC(Carbamidomethyl)PEPM[147]PEPR.[-1]
+
+        @note For C/N terminal modifications, OpenMS uses relative mass deltas by default
     */
     String toString() const;
 
@@ -418,7 +430,9 @@ protected:
         Uses round brackets when possible (id is known) or square brackets for
         unknown modifications where only the mass is known.
 
-        i.e.: .n[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
+        i.e.: .[+42]PEPC(UniMod:4)PEPM[147]PEPR.[-1]
+
+        @note For C/N terminal modifications, OpenMS uses relative mass deltas by default
     */
     String toUniModString() const;
 
@@ -427,7 +441,19 @@ protected:
 
         Instead of using the modification names, it writes the modification masses in brackets
 
-        i.e.: n[35]RQLNK[162]LQHK[162]GEA
+        i.e.: 
+
+         - n[43]PEPC[160]PEPM[147]PEPRc[16] 
+         - n[+42]PEPC[+57]PEPM[+16]PEPRc[-1]
+
+        will be produced, depending on whether relative or absolute masses are used.
+
+        @param integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
+        @param mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
+        @param fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
+
+        @note Using integer masses may mean that there could be multiple
+        modifications mapping to the same mass
     */
     String toBracketString(bool integer_mass = true, bool mass_delta = false, const std::vector<String> & fixed_modifications = std::vector<String>()) const;
 
