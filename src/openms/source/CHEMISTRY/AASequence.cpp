@@ -813,7 +813,7 @@ namespace OpenMS
     {
       if (peptide.n_term_mod_->isUserDefined())
       {
-        os << peptide.n_term_mod_->getFullId();
+        os << peptide.n_term_mod_->getFullName();
       }
       else
       {
@@ -838,7 +838,7 @@ namespace OpenMS
         if (peptide.peptide_[i]->getModification()->isUserDefined())
         {
           // user-defined modification
-          os << peptide.peptide_[i]->getModification()->getFullId();
+          os << peptide.peptide_[i]->getModification()->getFullName();
         }
         else if (id != "")
         {
@@ -877,7 +877,7 @@ namespace OpenMS
     {
       if (peptide.c_term_mod_->isUserDefined())
       {
-        os << peptide.c_term_mod_->getFullId();
+        os << peptide.c_term_mod_->getFullName();
       }
       else
       {
@@ -1159,13 +1159,15 @@ namespace OpenMS
     if (specificity == ResidueModification::N_TERM) 
     {
       String residue_name = ".[" + mod + "]";
+      String residue_id = ".n[" + mod + "]";
 
       // Check if it already exists, if not create new modification, transfer
       // ownership to ModDB
-      if (!mod_db->has(residue_name)) 
+      if (!mod_db->has(residue_id))
       {
         ResidueModification * new_mod = new ResidueModification();
-        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setFullName(residue_name); // display name
         new_mod->setDiffMonoMass(mass);
         new_mod->setTermSpecificity(ResidueModification::N_TERM);
         // new_mod->setMonoMass(mass);
@@ -1183,13 +1185,15 @@ namespace OpenMS
     else if (specificity == ResidueModification::C_TERM)
     {
       String residue_name = ".[" + mod + "]";
+      String residue_id = ".c[" + mod + "]";
 
       // Check if it already exists, if not create new modification, transfer
       // ownership to ModDB
-      if (!mod_db->has(residue_name)) 
+      if (!mod_db->has(residue_id))
       {
         ResidueModification * new_mod = new ResidueModification();
-        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setFullId(residue_id); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setFullName(residue_name); // display name
         new_mod->setDiffMonoMass(mass);
         new_mod->setTermSpecificity(ResidueModification::C_TERM);
         // new_mod->setMonoMass(mass);
@@ -1214,6 +1218,7 @@ namespace OpenMS
         // create new modification
         ResidueModification * new_mod = new ResidueModification();
         new_mod->setFullId(modification_name); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setFullName(modification_name); // display name
 
         // We cannot set origin if we want to use the same modification name
         // also at other AA (and since we have no information here, it is safer
