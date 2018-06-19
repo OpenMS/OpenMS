@@ -1181,7 +1181,7 @@ namespace OpenMS
       }
       else
       {
-        Size mod_idx = mod_db->findModificationIndex(residue_name);
+        Size mod_idx = mod_db->findModificationIndex(residue_id);
         aas.n_term_mod_ = &mod_db->getModification(mod_idx);
       }
       return mod_end;
@@ -1207,7 +1207,7 @@ namespace OpenMS
       }
       else
       {
-        Size mod_idx = mod_db->findModificationIndex(residue_name);
+        Size mod_idx = mod_db->findModificationIndex(residue_id);
         aas.c_term_mod_ = &mod_db->getModification(mod_idx);
       }
       return mod_end;
