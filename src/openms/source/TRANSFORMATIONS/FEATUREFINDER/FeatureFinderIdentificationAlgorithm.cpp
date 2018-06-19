@@ -45,6 +45,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 
 #include <vector>
 #include <numeric>
@@ -259,6 +260,7 @@ namespace OpenMS
 
     // TODO make sure that only assembled traces (more than one trace -> has a charge)
     // see FeatureFindingMetabo: defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
+    Size seeds_added(0);
     for (FeatureMap::ConstIterator f_it = seeds.begin(); f_it != seeds.end(); ++f_it)
     {
       // check if already a peptide in peptide_map_ that is close in RT and MZ
@@ -285,7 +287,7 @@ namespace OpenMS
         peptides.push_back(PeptideIdentification());
         PeptideHit seed_hit;
         seed_hit.setCharge(f_it->getCharge());
-        AASequence some_seq = AASequence::fromString("XXX");
+        AASequence some_seq = AASequence::fromString("XXX["+String(100000+seeds_added)+"]");
         seed_hit.setSequence(some_seq);
         vector<PeptideHit> seed_hits;
         seed_hits.push_back(seed_hit);
@@ -294,8 +296,10 @@ namespace OpenMS
         peptides.back().setMZ(f_it->getMZ());
         peptides.back().setMetaValue("FFId_category", "internal");
         addPeptideToMap_(peptides.back(), peptide_map_);
+        ++seeds_added;
       }
     }
+    LOG_INFO << "Seeds added: " << seeds_added << endl;
 
 
     n_internal_peps_ = peptide_map_.size();
@@ -310,6 +314,7 @@ namespace OpenMS
     LOG_INFO << "Creating assay library..." << endl;
     PeptideRefRTMap ref_rt_map;
     createAssayLibrary_(peptide_map_, ref_rt_map);
+    // TraMLFile().store("debug.traml", library_);
 
     //-------------------------------------------------------------
     // run feature detection
@@ -529,6 +534,7 @@ namespace OpenMS
 
       // keep track of protein accessions:
       set<String> current_accessions;
+      // internal/external pait
       const pair<RTMap, RTMap>& pair = pm_it->second.begin()->second;
       const PeptideHit& hit = (pair.first.empty() ?
                                pair.second.begin()->second->getHits()[0] :
@@ -554,36 +560,61 @@ namespace OpenMS
            cm_it != pm_it->second.end(); ++cm_it)
       {
         Int charge = cm_it->first;
-        if (peptide.sequence == "XXX") // seed
+
+        if (peptide.sequence.hasPrefix("XXX")) // seed
         {
-          auto & intern_rt2pepid = cm_it->second.first;
-          for (const auto & pep_id : intern_rt2pepid)
-          {
-            double mz = pep_id.second->getMZ();
-            LOG_DEBUG << "Seed Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
+          cout << peptide.sequence << " " << charge << endl;
 
-            // get isotope distribution for peptide:
-            Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
-            CoarseIsotopePatternGenerator generator(n_isotopes);
+          String peptide_id = peptide.sequence + "/" + String(charge);
+          peptide.setChargeState(charge);
+          peptide.id = peptide_id;
+          peptide.setPeptideGroupLabel(peptide_id);
+          peptide.rts.clear();
 
-            IsotopeDistribution iso_dist = generator.estimateFromPeptideWeight(mz * charge - charge * Constants::PROTON_MASS_U);
-            if (isotope_pmin_ > 0.0)
+          Size counter = 0;
+          // accumulate IDs over multiple regions: potentially not needed for seeds
+          RTMap& internal_ids = ref_rt_map[peptide_id].first;
+          RTMap& external_ids = ref_rt_map[peptide_id].second;
+          for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
+               reg_it != rt_regions.end(); ++reg_it)
+          {            
+            if (reg_it->ids.count(charge))
             {
-              iso_dist.trimLeft(isotope_pmin_);
-              iso_dist.trimRight(isotope_pmin_);
-              iso_dist.renormalize();
-            }
+              LOG_DEBUG << "Region " << counter + 1 << " (RT: "
+                        << float(reg_it->start) << "-" << float(reg_it->end)
+                        << ", size " << float(reg_it->end - reg_it->start) << ")"
+                        << std::endl;
 
-            peptide.setChargeState(charge);
-            String peptide_id = peptide.sequence + String(mz) + "/" + String(charge);
-            peptide.setPeptideGroupLabel(peptide_id);
-            peptide.rts.clear();
-            RTMap& internal_ids = ref_rt_map[peptide_id].first;
-            addPeptideRT_(peptide, pep_id.first - 30.0);
-            addPeptideRT_(peptide, pep_id.first + 30.0);
-            library_.addPeptide(peptide);
-            generateTransitions_(peptide.id, mz, charge, iso_dist);
-            internal_ids.insert(pep_id);
+              peptide.id = peptide_id;
+              if (rt_regions.size() > 1) peptide.id += ":" + String(++counter);
+
+              auto& a = reg_it->ids[charge].first;
+              double mz = a.begin()->second->getMZ();
+              // get isotope distribution for peptide:
+              Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
+              CoarseIsotopePatternGenerator generator(n_isotopes);
+
+              IsotopeDistribution iso_dist = generator.estimateFromPeptideWeight(mz * charge - charge * Constants::PROTON_MASS_U);
+              if (isotope_pmin_ > 0.0)
+              {
+                iso_dist.trimLeft(isotope_pmin_);
+                iso_dist.trimRight(isotope_pmin_);
+                iso_dist.renormalize();
+              }
+
+              LOG_DEBUG << "Seed Charge: " << charge << " (m/z: " << mz << ")" << std::endl;
+
+              // store beginning and end of RT region:
+              peptide.rts.clear();
+              addPeptideRT_(peptide, reg_it->start);
+              addPeptideRT_(peptide, reg_it->end);
+              library_.addPeptide(peptide);
+              generateTransitions_(peptide.id, mz, charge, iso_dist);
+            }
+            internal_ids.insert(reg_it->ids[charge].first.begin(),
+                      reg_it->ids[charge].first.end());
+            external_ids.insert(reg_it->ids[charge].second.begin(), // Note: empty
+                                reg_it->ids[charge].second.end());
           }
         }
         else
@@ -638,7 +669,6 @@ namespace OpenMS
                                 reg_it->ids[charge].second.end());
           }
         }
-
       }
     }
 
@@ -1040,6 +1070,7 @@ namespace OpenMS
     RTMap::value_type pair = make_pair(rt, &peptide);
     if (!external)
     {
+      cout << "Adding " << hit.getSequence() << " " << charge << " " << rt << endl;
       peptide_map[hit.getSequence()][charge].first.insert(pair);
     }
     else

@@ -542,8 +542,8 @@ protected:
         ffm.setParameters(ffm_param);
         std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
         ffm.run(splitted_mtraces, seeds, chromatograms);
-
         LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
+
         /////////////////////////////////////////////////
         // Run FeatureFinderIdentification
 
