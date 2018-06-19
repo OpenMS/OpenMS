@@ -50,6 +50,7 @@ MRMFeatureQCFile.h
 MS2File.h
 MSNumpressCoder.h
 MSPFile.h
+MSPMetaboFile.h
 MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
