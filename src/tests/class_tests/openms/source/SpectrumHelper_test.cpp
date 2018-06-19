@@ -183,6 +183,32 @@ START_SECTION((MSChromatogram::IntegerDataArrays::iterator getDataArrayByName(MS
         TEST_EQUAL(getDataArrayByName(ds.getIntegerDataArrays(), "f3") - ds.getIntegerDataArrays().begin(), 2);
 END_SECTION
 
+START_SECTION(void slicePeakContainer(PeakContainerT& p, const double pos_start, const double pos_end))
+{
+  MSSpectrum s;
+  MSChromatogram c;
+  const Size container_size { 10 };
+  for (Size i = 0; i < container_size; ++i)
+  {
+    s.push_back(Peak1D(i, i));
+    c.push_back(ChromatogramPeak(i, i));
+  }
+
+  MSSpectrum s1 = s;
+  slicePeakContainer(s1, 3, 6);
+  TEST_EQUAL(s1.size(), 4)
+
+  MSChromatogram c1 = c;
+  slicePeakContainer(c1, 2, 7);
+  TEST_EQUAL(c1.size(), 6)
+}
+END_SECTION
+
+START_SECTION(void rebaseIntensities(PeakContainerT& p))
+{
+
+}
+END_SECTION
 
 END_TEST
 
