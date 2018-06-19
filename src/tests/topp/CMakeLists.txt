@@ -317,7 +317,7 @@ add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_
 add_test("TOPP_FileConverter_1_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileConverter_1.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML )
 set_tests_properties("TOPP_FileConverter_1_out1" PROPERTIES DEPENDS "TOPP_FileConverter_1")
 add_test("TOPP_FileConverter_2" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_2_input.someInputDTA2D -in_type dta2d -out FileConverter_2.tmp -out_type mzML)
-add_test("TOPP_FileConverter_2_out1" ${DIFF} -whitelist "id=" "location=" "href=" "<offset"-in1 FileConverter_2.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_2_output.mzML )
+add_test("TOPP_FileConverter_2_out1" ${DIFF} -whitelist "id=" "location=" "href=" "<offset" -in1 FileConverter_2.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_2_output.mzML )
 set_tests_properties("TOPP_FileConverter_2_out1" PROPERTIES DEPENDS "TOPP_FileConverter_2")
 add_test("TOPP_FileConverter_3" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_3_input.featureXML -out FileConverter_3.tmp -out_type mzML)
 add_test("TOPP_FileConverter_3_out1" ${DIFF} -in1 FileConverter_3.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_3_output.mzML )
