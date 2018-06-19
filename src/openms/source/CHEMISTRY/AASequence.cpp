@@ -1224,10 +1224,9 @@ namespace OpenMS
         new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
         new_mod->setFullName(modification_name); // display name
 
-        // We cannot set origin if we want to use the same modification name
-        // also at other AA (and since we have no information here, it is safer
-        // to assume that this may happen).
-        // new_mod->setOrigin(aas.peptide_.back()->getOneLetterCode()[0]);
+        // We will set origin to make sure the same modifcation will be used
+        // for the same AA
+        new_mod->setOrigin(aas.peptide_.back()->getOneLetterCode()[0]);
 
         // set masses
         if (delta_mass)
