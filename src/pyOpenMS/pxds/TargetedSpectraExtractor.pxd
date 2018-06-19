@@ -35,3 +35,17 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
 
         void extractSpectra(MSExperiment, TargetedExperiment, libcpp_vector[ MSSpectrum ], FeatureMap) nogil except +
         void extractSpectra(MSExperiment, TargetedExperiment, libcpp_vector[ MSSpectrum ]) nogil except +
+
+        void matchSpectrum(MSSpectrum input_spectrum, MSExperiment library, libcpp_vector[ TSE_Match ] matches) nogil except +
+
+
+cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namespace "OpenMS::TargetedSpectraExtractor":
+
+    cdef cppclass TSE_Match "OpenMS::TargetedSpectraExtractor::Match":
+
+        TSE_Match() nogil except +
+        TSE_Match(TSE_Match) nogil except +
+        TSE_Match(MSSpectrum spectrum, double score) nogil except +
+
+        MSSpectrum spectrum
+        double score
