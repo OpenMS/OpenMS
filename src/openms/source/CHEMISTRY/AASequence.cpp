@@ -1213,11 +1213,11 @@ namespace OpenMS
       String residue_name = aas.peptide_.back()->getOneLetterCode() + "[" + mod + "]"; // e.g. N[12345.6]
       String modification_name = "[" + mod + "]";
 
-      if (!mod_db->has(modification_name)) 
+      if (!mod_db->has(residue_name)) 
       {
         // create new modification
         ResidueModification * new_mod = new ResidueModification();
-        new_mod->setFullId(modification_name); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
         new_mod->setFullName(modification_name); // display name
 
         // We cannot set origin if we want to use the same modification name
@@ -1243,7 +1243,7 @@ namespace OpenMS
       }
 
       // now use the new modification
-      Size mod_idx = mod_db->findModificationIndex(modification_name);
+      Size mod_idx = mod_db->findModificationIndex(residue_name);
       const ResidueModification* res_mod = &mod_db->getModification(mod_idx);
 
       // Note: this calls setModification_ on a new Residue which changes its
