@@ -77,49 +77,35 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s1.size(), 14)
   TEST_EQUAL(s1.getName(), "name1 of first")
 
-  const MSSpectrum::StringDataArrays& SDAs1 = s1.getStringDataArrays();
-  MSSpectrum::StringDataArrays::const_iterator it;
+  // TODO: add tests for synonyms
 
-  it = getDataArrayByName(SDAs1, "Synon");
-  TEST_EQUAL(it == SDAs1.cend(), false)
-  TEST_EQUAL(it->size(), 2)
-  TEST_STRING_EQUAL((*it)[0], "name2 of 1st")
-  TEST_STRING_EQUAL((*it)[1], "name3 of firsttt")
+  // const MSSpectrum::StringDataArrays& SDAs1 = s1.getStringDataArrays();
+  // it = getDataArrayByName(SDAs1, "Synon");
+  // TEST_EQUAL(it == SDAs1.cend(), false)
+  // TEST_EQUAL(it->size(), 2)
+  // TEST_STRING_EQUAL((*it)[0], "name2 of 1st")
+  // TEST_STRING_EQUAL((*it)[1], "name3 of firsttt")
 
-  it = getDataArrayByName(SDAs1, "Formula");
-  TEST_EQUAL(it == SDAs1.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "A11B22C333")
+  TEST_EQUAL(s1.metaValueExists("Formula"), true)
+  TEST_STRING_EQUAL(s1.getMetaValue("Formula"), "A11B22C333")
 
-  it = getDataArrayByName(SDAs1, "MW");
-  TEST_EQUAL(it == SDAs1.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "156")
+  TEST_EQUAL(s1.metaValueExists("MW"), true)
+  TEST_STRING_EQUAL(s1.getMetaValue("MW"), "156")
 
-  it = getDataArrayByName(SDAs1, "CAS#");
-  TEST_EQUAL(it == SDAs1.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "0123-45-6")
+  TEST_EQUAL(s1.metaValueExists("CAS#"), true)
+  TEST_STRING_EQUAL(s1.getMetaValue("CAS#"), "0123-45-6")
 
-  it = getDataArrayByName(SDAs1, "NIST#");
-  TEST_EQUAL(it == SDAs1.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "654321")
+  TEST_EQUAL(s1.metaValueExists("NIST#"), true)
+  TEST_STRING_EQUAL(s1.getMetaValue("NIST#"), "654321")
 
-  it = getDataArrayByName(SDAs1, "DB#");
-  TEST_EQUAL(it == SDAs1.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "1")
+  TEST_EQUAL(s1.metaValueExists("DB#"), true)
+  TEST_STRING_EQUAL(s1.getMetaValue("DB#"), "1")
 
-  it = getDataArrayByName(SDAs1, "Comments");
-  TEST_EQUAL(it == SDAs1.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "Some comment")
+  TEST_EQUAL(s1.metaValueExists("Comments"), true)
+  TEST_STRING_EQUAL(s1.getMetaValue("Comments"), "Some comment")
 
-  it = getDataArrayByName(SDAs1, "Num Peaks");
-  TEST_EQUAL(it == SDAs1.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "14")
+  TEST_EQUAL(s1.metaValueExists("Num Peaks"), true)
+  TEST_STRING_EQUAL(s1.getMetaValue("Num Peaks"), "14")
 
   TEST_EQUAL(s1[0].getPos(), 27)
   TEST_EQUAL(s1[0].getIntensity(), 29)
@@ -134,48 +120,33 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s2.size(), 15)
   TEST_EQUAL(s2.getName(), "name1 of second")
 
-  const MSSpectrum::StringDataArrays& SDAs2 = s2.getStringDataArrays();
+  // const MSSpectrum::StringDataArrays& SDAs2 = s2.getStringDataArrays();
+  // it = getDataArrayByName(SDAs2, "Synon");
+  // TEST_EQUAL(it == SDAs2.cend(), false)
+  // TEST_EQUAL(it->size(), 2)
+  // TEST_STRING_EQUAL((*it)[0], "name2 of 2nd")
+  // TEST_STRING_EQUAL((*it)[1], "name3 of seconddd")
 
-  it = getDataArrayByName(SDAs2, "Synon");
-  TEST_EQUAL(it == SDAs2.cend(), false)
-  TEST_EQUAL(it->size(), 2)
-  TEST_STRING_EQUAL((*it)[0], "name2 of 2nd")
-  TEST_STRING_EQUAL((*it)[1], "name3 of seconddd")
+  TEST_EQUAL(s2.metaValueExists("Formula"), true)
+  TEST_STRING_EQUAL(s2.getMetaValue("Formula"), "A44B55C666")
 
-  it = getDataArrayByName(SDAs2, "Formula");
-  TEST_EQUAL(it == SDAs2.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "A44B55C666")
+  TEST_EQUAL(s2.metaValueExists("MW"), true)
+  TEST_STRING_EQUAL(s2.getMetaValue("MW"), "589")
 
-  it = getDataArrayByName(SDAs2, "MW");
-  TEST_EQUAL(it == SDAs2.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "589")
+  TEST_EQUAL(s2.metaValueExists("CAS#"), true)
+  TEST_STRING_EQUAL(s2.getMetaValue("CAS#"), "3210-45-6")
 
-  it = getDataArrayByName(SDAs2, "CAS#");
-  TEST_EQUAL(it == SDAs2.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "3210-45-6")
+  TEST_EQUAL(s2.metaValueExists("NIST#"), true)
+  TEST_STRING_EQUAL(s2.getMetaValue("NIST#"), "789564")
 
-  it = getDataArrayByName(SDAs2, "NIST#");
-  TEST_EQUAL(it == SDAs2.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "789564")
+  TEST_EQUAL(s2.metaValueExists("DB#"), true)
+  TEST_STRING_EQUAL(s2.getMetaValue("DB#"), "2")
 
-  it = getDataArrayByName(SDAs2, "DB#");
-  TEST_EQUAL(it == SDAs2.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "2")
+  TEST_EQUAL(s2.metaValueExists("Comments"), true)
+  TEST_STRING_EQUAL(s2.getMetaValue("Comments"), "Some other comment")
 
-  it = getDataArrayByName(SDAs2, "Comments");
-  TEST_EQUAL(it == SDAs2.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "Some other comment")
-
-  it = getDataArrayByName(SDAs2, "Num Peaks");
-  TEST_EQUAL(it == SDAs2.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "15")
+  TEST_EQUAL(s2.metaValueExists("Num Peaks"), true)
+  TEST_STRING_EQUAL(s2.getMetaValue("Num Peaks"), "15")
 
   TEST_EQUAL(s2[0].getPos(), 27)
   TEST_EQUAL(s2[0].getIntensity(), 29)
@@ -190,46 +161,32 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s3.size(), 16)
   TEST_EQUAL(s3.getName(), "name1 of third")
 
-  const MSSpectrum::StringDataArrays& SDAs3 = s3.getStringDataArrays();
+  // const MSSpectrum::StringDataArrays& SDAs3 = s3.getStringDataArrays();
+  // it = getDataArrayByName(SDAs3, "Synon");
+  // TEST_EQUAL(it == SDAs3.cend(), false)
+  // TEST_EQUAL(it->size(), 2)
+  // TEST_STRING_EQUAL((*it)[0], "name2 of 3rd")
+  // TEST_STRING_EQUAL((*it)[1], "name3 of thirddd")
 
-  it = getDataArrayByName(SDAs3, "Synon");
-  TEST_EQUAL(it == SDAs3.cend(), false)
-  TEST_EQUAL(it->size(), 2)
-  TEST_STRING_EQUAL((*it)[0], "name2 of 3rd")
-  TEST_STRING_EQUAL((*it)[1], "name3 of thirddd")
+  TEST_EQUAL(s3.metaValueExists("Formula"), true)
+  TEST_STRING_EQUAL(s3.getMetaValue("Formula"), "A12B12C123")
 
-  it = getDataArrayByName(SDAs3, "Formula");
-  TEST_EQUAL(it == SDAs3.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "A12B12C123")
+  TEST_EQUAL(s3.metaValueExists("MW"), true)
+  TEST_STRING_EQUAL(s3.getMetaValue("MW"), "562")
 
-  it = getDataArrayByName(SDAs3, "MW");
-  TEST_EQUAL(it == SDAs3.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "562")
+  TEST_EQUAL(s3.metaValueExists("CAS#"), true)
+  TEST_STRING_EQUAL(s3.getMetaValue("CAS#"), "4210-47-4")
 
-  it = getDataArrayByName(SDAs3, "CAS#");
-  TEST_EQUAL(it == SDAs3.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "4210-47-4")
+  TEST_EQUAL(s3.metaValueExists("NIST#"), true)
+  TEST_STRING_EQUAL(s3.getMetaValue("NIST#"), "749514")
 
-  it = getDataArrayByName(SDAs3, "NIST#");
-  TEST_EQUAL(it == SDAs3.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "749514")
+  TEST_EQUAL(s3.metaValueExists("DB#"), true)
+  TEST_STRING_EQUAL(s3.getMetaValue("DB#"), "3")
 
-  it = getDataArrayByName(SDAs3, "DB#");
-  TEST_EQUAL(it == SDAs3.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "3")
+  TEST_EQUAL(s3.metaValueExists("Comments"), false) // this spectrum doesn't have a comment
 
-  it = getDataArrayByName(SDAs3, "Comments");
-  TEST_EQUAL(it == SDAs3.cend(), true) // this spectrum doesn't have a comment
-
-  it = getDataArrayByName(SDAs3, "Num Peaks");
-  TEST_EQUAL(it == SDAs3.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL(it->front(), "16")
+  TEST_EQUAL(s3.metaValueExists("Num Peaks"), true)
+  TEST_STRING_EQUAL(s3.getMetaValue("Num Peaks"), "16")
 
   TEST_EQUAL(s3[0].getPos(), 27)
   TEST_EQUAL(s3[0].getIntensity(), 29)
@@ -244,51 +201,51 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 }
 END_SECTION
 
-START_SECTION(void pushParsedInfoToNamedDataArray(
-  MSSpectrum& spectrum,
-  const String& name,
-  const String& info
-) const)
-{
-  MSPMetaboFile_friend msp_f;
-  MSSpectrum spectrum;
-  MSSpectrum::StringDataArrays::const_iterator it;
+// START_SECTION(void pushParsedInfoToNamedDataArray(
+//   MSSpectrum& spectrum,
+//   const String& name,
+//   const String& info
+// ) const)
+// {
+//   MSPMetaboFile_friend msp_f;
+//   MSSpectrum spectrum;
+//   MSSpectrum::StringDataArrays::const_iterator it;
 
-  const String field_synon { "Synon" };
-  const String synon1 { "foo" };
-  const String synon2 { "bar" };
+//   const String field_synon { "Synon" };
+//   const String synon1 { "foo" };
+//   const String synon2 { "bar" };
 
-  msp_f.pushParsedInfoToNamedDataArray(spectrum, field_synon, synon1);
+//   msp_f.pushParsedInfoToNamedDataArray(spectrum, field_synon, synon1);
 
-  const MSSpectrum::StringDataArrays& SDAs = spectrum.getStringDataArrays();
+//   const MSSpectrum::StringDataArrays& SDAs = spectrum.getStringDataArrays();
 
-  TEST_EQUAL(SDAs.size(), 1)
-  it = getDataArrayByName(SDAs, field_synon);
-  TEST_EQUAL(it == SDAs.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL((*it)[0], synon1)
+//   TEST_EQUAL(SDAs.size(), 1)
+//   it = getDataArrayByName(SDAs, field_synon);
+//   TEST_EQUAL(it == SDAs.cend(), false)
+//   TEST_EQUAL(it->size(), 1)
+//   TEST_STRING_EQUAL((*it)[0], synon1)
 
-  msp_f.pushParsedInfoToNamedDataArray(spectrum, field_synon, synon2);
+//   msp_f.pushParsedInfoToNamedDataArray(spectrum, field_synon, synon2);
 
-  TEST_EQUAL(SDAs.size(), 1)
-  it = getDataArrayByName(SDAs, field_synon);
-  TEST_EQUAL(it == SDAs.cend(), false)
-  TEST_EQUAL(it->size(), 2)
-  TEST_STRING_EQUAL((*it)[0], synon1)
-  TEST_STRING_EQUAL((*it)[1], synon2)
+//   TEST_EQUAL(SDAs.size(), 1)
+//   it = getDataArrayByName(SDAs, field_synon);
+//   TEST_EQUAL(it == SDAs.cend(), false)
+//   TEST_EQUAL(it->size(), 2)
+//   TEST_STRING_EQUAL((*it)[0], synon1)
+//   TEST_STRING_EQUAL((*it)[1], synon2)
 
-  const String field_comments { "Comments" };
-  const String comment { "seems to work fine" };
+//   const String field_comments { "Comments" };
+//   const String comment { "seems to work fine" };
 
-  msp_f.pushParsedInfoToNamedDataArray(spectrum, field_comments, comment);
+//   msp_f.pushParsedInfoToNamedDataArray(spectrum, field_comments, comment);
 
-  TEST_EQUAL(SDAs.size(), 2)
-  it = getDataArrayByName(SDAs, field_comments);
-  TEST_EQUAL(it == SDAs.cend(), false)
-  TEST_EQUAL(it->size(), 1)
-  TEST_STRING_EQUAL((*it)[0], comment)
-}
-END_SECTION
+//   TEST_EQUAL(SDAs.size(), 2)
+//   it = getDataArrayByName(SDAs, field_comments);
+//   TEST_EQUAL(it == SDAs.cend(), false)
+//   TEST_EQUAL(it->size(), 1)
+//   TEST_STRING_EQUAL((*it)[0], comment)
+// }
+// END_SECTION
 
 START_SECTION(void addSpectrumToLibrary(
   MSSpectrum& spectrum,
@@ -309,7 +266,7 @@ START_SECTION(void addSpectrumToLibrary(
   TEST_EXCEPTION(Exception::MissingInformation, msp_f.addSpectrumToLibrary(spec, lib))
   TEST_EQUAL(lib.size(), 0)
 
-  msp_f.pushParsedInfoToNamedDataArray(spec, "Num Peaks", "2");
+  spec.setMetaValue("Num Peaks", "2");
   // Num Peaks is set but raw data poins have not been added
   TEST_EXCEPTION(Exception::ParseError, msp_f.addSpectrumToLibrary(spec, lib))
   TEST_EQUAL(lib.size(), 0)

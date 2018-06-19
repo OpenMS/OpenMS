@@ -97,10 +97,17 @@ namespace OpenMS
       // Other metadata
       else if (boost::regex_search(line, m, re_metadatum))
       {
-        pushParsedInfoToNamedDataArray(spectrum, String(m[1]), String(m[2]));
+        // pushParsedInfoToNamedDataArray(spectrum, String(m[1]), String(m[2]));
+        // while (boost::regex_search(m[0].second, m, re_metadatum))
+        // {
+        //   pushParsedInfoToNamedDataArray(spectrum, String(m[1]), String(m[2]));
+        // }
+
+        // TODO: manage synonms. only the last synonym is saved for each spectrum
+        spectrum.setMetaValue(String(m[1]), String(m[2]));
         while (boost::regex_search(m[0].second, m, re_metadatum))
         {
-          pushParsedInfoToNamedDataArray(spectrum, String(m[1]), String(m[2]));
+          spectrum.setMetaValue(String(m[1]), String(m[2]));
         }
       }
     }
@@ -111,27 +118,27 @@ namespace OpenMS
     // std::cout << "PARSE TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
 
-  void MSPMetaboFile::pushParsedInfoToNamedDataArray(
-    MSSpectrum& spectrum,
-    const String& name,
-    const String& info
-  ) const
-  {
-    // LOG_DEBUG << name << ": " << info << "\n";
-    MSSpectrum::StringDataArrays& SDAs = spectrum.getStringDataArrays();
-    MSSpectrum::StringDataArrays::iterator it = getDataArrayByName(SDAs, name);
-    if (it != SDAs.end()) // DataArray with given name already exists
-    {
-      it->push_back(info);
-    }
-    else // DataArray with given name does not exist, yet. Create it.
-    {
-      MSSpectrum::StringDataArray sda;
-      sda.push_back(info);
-      sda.setName(name);
-      SDAs.push_back(sda);
-    }
-  }
+  // void MSPMetaboFile::pushParsedInfoToNamedDataArray(
+  //   MSSpectrum& spectrum,
+  //   const String& name,
+  //   const String& info
+  // ) const
+  // {
+  //   // LOG_DEBUG << name << ": " << info << "\n";
+  //   MSSpectrum::StringDataArrays& SDAs = spectrum.getStringDataArrays();
+  //   MSSpectrum::StringDataArrays::iterator it = getDataArrayByName(SDAs, name);
+  //   if (it != SDAs.end()) // DataArray with given name already exists
+  //   {
+  //     it->push_back(info);
+  //   }
+  //   else // DataArray with given name does not exist, yet. Create it.
+  //   {
+  //     MSSpectrum::StringDataArray sda;
+  //     sda.push_back(info);
+  //     sda.setName(name);
+  //     SDAs.push_back(sda);
+  //   }
+  // }
 
   void MSPMetaboFile::addSpectrumToLibrary(
     MSSpectrum& spectrum,
@@ -154,14 +161,12 @@ namespace OpenMS
     if (!name_found)
     {
       // Check that all expected points are parsed
-      MSSpectrum::StringDataArrays& SDAs = spectrum.getStringDataArrays();
-      MSSpectrum::StringDataArrays::const_iterator it = getDataArrayByName(SDAs, "Num Peaks");
-      if (it == SDAs.cend())
+      if (!spectrum.metaValueExists("Num Peaks"))
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "The current spectrum misses the Num Peaks information.");
       }
-      const String& num_peaks { it->front() };
+      const String& num_peaks { spectrum.getMetaValue("Num Peaks") };
       if (spectrum.size() != std::stoul(num_peaks) )
       {
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,

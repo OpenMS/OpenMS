@@ -89,18 +89,18 @@ public:
     void load(const String& filename, MSExperiment& library);
 
 private:
-    /**
-      Push a field of the MSP structure into a named `StringDataArray`
+    // /**
+    //   Push a field of the MSP structure into a named `StringDataArray`
 
-      @param[in/out] spectrum The metadata will be added/updated in this `MSSpectrum`
-      @param[in] name The name of the field to add or update
-      @param[in] info The value to insert
-    */
-    void pushParsedInfoToNamedDataArray(
-      MSSpectrum& spectrum,
-      const String& name,
-      const String& info
-    ) const;
+    //   @param[in/out] spectrum The metadata will be added/updated in this `MSSpectrum`
+    //   @param[in] name The name of the field to add or update
+    //   @param[in] info The value to insert
+    // */
+    // void pushParsedInfoToNamedDataArray(
+    //   MSSpectrum& spectrum,
+    //   const String& name,
+    //   const String& info
+    // ) const;
 
     /**
       Validate and add a spectrum to a spectral library
@@ -131,14 +131,14 @@ public:
     MSPMetaboFile_friend() = default;
     ~MSPMetaboFile_friend() = default;
 
-    void pushParsedInfoToNamedDataArray(
-      MSSpectrum& spectrum,
-      const String& name,
-      const String& info
-    ) const
-    {
-      return msp_.pushParsedInfoToNamedDataArray(spectrum, name, info);
-    }
+    // void pushParsedInfoToNamedDataArray(
+    //   MSSpectrum& spectrum,
+    //   const String& name,
+    //   const String& info
+    // ) const
+    // {
+    //   return msp_.pushParsedInfoToNamedDataArray(spectrum, name, info);
+    // }
 
     void addSpectrumToLibrary(
       MSSpectrum& spectrum,
