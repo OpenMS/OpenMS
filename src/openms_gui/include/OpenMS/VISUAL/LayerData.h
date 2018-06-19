@@ -74,7 +74,7 @@ namespace OpenMS
   copy of the actual raw data and *different* from the one retrieved through
   getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
   non-persistent and will be gone the next time the cache is updated.
-  Persistant changes can be applied to getPeakDataMuteable() and will be
+  Persistent changes can be applied to getPeakDataMuteable() and will be
   available on the next cache update.
 
   @note Layer is mainly used as a member variable of SpectrumCanvas which holds
