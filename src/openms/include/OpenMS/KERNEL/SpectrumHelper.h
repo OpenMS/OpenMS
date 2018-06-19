@@ -34,6 +34,10 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <algorithm>
+#include <cmath>
+
 namespace OpenMS
 {
   class String;
@@ -66,6 +70,34 @@ namespace OpenMS
     return it;
   }
 
+  template <typename PeakContainerT>
+  void slicePeakContainer(PeakContainerT& p, const double pos_start, const double pos_end)
+  {
+    typename PeakContainerT::iterator it_start = p.PosBegin(pos_start);
+    typename PeakContainerT::iterator it_end = p.PosEnd(pos_end);
+    p.erase(it_end, p.end());
+    p.erase(p.begin(), it_start);
+    // Note: only raw peak data is erased
+  }
+
+  template <typename PeakContainerT>
+  void rebaseIntensities(PeakContainerT& p)
+  {
+    typename PeakContainerT::iterator it = std::min_element(p.cbegin(), p.cend(),
+      [](typename PeakContainerT::PeakType const & a, typename PeakContainerT::PeakType const & b)
+      {
+        return a.getIntensity() < b.getIntensity();
+      });
+
+    if (it == p.cend() || it->getIntensity() >= 0) return;
+
+    const double intensity = std::fabs(it->getIntensity());
+    for (Size i = 0; i < p.size(); ++i)
+    {
+      p[i] += intensity;
+    }
+    // Note: only raw peak data is updated
+  }
 } // namespace OpenMS
 
 
