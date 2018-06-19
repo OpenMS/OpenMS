@@ -766,8 +766,8 @@ START_SECTION(void matchSpectrum(
   // https://creativecommons.org/licenses/by/4.0/legalcode
   // Changes made: Only a very small subset of spectra is reproduced
 
-  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced.msp");
-  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML"); // reduced experiment
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
   const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
   MzMLFile mzml;
   MSExperiment gcms_experiment;
