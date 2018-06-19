@@ -837,21 +837,27 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
 
   // test arbitrary modification on N
   {
+    AASequence aa_withn = AASequence::fromString("PEPTNIDE");
     AASequence test_seq = AASequence::fromString("PEPTN[1600.230654]IDE");
     TEST_EQUAL(test_seq.size(), 8)
     TEST_EQUAL(test_seq.toString(), "PEPTN[1600.230654]IDE")
-    TEST_EQUAL(test_seq.toUniModString(), "PEPTN[1600.230654]IDE")
-    TEST_EQUAL(test_seq.toBracketString(false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toUniModString(), "PEPTN[+1486.1877258086]IDE")
+    TEST_EQUAL(test_seq.toBracketString(false, false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_seq.toBracketString(false, true), "PEPTN[+1486.1877258086]IDE")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "PEPTNIDE")
     TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
+    TEST_REAL_SIMILAR(test_seq.getMonoWeight(), aa_withn.getMonoWeight() + 1486.1877258086)
 
     // test that we can re-read the string
     AASequence test_other = AASequence::fromString(test_seq.toString());
     TEST_EQUAL(test_other.size(), 8)
     TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
-    TEST_EQUAL(test_other.toUniModString(), "PEPTN[1600.230654]IDE")
-    TEST_EQUAL(test_other.toBracketString(false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUniModString(), "PEPTN[+1486.1877258086]IDE")
+    TEST_EQUAL(test_other.toBracketString(false, false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toBracketString(false, true), "PEPTN[+1486.1877258086]IDE")
     TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
+    TEST_REAL_SIMILAR(test_other.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
+    TEST_REAL_SIMILAR(test_other.getMonoWeight(), aa_withn.getMonoWeight() + 1486.1877258086)
 
     TEST_EQUAL(test_other, test_seq) // the peptides should be equal
 
@@ -859,9 +865,25 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     test_other = AASequence::fromString(test_seq.toBracketString(false));
     TEST_EQUAL(test_other.size(), 8)
     TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
-    TEST_EQUAL(test_other.toUniModString(), "PEPTN[1600.230654]IDE")
-    TEST_EQUAL(test_other.toBracketString(false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUniModString(), "PEPTN[+1486.1877258086]IDE")
+    TEST_EQUAL(test_other.toBracketString(false, false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toBracketString(false, true), "PEPTN[+1486.1877258086]IDE")
     TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
+    TEST_REAL_SIMILAR(test_other.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
+    TEST_REAL_SIMILAR(test_other.getMonoWeight(), aa_withn.getMonoWeight() + 1486.1877258086)
+
+    TEST_EQUAL(test_other, test_seq) // the peptides should be equal
+
+    // test that we can re-read the string from BracketString
+    test_other = AASequence::fromString(test_seq.toBracketString(false, true));
+    TEST_EQUAL(test_other.size(), 8)
+    TEST_EQUAL(test_other.toString(), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toUniModString(), "PEPTN[+1486.1877258086]IDE")
+    TEST_EQUAL(test_other.toBracketString(false, false), "PEPTN[1600.230654]IDE")
+    TEST_EQUAL(test_other.toBracketString(false, true), "PEPTN[+1486.1877258086]IDE")
+    TEST_EQUAL(test_other.toUnmodifiedString(), "PEPTNIDE")
+    TEST_REAL_SIMILAR(test_other.getMonoWeight(), aa_original.getMonoWeight() + 1600.230654)
+    TEST_REAL_SIMILAR(test_other.getMonoWeight(), aa_withn.getMonoWeight() + 1486.1877258086)
 
     TEST_EQUAL(test_other, test_seq) // the peptides should be equal
   }
@@ -957,7 +979,7 @@ START_SECTION([EXTRA] Arbitrary tag in peptides using square brackets)
     TEST_EQUAL(test_seq.toString(), "DFPANGERX[113.0840643509]")
     TEST_EQUAL(test_seq.toUniModString(), "DFPANGERX[113.0840643509]")
     TEST_EQUAL(test_seq.toBracketString(true, false), "DFPANGERX[113]")
-    TEST_EQUAL(test_seq.toBracketString(true, true), "DFPANGERX[+131]")
+    TEST_EQUAL(test_seq.toBracketString(true, true), "DFPANGERX[113]") // even when specifying delta masses, X cannot produce a delta mass
     TEST_EQUAL(test_seq.toBracketString(false, false), "DFPANGERX[113.0840643509]")
     TEST_EQUAL(test_seq.toUnmodifiedString(), "DFPANGERX")
     TEST_EQUAL(test_seq.hasNTerminalModification(), false)

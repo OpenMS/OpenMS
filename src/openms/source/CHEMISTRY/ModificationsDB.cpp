@@ -118,7 +118,7 @@ namespace OpenMS
     for (set<const ResidueModification*>::const_iterator it = temp.begin();
          it != temp.end(); ++it)
     {
-      if (residuesMatch_(residue, (*it)->getOrigin()) &&
+      if (residuesMatch_(residue, *it) && 
           (term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY ||
            (term_spec == (*it)->getTermSpecificity())))
       {
@@ -197,7 +197,7 @@ namespace OpenMS
          it != mods_.end(); ++it)
     {
       if ((fabs((*it)->getDiffMonoMass() - mass) <= max_error) &&
-          residuesMatch_(residue, (*it)->getOrigin()) &&
+          residuesMatch_(residue, *it) && 
           ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
@@ -233,7 +233,7 @@ namespace OpenMS
       // first matching UniMod entry)
       double mass_error = fabs(mono_mass - mass);
       if ((mass_error < min_error) &&
-          residuesMatch_(residue, (*it)->getOrigin()) &&
+          residuesMatch_(residue, *it) && 
           ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
@@ -257,7 +257,7 @@ namespace OpenMS
       // first matching UniMod entry)
       double mass_error = fabs((*it)->getDiffMonoMass() - mass);
       if ((mass_error < min_error) &&
-          residuesMatch_(residue, (*it)->getOrigin()) &&
+          residuesMatch_(residue, *it) && 
           ((term_spec == ResidueModification::NUMBER_OF_TERM_SPECIFICITY) ||
            (term_spec == (*it)->getTermSpecificity())))
       {
@@ -627,10 +627,27 @@ namespace OpenMS
     });
   }
 
-
-  bool ModificationsDB::residuesMatch_(const String& residue, char origin) const
+  bool ModificationsDB::residuesMatch_(const String& residue, const ResidueModification* curr_mod) const
   {
-    return (residue.empty() || (origin == residue[0]) || (residue == "X") || (origin == 'X') || (residue == "."));
+
+    // residues match if they are equal or they match everything (X/.)
+    bool matching =  (
+             (curr_mod->getOrigin() == residue[0]) ||
+             residue.empty() ||
+             (residue == "X") ||
+             (curr_mod->getOrigin() == 'X') ||
+             (residue == ".") );
+
+    // residues do NOT match if the modification is user-defined and has origin
+    // X (which here means an actual input AA X and it does *not* mean "match
+    // all AA") while the current residue is not X. Make sure we dont match things like
+    // PEPN[400] and PEPX[400] since these have very different masses.
+    bool non_matching_user_defined =  (
+         curr_mod->isUserDefined() &&
+         curr_mod->getOrigin() == 'X' &&
+         !residue.empty() &&
+         String(curr_mod->getOrigin()) != residue );
+    return matching && ! non_matching_user_defined;
   }
 
 } // namespace OpenMS
