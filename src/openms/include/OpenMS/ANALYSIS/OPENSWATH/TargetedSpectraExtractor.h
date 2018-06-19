@@ -36,9 +36,11 @@
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <unordered_map>
 
 namespace OpenMS
 {
@@ -70,6 +72,29 @@ namespace OpenMS
 public:
     TargetedSpectraExtractor();
     virtual ~TargetedSpectraExtractor() = default;
+
+    /// To test private and protected methods
+    friend class TargetedSpectraExtractor_friend;
+
+    /** @name Constant expressions for parameters
+
+        Constants expressions used throughout the code and tests.
+    */
+    ///@{
+    /// Similarity function: binned spectral contrast angle
+    static constexpr const char* BINNED_SPECTRAL_CONTRAST_ANGLE = "BinnedSpectralContrastAngle";
+    ///@}
+
+    /**
+      Structure for a match against a spectral library
+      TODO: Replace with MzTab once the final implementation is done
+    */
+    struct Match
+    {
+      Match(MSSpectrum a, double b) : spectrum(a), score(b) {}
+      MSSpectrum spectrum;
+      double score;
+    };
 
     void getDefaultParameters(Param& params) const;
 
@@ -256,6 +281,20 @@ public:
       std::vector<MSSpectrum>& extracted_spectra
     ) const;
 
+    /**
+      @brief Searches the spectral library for the top scoring candidates that
+      match the input spectrum.
+
+      @param[in] input_spectrum The input spectrum for which a match is desired
+      @param[in] library The library with spectra information
+      @param[out] matches A vector of `Match`es, containing the matched spectrum and its score
+    */
+    void matchSpectrum(
+      const MSSpectrum& input_spectrum,
+      const MSExperiment& library,
+      std::vector<Match>& matches
+    );
+
 protected:
     /// Overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_();
@@ -309,10 +348,10 @@ private:
     /**
       Used in selectSpectra(), after the spectra have been assigned a score.
       Remained transitions will have at least one spectrum assigned.
-      Each spectrum needs to have a score >= min_score_ to be valid,
+      Each spectrum needs to have a score >= min_select_score_ to be valid,
       otherwise it gets filtered out.
     */
-    double min_score_;
+    double min_select_score_;
 
     /**
       Used in pickSpectrum(), it selects which filtering method is used during
@@ -320,6 +359,58 @@ private:
       By default the Gauss filter is selected. Set to false for the Savitzky-Golay method.
     */
     bool use_gauss_;
+
+    /// Similarity function to compare spectra in `matchSpectrum()`
+    String similarity_function_;
+
+    /**
+      The number of matches to output from `matchSpectrum()`.
+      These will be the matches of highest scores, sorted in descending order.
+    */
+    Size top_matches_to_report_;
+
+    /// Bin size for binned spectral contrast angle similarity function
+    double bin_size_;
+
+    /// Peak spread for binned spectral contrast angle similarity function
+    double peak_spread_;
+
+    /// Bin offset for binned spectral contrast angle similarity function
+    double bin_offset_;
+
+    /// Minimum score for a match to be considered valid in `matchSpectrum()`.
+    double min_match_score_;
+
+    /**
+      In-memory representation of the spectra library for comparisons
+      Used by `matchSpectrum()`, keeping this info in memory avoids creating the
+      `BinnedSpectrum` elements multiple times for the same spectra.
+    */
+    std::unordered_map<std::string,BinnedSpectrum> bs_cache_;
+
+    /**
+      Lookup for a `BinnedSpectrum` representation of the input spectrum.
+
+      If such representation is not found, it is constructed, added and returned.
+
+      @param[in] s The spectrum for which a `BinnedSpectrum` representation is desired
+
+      @return A reference to the found `BinnedSpectrum` representation
+    */
+    const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s);
+  };
+
+  class TargetedSpectraExtractor_friend
+  {
+public:
+    TargetedSpectraExtractor_friend() = default;
+    ~TargetedSpectraExtractor_friend() = default;
+
+    const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s)
+    {
+      return tse_.extractBinnedSpectrum(s);
+    }
+
+    TargetedSpectraExtractor tse_;
   };
 }
-
