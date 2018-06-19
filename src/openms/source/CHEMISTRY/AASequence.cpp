@@ -131,13 +131,16 @@ namespace OpenMS
       if (r.isModified())
       {
         const ResidueModification& mod = *(r.getModification());
+        double nominal_mass = mod.getDiffMonoMass();
+        String sign = (nominal_mass > 0) ? "+" : "";
+        if (aa == "X") {nominal_mass = r.getMonoWeight(Residue::Internal); sign = "";} // cannot have delta mass for X
         if (mod.getUniModRecordId() > -1)
         {
           bs += aa + "(" + mod.getUniModAccession() + ")";
         }
         else
         {
-          bs += aa + "[" + String(r.getMonoWeight(Residue::Internal)) + "]";
+          bs += aa + "[" + sign + String(nominal_mass) + "]";
         }
       }
       else  // amino acid not modified
@@ -206,6 +209,7 @@ namespace OpenMS
           double nominal_mass = r.getMonoWeight(Residue::Internal);
           if (mass_delta) nominal_mass = mod.getDiffMonoMass();
           String sign = (mass_delta && nominal_mass > 0) ? "+" : "";
+          if (aa == "X") {nominal_mass = r.getMonoWeight(Residue::Internal); sign = "";} // cannot have delta mass for X
           if (integer_mass)
           {
             bs += aa + "[" + sign + String(std::round(nominal_mass)) + "]"; 
