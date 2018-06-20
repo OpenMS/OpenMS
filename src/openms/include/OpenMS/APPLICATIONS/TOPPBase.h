@@ -54,7 +54,8 @@
 
 #include <fstream>
 
-class QStringList;
+#include <QStringList>
+
 
 namespace OpenMS
 {
@@ -816,7 +817,7 @@ protected:
     ///@name External processes (TODO consider creating another AdapterBase class)
     //@{
     /// Runs an external process via QProcess and reports its status in the logs
-    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments) const;
+    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "") const;
     //@}
 
     /**

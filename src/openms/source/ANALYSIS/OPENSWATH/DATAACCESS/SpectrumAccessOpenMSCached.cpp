@@ -35,40 +35,22 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 
 namespace OpenMS
 {
 
-  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(String filename)
+  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const String& filename) :
+    CachedmzML(filename)
   {
-    filename_cached_ = filename + ".cached";
-    filename_ = filename;
-
-    // Create the index from the given file
-    CachedmzML cache;
-    cache.createMemdumpIndex(filename_cached_);
-    spectra_index_ = cache.getSpectraIndex();
-    chrom_index_ = cache.getChromatogramIndex();;
-
-    // open the filestream
-    ifs_.open(filename_cached_.c_str(), std::ios::binary);
-
-    // load the meta data from disk
-    MzMLFile().load(filename, meta_ms_experiment_);
   }
 
   SpectrumAccessOpenMSCached::~SpectrumAccessOpenMSCached()
   {
-    ifs_.close();
   }
 
   SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs) :
-    meta_ms_experiment_(rhs.meta_ms_experiment_),
-    ifs_(rhs.filename_cached_.c_str(), std::ios::binary),
-    filename_(rhs.filename_),
-    spectra_index_(rhs.spectra_index_),
-    chrom_index_(rhs.chrom_index_)
+    CachedmzML(rhs)
   {
   }
 
@@ -95,7 +77,7 @@ namespace OpenMS
         "Error while changing position of input stream pointer.", filename_cached_);
     }
 
-    CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+    Internal::CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
     OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
     sptr->setMZArray(mz_array);
@@ -130,7 +112,7 @@ namespace OpenMS
         "Error while changing position of input stream pointer.", filename_cached_);
     }
 
-    CachedmzML::readChromatogramFast(rt_array, intensity_array, ifs_);
+    Internal::CachedMzMLHandler::readChromatogramFast(rt_array, intensity_array, ifs_);
 
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
     cptr->setTimeArray(rt_array);

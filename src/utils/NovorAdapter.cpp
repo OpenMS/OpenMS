@@ -260,7 +260,7 @@ protected:
 
     QStringList process_params;
     process_params << java_memory
-                   << "-jar" << path_to_executable
+                   << "-jar" << executable
                    << "-f" 
                    << "-o" << tmp_out.toQString()               
                    << "-p" << tmp_param.toQString()
@@ -268,7 +268,7 @@ protected:
 
 
     // print novor command line
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, path_to_executable);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

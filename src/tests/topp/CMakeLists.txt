@@ -166,6 +166,15 @@ set_tests_properties("TOPP_CLI_INVALIDNAME" PROPERTIES WILL_FAIL 1)
 # TOPP tests
 #------------------------------------------------------------------------------
 
+# FuzzyDiff tests
+add_test("UTILS_FuzzyDiff_1" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -in1 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML)
+add_test("UTILS_FuzzyDiff_2" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -in1 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_1_in2.featureXML)
+add_test("UTILS_FuzzyDiff_3" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -in1 ${DATA_DIR_TOPP}/FuzzyDiff_3_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_3_in2.featureXML)
+add_test("UTILS_FuzzyDiff_4" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -in1 ${DATA_DIR_TOPP}/lorem_ipsum.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_3_in2.featureXML)
+set_tests_properties("UTILS_FuzzyDiff_1" PROPERTIES WILL_FAIL 1) ## needs to fail due to different numbers
+set_tests_properties("UTILS_FuzzyDiff_2" PROPERTIES WILL_FAIL 1) ## needs to fail (cheating)
+set_tests_properties("UTILS_FuzzyDiff_4" PROPERTIES WILL_FAIL 1) ## needs to fail (file does not exist)
+
 #------------------------------------------------------------------------------
 # IDMerger tests
 add_test("TOPP_IDMerger_1" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input2.idXML -out IDMerger_1_output.tmp -annotate_file_origin)

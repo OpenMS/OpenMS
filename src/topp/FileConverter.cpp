@@ -315,7 +315,7 @@ protected:
 
       MzMLFile f;
       f.setLogType(log_type_);
-      CachedmzML cacher;
+      Internal::CachedMzMLHandler cacher;
       cacher.setLogType(log_type_);
       PeakMap tmp_exp;
 
@@ -391,7 +391,7 @@ protected:
         String out_meta = extractCachedMetaFilename(out);
         if (out_meta.empty()) return ILLEGAL_PARAMETERS;
 
-        CachedmzML cacher;
+        Internal::CachedMzMLHandler cacher;
         cacher.setLogType(log_type_);
         PeakMap exp_meta;
 
@@ -594,13 +594,8 @@ protected:
       String out_meta = extractCachedMetaFilename(out);
       if (out_meta.empty()) return ILLEGAL_PARAMETERS;
 
-      CachedmzML cacher;
-      MzMLFile f;
-      cacher.setLogType(log_type_);
-      f.setLogType(log_type_);
-
-      cacher.writeMetadata(exp, out_meta);
-      cacher.writeMemdump(exp, out);
+      Internal::CachedMzMLHandler().writeMetadata(exp, out_meta);
+      Internal::CachedMzMLHandler().writeMemdump(exp, out);
     }
     else if (out_type == FileTypes::CSV)
     {

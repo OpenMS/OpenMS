@@ -602,8 +602,10 @@ protected:
 
       @return Position at which to continue parsing
     */
-    static String::ConstIterator parseModRoundBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas, bool dot_notation, bool dot_terminal);
+    static String::ConstIterator parseModRoundBrackets_(const String::ConstIterator str_it,
+                                                        const String& str,
+                                                        AASequence& aas,
+                                                        const ResidueModification::TermSpecificity& specificity);
 
     /** 
       @brief Parses modifications in square brackets (a mass)
@@ -618,9 +620,10 @@ protected:
 
       @return Position at which to continue parsing
     */
-    static String::ConstIterator parseModSquareBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas, 
-      const ResidueModification::TermSpecificity& specificity);
+    static String::ConstIterator parseModSquareBrackets_(const String::ConstIterator str_it,
+                                                         const String& str,
+                                                         AASequence& aas,
+                                                         const ResidueModification::TermSpecificity& specificity);
 
     static void parseString_(const String& peptide, AASequence& aas,
                              bool permissive = true);
