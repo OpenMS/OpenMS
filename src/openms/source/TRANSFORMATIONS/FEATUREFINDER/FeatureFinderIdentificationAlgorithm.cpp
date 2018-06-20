@@ -46,6 +46,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <vector>
 #include <numeric>
@@ -287,7 +288,16 @@ namespace OpenMS
         peptides.push_back(PeptideIdentification());
         PeptideHit seed_hit;
         seed_hit.setCharge(f_it->getCharge());
-        AASequence some_seq = AASequence::fromString("XXX["+String(100000+seeds_added)+"]");
+    
+        const String pseudo_mod_name = String(100000 + seeds_added);
+        ResidueModification * new_mod = new ResidueModification();
+        new_mod->setFullId("[" + pseudo_mod_name + "]"); // setting FullId but not Id makes it a user-defined mod
+        new_mod->setTermSpecificity(ResidueModification::ANYWHERE);
+        new_mod->setUniModRecordId(100000 + seeds_added); // required for TargetedExperimentHelper
+        ModificationsDB::getInstance()->addModification(new_mod);
+
+        AASequence some_seq = AASequence::fromString("XXX");
+        some_seq.setModification(1, "[" + pseudo_mod_name + "]");
         seed_hit.setSequence(some_seq);
         vector<PeptideHit> seed_hits;
         seed_hits.push_back(seed_hit);
@@ -335,14 +345,16 @@ namespace OpenMS
     extractor.return_chromatogram(chrom_temp, coords, library_, (*shared)[0],
                                   chrom_data_.getChromatograms(), false);
 
-    LOG_DEBUG << "Extracted " << chrom_data_.getNrChromatograms()
+    LOG_INFO << "Extracted " << chrom_data_.getNrChromatograms()
               << " chromatogram(s)." << endl;
 
     LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    Log_info.remove(cout); // suppress status output from OpenSWATH
+    //Log_info.remove(cout); // suppress status output from OpenSWATH
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    Log_info.insert(cout);
+    //Log_info.insert(cout);
+    cout << "Found " << features.size() << " feature candidates in total."
+         << endl;
     LOG_INFO << "Found " << features.size() << " feature candidates in total."
              << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
@@ -561,7 +573,7 @@ namespace OpenMS
       {
         Int charge = cm_it->first;
 
-        if (peptide.sequence.hasPrefix("XXX")) // seed
+        if (seq.toUnmodifiedString().hasPrefix("XXX")) // seed
         {
           cout << peptide.sequence << " " << charge << endl;
 
