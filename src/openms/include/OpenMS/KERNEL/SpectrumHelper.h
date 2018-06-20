@@ -84,7 +84,7 @@ namespace OpenMS
   void rebaseIntensities(PeakContainerT& p)
   {
     typename PeakContainerT::iterator it = std::min_element(p.begin(), p.end(),
-      [](typename PeakContainerT::PeakType & a, typename PeakContainerT::PeakType & b)
+      [](typename PeakContainerT::PeakType& a, typename PeakContainerT::PeakType& b)
       {
         return a.getIntensity() < b.getIntensity();
       });
@@ -92,9 +92,9 @@ namespace OpenMS
     if (it == p.end() || it->getIntensity() >= 0) return;
 
     const double rebase = std::fabs(it->getIntensity());
-    for (Size i = 0; i < p.size(); ++i)
+    for (typename PeakContainerT::PeakType& peak : p)
     {
-      p[i].setIntensity(p[i].getIntensity() + rebase);
+      peak.setIntensity(peak.getIntensity() + rebase);
     }
     // Note: only raw peak data is updated
   }
