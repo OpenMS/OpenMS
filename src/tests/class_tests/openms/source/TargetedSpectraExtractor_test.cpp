@@ -784,12 +784,8 @@ START_SECTION(void matchSpectrum(
   params.setValue("min_select_score", 0.1);
   params.setValue("GaussFilter:gaussian_width", 0.1);
   params.setValue("PeakPickerHiRes:signal_to_noise", 0.01);
-  params.setValue("peak_height_min", 0.0);
-  params.setValue("peak_height_max", std::numeric_limits<double>::max());
   params.setValue("top_matches_to_report", 2);
-  params.setValue("bin_size", 1.0);
-  params.setValue("bin_offset", 0.5);
-  params.setValue("min_match_score", 0.7);
+  params.setValue("min_match_score", 0.51);
   tse.setParameters(params);
 
   TEST_EQUAL(gcms_experiment.getSpectra().size(), 11)
@@ -803,33 +799,39 @@ START_SECTION(void matchSpectrum(
   MSExperiment library;
   MSPMetaboFile mse(msp_path, library);
 
-  TEST_EQUAL(library.getSpectra().size(), 24)
+  TEST_EQUAL(library.getSpectra().size(), 21)
 
   vector<TargetedSpectraExtractor::Match> matches;
 
   tse.matchSpectrum(extracted_spectra[0], library, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "L-Tryptophane")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "tryptophol")
 
   tse.matchSpectrum(extracted_spectra[4], library, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "Uridine 5'-diphospho-N-acetylglucosamine")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "L-Ascorbic acid")
 
   tse.matchSpectrum(extracted_spectra[8], library, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "beta-D-(+)-Glucose")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "Adonitol")
 
   tse.matchSpectrum(extracted_spectra[9], library, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "(S)-(+)-2-(anilinomethyl)pyrrolidine")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "gamma-Amino-n-butyric acid")
 
   tse.matchSpectrum(extracted_spectra[13], library, matches);
-  TEST_STRING_EQUAL(matches[0].spectrum.getName(), "beta-Ketoadipic acid")
-  TEST_STRING_EQUAL(matches[1].spectrum.getName(), "2-(TRIMETHYLSILYL)OXYBUTANEDIOIC ACID BIS(TRIMETHYLSILYL) ESTER")
+  TEST_EQUAL(matches.size() >= 2, true)
+  TEST_STRING_EQUAL(matches[0].spectrum.getName(), "Uridine 5'-diphospho-N-acetylglucosamine")
+  TEST_STRING_EQUAL(matches[1].spectrum.getName(), "3-TRIMETHYLSILYLMETHYL-4-HYDROXY-2-METHYL-1-HEXENE")
 
   tse.matchSpectrum(extracted_spectra[17], library, matches);
+  TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "Uridine 5'-diphospho-N-acetylglucosamine")
-  TEST_STRING_EQUAL(matches[1].spectrum.getName(), "beta-Ketoadipic acid")
+  TEST_STRING_EQUAL(matches[1].spectrum.getName(), "3-TRIMETHYLSILYLMETHYL-4-HYDROXY-2-METHYL-1-HEXENE")
 }
 END_SECTION
 
