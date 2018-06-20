@@ -1273,6 +1273,30 @@ protected:
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("peptide:enzyme"));
+
+     features used by percolator
+         
+     StringList feature_set; 
+
+     feature_set << "RNPxl:immonium_score"
+       << "RNPxl:precursor_score"
+       << "RNPxl:a_ion_score"
+       << "RNPxl:marker_ions_score"
+       << "RNPxl:partial_loss_score"
+       << "RNPxl:MIC"
+       << "RNPxl:err"
+       << "RNPxl:Morph"
+       << "RNPxl:pl_MIC"
+       << "RNPxl:pl_err"
+       << "RNPxl:pl_Morph"
+       << "RNPxl:total_MIC"
+       << "RNPxl:RNA_MASS_z0"
+       << "isotope_error";
+
+     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
+     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+
+
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
