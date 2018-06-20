@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -63,17 +64,21 @@ namespace OpenMS
     > 66:203 67:68 68:77 82:63 83:240
     > 136:350
   */
-  class OPENMS_DLLAPI MSPMetaboFile
+  class OPENMS_DLLAPI MSPMetaboFile :
+    public DefaultParamHandler
   {
 public:
     /// Default constructor
-    MSPMetaboFile() = default;
+    MSPMetaboFile();
 
     /// Constructor with filename and output library
     MSPMetaboFile(const String& filename, MSExperiment& library);
 
     /// Destructor
     ~MSPMetaboFile() = default;
+
+    /// Get the class' default parameters
+    void getDefaultParameters(Param& params);
 
     /// To test private and protected methods
     friend class MSPMetaboFile_friend;
@@ -89,18 +94,8 @@ public:
     void load(const String& filename, MSExperiment& library);
 
 private:
-    // /**
-    //   Push a field of the MSP structure into a named `StringDataArray`
-
-    //   @param[in/out] spectrum The metadata will be added/updated in this `MSSpectrum`
-    //   @param[in] name The name of the field to add or update
-    //   @param[in] info The value to insert
-    // */
-    // void pushParsedInfoToNamedDataArray(
-    //   MSSpectrum& spectrum,
-    //   const String& name,
-    //   const String& info
-    // ) const;
+    /// Overrides `DefaultParamHandler`'s method
+    void updateMembers_();
 
     /**
       Validate and add a spectrum to a spectral library
@@ -123,6 +118,17 @@ private:
 
     /// To keep track of which spectra have already been loaded and avoid duplicates
     std::set<String> loaded_spectra_names_;
+
+    /*
+      The synonyms of a spectrum are collected into this variable and,
+      when `addSpectrumtoLibrary()` is called, the elements are concatenated
+      and the result is saved as a "Synon" metaValue.
+      The synonyms are separated by `synonyms_separator_`.
+    */
+    std::vector<String> synonyms_;
+
+    /// The separator to be used in "Synon" metaValue
+    String synonyms_separator_;
   };
 
   class MSPMetaboFile_friend
@@ -130,15 +136,6 @@ private:
 public:
     MSPMetaboFile_friend() = default;
     ~MSPMetaboFile_friend() = default;
-
-    // void pushParsedInfoToNamedDataArray(
-    //   MSSpectrum& spectrum,
-    //   const String& name,
-    //   const String& info
-    // ) const
-    // {
-    //   return msp_.pushParsedInfoToNamedDataArray(spectrum, name, info);
-    // }
 
     void addSpectrumToLibrary(
       MSSpectrum& spectrum,

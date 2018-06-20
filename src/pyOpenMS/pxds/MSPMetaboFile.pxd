@@ -1,9 +1,11 @@
+from DefaultParamHandler cimport *
 from MSExperiment cimport *
 from String cimport *
 
 cdef extern from "<OpenMS/FORMAT/MSPMetaboFile.h>" namespace "OpenMS":
-
-    cdef cppclass MSPMetaboFile "OpenMS::MSPMetaboFile":
+    cdef cppclass MSPMetaboFile(DefaultParamHandler):
+        # wrap-inherits:
+        #  DefaultParamHandler
 
         MSPMetaboFile() nogil except +
         MSPMetaboFile(MSPMetaboFile) nogil except +

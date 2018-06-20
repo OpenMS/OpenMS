@@ -40,9 +40,30 @@
 
 namespace OpenMS
 {
-  MSPMetaboFile::MSPMetaboFile(const String& filename, MSExperiment& library)
+  MSPMetaboFile::MSPMetaboFile() :
+    DefaultParamHandler("MSPMetaboFile")
   {
+    getDefaultParameters(defaults_);
+    defaultsToParam_(); // write defaults into Param object param_
+  }
+
+  MSPMetaboFile::MSPMetaboFile(const String& filename, MSExperiment& library) :
+    DefaultParamHandler("MSPMetaboFile")
+  {
+    getDefaultParameters(defaults_);
+    defaultsToParam_(); // write defaults into Param object param_
     load(filename, library);
+  }
+
+  void MSPMetaboFile::getDefaultParameters(Param& params)
+  {
+    params.clear();
+    params.setValue("synonyms_separator", "|", "The character that will separate the synonyms in the Synon metaValue.");
+  }
+
+  void MSPMetaboFile::updateMembers_()
+  {
+    synonyms_separator_ = (String)param_.getValue("synonyms_separator");
   }
 
   void MSPMetaboFile::load(const String& filename, MSExperiment& library)
@@ -50,8 +71,9 @@ namespace OpenMS
     // TODO: Remove following "clock" code when not necessary anymore
     // std::clock_t start;
     // start = std::clock();
-    LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
+
     loaded_spectra_names_.clear();
+    synonyms_.clear();
     std::ifstream ifs(filename, std::ifstream::in);
     if (!ifs.is_open())
     {
@@ -65,9 +87,12 @@ namespace OpenMS
 
     boost::cmatch m;
     boost::regex re_name("^Name: (.+)", boost::regex::no_mod_s);
+    boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
     boost::regex re_points_line("^\\d");
     boost::regex re_point("(\\d+(?:\\.\\d+)?)[: ](\\d+(?:\\.\\d+)?);? ?");
     boost::regex re_metadatum(" *([^;\r\n]+): ([^;\r\n]+)");
+
+    LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
 
     while (!ifs.eof())
     {
@@ -85,30 +110,30 @@ namespace OpenMS
           spectrum.push_back( Peak1D(position, intensity) );
         } while ( boost::regex_search(m[0].second, m, re_point) );
       }
+      // Synon
+      else if (boost::regex_search(line, m, re_synon))
+      {
+        // LOG_DEBUG << "Synon: " << m[1] << "\n";
+        synonyms_.push_back(String(m[1]));
+      }
       // Name
       else if (boost::regex_search(line, m, re_name))
       {
         addSpectrumToLibrary(spectrum, library);
         // LOG_DEBUG << "\n\nName: " << m[1] << "\n";
         spectrum.clear(true);
+        synonyms_.clear();
         spectrum.setName( String(m[1]) );
         spectrum.setMetaValue("is_valid", 1);
       }
       // Other metadata
       else if (boost::regex_search(line, m, re_metadatum))
       {
-        // pushParsedInfoToNamedDataArray(spectrum, String(m[1]), String(m[2]));
-        // while (boost::regex_search(m[0].second, m, re_metadatum))
-        // {
-        //   pushParsedInfoToNamedDataArray(spectrum, String(m[1]), String(m[2]));
-        // }
-
-        // TODO: manage synonms. only the last synonym is saved for each spectrum
-        spectrum.setMetaValue(String(m[1]), String(m[2]));
-        while (boost::regex_search(m[0].second, m, re_metadatum))
-        {
+        do {
+          // LOG_DEBUG << m[1] << m[2] << "\n";
           spectrum.setMetaValue(String(m[1]), String(m[2]));
         }
+        while (boost::regex_search(m[0].second, m, re_metadatum));
       }
     }
     // To make sure a spectrum is added even if no empty line is present before EOF
@@ -117,28 +142,6 @@ namespace OpenMS
     LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
     // std::cout << "PARSE TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
-
-  // void MSPMetaboFile::pushParsedInfoToNamedDataArray(
-  //   MSSpectrum& spectrum,
-  //   const String& name,
-  //   const String& info
-  // ) const
-  // {
-  //   // LOG_DEBUG << name << ": " << info << "\n";
-  //   MSSpectrum::StringDataArrays& SDAs = spectrum.getStringDataArrays();
-  //   MSSpectrum::StringDataArrays::iterator it = getDataArrayByName(SDAs, name);
-  //   if (it != SDAs.end()) // DataArray with given name already exists
-  //   {
-  //     it->push_back(info);
-  //   }
-  //   else // DataArray with given name does not exist, yet. Create it.
-  //   {
-  //     MSSpectrum::StringDataArray sda;
-  //     sda.push_back(info);
-  //     sda.setName(name);
-  //     SDAs.push_back(sda);
-  //   }
-  // }
 
   void MSPMetaboFile::addSpectrumToLibrary(
     MSSpectrum& spectrum,
@@ -173,9 +176,25 @@ namespace OpenMS
           num_peaks,
           "The number of points parsed does not coincide with `Num Peaks`.");
       }
+
+      if (synonyms_.size())
+      {
+        String synon;
+        for (const String& s : synonyms_)
+        {
+          synon += s + synonyms_separator_;
+        }
+        if (synon.size())
+        {
+          synon.pop_back();
+        }
+        spectrum.setMetaValue("Synon", synon);
+      }
+
       spectrum.removeMetaValue("is_valid");
       library.addSpectrum(spectrum);
       loaded_spectra_names_.insert(spectrum.getName());
+
       if (loaded_spectra_names_.size() % 20000 == 0)
       {
         LOG_INFO << "Loaded " << loaded_spectra_names_.size() << " spectra..." << std::endl;

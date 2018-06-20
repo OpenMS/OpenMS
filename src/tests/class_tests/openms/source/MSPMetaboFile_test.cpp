@@ -77,14 +77,8 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s1.size(), 14)
   TEST_EQUAL(s1.getName(), "name1 of first")
 
-  // TODO: add tests for synonyms
-
-  // const MSSpectrum::StringDataArrays& SDAs1 = s1.getStringDataArrays();
-  // it = getDataArrayByName(SDAs1, "Synon");
-  // TEST_EQUAL(it == SDAs1.cend(), false)
-  // TEST_EQUAL(it->size(), 2)
-  // TEST_STRING_EQUAL((*it)[0], "name2 of 1st")
-  // TEST_STRING_EQUAL((*it)[1], "name3 of firsttt")
+  TEST_EQUAL(s1.metaValueExists("Synon"), true)
+  TEST_STRING_EQUAL(s1.getMetaValue("Synon"), "name2 of 1st|name3 of firsttt")
 
   TEST_EQUAL(s1.metaValueExists("Formula"), true)
   TEST_STRING_EQUAL(s1.getMetaValue("Formula"), "A11B22C333")
@@ -120,12 +114,8 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s2.size(), 15)
   TEST_EQUAL(s2.getName(), "name1 of second")
 
-  // const MSSpectrum::StringDataArrays& SDAs2 = s2.getStringDataArrays();
-  // it = getDataArrayByName(SDAs2, "Synon");
-  // TEST_EQUAL(it == SDAs2.cend(), false)
-  // TEST_EQUAL(it->size(), 2)
-  // TEST_STRING_EQUAL((*it)[0], "name2 of 2nd")
-  // TEST_STRING_EQUAL((*it)[1], "name3 of seconddd")
+  TEST_EQUAL(s2.metaValueExists("Synon"), true)
+  TEST_STRING_EQUAL(s2.getMetaValue("Synon"), "name2 of 2nd|name3 of seconddd")
 
   TEST_EQUAL(s2.metaValueExists("Formula"), true)
   TEST_STRING_EQUAL(s2.getMetaValue("Formula"), "A44B55C666")
@@ -161,12 +151,8 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s3.size(), 16)
   TEST_EQUAL(s3.getName(), "name1 of third")
 
-  // const MSSpectrum::StringDataArrays& SDAs3 = s3.getStringDataArrays();
-  // it = getDataArrayByName(SDAs3, "Synon");
-  // TEST_EQUAL(it == SDAs3.cend(), false)
-  // TEST_EQUAL(it->size(), 2)
-  // TEST_STRING_EQUAL((*it)[0], "name2 of 3rd")
-  // TEST_STRING_EQUAL((*it)[1], "name3 of thirddd")
+  TEST_EQUAL(s3.metaValueExists("Synon"), true)
+  TEST_STRING_EQUAL(s3.getMetaValue("Synon"), "name2 of 3rd|name3 of thirddd")
 
   TEST_EQUAL(s3.metaValueExists("Formula"), true)
   TEST_STRING_EQUAL(s3.getMetaValue("Formula"), "A12B12C123")
@@ -200,52 +186,6 @@ START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
   TEST_EQUAL(s3[15].getIntensity(), 44)
 }
 END_SECTION
-
-// START_SECTION(void pushParsedInfoToNamedDataArray(
-//   MSSpectrum& spectrum,
-//   const String& name,
-//   const String& info
-// ) const)
-// {
-//   MSPMetaboFile_friend msp_f;
-//   MSSpectrum spectrum;
-//   MSSpectrum::StringDataArrays::const_iterator it;
-
-//   const String field_synon { "Synon" };
-//   const String synon1 { "foo" };
-//   const String synon2 { "bar" };
-
-//   msp_f.pushParsedInfoToNamedDataArray(spectrum, field_synon, synon1);
-
-//   const MSSpectrum::StringDataArrays& SDAs = spectrum.getStringDataArrays();
-
-//   TEST_EQUAL(SDAs.size(), 1)
-//   it = getDataArrayByName(SDAs, field_synon);
-//   TEST_EQUAL(it == SDAs.cend(), false)
-//   TEST_EQUAL(it->size(), 1)
-//   TEST_STRING_EQUAL((*it)[0], synon1)
-
-//   msp_f.pushParsedInfoToNamedDataArray(spectrum, field_synon, synon2);
-
-//   TEST_EQUAL(SDAs.size(), 1)
-//   it = getDataArrayByName(SDAs, field_synon);
-//   TEST_EQUAL(it == SDAs.cend(), false)
-//   TEST_EQUAL(it->size(), 2)
-//   TEST_STRING_EQUAL((*it)[0], synon1)
-//   TEST_STRING_EQUAL((*it)[1], synon2)
-
-//   const String field_comments { "Comments" };
-//   const String comment { "seems to work fine" };
-
-//   msp_f.pushParsedInfoToNamedDataArray(spectrum, field_comments, comment);
-
-//   TEST_EQUAL(SDAs.size(), 2)
-//   it = getDataArrayByName(SDAs, field_comments);
-//   TEST_EQUAL(it == SDAs.cend(), false)
-//   TEST_EQUAL(it->size(), 1)
-//   TEST_STRING_EQUAL((*it)[0], comment)
-// }
-// END_SECTION
 
 START_SECTION(void addSpectrumToLibrary(
   MSSpectrum& spectrum,
