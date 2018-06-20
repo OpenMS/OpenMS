@@ -83,18 +83,18 @@ namespace OpenMS
   template <typename PeakContainerT>
   void rebaseIntensities(PeakContainerT& p)
   {
-    typename PeakContainerT::iterator it = std::min_element(p.cbegin(), p.cend(),
-      [](typename PeakContainerT::PeakType const & a, typename PeakContainerT::PeakType const & b)
+    typename PeakContainerT::iterator it = std::min_element(p.begin(), p.end(),
+      [](typename PeakContainerT::PeakType & a, typename PeakContainerT::PeakType & b)
       {
         return a.getIntensity() < b.getIntensity();
       });
 
-    if (it == p.cend() || it->getIntensity() >= 0) return;
+    if (it == p.end() || it->getIntensity() >= 0) return;
 
-    const double intensity = std::fabs(it->getIntensity());
+    const double rebase = std::fabs(it->getIntensity());
     for (Size i = 0; i < p.size(); ++i)
     {
-      p[i] += intensity;
+      p[i].setIntensity(p[i].getIntensity() + rebase);
     }
     // Note: only raw peak data is updated
   }
