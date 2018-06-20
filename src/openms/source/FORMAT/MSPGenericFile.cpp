@@ -32,7 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MSPMetaboFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <boost/regex.hpp>
@@ -40,33 +40,33 @@
 
 namespace OpenMS
 {
-  MSPMetaboFile::MSPMetaboFile() :
-    DefaultParamHandler("MSPMetaboFile")
+  MSPGenericFile::MSPGenericFile() :
+    DefaultParamHandler("MSPGenericFile")
   {
     getDefaultParameters(defaults_);
     defaultsToParam_(); // write defaults into Param object param_
   }
 
-  MSPMetaboFile::MSPMetaboFile(const String& filename, MSExperiment& library) :
-    DefaultParamHandler("MSPMetaboFile")
+  MSPGenericFile::MSPGenericFile(const String& filename, MSExperiment& library) :
+    DefaultParamHandler("MSPGenericFile")
   {
     getDefaultParameters(defaults_);
     defaultsToParam_(); // write defaults into Param object param_
     load(filename, library);
   }
 
-  void MSPMetaboFile::getDefaultParameters(Param& params)
+  void MSPGenericFile::getDefaultParameters(Param& params)
   {
     params.clear();
     params.setValue("synonyms_separator", "|", "The character that will separate the synonyms in the Synon metaValue.");
   }
 
-  void MSPMetaboFile::updateMembers_()
+  void MSPGenericFile::updateMembers_()
   {
     synonyms_separator_ = (String)param_.getValue("synonyms_separator");
   }
 
-  void MSPMetaboFile::load(const String& filename, MSExperiment& library)
+  void MSPGenericFile::load(const String& filename, MSExperiment& library)
   {
     // TODO: Remove following "clock" code when not necessary anymore
     // std::clock_t start;
@@ -143,7 +143,7 @@ namespace OpenMS
     // std::cout << "PARSE TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
 
-  void MSPMetaboFile::addSpectrumToLibrary(
+  void MSPGenericFile::addSpectrumToLibrary(
     MSSpectrum& spectrum,
     MSExperiment& library
   )

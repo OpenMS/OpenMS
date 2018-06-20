@@ -64,24 +64,24 @@ namespace OpenMS
     > 66:203 67:68 68:77 82:63 83:240
     > 136:350
   */
-  class OPENMS_DLLAPI MSPMetaboFile :
+  class OPENMS_DLLAPI MSPGenericFile :
     public DefaultParamHandler
   {
 public:
     /// Default constructor
-    MSPMetaboFile();
+    MSPGenericFile();
 
     /// Constructor with filename and output library
-    MSPMetaboFile(const String& filename, MSExperiment& library);
+    MSPGenericFile(const String& filename, MSExperiment& library);
 
     /// Destructor
-    ~MSPMetaboFile() = default;
+    ~MSPGenericFile() = default;
 
     /// Get the class' default parameters
     void getDefaultParameters(Param& params);
 
     /// To test private and protected methods
-    friend class MSPMetaboFile_friend;
+    friend class MSPGenericFile_friend;
 
     /**
       @brief Load the file's data and metadata, and save it into an `MSExperiment`.
@@ -131,11 +131,11 @@ private:
     String synonyms_separator_;
   };
 
-  class MSPMetaboFile_friend
+  class MSPGenericFile_friend
   {
 public:
-    MSPMetaboFile_friend() = default;
-    ~MSPMetaboFile_friend() = default;
+    MSPGenericFile_friend() = default;
+    ~MSPGenericFile_friend() = default;
 
     void addSpectrumToLibrary(
       MSSpectrum& spectrum,
@@ -145,6 +145,6 @@ public:
       return msp_.addSpectrumToLibrary(spectrum, library);
     }
 
-    MSPMetaboFile msp_;
+    MSPGenericFile msp_;
   };
 }

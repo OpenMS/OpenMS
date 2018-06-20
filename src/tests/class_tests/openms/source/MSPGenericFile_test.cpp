@@ -36,30 +36,30 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/MSPMetaboFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/KERNEL/SpectrumHelper.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MSPMetaboFile, "$Id$")
+START_TEST(MSPGenericFile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MSPMetaboFile* ptr = nullptr;
-MSPMetaboFile* null_ptr = nullptr;
-const String input_filepath = OPENMS_GET_TEST_DATA_PATH("MSPMetaboFile_input.msp");
+MSPGenericFile* ptr = nullptr;
+MSPGenericFile* null_ptr = nullptr;
+const String input_filepath = OPENMS_GET_TEST_DATA_PATH("MSPGenericFile_input.msp");
 
-START_SECTION(MSPMetaboFile())
+START_SECTION(MSPGenericFile())
 {
-  ptr = new MSPMetaboFile();
+  ptr = new MSPGenericFile();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~MSPMetaboFile())
+START_SECTION(~MSPGenericFile())
 {
   delete ptr;
 }
@@ -67,7 +67,7 @@ END_SECTION
 
 START_SECTION(void load(const String& filename, MSExperiment& experiment) const)
 {
-  MSPMetaboFile msp;
+  MSPGenericFile msp;
   MSExperiment experiment;
   msp.load(input_filepath, experiment);
   const vector<MSSpectrum>& spectra = experiment.getSpectra();
@@ -192,7 +192,7 @@ START_SECTION(void addSpectrumToLibrary(
   MSExperiment& library
 ))
 {
-  MSPMetaboFile_friend msp_f;
+  MSPGenericFile_friend msp_f;
   MSExperiment lib;
 
   MSSpectrum spec;
