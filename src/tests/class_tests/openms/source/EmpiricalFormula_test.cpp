@@ -306,7 +306,7 @@ START_SECTION(String toString() const)
 END_SECTION
 
     
-START_SECTION(std::map<std::string, int> toMap() const)
+START_SECTION((std::map<std::string, int> toMap() const))
   EmpiricalFormula ef("C2H5");
   auto m = ef.toMap();
   TEST_EQUAL(m["C"], 2)
