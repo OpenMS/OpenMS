@@ -225,42 +225,49 @@ START_SECTION(void slicePeakContainer(PeakContainerT& p, const double pos_start,
 }
 END_SECTION
 
-START_SECTION(void rebaseIntensities(PeakContainerT& p))
+START_SECTION(void reZeroIntensities(PeakContainerT& p))
 {
   MSSpectrum s;
   MSChromatogram c;
 
   for (Int i = -5; i < 5; ++i) // Intensities: [-5 4]
   {
-    s.push_back(Peak1D(i + 5, i));
-    c.push_back(ChromatogramPeak(i + 5, i));
+    s.push_back(Peak1D(0, i));
+    c.push_back(ChromatogramPeak(0, i));
   }
 
-  rebaseIntensities(s);
+  reZeroIntensities(s);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 0)
   TEST_REAL_SIMILAR(s[1].getIntensity(), 1)
   TEST_REAL_SIMILAR(s[9].getIntensity(), 9)
 
-  // Now `s` does not have any negative intensity. It won't be modified
-  rebaseIntensities(s);
-  TEST_REAL_SIMILAR(s[0].getIntensity(), 0)
-  TEST_REAL_SIMILAR(s[1].getIntensity(), 1)
-  TEST_REAL_SIMILAR(s[9].getIntensity(), 9)
-
-  rebaseIntensities(c);
-  TEST_REAL_SIMILAR(c[0].getIntensity(), 0)
-  TEST_REAL_SIMILAR(c[1].getIntensity(), 1)
-  TEST_REAL_SIMILAR(c[9].getIntensity(), 9)
-
-  // Now `c` does not have any negative intensity. It won't be modified
-  rebaseIntensities(c);
+  reZeroIntensities(c);
   TEST_REAL_SIMILAR(c[0].getIntensity(), 0)
   TEST_REAL_SIMILAR(c[1].getIntensity(), 1)
   TEST_REAL_SIMILAR(c[9].getIntensity(), 9)
 
   MSChromatogram c_empty;
-  rebaseIntensities(c_empty);
+  reZeroIntensities(c_empty);
   TEST_EQUAL(c_empty.size(), 0)
+
+  s.clear(true);
+  c.clear(true);
+
+  for (Int i = 5; i < 15; ++i) // Intensities: [5 14]
+  {
+    s.push_back(Peak1D(0, i));
+    c.push_back(ChromatogramPeak(0, i));
+  }
+
+  reZeroIntensities(s);
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 0)
+  TEST_REAL_SIMILAR(s[1].getIntensity(), 1)
+  TEST_REAL_SIMILAR(s[9].getIntensity(), 9)
+
+  reZeroIntensities(c);
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 0)
+  TEST_REAL_SIMILAR(c[1].getIntensity(), 1)
+  TEST_REAL_SIMILAR(c[9].getIntensity(), 9)
 }
 END_SECTION
 

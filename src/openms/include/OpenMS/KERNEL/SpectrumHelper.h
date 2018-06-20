@@ -36,7 +36,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <algorithm>
-#include <cmath>
 
 namespace OpenMS
 {
@@ -81,7 +80,7 @@ namespace OpenMS
   }
 
   template <typename PeakContainerT>
-  void rebaseIntensities(PeakContainerT& p)
+  void reZeroIntensities(PeakContainerT& p)
   {
     typename PeakContainerT::iterator it = std::min_element(p.begin(), p.end(),
       [](typename PeakContainerT::PeakType& a, typename PeakContainerT::PeakType& b)
@@ -89,9 +88,9 @@ namespace OpenMS
         return a.getIntensity() < b.getIntensity();
       });
 
-    if (it == p.end() || it->getIntensity() >= 0) return;
+    if (it == p.end()) return;
 
-    const double rebase = std::fabs(it->getIntensity());
+    const double rebase = - it->getIntensity();
     for (typename PeakContainerT::PeakType& peak : p)
     {
       peak.setIntensity(peak.getIntensity() + rebase);
