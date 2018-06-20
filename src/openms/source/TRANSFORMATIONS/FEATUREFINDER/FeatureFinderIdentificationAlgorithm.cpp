@@ -349,10 +349,10 @@ namespace OpenMS
               << " chromatogram(s)." << endl;
 
     LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    //Log_info.remove(cout); // suppress status output from OpenSWATH
+    Log_info.remove(cout); // suppress status output from OpenSWATH
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    //Log_info.insert(cout);
+    Log_info.insert(cout);
     cout << "Found " << features.size() << " feature candidates in total."
          << endl;
     LOG_INFO << "Found " << features.size() << " feature candidates in total."
@@ -379,6 +379,36 @@ namespace OpenMS
     features.getUnassignedPeptideIdentifications().insert(
       features.getUnassignedPeptideIdentifications().end(),
       peptides_ext.begin(), peptides_ext.end());
+
+    // remove all hits with pseudo ids (seeds)
+    for (Feature& f : features)
+    {
+      std::vector<PeptideIdentification>& ids = f.getPeptideIdentifications();
+      for (auto & pid : ids)
+      {
+        std::vector<PeptideHit>& hits = pid.getHits();
+        auto it = remove_if(hits.begin(), hits.end(), [](const PeptideHit & ph)
+        {
+          if (ph.getSequence().toUnmodifiedString().hasPrefix("XXX")) { return true; }
+          return false;
+        });
+        hits.erase(it);
+      }
+      //TODO: remove empty PeptideIdentifications
+    }
+    std::vector<PeptideIdentification>& ids = features.getUnassignedPeptideIdentifications();
+    for (auto & pid : ids)
+    {
+      std::vector<PeptideHit>& hits = pid.getHits();
+      auto it = remove_if(hits.begin(), hits.end(), [](const PeptideHit & ph)
+      {
+        if (ph.getSequence().toUnmodifiedString().hasPrefix("XXX")) { return true; }
+        return false;
+      });
+      hits.erase(it);
+    }
+    //TODO: remove empty PeptideIdentifications
+
 
     features.ensureUniqueId();
   }

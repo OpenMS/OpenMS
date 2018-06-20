@@ -556,9 +556,14 @@ protected:
         FeatureFinderIdentificationAlgorithm ffi;
         ffi.getMSData().swap(ms_centroided);
         ffi.getProgressLogger().setLogType(log_type_);
-        ffi_param.setValue("detect:peak_width", 5 * median_fwhm);
+        ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
         ffi.setParameters(ffi_param);
         ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back(), seeds);
+        
+        if (debug_level_ > 666)
+        {
+          FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
+        }
 
         // TODO: think about external ids ;) / maybe for technical replicates?
 
@@ -668,6 +673,13 @@ protected:
 
     consensus.sortByPosition();
     consensus.sortPeptideIdentificationsByMapIndex();
+
+    if (debug_level_ >= 666)
+    {
+      ConsensusXMLFile().store("debug_after normalization.consensusXML", consensus);
+    }
+
+
 
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
