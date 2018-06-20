@@ -88,7 +88,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
         String feature_id;
         boost::regex regexp_feature("_(?<SCAN>\\d+)-");
         bool found = boost::regex_search(str, match, regexp_feature);
-        if (found && match["SCAN"].matched) { feature_id = match["SCAN"].str(); }
+        if (found && match["SCAN"].matched) { feature_id = "id_" + match["SCAN"].str(); }
 
         for (Size j = 1; j < top_n_hits_cor; ++j)
 
@@ -183,6 +183,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
             smsr.opt_.push_back(explainedIntensity);
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
+            smsr.opt_.push_back(featureId);
             smsd.push_back(smsr);
           }
         }  
