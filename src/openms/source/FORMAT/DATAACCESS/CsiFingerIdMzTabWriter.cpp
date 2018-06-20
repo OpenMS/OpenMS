@@ -77,6 +77,13 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         boost::regex regexp("-(?<SCAN>\\d+)-");
         int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
 
+        // extract feature_id from string
+        boost::smatch match;
+        String feature_id;
+        boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+        bool found = boost::regex_search(str, match, regexp_feature);
+        if (found && match["SCAN"].matched) { feature_id = match["SCAN"].str(); }
+
         const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
         for (Size j = 1; j < top_n_hits_cor; ++j)
         {
@@ -99,6 +106,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
         csi_id.scan_index = scan_index;
         csi_id.scan_number = scan_number;
+        csi_id.feature_id = feature_id;
         csi_result.identifications.push_back(csi_id);
 
         // write metadata to mzTab file
@@ -155,6 +163,10 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             MzTabOptionalColumnEntry compoundScanNumber;
             compoundScanNumber.first = "compoundScanNumber";
             compoundScanNumber.second = MzTabString(id.scan_number);
+
+            MzTabOptionalColumnEntry featureId;
+            featureId.first = "featureId";
+            featureId.second = MzTabString(csi_id.feature_id);
 
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);

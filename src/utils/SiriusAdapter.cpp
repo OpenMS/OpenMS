@@ -133,6 +133,16 @@ protected:
     registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
+    // adapter parameters
+    registerIntOption_("filter_by_num_masstraces", "<num>", 2, "Features have to have at least x MassTraces", false);
+    setMinInt_("filter_by_num_masstraces", 1);
+    registerFlag_("feature_only", "Uses the feature information from in_adductinfo to reduce the search space to only MS2 associated with a feature", false);
+    registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
+    registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
+    setValidStrings_("precursor_mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds]", false);
+
+    // internal sirius parameters
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
     registerIntOption_("candidates", "<num>", 5, "The number of candidates in the output.", false);
@@ -143,7 +153,8 @@ protected:
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring. Use 'omit' to ignore isotope pattern.", false);
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
     registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1].", false);
-    registerIntOption_("tree_timeout", "<num>", 10, "Time out in seconds per fragmenation tree computation. To disable the tree timout set the value to 0", false);
+    registerIntOption_("compound_timeout", "<num>", 10, "Time out in seconds per compound. To disable the timeout set the value to 0", false);
+    registerIntOption_("tree_timeout", "<num>", 0, "Time out in seconds per fragmentation tree computation.", false);
     registerIntOption_("top_n_hits", "<num>", 10, "The top_n_hit for each compound written to the output", false);
 
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
@@ -152,19 +163,16 @@ protected:
     registerFlag_("most_intense_ms2", "Sirius uses the fragmentation sepctrum with the most intense precursor peak (for each spectrum)", false);
   }
 
-  // extract adduct information from featureXML (MetaboliteAdductDecharger)
-  void extractAdductInformation(const PeakMap & spectra, const FeatureMap & feature_map, map<size_t, StringList> & map_precursor_to_adducts)
+  // // map with index of ms2 spectrum and its closest feature
+  map< const size_t, const BaseFeature* > mappingMS2IndexToFeature(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm)
   {
-    KDTreeFeatureMaps adduct_map_kd;
-    vector<FeatureMap> adduct_map;
-    adduct_map.push_back(feature_map);
-    adduct_map_kd.addMaps(adduct_map);
-    
-    // map precursors to closest feature and retrieve annotated adducts
+    map< const size_t, const BaseFeature* > feature_to_ms2;
+
+    // map precursors to closest feature and retrieve annotated metadata (if possible)
     for (size_t index = 0; index != spectra.size(); ++index)
     {
       if (spectra[index].getMSLevel() != 2) { continue; }
-      
+
       // get precursor meta data (m/z, rt)
       const vector<Precursor> & pcs = spectra[index].getPrecursors();
 
@@ -175,17 +183,20 @@ protected:
 
         // query features in tolerance window
         vector<Size> matches;
-        adduct_map_kd.queryRegion(rt - 5.0, rt + 5.0, mz - 0.2, mz + 0.2, matches, true);
 
-        // no adduct information found - will use defaults in SIRIUS 
+        // get mz tolerance window
+        std::pair<double,double> mz_tolerance_window = Math::getTolWindow(mz, precursor_mz_tolerance, ppm);
+        fp_map_kd.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz_tolerance_window.first, mz_tolerance_window.second, matches, true);
+
+        // no precursor matches the feature information found
         if (matches.empty()) { continue; }
-        
+
         // in the case of multiple features in tolerance window, select the one closest in m/z to the precursor
         Size min_distance_feature_index(0);
         double min_distance(1e11);
         for (auto const & k_idx : matches)
         {
-          const double f_mz = adduct_map_kd.mz(k_idx);
+          const double f_mz = fp_map_kd.mz(k_idx);
           const double distance = fabs(f_mz - mz);
           if (distance < min_distance)
           {
@@ -193,16 +204,11 @@ protected:
             min_distance_feature_index = k_idx;
           }
         }
-        const BaseFeature * min_distance_feature = adduct_map_kd.feature(min_distance_feature_index);
-        
-        // extract adducts from featureXML and associate with precursor
-        if (min_distance_feature->metaValueExists("adducts"))
-        {
-          StringList adducts = min_distance_feature->getMetaValue("adducts");
-          map_precursor_to_adducts[index] = adducts;
-        }
+        const BaseFeature* min_distance_feature = fp_map_kd.feature(min_distance_feature_index);
+        feature_to_ms2[index] = min_distance_feature;
       }
     }
+    return feature_to_ms2;
   }
 
   ExitCodes main_(int, const char **) override
@@ -216,10 +222,18 @@ protected:
     String out_csifingerid = getStringOption_("out_fingerid");
     String adductinfo = getStringOption_("in_adductinfo");
 
+    // parameter for SiriusAdapter
+    unsigned int num_masstrace_filter = getIntOption_("filter_by_num_masstraces");
+    double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
+    String unit_prec = getStringOption_("precursor_mz_tolerance_unit");
+    bool ppm_prec = unit_prec == "ppm" ? true : false;
+    double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
+    bool feature_only = getFlag_("feature_only");
+
     // needed for counting
     int top_n_hits = getIntOption_("top_n_hits"); 
 
-    // Parameter for Sirius3
+    // parameter for Sirius
     QString executable = getStringOption_("executable").toQString();
     const QString profile = getStringOption_("profile").toQString();
     const QString elements = getStringOption_("elements").toQString();
@@ -228,6 +242,7 @@ protected:
     const QString noise = QString::number(getIntOption_("noise"));
     const QString ppm_max = QString::number(getIntOption_("ppm_max"));
     const QString candidates = QString::number(getIntOption_("candidates"));
+    const QString compound_timeout = QString::number(getIntOption_("compound_timeout"));
     const QString tree_timeout = QString::number(getIntOption_("tree_timeout"));
 
     bool auto_charge = getFlag_("auto_charge");
@@ -239,7 +254,7 @@ protected:
     // Determination of the Executable
     //-------------------------------------------------------------
 
-    // Parameter executable not provided
+    // parameter executable not provided
     if (executable.isEmpty())
     {
       const QProcessEnvironment env;
@@ -251,7 +266,7 @@ protected:
       }
       executable = qsiriuspathenv;
     }
-    // Normalize file path
+    // normalize file path
     QFileInfo file_info(executable);
     executable = file_info.canonicalFilePath();
 
@@ -273,21 +288,39 @@ protected:
     String tmp_ms_file = QDir(tmp_base_dir).filePath((File::getUniqueName() + ".ms").toQString());
     String out_dir = QDir(tmp_dir).filePath("sirius_out");
 
-    // Read FeatureXML in KDTree for range query
-    map<size_t, StringList> map_precursor_to_adducts;
-    std::ifstream afile(adductinfo);    
+    // TODO: Renew Test dataset with known composition best with one feature and the right .ms file - lets have a look with the
+    map< const size_t, const BaseFeature* > feature_to_ms2;
+    FeatureMap feature_map;
+    KDTreeFeatureMaps fp_map_kd;
+    vector<FeatureMap> v_fp;
+
+    std::ifstream afile(adductinfo);
     if (afile)
     {
+      // read featureXML
       FeatureXMLFile fxml;
-      FeatureMap feature_map;
       fxml.load(adductinfo, feature_map);
-      extractAdductInformation(spectra, feature_map, map_precursor_to_adducts);
-    }   
 
-    // Write msfile
-    SiriusMSFile::store(spectra, tmp_ms_file, map_precursor_to_adducts);
+      // filter feature by number of masstraces
+      auto map_it = remove_if(feature_map.begin(), feature_map.end(),
+                              [&num_masstrace_filter](const Feature& feat) -> bool
+                              {
+                                unsigned int n_masstraces = feat.getMetaValue("num_of_masstraces");
+                                return n_masstraces < num_masstrace_filter;
+                              });
+      feature_map.erase(map_it, feature_map.end());
 
-    // Assemble SIRIUS parameters
+      v_fp.push_back(feature_map);
+      fp_map_kd.addMaps(v_fp);
+
+      // mapping of MS2 spectra to features
+      feature_to_ms2 = mappingMS2IndexToFeature(spectra, fp_map_kd, precursor_mz_tol, precursor_rt_tol, ppm_prec);
+    }
+
+    // write msfile
+    SiriusMSFile::store(spectra, tmp_ms_file, feature_to_ms2, feature_only);
+
+    // assemble SIRIUS parameters
     QStringList process_params;
     process_params << "-p" << profile
                    << "-e" << elements
@@ -296,11 +329,12 @@ protected:
                    << "--noise" << noise
                    << "--candidates" << candidates
                    << "--ppm-max" << ppm_max
+                   << "--compound-timeout" << compound_timeout
                    << "--tree-timeout" << tree_timeout 
                    << "--quiet"
                    << "--output" << out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
 
-    // Add flags
+    // add flags
     if (no_recalibration)
     {
       process_params << "--no-recalibration";
@@ -324,7 +358,7 @@ protected:
 
     process_params << tmp_ms_file.toQString();
 
-    // The actual process
+    // the actual process
     QProcess qp;
     qp.setWorkingDirectory(path_to_executable); //since library paths are relative to sirius executable path
     qp.start(executable, process_params); // does automatic escaping etc... start
@@ -356,23 +390,23 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    //Extract path to subfolders (sirius internal folder structure)
+    // extract path to subfolders (sirius internal folder structure)
     QDirIterator it(out_dir.toQString(), QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::NoIteratorFlags);
     while (it.hasNext())
     {
       subdirs.push_back(it.next());
     }
 
-    //sort vector path list
+    // sort vector path list
     std::sort(subdirs.begin(), subdirs.end(), sortByScanIndex);
 
-    //Convert sirius_output to mztab and store file
+    // convert sirius_output to mztab and store file
     MzTab sirius_result;
     MzTabFile siriusfile;
     SiriusMzTabWriter::read(subdirs, in, top_n_hits, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
-    //Convert sirius_output to mztab and store file
+    // convert sirius_output to mztab and store file
     if (out_csifingerid.empty() == false)
     {
       MzTab csi_result;
@@ -381,7 +415,7 @@ protected:
       csifile.store(out_csifingerid, csi_result);
     }
 
-    //clean tmp directory if debug level < 2
+    // clean tmp directory if debug level < 2
     if (debug_level_ >= 2)
     {
       writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);

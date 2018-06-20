@@ -64,6 +64,7 @@ namespace OpenMS
           {
             OpenMS::String scan_index;
             OpenMS::String scan_number;
+            OpenMS::String feature_id;
             std::vector<CsiAdapterHit> hits;
           };
 

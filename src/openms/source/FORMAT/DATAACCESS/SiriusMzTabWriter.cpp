@@ -81,8 +81,15 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
         
         // extract scan_number from string
         boost::regex regexp("-(?<SCAN>\\d+)-");
-        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);      
- 
+        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
+
+        // extract feature_id from string
+        boost::smatch match;
+        String feature_id;
+        boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+        bool found = boost::regex_search(str, match, regexp_feature);
+        if (found && match["SCAN"].matched) { feature_id = match["SCAN"].str(); }
+
         for (Size j = 1; j < top_n_hits_cor; ++j)
 
         {
@@ -106,6 +113,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
 
         sirius_id.scan_index = scan_index;
         sirius_id.scan_number = scan_number;
+        sirius_id.feature_id = feature_id;
         sirius_result.identifications.push_back(sirius_id);
 
         // write metadata to mzTab file
@@ -164,6 +172,10 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
             MzTabOptionalColumnEntry compoundScanNumber;
             compoundScanNumber.first = "compoundScanNumber";
             compoundScanNumber.second = MzTabString(id.scan_number);
+
+            MzTabOptionalColumnEntry featureId;
+            featureId.first = "featureId";
+            featureId.second = MzTabString(id.feature_id);
 
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(rank);

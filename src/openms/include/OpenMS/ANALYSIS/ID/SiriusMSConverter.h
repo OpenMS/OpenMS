@@ -40,6 +40,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 
 namespace OpenMS
 {
@@ -65,7 +67,7 @@ public:
     @param map_precursor_to_adducts: adducts of a spectrum (index). 
     */
 
-    static void store(const PeakMap & spectra, const String & msfile, const std::map<size_t, StringList> & map_precursor_to_adducts);
+    static void store(const PeakMap & spectra, const String & msfile, const std::map< const size_t, const BaseFeature* > & feature_ms2_spectra_map, const bool& feature_only);
 
   };
 
