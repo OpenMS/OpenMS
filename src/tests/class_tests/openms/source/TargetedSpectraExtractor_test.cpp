@@ -38,7 +38,7 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
-#include <OpenMS/FORMAT/MSPMetaboFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 ///////////////////////////
 
@@ -151,9 +151,9 @@ START_SECTION(const Param& getParameters() const)
   TEST_EQUAL(params.getValue("snr_weight"), 1.0)
   TEST_EQUAL(params.getValue("similarity_function"), "BinnedSpectralContrastAngle")
   TEST_EQUAL(params.getValue("top_matches_to_report"), 5)
-  TEST_EQUAL(params.getValue("bin_size"), 1.0)
-  TEST_EQUAL(params.getValue("peak_spread"), 0.0)
-  TEST_EQUAL(params.getValue("bin_offset"), 0.4)
+  // TEST_EQUAL(params.getValue("bin_size"), 1.0)
+  // TEST_EQUAL(params.getValue("peak_spread"), 0.0)
+  // TEST_EQUAL(params.getValue("bin_offset"), 0.4)
   TEST_EQUAL(params.getValue("min_match_score"), 0.8)
 }
 END_SECTION
@@ -176,9 +176,9 @@ START_SECTION(void getDefaultParameters(Param& params) const)
   TEST_EQUAL(params.getValue("snr_weight"), 1.0)
   TEST_EQUAL(params.getValue("similarity_function"), "BinnedSpectralContrastAngle")
   TEST_EQUAL(params.getValue("top_matches_to_report"), 5)
-  TEST_EQUAL(params.getValue("bin_size"), 1.0)
-  TEST_EQUAL(params.getValue("peak_spread"), 0.0)
-  TEST_EQUAL(params.getValue("bin_offset"), 0.4)
+  // TEST_EQUAL(params.getValue("bin_size"), 1.0)
+  // TEST_EQUAL(params.getValue("peak_spread"), 0.0)
+  // TEST_EQUAL(params.getValue("bin_offset"), 0.4)
   TEST_EQUAL(params.getValue("min_match_score"), 0.8)
 }
 END_SECTION
@@ -756,7 +756,8 @@ END_SECTION
 
 START_SECTION(void matchSpectrum(
   const MSSpectrum& input_spectrum,
-  const MSExperiment& experiment,
+  const MSExperiment& library,
+  Comparator& cmp,
   std::vector<Match>& matches
 ))
 {
@@ -797,66 +798,69 @@ START_SECTION(void matchSpectrum(
   TEST_EQUAL(extracted_spectra.size(), 18)
 
   MSExperiment library;
-  MSPMetaboFile mse(msp_path, library);
+  MSPGenericFile mse(msp_path, library);
 
   TEST_EQUAL(library.getSpectra().size(), 21)
 
   vector<TargetedSpectraExtractor::Match> matches;
 
-  tse.matchSpectrum(extracted_spectra[0], library, matches);
+  TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
+  cmp.init(library.getSpectra(), 1.0, 0.0, 0.4);
+
+  tse.matchSpectrum(extracted_spectra[0], library, cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "L-Tryptophane")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "tryptophol")
 
-  tse.matchSpectrum(extracted_spectra[4], library, matches);
+  tse.matchSpectrum(extracted_spectra[4], library, cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "Uridine 5'-diphospho-N-acetylglucosamine")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "L-Ascorbic acid")
 
-  tse.matchSpectrum(extracted_spectra[8], library, matches);
+  tse.matchSpectrum(extracted_spectra[8], library, cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "beta-D-(+)-Glucose")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "Adonitol")
 
-  tse.matchSpectrum(extracted_spectra[9], library, matches);
+  tse.matchSpectrum(extracted_spectra[9], library, cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "(S)-(+)-2-(anilinomethyl)pyrrolidine")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "gamma-Amino-n-butyric acid")
 
-  tse.matchSpectrum(extracted_spectra[13], library, matches);
+  tse.matchSpectrum(extracted_spectra[13], library, cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "Uridine 5'-diphospho-N-acetylglucosamine")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "3-TRIMETHYLSILYLMETHYL-4-HYDROXY-2-METHYL-1-HEXENE")
 
-  tse.matchSpectrum(extracted_spectra[17], library, matches);
+  tse.matchSpectrum(extracted_spectra[17], library, cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_STRING_EQUAL(matches[0].spectrum.getName(), "Uridine 5'-diphospho-N-acetylglucosamine")
   TEST_STRING_EQUAL(matches[1].spectrum.getName(), "3-TRIMETHYLSILYLMETHYL-4-HYDROXY-2-METHYL-1-HEXENE")
 }
 END_SECTION
 
-START_SECTION(const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s))
-{
-  TargetedSpectraExtractor_friend tse_f;
+// START_SECTION(const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s))
+// {
+//   TargetedSpectraExtractor_friend tse_f;
 
-  // default settings
-  const BinnedSpectrum& bs1 = tse_f.extractBinnedSpectrum(spectrum);
+//   // default settings
+//   const BinnedSpectrum& bs1 = tse_f.extractBinnedSpectrum(spectrum);
 
-  // changing bin size, we expect a different `BinnedSpectrum` than what was
-  // returned for `bs1`
-  Param params = tse_f.tse_.getParameters();
-  params.setValue("bin_size", 0.5);
-  tse_f.tse_.setParameters(params);
-  const BinnedSpectrum& bs2 = tse_f.extractBinnedSpectrum(spectrum);
-  TEST_EQUAL(bs1 != bs2, true)
+//   // changing bin size, we expect a different `BinnedSpectrum` than what was
+//   // returned for `bs1`
+//   Param params = tse_f.tse_.getParameters();
+//   params.setValue("bin_size", 0.5);
+//   tse_f.tse_.setParameters(params);
+//   const BinnedSpectrum& bs2 = tse_f.extractBinnedSpectrum(spectrum);
+//   TEST_EQUAL(bs1 != bs2, true)
 
-  // loading default settings, `bs3` is expected to be the same as `bs1`
-  tse_f.tse_.getDefaultParameters(params);
-  tse_f.tse_.setParameters(params);
-  const BinnedSpectrum& bs3 = tse_f.extractBinnedSpectrum(spectrum);
-  TEST_EQUAL(bs1 == bs3, true)
-}
-END_SECTION
+//   // loading default settings, `bs3` is expected to be the same as `bs1`
+//   tse_f.tse_.getDefaultParameters(params);
+//   tse_f.tse_.setParameters(params);
+//   const BinnedSpectrum& bs3 = tse_f.extractBinnedSpectrum(spectrum);
+//   TEST_EQUAL(bs1 == bs3, true)
+// }
+// END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

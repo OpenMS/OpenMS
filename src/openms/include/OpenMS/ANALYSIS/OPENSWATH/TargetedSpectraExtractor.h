@@ -36,6 +36,7 @@
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -73,8 +74,8 @@ public:
     TargetedSpectraExtractor();
     virtual ~TargetedSpectraExtractor() = default;
 
-    /// To test private and protected methods
-    friend class TargetedSpectraExtractor_friend;
+    // /// To test private and protected methods
+    // friend class TargetedSpectraExtractor_friend;
 
     /** @name Constant expressions for parameters
 
@@ -94,6 +95,62 @@ public:
       Match(MSSpectrum a, double b) : spectrum(a), score(b) {}
       MSSpectrum spectrum;
       double score;
+    };
+
+    class Comparator
+    {
+    public:
+      virtual void operator()(
+        const MSSpectrum& spec,
+        std::vector<std::pair<Size,double>>& scores,
+        double min_score
+      ) const = 0;
+
+      virtual void init(const std::vector<MSSpectrum>& library, ...) = 0;
+    };
+
+    class BinnedSpectrumComparator : public Comparator
+    {
+    public:
+      void operator()(
+        const MSSpectrum& spec,
+        std::vector<std::pair<Size,double>>& scores,
+        double min_score
+      ) const
+      {
+        scores.clear();
+        const BinnedSpectrum in_bs(spec, bin_size_, false, peak_spread_, bin_offset_);
+        for (Size i = 0; i < bs_library_.size(); ++i)
+        {
+          const double cmp_score = cmp_bs_(in_bs, bs_library_[i]);
+          if (cmp_score >= min_score)
+          {
+            scores.emplace_back(i, cmp_score);
+          }
+        }
+      }
+
+      void init(const std::vector<MSSpectrum>& library, ...)
+      {
+        va_list args;
+        va_start(args, library);
+        bin_size_ = va_arg(args, double);
+        peak_spread_ = va_arg(args, double);
+        bin_offset_ = va_arg(args, double);
+        va_end(args);
+        bs_library_.clear();
+        for (const MSSpectrum& s : library)
+        {
+          bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
+        }
+        LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
+      }
+    private:
+      BinnedSpectralContrastAngle cmp_bs_;
+      std::vector<BinnedSpectrum> bs_library_;
+      double bin_size_;
+      double peak_spread_;
+      double bin_offset_;
     };
 
     void getDefaultParameters(Param& params) const;
@@ -292,6 +349,7 @@ public:
     void matchSpectrum(
       const MSSpectrum& input_spectrum,
       const MSExperiment& library,
+      Comparator& cmp,
       std::vector<Match>& matches
     );
 
@@ -369,48 +427,39 @@ private:
     */
     Size top_matches_to_report_;
 
-    /// Bin size for binned spectral contrast angle similarity function
-    double bin_size_;
-
-    /// Peak spread for binned spectral contrast angle similarity function
-    double peak_spread_;
-
-    /// Bin offset for binned spectral contrast angle similarity function
-    double bin_offset_;
-
     /// Minimum score for a match to be considered valid in `matchSpectrum()`.
     double min_match_score_;
 
-    /**
-      In-memory representation of the spectra library for comparisons
-      Used by `matchSpectrum()`, keeping this info in memory avoids creating the
-      `BinnedSpectrum` elements multiple times for the same spectra.
-    */
-    std::unordered_map<std::string,BinnedSpectrum> bs_cache_;
+    // /**
+    //   In-memory representation of the spectra library for comparisons
+    //   Used by `matchSpectrum()`, keeping this info in memory avoids creating the
+    //   `BinnedSpectrum` elements multiple times for the same spectra.
+    // */
+    // std::unordered_map<std::string,BinnedSpectrum> bs_cache_;
 
-    /**
-      Lookup for a `BinnedSpectrum` representation of the input spectrum.
+    // /**
+    //   Lookup for a `BinnedSpectrum` representation of the input spectrum.
 
-      If such representation is not found, it is constructed, added and returned.
+    //   If such representation is not found, it is constructed, added and returned.
 
-      @param[in] s The spectrum for which a `BinnedSpectrum` representation is desired
+    //   @param[in] s The spectrum for which a `BinnedSpectrum` representation is desired
 
-      @return A reference to the found `BinnedSpectrum` representation
-    */
-    const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s);
+    //   @return A reference to the found `BinnedSpectrum` representation
+    // */
+    // const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s);
   };
 
-  class TargetedSpectraExtractor_friend
-  {
-public:
-    TargetedSpectraExtractor_friend() = default;
-    ~TargetedSpectraExtractor_friend() = default;
+//   class TargetedSpectraExtractor_friend
+//   {
+// public:
+//     TargetedSpectraExtractor_friend() = default;
+//     ~TargetedSpectraExtractor_friend() = default;
 
-    const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s)
-    {
-      return tse_.extractBinnedSpectrum(s);
-    }
+//     // const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s)
+//     // {
+//     //   return tse_.extractBinnedSpectrum(s);
+//     // }
 
-    TargetedSpectraExtractor tse_;
-  };
+//     TargetedSpectraExtractor tse_;
+//   };
 }
