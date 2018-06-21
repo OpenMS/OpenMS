@@ -179,7 +179,7 @@ set(format_executables_list
   MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
-  MSPMetaboFile_test
+  MSPGenericFile_test
   MascotGenericFile_test
   MascotInfile_test
   MascotRemoteQuery_test
