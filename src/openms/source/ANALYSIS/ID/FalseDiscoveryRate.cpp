@@ -808,6 +808,7 @@ namespace OpenMS
         else
         {
           score_to_fdr[ds] = 1.0;
+          continue;
         }
       }
       if (k == target_scores.size()) { score_to_fdr[ds] = score_to_fdr[target_scores.back()]; continue; }
