@@ -108,7 +108,7 @@ public:
 
       virtual void init(
         const std::vector<MSSpectrum>& library,
-        std::map<String,DataValue>& options
+        const std::map<String,DataValue>& options
       ) = 0;
     };
 
@@ -133,11 +133,20 @@ public:
         }
       }
 
-      void init(const std::vector<MSSpectrum>& library, std::map<String,DataValue>& options)
+      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options)
       {
-        bin_size_ = static_cast<double>(options.at("bin_size"));
-        peak_spread_ = static_cast<double>(options.at("peak_spread"));
-        bin_offset_ = static_cast<double>(options.at("bin_offset"));
+        if (options.count("bin_size"))
+        {
+          bin_size_ = options.at("bin_size");
+        }
+        if (options.count("peak_spread"))
+        {
+          peak_spread_ = options.at("peak_spread");
+        }
+        if (options.count("bin_offset"))
+        {
+          bin_offset_ = options.at("bin_offset");
+        }
         bs_library_.clear();
         for (const MSSpectrum& s : library)
         {
@@ -148,9 +157,9 @@ public:
     private:
       BinnedSpectralContrastAngle cmp_bs_;
       std::vector<BinnedSpectrum> bs_library_;
-      double bin_size_;
-      double peak_spread_;
-      double bin_offset_;
+      double bin_size_ = 1.0;
+      double peak_spread_ = 0.0;
+      double bin_offset_ = 0.4;
     };
 
     void getDefaultParameters(Param& params) const;
