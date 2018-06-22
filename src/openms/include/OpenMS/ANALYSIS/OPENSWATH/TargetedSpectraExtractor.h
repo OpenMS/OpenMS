@@ -100,19 +100,22 @@ public:
     class Comparator
     {
     public:
-      virtual void operator()(
+      virtual void generateScores(
         const MSSpectrum& spec,
         std::vector<std::pair<Size,double>>& scores,
         double min_score
       ) const = 0;
 
-      virtual void init(const std::vector<MSSpectrum>& library, ...) = 0;
+      virtual void init(
+        const std::vector<MSSpectrum>& library,
+        std::map<String,DataValue>& options
+      ) = 0;
     };
 
     class BinnedSpectrumComparator : public Comparator
     {
     public:
-      void operator()(
+      void generateScores(
         const MSSpectrum& spec,
         std::vector<std::pair<Size,double>>& scores,
         double min_score
@@ -130,14 +133,11 @@ public:
         }
       }
 
-      void init(const std::vector<MSSpectrum>& library, ...)
+      void init(const std::vector<MSSpectrum>& library, std::map<String,DataValue>& options)
       {
-        va_list args;
-        va_start(args, library);
-        bin_size_ = va_arg(args, double);
-        peak_spread_ = va_arg(args, double);
-        bin_offset_ = va_arg(args, double);
-        va_end(args);
+        bin_size_ = static_cast<double>(options.at("bin_size"));
+        peak_spread_ = static_cast<double>(options.at("peak_spread"));
+        bin_offset_ = static_cast<double>(options.at("bin_offset"));
         bs_library_.clear();
         for (const MSSpectrum& s : library)
         {

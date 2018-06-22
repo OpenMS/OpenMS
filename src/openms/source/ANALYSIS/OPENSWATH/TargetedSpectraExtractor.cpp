@@ -610,7 +610,7 @@ namespace OpenMS
     matches.clear();
     std::vector<std::pair<Size,double>> scores;
 
-    cmp(input_spectrum, scores, min_match_score_);
+    cmp.generateScores(input_spectrum, scores, min_match_score_);
 
     // Sort the vector of scores
     std::sort(scores.begin(), scores.end(),

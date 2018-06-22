@@ -767,7 +767,8 @@ START_SECTION(void matchSpectrum(
   // https://creativecommons.org/licenses/by/4.0/legalcode
   // Changes made: Only a very small subset of spectra is reproduced
 
-  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  // const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("full.msp");
   const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
   const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
   MzMLFile mzml;
@@ -805,7 +806,12 @@ START_SECTION(void matchSpectrum(
   vector<TargetedSpectraExtractor::Match> matches;
 
   TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
-  cmp.init(library.getSpectra(), 1.0, 0.0, 0.4);
+  std::map<String,DataValue> options = {
+    {"bin_size", 1.0},
+    {"peak_spread", 0.0},
+    {"bin_offset", 0.4}
+  };
+  cmp.init(library.getSpectra(), options);
 
   tse.matchSpectrum(extracted_spectra[0], library, cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
