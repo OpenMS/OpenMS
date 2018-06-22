@@ -60,11 +60,12 @@ namespace OpenMS
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
 
-        @note The data must be sorted according to ascending m/z!
+    @note The data must be sorted according to ascending m/z!
 
     @ingroup SignalProcessing
   */
-//#define DEBUG_FILTERING
+
+// #define DEBUG_FILTERING
 
   class OPENMS_DLLAPI GaussFilterAlgorithm 
   {
@@ -138,8 +139,8 @@ public:
     {
       bool found_signal = false;
 
-      IterT mz_it = mz_in_start;
-      IterT int_it = int_in_start;
+      ConstIterT mz_it = mz_in_start;
+      ConstIterT int_it = int_in_start;
       for (; mz_it != mz_in_end; mz_it++, int_it++)
       {
         // if ppm tolerance is used, calculate a reasonable width value for this m/z
