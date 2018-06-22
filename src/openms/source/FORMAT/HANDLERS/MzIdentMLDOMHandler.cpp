@@ -920,6 +920,11 @@ namespace OpenMS
                   if ((std::string)XMLString::transcode(sub->getTagName()) == "cvParam")
                   {
                     mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
+                   if (mname == "unknown modification")
+                   {
+                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>                     
+                     mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("value")));
+                   }
                   }
                   else if ((std::string)XMLString::transcode(sub->getTagName()) == "SpecificityRules")
                   {
