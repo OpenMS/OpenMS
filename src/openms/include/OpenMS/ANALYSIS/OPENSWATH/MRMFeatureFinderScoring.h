@@ -275,11 +275,8 @@ private:
                                               OpenSwathScoring& scorer,
                                               const size_t feature_idx,
                                               const std::vector<std::string> & native_ids_detection,
-                                              const double sn_win_len_,
-                                              const unsigned int sn_bin_count_,
                                               const double det_intensity_ratio_score,
                                               const double det_mi_ratio_score,
-                                              bool write_log_messages,
                                               const std::vector<OpenSwath::SwathMap>& swath_maps);
 
     /// Synchronize members with param class
@@ -300,6 +297,10 @@ private:
     double spacing_for_spectra_resampling_;
     double uis_threshold_sn_;
     double uis_threshold_peak_area_;
+
+    double sn_win_len_;
+    unsigned int sn_bin_count_;
+    bool write_log_messages_;
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;

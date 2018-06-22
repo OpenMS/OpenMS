@@ -261,7 +261,8 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection)
+  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
+                                                                MRMTransitionGroupType& transition_group_detection)
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> detecting_transitions;
@@ -283,7 +284,9 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy)
+  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
+                                                                     MRMTransitionGroupType& transition_group_identification,
+                                                                     MRMTransitionGroupType& transition_group_identification_decoy)
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> identifying_transitions, identifying_transitions_decoy;
@@ -307,15 +310,12 @@ namespace OpenMS
   }
 
   OpenSwath_Ind_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
-                                                                 OpenSwathScoring& scorer,
-                                                                 const size_t feature_idx,
-                                                                 const std::vector<std::string>& native_ids_detection,
-                                                                 const double sn_win_len_,
-                                                                 const unsigned int sn_bin_count_,
-                                                                 const double det_intensity_ratio_score,
-                                                                 const double det_mi_ratio_score,
-                                                                 bool write_log_messages,
-                                                                 const std::vector<OpenSwath::SwathMap>& swath_maps)
+                                                                     OpenSwathScoring& scorer,
+                                                                     const size_t feature_idx,
+                                                                     const std::vector<std::string>& native_ids_detection,
+                                                                     const double det_intensity_ratio_score,
+                                                                     const double det_mi_ratio_score,
+                                                                     const std::vector<OpenSwath::SwathMap>& swath_maps)
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
@@ -344,7 +344,7 @@ namespace OpenMS
     {
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
             trgr_ident.getChromatogram(trgr_ident.getTransitions()[i].getNativeID()),
-            sn_win_len_, sn_bin_count_, write_log_messages));
+            sn_win_len_, sn_bin_count_, write_log_messages_));
       if (  (snptr->getValueAtRT(idmrmfeature.getRT()) > uis_threshold_sn_) 
             && (idmrmfeature.getFeature(trgr_ident.getTransitions()[i].getNativeID()).getIntensity() > uis_threshold_peak_area_))
       {
@@ -504,14 +504,11 @@ namespace OpenMS
       drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
     }
 
-    double sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
-    unsigned int sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
-    bool write_log_messages = (bool)param_.getValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages").toBool();
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
     for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
-            transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
+            transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages_));
       signal_noise_estimators.push_back(snptr);
     }
 
@@ -522,7 +519,7 @@ namespace OpenMS
       for (Size k = 0; k < transition_group_detection.getPrecursorChromatograms().size(); k++)
       {
         OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< MSChromatogram >(
-              transition_group_detection.getPrecursorChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
+              transition_group_detection.getPrecursorChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages_));
         ms1_signal_noise_estimators.push_back(snptr);
       }
     }
@@ -701,65 +698,18 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
         {
-          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, 
-                                                           scorer, feature_idx,
-                                                           native_ids_detection,
-                                                           sn_win_len_,
-                                                           sn_bin_count_,
-                                                           det_intensity_ratio_score,
-                                                           det_mi_ratio_score,
-                                                           write_log_messages,
-                                                           swath_maps);
-
-          mrmfeature->setMetaValue("id_target_transition_names", idscores.ind_transition_names);
-          mrmfeature->setMetaValue("id_target_num_transitions", idscores.ind_num_transitions);
-          mrmfeature->setMetaValue("id_target_area_intensity", idscores.ind_area_intensity);
-          mrmfeature->setMetaValue("id_target_total_area_intensity", idscores.ind_total_area_intensity);
-          mrmfeature->setMetaValue("id_target_intensity_score", idscores.ind_intensity_score);
-          mrmfeature->setMetaValue("id_target_intensity_ratio_score", idscores.ind_intensity_ratio);
-          mrmfeature->setMetaValue("id_target_apex_intensity", idscores.ind_apex_intensity);
-          mrmfeature->setMetaValue("id_target_total_mi", idscores.ind_total_mi);
-          mrmfeature->setMetaValue("id_target_ind_log_intensity", idscores.ind_log_intensity);
-          mrmfeature->setMetaValue("id_target_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
-          mrmfeature->setMetaValue("id_target_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
-          mrmfeature->setMetaValue("id_target_ind_log_sn_score", idscores.ind_log_sn_score);
-          mrmfeature->setMetaValue("id_target_ind_isotope_correlation", idscores.ind_isotope_correlation);
-          mrmfeature->setMetaValue("id_target_ind_isotope_overlap", idscores.ind_isotope_overlap);
-          mrmfeature->setMetaValue("id_target_ind_massdev_score", idscores.ind_massdev_score);
-          mrmfeature->setMetaValue("id_target_ind_mi_score", idscores.ind_mi_score);
-          mrmfeature->setMetaValue("id_target_ind_mi_ratio_score", idscores.ind_mi_ratio);
-
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx,
+                                                               native_ids_detection, det_intensity_ratio_score,
+                                                               det_mi_ratio_score, swath_maps);
+          mrmfeature->IDScoresAsMetaValue(false, idscores);
         }
 
         if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
         {
-          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
-                                                           scorer, feature_idx,
-                                                           native_ids_detection,
-                                                           sn_win_len_,
-                                                           sn_bin_count_,
-                                                           det_intensity_ratio_score,
-                                                           det_mi_ratio_score,
-                                                           write_log_messages,
-                                                           swath_maps);
-
-          mrmfeature->setMetaValue("id_decoy_transition_names", idscores.ind_transition_names);
-          mrmfeature->setMetaValue("id_decoy_num_transitions", idscores.ind_num_transitions);
-          mrmfeature->setMetaValue("id_decoy_area_intensity", idscores.ind_area_intensity);
-          mrmfeature->setMetaValue("id_decoy_total_area_intensity", idscores.ind_total_area_intensity);
-          mrmfeature->setMetaValue("id_decoy_intensity_score", idscores.ind_intensity_score);
-          mrmfeature->setMetaValue("id_decoy_intensity_ratio_score", idscores.ind_intensity_ratio);
-          mrmfeature->setMetaValue("id_decoy_apex_intensity", idscores.ind_apex_intensity);
-          mrmfeature->setMetaValue("id_decoy_total_mi", idscores.ind_total_mi);
-          mrmfeature->setMetaValue("id_decoy_ind_log_intensity", idscores.ind_log_intensity);
-          mrmfeature->setMetaValue("id_decoy_ind_xcorr_coelution", idscores.ind_xcorr_coelution_score);
-          mrmfeature->setMetaValue("id_decoy_ind_xcorr_shape", idscores.ind_xcorr_shape_score);
-          mrmfeature->setMetaValue("id_decoy_ind_log_sn_score", idscores.ind_log_sn_score);
-          mrmfeature->setMetaValue("id_decoy_ind_isotope_correlation", idscores.ind_isotope_correlation);
-          mrmfeature->setMetaValue("id_decoy_ind_isotope_overlap", idscores.ind_isotope_overlap);
-          mrmfeature->setMetaValue("id_decoy_ind_massdev_score", idscores.ind_massdev_score);
-          mrmfeature->setMetaValue("id_decoy_ind_mi_score", idscores.ind_mi_score);
-          mrmfeature->setMetaValue("id_decoy_ind_mi_ratio_score", idscores.ind_mi_ratio);
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx,
+                                                               native_ids_detection, det_intensity_ratio_score,
+                                                               det_mi_ratio_score, swath_maps);
+          mrmfeature->IDScoresAsMetaValue(true, idscores);
         }
 
         if (su_.use_coelution_score_)
@@ -1028,6 +978,10 @@ namespace OpenMS
     uis_threshold_sn_ = param_.getValue("uis_threshold_sn");
     uis_threshold_peak_area_ = param_.getValue("uis_threshold_peak_area");
     scoring_model_ = param_.getValue("scoring_model");
+
+    sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
+    sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
+    write_log_messages_ = (bool)param_.getValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages").toBool();
 
     // set SONAR values
     Param p = sonarscoring_.getDefaults();
