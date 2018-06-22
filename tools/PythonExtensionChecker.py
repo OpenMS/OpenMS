@@ -47,17 +47,17 @@ from PythonCheckerLib import create_pxd_file_map
 # Try non-standard libs
 try:
     import yaml
-    from breathe.parser.eoxygen.compound import parse as doxygen_parse
+    import breathe
     from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
     from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
-except ImportError:
+except ImportError as e:
     print ("You need to install a few packages for this library to work")
     print ("Please use:")
     print (" pip install breathe")
     print (" pip install pyyaml")
     print (" pip install autowrap")
     print (" pip install Cython")
-    raise ImportError
+    raise e
 
 # Try breathe parser
 try:
@@ -594,18 +594,25 @@ class DoxygenCppFunction(object):
         if len(self.get_argsstring()) == 0:
             arguments = ""
 
-        # remove returned references
+        # remove returned references and const values (Cython cannot deal with those at the moment) 
         return_type = "".join(c_return_type)
         return_type = return_type.replace("&", "")
+        return_type = return_type.replace("const", "")
         cpp_def = return_type + " " + function_name + arguments
+
+        # Handle comments
         cpp_def = cpp_def.replace("///", "#")
         cpp_def = cpp_def.replace("//", "#")
+
+        # Add nogil
         if replace_nogil:
             cpp_def = cpp_def.replace(";", "nogil except +")
             cpp_def = cpp_def.replace("const;", "nogil except +")
         else:
             cpp_def = cpp_def.replace("const;", "")
             cpp_def = cpp_def.replace(";", "")
+
+        # Replace common names from OpenMS, templates, STL constructs etc
         # TODO handle static ...
         cpp_def = cpp_def.replace("static", "")
         cpp_def = cpp_def.replace("MSSpectrum<>", "MSSpectrum")
@@ -621,7 +628,6 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("operator]", "operator>")
         cpp_def = cpp_def.replace("operator[", "operator<")
         cpp_def = cpp_def.replace("operator__[]", "operator[]")
-        cpp_def = cpp_def.replace("const ", "")
 
         # Note that template arguments cannot be typedefs but need to be basic types
         cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")
@@ -634,6 +640,9 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment")
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum")
         cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
+
+        # Handle const
+        # cpp_def = cpp_def.replace("const ", "")
 
         # Alert the user to potential problems and comment out potential
         # dangerous things (raw pointers, iterators)
