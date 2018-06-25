@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         void extractSpectra(MSExperiment&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&, FeatureMap&) nogil except +
         void extractSpectra(MSExperiment&, TargetedExperiment&, libcpp_vector[ MSSpectrum ]&) nogil except +
 
-        void matchSpectrum(MSSpectrum& input_spectrum, MSExperiment& library, TSE_BinnedSpectrumComparator& cmp, libcpp_vector[ TSE_Match ]& matches) nogil except +
+        void matchSpectrum(MSSpectrum& input_spectrum, MSExperiment& library, TSE_Comparator& cmp, libcpp_vector[ TSE_Match ]& matches) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namespace "OpenMS::TargetedSpectraExtractor":
@@ -46,10 +46,22 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         MSSpectrum spectrum
         double score
 
-    cdef cppclass TSE_BinnedSpectrumComparator "OpenMS::TargetedSpectraExtractor::BinnedSpectrumComparator":
+    cdef cppclass TSE_Comparator "OpenMS::TargetedSpectraExtractor::Comparator":
+
+        TSE_Comparator() nogil except +
+        TSE_Comparator(TSE_Comparator) nogil except +
+
+        void generateScores(MSSpectrum& spec, libcpp_vector[libcpp_cpp[Size,double]]& scores, double min_score) nogil except +
+        void init(libcpp_vector[MSSpectrum]& library, libcpp_map[String,DataValue]& options) nogil except +
+        libcpp_vector[MSSpectrum]& getLibrary() nogil except +
+
+    cdef cppclass TSE_BinnedSpectrumComparator(TSE_Comparator):
+        # wrap-inherits:
+        #  TSE_Comparator
 
         TSE_BinnedSpectrumComparator() nogil except +
         TSE_BinnedSpectrumComparator(TSE_BinnedSpectrumComparator) nogil except +
 
         void generateScores(MSSpectrum& spec, libcpp_vector[libcpp_cpp[Size,double]]& scores, double min_score) nogil except +
         void init(libcpp_vector[MSSpectrum]& library, libcpp_map[String,DataValue]& options) nogil except +
+        libcpp_vector[MSSpectrum]& getLibrary() nogil except +
