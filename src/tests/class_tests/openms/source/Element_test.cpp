@@ -41,6 +41,8 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -154,6 +156,18 @@ START_SECTION(bool operator == (const Element& element) const)
 	e.setAverageWeight(0.54321);
 	TEST_EQUAL(e == *e_ptr, false)
 END_SECTION
+
+START_SECTION(bool operator < (const Element& element) const)
+	const Element * h = ElementDB::getInstance()->getElement("H");
+	const Element * c = ElementDB::getInstance()->getElement("Carbon");
+	const Element * o = ElementDB::getInstance()->getElement("O");
+	const Element * s = ElementDB::getInstance()->getElement("S");
+	TEST_EQUAL(*h < *c, true)
+	TEST_EQUAL(*c < *o, true)
+	TEST_EQUAL(*c < *c, false)
+	TEST_EQUAL(*s < *c, false)
+END_SECTION
+
 
 delete e_ptr;
 

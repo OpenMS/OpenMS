@@ -108,6 +108,18 @@ START_SECTION(IsotopeDistribution& operator = (const CoarseIsotopePatternGenerat
 	TEST_EQUAL(copy.size(), iso->size())
 END_SECTION
 
+START_SECTION(IsotopeDistribution& operator < (const CoarseIsotopePatternGenerator& isotope_distribution))
+	IsotopeDistribution iso1, iso2;
+	TEST_EQUAL(iso1 < iso2, false)
+	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
+    iso4(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+	TEST_EQUAL(iso3 < iso4, true)
+
+	IsotopeDistribution iso5(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(1)));
+    IsotopeDistribution iso6(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(1000)));
+	TEST_EQUAL(iso5 < iso6, true)
+END_SECTION
+
 
 START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) const)
 	IsotopeDistribution iso1, iso2;

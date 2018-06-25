@@ -245,6 +245,9 @@ public:
     /// returns true if the formulas differ in elements composition
     bool operator!=(const EmpiricalFormula& rhs) const;
 
+    /// less operator
+    bool operator<(const EmpiricalFormula& rhs) const;
+
     //@}
 
     /// writes the formula to a stream
