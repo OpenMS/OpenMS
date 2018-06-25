@@ -837,6 +837,10 @@ set_tests_properties("TOPP_IDFileConverter_24_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_25" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_25_input.idXML -out IDFileConverter_25_output.tmp -out_type pepXML)
 add_test("TOPP_IDFileConverter_25_out1" ${DIFF} -in1 IDFileConverter_25_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_25_output.pep.xml)
 set_tests_properties("TOPP_IDFileConverter_25_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_25")
+# MS-GF+ mzid with non-Unimod modifications
+add_test("TOPP_IDFileConverter_26” ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_26_input.mzid -out IDFileConverter_26_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_26_out1" ${DIFF} -in1 IDFileConverter_26_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_26_output.idXML)
+set_tests_properties("TOPP_IDFileConverter_26_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_26”)
 
 #------------------------------------------------------------------------------
 # IDFilter tests
