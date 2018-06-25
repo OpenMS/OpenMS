@@ -605,8 +605,8 @@ namespace OpenMS
   )
   {
     // TODO: remove times debug info
-    std::clock_t start;
-    start = std::clock();
+    // std::clock_t start;
+    // start = std::clock();
     matches.clear();
     std::vector<std::pair<Size,double>> scores;
 
@@ -630,6 +630,6 @@ namespace OpenMS
       matches.emplace_back(library.getSpectra()[spec_idx], spec_score);
     }
 
-    std::cout << "MATCH TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
+    // std::cout << "MATCH TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
 }
