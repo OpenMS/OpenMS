@@ -812,27 +812,27 @@ START_SECTION(void matchSpectrum(
   };
   cmp.init(library.getSpectra(), options);
 
-  tse.matchSpectrum(extracted_spectra[0], library, cmp, matches);
+  tse.matchSpectrum(extracted_spectra[0], cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_EQUAL(matches[0].score >= matches[1].score, true)
 
-  tse.matchSpectrum(extracted_spectra[4], library, cmp, matches);
+  tse.matchSpectrum(extracted_spectra[4], cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_EQUAL(matches[0].score >= matches[1].score, true)
 
-  tse.matchSpectrum(extracted_spectra[8], library, cmp, matches);
+  tse.matchSpectrum(extracted_spectra[8], cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_EQUAL(matches[0].score >= matches[1].score, true)
 
-  tse.matchSpectrum(extracted_spectra[9], library, cmp, matches);
+  tse.matchSpectrum(extracted_spectra[9], cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_EQUAL(matches[0].score >= matches[1].score, true)
 
-  tse.matchSpectrum(extracted_spectra[13], library, cmp, matches);
+  tse.matchSpectrum(extracted_spectra[13], cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_EQUAL(matches[0].score >= matches[1].score, true)
 
-  tse.matchSpectrum(extracted_spectra[17], library, cmp, matches);
+  tse.matchSpectrum(extracted_spectra[17], cmp, matches);
   TEST_EQUAL(matches.size() >= 2, true)
   TEST_EQUAL(matches[0].score >= matches[1].score, true)
 }

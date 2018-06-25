@@ -110,6 +110,14 @@ public:
         const std::vector<MSSpectrum>& library,
         const std::map<String,DataValue>& options
       ) = 0;
+
+      const std::vector<MSSpectrum>& getLibrary() const
+      {
+        return library_;
+      }
+
+    protected:
+      std::vector<MSSpectrum> library_;
     };
 
     class BinnedSpectrumComparator : public Comparator
@@ -147,8 +155,9 @@ public:
         {
           bin_offset_ = options.at("bin_offset");
         }
+        library_ = library;
         bs_library_.clear();
-        for (const MSSpectrum& s : library)
+        for (const MSSpectrum& s : library_)
         {
           bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
         }
@@ -357,7 +366,6 @@ public:
     */
     void matchSpectrum(
       const MSSpectrum& input_spectrum,
-      const MSExperiment& library,
       Comparator& cmp,
       std::vector<Match>& matches
     );

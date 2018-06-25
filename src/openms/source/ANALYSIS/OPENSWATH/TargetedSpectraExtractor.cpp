@@ -599,7 +599,6 @@ namespace OpenMS
 
   void TargetedSpectraExtractor::matchSpectrum(
     const MSSpectrum& input_spectrum,
-    const MSExperiment& library,
     Comparator& cmp,
     std::vector<Match>& matches
   )
@@ -627,7 +626,7 @@ namespace OpenMS
     {
       const Size spec_idx { scores[i].first };
       const double spec_score { scores[i].second };
-      matches.emplace_back(library.getSpectra()[spec_idx], spec_score);
+      matches.emplace_back(cmp.getLibrary()[spec_idx], spec_score);
     }
 
     // std::cout << "MATCH TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
