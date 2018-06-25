@@ -110,10 +110,19 @@ public:
 
       mz_threshold is used for the matching of theoretical ion series to the observed one
 
+      To generate decoys with different precursor mass, use the "switchKR" flag
+      which switches terminal K/R (switches K to R and R to K). This generates
+      different precursor m/z and ensures that the y ion series has a different
+      mass. For a description of the procedure, see (supplemental material)
+
+      Bruderer et al. Mol Cell Proteomics. 2017. 10.1074/mcp.RA117.000314.
+
     */
     void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec,
                         const String& method,
+                        const double aim_decoy_fraction,
+                        const bool switchKR,
                         const String& decoy_tag,
                         const int max_attempts,
                         const double identity_threshold,

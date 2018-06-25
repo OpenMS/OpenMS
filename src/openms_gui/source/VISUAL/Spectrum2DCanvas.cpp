@@ -1279,9 +1279,6 @@ namespace OpenMS
     }
     else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  // chromatogram data
     {
-      getCurrentLayer_().getPeakDataMuteable()->sortChromatograms(true);
-      getCurrentLayer_().getPeakDataMuteable()->updateRanges(1);
-
       update_buffer_ = true;
 
       // abort if no data points are contained
@@ -1289,7 +1286,9 @@ namespace OpenMS
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
+        {
           current_layer_ = current_layer_ - 1;
+        }
         QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no chromatograms. Aborting!");
         return false;
       }

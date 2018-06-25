@@ -69,7 +69,7 @@ namespace OpenMS
   {
   }
 
-  void FeatureOpenMS::getRT(std::vector<double>& rt)
+  void FeatureOpenMS::getRT(std::vector<double>& rt) const
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
@@ -79,7 +79,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureOpenMS::getIntensity(std::vector<double>& intens)
+  void FeatureOpenMS::getIntensity(std::vector<double>& intens) const
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
@@ -89,12 +89,12 @@ namespace OpenMS
     }
   }
 
-  float FeatureOpenMS::getIntensity()
+  float FeatureOpenMS::getIntensity() const
   {
     return feature_->getIntensity();
   }
 
-  double FeatureOpenMS::getRT()
+  double FeatureOpenMS::getRT() const
   {
     return feature_->getRT();
   }
@@ -135,17 +135,17 @@ namespace OpenMS
     return v;
   }
 
-  float MRMFeatureOpenMS::getIntensity()
+  float MRMFeatureOpenMS::getIntensity() const
   {
     return mrmfeature_.getIntensity();
   }
 
-  double MRMFeatureOpenMS::getRT()
+  double MRMFeatureOpenMS::getRT() const
   {
     return mrmfeature_.getRT();
   }
 
-  size_t MRMFeatureOpenMS::size()
+  size_t MRMFeatureOpenMS::size() const
   {
     return features_.size();
   }
@@ -160,3 +160,4 @@ namespace OpenMS
   TransitionGroupOpenMS<MSSpectrum, ReactionMonitoringTransition> default_transition_group_openms(trgroup);
 
 } //end namespace OpenMS
+

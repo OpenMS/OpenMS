@@ -105,7 +105,7 @@ protected:
     registerInputFile_("database", "<file>", "CHEMISTRY/MetaboliteSpectralDB.mzML", "Default spectral database.", false);
     setValidFormats_("database", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }

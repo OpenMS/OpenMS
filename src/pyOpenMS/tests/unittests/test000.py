@@ -204,6 +204,26 @@ def testAASequence():
     assert aas.toString() == b"DFPIANGER"
     assert aas.toUnmodifiedString() == b"DFPIANGER"
 
+    seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER", True)
+    assert seq.toString() == b"PEPTIDESEKUEM(Oxidation)CER"
+    assert seq.toUnmodifiedString() == b"PEPTIDESEKUEMCER"
+    assert seq.toBracketString() == b"PEPTIDESEKUEM[147]CER"
+    assert seq.toBracketString(True, []) == b"PEPTIDESEKUEM[147]CER"
+    assert seq.toBracketString(False, []) == b"PEPTIDESEKUEM[147.0354000171]CER"
+    assert seq.toBracketString(False) == b"PEPTIDESEKUEM[147.0354000171]CER"
+    assert seq.toUniModString() == b"PEPTIDESEKUEM(UniMod:35)CER"
+    assert seq.isModified()
+    assert not seq.hasCTerminalModification()
+    assert not seq.hasNTerminalModification()
+    assert not seq.empty()
+
+    # has selenocysteine
+    assert seq.getResidue(1) is not None
+    assert seq.size() == 16
+    assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
+    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
+    # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
+
 @report
 def testElement():
     """
@@ -2090,7 +2110,46 @@ def testFileHandler():
     fh.storeExperiment(b"test1.mzData", mse)
     fh.loadExperiment(b"test1.mzData", mse)
 
-    
+
+@report
+def testCachedMzML():
+    """
+    """
+    mse = pyopenms.MSExperiment()
+    s = pyopenms.MSSpectrum()
+    mse.addSpectrum(s)
+
+    # First load data and cache to disk
+    pyopenms.CachedmzML.store("myCache.mzML", mse)
+
+    # Now load data
+    cfile = pyopenms.CachedmzML()
+    pyopenms.CachedmzML.load("myCache.mzML", cfile)
+
+    meta_data = cfile.getMetaData()
+    assert cfile.getNrChromatograms() ==0
+    assert cfile.getNrSpectra() == 1
+
+@report
+def testIndexedMzMLFile():
+    """
+    """
+    mse = pyopenms.MSExperiment()
+    s = pyopenms.MSSpectrum()
+    mse.addSpectrum(s)
+
+    # First load data and cache to disk
+    pyopenms.MzMLFile().store("tfile_idx.mzML", mse)
+
+    # Now load data
+    ih = pyopenms.IndexedMzMLHandler("tfile_idx.mzML")
+
+    assert ih.getNrChromatograms() ==0
+    assert ih.getNrSpectra() == 1
+
+    s = ih.getMSSpectrumById(0)
+    s2 = ih.getSpectrumById(0)
+
 
 @report
 def testIDMapper():
@@ -3294,6 +3353,8 @@ def testMxxxFile():
      MzQuantMLFile.store
     """
     mse = pyopenms.MSExperiment()
+    s = pyopenms.MSSpectrum()
+    mse.addSpectrum(s)
 
     fh = pyopenms.MzDataFile()
     _testProgressLogger(fh)
@@ -3307,6 +3368,14 @@ def testMxxxFile():
     fh.store(b"test.mzML", mse)
     fh.load(b"test.mzML", mse)
     fh.setOptions(fh.getOptions())
+
+    myStr = pyopenms.String()
+    fh.storeBuffer(myStr, mse)
+    assert len(str(myStr)) == 5269
+    mse2 = pyopenms.MSExperiment()
+    fh.loadBuffer(str(myStr), mse2)
+    assert mse2 == mse
+    assert mse2.size() == 1
 
     fh = pyopenms.MzXMLFile()
     _testProgressLogger(fh)
