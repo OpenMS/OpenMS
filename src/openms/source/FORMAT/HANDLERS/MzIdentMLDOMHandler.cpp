@@ -2379,7 +2379,7 @@ namespace OpenMS
                         if (cvname == "unknown modification")
                         {
                           const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue))
+                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                           {
                             aas.setNTerminalModification(cv.getValue());
                           }
@@ -2403,7 +2403,7 @@ namespace OpenMS
                         if (cvname == "unknown modification")
                         {
                           const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue))
+                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                           {
                             aas.setCTerminalModification(cvvalue);
                           }
@@ -2427,7 +2427,7 @@ namespace OpenMS
                         if (cvname == "unknown modification")
                         {
                           const String & cvvalue = cv.getValue();
-                          if (ModificationsDB::getInstance()->has(cvvalue))
+                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
                           {
                             aas.setModification(index - 1, cvvalue); //TODO @mths,Timo : do this via UNIMOD accessions
                           }
@@ -2458,7 +2458,7 @@ namespace OpenMS
                 xl_donor_pos_map_.insert(make_pair(pep_id, index-1));
               }
             }
-            else //  general case
+            else // general case: no XL-MS result 
             {
               DOMElement* cvp = element_sib->getFirstElementChild();
               while (cvp)
