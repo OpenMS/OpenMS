@@ -48,7 +48,7 @@
 #include <functional>
 #include <numeric>
 #include <fstream>
-
+#include <tuple>
 
 using namespace std;
 
@@ -165,6 +165,33 @@ namespace OpenMS
   {
     return distribution_ == isotope_distribution.distribution_;
   }
+
+  bool IsotopeDistribution::operator<(const IsotopeDistribution & rhs) const
+  {
+    if (distribution_.size() != rhs.distribution_.size()) 
+    { 
+      return distribution_.size() < rhs.distribution_.size(); 
+    }
+
+    // both vectors have same size
+    auto it = distribution_.begin();
+    auto rhs_it = rhs.distribution_.begin();
+    for (; it != distribution_.end(); ++it, ++rhs_it)
+    {
+      if (*it != *rhs_it) 
+      { 
+        const double mz = it->getMZ();
+        const double in = it->getIntensity();
+        const double rhs_mz = rhs_it->getMZ();
+        const double rhs_in = rhs_it->getIntensity();
+        
+        return tie(mz, in) < tie(rhs_mz, rhs_in);
+      }
+    }
+
+    return sort_type_ < rhs.sort_type_;
+  }
+
 
   bool IsotopeDistribution::operator!=(const IsotopeDistribution & isotope_distribution) const
   {
