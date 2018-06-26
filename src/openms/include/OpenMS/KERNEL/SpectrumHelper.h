@@ -34,9 +34,6 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <algorithm>
-
 namespace OpenMS
 {
   class String;
