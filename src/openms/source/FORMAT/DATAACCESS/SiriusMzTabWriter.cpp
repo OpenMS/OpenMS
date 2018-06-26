@@ -50,7 +50,10 @@ String SiriusMzTabWriter::extract_scan_index(const String &path)
   return path.substr(path.find_last_not_of("0123456789") + 1);
 }
 
-void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
+void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
+                             const String & original_input_mzml,
+                             const Size & top_n_hits,
+                             MzTab & result)
 {
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;

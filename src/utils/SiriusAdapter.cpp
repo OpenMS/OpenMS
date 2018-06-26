@@ -73,15 +73,20 @@ using namespace std;
 
   Please use Sirius Version 4.0.
 
-  If you want to use the software with the Gurobi solver (free academic license) instead of GLPK, please follow the instructions in the sirius manual.
+  If you want to use the software with the Gurobi solver or CPLEX instead of GLPK, please follow the instructions in the sirius manual.
 
   Internal procedure in SiriusAdpater
-  1. Input mzML
+  1. Input mzML (and optional featureXML)
   2. Parsed by SiriusMSConverter into (sirius internal) .ms format
   3. Submission of .ms and additional parameters to wrapped SIRIUS.jar
   4. Sirius output saved in interal temporary folder structure
   5. Sirius output is parsed (SiriusMzTabWriter/CsiFingerIDMzTabWriter)
   6. Merge corresponding output in one mzTab (out_sirius/out_fingerid)
+
+  By providing a featureXML, the feature information can be used for feature mapping.
+  Sirius will then process the mappend MS2 spectra (instead of all available MS2).
+  If the featureXML provides additional adduct information (e.g. from the MetaboliteAdductDecharger)
+  this can be used to speed the Sirius calculation.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_SiriusAdapter.cli
@@ -234,7 +239,7 @@ protected:
     if (num_masstrace_filter != 1 && !feature_only)
     {
       num_masstrace_filter = 1;
-      LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use feature_only in combination with the masstrace filterc" << endl;
+      LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use the masstrace filter in combination with feature_only." << endl;
     }
 
     double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
