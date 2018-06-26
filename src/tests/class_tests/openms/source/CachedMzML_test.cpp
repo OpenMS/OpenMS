@@ -49,24 +49,6 @@
 using namespace OpenMS;
 using namespace std;
 
-
-CachedmzML cacheFile(std::string & tmp_filename, PeakMap& exp)
-{
-  NEW_TMP_FILE(tmp_filename);
-
-  // Load experiment
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
-  TEST_EQUAL(exp.getNrSpectra() > 0, true)
-  TEST_EQUAL(exp.getNrChromatograms() > 0, true)
-
-  // Cache the experiment to a temporary file
-  CachedmzML cache;
-  cache.writeMemdump(exp, tmp_filename);
-  // Create the index from the given file
-  cache.createMemdumpIndex(tmp_filename);
-  return cache;
-}
-
 START_TEST(CachedmzML, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -88,6 +70,18 @@ START_SECTION(~CachedmzML())
 }
 END_SECTION
 
+// Load experiment
+PeakMap exp;
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
+
+std::string tmpf;
+NEW_TMP_FILE(tmpf);
+
+// Cache the experiment to a temporary file
+CachedmzML::store(tmpf, exp);
+CachedmzML cache_example;
+CachedmzML::load(tmpf, cache_example);
+
 // see also MSDataCachedConsumer_test.cpp -> consumeSpectrum
 // this is a complete test of the caching object
 START_SECTION(( [EXTRA] testCaching))
@@ -102,312 +96,126 @@ START_SECTION(( [EXTRA] testCaching))
   TEST_EQUAL(exp.getNrChromatograms() > 0, true)
 
   // Cache the experiment to a temporary file
-  CachedmzML cache;
-  cache.writeMemdump(exp, tmp_filename);
+  CachedmzML::store(tmp_filename, exp);
 
   // Check whether spectra were written to disk correctly...
   {
     // Create the index from the given file
-    cache.createMemdumpIndex(tmp_filename);
-    std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
-    TEST_EQUAL(spectra_index.size(), 4)
-    std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
+    CachedmzML cache;
+    CachedmzML::load(tmp_filename, cache);
+
+    TEST_EQUAL(cache.getNrSpectra(), 4)
 
     // retrieve the spectrum (old interface)
-    OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    int ms_level = -1;
-    double rt = -1.0;
     for (int i = 0; i < 4; i++)
     {
-      ifs_.seekg(spectra_index[i]);
-      CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
-      TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(i).size())
-      TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(i).size())
-    }
+      TEST_EQUAL(cache.getSpectrum(i).size(), exp.getSpectrum(i).size())
 
-    // retrieve the spectrum (new interface)
-    ms_level = -1;
-    rt = -1.0;
-    for (int i = 0; i < 4; i++)
-    {
-      ifs_.seekg(spectra_index[i]);
-      std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readSpectrumFast(ifs_, ms_level, rt);
-      TEST_EQUAL(darray.size() >= 2, true)
-      mz_array = darray[0];
-      intensity_array = darray[1];
-
-      TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(i).size())
-      TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(i).size())
+      // identical except DataProcessing (and extra data arrays -- does not have all fields)
+      auto tmp1 = cache.getSpectrum(i);
+      auto tmp2 = exp.getSpectrum(i);
+      tmp1.getDataProcessing().clear();
+      tmp2.getDataProcessing().clear();
+      tmp1.getFloatDataArrays().clear(); // clear for now, see test below
+      tmp2.getFloatDataArrays().clear(); // clear for now, see test below
+      TEST_EQUAL(tmp1 == tmp2, true)
     }
 
     // test spec 1
-    ifs_.seekg(spectra_index[1]);
-    std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readSpectrumFast(ifs_, ms_level, rt);
-    TEST_EQUAL(darray.size(), 4)
-    TEST_EQUAL(darray[0]->description, "") // mz
-    TEST_EQUAL(darray[1]->description, "") // intensity
-    TEST_EQUAL(darray[2]->description, "signal to noise array")
-    TEST_EQUAL(darray[3]->description, "user-defined name")
+    auto scomp = exp.getSpectrum(1);
+    TEST_EQUAL(scomp.getFloatDataArrays().size(), 2)
+    TEST_EQUAL(scomp.getIntegerDataArrays().size(), 0)
+    TEST_EQUAL(scomp.getStringDataArrays().size(), 0)
+
+    // test spec 1
+    auto s = cache.getSpectrum(1);
+    TEST_EQUAL(s.getFloatDataArrays().size(), 2)
+    TEST_EQUAL(s.getIntegerDataArrays().size(), 0)
+    TEST_EQUAL(s.getStringDataArrays().size(), 0)
+
+    TEST_EQUAL(s.getFloatDataArrays()[0].getName(), scomp.getFloatDataArrays()[0].getName())
+    TEST_EQUAL(s.getFloatDataArrays()[1].getName(), scomp.getFloatDataArrays()[1].getName())
+    TEST_EQUAL(s.getFloatDataArrays()[0].getName(), "signal to noise array")
+    TEST_EQUAL(s.getFloatDataArrays()[1].getName(), "user-defined name")
+
+    TEST_EQUAL(s.getFloatDataArrays()[0].size(), scomp.getFloatDataArrays()[0].size())
+    TEST_EQUAL(s.getFloatDataArrays()[1].size(), scomp.getFloatDataArrays()[1].size())
+
+    for (Size k = 0; k < s.getFloatDataArrays()[0].size(); k++)
+    {
+      TEST_REAL_SIMILAR(s.getFloatDataArrays()[0][k], scomp.getFloatDataArrays()[0][k])
+    }
+
+    for (Size k = 0; k < s.getFloatDataArrays()[1].size(); k++)
+    {
+      TEST_REAL_SIMILAR(s.getFloatDataArrays()[1][k], scomp.getFloatDataArrays()[1][k])
+    }
 
   }
 
   // Check whether chromatograms were written to disk correctly...
   {
     // Create the index from the given file
-    cache.createMemdumpIndex(tmp_filename);
-    std::vector<std::streampos> chrom_index = cache.getChromatogramIndex();;
-    TEST_EQUAL(chrom_index.size(), 2)
-    std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
+    CachedmzML cache;
+    CachedmzML::load(tmp_filename, cache);
+
+    TEST_EQUAL(cache.getNrChromatograms(), 2)
 
     // retrieve the chromatogram
-    OpenSwath::BinaryDataArrayPtr time_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     for (int i = 0; i < 2; i++)
     {
-      ifs_.seekg(chrom_index[i]);
-      CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_);
+      TEST_EQUAL(cache.getChromatogram(i).size(), exp.getChromatogram(i).size())
+      TEST_EQUAL(cache.getChromatogram(i).getNativeID(), exp.getChromatogram(i).getNativeID())
+      TEST_EQUAL(cache.getChromatogram(i).getInstrumentSettings() == exp.getChromatogram(i).getInstrumentSettings(), true)
 
-      TEST_EQUAL(time_array->data.size(), exp.getChromatogram(i).size())
-      TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(i).size())
+      // identical except DataProcessing
+      auto tmp1 = cache.getChromatogram(i);
+      auto tmp2 = exp.getChromatogram(i);
+      tmp1.getDataProcessing().clear();
+      tmp2.getDataProcessing().clear();
+      TEST_EQUAL(tmp1 == tmp2, true)
     }
 
-    // retrieve the chromatogram (new interface)
-    for (int i = 0; i < 2; i++)
-    {
-      ifs_.seekg(chrom_index[i]);
-      std::vector<OpenSwath::BinaryDataArrayPtr> darray = CachedmzML::readChromatogramFast(ifs_);
-      TEST_EQUAL(darray.size() >= 2, true)
-      time_array = darray[0];
-      intensity_array = darray[1];
-
-      TEST_EQUAL(time_array->data.size(), exp.getChromatogram(i).size())
-      TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(i).size())
-    }
   }
 }
 END_SECTION
 
-START_SECTION(( void writeMemdump(MapType& exp, String out )))
-{
-  std::string tmp_filename;
-  NEW_TMP_FILE(tmp_filename);
-
-  // Load experiment
-  PeakMap exp;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
-  TEST_EQUAL(exp.getNrSpectra() > 0, true)
-  TEST_EQUAL(exp.getNrChromatograms() > 0, true)
-
-  // Cache the experiment to a temporary file
-  CachedmzML cache;
-  cache.writeMemdump(exp, tmp_filename);
-
-  NOT_TESTABLE // not testable independently, see testCaching
-}
+START_SECTION(( size_t getNrSpectra() const ))
+    TEST_EQUAL(cache_example.getNrSpectra(), 4)
 END_SECTION
 
-START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue=false) ))
-{
-  std::string tmp_filename;
-  NEW_TMP_FILE(tmp_filename);
-
-  // Load experiment
-  PeakMap exp;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
-  TEST_EQUAL(exp.getNrSpectra() > 0, true)
-  TEST_EQUAL(exp.getNrChromatograms() > 0, true)
-
-  // Cache the experiment to a temporary file
-  CachedmzML cache;
-
-  PeakMap meta_exp;
-  // without adding the cache value, the meta data of the two experiments should be equal
-  cache.writeMetadata(exp, tmp_filename, false);
-  MzMLFile().load(tmp_filename, meta_exp);
-  TEST_EQUAL( (ExperimentalSettings)(meta_exp), (ExperimentalSettings)(exp) )
-  TEST_EQUAL( (SpectrumSettings)(meta_exp.getSpectrum(0)), (SpectrumSettings)(exp.getSpectrum(0)) )
-  TEST_EQUAL( (ChromatogramSettings)(meta_exp.getChromatogram(0)), (ChromatogramSettings)(exp.getChromatogram(0)) )
-
-  // without adding the cache value, the meta data except the "cache" meta value should be equal
-  cache.writeMetadata(exp, tmp_filename, true);
-  MzMLFile().load(tmp_filename, meta_exp);
-  TEST_EQUAL( (ExperimentalSettings)(meta_exp), (ExperimentalSettings)(exp) )
-
-}
+START_SECTION(( size_t getNrChromatograms() const ))
+    TEST_EQUAL(cache_example.getNrChromatograms(), 2)
 END_SECTION
 
-// Create a single CachedMzML file and use it for the following computations
-// (may be somewhat faster)
-std::string tmp_filename;
-PeakMap exp;
-CachedmzML cache_ = cacheFile(tmp_filename, exp);
-
-START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
-{
-
-  std::string tmp_filename;
-  PeakMap exp;
-  CachedmzML cache = cacheFile(tmp_filename, exp);
-
-  PeakMap exp_new;
-  cache.readMemdump(exp_new, tmp_filename);
-
-  TEST_EQUAL(exp_new.size(), exp.size())
-  TEST_EQUAL(exp_new.getChromatograms().size(), exp.getChromatograms().size())
-
-  std::string unused_tmp_filename;
-  NEW_TMP_FILE(unused_tmp_filename);
-  TEST_EXCEPTION(Exception::FileNotFound, cache.readMemdump(exp_new, unused_tmp_filename) )
-  TEST_EXCEPTION(Exception::ParseError, cache.readMemdump(exp_new, OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
-}
+START_SECTION(( const MSExperiment& getMetaData() const ))
+    TEST_EQUAL(cache_example.getMetaData().size(), 4)
+    TEST_EQUAL(cache_example.getMetaData().getNrSpectra(), 4)
+    TEST_EQUAL(cache_example.getMetaData().getNrChromatograms(), 2)
 END_SECTION
 
-START_SECTION(( void createMemdumpIndex(String filename) ))
+START_SECTION(( const MSExperiment& getMetaData() const ))
 {
-  std::string tmp_filename;
-  NEW_TMP_FILE(tmp_filename);
-  // Load experiment
-  PeakMap exp;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
-  TEST_EQUAL(exp.getNrSpectra() > 0, true)
-  // Cache the experiment to a temporary file
-  CachedmzML cache;
-  cache.writeMemdump(exp, tmp_filename);
-
-  // create the memory dump
-  cache.createMemdumpIndex(tmp_filename);
-
-  // check whether we actually did read something
-  TEST_EQUAL( cache.getSpectraIndex().size(), 4);
-  TEST_EQUAL( cache.getChromatogramIndex().size(), 2);
-
-  // Test error conditions
-  std::string unused_tmp_filename;
-  NEW_TMP_FILE(unused_tmp_filename);
-  TEST_EXCEPTION(Exception::FileNotFound, cache.createMemdumpIndex(unused_tmp_filename) )
-  TEST_EXCEPTION(Exception::ParseError, cache.createMemdumpIndex(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
-}
-END_SECTION
-
-START_SECTION(( const std::vector<std::streampos>& getSpectraIndex() const ))
-{
-  TEST_EQUAL( cache_.getSpectraIndex().size(), 4);
-}
-END_SECTION
-
-START_SECTION(( const std::vector<std::streampos>& getChromatogramIndex() const ))
-{
-  TEST_EQUAL( cache_.getChromatogramIndex().size(), 2);
-}
-END_SECTION
-
-START_SECTION(static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1, OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs, int& ms_level, double& rt))
-{
-
-  // Check whether spectra were written to disk correctly...
+  TEST_EQUAL(cache_example.getNrSpectra(), cache_example.getMetaData().getNrSpectra())
+  for (int i = 0; i < 4; i++)
   {
-    // Create the index from the given file
-    std::vector<std::streampos> spectra_index = cache_.getSpectraIndex();
-    TEST_EQUAL(spectra_index.size(), 4)
-    std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
-
-    // retrieve the spectrum
-    OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    ifs_.seekg(spectra_index[0]);
-    int ms_level = -1;
-    double rt = -1.0;
-    CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
-
-    TEST_EQUAL(mz_array->data.size() > 0, true)
-    TEST_EQUAL(mz_array->data.size(), exp.getSpectrum(0).size())
-    TEST_EQUAL(intensity_array->data.size(), exp.getSpectrum(0).size())
-
-    TEST_EQUAL(ms_level, 1)
-    TEST_REAL_SIMILAR(rt, 5.1)
-
-    for (Size i = 0; i < mz_array->data.size(); i++)
-    {
-      TEST_REAL_SIMILAR(mz_array->data[i], exp.getSpectrum(0)[i].getMZ())
-      TEST_REAL_SIMILAR(intensity_array->data[i], exp.getSpectrum(0)[i].getIntensity())
-    }
+    // identical except DataProcessing
+    SpectrumSettings tmp1 = cache_example.getMetaData()[i];
+    SpectrumSettings tmp2 = exp.getSpectrum(i);
+    tmp1.getDataProcessing().clear();
+    tmp2.getDataProcessing().clear();
+    TEST_EQUAL(tmp1 == tmp2, true)
   }
 
-  // Check error conditions
+  TEST_EQUAL(cache_example.getNrChromatograms(), cache_example.getMetaData().getNrChromatograms())
+  for (int i = 0; i < 2; i++)
   {
-    // Create the index from the given file
-    std::vector<std::streampos> spectra_index = cache_.getSpectraIndex();
-    TEST_EQUAL(spectra_index.size(), 4)
-    std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
-
-    // retrieve the spectrum
-    OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    int ms_level = -1;
-    double rt = -1.0;
-
-    // should not read before the file starts
-    ifs_.seekg( -1 );
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt),
-      "filestream in: Read an invalid spectrum length, something is wrong here. Aborting.")
-
-    // should not read after the file ends
-    ifs_.seekg(spectra_index.back() * 20);
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt),
-      "filestream in: Read an invalid spectrum length, something is wrong here. Aborting.")
-  }
-
-}
-END_SECTION
-
-START_SECTION( static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1, OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs) )
-{
-  // Check whether chromatograms were written to disk correctly...
-  {
-    // Create the index from the given file
-    std::vector<std::streampos> chrom_index = cache_.getChromatogramIndex();;
-    TEST_EQUAL(chrom_index.size(), 2)
-    std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
-
-    // retrieve the chromatogram
-    OpenSwath::BinaryDataArrayPtr time_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-
-    ifs_.seekg(chrom_index[0]);
-    CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_);
-
-    TEST_EQUAL(time_array->data.size() > 0, true)
-    TEST_EQUAL(time_array->data.size(), exp.getChromatogram(0).size())
-    TEST_EQUAL(intensity_array->data.size(), exp.getChromatogram(0).size())
-
-    for (Size i = 0; i < time_array->data.size(); i++)
-    {
-      TEST_REAL_SIMILAR(time_array->data[i], exp.getChromatogram(0)[i].getRT())
-      TEST_REAL_SIMILAR(intensity_array->data[i], exp.getChromatogram(0)[i].getIntensity())
-    }
-  }
-
-  // Check error conditions
-  {
-    // Create the index from the given file
-    std::vector<std::streampos> chrom_index = cache_.getChromatogramIndex();;
-    TEST_EQUAL(chrom_index.size(), 2)
-    std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
-
-    // retrieve the chromatogram
-    OpenSwath::BinaryDataArrayPtr time_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-
-    // should not read before the file starts
-    ifs_.seekg( -1 );
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_),
-      "filestream in: Read an invalid chromatogram length, something is wrong here. Aborting.")
-
-    // should not read after the file ends
-    ifs_.seekg(chrom_index.back() * 20);
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_),
-      "filestream in: Read an invalid chromatogram length, something is wrong here. Aborting.")
+    // identical except DataProcessing
+    ChromatogramSettings tmp1 = cache_example.getMetaData().getChromatograms()[i];
+    ChromatogramSettings tmp2 = exp.getChromatogram(i);
+    tmp1.getDataProcessing().clear();
+    tmp2.getDataProcessing().clear();
+    TEST_EQUAL(tmp1 == tmp2, true)
   }
 }
 END_SECTION
@@ -415,6 +223,7 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
+
 
 #pragma clang diagnostic pop
 

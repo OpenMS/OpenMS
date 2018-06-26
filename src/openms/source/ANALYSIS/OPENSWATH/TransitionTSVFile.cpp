@@ -179,7 +179,11 @@ namespace OpenMS
       delimiter = possibleDelimiters[i];
       while (std::getline(lineStream, tmp, delimiter))
       {
-        header.push_back(tmp);
+        String tmp2(tmp);
+        tmp2 = tmp2.remove('"');
+        tmp2 = tmp2.remove('\'');
+        tmp2 = tmp2.remove(',');
+        header.push_back(tmp2);
       }
       if (header.size() >= min_header_size)
       {

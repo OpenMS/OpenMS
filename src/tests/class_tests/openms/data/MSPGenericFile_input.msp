@@ -1,0 +1,53 @@
+Name: name1 of first
+Synon: name2 of 1st
+Synon: name3 of firsttt
+Formula: A11B22C333
+MW: 156
+CAS#: 0123-45-6;  NIST#: 654321
+DB#: 1
+Comments: Some comment
+Num Peaks: 14
+27:29 38:7 39:86 41:13 50:62 
+60:41 61:8 74:24 75:261 76:40 
+90:168 91:37 100:264 105:36 
+
+Name: name1 of second
+Synon: name2 of 2nd
+Synon: name3 of seconddd
+Formula: A44B55C666
+MW: 589
+CAS#: 3210-45-6;  NIST#: 789564
+DB#: 2
+Comments: Some other comment
+Num Peaks: 15
+27 29; 38 7; 39 86; 41 13; 50 62; 
+260 41; 261 8; 274 24; 275 261; 276 40; 
+290 168; 291 37; 307 264; 308 36; 
+310 20; 
+
+Name: name1 of second
+Synon: name2 of 2nd
+Synon: name3 of seconddd
+Formula: A44B55C666
+MW: 589
+CAS#: 3210-45-6;  NIST#: 789564
+DB#: 2
+Comments: This spectrum won't be loaded because its Name is a duplicate
+Num Peaks: 15
+27 29; 38 7; 39 86; 41 13; 50 62; 
+260 41; 261 8; 274 24; 275 261; 276 40; 
+290 168; 291 37; 307 264; 308 36; 
+310 20; 
+
+Name: name1 of third
+Synon: name2 of 3rd
+Synon: name3 of thirddd
+Formula: A12B12C123
+MW: 562
+CAS#: 4210-47-4;  NIST#: 749514
+DB#: 3
+Num Peaks: 16
+27 29; 38 7; 39 86; 41 13; 50 62; 
+260 41; 261 8; 274 24; 275 261; 276 40; 
+290 168; 291 37; 307 264; 308 36; 
+310 20; 111 44; 

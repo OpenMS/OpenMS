@@ -39,7 +39,7 @@ namespace OpenMS
 {
 
   TransformationDescription OpenSwathRetentionTimeNormalization::performRTNormalization(
-    const OpenMS::TargetedExperiment & irt_transitions,
+    const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     double min_rsq,
     double min_coverage,
@@ -54,7 +54,8 @@ namespace OpenMS
   {
     LOG_DEBUG << "performRTNormalization method starting" << std::endl;
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
-    simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt, sonar, load_into_memory);
+    TransformationDescription trafo; // dummy
+    simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, sonar, load_into_memory);
 
     // debug output of the iRT chromatograms
     if (irt_mzml_out.empty() && debug_level > 1)
@@ -88,7 +89,7 @@ namespace OpenMS
   }
 
   TransformationDescription OpenSwathRetentionTimeNormalization::RTNormalization(
-    const TargetedExperiment& transition_exp_,
+    const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenMS::MSChromatogram >& chromatograms,
     double min_rsq,
     double min_coverage,
@@ -101,9 +102,6 @@ namespace OpenMS
   {
     LOG_DEBUG << "Start of RTNormalization method" << std::endl;
     this->startProgress(0, 1, "Retention time normalization");
-
-    OpenSwath::LightTargetedExperiment targeted_exp;
-    OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, targeted_exp);
 
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
     if (estimateBestPeptides)
@@ -281,12 +279,15 @@ namespace OpenMS
 
   void OpenSwathRetentionTimeNormalization::simpleExtractChromatograms(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
-    const OpenMS::TargetedExperiment & irt_transitions,
+    const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenMS::MSChromatogram > & chromatograms,
+    const TransformationDescription& trafo,
     const ChromExtractParams & cp,
     bool sonar,
     bool load_into_memory)
   {
+    TransformationDescription trafo_inverse = trafo;
+    trafo_inverse.invert();
 
     this->startProgress(0, 1, "Extract iRT chromatograms");
 #ifdef _OPENMP
@@ -298,7 +299,7 @@ namespace OpenMS
       if (!swath_maps[map_idx].ms1) // skip MS1
       {
 
-        TargetedExperiment transition_exp_used;
+        OpenSwath::LightTargetedExperiment transition_exp_used;
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[map_idx].lower, swath_maps[map_idx].upper);
         if (transition_exp_used.getTransitions().size() > 0) // skip if no transitions found
@@ -315,7 +316,7 @@ namespace OpenMS
             current_swath_map = boost::shared_ptr<SpectrumAccessOpenMSInMemory>( new SpectrumAccessOpenMSInMemory(*current_swath_map) );
           }
 
-          extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
+          prepareExtractionCoordinates_(tmp_out, coordinates, transition_exp_used, false, trafo_inverse, cp);
           extractor.extractChromatograms(current_swath_map, tmp_out, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.im_extraction_window, cp.extraction_function);
           extractor.return_chromatogram(tmp_out, coordinates,
@@ -597,7 +598,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathWorkflow::MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
+  void OpenSwathWorkflowBase::MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
                                          std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
                                          Interfaces::IMSDataConsumer * chromConsumer,
                                          const ChromExtractParams & cp,
@@ -904,22 +905,22 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathWorkflow::prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
-                                                        std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates, 
-                                                        const OpenSwath::LightTargetedExperiment & transition_exp_used, 
-                                                        const bool ms1,
-                                                        const TransformationDescription trafo_inverse, 
-                                                        const ChromExtractParams & cp) const
+  void OpenSwathWorkflowBase::prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
+                                                            std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates, 
+                                                            const OpenSwath::LightTargetedExperiment & transition_exp_used, 
+                                                            const bool ms1,
+                                                            const TransformationDescription trafo_inverse, 
+                                                            const ChromExtractParams & cp) const
   {
     if (cp.rt_extraction_window < 0)
     {
-      prepare_coordinates_sub(chrom_list, coordinates, transition_exp_used, cp.rt_extraction_window, ms1);
+      ChromatogramExtractor::prepare_coordinates(chrom_list, coordinates, transition_exp_used, cp.rt_extraction_window, ms1);
     }
     else
     {
       // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
       // Then correct the start/end positions and add the extra_rt_extract parameter
-      prepare_coordinates_sub(chrom_list, coordinates, transition_exp_used, 0.0, ms1);
+      ChromatogramExtractor::prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, ms1);
       for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
       {
         it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
@@ -928,87 +929,6 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathWorkflow::prepare_coordinates_sub(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms, 
-                                                  std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates, 
-                                                  const OpenSwath::LightTargetedExperiment & transition_exp_used, 
-                                                  const double rt_extraction_window,
-                                                  const bool ms1) const
-  {
-    // hash of the peptide reference containing all transitions
-    std::map<String, std::vector<const OpenSwath::LightTransition*> > peptide_trans_map;
-    for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
-    {
-      peptide_trans_map[transition_exp_used.getTransitions()[i].getPeptideRef()].push_back(&transition_exp_used.getTransitions()[i]);
-    }
-    std::map<String, const OpenSwath::LightCompound*> trans_peptide_map;
-    for (Size i = 0; i < transition_exp_used.getCompounds().size(); i++)
-    {
-      trans_peptide_map[transition_exp_used.getCompounds()[i].id] = &transition_exp_used.getCompounds()[i];
-    }
-
-    // Determine iteration size:
-    // When extracting MS1/precursor transitions, we iterate over compounds.
-    // Otherwise (for SWATH/fragment ions), we iterate over the transitions.
-    Size itersize;
-    if (ms1)
-    {
-      itersize = transition_exp_used.getCompounds().size();
-    }
-    else
-    {
-      itersize = transition_exp_used.getTransitions().size();
-    }
-
-    for (Size i = 0; i < itersize; i++)
-    {
-      OpenSwath::ChromatogramPtr s(new OpenSwath::Chromatogram);
-      output_chromatograms.push_back(s);
-
-      ChromatogramExtractor::ExtractionCoordinates coord;
-      OpenSwath::LightCompound pep;
-      OpenSwath::LightTransition transition;
-
-      if (ms1)
-      {
-        pep = transition_exp_used.getCompounds()[i];
-
-        // Catch cases where a compound has no transitions
-        if (peptide_trans_map.count(pep.id) == 0 )
-        {
-          LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
-          coord.rt_start = -1;
-          coord.rt_end = -2; // create negative range
-          coord.id = pep.id;
-          coordinates.push_back(coord);
-          continue;
-        }
-
-        // This is slightly awkward but the m/z of the precursor is *not*
-        // stored in the precursor object but only in the transition object
-        // itself. So we have to get the first transition to look it up.
-        transition = (*peptide_trans_map[pep.id][0]);
-        coord.mz = transition.getPrecursorMZ();
-        coord.id = pep.id;
-      }
-      else
-      {
-        transition = transition_exp_used.getTransitions()[i];
-        pep = (*trans_peptide_map[transition.getPeptideRef()]);
-        coord.mz = transition.getProductMZ();
-        coord.mz_precursor = transition.getPrecursorMZ();
-        coord.id = transition.getNativeID();
-      }
-
-      double rt = pep.rt;
-      coord.ion_mobility = pep.getDriftTime();
-      coord.rt_start = rt - rt_extraction_window / 2.0;
-      coord.rt_end = rt + rt_extraction_window / 2.0;
-      coordinates.push_back(coord);
-    }
-
-    // sort result
-    std::sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
-  }
 }
 
 // OpenSwathWorkflowSonar

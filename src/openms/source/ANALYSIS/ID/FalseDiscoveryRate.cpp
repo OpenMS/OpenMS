@@ -681,7 +681,18 @@ namespace OpenMS
       }
 
       // corner cases
-      if (k == 0) { score_to_fdr[ds] = score_to_fdr[target_scores[0]]; continue; }
+      if (k == 0)
+      {
+        if (target_scores.size() != 0)
+        {
+          score_to_fdr[ds] = score_to_fdr[target_scores[0]];
+          continue;
+        }
+        else
+        {
+          score_to_fdr[ds] = 1.0;
+        }
+      }
 
       if (k == target_scores.size()) { score_to_fdr[ds] = score_to_fdr[target_scores.back()]; continue; }
       

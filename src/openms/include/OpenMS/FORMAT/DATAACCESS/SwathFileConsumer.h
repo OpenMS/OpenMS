@@ -50,7 +50,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #ifdef _OPENMP
@@ -505,7 +505,7 @@ protected:
         boost::shared_ptr<PeakMap > exp(new PeakMap);
         String meta_file = cachedir_ + basename_ + "_ms1.mzML";
         // write metadata to disk and store the correct data processing tag
-        CachedmzML().writeMetadata(*ms1_map_, meta_file, true);
+        Internal::CachedMzMLHandler().writeMetadata(*ms1_map_, meta_file, true);
         MzMLFile().load(meta_file, *exp.get());
         ms1_map_ = exp;
       }
@@ -518,7 +518,7 @@ protected:
         boost::shared_ptr<PeakMap > exp(new PeakMap);
         String meta_file = cachedir_ + basename_ + "_" + String(i) +  ".mzML";
         // write metadata to disk and store the correct data processing tag
-        CachedmzML().writeMetadata(*swath_maps_[i], meta_file, true);
+        Internal::CachedMzMLHandler().writeMetadata(*swath_maps_[i], meta_file, true);
         MzMLFile().load(meta_file, *exp.get());
         swath_maps_[i] = exp;
       }

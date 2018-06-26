@@ -38,7 +38,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 
 
 namespace OpenMS
@@ -49,10 +49,10 @@ namespace OpenMS
 
       Is able to transform a spectrum on the fly while it is read using a
       function pointer that can be set on the object. The spectra is then
-      cached to disk using the functions provided in CachedmzML.
+      cached to disk using the functions provided in CachedMzMLHandler.
     */
     class OPENMS_DLLAPI MSDataCachedConsumer :
-      public CachedmzML,
+      public Internal::CachedMzMLHandler,
       public Interfaces::IMSDataConsumer
     {
       typedef MSSpectrum SpectrumType;

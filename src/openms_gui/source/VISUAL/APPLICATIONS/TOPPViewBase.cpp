@@ -1265,13 +1265,13 @@ namespace OpenMS
                 peak_map_sptr->getSpectrum(k) = on_disc_peaks->getSpectrum(k);
               }
             }
-            for (Size k = 0; k < indexed_mzml_file_.getNrChromatograms(); k++)
+            for (Size k = 0; k < indexed_mzml_file_.getNrChromatograms() && !cache_ms2_on_disc; k++)
             {
               peak_map_sptr->getChromatogram(k) = on_disc_peaks->getChromatogram(k);
             }
 
             // Load at least one spectrum into memory (TOPPView assumes that at least one spectrum is in memory)
-            if (cache_ms1_on_disc) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
+            if (cache_ms1_on_disc && peak_map_sptr->getNrSpectra() > 0) peak_map_sptr->getSpectrum(0) = on_disc_peaks->getSpectrum(0);
           }
         }
 
@@ -1280,6 +1280,7 @@ namespace OpenMS
         {
           fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
         }
+        LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in SpectrumCanvas::addLayer

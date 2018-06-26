@@ -253,11 +253,17 @@ public:
      *
      * @throw Exception::IllegalArgument if RT values are expected (depending on @p rt_extraction_window) but not provided
     */
-    void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-                             std::vector< ExtractionCoordinates > & coordinates,
-                             const OpenMS::TargetedExperiment & transition_exp,
-                             const double rt_extraction_window,
-                             const bool ms1) const;
+    static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
+                                    std::vector< ExtractionCoordinates > & coordinates,
+                                    const OpenMS::TargetedExperiment & transition_exp,
+                                    const double rt_extraction_window,
+                                    const bool ms1);
+
+    static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
+                                    std::vector< ExtractionCoordinates > & coordinates,
+                                    const OpenSwath::LightTargetedExperiment & transition_exp_used,
+                                    const double rt_extraction_window,
+                                    const bool ms1);
 
     /**
      * @brief This converts the ChromatogramPtr to MSChromatogram and adds meta-information.
@@ -309,7 +315,9 @@ public:
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
-          String r = extract_id_(transition_exp_used, coord.id);
+          int prec_charge = 0;
+          String r = extract_id_(transition_exp_used, coord.id, prec_charge);
+          prec.setCharge(prec_charge);
           prec.setMetaValue("peptide_sequence", r);
         }
         else 
@@ -333,12 +341,16 @@ public:
           // more-or-less default field
           if (!transition.getPeptideRef().empty())
           {
-            String r = extract_id_(transition_exp_used, transition.getPeptideRef());
+            int prec_charge = 0;
+            String r = extract_id_(transition_exp_used, transition.getPeptideRef(), prec_charge);
+            prec.setCharge(prec_charge);
             prec.setMetaValue("peptide_sequence", r);
           }
           else
           {
-            String r = extract_id_(transition_exp_used, transition.getCompoundRef());
+            int prec_charge = 0;
+            String r = extract_id_(transition_exp_used, transition.getCompoundRef(), prec_charge);
+            prec.setCharge(prec_charge);
             prec.setMetaValue("peptide_sequence", r);
           }
         }
@@ -534,10 +546,11 @@ private:
      *
      * @param transition_exp The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
      * @param id The identifier of the compound or peptide
+     * @param prec_charge The charge state of the precursor
      *
     */
     template <typename TransitionExpT>
-    static String extract_id_(TransitionExpT& transition_exp_used, const String& id);
+    static String extract_id_(TransitionExpT& transition_exp_used, const String& id, int& prec_charge);
     
     /**
      * @brief This populates the chromatograms vector with empty chromatograms
@@ -641,9 +654,12 @@ private:
     
   // Specialization for template (LightTargetedExperiment)
   template<>
-  inline String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used, const String& id)
+  inline String ChromatogramExtractor::extract_id_<OpenSwath::LightTargetedExperiment>(OpenSwath::LightTargetedExperiment& transition_exp_used,
+                                                                                       const String& id,
+                                                                                       int & prec_charge)
   {
     const OpenSwath::LightCompound comp = transition_exp_used.getCompoundByRef(id);
+    prec_charge = comp.charge;
     if (!comp.sequence.empty())
     {
       return comp.sequence;
@@ -657,16 +673,20 @@ private:
 
   // Specialization for template (TargetedExperiment)
   template<>
-  inline String ChromatogramExtractor::extract_id_<OpenMS::TargetedExperiment>(OpenMS::TargetedExperiment& transition_exp_used, const String& id)
+  inline String ChromatogramExtractor::extract_id_<OpenMS::TargetedExperiment>(OpenMS::TargetedExperiment& transition_exp_used,
+                                                                               const String& id,
+                                                                               int & prec_charge)
   {
     if (transition_exp_used.hasPeptide(id))
     {
       const TargetedExperiment::Peptide p = transition_exp_used.getPeptideByRef(id);
+      if (p.hasCharge()) {prec_charge = p.getChargeState();}
       return p.sequence;
     }
     else if (transition_exp_used.hasCompound(id))
     {
       const TargetedExperiment::Compound c = transition_exp_used.getCompoundByRef(id);
+      if (c.hasCharge()) {prec_charge = c.getChargeState();}
       return c.id;
     }
     else
