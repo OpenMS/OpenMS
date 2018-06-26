@@ -86,6 +86,10 @@ public:
 
     std::vector<double> getAllIntensities(bool smoothed = false) const;
 
+    std::vector<double> getAllCentroidMZ() const;
+
+    std::vector<double> getAllCentroidRT() const;
+
     std::vector<double> getIsotopeDistances() const;
 
     double getCentroidMZ() const;

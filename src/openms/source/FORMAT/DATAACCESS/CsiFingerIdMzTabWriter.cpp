@@ -46,7 +46,10 @@
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths,
+                                  const String & original_input_mzml,
+                                  const Size & top_n_hits,
+                                  MzTab & result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;

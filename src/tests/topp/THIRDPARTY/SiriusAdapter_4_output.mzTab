@@ -1,0 +1,25 @@
+MTD	mzTab-version	1.0.0
+MTD	mzTab-mode	null
+MTD	mzTab-type	null
+MTD	description	Sirius-4.0
+MTD	smallmolecule_search_engine_score[1]	[, , score, ]
+MTD	smallmolecule_search_engine_score[2]	[, , treescore, ]
+MTD	smallmolecule_search_engine_score[3]	[, , isoscore, ]
+MTD	ms_run[1]-location	/Users/alka/Desktop/bla/SiriusAdapter_6_input.mzML
+
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	adduct	rank	explainedPeaks	explainedIntensity	compoundId	compoundScanNumber	featureId
+SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	4.52677627853128	-0.866815897879027	5.39359217641031	null	[M + H]+	1	1	0	6	5	id_1026917318987435277
+SML	null	C16H13N5O	null	null	null	null	null	null	null	null	null	null	null	null	null	2.39343069640719	-0.825801390405481	3.21923208681267	null	[M + H]+	2	1	0	6	5	id_1026917318987435277
+SML	null	C12H23NO3P2	null	null	null	null	null	null	null	null	null	null	null	null	null	0.379636603685669	-4.62045966721219	5.00009627089786	null	[M + H]+	3	1	0	6	5	id_1026917318987435277
+SML	null	C18H15N2O2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.348159570958296	-4.08311099714257	3.73495142618427	null	[M + H]+	4	1	0	6	5	id_1026917318987435277
+SML	null	C16H20O3P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.407437564704951	-5.94265850481077	5.53522094010582	null	[M + H]+	5	1	0	6	5	id_1026917318987435277
+SML	null	C12H21NO5S	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.0703392433326	-1.0703392433326	0	null	[M + H]+	1	1	0	18	4	id_1026917318987435277
+SML	null	C13H17N5OS	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.09765222779899	-1.09765222779899	0	null	[M + H]+	2	1	0	18	4	id_1026917318987435277
+SML	null	C13H25NS3	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.18139616054283	-1.18139616054283	0	null	[M + H]+	3	1	0	18	4	id_1026917318987435277
+SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.38211832899059	-1.38211832899059	0	null	[M + H]+	4	1	0	18	4	id_1026917318987435277
+SML	null	C6H19N4O9	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.3960216425312	-1.3960216425312	0	null	[M + H]+	5	1	0	18	4	id_1026917318987435277
+SML	null	C12H21NO5S	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.822790860200481	-0.822790860200481	0	null	[M + H]+	1	1	0	20	6	id_1026917318987435277
+SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.0886386265816	-1.0886386265816	0	null	[M + H]+	2	1	0	20	6	id_1026917318987435277
+SML	null	C16H13N5O	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.23811466290395	-1.23811466290395	0	null	[M + H]+	3	1	0	20	6	id_1026917318987435277
+SML	null	C13H17N5OS	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.39260106646985	-1.39260106646985	0	null	[M + H]+	4	1	0	20	6	id_1026917318987435277
+SML	null	C13H25NS3	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.42008359950785	-1.42008359950785	0	null	[M + H]+	5	1	0	20	6	id_1026917318987435277

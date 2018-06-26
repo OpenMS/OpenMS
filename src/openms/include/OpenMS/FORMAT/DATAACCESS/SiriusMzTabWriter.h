@@ -89,7 +89,10 @@ namespace OpenMS
     
     @return: Result written to mzTab
     */
-    static void read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result);
+    static void read(const std::vector<String> & sirius_output_paths,
+                     const String & original_input_mzml,
+                     const Size & top_n_hits,
+                     MzTab & result);
 
   };
 

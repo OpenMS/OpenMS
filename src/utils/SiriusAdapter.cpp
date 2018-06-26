@@ -124,8 +124,8 @@ protected:
     registerInputFile_("in", "<file>", "", "MzML Input file");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
-    registerInputFile_("in_adductinfo", "<file>", "", "FeatureXML Input with adduct information", false);
-    setValidFormats_("in_adductinfo", ListUtils::create<String>("featurexml"));
+    registerInputFile_("in_featureinfo", "<file>", "", "FeatureXML input with feature and adduct information", false);
+    setValidFormats_("in_featureinfo", ListUtils::create<String>("featurexml"));
 
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
     setValidFormats_("out_sirius", ListUtils::create<String>("mzTab"));
@@ -134,13 +134,15 @@ protected:
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
     // adapter parameters
-    registerIntOption_("filter_by_num_masstraces", "<num>", 2, "Features have to have at least x MassTraces", false);
+    registerIntOption_("filter_by_num_masstraces", "<num>", 1, "Features have to have at least x MassTraces. To use this parameter feature_only is neccessary", false);
     setMinInt_("filter_by_num_masstraces", 1);
-    registerFlag_("feature_only", "Uses the feature information from in_adductinfo to reduce the search space to only MS2 associated with a feature", false);
+    registerFlag_("feature_only", "Uses the feature information from in_featureinfo to reduce the search space to only MS2 associated with a feature", false);
     registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
     registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
     setValidStrings_("precursor_mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
     registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds]", false);
+    registerIntOption_("isotope_pattern_iterations", "<num>", 3, "Number of iterations that should be performed to extract the C13 isotope pattern. If no peak is found (C13 distance) the function will abort. Be careful with noisy data - since this can lead to wrong isotope patterns.", false, true);
+    registerFlag_("no_masstrace_info_isotope_pattern", "Use this flag if the masstrace information from a feature should be discarded and the isotope_pattern_iterations should be used instead.", true);
 
     // internal sirius parameters
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
@@ -152,7 +154,7 @@ protected:
     registerIntOption_("ppm_max", "<num>", 10, "allowed ppm for decomposing masses", false);
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring. Use 'omit' to ignore isotope pattern.", false);
     setValidStrings_("isotope", ListUtils::create<String>("score,filter,both,omit"));
-    registerStringOption_("elements", "<choice>", "CHNOP[5]S", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1].", false);
+    registerStringOption_("elements", "<choice>", "CHNOP[5]S[8]Cl[1]", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1].", false);
     registerIntOption_("compound_timeout", "<num>", 10, "Time out in seconds per compound. To disable the timeout set the value to 0", false);
     registerIntOption_("tree_timeout", "<num>", 0, "Time out in seconds per fragmentation tree computation.", false);
     registerIntOption_("top_n_hits", "<num>", 10, "The top_n_hit for each compound written to the output", false);
@@ -160,11 +162,15 @@ protected:
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("ion_tree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
-    registerFlag_("most_intense_ms2", "Sirius uses the fragmentation sepctrum with the most intense precursor peak (for each spectrum)", false);
+    registerFlag_("most_intense_ms2", "Sirius uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", false);
   }
 
   // // map with index of ms2 spectrum and its closest feature
-  map< const size_t, const BaseFeature* > mappingMS2IndexToFeature(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm)
+  map< const size_t, const BaseFeature* > mappingMS2IndexToFeature(const PeakMap & spectra,
+                                                                   const KDTreeFeatureMaps& fp_map_kd,
+                                                                   const double& precursor_mz_tolerance,
+                                                                   const double& precursor_rt_tolerance,
+                                                                   bool ppm)
   {
     map< const size_t, const BaseFeature* > feature_to_ms2;
 
@@ -220,15 +226,23 @@ protected:
     String in = getStringOption_("in");
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
-    String adductinfo = getStringOption_("in_adductinfo");
+    String featureinfo = getStringOption_("in_featureinfo");
 
     // parameter for SiriusAdapter
+    bool feature_only = getFlag_("feature_only");
     unsigned int num_masstrace_filter = getIntOption_("filter_by_num_masstraces");
+    if (num_masstrace_filter != 1 && !feature_only)
+    {
+      num_masstrace_filter = 1;
+      LOG_WARN << "Parameter: filter_by_num_masstraces, was set to 1 to retain the adduct information for all MS2 spectra, if available. Please use feature_only in combination with the masstrace filterc" << endl;
+    }
+
     double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
     String unit_prec = getStringOption_("precursor_mz_tolerance_unit");
     bool ppm_prec = unit_prec == "ppm" ? true : false;
     double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
-    bool feature_only = getFlag_("feature_only");
+    int isotope_pattern_iterations = getIntOption_("isotope_pattern_iterations");
+    bool no_mt_info = getFlag_("no_masstrace_info_isotope_pattern");
 
     // needed for counting
     int top_n_hits = getIntOption_("top_n_hits"); 
@@ -288,18 +302,17 @@ protected:
     String tmp_ms_file = QDir(tmp_base_dir).filePath((File::getUniqueName() + ".ms").toQString());
     String out_dir = QDir(tmp_dir).filePath("sirius_out");
 
-    // TODO: Renew Test dataset with known composition best with one feature and the right .ms file - lets have a look with the
     map< const size_t, const BaseFeature* > feature_to_ms2;
     FeatureMap feature_map;
     KDTreeFeatureMaps fp_map_kd;
     vector<FeatureMap> v_fp;
 
-    std::ifstream afile(adductinfo);
+    std::ifstream afile(featureinfo);
     if (afile)
     {
       // read featureXML
       FeatureXMLFile fxml;
-      fxml.load(adductinfo, feature_map);
+      fxml.load(featureinfo, feature_map);
 
       // filter feature by number of masstraces
       auto map_it = remove_if(feature_map.begin(), feature_map.end(),
@@ -318,7 +331,7 @@ protected:
     }
 
     // write msfile
-    SiriusMSFile::store(spectra, tmp_ms_file, feature_to_ms2, feature_only);
+    SiriusMSFile::store(spectra, tmp_ms_file, feature_to_ms2, feature_only, isotope_pattern_iterations, no_mt_info);
 
     // assemble SIRIUS parameters
     QStringList process_params;

@@ -46,7 +46,10 @@ namespace OpenMS
 {
 
   // precursor correction (highest intensity)
-  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum& spectrum1, double left_tolerance, double right_tolerance)
+  Int getHighestIntensityPeakInMZRange(double test_mz,
+                                       const MSSpectrum& spectrum1,
+                                       double left_tolerance,
+                                       double right_tolerance)
   {
     MSSpectrum::ConstIterator left = spectrum1.MZBegin(test_mz - left_tolerance);
     MSSpectrum::ConstIterator right = spectrum1.MZEnd(test_mz + right_tolerance);
@@ -67,44 +70,53 @@ namespace OpenMS
     return max_intensity_it - spectrum1.begin();
   }
 
-  vector<Peak1D> extractPrecursorC13IsotopePattern(const double& precursor_mz, const MSSpectrum& precursor_spectrum, const int& iterations)
+  // extract precursor isotope pattern if no feature information is available
+  vector<Peak1D> extractPrecursorC13IsotopePattern(const double& precursor_mz,
+                                                   const MSSpectrum& precursor_spectrum,
+                                                   int& iterations,
+                                                   int& charge)
   {
     vector<Peak1D> isotopes;
-    // make sure the 13C isotopic peak is picked up by doubling the (fractional) mass difference (approx. 1.0066)
-    const double C13_dd = 2.0 * (Constants::C13C12_MASSDIFF_U - 1.0);
+    int peak_index;
+    Peak1D peak;
 
-    // not sure if hard conding the window is ok;
-    Int mono_index = getHighestIntensityPeakInMZRange(precursor_mz, precursor_spectrum, 0.2, 0.2);
-
-    if (mono_index != -1)
+    // monoisotopic_trace
+    peak_index = getHighestIntensityPeakInMZRange(precursor_mz, precursor_spectrum, 0.2, 0.2);
+    if (peak_index != -1)
     {
-      const Peak1D& max_mono_peak = precursor_spectrum[mono_index];
-      isotopes.push_back(max_mono_peak);
+      peak = precursor_spectrum[peak_index];
+      isotopes.push_back(peak);
+    }
 
-      // conditional while loop (mass_traces)
-      // if max_index != -1 && iternations > 0
+    // further isotope_traces: make sure the 13C isotopic peak is picked up by doubling the (fractional) mass difference (approx. 1.0066)
+    double C13_dd = 2.0 * (Constants::C13C12_MASSDIFF_U - 1.0);
+    double massdiff = Constants::C13C12_MASSDIFF_U;
 
-      Int iso1_index = getHighestIntensityPeakInMZRange(max_mono_peak.getMZ() + Constants::C13C12_MASSDIFF_U, precursor_spectrum, 0, C13_dd);
+    // depending on the charge different MASSDIFF
+    if (charge != 0)
+    {
+      massdiff = massdiff/charge;
+    }
 
-      if (iso1_index != -1)
+    while (peak_index != -1 && iterations > 0)
+    {
+      peak_index = getHighestIntensityPeakInMZRange(peak.getMZ() + massdiff, precursor_spectrum, 0, C13_dd);
+      if (peak_index != -1)
       {
-        const Peak1D& iso1_peak = precursor_spectrum[iso1_index];
-        isotopes.push_back(iso1_peak);
-
-        Int iso2_index = getHighestIntensityPeakInMZRange(iso1_peak.getMZ() + Constants::C13C12_MASSDIFF_U, precursor_spectrum, 0, C13_dd);
-
-        if (iso2_index != -1)
-        {
-          const Peak1D& iso2_peak = precursor_spectrum[iso2_index];
-          isotopes.push_back(iso2_peak);
-        }
+        peak = precursor_spectrum[peak_index];
+        isotopes.push_back(peak);
       }
+      iterations = iterations - 1;
     }
     return isotopes;
   }
 
-
-  void SiriusMSFile::store(const PeakMap &spectra, const OpenMS::String & msfile, const std::map< const size_t, const BaseFeature* > & feature_ms2_spectra_map, const bool& feature_only)
+  void SiriusMSFile::store(const PeakMap &spectra,
+                           const OpenMS::String & msfile,
+                           const std::map< const size_t, const BaseFeature* > & feature_ms2_spectra_map,
+                           const bool& feature_only,
+                           const int& isotope_pattern_iterations,
+                           const bool no_masstrace_info_isotope_pattern)
   {
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
     int count_to_pos = 0; // count if charge 0 -> +1
@@ -147,6 +159,7 @@ namespace OpenMS
       int scan_index = s_it - spectra.begin();
 
       // if no feature information is available for the ms2 spectrum and only ms2 with features should be used - continue
+      // TODO: Maybe something wrong here
       if (!(feature_ms2_spectra_map.find(scan_index) != feature_ms2_spectra_map.end()) && feature_only)
       {
         continue;
@@ -156,16 +169,35 @@ namespace OpenMS
       int scan_number = SpectrumLookup::extractScanNumber(native_id, native_id_type_accession);
       StringList adducts;
       String feature_id;
+      int feature_charge = 0;
+      vector<std::pair<double, double> > f_isotopes;
+      f_isotopes.clear();
 
       // extract metadata for specific ms2 spectrum
       // if the index exists extract the meta information (if available)
       if (feature_ms2_spectra_map.find(scan_index) != feature_ms2_spectra_map.end())
       {
         const BaseFeature* feature = feature_ms2_spectra_map.at(scan_index);
+
         feature_id = feature->getUniqueId();
+        feature_charge = feature->getCharge();
+
         if (feature->metaValueExists("adducts"))
         {
           adducts = feature->getMetaValue("adducts");
+        }
+        if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
+        {
+          vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
+          vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
+          if (masstrace_centroid_mz.size() == masstrace_intensity.size())
+          {
+            for (unsigned long i = 0; i <= masstrace_centroid_mz.size(); ++i)
+            {
+              std::pair<double, double> masstrace_mz_int(masstrace_centroid_mz[i],masstrace_intensity[i]);
+              f_isotopes.push_back(masstrace_mz_int);
+            }
+          }
         }
       }
 
@@ -232,48 +264,12 @@ namespace OpenMS
         else
         {
           const MSSpectrum& spectrum_ms1 = *s_it2;
-
-          // TODO: functionalize and include the interations
-          vector<Peak1D> isotopes_test;
-          isotopes_test = extractPrecursorC13IsotopePattern(test_mz, spectrum_ms1, 2);
-
-          // 0.2 Da left and right of the precursor m/z - we do not expect metabolites with charge 5 or higher.
-          Int mono_index = getHighestIntensityPeakInMZRange(test_mz, spectrum_ms1, 0.2, 0.2);
-
-          if (mono_index != -1)
-          {
-            const Peak1D& max_mono_peak = spectrum_ms1[mono_index];
-            isotopes.push_back(max_mono_peak);
-
-            // make sure the 13C isotopic peak is picked up by doubling the (fractional) mass difference (approx. 1.0066)
-            const double C13_dd = 2.0 * (Constants::C13C12_MASSDIFF_U - 1.0);
-            Int iso1_index = getHighestIntensityPeakInMZRange(max_mono_peak.getMZ() + Constants::C13C12_MASSDIFF_U, spectrum_ms1, 0, C13_dd);
-
-            if (iso1_index != -1)
-            {
-              const Peak1D& iso1_peak = spectrum_ms1[iso1_index];
-              isotopes.push_back(iso1_peak);
-              Int iso2_index = getHighestIntensityPeakInMZRange(iso1_peak.getMZ() + Constants::C13C12_MASSDIFF_U, spectrum_ms1, 0, C13_dd);
-
-              if (iso2_index != -1)
-              {
-                const Peak1D& iso2_peak = spectrum_ms1[iso2_index];
-                isotopes.push_back(iso2_peak);
-              }
-            }
-          }
+          int interations = isotope_pattern_iterations;
+          // extract precursor isotope pattern via C13 isotope distance
+          isotopes = extractPrecursorC13IsotopePattern(test_mz, spectrum_ms1, interations, feature_charge);
         }
 
-        // TODO: if feature informaion available
-        String query_id;
-        if (feature_id.empty())
-        {
-          query_id = String("-" + String(scan_number) + "-") + String("unknown") + String(scan_index);
-        }
-        else
-        {
-          query_id = String("_" + feature_id) + String("-" + String(scan_number) + "-") + String("unknown") + String(scan_index);
-        }
+        String query_id = String("_" + feature_id) + String("-" + String(scan_number) + "-") + String("unknown") + String(scan_index);
 
         // write internal unique .ms data as sirius input
         os << fixed;
@@ -284,7 +280,11 @@ namespace OpenMS
           os << ">ionization " << ListUtils::concatenate(adducts, ',') << "\n";
         }
 
-        if (!isotopes.empty())
+        if (!f_isotopes.empty() && !no_masstrace_info_isotope_pattern)
+        {
+          os << ">parentmass " << f_isotopes[0].first << fixed << "\n";
+        }
+        else if (!isotopes.empty())
         {
           os << ">parentmass " << isotopes[0].getMZ() << fixed << "\n";
         }
@@ -293,56 +293,52 @@ namespace OpenMS
           os << ">parentmass " << precursor_mz << fixed << "\n";
         }
 
-        os << ">charge " << int_charge << "\n\n";
+        if (feature_charge != 0)
+        {
+          os << ">charge " << feature_charge << "\n\n";
+        }
+        else
+        {
+          os << ">charge " << int_charge << "\n\n";
+        }
 
         // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
         Size no_isotopes = isotopes.size();
+        Size no_f_isotopes = f_isotopes.size();
 
-        if ( no_isotopes > 0) // if ms1 spectrum was present
+        if (no_f_isotopes > 0 && !no_masstrace_info_isotope_pattern)
         {
           os << ">ms1" << endl;
-          // m/z and intensity have to be higher than 1e-10
-          // the intensity of the peaks of the isotope pattern have to be smaller than the one before
 
           double threshold = 1e-10;
-
-          double first_mz = isotopes[0].getMZ();
-          double first_intensity = isotopes[0].getIntensity();
-
-          if (first_mz > threshold && first_intensity > threshold)
+          // m/z and intensity have to be higher than 1e-10
+          for (auto it = f_isotopes.begin(); it != f_isotopes.end(); ++it)
           {
-            os << first_mz << " " << first_intensity << endl;
-          }
-
-          if (no_isotopes > 1)
-          {
-            double second_mz = isotopes[1].getMZ();
-            double second_intensity = isotopes[1].getIntensity();
-
-            if (second_mz > threshold && second_intensity > threshold && second_intensity < first_intensity && first_intensity > threshold)
+            if(it->second > threshold)
             {
-              os << second_mz << " " << second_intensity << endl;
-            }
-
-            if (no_isotopes > 2)
-            {
-              double third_mz = isotopes[2].getMZ();
-              double third_intensity = isotopes[2].getIntensity();
-
-              if (third_mz > threshold && third_intensity > threshold && third_intensity < second_intensity && second_intensity > threshold)
-              {
-                os << third_mz << " " << third_intensity << endl;
-              }
+              os << it->first << " " << it->second << endl;
             }
           }
-          os << endl;
+        }
+        else if (no_isotopes > 0) // if ms1 spectrum was present
+        {
+          os << ">ms1" << endl;
+
+          double threshold = 1e-10;
+          // m/z and intensity have to be higher than 1e-10
+          for (auto it = isotopes.begin(); it != isotopes.end(); ++it)
+          {
+            if(it->getIntensity() > threshold)
+            {
+              os << it->getMZ() << " " << it->getIntensity() << endl;
+            }
+          }
         }
         else
         {
           if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
           {
-            os << ">ms1" << "\n"
-                << precursor_mz << " " << precursor_int << "\n\n";
+            os << ">ms1" << "\n" << precursor_mz << " " << precursor_int << "\n\n";
           }
         }
 
@@ -364,7 +360,6 @@ namespace OpenMS
           float intensity = peak.getIntensity();
 
           // intensity has to be higher than zero
-          if (intensity != 0)
           if (intensity != 0)
           {
             os << mz << " " << intensity << "\n";
