@@ -327,7 +327,6 @@ namespace OpenMS
         {
           os << ">ms1merged" << endl;
 
-          double threshold = 1e-10;
           // m/z and intensity have to be higher than 1e-10
           for (auto it = isotopes.begin(); it != isotopes.end(); ++it)
           {
