@@ -56,9 +56,8 @@
 using namespace OpenMS;
 using namespace std;
 
-
-//-------------------------------------------------------------
-//Doxygen docu
+//----------------------------------------------------------
+// Doxygen docu
 //----------------------------------------------------------
 /**
   @page UTILS_SiriusAdapter SiriusAdapter
@@ -97,20 +96,20 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPSiriusAdapter :
-  public TOPPBase
+ public TOPPBase
 {
-public:
+ public:
   TOPPSiriusAdapter() :
     TOPPBase("SiriusAdapter", "Tool for metabolite identification using single and tandem mass spectrometry", false,
       {
         {"Kai Dührkop and Sebastian Böcker",
          "Fragmentation trees reloaded",
-         "J Cheminform; 2016", 
+         "J Cheminform; 2016",
          "10.1186/s13321-016-0116-8"},
         {"Kai Dührkop, Huibin Shen, Marvin Meusel, Juho Rousu, and Sebastian Böcker",
          "Searching molecular structure databases with tandem mass spectra using CSI:FingerID",
          "Proceedings of the National Academy of Sciences; 2015",
-         "10.1073/pnas.1509788112"} 
+         "10.1073/pnas.1509788112"}
       })
     {}
 
@@ -154,7 +153,7 @@ protected:
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
     registerIntOption_("candidates", "<num>", 5, "The number of candidates in the output.", false);
     registerStringOption_("database", "<choice>", "all", "search formulas in given database", false);
-    setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));    
+    setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
     registerIntOption_("noise", "<num>", 0, "median intensity of noise peaks", false);
     registerIntOption_("ppm_max", "<num>", 10, "allowed ppm for decomposing masses", false);
     registerStringOption_("isotope", "<choice>", "both", "how to handle isotope pattern data. Use 'score' to use them for ranking or 'filter' if you just want to remove candidates with bad isotope pattern. With 'both' you can use isotopes for filtering and scoring. Use 'omit' to ignore isotope pattern.", false);
@@ -170,7 +169,7 @@ protected:
     registerFlag_("most_intense_ms2", "Sirius uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", false);
   }
 
-  // // map with index of ms2 spectrum and its closest feature
+  // map with index of ms2 spectrum and its closest feature
   map< const size_t, const BaseFeature* > mappingMS2IndexToFeature(const PeakMap & spectra,
                                                                    const KDTreeFeatureMaps& fp_map_kd,
                                                                    const double& precursor_mz_tolerance,
