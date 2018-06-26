@@ -247,6 +247,7 @@ protected:
 
           if (shuffle)
           {
+            srand(seed);
             random_shuffle(tokenized.begin(), tokenized.end());
           }
           else  // reverse
