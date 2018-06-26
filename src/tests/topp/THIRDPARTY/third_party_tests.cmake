@@ -264,7 +264,7 @@ if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_SiriusAdapter_3_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_3")
   add_test("TOPP_SiriusAdapter_4" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_sirius SiriusAdapter_4_output.tmp -feature_only -filter_by_num_masstraces 3 -auto_charge -profile qtof -database all)
   add_test("TOPP_SiriusAdapter_4_out" ${DIFF} -in1 SiriusAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_output.mzTab -whitelist "MTD")
-  set_tests_properties("TOPP_SiriusAdapter_3_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_3")
+  set_tests_properties("TOPP_SiriusAdapter_4_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_4")
   # Note that with FingerID, only one spectrum (number 4) should produce a result
   if (ENABLE_FINGERID_TEST)
   add_test("TOPP_SiriusAdapter_2" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_2_output.tmp -out_fingerid SiriusAdapter_2_foutput.tmp -auto_charge -profile qtof -database all)
