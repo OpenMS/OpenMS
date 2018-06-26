@@ -45,6 +45,7 @@
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
@@ -52,6 +53,8 @@
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+
 
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -110,7 +113,8 @@ protected:
     /// TODO: think about export of quality control files (qcML?)
 
     Param pp_defaults = PeakPickerHiRes().getDefaults();
-    Param ff_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
+    Param ffm_defaults = FeatureFindingMetabo().getDefaults();
+    Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
     Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
     Param pep_defaults = Math::PosteriorErrorProbabilityModel().getParameters();
@@ -119,7 +123,8 @@ protected:
 
     Param combined;
     combined.insert("Centroiding:", pp_defaults);
-    combined.insert("Peptide Quantification:", ff_defaults);
+    combined.insert("Assembling:", ffm_defaults);
+    combined.insert("Peptide Quantification:", ffi_defaults);
     combined.insert("Alignment:", ma_defaults);
     combined.insert("Linking:", fl_defaults);
     // combined.insert("Protein Inference:", pi_defaults);
@@ -178,7 +183,7 @@ protected:
     for (auto & f : frac2ms)
     {
       writeDebug_("Fraction " + String(f.first) + ":", 10);
-      for (auto s : f.second)
+      for (const auto & s : f.second)
       {
         writeDebug_("MS file: " + String(s), 10);
       }
@@ -210,8 +215,11 @@ protected:
     Param pp_param = getParam_().copy("Centroiding:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
 
-    Param ff_param = getParam_().copy("Peptide Quantification:", true);
-    writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ff_param, 3);
+    Param ffm_param = getParam_().copy("Assembling:", true);
+    writeDebug_("Parameters passed to FeatureFindingMetabo algorithm", ffm_param, 3);
+
+    Param ffi_param = getParam_().copy("Peptide Quantification:", true);
+    writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
     Param ma_param = getParam_().copy("Alignment:", true);
     writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
@@ -237,7 +245,7 @@ protected:
     // Loading input
     //-------------------------------------------------------------
     ConsensusMap consensus;
-    for (auto const ms_files : frac2ms) // for each fraction->ms file(s)
+    for (auto const &ms_files : frac2ms) // for each fraction->ms file(s)
     {
       vector<FeatureMap> feature_maps;
       ConsensusMap consensus_fraction;
@@ -501,19 +509,63 @@ protected:
         vector<ProteinIdentification> ext_protein_ids;
         vector<PeptideIdentification> ext_peptide_ids;
 
+ 
+        ///////////////////////////////////////////////
+        // Run MTD before FFM
+
         // create empty feature map and annotate MS file
+        FeatureMap seeds;
+        StringList sl;
+        sl.push_back(mz_file);
+        seeds.setPrimaryMSRunPath(sl);
+
+        MassTraceDetection mt_ext_full;
+        mtd_param.insert("", com_param);
+        mtd_param.remove("chrom_fwhm");
+        mt_ext.setParameters(mtd_param);
+        std::vector<MassTrace> m_traces_full;
+        mt_ext.run(ms_centroided, m_traces_full);
+
+        std::vector<MassTrace> splitted_mtraces;
+        ElutionPeakDetection epdet;
+        epdet.detectPeaks(m_traces_full, splitted_mtraces);
+
+        FeatureFindingMetabo ffm;
+        ffm_param.setValue("mz_scoring_13C", "true");
+        ffm_param.setValue("isotope_filtering_model", "peptides");
+        ffm_param.setValue("remove_single_traces", "true");
+        ffm_param.setValue("chrom_fwhm", median_fwhm);
+        ffm_param.setValue("charge_lower_bound", 2);
+        ffm_param.setValue("charge_upper_bound", 5);
+        ffm_param.setValue("report_chromatograms", "false");
+        ffm.setLogType(log_type_);
+        ffm.setParameters(ffm_param);
+        std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
+        ffm.run(splitted_mtraces, seeds, chromatograms);
+        LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
+
+        /////////////////////////////////////////////////
+        // Run FeatureFinderIdentification
+
         FeatureMap fm;
         StringList feature_msfile_ref;
         feature_msfile_ref.push_back(mz_file);
         fm.setPrimaryMSRunPath(feature_msfile_ref);
         feature_maps.push_back(fm);
 
-        FeatureFinderIdentificationAlgorithm ff;
-        ff.getMSData().swap(ms_centroided);     
-        ff.getProgressLogger().setLogType(log_type_);
-        ff.setParameters(ff_param);
-        ff.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back());
-        // TODO: think about external ids ;) / maybe for replicates?
+        FeatureFinderIdentificationAlgorithm ffi;
+        ffi.getMSData().swap(ms_centroided);
+        ffi.getProgressLogger().setLogType(log_type_);
+        ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
+        ffi.setParameters(ffi_param);
+        ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back(), seeds);
+        
+        if (debug_level_ > 666)
+        {
+          FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
+        }
+
+        // TODO: think about external ids ;) / maybe for technical replicates?
 
         // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
         ++fraction_group;
@@ -621,6 +673,13 @@ protected:
 
     consensus.sortByPosition();
     consensus.sortPeptideIdentificationsByMapIndex();
+
+    if (debug_level_ >= 666)
+    {
+      ConsensusXMLFile().store("debug_after normalization.consensusXML", consensus);
+    }
+
+
 
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
