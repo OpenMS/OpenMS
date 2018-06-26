@@ -668,15 +668,23 @@ namespace OpenMS
     }
   }
 
-  bool EmpiricalFormula::operator<(const EmpiricalFormula& rhs) const
+  bool EmpiricalFormula::operator<(const EmpiricalFormula& rhs) const  
   {
-   return std::tie(
-      formula_, 
-      charge_
-   ) < std::tie(
-      rhs.formula_, 
-      rhs.charge_
-   );
+    if (formula_.size() != rhs.formula_.size()) 
+    { 
+      return formula_.size() < rhs.formula_.size(); 
+    }
+
+    // both maps have same size
+    auto it = formula_.begin();
+    auto rhs_it = rhs.formula_.begin();
+    for (; it != formula_.end(); ++it, ++rhs_it)
+    {
+      if (*(it->first) != *(rhs_it->first)) return *(it->first) < *(rhs_it->first); // element
+      if (it->second != rhs_it->second) return it->second < rhs_it->second; // count
+    }
+
+    return charge_ < rhs.charge_;
   }
 
 

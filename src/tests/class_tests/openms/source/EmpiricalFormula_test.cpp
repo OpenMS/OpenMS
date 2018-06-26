@@ -110,6 +110,15 @@ START_SECTION(SignedSize getNumberOfAtoms() const)
   TEST_EQUAL(num4, 4);
 END_SECTION
 
+START_SECTION(EmpiricalFormula& operator < (const EmpiricalFormula& rhs))
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
+  TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
+
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C4H2"), false)
+  TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
+END_SECTION
+
 START_SECTION(EmpiricalFormula& operator = (const EmpiricalFormula& rhs))
   EmpiricalFormula ef;
   ef = *e_ptr;

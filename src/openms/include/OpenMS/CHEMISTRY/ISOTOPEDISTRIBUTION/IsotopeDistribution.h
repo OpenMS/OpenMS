@@ -196,6 +196,9 @@ public:
 
     /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
     bool operator!=(const IsotopeDistribution & isotope_distribution) const;
+
+    /// less operator
+    bool operator<(const IsotopeDistribution & isotope_distribution) const;
     //@}
 
     /// @name Iterators

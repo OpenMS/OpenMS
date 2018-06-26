@@ -160,7 +160,8 @@ namespace OpenMS
     "Decoy",
     "DetectingTransition",
     "IdentifyingTransition",
-    "QuantifyingTransition"
+    "QuantifyingTransition",
+    "Peptidoforms"
   };
 
 
@@ -361,6 +362,7 @@ namespace OpenMS
       !extractName(mytransition.FullPeptideName, "ModifiedPeptideSequence", tmp_line, header_dict);
 
       //// IPF
+      String peptidoforms;
       !extractName<bool>(mytransition.detecting_transition, "detecting_transition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.detecting_transition, "DetectingTransition", tmp_line, header_dict);
       !extractName<bool>(mytransition.identifying_transition, "identifying_transition", tmp_line, header_dict) &&
@@ -368,6 +370,9 @@ namespace OpenMS
       !extractName<bool>(mytransition.quantifying_transition, "quantifying_transition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.quantifying_transition, "QuantifyingTransition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict); // Skyline
+
+      extractName(peptidoforms, "Peptidoforms", tmp_line, header_dict);
+      peptidoforms.split('|', mytransition.peptidoforms);
 
       //// Targeted Metabolomics
       !extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict) &&
@@ -939,6 +944,11 @@ namespace OpenMS
     rm_trans.setDetectingTransition(tr_it->detecting_transition);
     rm_trans.setIdentifyingTransition(tr_it->identifying_transition);
     rm_trans.setQuantifyingTransition(tr_it->quantifying_transition);
+
+    if (!tr_it->peptidoforms.empty())
+    {
+      rm_trans.setMetaValue("Peptidoforms", ListUtils::concatenate(tr_it->peptidoforms, "|"));
+    }
   }
 
   void TransitionTSVFile::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
@@ -1349,7 +1359,7 @@ namespace OpenMS
     }
     if (it->metaValueExists("Peptidoforms"))
     {
-      it->getMetaValue("Peptidoforms").toString().split('|', mytransition.peptidoforms);
+      String(it->getMetaValue("Peptidoforms")).split('|', mytransition.peptidoforms);
     }
     mytransition.detecting_transition = it->isDetectingTransition();
     mytransition.identifying_transition = it->isIdentifyingTransition();
@@ -1415,7 +1425,8 @@ namespace OpenMS
         + (String)it->decoy                    + "\t"
         + (String)it->detecting_transition     + "\t"
         + (String)it->identifying_transition   + "\t"
-        + (String)it->quantifying_transition;
+        + (String)it->quantifying_transition   + "\t"
+        + ListUtils::concatenate(it->peptidoforms, "|");
 
       os << line << std::endl;
 
