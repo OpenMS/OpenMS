@@ -159,7 +159,6 @@ namespace OpenMS
       int scan_index = s_it - spectra.begin();
 
       // if no feature information is available for the ms2 spectrum and only ms2 with features should be used - continue
-      // TODO: Maybe something wrong here
       if (!(feature_ms2_spectra_map.find(scan_index) != feature_ms2_spectra_map.end()) && feature_only)
       {
         continue;
@@ -192,7 +191,7 @@ namespace OpenMS
           vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
           if (masstrace_centroid_mz.size() == masstrace_intensity.size())
           {
-            for (unsigned long i = 0; i <= masstrace_centroid_mz.size(); ++i)
+            for (Size i = 0; i < masstrace_centroid_mz.size(); ++i)
             {
               std::pair<double, double> masstrace_mz_int(masstrace_centroid_mz[i],masstrace_intensity[i]);
               f_isotopes.push_back(masstrace_mz_int);
@@ -255,6 +254,7 @@ namespace OpenMS
 
         vector<Peak1D> isotopes;
         isotopes.clear();
+        vector<Peak1D> precursor_spec;
 
         if (s_it2->getMSLevel() != 1)
         {
@@ -263,10 +263,17 @@ namespace OpenMS
         // get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
         else
         {
-          const MSSpectrum& spectrum_ms1 = *s_it2;
+          const MSSpectrum& precursor_spectrum = *s_it2;
           int interations = isotope_pattern_iterations;
           // extract precursor isotope pattern via C13 isotope distance
-          isotopes = extractPrecursorC13IsotopePattern(test_mz, spectrum_ms1, interations, feature_charge);
+          isotopes = extractPrecursorC13IsotopePattern(test_mz, precursor_spectrum, interations, feature_charge);
+
+          for (Size i = 0; i < precursor_spectrum.size(); ++i)
+          {
+            const Peak1D& peak = precursor_spectrum[i];
+            precursor_spec.push_back(peak);
+          }
+
         }
 
         String query_id = String("_" + feature_id) + String("-" + String(scan_number) + "-") + String("unknown") + String(scan_index);
@@ -308,44 +315,46 @@ namespace OpenMS
 
         if (no_f_isotopes > 0 && !no_masstrace_info_isotope_pattern)
         {
-          os << ">ms1" << endl;
+          os << ">ms1merged" << endl;
 
-          double threshold = 1e-10;
           // m/z and intensity have to be higher than 1e-10
           for (auto it = f_isotopes.begin(); it != f_isotopes.end(); ++it)
           {
-            if(it->second > threshold)
-            {
-              os << it->first << " " << it->second << endl;
-            }
+            os << it->first << " " << it->second <<"\n";
           }
         }
         else if (no_isotopes > 0) // if ms1 spectrum was present
         {
-          os << ">ms1" << endl;
+          os << ">ms1merged" << endl;
 
           double threshold = 1e-10;
           // m/z and intensity have to be higher than 1e-10
           for (auto it = isotopes.begin(); it != isotopes.end(); ++it)
           {
-            if(it->getIntensity() > threshold)
-            {
-              os << it->getMZ() << " " << it->getIntensity() << endl;
-            }
+              os << it->getMZ() << " " << it->getIntensity() << "\n";
           }
         }
         else
         {
           if (precursor_int != 0) // if no ms1 spectrum was present but precursor intensity is known
           {
-            os << ">ms1" << "\n" << precursor_mz << " " << precursor_int << "\n\n";
+            os << ">ms1merged" << "\n" << precursor_mz << " " << precursor_int << "\n\n";
+          }
+        }
+
+        if (!precursor_spec.empty())
+        {
+          os << ">ms1peaks" << endl;
+          for (auto iter = precursor_spec.begin(); iter != precursor_spec.end(); ++iter)
+          {
+            os << iter->getMZ() << " " << iter->getIntensity() << "\n";
           }
         }
 
         // if collision energy was given - write it into .ms file if not use ms2 instead
         if (collision == 0.0)
         {
-          os << ">ms2" << "\n";
+          os << ">ms2peaks" << "\n";
         }
         else
         {
