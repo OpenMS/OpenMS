@@ -605,7 +605,7 @@ namespace OpenMS
 
         if (seq.toUnmodifiedString().hasPrefix("XXX")) // seed
         {
-          cout << peptide.sequence << " " << charge << endl;
+          //cout << peptide.sequence << " " << charge << endl;
 
           String peptide_id = peptide.sequence + "/" + String(charge);
           peptide.setChargeState(charge);
