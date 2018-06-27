@@ -10,5 +10,5 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusMSConverter.h>" namespace "OpenMS":
     cdef cppclass SiriusMSFile "OpenMS::SiriusMSFile":
         SiriusMSFile() nogil except +
         SiriusMSFile(SiriusMSFile) nogil except + #wrap-ignore
-        # void store(MSExperiment spectra, String msfile, libcpp_map[size_t, StringList] map_precursor_to_adducts) nogil except +
+        # void store(PeakMap spectra, String msfile, libcpp_map[size_t, BaseFeature] feature_ms2_spectra_map, bool feature_only, int isotope_pattern_iterations, bool no_mt_info) nogil except +
 
