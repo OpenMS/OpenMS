@@ -5,21 +5,21 @@ MTD	description	Sirius-4.0
 MTD	smallmolecule_search_engine_score[1]	[, , score, ]
 MTD	smallmolecule_search_engine_score[2]	[, , treescore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , isoscore, ]
-MTD	ms_run[1]-location	/Users/alka/Desktop/bla/SiriusAdapter_3_input.mzML
+MTD	ms_run[1]-location	/Users/alka/Documents/work/software/openms_oa_1/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_3_input.mzML
 
 SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	adduct	rank	explainedPeaks	explainedIntensity	compoundId	compoundScanNumber	featureId
-SML	null	C20H19N5O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	6	5	id_17316412521489109339
-SML	null	C19H23NO9	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	6	5	id_17316412521489109339
-SML	null	C16H15N11O3	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	6	5	id_17316412521489109339
-SML	null	C15H19N7O7	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	6	5	id_17316412521489109339
-SML	null	C21H15N9O	null	null	null	null	null	null	null	null	null	null	null	null	null	0.61293781284525	0.61293781284525	0	null	[M + H]+	5	1	0	6	5	id_17316412521489109339
-SML	null	C20H19N5O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	18	4	id_17316412521489109339
-SML	null	C19H23NO9	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	18	4	id_17316412521489109339
-SML	null	C16H15N11O3	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	18	4	id_17316412521489109339
-SML	null	C15H19N7O7	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	18	4	id_17316412521489109339
-SML	null	C21H15N9O	null	null	null	null	null	null	null	null	null	null	null	null	null	0.61293781284525	0.61293781284525	0	null	[M + H]+	5	1	0	18	4	id_17316412521489109339
-SML	null	C20H19N5O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	20	6	id_17316412521489109339
-SML	null	C19H23NO9	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	20	6	id_17316412521489109339
-SML	null	C16H15N11O3	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	20	6	id_17316412521489109339
-SML	null	C15H19N7O7	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	20	6	id_17316412521489109339
-SML	null	C21H15N9O	null	null	null	null	null	null	null	null	null	null	null	null	null	0.61293781284525	0.61293781284525	0	null	[M + H]+	5	1	0	20	6	id_17316412521489109339
+SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	15.0074945805413	-1.05964104271936	16.0671356232607	null	[M + H]+	1	1	0	6	5	id_13442776035824190606
+SML	null	C13H23ClNO2P	null	null	null	null	null	null	null	null	null	null	null	null	null	14.9162297728364	-2.97904921169235	17.8952789845287	null	[M + H]+	2	1	0	6	5	id_13442776035824190606
+SML	null	C11H25ClNO2P	null	null	null	null	null	null	null	null	null	null	null	null	null	11.0874816592766	-7.24395567209842	18.331437331375	null	[M + Na]+	3	1	0	6	5	id_13442776035824190606
+SML	null	C9H19ClN7P	null	null	null	null	null	null	null	null	null	null	null	null	null	9.30377301051299	-7.94559931037092	17.2493723208839	null	[M + H]+	4	1	0	6	5	id_13442776035824190606
+SML	null	C11H21ClN4OP	null	null	null	null	null	null	null	null	null	null	null	null	null	9.04178519811923	-10.0531850348516	19.0949702329708	null	[M + H]+	5	1	0	6	5	id_13442776035824190606
+SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	16.3024099253548	-1.05964104271936	17.3620509680741	null	[M + H]+	1	1	0	18	4	id_13442776035824190606
+SML	null	C13H23ClNO2P	null	null	null	null	null	null	null	null	null	null	null	null	null	15.0395242192641	-2.97904921169235	18.0185734309564	null	[M + H]+	2	1	0	18	4	id_13442776035824190606
+SML	null	C12H26ClO3	null	null	null	null	null	null	null	null	null	null	null	null	null	11.2118945739527	-5.80055175318126	17.0124463271339	null	[M + K]+	3	1	0	18	4	id_13442776035824190606
+SML	null	C15H24ClN	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6837639680677	-5.38613384670471	16.0698978147724	null	[M + K]+	4	1	0	18	4	id_13442776035824190606
+SML	null	C11H25ClNO2P	null	null	null	null	null	null	null	null	null	null	null	null	null	10.3755209460224	-7.24395567209842	17.6194766181208	null	[M + Na]+	5	1	0	18	4	id_13442776035824190606
+SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	16.9872659056524	-1.05964104271936	18.0469069483718	null	[M + H]+	1	1	0	20	6	id_13442776035824190606
+SML	null	C13H23ClNO2P	null	null	null	null	null	null	null	null	null	null	null	null	null	14.9376300045697	-2.97904921169235	17.9166792162621	null	[M + H]+	2	1	0	20	6	id_13442776035824190606
+SML	null	C15H24ClN	null	null	null	null	null	null	null	null	null	null	null	null	null	11.1971159589643	-5.38613384670471	16.583249805669	null	[M + K]+	3	1	0	20	6	id_13442776035824190606
+SML	null	C17H20ClO2	null	null	null	null	null	null	null	null	null	null	null	null	null	11.0027506355689	-5.71784965996071	16.7206002955296	null	[M + H]+	4	1	0	20	6	id_13442776035824190606
+SML	null	C12H26ClO3	null	null	null	null	null	null	null	null	null	null	null	null	null	10.9468394124402	-5.80055175318126	16.7473911656215	null	[M + K]+	5	1	0	20	6	id_13442776035824190606
