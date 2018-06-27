@@ -115,9 +115,9 @@ class TOPPSiriusAdapter :
 
 protected:
 
-  static bool sortByScanIndex(const String & i, const String & j)
+  static bool extractAndCompareScanIndexLess(const String& i, const String& j)
   {
-    return (atoi(SiriusMzTabWriter::extract_scan_index(i).c_str()) < atoi(SiriusMzTabWriter::extract_scan_index(j).c_str()));
+    return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
   }
 
   void registerOptionsAndFlags_() override
@@ -415,7 +415,7 @@ protected:
     }
 
     // sort vector path list
-    std::sort(subdirs.begin(), subdirs.end(), sortByScanIndex);
+    std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess);
 
     // convert sirius_output to mztab and store file
     MzTab sirius_result;

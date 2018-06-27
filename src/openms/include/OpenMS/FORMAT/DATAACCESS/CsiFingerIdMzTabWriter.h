@@ -62,8 +62,8 @@ namespace OpenMS
 
           struct CsiAdapterIdentification
           {
-            OpenMS::String scan_index;
-            OpenMS::String scan_number;
+            int scan_index;
+            int scan_number;
             OpenMS::String feature_id;
             std::vector<CsiAdapterHit> hits;
           };

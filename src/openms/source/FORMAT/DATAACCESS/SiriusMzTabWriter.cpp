@@ -45,9 +45,9 @@ using namespace OpenMS;
 using namespace std;
 
 
-String SiriusMzTabWriter::extract_scan_index(const String &path)
+int SiriusMzTabWriter::extract_scan_index(const String &path)
 {
-  return path.substr(path.find_last_not_of("0123456789") + 1);
+  return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
 }
 
 void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
@@ -80,8 +80,8 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
-        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
-        
+        int scan_index = SiriusMzTabWriter::extract_scan_index(str);
+
         // extract scan_number from string
         boost::regex regexp("-(?<SCAN>\\d+)-");
         int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);

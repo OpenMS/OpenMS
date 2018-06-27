@@ -74,7 +74,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
         // extract scan_index from path
         OpenMS::String str = File::path(pathtocsicsv);
-        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
+        int scan_index = SiriusMzTabWriter::extract_scan_index(str);
     
         // extract scan_number from string
         boost::regex regexp("-(?<SCAN>\\d+)-");
