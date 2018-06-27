@@ -599,7 +599,7 @@ namespace OpenMS
 
   void TargetedSpectraExtractor::matchSpectrum(
     const MSSpectrum& input_spectrum,
-    Comparator& cmp,
+    const Comparator& cmp,
     std::vector<Match>& matches
   )
   {
