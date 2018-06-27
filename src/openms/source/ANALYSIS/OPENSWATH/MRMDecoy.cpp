@@ -339,10 +339,7 @@ namespace OpenMS
     Size lastAA = peptide.sequence.size() -1;
     if (peptide.sequence[lastAA] == 'K')
     {
-      std::cout << " last AA " << peptide.sequence[lastAA]  << std::endl;
       peptide.sequence[lastAA] = 'R';
-      std::cout << " last AA " << peptide.sequence[lastAA]  << std::endl;
-      std::cout << " after " << peptide.sequence << std::endl;
     }
     else if (peptide.sequence[lastAA] == 'R')
     {
