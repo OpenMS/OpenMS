@@ -305,7 +305,7 @@ namespace OpenMS
       }
 
       // draw axes legend
-      if (this->paintEngine()) // check if the paint device is properly initialized to surpress Qt warning
+      if (this->paintEngine()) // check if the paint device is properly initialized to suppress Qt warning
       {
         painter_ = new QPainter(this);
         if (painter_->isActive())

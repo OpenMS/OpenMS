@@ -607,6 +607,7 @@ namespace OpenMS
       }
 
       // try to retrieve the map from the cache if available
+      // TODO: same precursor mass / different precursors are not supported! 
       typedef std::set<Precursor, Precursor::MZLess> PCSetType;
       std::map<Precursor, std::vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
       if (map_precursor_to_chrom_idx_cache_.find((size_t)(exp.get())) != map_precursor_to_chrom_idx_cache_.end())

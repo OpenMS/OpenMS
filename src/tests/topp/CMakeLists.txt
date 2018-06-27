@@ -837,6 +837,10 @@ set_tests_properties("TOPP_IDFileConverter_24_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_25" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_25_input.idXML -out IDFileConverter_25_output.tmp -out_type pepXML)
 add_test("TOPP_IDFileConverter_25_out1" ${DIFF} -in1 IDFileConverter_25_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_25_output.pep.xml)
 set_tests_properties("TOPP_IDFileConverter_25_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_25")
+# MS-GF+ mzid with non-Unimod modifications
+add_test("TOPP_IDFileConverter_26" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_26_input.mzid -out IDFileConverter_26_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_26_out1" ${DIFF} -in1 IDFileConverter_26_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_26_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_26_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_26")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1141,6 +1145,19 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_test_4_out1" ${DIFF} -in1 TargetedFileConverter_4_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_4_output.TraML)
   set_tests_properties("TOPP_TargetedFileConverter_test_4_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_4")
   set_tests_properties("TOPP_TargetedFileConverter_test_4" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_3")
+
+  # Proteomics PQP/TSV/TraML peptidoforms conversion
+  add_test("TOPP_TargetedFileConverter_test_8_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_8_input.tsv -out TargetedFileConverter_8_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_8" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in TargetedFileConverter_8_output.TraML.tmp -in_type TraML -out TargetedFileConverter_8_output.tsv.tmp -out_type tsv)
+  add_test("TOPP_TargetedFileConverter_test_8_out1" ${DIFF} -in1 TargetedFileConverter_8_output.tsv.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_8_input.tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_test_8_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_8")
+  set_tests_properties("TOPP_TargetedFileConverter_test_8" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_8_prepare")
+
+  add_test("TOPP_TargetedFileConverter_test_9_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_9_input.TraML -out TargetedFileConverter_9_output.pqp.tmp -out_type pqp)
+  add_test("TOPP_TargetedFileConverter_test_9" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in TargetedFileConverter_9_output.pqp.tmp -in_type pqp -out TargetedFileConverter_9_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_9_out1" ${DIFF} -whitelist "id=" -in1 TargetedFileConverter_9_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_9_input.TraML)
+  set_tests_properties("TOPP_TargetedFileConverter_test_9_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_9")
+  set_tests_properties("TOPP_TargetedFileConverter_test_9" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_9_prepare")
 
   # additional tests (previously ConvertTSVToTraML tests)
   add_test("TOPP_TargetedFileConverter_test_5" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_output.TraML -out ConvertTraMLToTSV_output.tmp.tsv -out_type tsv)
