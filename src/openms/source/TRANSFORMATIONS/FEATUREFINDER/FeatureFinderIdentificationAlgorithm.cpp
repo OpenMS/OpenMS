@@ -387,12 +387,12 @@ namespace OpenMS
       for (auto & pid : ids)
       {
         std::vector<PeptideHit>& hits = pid.getHits();
-        auto it = remove_if(hits.begin(), hits.end(), [](const PeptideHit & ph)
-        {
-          if (ph.getSequence().toUnmodifiedString().hasPrefix("XXX")) { return true; }
-          return false;
-        });
-        hits.erase(it);
+        auto it = remove_if(hits.begin(), hits.end(), 
+          [](const PeptideHit & ph)
+          {
+            return (ph.getSequence().toUnmodifiedString().hasPrefix("XXX"));
+          });
+        hits.erase(it, hits.end()); // remove / erase idiom
       }
       //TODO: remove empty PeptideIdentifications
     }
@@ -402,13 +402,11 @@ namespace OpenMS
       std::vector<PeptideHit>& hits = pid.getHits();
       auto it = remove_if(hits.begin(), hits.end(), [](const PeptideHit & ph)
       {
-        if (ph.getSequence().toUnmodifiedString().hasPrefix("XXX")) { return true; }
-        return false;
+        return (ph.getSequence().toUnmodifiedString().hasPrefix("XXX"));
       });
-      hits.erase(it);
+      hits.erase(it, hits.end());
     }
     //TODO: remove empty PeptideIdentifications
-
 
     features.ensureUniqueId();
   }
