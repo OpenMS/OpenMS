@@ -394,8 +394,17 @@ namespace OpenMS
           });
         hits.erase(it, hits.end()); // remove / erase idiom
       }
-      //TODO: remove empty PeptideIdentifications
+
+      // remove empty PeptideIdentifications
+      auto it = remove_if(ids.begin(), ids.end(), 
+        [](const PeptideIdentification & pid)
+        {
+          return pid.empty();
+        });
+      ids.erase(it, ids.end()); // remove / erase idiom
     }
+
+    // clean up unassigned PeptideIdentifications
     std::vector<PeptideIdentification>& ids = features.getUnassignedPeptideIdentifications();
     for (auto & pid : ids)
     {
@@ -406,7 +415,13 @@ namespace OpenMS
       });
       hits.erase(it, hits.end());
     }
-    //TODO: remove empty PeptideIdentifications
+    // remove empty PeptideIdentifications
+    auto it = remove_if(ids.begin(), ids.end(), 
+      [](const PeptideIdentification & pid)
+      {
+        return pid.empty();
+      });
+    ids.erase(it, ids.end()); // remove / erase idiom
 
     features.ensureUniqueId();
   }

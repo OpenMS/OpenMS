@@ -667,6 +667,7 @@ protected:
         "");
 
       // append consensus map calculated for this fraction number
+
       consensus.appendColumns(consensus_fraction);
 
       // end of scope of fraction related data
