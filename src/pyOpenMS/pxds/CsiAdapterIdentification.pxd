@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/CsiFingerIdMzTabWriter.h>" namespace
         CsiAdapterIdentification() nogil except +
         CsiAdapterIdentification(CsiAdapterIdentification) nogil except + #wrap-ignore
         int scan_index
-        int scan:number
+        int scan_number
         String feature_id
         libcpp_vector[ CsiAdapterHit ] hits
 
