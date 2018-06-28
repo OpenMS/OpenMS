@@ -290,14 +290,16 @@ namespace OpenMS
       new_cf.setQuality(cf.getQuality());
       new_cf.setIntensity(cf.getIntensity());
       new_cf.setWidth(cf.getWidth());
-      
-      for (ConsensusFeature::const_iterator it = cf.begin(); it != cf.end(); ++it)
-      {
-        new_cf.insert(lhs_map_size + it->getMapIndex() , cf);
-      }
       new_cf.getPeptideIdentifications() = cf.getPeptideIdentifications();
+
+      // transfer feature intensities
+      Size element_index(0);
+      for (auto it = cf.begin(); it != cf.end(); ++it, ++element_index)
+      {
+        new_cf.insert(lhs_map_size + it->getMapIndex(), *it, element_index);
+      }
       
-      push_back(new_cf);
+      emplace_back(new_cf);
     }
 
     // consistency
