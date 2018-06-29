@@ -183,7 +183,7 @@ START_SECTION((MSChromatogram::IntegerDataArrays::iterator getDataArrayByName(MS
         TEST_EQUAL(getDataArrayByName(ds.getIntegerDataArrays(), "f3") - ds.getIntegerDataArrays().begin(), 2);
 END_SECTION
 
-START_SECTION(void slicePeakContainer(PeakContainerT& p, const double pos_start, const double pos_end))
+START_SECTION(void removePeaks(PeakContainerT& p, const double pos_start, const double pos_end))
 {
   MSSpectrum s;
   MSChromatogram c;
@@ -195,24 +195,24 @@ START_SECTION(void slicePeakContainer(PeakContainerT& p, const double pos_start,
   }
 
   MSSpectrum s1 = s;
-  slicePeakContainer(s1, 3, 6); // start rt (3) is lower than the minimum (5) within the spectrum
+  removePeaks(s1, 3, 6); // start rt (3) is lower than the minimum (5) within the spectrum
   TEST_EQUAL(s1.size(), 2)
   TEST_REAL_SIMILAR(s1[0].getPos(), 5)
   TEST_REAL_SIMILAR(s1[1].getPos(), 6)
 
   MSSpectrum s2 = s;
-  slicePeakContainer(s2, 0, 4); // no peak within the requested range
+  removePeaks(s2, 0, 4); // no peak within the requested range
   TEST_EQUAL(s2.size(), 0)
 
   MSChromatogram c1 = c;
-  slicePeakContainer(c1, 12, 16); // end rt (16) is higher than the maximum (14) within the chromatogram
+  removePeaks(c1, 12, 16); // end rt (16) is higher than the maximum (14) within the chromatogram
   TEST_EQUAL(c1.size(), 3)
   TEST_REAL_SIMILAR(c1[0].getPos(), 12)
   TEST_REAL_SIMILAR(c1[1].getPos(), 13)
   TEST_REAL_SIMILAR(c1[2].getPos(), 14)
 
   MSChromatogram c2 = c;
-  slicePeakContainer(c2, 9, 12); // all within the range
+  removePeaks(c2, 9, 12); // all within the range
   TEST_EQUAL(c2.size(), 4)
   TEST_REAL_SIMILAR(c2[0].getPos(), 9)
   TEST_REAL_SIMILAR(c2[1].getPos(), 10)
@@ -220,7 +220,7 @@ START_SECTION(void slicePeakContainer(PeakContainerT& p, const double pos_start,
   TEST_REAL_SIMILAR(c2[3].getPos(), 12)
 
   MSSpectrum s_empty;
-  slicePeakContainer(s_empty, 9, 12);
+  removePeaks(s_empty, 9, 12);
   TEST_EQUAL(s_empty.size(), 0)
 }
 END_SECTION
