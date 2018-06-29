@@ -328,7 +328,6 @@ public:
 private:
     HandleSetType handles_;
     std::vector<Ratio> ratios_;
-
   };
 
   ///Print the contents of a ConsensusFeature to a stream
