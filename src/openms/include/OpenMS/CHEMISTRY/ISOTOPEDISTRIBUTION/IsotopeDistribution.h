@@ -242,9 +242,6 @@ protected:
 
     /// stores the isotope distribution
     ContainerType distribution_;
-
-    ///Holds the distribution sorted state
-    Sorted sort_type_;
   };
 
 
