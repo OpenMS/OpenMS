@@ -190,7 +190,7 @@ protected:
     /**
       @brief Check if a peptide has C or N terminal modifications
     */
-    bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const;
+    bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide, bool checkCterminalAA) const;
 
     /**
       @brief Find all K, R, P sites in a sequence to be set as fixed
