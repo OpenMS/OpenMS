@@ -189,7 +189,7 @@ namespace OpenMS
       }
     }
 
-    return sort_type_ < rhs.sort_type_;
+    return false;
   }
 
 
