@@ -290,11 +290,18 @@ namespace OpenMS
         seed_hit.setCharge(f_it->getCharge());
     
         const String pseudo_mod_name = String(100000 + seeds_added);
-        ResidueModification * new_mod = new ResidueModification();
-        new_mod->setFullId("[" + pseudo_mod_name + "]"); // setting FullId but not Id makes it a user-defined mod
-        new_mod->setTermSpecificity(ResidueModification::ANYWHERE);
-        new_mod->setUniModRecordId(100000 + seeds_added); // required for TargetedExperimentHelper
-        ModificationsDB::getInstance()->addModification(new_mod);
+
+        // Check if pseudo mod is already there. 
+        // Multiple runs of the algorithm might have already registered it
+        if (!ModificationsDB::getInstance()->has("[" + pseudo_mod_name + "]"))
+        {
+          ResidueModification * new_mod = new ResidueModification();
+          new_mod->setFullId("[" + pseudo_mod_name + "]"); // setting FullId but not Id makes it a user-defined mod
+          new_mod->setTermSpecificity(ResidueModification::ANYWHERE);
+          new_mod->setUniModRecordId(100000 + seeds_added); // required for TargetedExperimentHelper
+          new_mod->setOrigin('X');
+          ModificationsDB::getInstance()->addModification(new_mod);
+        }
 
         AASequence some_seq = AASequence::fromString("XXX");
         some_seq.setModification(1, "[" + pseudo_mod_name + "]");

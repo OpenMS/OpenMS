@@ -515,7 +515,7 @@ protected:
 
         // create empty feature map and annotate MS file
         FeatureMap seeds;
-/*
+
         StringList sl;
         sl.push_back(mz_file);
         seeds.setPrimaryMSRunPath(sl);
@@ -544,7 +544,7 @@ protected:
         std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
         ffm.run(splitted_mtraces, seeds, chromatograms);
         LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
-*/
+
         /////////////////////////////////////////////////
         // Run FeatureFinderIdentification
 
