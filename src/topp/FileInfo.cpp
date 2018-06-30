@@ -563,9 +563,14 @@ protected:
       cons.updateRanges();
 
       map<Size, UInt> num_consfeat_of_size;
+      map<Size, UInt> num_consfeat_of_size_with_id;
       for (ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit)
       {
         ++num_consfeat_of_size[cmit->size()];
+        if (!cmit->getPeptideIdentifications().empty())
+        {
+          ++num_consfeat_of_size_with_id[cmit->size()];
+        }
       }
       if (num_consfeat_of_size.empty())
       {
@@ -583,7 +588,8 @@ protected:
            << "\n";
         for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
         {
-          os << "  of size " << setw(field_width) << i->first << ": " << i->second << "\n";
+          os << "  of size " << setw(field_width) << i->first << ": " << i->second 
+             << "\t with at least one ID: " << num_consfeat_of_size_with_id[i->first] << "\n";
         }
         os << "  total:    " << string(field_width, ' ') << cons.size() << "\n"
            << "\n";
