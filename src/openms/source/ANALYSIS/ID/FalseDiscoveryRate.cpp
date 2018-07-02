@@ -66,8 +66,6 @@ namespace OpenMS
   void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids) const
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
-    bool higher_score_better(ids.begin()->isHigherScoreBetter());
-
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
     bool treat_runs_separately = param_.getValue("treat_runs_separately").toBool();
     bool split_charge_variants = param_.getValue("split_charge_variants").toBool();
@@ -76,12 +74,13 @@ namespace OpenMS
     cerr << "Parameters: no_qvalues=" << !q_value << ", use_all_hits=" << use_all_hits << ", treat_runs_separately=" << treat_runs_separately << ", split_charge_variants=" << split_charge_variants << endl;
 #endif
 
-
     if (ids.empty())
     {
       LOG_WARN << "No peptide identifications given to FalseDiscoveryRate! No calculation performed.\n";
       return;
     }
+
+    bool higher_score_better(ids.begin()->isHigherScoreBetter());
 
     // first search for all identifiers and charge variants
     set<String> identifiers;
