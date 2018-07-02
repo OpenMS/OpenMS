@@ -92,7 +92,7 @@ namespace OpenMS
       Size hops_left = std::distance(p.begin(), it_start);
       Size n_elems = std::distance(it_start, it_end);
 
-      typename PeakContainerT::StringDataArrays SDAs = p.getStringDataArrays();
+      typename PeakContainerT::StringDataArrays& SDAs = p.getStringDataArrays();
       for (StringDataArray& sda : SDAs)
       {
         if (sda.size() == p.size())
@@ -102,7 +102,7 @@ namespace OpenMS
         }
       }
 
-      typename PeakContainerT::FloatDataArrays FDAs = p.getFloatDataArrays();
+      typename PeakContainerT::FloatDataArrays& FDAs = p.getFloatDataArrays();
       for (FloatDataArray& fda : FDAs)
       {
         if (fda.size() == p.size())
@@ -112,7 +112,7 @@ namespace OpenMS
         }
       }
 
-      typename PeakContainerT::IntegerDataArrays IDAs = p.getIntegerDataArrays();
+      typename PeakContainerT::IntegerDataArrays& IDAs = p.getIntegerDataArrays();
       for (IntegerDataArray& ida : IDAs)
       {
         if (ida.size() == p.size())
