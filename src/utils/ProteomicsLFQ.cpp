@@ -81,6 +81,18 @@ using namespace std;
 
 /**
   @page UTILS_ProteomicsLFQ
+
+  TODO: add test for
+
+  ./bin/ProteomicsLFQ \
+-in ../share/OpenMS/examples/FRACTIONS/BSA1_F1.mzML ../share/OpenMS/examples/FRACTIONS/BSA1_F2.mzML ../share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML ../share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML ../share/OpenMS/examples/FRACTIONS/BSA3_F1.mzML ../share/OpenMS/examples/FRACTIONS/BSA3_F2.mzML \
+-ids ../share/OpenMS/examples/FRACTIONS/BSA1_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA1_F2.idXML ../share/OpenMS/examples/FRACTIONS/BSA2_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA2_F2.idXML ../share/OpenMS/examples/FRACTIONS/BSA3_F1.idXML ../share/OpenMS/examples/FRACTIONS/BSA3_F2.idXML \
+-design ../share/OpenMS/examples/FRACTIONS/BSA_design.tsv \
+-Alignment:max_rt_shift 0 \
+-fasta ../share/OpenMS/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta \
+-out BSA.mzTab -threads 4 -debug 667 
+
+
  **/
 
 class UTILProteomicsLFQ :
@@ -253,12 +265,7 @@ protected:
 
       // debug output
       writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
-      
-      // for each MS file
-      for (String const & mz_file : ms_files.second) 
-      {
-        writeDebug_(mz_file,  1);
-      }
+      for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
 
       // for each MS file
       Size fraction_group{1};
@@ -845,7 +852,7 @@ protected:
         }
       }
 
-      // store run level mzTab statistics in protein hits of inference run (=final result)
+      // store run level mzTab statistics in protein hits of inference run (= final result)
       for (auto & p : infered_protein_groups[0].getHits())
       {
         const String acc = p.getAccession();
@@ -861,15 +868,28 @@ protected:
             {
               npsms.push_back(acc2psms.at(runpath).at(acc));
             }
+            else
+            {
+              npsms.push_back(0);
+            }
+
             if (acc2distinct_peptides.at(runpath).count(acc) > 0)
             {
               auto distinct_peptides = acc2distinct_peptides.at(runpath).at(acc);
-              ndistinct.push_back(acc2distinct_peptides.at(runpath).at(acc).size());
+              ndistinct.push_back(distinct_peptides.size());
+            }
+            else
+            {
+              ndistinct.push_back(0);
             }
             
             if (acc2unique_peptides.at(runpath).count(acc) > 0)
             {
               nunique.push_back(acc2unique_peptides.at(runpath).at(acc).size());
+            }
+            else
+            {
+              nunique.push_back(0);
             }
           }
         }
