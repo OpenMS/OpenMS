@@ -91,6 +91,14 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
+/**
+  TODO: Add additional immonium ions observed for Lys
+    1.)    84.0808; C5H10N1 (mainly observed as cross-links)
+    2.)    101.1073; C5H13N2 = classical immonium ion, rarely cross-linked
+    3.)    129.1022; C6H13N2O (intense peak in spectra)
+    All three of them and also the others (e.g., His, Tyr, Phe…) should be annotated as well when there are no shifts. 
+**/
+
 class RNPxlSearch :
   public TOPPBase
 {
@@ -1649,7 +1657,8 @@ protected:
 #pragma omp critical (residuedb_access)
 #endif
         {
-          if (!unmodified_sequence.has('X')) // only process peptides without X (placeholder / any amino acid)
+           // only process peptides without ambiguous amino acids (placeholder / any amino acid)
+          if (unmodified_sequence.find_first_of("XBZ") == std::string::npos)
           {
             AASequence aas = AASequence::fromString(unmodified_sequence);
             ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
@@ -2123,8 +2132,9 @@ protected:
        {
          auto const & hits = pid.getHits();
          // predicate: check if best hit is a cross-link
-         if (!hits.empty() && 
-            !hits.front().getMetaValue("RNPxl:RNA").toString().empty())
+         if (!hits.empty() 
+              && hits.front().metaValueExists("RNPxl:RNA")
+              && !hits.front().getMetaValue("RNPxl:RNA").toString().empty())
          { 
            return true;
          }
@@ -2736,7 +2746,6 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
   PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation = partial_loss_spectrum.getStringDataArrays()[0];
 
   // ADD: (mainly for ETD) MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
-  // For decoys, we also shift the precursor ions
   for (int charge = 1; charge <= static_cast<int>(precursor_charge); ++charge)
   {
     addPrecursorWithCompleteRNA_(fixed_and_variable_modified_peptide_weight,
