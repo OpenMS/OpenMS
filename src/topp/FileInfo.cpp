@@ -586,12 +586,31 @@ protected:
         os << "\n"
            << "Number of consensus features:"
            << "\n";
+        
+        Size number_features{0};
+        Size number_cons_features_with_id{0};
+        Size number_features_with_id{0};
         for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
         {
-          os << "  of size " << setw(field_width) << i->first << ": " << i->second 
-             << "\t with at least one ID: " << num_consfeat_of_size_with_id[i->first] << "\n";
+          const Size csize = i->first;
+          const Size nfeatures = i->first * i->second;
+          const Size nc_with_id = num_consfeat_of_size_with_id[i->first];
+          number_features += nfeatures;
+          number_features_with_id += csize * nc_with_id;
+          number_cons_features_with_id += nc_with_id;
+          number_cons_features_with_id += i->first * nc_with_id;
+
+          os << "  of size " << setw(field_width) << csize << ": " << i->second 
+             << "\t (features: " << nfeatures << " )"
+             << "\t with at least one ID: " << nc_with_id
+             << "\t (features: " << csize * nc_with_id << " )"
+             << "\n";
+
         }
-        os << "  total:    " << string(field_width, ' ') << cons.size() << "\n"
+        os << "  total consensus features:    "  << cons.size()
+           << "  with at least one ID: " << number_cons_features_with_id << "\n"
+           << "  total features:              " << number_features 
+           << "  with at least one ID: " << string(field_width, ' ') << number_features_with_id
            << "\n";
 
         writeRangesHumanReadable_(cons, os);
