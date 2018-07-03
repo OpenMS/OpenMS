@@ -8,7 +8,7 @@ cdef extern from "OpenMS/KERNEL/SpectrumHelper.h":
         # wrap-manual-memory
         SpectrumHelper() # wrap-ignore
 
-    void slicePeakContainer(MSChromatogram& p, double pos_start, double pos_end) # wrap-attach:SpectrumHelper
-    void slicePeakContainer(MSSpectrum& p, double pos_start, double pos_end) # wrap-attach:SpectrumHelper
-    void reZeroIntensities(MSChromatogram& p) # wrap-attach:SpectrumHelper
-    void reZeroIntensities(MSSpectrum& p) # wrap-attach:SpectrumHelper
+    void removePeaks(MSChromatogram& p, double pos_start, double pos_end) # wrap-attach:SpectrumHelper
+    void removePeaks(MSSpectrum& p, double pos_start, double pos_end) # wrap-attach:SpectrumHelper
+    void subtractMinimumIntensity(MSChromatogram& p) # wrap-attach:SpectrumHelper
+    void subtractMinimumIntensity(MSSpectrum& p) # wrap-attach:SpectrumHelper

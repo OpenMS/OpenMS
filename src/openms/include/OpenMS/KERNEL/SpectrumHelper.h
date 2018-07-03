@@ -66,10 +66,6 @@ namespace OpenMS
     return it;
   }
 
-  using DataArrays::StringDataArray;
-  using DataArrays::FloatDataArray;
-  using DataArrays::IntegerDataArray;
-
   template <typename PeakContainerT>
   void removePeaks(
     PeakContainerT& p,
@@ -78,13 +74,6 @@ namespace OpenMS
     const bool ignoreDataArrays = false
   )
   {
-    // typename PeakContainerT::iterator it = std::remove_if(p.begin(), p.end(),
-    //   [&pos_start, &pos_end](typename PeakContainerT::PeakType pt)
-    //   {
-    //     return pt.getPos() < pos_start || pt.getPos() > pos_end;
-    //   });
-    // p.erase(it, p.end());
-    // Note: only raw peak data is erased
     typename PeakContainerT::iterator it_start = p.PosBegin(pos_start);
     typename PeakContainerT::iterator it_end = p.PosEnd(pos_end);
     if (!ignoreDataArrays)
@@ -93,7 +82,7 @@ namespace OpenMS
       Size n_elems = std::distance(it_start, it_end);
 
       typename PeakContainerT::StringDataArrays& SDAs = p.getStringDataArrays();
-      for (StringDataArray& sda : SDAs)
+      for (DataArrays::StringDataArray& sda : SDAs)
       {
         if (sda.size() == p.size())
         {
@@ -103,7 +92,7 @@ namespace OpenMS
       }
 
       typename PeakContainerT::FloatDataArrays& FDAs = p.getFloatDataArrays();
-      for (FloatDataArray& fda : FDAs)
+      for (DataArrays::FloatDataArray& fda : FDAs)
       {
         if (fda.size() == p.size())
         {
@@ -113,7 +102,7 @@ namespace OpenMS
       }
 
       typename PeakContainerT::IntegerDataArrays& IDAs = p.getIntegerDataArrays();
-      for (IntegerDataArray& ida : IDAs)
+      for (DataArrays::IntegerDataArray& ida : IDAs)
       {
         if (ida.size() == p.size())
         {
@@ -127,22 +116,22 @@ namespace OpenMS
   }
 
   template <typename PeakContainerT>
-  void reZeroIntensities(PeakContainerT& p)
+  void subtractMinimumIntensity(PeakContainerT& p)
   {
+    if (p.empty()) return;
+
     typename PeakContainerT::iterator it = std::min_element(p.begin(), p.end(),
       [](typename PeakContainerT::PeakType& a, typename PeakContainerT::PeakType& b)
       {
         return a.getIntensity() < b.getIntensity();
       });
 
-    if (it == p.end()) return;
-
     const double rebase = - it->getIntensity();
     for (typename PeakContainerT::PeakType& peak : p)
     {
       peak.setIntensity(peak.getIntensity() + rebase);
     }
-    // Note: only raw peak data is updated
+    // Note: data arrays are not updated
   }
 } // namespace OpenMS
 

@@ -234,7 +234,7 @@ START_SECTION(void removePeaks(PeakContainerT& p, const double pos_start, const 
 }
 END_SECTION
 
-START_SECTION(void reZeroIntensities(PeakContainerT& p))
+START_SECTION(void subtractMinimumIntensity(PeakContainerT& p))
 {
   MSSpectrum s;
   MSChromatogram c;
@@ -245,18 +245,18 @@ START_SECTION(void reZeroIntensities(PeakContainerT& p))
     c.push_back(ChromatogramPeak(0, i));
   }
 
-  reZeroIntensities(s);
+  subtractMinimumIntensity(s);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 0)
   TEST_REAL_SIMILAR(s[1].getIntensity(), 1)
   TEST_REAL_SIMILAR(s[9].getIntensity(), 9)
 
-  reZeroIntensities(c);
+  subtractMinimumIntensity(c);
   TEST_REAL_SIMILAR(c[0].getIntensity(), 0)
   TEST_REAL_SIMILAR(c[1].getIntensity(), 1)
   TEST_REAL_SIMILAR(c[9].getIntensity(), 9)
 
   MSChromatogram c_empty;
-  reZeroIntensities(c_empty);
+  subtractMinimumIntensity(c_empty);
   TEST_EQUAL(c_empty.size(), 0)
 
   s.clear(true);
@@ -268,12 +268,12 @@ START_SECTION(void reZeroIntensities(PeakContainerT& p))
     c.push_back(ChromatogramPeak(0, i));
   }
 
-  reZeroIntensities(s);
+  subtractMinimumIntensity(s);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 0)
   TEST_REAL_SIMILAR(s[1].getIntensity(), 1)
   TEST_REAL_SIMILAR(s[9].getIntensity(), 9)
 
-  reZeroIntensities(c);
+  subtractMinimumIntensity(c);
   TEST_REAL_SIMILAR(c[0].getIntensity(), 0)
   TEST_REAL_SIMILAR(c[1].getIntensity(), 1)
   TEST_REAL_SIMILAR(c[9].getIntensity(), 9)
