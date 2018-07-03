@@ -131,6 +131,9 @@ public:
 
     /// inequality operator
     bool operator!=(const Element & element) const;
+
+    /// less operator
+    bool operator<(const Element & element) const;
     //@}
 
     /// writes the element to an output stream
