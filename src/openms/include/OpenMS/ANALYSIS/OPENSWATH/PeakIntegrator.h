@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 
 namespace OpenMS
 {
@@ -537,12 +538,12 @@ protected:
 
     template <typename PeakContainerT>
     PeakArea integratePeak_(
-      const PeakContainerT& p, const double left, const double right
+      const PeakContainerT& pc, const double left, const double right
     ) const;
 
     template <typename PeakContainerT>
     PeakBackground estimateBackground_(
-      const PeakContainerT& p, const double left, const double right,
+      const PeakContainerT& pc, const double left, const double right,
       const double peak_apex_pos
     ) const;
 
@@ -551,7 +552,7 @@ protected:
 
     template <typename PeakContainerT>
     PeakShapeMetrics calculatePeakShapeMetrics_(
-      const PeakContainerT& p, const double left, const double right,
+      const PeakContainerT& pc, const double left, const double right,
       const double peak_height, const double peak_apex_pos
     ) const;
 
@@ -600,6 +601,10 @@ private:
     */
     String baseline_type_ = BASELINE_TYPE_BASETOBASE;
     ///@}
+
+    /// Enable/disable EMG peak model fitting
+    bool fit_EMG_;
+    EmgGradientDescent emg_;
 
     /** @name Helper methods
       The Simpson's rule implementations for an odd number of unequally spaced points.
