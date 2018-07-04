@@ -274,9 +274,16 @@ namespace OpenMS
         double peptide_RT = peptide.getRT();
         double peptide_MZ = peptide.getMZ();
 
-        // RT or MZ values in range of 0.1%? -> peptide already exists -> don't add seed
-        if (abs(seed_RT - peptide_RT) <= peak_width_
-                && abs(seed_MZ - peptide_MZ) <= 0.001 * peptide_MZ)
+        // RT or MZ values of seed match in range of 5 * rt_window and 10 ppm? -> peptide already exists -> don't add seed
+        // Consider up to 5th isotopic trace (e.g., because of seed misassignment)
+        if ((fabs(seed_RT - peptide_RT) <= 5.0 * rt_window_) &&
+           ((fabs(seed_MZ - peptide_MZ) <= 0.001 * peptide_MZ) ||
+             fabs(seed_MZ - 1 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ ||
+             fabs(seed_MZ - 2 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ ||
+             fabs(seed_MZ - 3 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ ||
+             fabs(seed_MZ - 3 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ ||
+             fabs(seed_MZ - 4 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ)
+            )
         {
           peptide_already_exists = true;
           break;

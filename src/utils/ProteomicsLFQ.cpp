@@ -47,6 +47,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -128,7 +130,7 @@ protected:
     Param ffm_defaults = FeatureFindingMetabo().getDefaults();
     Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
-    Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
+    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
     Param pep_defaults = Math::PosteriorErrorProbabilityModel().getParameters();
     //Param pi_defaults = ProteinInferenceAlgorithmXX().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
@@ -257,6 +259,8 @@ protected:
     // Loading input
     //-------------------------------------------------------------
     ConsensusMap consensus;
+    double median_fwhm(0);
+
     for (auto const &ms_files : frac2ms) // for each fraction->ms file(s)
     {
       vector<FeatureMap> feature_maps;
@@ -506,7 +510,7 @@ protected:
           fwhm_1000.push_back(fwhm);
         }
 
-        double median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
+        median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
 
         LOG_INFO << "Median FWHM: " << median_fwhm << std::endl;
 
@@ -598,6 +602,8 @@ protected:
         Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
         String model_type = model_params.getValue("type");
         model_params = model_params.copy(model_type + ":", true);
+        
+        vector<TransformationDescription::TransformationStatistics> alignment_stats;
         for (TransformationDescription & t : transformations)
         {
           writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
@@ -605,7 +611,18 @@ protected:
           {
             t.fitModel(model_type, model_params);
           }
+          t.printSummary(LOG_DEBUG);
+          alignment_stats.emplace_back(t.getStatistics());
         }
+
+        // determine maximum RT shift after transformation that includes all high confidence IDs 
+        using TrafoStat = TransformationDescription::TransformationStatistics;
+        double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(),
+                [](TrafoStat a, TrafoStat b) 
+                { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
+        // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
+         max_alignment_diff = std::max(max_alignment_diff, 120.0);
+
 
         // Apply transformations
         for (Size i = 0; i < feature_maps.size(); ++i)
@@ -619,7 +636,19 @@ protected:
         // Link all features of this fraction
         //-------------------------------------------------------------
         writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
-        FeatureGroupingAlgorithmQT linker;
+        FeatureGroupingAlgorithmKD linker;
+        // grouping tolerance = max alignment error + median FWHM
+        /* QT
+        fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+        fl_param.setValue("distance_MZ:max_difference", 5.0);
+        fl_param.setValue("distance_MZ:unit", "ppm");
+        */
+
+        fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+        fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+        fl_param.setValue("link:mz_tol", 10.0);
+        fl_param.setValue("mz_unit", "ppm");
+        
         linker.setParameters(fl_param);      
         linker.group(feature_maps, consensus_fraction);
         addDataProcessing_(consensus_fraction,

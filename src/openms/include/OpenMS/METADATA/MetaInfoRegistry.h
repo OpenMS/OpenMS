@@ -41,6 +41,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <unordered_map>
+
 #ifdef OPENMS_COMPILER_MSVC
 #pragma warning( push )
 #pragma warning( disable : 4251 )     // disable MSVC dll-interface warning
@@ -161,8 +163,8 @@ public:
 private:
     /// internal counter, that stores the next index to assign
     UInt next_index_;
-    using MapString2IndexType = std::map<String, UInt>;
-    using MapIndex2StringType = std::map<UInt, String>;
+    using MapString2IndexType = std::unordered_map<std::string, UInt>;
+    using MapIndex2StringType = std::unordered_map<UInt, std::string>;
     
     /// map from name to index
     MapString2IndexType name_to_index_;

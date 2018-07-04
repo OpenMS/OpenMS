@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <iostream>
+#include <map>
 
 namespace OpenMS
 {
@@ -62,6 +63,21 @@ namespace OpenMS
     // friend class MapAlignmentAlgorithm;
 
 public:
+
+    struct TransformationStatistics
+    {
+      const std::vector<Size> percents = {100, 99, 95, 90, 75, 50, 25};
+      double xmin = 0;
+      double xmax = 0;
+      double ymin = 0;
+      double ymax = 0;
+      
+      // Summary of x/y deviations percentiles 
+      // before and after applying the transformation (provided for percentiles 'percents')
+      std::map<Size, double> percentiles_before;
+      std::map<Size, double> percentiles_after;
+    };
+    
 
     /// Coordinate pair
     typedef TransformationModel::DataPoint DataPoint;
@@ -129,6 +145,9 @@ public:
     */
     void getDeviations(std::vector<double>& diffs, bool do_apply = false,
                        bool do_sort = true) const;
+
+    /// Get summary statistics (ranges and errors before/after)
+    TransformationStatistics getStatistics() const;
 
     /// Print summary statistics for the transformation
     void printSummary(std::ostream& os = std::cout) const;

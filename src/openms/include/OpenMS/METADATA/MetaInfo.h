@@ -40,6 +40,8 @@
 #include <OpenMS/METADATA/MetaInfoRegistry.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
+#include <boost/container/flat_map.hpp>
+
 namespace OpenMS
 {
   class String;
@@ -119,7 +121,7 @@ public:
     void clear();
 
 private:
-    using MapType = std::map<UInt, DataValue>;
+    using MapType = boost::container::flat_map<UInt, DataValue>;
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;
     /// The actual mapping of indexes to values
