@@ -15,3 +15,5 @@ cdef extern from "<OpenMS/MATH/MISC/EmgGradientDescent.h>" namespace "OpenMS":
 
         void fitEMGPeakModel(MSChromatogram input_peak, MSChromatogram& output_peak) nogil except +
         void fitEMGPeakModel(MSSpectrum input_peak, MSSpectrum& output_peak) nogil except +
+        void fitEMGPeakModel(MSChromatogram input_peak, MSChromatogram& output_peak, double left_pos, double right_pos) nogil except +
+        void fitEMGPeakModel(MSSpectrum input_peak, MSSpectrum& output_peak, double left_pos, double right_pos) nogil except +

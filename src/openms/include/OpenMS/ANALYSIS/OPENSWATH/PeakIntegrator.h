@@ -538,12 +538,12 @@ protected:
 
     template <typename PeakContainerT>
     PeakArea integratePeak_(
-      const PeakContainerT& pc, const double left, const double right
+      const PeakContainerT& pc, double left, double right
     ) const;
 
     template <typename PeakContainerT>
     PeakBackground estimateBackground_(
-      const PeakContainerT& pc, const double left, const double right,
+      const PeakContainerT& pc, double left, double right,
       const double peak_apex_pos
     ) const;
 
@@ -552,7 +552,7 @@ protected:
 
     template <typename PeakContainerT>
     PeakShapeMetrics calculatePeakShapeMetrics_(
-      const PeakContainerT& pc, const double left, const double right,
+      const PeakContainerT& pc, double left, double right,
       const double peak_height, const double peak_apex_pos
     ) const;
 
@@ -643,5 +643,26 @@ private:
     */
     double simpson(MSSpectrum::ConstIterator it_begin, MSSpectrum::ConstIterator it_end) const;
     ///@}
+
+    /**
+      @brief Fit the peak to the EMG model
+
+      The fitting process happens only if `fit_EMG_` is true. `left` and `right`
+      are updated accordingly.
+
+      @tparam PeakContainerT Either a MSChromatogram or a MSSpectrum
+      @param[in] pc Input peak
+      @param[out] emg_pc Will possibly contain the processed peak
+      @param[in] left RT or MZ value of the first point of interest
+      @param[in] right RT or MZ value of the first point of interest
+      @return A const reference to `emg_pc` if the fitting is executed, `pc` otherwise.
+    */
+    template <typename PeakContainerT>
+    const PeakContainerT& EMGPreProcess_(
+      const PeakContainerT& pc,
+      PeakContainerT& emg_pc,
+      double& left,
+      double& right
+    ) const;
   };
 }

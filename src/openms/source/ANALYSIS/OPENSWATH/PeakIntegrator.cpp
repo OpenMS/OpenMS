@@ -137,11 +137,10 @@ namespace OpenMS
   }
 
   template <typename PeakContainerT>
-  PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& pc, const double left, const double right) const
+  PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& pc, double left, double right) const
   {
     PeakContainerT emg_pc;
-    if (fit_EMG_) emg_.fitEMGPeakModel(pc, emg_pc);
-    const PeakContainerT& p = fit_EMG_ ? emg_pc : pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
 
     std::function<double(const double, const double)>
     compute_peak_area_trapezoid = [&p](const double left, const double right)
@@ -260,13 +259,12 @@ namespace OpenMS
 
   template <typename PeakContainerT>
   PeakIntegrator::PeakBackground PeakIntegrator::estimateBackground_(
-    const PeakContainerT& pc, const double left, const double right,
+    const PeakContainerT& pc, double left, double right,
     const double peak_apex_pos
   ) const
   {
     PeakContainerT emg_pc;
-    if (fit_EMG_) emg_.fitEMGPeakModel(pc, emg_pc);
-    const PeakContainerT& p = fit_EMG_ ? emg_pc : pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
 
     const double int_l = p.PosBegin(left)->getIntensity();
     const double int_r = (p.PosEnd(right) - 1)->getIntensity();
@@ -344,13 +342,12 @@ namespace OpenMS
 
   template <typename PeakContainerT>
   PeakIntegrator::PeakShapeMetrics PeakIntegrator::calculatePeakShapeMetrics_(
-    const PeakContainerT& pc, const double left, const double right,
+    const PeakContainerT& pc, double left, double right,
     const double peak_height, const double peak_apex_pos
   ) const
   {
     PeakContainerT emg_pc;
-    if (fit_EMG_) emg_.fitEMGPeakModel(pc, emg_pc);
-    const PeakContainerT& p = fit_EMG_ ? emg_pc : pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
 
     PeakShapeMetrics psm;
     psm.points_across_baseline = 0;
@@ -416,5 +413,23 @@ namespace OpenMS
       ) {}
     }
     return closest->getPos();
+  }
+
+  template <typename PeakContainerT>
+  const PeakContainerT& PeakIntegrator::EMGPreProcess_(
+    const PeakContainerT& pc,
+    PeakContainerT& emg_pc,
+    double& left,
+    double& right
+  ) const
+  {
+    if (fit_EMG_)
+    {
+      emg_.fitEMGPeakModel(pc, emg_pc, left, right);
+      left = emg_pc.front().getPos();
+      right = emg_pc.back().getPos();
+      return emg_pc;
+    }
+    return pc;
   }
 }
