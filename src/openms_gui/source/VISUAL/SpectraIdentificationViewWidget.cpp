@@ -102,7 +102,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(3, 70); // precursor m/z
     table_widget_->setColumnWidth(4, 55); // dissociation
     table_widget_->setColumnHidden(4, true);
-    table_widget_->setColumnWidth(5, 45);
+    table_widget_->setColumnWidth(5, 45); // scan type
     table_widget_->setColumnHidden(5, true);
     table_widget_->setColumnWidth(6, 45);
     table_widget_->setColumnHidden(6, true);
@@ -691,6 +691,18 @@ namespace OpenMS
                 ++current_col;
               }
             }
+            
+            // scan mode
+            QString scan_mode;
+            if (spectrum.getInstrumentSettings().getScanMode() > 0)
+            {
+              scan_mode = QString::fromStdString(spectrum.getInstrumentSettings().NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()]);
+            }
+            else
+            {
+              scan_mode = "-";
+            }
+            addTextItemToBottomRow_(scan_mode, 5, c);
 
             // zoom scan
             QString is_zoom;
@@ -775,7 +787,9 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::exportEntries_()
   {
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr 
+      || layer_->getPeakData()->size() == 0 
+      || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -808,7 +822,11 @@ namespace OpenMS
         strList.clear();
         for (int c = 0; c < table_widget_->columnCount(); ++c)
         {
-          strList << table_widget_->item(r, c)->text();
+          QTableWidgetItem* ti = table_widget_->item(r, c);
+          if (ti != nullptr)
+          {
+            strList << table_widget_->item(r, c)->text();
+          }
         }
         ts << strList.join("\t") + "\n";
       }
