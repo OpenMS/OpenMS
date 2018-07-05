@@ -55,6 +55,8 @@ using namespace std;
 
 ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
+//#define DEBUG_IDENTIFICATION_VIEW 1
+
 namespace OpenMS
 {
   SpectraIdentificationViewWidget::SpectraIdentificationViewWidget(const Param&, QWidget* parent) :
@@ -123,9 +125,6 @@ namespace OpenMS
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setShowGrid(false);
 
-    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
-    connect(table_widget_, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateData_(QTableWidgetItem*)));
-
     spectra_widget_layout->addWidget(table_widget_);
 
     ////////////////////////////////////
@@ -134,16 +133,15 @@ namespace OpenMS
 
     hide_no_identification_ = new QCheckBox("Only hits", this);
     hide_no_identification_->setChecked(true);
-    connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+ 
 
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
-    connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+
 
     QPushButton* save_IDs = new QPushButton("Save IDs", this);
     connect(save_IDs, SIGNAL(clicked()), this, SLOT(saveIDs_()));
 
     QPushButton* export_table = new QPushButton("Export table", this);
-    connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
@@ -163,9 +161,14 @@ namespace OpenMS
 
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint &)));
 
+    connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint &)));
     connect(table_widget_, SIGNAL(cellClicked(int, int)), this, SLOT(cellClicked_(int, int)));
+    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
+    connect(table_widget_, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateData_(QTableWidgetItem*)));
+    connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+    connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+    connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
   }
 
   QTableWidget* SpectraIdentificationViewWidget::getTableWidget()
@@ -175,7 +178,8 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
   {
-    if (row >= table_widget_->rowCount() || column >= table_widget_->columnCount())
+    if (row >= table_widget_->rowCount() 
+    || column >= table_widget_->columnCount())
     {
       return;
     }
@@ -227,7 +231,8 @@ namespace OpenMS
     /*test for previous == 0 is important - without it,
       the wrong spectrum will be selected after finishing
       the execution of a TOPP tool on the whole data */
-    if (current == nullptr || previous == nullptr)
+    if (current == nullptr 
+    || previous == nullptr)
     {
       return;
     }
@@ -240,7 +245,7 @@ namespace OpenMS
     if (is_ms1_shown_)
     {
 #ifdef DEBUG_IDENTIFICATION_VIEW
-      cout << "selection Change MS1 deselect: " << layer_->current_spectrum << endl;
+      cout << "selection Change MS1 deselect: " << layer_->getCurrentSpectrumIndex() << endl;
 #endif
       emit spectrumDeselected(int(layer_->getCurrentSpectrumIndex()));
     }
@@ -265,29 +270,30 @@ namespace OpenMS
     }
   }
 
-  void SpectraIdentificationViewWidget::attachLayer(LayerData* cl)
+  void SpectraIdentificationViewWidget::setLayer(LayerData* cl)
   {
     layer_ = cl;
+  }
+
+  LayerData* SpectraIdentificationViewWidget::getLayer()
+  {
+    return layer_;
   }
 
   void SpectraIdentificationViewWidget::updateEntries()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr 
+    || layer_->getPeakData()->size() == 0 
+    || layer_->type != LayerData::DT_PEAK)
     {
       table_widget_->clear();
       return;
     }
 
-    if (ignore_update)
-    {
-      return;
-    }
+    if (ignore_update) { return; }
 
-    if (!this->isVisible())
-    {
-      return;
-    }
+    if (!this->isVisible()) { return; }
 
     set<String> common_keys;
     // determine meta values common to all hits
