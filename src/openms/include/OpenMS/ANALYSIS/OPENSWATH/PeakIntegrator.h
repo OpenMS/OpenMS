@@ -45,7 +45,6 @@
 
 namespace OpenMS
 {
-
   /**
     @brief Compute the area, background and shape metrics of a peak.
 
