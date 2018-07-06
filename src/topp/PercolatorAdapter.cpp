@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <iostream>
 #include <cmath>
@@ -415,6 +416,10 @@ protected:
         String unmodified_sequence = hit.getSequence().toUnmodifiedString();
         
         double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
+        if (hit.metaValueExists("IsotopeError")) {
+          float isoErr = hit.getMetaValue("IsotopeError");
+          calc_mass = calc_mass - (isoErr * Constants::PROTON_MASS_U) / charge;
+        }
         hit.setMetaValue("CalcMass", calc_mass);
         
         
