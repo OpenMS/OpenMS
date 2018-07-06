@@ -55,7 +55,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>" namesp
         # void init(libcpp_vector[MSSpectrum]& library, libcpp_map[String,DataValue]& options) nogil except +
         libcpp_vector[MSSpectrum]& getLibrary() nogil except +
 
-    cdef cppclass TSE_BinnedSpectrumComparator(TSE_Comparator):
+    cdef cppclass TSE_BinnedSpectrumComparator "OpenMS::TargetedSpectraExtractor::BinnedSpectrumComparator" (TSE_Comparator):
         # wrap-inherits:
         #  TSE_Comparator
 
