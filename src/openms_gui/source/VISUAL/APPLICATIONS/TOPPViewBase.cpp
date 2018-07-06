@@ -2058,7 +2058,6 @@ namespace OpenMS
       if (&cc->getCurrentLayer() != spectra_identification_view_widget_->getLayer())
       {
         spectra_identification_view_widget_->setLayer(&cc->getCurrentLayer());
-        spectra_identification_view_widget_->updateEntries();
       }
     }
   }
