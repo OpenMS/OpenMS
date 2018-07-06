@@ -92,6 +92,7 @@ public:
     */
     struct Match
     {
+      Match() = default;
       Match(MSSpectrum a, double b) : spectrum(a), score(b) {}
       MSSpectrum spectrum;
       double score;
