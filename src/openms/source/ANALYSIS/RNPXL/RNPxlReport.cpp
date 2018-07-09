@@ -248,6 +248,37 @@ namespace OpenMS
           ph.setMetaValue("RNPxl:z3 mass", (double)weight_z3);
           ph.setMetaValue("RNPxl:z4 mass", (double)weight_z4);
           csv_rows.push_back(row);
+
+          // In the last annotation step we add the oligo as delta mass modification
+          // to get the proper theoretical mass annotated in the PeptideHit
+          // Try to add it to the C- then N-terminus. 
+          // If already modified search for an unmodified amino acid and add it there
+          if (rna_weight > 0)
+          {
+            const AASequence& aa = ph.getSequence();
+            const String seq = ph.getSequence().toString();
+
+            if (!aa.hasCTerminalModification()) 
+            {
+              AASequence new_aa = AASequence::fromString(seq + ".[" + String(rna_weight) + "]");
+              ph.setSequence(new_aa);
+            }
+            else if (!aa.hasNTerminalModification()) 
+            {
+              AASequence new_aa = AASequence::fromString("[" + String(rna_weight) + "]." + seq);
+              ph.setSequence(new_aa);
+            }
+            else // place it anywhere
+            {
+              for (auto a : aa)
+              {
+                if (!a.isModified())
+                {
+                  a.setModification("[" + String(rna_weight) + "]");
+                }
+              }             
+            }
+          }          
       }
     }
   }
