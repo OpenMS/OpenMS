@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/media/sachsenb/BACKUP/OpenMS/src/tests/topp/RNPxlSearch_1_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
+	<SearchParameters id="SP_0" db="/home/sachsenb/OpenMS/src/tests/topp/RNPxlSearch_1_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="2:5" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="20" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
 		<VariableModification name="Oxidation (M)" />
+				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
+				<UserParam type="string" name="extra_features" value="RNPxl:immonium_score,RNPxl:precursor_score,RNPxl:a_ion_score,RNPxl:marker_ions_score,RNPxl:partial_loss_score,RNPxl:MIC,RNPxl:err,RNPxl:Morph,RNPxl:pl_MIC,RNPxl:pl_err,RNPxl:pl_Morph,RNPxl:total_MIC,RNPxl:RNA_MASS_z0,isotope_error"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-07-05T16:20:18" search_engine="RNPxlSearch" search_engine_version="2.4.0-feature-proteomic-lfq-2018-07-04" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-07-09T16:22:04" search_engine="RNPxlSearch" search_engine_version="2.4.0-feature-RNPxl-Percolator-2018-07-09" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Cse1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -325,8 +327,8 @@
 				<UserParam type="float" name="G_346.05525" value="0"/>
 				<UserParam type="float" name="U_113.03509" value="0"/>
 				<UserParam type="float" name="U_307.03311" value="0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-0.000242291529048089"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.368899956987694"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.000242291528934402"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.368899956814601"/>
 				<UserParam type="float" name="RNPxl:z1 mass" value="1312.58208270017"/>
 				<UserParam type="float" name="RNPxl:z2 mass" value="656.794679583471"/>
 				<UserParam type="float" name="RNPxl:z3 mass" value="438.198878544571"/>
@@ -640,8 +642,8 @@
 				<UserParam type="float" name="G_346.05525" value="0"/>
 				<UserParam type="float" name="U_113.03509" value="0"/>
 				<UserParam type="float" name="U_307.03311" value="0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-0.000353039597939642"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.378010899790175"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.000353039597825955"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.378010899668447"/>
 				<UserParam type="float" name="RNPxl:z1 mass" value="1866.87324303997"/>
 				<UserParam type="float" name="RNPxl:z2 mass" value="933.940259753371"/>
 				<UserParam type="float" name="RNPxl:z3 mass" value="622.962598657838"/>
