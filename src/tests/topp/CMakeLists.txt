@@ -1097,6 +1097,10 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_3.TraML -out OpenSwathDecoyGenerator_3.TraML.tmp -out_type TraML -method pseudo-reverse -separate)
   add_test("TOPP_OpenSwathDecoyGenerator_test_3_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_3.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_3.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_3")
+  add_test("TOPP_OpenSwathDecoyGenerator_test_4"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_4.TraML.tmp -out_type TraML -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses  -enable_detection_specific_losses -min_decoy_fraction 0.4)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_4_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_4.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_4.TraML)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_4")
 
   # TargetedFileConverter : convert from and to different targeted files
   # Contains heavy and light transitions in 2 different notations
@@ -1561,6 +1565,12 @@ ${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch
 add_test("TOPP_RNPxlSearch_1_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 RNPxlSearch_1_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_1_output.idXML )
 set_tests_properties("TOPP_RNPxlSearch_1_out1" PROPERTIES DEPENDS "TOPP_RNPxlSearch_1")
+add_test("TOPP_RNPxlSearch_2" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
+# test internal decoy generation
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_2_output.tmp -RNPxl:decoys -ini ${DATA_DIR_TOPP}/RNPxlSearch_1_parameters.ini)
+add_test("TOPP_RNPxlSearch_2_out1" ${DIFF} -whitelist "IdentificationRun date"
+"db=" -in1 RNPxlSearch_2_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_2_output.idXML )
+set_tests_properties("TOPP_RNPxlSearch_2_out1" PROPERTIES DEPENDS "TOPP_RNPxlSearch_2")
 
 #------------------------------------------------------------------------------
 # RTModel tests

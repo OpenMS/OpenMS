@@ -472,10 +472,12 @@ class SimpleSearchEngine :
 
         for (auto const & c : current_digest)
         { 
-          if (c.getString().has('X')) { continue; }
+          const String current_peptide = c.getString();
+          cout << current_peptide << "\t" << current_peptide.find_first_of("XBZ") << endl;
+          if (current_peptide.find_first_of("XBZ") != std::string::npos) { continue; }
 
           // if a peptide motif is provided skip all peptides without match
-          if (!peptide_motif.empty() && !boost::regex_match(c.getString(), peptide_motif_regex)) { continue; }          
+          if (!peptide_motif.empty() && !boost::regex_match(current_peptide, peptide_motif_regex)) { continue; }          
         
           bool already_processed = false;
 #ifdef _OPENMP
@@ -511,7 +513,7 @@ class SimpleSearchEngine :
 #pragma omp critical (residuedb_access)
 #endif
           {
-            AASequence aas = AASequence::fromString(c.getString());
+            AASequence aas = AASequence::fromString(current_peptide);
             ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
             ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
           }

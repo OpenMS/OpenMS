@@ -161,15 +161,17 @@ public:
 private:
     /// internal counter, that stores the next index to assign
     UInt next_index_;
+    using MapString2IndexType = std::map<String, UInt>;
+    using MapIndex2StringType = std::map<UInt, String>;
+    
     /// map from name to index
-    std::map<String, UInt> name_to_index_;
+    MapString2IndexType name_to_index_;
     /// map from index to name
-    std::map<UInt, String> index_to_name_;
+    MapIndex2StringType index_to_name_;
     /// map from index to description
-    std::map<UInt, String> index_to_description_;
+    MapIndex2StringType index_to_description_;
     /// map from index to unit
-    std::map<UInt, String> index_to_unit_;
-
+    MapIndex2StringType index_to_unit_;
   };
 
 } // namespace OpenMS

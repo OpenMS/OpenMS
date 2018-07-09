@@ -119,11 +119,11 @@ public:
     void clear();
 
 private:
+    using MapType = std::map<UInt, DataValue>;
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;
     /// The actual mapping of indexes to values
-    std::map<UInt, DataValue> index_to_value_;
-
+    MapType index_to_value_;
   };
 
 } // namespace OpenMS
