@@ -796,14 +796,14 @@ namespace OpenMS
     }
   }
 
-  template void EmgGradientDescent::fitEMGPeakModel<MSChromatogram>(
+  template void OPENMS_DLLAPI EmgGradientDescent::fitEMGPeakModel<MSChromatogram>(
     const MSChromatogram& input_peak,
     MSChromatogram& output_peak,
     const double left_pos,
     const double right_pos
   ) const;
 
-  template void EmgGradientDescent::fitEMGPeakModel<MSSpectrum>(
+  template void OPENMS_DLLAPI EmgGradientDescent::fitEMGPeakModel<MSSpectrum>(
     const MSSpectrum& input_peak,
     MSSpectrum& output_peak,
     const double left_pos,
