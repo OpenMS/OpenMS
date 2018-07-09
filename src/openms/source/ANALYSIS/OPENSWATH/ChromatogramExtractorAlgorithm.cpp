@@ -349,12 +349,13 @@ namespace OpenMS
           continue;
         }
 
-        if (!has_im && used_filter == 1)
+        const bool use_im = (extraction_coordinates[k].ion_mobility >= 0.0 && has_im);
+        if (!use_im && used_filter == 1)
         {
           extract_value_tophat(mz_start, mz_it, mz_end, int_it,
                                extraction_coordinates[k].mz, integrated_intensity, mz_extraction_window, ppm);
         }
-        else if (has_im && used_filter == 1)
+        else if (use_im && used_filter == 1)
         {
           extract_value_tophat(mz_start, mz_it, mz_end, int_it, im_it,
                                extraction_coordinates[k].mz, extraction_coordinates[k].ion_mobility,

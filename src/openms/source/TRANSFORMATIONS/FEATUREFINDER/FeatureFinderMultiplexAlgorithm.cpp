@@ -55,6 +55,9 @@
 #include <fstream>
 #include <algorithm>
 
+#include <boost/algorithm/string/split.hpp> 
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/classification.hpp>
 // #define DEBUG
 
 using namespace std;
@@ -1077,6 +1080,82 @@ namespace OpenMS
       generateMapsProfile_(patterns, filter_results, cluster_results);
     }
 
+    // finalize consensus map
+
+    consensus_map_.setExperimentType("labeled_MS1");
+    consensus_map_.sortByPosition();
+    consensus_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    
+    Size i{0};
+    for (auto & ch : consensus_map_.getColumnHeaders())
+    {
+      ch.second.setMetaValue("channel_id", i);    
+      ++i;
+    }
+
+    // construct sample_labels
+    std::vector<std::vector<String> > samples_labels;
+    std::vector<String> temp_samples;
+    
+    String labels(param_.getValue("algorithm:labels"));
+    boost::replace_all(labels, "[]", "no_label");
+    boost::replace_all(labels, "()", "no_label");
+    boost::replace_all(labels, "{}", "no_label");
+    boost::split(temp_samples, labels, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
+    
+    for (unsigned i = 0; i < temp_samples.size(); ++i)
+    {
+      if (!temp_samples[i].empty())
+      {
+        if (temp_samples[i]=="no_label")
+        {
+          vector<String> temp_labels;
+          temp_labels.push_back("no_label");
+          samples_labels.push_back(temp_labels);
+        }
+        else
+        {
+          vector<String> temp_labels;
+          boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
+          samples_labels.push_back(temp_labels);
+        }
+      }
+    }
+
+    if (samples_labels.empty())
+    {
+      vector<String> temp_labels;
+      temp_labels.push_back("no_label");
+      samples_labels.push_back(temp_labels);
+    }
+    
+    // annotate maps
+    for (unsigned i = 0; i < samples_labels.size(); ++i)
+    {
+      ConsensusMap::ColumnHeader& desc = consensus_map_.getColumnHeaders()[i];
+      
+      if (param_.getValue("algorithm:knock_out") == "true")
+      {
+        // With knock-outs present, the correct labels can only be determined during ID mapping.
+        // For now, we simply store a unique identifier.
+        std::stringstream stream;
+        stream << "label " << i;
+        desc.label = stream.str();
+      }
+      else
+      {
+        String label_string;
+        for (unsigned j = 0; j < samples_labels[i].size(); ++j)
+        {
+          label_string.append(samples_labels[i][j]);
+        }
+        desc.label = label_string;
+      }
+    }
+
+    // finalize feature map
+    feature_map_.sortByPosition();
+    feature_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   }
   
   FeatureMap& FeatureFinderMultiplexAlgorithm::getFeatureMap()

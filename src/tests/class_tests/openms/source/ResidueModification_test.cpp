@@ -40,6 +40,8 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -73,6 +75,11 @@ START_SECTION(ResidueModification& operator=(const ResidueModification& modifica
 	ResidueModification m;
 	m = *ptr;
 	TEST_EQUAL(m == *ptr, true)
+END_SECTION
+
+START_SECTION(bool ResidueModification::operator<(const ResidueModification& rhs) const)
+  ModificationsDB* ptr = ModificationsDB::getInstance();
+  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)") < ptr->getModification("Phospho (S)"), true);
 END_SECTION
 
 START_SECTION(void setId(const String& id))

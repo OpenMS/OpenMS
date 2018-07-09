@@ -91,6 +91,14 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
+/**
+  TODO: Add additional immonium ions observed for Lys
+    1.)    84.0808; C5H10N1 (mainly observed as cross-links)
+    2.)    101.1073; C5H13N2 = classical immonium ion, rarely cross-linked
+    3.)    129.1022; C6H13N2O (intense peak in spectra)
+    All three of them and also the others (e.g., His, Tyr, Phe…) should be annotated as well when there are no shifts. 
+**/
+
 class RNPxlSearch :
   public TOPPBase
 {
@@ -636,10 +644,17 @@ protected:
         const vector<FragmentAdductDefinition_>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
 
         // generate total loss spectrum for the fixed and variable modified peptide (without RNA) (using the settings for partial loss generation)
+        // but as we also add the abundant immonium ions for charge 1 and precursor ions for all charges to get a more complete annotation
+        // (these have previously not been used in the scoring of the total loss spectrum)
         PeakSpectrum total_loss_spectrum;
-        partial_loss_spectrum_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
-        // for post-scoring and localization we don't annotate additional decoy shifts
+        TheoreticalSpectrumGenerator tmp_generator;
+        Param new_param(partial_loss_spectrum_generator.getParameters());
+        new_param.setValue("add_all_precursor_charges", "true");
+        new_param.setValue("add_abundant_immonium_ions", "true");
+        tmp_generator.setParameters(new_param);
+        tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
+
         PeakSpectrum partial_loss_spectrum;
         RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                     fixed_and_variable_modified_peptide,
@@ -1374,11 +1389,12 @@ protected:
     param.setValue("add_y_ions", "true");
     param.setValue("add_z_ions", "false");
     total_loss_spectrum_generator.setParameters(param);
+
     param = partial_loss_spectrum_generator.getParameters();
     param.setValue("add_first_prefix_ion", "true");
-    param.setValue("add_abundant_immonium_ions", "true");
+    param.setValue("add_abundant_immonium_ions", "false"); // we add them manually for charge 1
     param.setValue("add_precursor_peaks", "true");
-    param.setValue("add_all_precursor_charges", "true");
+    param.setValue("add_all_precursor_charges", "false"); // we add them manually for every charge
     param.setValue("add_metainfo", "true");
     param.setValue("add_a_ions", "true");
     param.setValue("add_b_ions", "true");
@@ -1671,7 +1687,8 @@ protected:
 #pragma omp critical (residuedb_access)
 #endif
         {
-          if (!unmodified_sequence.has('X')) // only process peptides without X (placeholder / any amino acid)
+           // only process peptides without ambiguous amino acids (placeholder / any amino acid)
+          if (unmodified_sequence.find_first_of("XBZ") == std::string::npos)
           {
             AASequence aas = AASequence::fromString(unmodified_sequence);
             ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
@@ -2145,8 +2162,9 @@ protected:
        {
          auto const & hits = pid.getHits();
          // predicate: check if best hit is a cross-link
-         if (!hits.empty() && 
-            !hits.front().getMetaValue("RNPxl:RNA").toString().empty())
+         if (!hits.empty() 
+              && hits.front().metaValueExists("RNPxl:RNA")
+              && !hits.front().getMetaValue("RNPxl:RNA").toString().empty())
          { 
            return true;
          }
@@ -2741,6 +2759,13 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
   }
 }
 
+  /* 
+  * Add peaks with shifts induced by the RNA/DNA:
+  *   - Precursor with complete NA-oligo for charge 1..z
+  *   - Partial shifts (without complete precursor adduct)
+  *     - Add shifted immonium ions for charge 1 only
+  *     - Add shifted b,y,a ions + precursors for charge 1..z (adding the unshifted version and performing the shift)
+  */
 void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const String &unmodified_sequence,
                                                                          const AASequence &fixed_and_variable_modified_peptide,
                                                                          const double &fixed_and_variable_modified_peptide_weight,
@@ -2758,7 +2783,6 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
   PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation = partial_loss_spectrum.getStringDataArrays()[0];
 
   // ADD: (mainly for ETD) MS2 precursor peaks of the MS1 adduct (total RNA) carrying peptide for all z <= precursor charge
-  // For decoys, we also shift the precursor ions
   for (int charge = 1; charge <= static_cast<int>(precursor_charge); ++charge)
   {
     addPrecursorWithCompleteRNA_(fixed_and_variable_modified_peptide_weight,
@@ -2804,7 +2828,11 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
       PeakSpectrum::IntegerDataArray& tmp_shifted_series_charges = tmp_shifted_series_peaks.getIntegerDataArrays()[0];
 
       // 2. shift peaks 
-      for (auto & p : tmp_shifted_series_peaks) { p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z)); }
+      for (Size i = 0; i != tmp_shifted_series_peaks.size(); ++i) 
+      { 
+        Peak1D& p = tmp_shifted_series_peaks[i];
+        p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+      } 
 
       // 3. add shifted peaks to shifted_series_peaks
       shifted_series_peaks.insert(shifted_series_peaks.end(), tmp_shifted_series_peaks.begin(), tmp_shifted_series_peaks.end());

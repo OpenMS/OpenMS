@@ -741,34 +741,22 @@ namespace OpenMS
     return iter_idx;
   }
 
-  void EmgGradientDescent::fitEMGPeakModel(
-    const MSChromatogram& input_peak,
-    MSChromatogram& output_peak
-  ) const
-  {
-    fitEMGPeakModel_(input_peak, output_peak);
-  }
-
-  void EmgGradientDescent::fitEMGPeakModel(
-    const MSSpectrum& input_peak,
-    MSSpectrum& output_peak
-  ) const
-  {
-    fitEMGPeakModel_(input_peak, output_peak);
-  }
-
   template <typename PeakContainerT>
-  void EmgGradientDescent::fitEMGPeakModel_(
+  void EmgGradientDescent::fitEMGPeakModel(
     const PeakContainerT& input_peak,
-    PeakContainerT& output_peak
+    PeakContainerT& output_peak,
+    const double left_pos,
+    const double right_pos
   ) const
   {
     // Extract points
+    typename PeakContainerT::const_iterator start_it = left_pos ? input_peak.PosBegin(left_pos) : input_peak.begin();
+    typename PeakContainerT::const_iterator end_it = right_pos ? input_peak.PosEnd(right_pos) : input_peak.end();
     std::vector<double> xs, ys;
-    for (const typename PeakContainerT::PeakType& point : input_peak)
+    for (typename PeakContainerT::const_iterator it = start_it; it != end_it; ++it)
     {
-      xs.push_back(point.getPos());
-      ys.push_back(point.getIntensity());
+      xs.push_back(it->getPos());
+      ys.push_back(it->getIntensity());
     }
 
     // EMG parameter estimation with gradient descent
@@ -807,4 +795,18 @@ namespace OpenMS
       std::cout << "Number of additional points: " << (output_peak.size() - input_peak.size()) << "\n\n" << std::endl;
     }
   }
+
+  template void EmgGradientDescent::fitEMGPeakModel<MSChromatogram>(
+    const MSChromatogram& input_peak,
+    MSChromatogram& output_peak,
+    const double left_pos,
+    const double right_pos
+  ) const;
+
+  template void EmgGradientDescent::fitEMGPeakModel<MSSpectrum>(
+    const MSSpectrum& input_peak,
+    MSSpectrum& output_peak,
+    const double left_pos,
+    const double right_pos
+  ) const;
 }

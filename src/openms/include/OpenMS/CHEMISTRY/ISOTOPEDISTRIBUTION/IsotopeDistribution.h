@@ -196,6 +196,9 @@ public:
 
     /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
     bool operator!=(const IsotopeDistribution & isotope_distribution) const;
+
+    /// less operator
+    bool operator<(const IsotopeDistribution & isotope_distribution) const;
     //@}
 
     /// @name Iterators
@@ -239,9 +242,6 @@ protected:
 
     /// stores the isotope distribution
     ContainerType distribution_;
-
-    ///Holds the distribution sorted state
-    Sorted sort_type_;
   };
 
 
