@@ -416,12 +416,13 @@ protected:
         String unmodified_sequence = hit.getSequence().toUnmodifiedString();
         
         double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
-        if (hit.metaValueExists("IsotopeError")) {
-          float isoErr = hit.getMetaValue("IsotopeError");
-          calc_mass = calc_mass - (isoErr * Constants::PROTON_MASS_U) / charge;
-        }
         hit.setMetaValue("CalcMass", calc_mass);
-        
+
+        if (hit.metaValueExists("IsotopeError"))
+        {
+          float isoErr = stof(hit.getMetaValue("IsotopeError").toString());
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
         
         hit.setMetaValue("ExpMass", exp_mass);
         hit.setMetaValue("mass", exp_mass);
