@@ -273,6 +273,7 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::setLayer(LayerData* cl)
   {
     layer_ = cl;
+    updateEntries();
   }
 
   LayerData* SpectraIdentificationViewWidget::getLayer()
@@ -293,7 +294,7 @@ namespace OpenMS
 
     if (ignore_update) { return; }
 
-    if (!this->isVisible()) { return; }
+    if (!isVisible()) { return; }
 
     set<String> common_keys;
     // determine meta values common to all hits
@@ -364,25 +365,18 @@ namespace OpenMS
 
     QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
-
     table_widget_->setItemPrototype(proto_item);
 
     table_widget_->setSortingEnabled(false);
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
 
-    if (layer_ == nullptr)
-    {
-      return;
-    }
-
-    QTableWidgetItem* item = nullptr;
-    QTableWidgetItem* selected_item = nullptr;
-    Size selected_row = 0;
-
     // generate flat list
+    int selected_row(-1);
     for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
     {
+      QTableWidgetItem* item = nullptr;
+
       const MSSpectrum & spectrum = (*layer_->getPeakData())[i];
       const UInt ms_level = spectrum.getMSLevel();
       const vector<PeptideIdentification>& pi = spectrum.getPeptideIdentifications();
@@ -727,21 +721,18 @@ namespace OpenMS
 
       if (i == layer_->getCurrentSpectrumIndex())
       {
-        // just remember it, select later
-        selected_item = item;
-        selected_row = i;
+        selected_row = item->row(); // get model index of selected spectrum
       }
     }
-
 
     table_widget_->setSortingEnabled(true);
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->resizeColumnsToContents();
 
-    if (selected_item)
+    if (selected_row != -1)  // select and scroll down to item
     {
-      // now, select and scroll down to item
-      table_widget_->selectRow(int(selected_row));
+      table_widget_->selectRow(selected_row);
+      QTableWidgetItem* selected_item = table_widget_->item(selected_row, 0);
       selected_item->setSelected(true);
       table_widget_->setCurrentItem(selected_item);
       table_widget_->scrollToItem(selected_item);

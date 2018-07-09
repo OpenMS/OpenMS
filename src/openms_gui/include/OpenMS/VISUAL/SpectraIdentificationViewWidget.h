@@ -71,7 +71,7 @@ public:
 
     /// Access the table widget
     QTableWidget* getTableWidget();
-public slots:
+protected slots:
     /// Rebuild table entries
     void updateEntries();
 signals:

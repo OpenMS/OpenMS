@@ -258,6 +258,12 @@ namespace OpenMS
     */
     extern OPENMS_DLLAPI const std::string   PRECURSOR_ERROR_PPM_USERPARAM;
 
+    /** User parameter name for fragment annotations
+            String
+    */
+    extern OPENMS_DLLAPI const std::string   FRAGMENT_ANNOTATION_USERPARAM;
+
+
     //@}
   }
 }

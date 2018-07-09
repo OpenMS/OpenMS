@@ -640,8 +640,18 @@ protected:
         const vector<FragmentAdductDefinition_>& marker_ions = all_feasible_adducts.at(precursor_rna_adduct).marker_ions;
 
         // generate total loss spectrum for the fixed and variable modified peptide (without RNA) (using the settings for partial loss generation)
+        // but as we also add the abundant immonium ions for charge 1 and precursor ions for all charges to get a more complete annotation
+        // (these have previously not been used in the scoring of the total loss spectrum)
         PeakSpectrum total_loss_spectrum;
-        partial_loss_spectrum_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
+
+        TheoreticalSpectrumGenerator tmp_generator;
+        Param new_param(partial_loss_spectrum_generator.getParameters());
+        new_param.setValue("add_all_precursor_charges", "true");
+        new_param.setValue("add_abundant_immonium_ions", "true");
+        tmp_generator.setParameters(new_param);
+        tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
+
+        // add special immonium ions
         RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
           unmodified_sequence,
           total_loss_spectrum, 
@@ -678,6 +688,7 @@ protected:
         vector<PeptideHit::PeakAnnotation> shifted_immonium_ions;
         vector<PeptideHit::PeakAnnotation> annotated_marker_ions;
         vector<PeptideHit::PeakAnnotation> annotated_precursor_ions;
+        vector<PeptideHit::PeakAnnotation> annotated_immonium_ions;
 
         // first annotate total loss peaks (these give no information where the actual shift occured)
         #ifdef DEBUG_RNPXLSEARCH
@@ -777,14 +788,25 @@ protected:
             }
             #endif
           }
-          else if (ion_name.hasPrefix("[M+"))
+          else if (ion_name.hasPrefix("[M+")) // precursor ion
           {
             PeptideHit::PeakAnnotation fa;
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
             fa.charge = 1; // for visualion charge is not really important so we set it to 0
             fa.annotation = ion_name;
+            peak_is_annotated.insert(aligned.second);
             annotated_precursor_ions.push_back(fa);
+          }
+          else if (ion_name.hasPrefix("i")) // immonium ion
+          {
+            PeptideHit::PeakAnnotation fa;
+            fa.mz = fragment_mz;
+            fa.intensity = fragment_intensity;
+            fa.charge = 1;
+            fa.annotation = ion_name;
+            peak_is_annotated.insert(aligned.second);
+            annotated_immonium_ions.push_back(fa);
           }
         }
 
@@ -792,20 +814,24 @@ protected:
         vector<PeptideHit::PeakAnnotation> fas;
         if (!unshifted_b_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
-
         if (!unshifted_y_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
         if (!unshifted_a_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
+        if (!annotated_immonium_ions.empty())
+        {
+          fas.insert(fas.end(), annotated_immonium_ions.begin(), annotated_immonium_ions.end());          
+        }
+
         vector<double> sites_sum_score(aas.size(), 0);
 
         /////////////////
@@ -1361,11 +1387,12 @@ protected:
     param.setValue("add_y_ions", "true");
     param.setValue("add_z_ions", "false");
     total_loss_spectrum_generator.setParameters(param);
+
     param = partial_loss_spectrum_generator.getParameters();
     param.setValue("add_first_prefix_ion", "true");
-    param.setValue("add_abundant_immonium_ions", "true");
+    param.setValue("add_abundant_immonium_ions", "false"); // we add them manually for charge 1
     param.setValue("add_precursor_peaks", "true");
-    param.setValue("add_all_precursor_charges", "true");
+    param.setValue("add_all_precursor_charges", "false"); // we add them manually for every charge
     param.setValue("add_metainfo", "true");
     param.setValue("add_a_ions", "true");
     param.setValue("add_b_ions", "true");
@@ -2668,13 +2695,13 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
       const double immonium_ion2_mz = EmpiricalFormula("C5H10N1").getMonoWeight(); 
       spectrum.emplace_back(immonium_ion2_mz, 1.0);
       spectrum_charge.emplace_back(1);
-      spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K',"C5H10N1"));
+      spectrum_annotation.emplace_back(String("iK(C5H10N1)"));
 
       // usually only observed without shift (A. Stuetzer)
       const double immonium_ion3_mz = EmpiricalFormula("C6H13N2O").getMonoWeight(); 
       spectrum.emplace_back(immonium_ion3_mz, 1.0);
       spectrum_charge.emplace_back(1);
-      spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', "C6H13N2O"));
+      spectrum_annotation.emplace_back(String("iK(C6H13N2O)"));
     }
 }
 
@@ -2748,13 +2775,13 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
     const double immonium_ion2_mz = EmpiricalFormula("C5H10N1").getMonoWeight()  + fragment_shift_mass; 
     partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(String("iK(C5H10N1)" + fragment_shift_name));
 
     // usually only observed without shift (A. Stuetzer)
     const double immonium_ion3_mz = EmpiricalFormula("C6H13N2O").getMonoWeight()  + fragment_shift_mass; 
     partial_loss_spectrum.emplace_back(immonium_ion3_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(String("iK(C6H13N2O)" + fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("M"))
   {
@@ -2765,6 +2792,13 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
   }
 }
 
+  /* 
+  * Add peaks with shifts induced by the RNA/DNA:
+  *   - Precursor with complete NA-oligo for charge 1..z
+  *   - Partial shifts (without complete precursor adduct)
+  *     - Add shifted immonium ions for charge 1 only
+  *     - Add shifted b,y,a ions + precursors for charge 1..z (adding the unshifted version and performing the shift)
+  */
 void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const String &unmodified_sequence,
                                                                          const AASequence &fixed_and_variable_modified_peptide,
                                                                          const double &fixed_and_variable_modified_peptide_weight,
@@ -2827,7 +2861,11 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
       PeakSpectrum::IntegerDataArray& tmp_shifted_series_charges = tmp_shifted_series_peaks.getIntegerDataArrays()[0];
 
       // 2. shift peaks 
-      for (auto & p : tmp_shifted_series_peaks) { p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z)); }
+      for (Size i = 0; i != tmp_shifted_series_peaks.size(); ++i) 
+      { 
+        Peak1D& p = tmp_shifted_series_peaks[i];
+        p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+      } 
 
       // 3. add shifted peaks to shifted_series_peaks
       shifted_series_peaks.insert(shifted_series_peaks.end(), tmp_shifted_series_peaks.begin(), tmp_shifted_series_peaks.end());
