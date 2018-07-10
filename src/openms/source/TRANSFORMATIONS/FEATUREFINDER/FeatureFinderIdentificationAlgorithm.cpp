@@ -269,20 +269,22 @@ namespace OpenMS
       bool peptide_already_exists = false;
       for (const auto & peptide : peptides)
       {
-        auto seed_RT = static_cast<double>(f_it->getRT());
-        auto seed_MZ = static_cast<double>(f_it->getMZ());
+        double seed_RT = static_cast<double>(f_it->getRT());
+        double seed_MZ = static_cast<double>(f_it->getMZ());
+	double seed_charge = f_it->getCharge();
         double peptide_RT = peptide.getRT();
         double peptide_MZ = peptide.getMZ();
 
-        // RT or MZ values of seed match in range of 5 * rt_window and 10 ppm? -> peptide already exists -> don't add seed
+        // RT or MZ values of seed match in range -> peptide already exists -> don't add seed
         // Consider up to 5th isotopic trace (e.g., because of seed misassignment)
-        if ((fabs(seed_RT - peptide_RT) <= 5.0 * rt_window_) &&
-           ((fabs(seed_MZ - peptide_MZ) <= 0.001 * peptide_MZ) ||
-             fabs(seed_MZ - 1 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ ||
-             fabs(seed_MZ - 2 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ ||
-             fabs(seed_MZ - 3 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ ||
-             fabs(seed_MZ - 3 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ ||
-             fabs(seed_MZ - 4 * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= 10e-6 * peptide_MZ)
+        double th_tolerance = mz_window_ppm_ ? mz_window_ * 1e-6 * peptide_MZ : mz_window_;
+        if ((fabs(seed_RT - peptide_RT) <= rt_window_) &&
+           ((fabs(seed_MZ - peptide_MZ) <= th_tolerance) ||
+             fabs(seed_MZ - (1.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (2.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (3.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (4.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance ||
+             fabs(seed_MZ - (5.0/seed_charge) * Constants::C13C12_MASSDIFF_U - peptide_MZ) <= th_tolerance)
             )
         {
           peptide_already_exists = true;
