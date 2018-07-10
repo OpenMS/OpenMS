@@ -275,6 +275,7 @@ namespace OpenMS
                 if (!a.isModified())
                 {
                   a.setModification("[" + String(rna_weight) + "]");
+                  break;
                 }
               }             
             }
