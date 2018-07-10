@@ -17,7 +17,6 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         # wrap-inherits:
         #    UniqueIdInterface
         #    Peak2D
-
         # wrap-doc:
         #   A consensus feature spanning multiple LC-MS/MS experiments.
         #   -----
