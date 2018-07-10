@@ -418,12 +418,17 @@ protected:
         double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
         hit.setMetaValue("CalcMass", calc_mass);
 
-        if (hit.metaValueExists("IsotopeError"))
+        if (hit.metaValueExists("IsotopeError"))  // MSGFPlus
         {
-          float isoErr = stof(hit.getMetaValue("IsotopeError").toString());
+          float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
           exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
         }
-        
+        else if (hit.metaValueExists("isotope_error")) // e.g. SimpleSearchEngine /RNPxlSearch
+        {
+          float isoErr = hit.getMetaValue("isotope_error").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+                
         hit.setMetaValue("ExpMass", exp_mass);
         hit.setMetaValue("mass", exp_mass);
         
