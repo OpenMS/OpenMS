@@ -104,6 +104,10 @@ private:
     // true during "note" element containing spectrum ID
     bool is_spectrum_note_;
 
+    // true after non-new protein entries, so that with the next "protein note" the
+    // accession will not be updated again
+    bool skip_protein_acc_update_;
+
     // peptide hits per spectrum
     std::map<UInt, std::vector<PeptideHit> > peptide_hits_;
 

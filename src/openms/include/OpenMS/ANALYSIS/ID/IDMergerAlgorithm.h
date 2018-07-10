@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,53 +31,25 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
-#define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
 
+#pragma once
 
-#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/MATH/MISC/GridSearch.h>
-#include <vector>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI BayesianProteinInferenceAlgorithm :
-      public DefaultParamHandler,
-      public ProgressLogger
+  class OPENMS_DLLAPI IDMergerAlgorithm:
+    public DefaultParamHandler,
+    public ProgressLogger
   {
   public:
-    /// Constructor
-    BayesianProteinInferenceAlgorithm();
-
-    /// Destructor
-    ~BayesianProteinInferenceAlgorithm() override = default;
-
-    /// A function object to pass into the IDBoostGraph class to perform algorithms on
-    /// connected components
-    class FilteredGraphInferenceFunctor;
-
-    /// Deprecated: A function object to pass into the IDBoostGraph class to perform algorithms on
-    /// connected components and on the fly finding groups (no preannotation needed)
-    class FilteredGraphInferenceFunctorNoGroups;
-
-    /// A function object to pass into the GridSearch;
-    struct GridSearchEvaluator;
-
-    /// Perform inference. Writes its results into proteins (as new score) and peptides.
-    void inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs);
-
-    /// Load and merge ID files one by one from disk. Then perform inference.
-    void inferPosteriorProbabilities(const StringList& idXMLs, const String db,const ExperimentalDesign& expDesign, ProteinIdentification& proteinIDs, std::vector<PeptideIdentification>& peptideIDs);
-    void inferPosteriorProbabilities(std::vector<PeptideIdentification> pepIdReplicates, ProteinIdentification& proteinIds, const String& db);
-
+    IDMergerAlgorithm ();
+    /// Takes a cmap with one ProteinIDRun per column and merges them to one proteinIDRun per Sample
+    /// while reassociating the PeptideEvidences
+    void mergeProteinsAcrossFractionsAndReplicates(ConsensusMap& cmap, const ExperimentalDesign& exp_design);
   private:
-    /// The grid search object initialized with a default grid
-    GridSearch<double,double,double> grid{{0.008,0.032,0.128},{0.001},{0.5}};
   };
-}
-#endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+} // namespace OpenMS

@@ -91,7 +91,14 @@ namespace OpenMS
 
     /// Do sth on connected components
     void applyFunctorOnCCs(std::function<void(FilteredGraph &)> functor);
-    void annotateIndistinguishableGroups();
+
+    /// Add intermediate nodes to the graph that represent indist. protein groups and peptides with the same parents
+    /// this will save computation time and oscillations later on.
+    void clusterIndistProteinsAndPeptides();
+
+    /// Annotate indistinguishable proteins by adding the groups to the underlying
+    /// ProteinIdentification::ProteinGroups object. This has no effect on the graph itself.
+    void annotateIndistProteins(bool addSingletons = true) const;
 
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
@@ -240,14 +247,23 @@ namespace OpenMS
 
   private:
     Graph g;
+
+    /// static objects created from a hard typedef to differentiate between different types of nodes.
+    /// they will be reused throughout the graph when necessary
     static PeptideCluster staticPC;
     static ProteinGroup staticPG;
+
     //GraphConst gconst;
     ProteinIdentification& proteins_;
     std::vector<PeptideIdentification>& idedSpectra_;
+
+    /// the connected component property for every node in the graph
     std::vector<unsigned int> componentProperty_;
+    /// the number of connected components to be used as a counter.
     unsigned int numCCs_ = 0;
 
+    /// helper function to add a vertex if it is not present yet, otherwise return the present one
+    /// needs a temporary filled vertex_map that is modifiable
     vertex_t addVertexWithLookup_(IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
     //vertex_t addVertexWithLookup_(IDPointerConst& ptr, std::unordered_map<IDPointerConst, vertex_t, boost::hash<IDPointerConst>>& vertex_map);
   };

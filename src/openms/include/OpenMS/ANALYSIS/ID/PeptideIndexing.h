@@ -660,6 +660,12 @@ public:
             {
               hit.setDescription(fe.description);
             } // no else, since description is empty by default
+            if (annotate_nr_theoretical_peptides_)
+            {
+              std::vector<StringView> tempDigests{};
+              enzyme.digestUnmodified(fe.sequence, tempDigests);
+              hit.setMetaValue("maxNrTheoreticalDigests", tempDigests.size());
+            }
           }
           if (protein_is_decoy[*it])
           {
@@ -1032,6 +1038,7 @@ public:
 
     bool write_protein_sequence_;
     bool write_protein_description_;
+    bool annotate_nr_theoretical_peptides_;
     bool keep_unreferenced_proteins_;
     bool allow_unmatched_;
     bool IL_equivalent_;

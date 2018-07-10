@@ -156,13 +156,102 @@ namespace OpenMS
   }
 
   /// Do sth on ccs
-  void IDBoostGraph::annotateIndistinguishableGroups()
+  void IDBoostGraph::annotateIndistProteins(bool addSingletons) const
   {
     if (numCCs_ == 0) {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
     }
 
-    proteins_.getIndistinguishableProteins().clear();
+    for (unsigned int i = 0; i < numCCs_; ++i)
+    {
+      FilteredGraph fg(g,
+                       [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
+                       [& i, this](vertex_t v) { return componentProperty_[v] == i; });
+
+      #ifdef INFERENCE_DEBUG
+      // TODO make function for writing graph?
+      // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
+      LabelVisitor lv;
+      auto labels = boost::make_transform_value_property_map([lv](IDPointer &p) { return boost::apply_visitor(lv, p); },
+                                                             boost::get(boost::vertex_bundle, fg));
+      std::cout << "Printing cc " << i << std::endl;
+      //boost::print_graph(fg);
+      boost::write_graphviz(std::cout, fg, boost::make_label_writer(labels));
+      #endif
+
+      // Cluster peptides with same parents
+      //TODO this could be sped up by a good hashing function for sets of uints and using unordered_map
+      map<set<IDBoostGraph::vertex_t>, set<IDBoostGraph::vertex_t> > indistProteins; //find indist proteins
+
+      boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(
+          IDBoostGraph::vertex_t)> >::vertex_iterator ui, ui_end;
+      boost::tie(ui, ui_end) = boost::vertices(fg);
+
+      // Cluster proteins
+      for (; ui != ui_end; ++ui)
+      {
+        IDBoostGraph::IDPointer curr_idObj = fg[*ui];
+        //TODO introduce an enum for the types to make it more clear.
+        //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+        if (curr_idObj.which() == 0) //protein: find indist. ones
+        {
+          //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
+          //Or just check rigorously here.
+          set<IDBoostGraph::vertex_t> childPeps;
+          IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
+          boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
+          for (; adjIt != adjIt_end; ++adjIt)
+          {
+            if (fg[*adjIt].which() ==
+                3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
+            {
+              childPeps.insert(*adjIt);
+            }
+          }
+
+          auto clusterIt = indistProteins.find(childPeps);
+          if (clusterIt != indistProteins.end())
+          {
+            clusterIt->second.insert(*ui);
+          }
+          else
+          {
+            indistProteins[childPeps] = std::set<IDBoostGraph::vertex_t>({*ui});
+          }
+        }
+      }
+
+      // add the protein groups to the underlying ProteinGroup datastructure only
+      // and edges from the groups to the proteins for quick access
+      for (auto const &pepsToGrps : indistProteins)
+      {
+        if (pepsToGrps.second.size() <= 1 && !addSingletons)
+        {
+          continue;
+        }
+
+        ProteinIdentification::ProteinGroup pg{};
+
+        for (auto const &proteinVID : pepsToGrps.second)
+        {
+          ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
+          pg.accessions.push_back(proteinPtr->getAccession());
+        }
+        //Without any inference we set the probability to -1
+        //TODO think about adding a simple aggregation scheme (e.g. max or product or normalized sum)
+        pg.probability = -1.0;
+        proteins_.getIndistinguishableProteins().push_back(pg);
+      }
+
+    }
+  }
+
+  /// Do sth on ccs
+  void IDBoostGraph::clusterIndistProteinsAndPeptides()
+  {
+    if (numCCs_ == 0) {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
+    }
 
     for (unsigned int i = 0; i < numCCs_; ++i)
     {

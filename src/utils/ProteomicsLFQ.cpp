@@ -959,7 +959,7 @@ protected:
     // Annotate quants to protein(groups) for easier export in mzTab
     auto const & protein_quants = quantifier.getProteinResults();
 
-    // annnotaes final quantities to proteins and protein groups in the ID data structure
+    // annotates final quantities to proteins and protein groups in the ID data structure
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0]);
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification

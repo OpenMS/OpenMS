@@ -34,10 +34,14 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <vector>
 
 using namespace OpenMS;
@@ -57,10 +61,12 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
+    registerInputFile_("exp_design", "<file>", "", "Input: experimental design");
+    setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     //TODO make required of course
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.", false);
   }
 
@@ -68,6 +74,16 @@ protected:
   {
     vector<PeptideIdentification> peps;
     vector<ProteinIdentification> prots;
+    ConsensusMap cmap;
+    ConsensusXMLFile cXML;
+    cXML.load(getStringOption_("in"), cmap);
+    IDMergerAlgorithm merger;
+    ExperimentalDesignFile expFile;
+    ExperimentalDesign expDesign = expFile.load(getStringOption_("exp_design"), false);
+    merger.mergeProteinsAcrossFractionsAndReplicates(cmap, expDesign);
+    cXML.store(getStringOption_("out"), cmap);
+    return ExitCodes::EXECUTION_OK;
+
     IdXMLFile idXML;
     idXML.load(getStringOption_("in"), prots, peps);
     //TODO filter unmatched proteins and peptides before!

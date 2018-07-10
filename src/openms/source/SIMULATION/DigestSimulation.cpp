@@ -137,7 +137,7 @@ namespace OpenMS
 
 
     UInt min_peptide_length = param_.getValue("min_peptide_length");
-    bool use_log_model = param_.getValue("model") == "trained" ? true : false;
+    bool use_log_model = param_.getValue("model") == "trained";
     UInt missed_cleavages = param_.getValue("model_naive:missed_cleavages");
     double cleave_threshold = param_.getValue("model_trained:threshold");
     if (use_log_model)
@@ -307,4 +307,4 @@ namespace OpenMS
 
   }
 
-}
+} // namespace OpenMS
