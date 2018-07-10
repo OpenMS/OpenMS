@@ -39,6 +39,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         #   UniqueIdInterface
         #   DocumentIdentifier
         #   RangeManager2
+        #
         # wrap-doc:
         #   A container for consensus elements.
         #   -----
