@@ -466,7 +466,7 @@ namespace OpenMS
     
     // determine the fold changes between the lightest peptide and the remaining ones
     // TODO Replace the lightest peptide by the highest intensity peptide in the multiplet
-    std::vector<double> ratio_peptide;
+    /*std::vector<double> ratio_peptide;
     ratio_peptide.push_back(1.0);
     // loop over other peptides
     for (size_t peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -589,9 +589,10 @@ namespace OpenMS
     {
       // For simple feature detection (singlets) the intensities remain unchanged.
       intensity_peptide_corrected.push_back(intensity_peptide[0]);
-    }
+    }*/
     
-    return intensity_peptide_corrected;
+    //return intensity_peptide_corrected;
+    return intensity_peptide;
   }
 
   void FeatureFinderMultiplexAlgorithm::generateMapsCentroided_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, std::vector<std::map<int, GridBasedCluster> >& cluster_results)
