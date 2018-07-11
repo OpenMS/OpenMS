@@ -830,6 +830,143 @@ START_SECTION(void matchSpectrum(
 }
 END_SECTION
 
+START_SECTION(void targetedMatching(
+  const std::vector<MSSpectrum>& spectra,
+  Comparator& cmp,
+  FeatureMap& features
+))
+{
+  // MS Library offered by: MoNa - MassBank of North America
+  // Title: GC-MS Spectra
+  // http://mona.fiehnlab.ucdavis.edu/downloads
+  // https://creativecommons.org/licenses/by/4.0/legalcode
+  // Changes made: Only a very small subset of spectra is reproduced
+
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
+  const String target_list_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_traML.csv");
+  MzMLFile mzml;
+  MSExperiment gcms_experiment;
+  TransitionTSVFile tsv_reader;
+  TargetedExperiment targeted_exp;
+  mzml.load(gcms_fullscan_path, gcms_experiment);
+  Param tsv_params = tsv_reader.getParameters();
+  tsv_params.setValue("retentionTimeInterpretation", "seconds");
+  tsv_reader.setParameters(tsv_params);
+  tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
+  TargetedSpectraExtractor tse;
+  Param params = tse.getParameters();
+  params.setValue("rt_window", 2.0);
+  params.setValue("min_select_score", 0.1);
+  params.setValue("GaussFilter:gaussian_width", 0.1);
+  params.setValue("PeakPickerHiRes:signal_to_noise", 0.01);
+  params.setValue("top_matches_to_report", 2);
+  params.setValue("min_match_score", 0.51);
+  tse.setParameters(params);
+
+  TEST_EQUAL(gcms_experiment.getSpectra().size(), 11)
+
+  vector<MSSpectrum> extracted_spectra;
+  FeatureMap extracted_features;
+  tse.extractSpectra(gcms_experiment, targeted_exp, extracted_spectra, extracted_features);
+
+  TEST_EQUAL(extracted_spectra.size(), 18)
+
+  MSExperiment library;
+  MSPGenericFile mse(msp_path, library);
+
+  TEST_EQUAL(library.getSpectra().size(), 21)
+
+  TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
+  std::map<String,DataValue> options = {
+    {"bin_size", 1.0},
+    {"peak_spread", 0.0},
+    {"bin_offset", 0.4}
+  };
+  cmp.init(library.getSpectra(), options);
+
+  tse.targetedMatching(extracted_spectra, cmp, extracted_features);
+
+  TEST_STRING_EQUAL(extracted_features[0].getMetaValue("spectral_library_name"), "L-Tryptophane")
+  TEST_REAL_SIMILAR(extracted_features[0].getMetaValue("spectral_library_score"), 0.948933)
+  String comments = "\"accession=PR010037\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=204.08988\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=2216.3\" \"retention time=523.416 sec\" \"derivative formula=C20H36N2O2Si3\" \"derivative mass=420.20846\" \"derivatization type=3 TMS\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(=O)[C@H](N)Cc(c1)c(c2)c(ccc2)n1\" \"cas=73-22-3\" \"chebi=16828\" \"kegg=C00078\" \"pubchem=3378\" \"InChI=InChI=1S/C11H12N2O2/c12-9(11(14)15)5-7-6-13-10-4-2-1-3-8(7)10/h1-4,6,9,13H,5,12H2,(H,14,15)/t9-/m0/s1\" \"molecular formula=C11H12N2O2\" \"total exact mass=204.089877624\" \"SMILES=C1=CC=C2C(=C1)C(CC(C(=O)O)N)=CN2\" \"InChIKey=QIVBCDIJIAJPQS-VIFPVBQESA-N\"";
+  TEST_STRING_EQUAL(extracted_features[0].getMetaValue("spectral_library_comments"), comments)
+
+  TEST_STRING_EQUAL(extracted_features[5].getMetaValue("spectral_library_name"), "Uridine 5'-diphospho-N-acetylglucosamine")
+  TEST_REAL_SIMILAR(extracted_features[5].getMetaValue("spectral_library_score"), 0.884189)
+  comments = "\"accession=PR010241\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=607.08157\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1817.1\" \"retention time=477.898 sec\" \"derivative formula=C{17+3*n}H{27+8*n}N3O17P2Si{n}\" \"derivative mass=607.08157+72.03953*n\" \"derivatization type=n TMS\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OCC(O1)C(O)C(O)C(NC(C)=O)C1OP(O)(=O)OP(O)(=O)OCC(O2)C(O)C(O)C2N(C=3)C(=O)NC(=O)C3\" \"cas=91183-98-1\" \"InChI=InChI=1S/C17H27N3O17P2/c1-6(22)18-10-13(26)11(24)7(4-21)35-16(10)36-39(31,32)37-38(29,30)33-5-8-12(25)14(27)15(34-8)20-3-2-9(23)19-17(20)28/h2-3,7-8,10-16,21,24-27H,4-5H2,1H3,(H,18,22)(H,29,30)(H,31,32)(H,19,23,28)/t7-,8-,10-,11-,12-,13-,14-,15-,16-/m1/s1\" \"molecular formula=C17H27N3O17P2\" \"total exact mass=607.081569664\" \"SMILES=CC(=NC1C(C(C(CO)OC1OP(O)(=O)OP(O)(=O)OCC2C(C(C(N3C=CC(=NC3=O)O)O2)O)O)O)O)O\" \"InChIKey=LFTYTUAZOPRMMI-CFRASDGPSA-N\"";
+  TEST_STRING_EQUAL(extracted_features[5].getMetaValue("spectral_library_comments"), comments)
+
+  TEST_STRING_EQUAL(extracted_features[9].getMetaValue("spectral_library_name"), "(S)-(+)-2-(anilinomethyl)pyrrolidine")
+  TEST_REAL_SIMILAR(extracted_features[9].getMetaValue("spectral_library_score"), 0.820316)
+  comments = "\"accession=PR010220\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=176.13135\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1798.1\" \"retention time=473.542 sec\" \"derivative formula=C17H32N2Si2\" \"derivative mass=320.2104\" \"derivatization type=2 TMS\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=c(c2)ccc(c2)NCC(C1)NCC1\" \"cas=64030-44-0\" \"InChI=InChI=1S/C11H16N2/c1-2-5-10(6-3-1)13-9-11-7-4-8-12-11/h1-3,5-6,11-13H,4,7-9H2\" \"molecular formula=C11H16N2\" \"total exact mass=176.131348512\" \"SMILES=C1=CC=C(C=C1)NCC2CCCN2\" \"InChIKey=MCHWKJRTMPIHRA-UHFFFAOYSA-N\"";
+  TEST_STRING_EQUAL(extracted_features[9].getMetaValue("spectral_library_comments"), comments)
+}
+END_SECTION
+
+START_SECTION(void untargetedMatching(
+  const std::vector<MSSpectrum>& spectra,
+  Comparator& cmp,
+  FeatureMap& features
+))
+{
+  // MS Library offered by: MoNa - MassBank of North America
+  // Title: GC-MS Spectra
+  // http://mona.fiehnlab.ucdavis.edu/downloads
+  // https://creativecommons.org/licenses/by/4.0/legalcode
+  // Changes made: Only a very small subset of spectra is reproduced
+
+  const String msp_path = OPENMS_GET_TEST_DATA_PATH("MoNA-export-GC-MS_Spectra_reduced_TSE_matchSpectrum.msp");
+  const String gcms_fullscan_path = OPENMS_GET_TEST_DATA_PATH("TargetedSpectraExtractor_matchSpectrum_GCMS.mzML");
+  MzMLFile mzml;
+  MSExperiment gcms_experiment;
+  TargetedExperiment targeted_exp;
+  mzml.load(gcms_fullscan_path, gcms_experiment);
+  TargetedSpectraExtractor tse;
+  Param params = tse.getParameters();
+  params.setValue("top_matches_to_report", 2);
+  params.setValue("min_match_score", 0.51);
+  tse.setParameters(params);
+
+  TEST_EQUAL(gcms_experiment.getSpectra().size(), 11)
+
+  MSExperiment library;
+  MSPGenericFile mse(msp_path, library);
+
+  TEST_EQUAL(library.getSpectra().size(), 21)
+
+  TargetedSpectraExtractor::BinnedSpectrumComparator cmp;
+  std::map<String,DataValue> options = {
+    {"bin_size", 1.0},
+    {"peak_spread", 0.0},
+    {"bin_offset", 0.4}
+  };
+  cmp.init(library.getSpectra(), options);
+
+  FeatureMap features;
+  tse.untargetedMatching(gcms_experiment.getSpectra(), cmp, features);
+
+  TEST_STRING_EQUAL(features[0].getMetaValue("spectral_library_name"), "")
+  TEST_REAL_SIMILAR(features[0].getMetaValue("spectral_library_score"), 0.0)
+  TEST_STRING_EQUAL(features[0].getMetaValue("spectral_library_comments"), "")
+
+  TEST_STRING_EQUAL(features[1].getMetaValue("spectral_library_name"), "D-Glucose-6-phosphate")
+  TEST_REAL_SIMILAR(features[1].getMetaValue("spectral_library_score"), 0.691226)
+  String comments = "\"accession=PR010050\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=260.02972\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=2300.2\" \"retention time=538.069 sec\" \"derivative formula=C25H64NO9PSi6\" \"derivative mass=721.29343\" \"derivatization type=6 TMS; 1 MEOX\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O\" \"cas=54010-71-8\" \"InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1\" \"molecular formula=C6H13O9P\" \"total exact mass=260.029718626\" \"SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O\" \"InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N\"";
+  TEST_STRING_EQUAL(features[1].getMetaValue("spectral_library_comments"), comments)
+
+  TEST_STRING_EQUAL(features[6].getMetaValue("spectral_library_name"), "2,3-Pyridinedicarboxylic acid")
+  TEST_REAL_SIMILAR(features[6].getMetaValue("spectral_library_score"), 0.54155)
+  comments = "\"accession=PR010082\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=167.02186\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=1721.2\" \"retention time=422.998 sec\" \"derivative formula=C13H21NO4Si2\" \"derivative mass=311.10091\" \"derivatization type=2 TMS\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(=O)c(c1)c(ncc1)C(O)=O\" \"cas=89-00-9\" \"chebi=16675\" \"kegg=C03722\" \"pubchem=6487\" \"InChI=InChI=1S/C7H5NO4/c9-6(10)4-2-1-3-8-5(4)7(11)12/h1-3H,(H,9,10)(H,11,12)\" \"molecular formula=C7H5NO4\" \"total exact mass=167.02185764\" \"SMILES=C1=CC(=C(C(=O)O)N=C1)C(=O)O\" \"InChIKey=GJAWHXHKYYXBSV-UHFFFAOYSA-N\"";
+  TEST_STRING_EQUAL(features[6].getMetaValue("spectral_library_comments"), comments)
+
+  TEST_STRING_EQUAL(features[10].getMetaValue("spectral_library_name"), "D-Glucose-6-phosphate")
+  TEST_REAL_SIMILAR(features[10].getMetaValue("spectral_library_score"), 0.922175)
+  comments = "\"accession=PR010050\" \"author=Kusano M, Fukushima A, Plant Science Center, RIKEN.\" \"license=CC BY-SA\" \"exact mass=260.02972\" \"instrument=Pegasus III TOF-MS system, Leco; GC 6890, Agilent Technologies\" \"instrument type=GC-EI-TOF\" \"ms level=MS1\" \"retention index=2300.2\" \"retention time=538.069 sec\" \"derivative formula=C25H64NO9PSi6\" \"derivative mass=721.29343\" \"derivatization type=6 TMS; 1 MEOX\" \"ionization mode=positive\" \"compound class=Natural Product\" \"SMILES=OC(O1)[C@H](O)[C@@H](O)[C@H](O)[C@H]1COP(O)(O)=O\" \"cas=54010-71-8\" \"InChI=InChI=1S/C6H13O9P/c7-3-2(1-14-16(11,12)13)15-6(10)5(9)4(3)8/h2-10H,1H2,(H2,11,12,13)/t2-,3-,4+,5-,6?/m1/s1\" \"molecular formula=C6H13O9P\" \"total exact mass=260.029718626\" \"SMILES=C(C1C(C(C(C(O)O1)O)O)O)OP(O)(O)=O\" \"InChIKey=NBSCHQHZLSJFNQ-GASJEMHNSA-N\"";
+  TEST_STRING_EQUAL(features[10].getMetaValue("spectral_library_comments"), comments)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
