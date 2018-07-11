@@ -53,11 +53,12 @@ namespace OpenMS
   {
   }
 
-  void MzIdentMLFile::load(const String& filename, Identification& id)
-  {
-    Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
-    parse_(filename, &handler);
-  }
+  // This is broken
+  // void MzIdentMLFile::load(const String& filename, Identification& id)
+  // {
+  //   Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
+  //   parse_(filename, &handler);
+  // }
 
   void MzIdentMLFile::load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid)
   {
