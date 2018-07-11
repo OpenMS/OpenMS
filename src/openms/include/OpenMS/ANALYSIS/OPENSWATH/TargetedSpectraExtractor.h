@@ -41,7 +41,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <unordered_map>
 
 namespace OpenMS
 {
@@ -73,18 +72,6 @@ namespace OpenMS
 public:
     TargetedSpectraExtractor();
     virtual ~TargetedSpectraExtractor() = default;
-
-    // /// To test private and protected methods
-    // friend class TargetedSpectraExtractor_friend;
-
-    /** @name Constant expressions for parameters
-
-        Constants expressions used throughout the code and tests.
-    */
-    ///@{
-    /// Similarity function: binned spectral contrast angle
-    static constexpr const char* BINNED_SPECTRAL_CONTRAST_ANGLE = "BinnedSpectralContrastAngle";
-    ///@}
 
     /**
       Structure for a match against a spectral library
@@ -362,8 +349,8 @@ public:
       match the input spectrum.
 
       @param[in] input_spectrum The input spectrum for which a match is desired
-      @param[in] library The library with spectra information
-      @param[out] matches A vector of `Match`es, containing the matched spectrum and its score
+      @param[in] cmp The comparator object containing the library and the logic for matching
+      @param[out] matches A vector of `Match`es, containing the matched spectra and their scores
     */
     void matchSpectrum(
       const MSSpectrum& input_spectrum,
@@ -436,9 +423,6 @@ private:
     */
     bool use_gauss_;
 
-    /// Similarity function to compare spectra in `matchSpectrum()`
-    String similarity_function_;
-
     /**
       The number of matches to output from `matchSpectrum()`.
       These will be the matches of highest scores, sorted in descending order.
@@ -447,37 +431,5 @@ private:
 
     /// Minimum score for a match to be considered valid in `matchSpectrum()`.
     double min_match_score_;
-
-    // /**
-    //   In-memory representation of the spectra library for comparisons
-    //   Used by `matchSpectrum()`, keeping this info in memory avoids creating the
-    //   `BinnedSpectrum` elements multiple times for the same spectra.
-    // */
-    // std::unordered_map<std::string,BinnedSpectrum> bs_cache_;
-
-    // /**
-    //   Lookup for a `BinnedSpectrum` representation of the input spectrum.
-
-    //   If such representation is not found, it is constructed, added and returned.
-
-    //   @param[in] s The spectrum for which a `BinnedSpectrum` representation is desired
-
-    //   @return A reference to the found `BinnedSpectrum` representation
-    // */
-    // const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s);
   };
-
-//   class TargetedSpectraExtractor_friend
-//   {
-// public:
-//     TargetedSpectraExtractor_friend() = default;
-//     ~TargetedSpectraExtractor_friend() = default;
-
-//     // const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s)
-//     // {
-//     //   return tse_.extractBinnedSpectrum(s);
-//     // }
-
-//     TargetedSpectraExtractor tse_;
-//   };
 }

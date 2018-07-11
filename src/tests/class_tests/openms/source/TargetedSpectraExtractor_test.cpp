@@ -149,11 +149,7 @@ START_SECTION(const Param& getParameters() const)
   TEST_EQUAL(params.getValue("tic_weight"), 1.0)
   TEST_EQUAL(params.getValue("fwhm_weight"), 1.0)
   TEST_EQUAL(params.getValue("snr_weight"), 1.0)
-  TEST_EQUAL(params.getValue("similarity_function"), "BinnedSpectralContrastAngle")
   TEST_EQUAL(params.getValue("top_matches_to_report"), 5)
-  // TEST_EQUAL(params.getValue("bin_size"), 1.0)
-  // TEST_EQUAL(params.getValue("peak_spread"), 0.0)
-  // TEST_EQUAL(params.getValue("bin_offset"), 0.4)
   TEST_EQUAL(params.getValue("min_match_score"), 0.8)
 }
 END_SECTION
@@ -174,11 +170,7 @@ START_SECTION(void getDefaultParameters(Param& params) const)
   TEST_EQUAL(params.getValue("tic_weight"), 1.0)
   TEST_EQUAL(params.getValue("fwhm_weight"), 1.0)
   TEST_EQUAL(params.getValue("snr_weight"), 1.0)
-  TEST_EQUAL(params.getValue("similarity_function"), "BinnedSpectralContrastAngle")
   TEST_EQUAL(params.getValue("top_matches_to_report"), 5)
-  // TEST_EQUAL(params.getValue("bin_size"), 1.0)
-  // TEST_EQUAL(params.getValue("peak_spread"), 0.0)
-  // TEST_EQUAL(params.getValue("bin_offset"), 0.4)
   TEST_EQUAL(params.getValue("min_match_score"), 0.8)
 }
 END_SECTION
@@ -837,29 +829,6 @@ START_SECTION(void matchSpectrum(
   TEST_EQUAL(matches[0].score >= matches[1].score, true)
 }
 END_SECTION
-
-// START_SECTION(const BinnedSpectrum& extractBinnedSpectrum(const MSSpectrum& s))
-// {
-//   TargetedSpectraExtractor_friend tse_f;
-
-//   // default settings
-//   const BinnedSpectrum& bs1 = tse_f.extractBinnedSpectrum(spectrum);
-
-//   // changing bin size, we expect a different `BinnedSpectrum` than what was
-//   // returned for `bs1`
-//   Param params = tse_f.tse_.getParameters();
-//   params.setValue("bin_size", 0.5);
-//   tse_f.tse_.setParameters(params);
-//   const BinnedSpectrum& bs2 = tse_f.extractBinnedSpectrum(spectrum);
-//   TEST_EQUAL(bs1 != bs2, true)
-
-//   // loading default settings, `bs3` is expected to be the same as `bs1`
-//   tse_f.tse_.getDefaultParameters(params);
-//   tse_f.tse_.setParameters(params);
-//   const BinnedSpectrum& bs3 = tse_f.extractBinnedSpectrum(spectrum);
-//   TEST_EQUAL(bs1 == bs3, true)
-// }
-// END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

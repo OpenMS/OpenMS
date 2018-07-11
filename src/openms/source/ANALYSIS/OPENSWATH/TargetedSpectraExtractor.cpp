@@ -74,11 +74,7 @@ namespace OpenMS
     tic_weight_ = (double)param_.getValue("tic_weight");
     fwhm_weight_ = (double)param_.getValue("fwhm_weight");
     snr_weight_ = (double)param_.getValue("snr_weight");
-    similarity_function_ = (String)param_.getValue("similarity_function");
     top_matches_to_report_ = (Size)param_.getValue("top_matches_to_report");
-    // bin_size_ = (double)param_.getValue("bin_size");
-    // peak_spread_ = (double)param_.getValue("peak_spread");
-    // bin_offset_ = (double)param_.getValue("bin_offset");
     min_match_score_ = (double)param_.getValue("min_match_score");
   }
 
@@ -137,41 +133,12 @@ namespace OpenMS
     params.setMinFloat("snr_weight", 0.0);
 
     params.setValue(
-      "similarity_function",
-      BINNED_SPECTRAL_CONTRAST_ANGLE,
-      "Similarity function to use when comparing the input spectrum against "
-      "spectra present in a library."
-    );
-    params.setValidStrings("similarity_function", ListUtils::create<String>(BINNED_SPECTRAL_CONTRAST_ANGLE));
-
-    params.setValue(
       "top_matches_to_report",
       5,
       "The number of matches to output from `matchSpectrum()`. "
       "These will be the matches of highest scores, sorted in descending order."
     );
     params.setMinInt("top_matches_to_report", 1);
-
-    // params.setValue(
-    //   "bin_size",
-    //   1.0,
-    //   "Bin size for binned spectral contrast angle similarity function."
-    // );
-    // params.setMinFloat("bin_size", 0.0); // TODO: specify a better minimum?
-
-    // params.setValue(
-    //   "peak_spread",
-    //   0.0,
-    //   "Peak spread for binned spectral contrast angle similarity function."
-    // );
-    // params.setMinFloat("peak_spread", 0.0);
-
-    // params.setValue(
-    //   "bin_offset",
-    //   0.4,
-    //   "Bin offset for binned spectral contrast angle similarity function."
-    // );
-    // params.setMinFloat("bin_offset", 0.0);
 
     params.setValue(
       "min_match_score",
@@ -522,80 +489,6 @@ namespace OpenMS
     const bool compute_features { false };
     extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features, compute_features);
   }
-
-  // void TargetedSpectraExtractor::matchSpectrum(
-  //   const MSSpectrum& input_spectrum,
-  //   const MSExperiment& library,
-  //   std::vector<Match>& matches
-  // )
-  // {
-  //   // TODO: remove times debug info
-  //   // std::clock_t start;
-  //   // start = std::clock();
-  //   matches.clear();
-  //   std::vector<std::pair<std::string,double>> scores_vec;
-
-  //   // Spectral Contrast Angle comparison initialization
-  //   BinnedSpectralContrastAngle cmp_bs;
-  //   const BinnedSpectrum input_spectrum_bs(input_spectrum, bin_size_, false, peak_spread_, bin_offset_);
-  //   // Other comparison techniques would follow here
-
-  //   for (const MSSpectrum& s : library.getSpectra())
-  //   {
-  //     if (similarity_function_ == BINNED_SPECTRAL_CONTRAST_ANGLE)
-  //     {
-  //       const double score = cmp_bs(input_spectrum_bs, extractBinnedSpectrum(s));
-  //       if (score >= min_match_score_)
-  //       {
-  //         scores_vec.emplace_back(s.getName(), score);
-  //       }
-  //     }
-  //   }
-
-  //   // Sort the vector of scores
-  //   std::sort(scores_vec.begin(), scores_vec.end(),
-  //     [](const std::pair<std::string,double>& a, const std::pair<std::string,double>& b)
-  //     {
-  //       return a.second > b.second;
-  //     });
-
-  //   // Set the number of best matches to return
-  //   const Size n = std::min(top_matches_to_report_, scores_vec.size());
-
-  //   // Construct a vector of n `Match`es
-  //   for (Size i = 0; i < n; ++i)
-  //   {
-  //     std::vector<MSSpectrum>::const_iterator it = std::find_if(
-  //       library.getSpectra().cbegin(),
-  //       library.getSpectra().cend(),
-  //       [&scores_vec, i](const MSSpectrum& s)
-  //       {
-  //         return scores_vec[i].first == s.getName();
-  //       });
-  //     matches.emplace_back(*it, scores_vec[i].second);
-  //   }
-
-  //   // std::cout << "MATCH TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
-  // }
-
-  // const BinnedSpectrum& TargetedSpectraExtractor::extractBinnedSpectrum(const MSSpectrum& s)
-  // {
-  //   /*
-  //     If the user changes settings for bin size, peak spread or bin offset, the
-  //     correct `BinnedSpectrum` should be returned.
-  //     Therefore, as a unique name (to be used as a key in `bs_cache_`) we chose
-  //     a combination of the spectrum name plus said settings' values.
-  //   */
-  //   const String bs_key = s.getName() + String(bin_size_) + String(peak_spread_) + String(bin_offset_);
-  //   std::unordered_map<std::string,BinnedSpectrum>::const_iterator it = bs_cache_.find(bs_key);
-  //   if (it == bs_cache_.cend())
-  //   {
-  //     std::pair<std::unordered_map<std::string,BinnedSpectrum>::const_iterator,bool>
-  //       p = bs_cache_.emplace(bs_key, BinnedSpectrum(s, bin_size_, false, peak_spread_, bin_offset_));
-  //     it = p.first;
-  //   }
-  //   return it->second;
-  // }
 
   void TargetedSpectraExtractor::matchSpectrum(
     const MSSpectrum& input_spectrum,
