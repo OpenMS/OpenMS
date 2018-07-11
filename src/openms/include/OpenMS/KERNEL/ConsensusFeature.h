@@ -50,7 +50,12 @@ namespace OpenMS
   class Peak2D;
 
   /**
-    @brief A 2-dimensional consensus feature.
+    @brief A consensus feature spanning multiple LC-MS/MS experiments.
+
+    A ConsensusFeature represents analytes that have been
+    quantified across multiple LC-MS/MS experiments. Each analyte in a
+    ConsensusFeature is linked to its original LC-MS/MS run through a
+    unique identifier.
 
     A consensus feature represents corresponding features in multiple feature
     maps. The corresponding features are represented a set of @ref
