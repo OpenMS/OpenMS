@@ -1224,6 +1224,7 @@ protected:
           // reannotate much more memory heavy AASequence object
           AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
           ph.setScore(ah.score);
+          ph.setMetaValue(String("RNPxl:total_loss_score"), ph.getScore()); // important for Percolator feature set
 
           // determine RNA modification from index in map
           std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
@@ -1288,10 +1289,15 @@ protected:
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("peptide:enzyme"));
-         
-     StringList feature_set; 
 
-     feature_set 
+    /* default features added in PercolatorAdapter:
+     * SpecId, ScanNr, ExpMass, CalcMass, mass, 
+     * peplen, charge#min..#max, enzN, enzC, enzInt, dm, absdm
+     */     
+    StringList feature_set;
+    feature_set
+       << "isotope_error"
+       << "RNPxl:total_loss_score"
        << "RNPxl:immonium_score"
        << "RNPxl:precursor_score"
        << "RNPxl:a_ion_score"
@@ -1304,11 +1310,10 @@ protected:
        << "RNPxl:pl_err"
        << "RNPxl:pl_Morph"
        << "RNPxl:total_MIC"
-       << "RNPxl:RNA_MASS_z0"
-       << "isotope_error";
-     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
-     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+       << "RNPxl:RNA_MASS_z0";
 
+    search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
 
     protein_ids[0].setSearchParameters(search_parameters);
   }
@@ -2135,6 +2140,9 @@ protected:
     indexer.setParameters(param_pi);
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
+
+    // write ProteinIdentifications and PeptideIdentifications to IdXML
+    IdXMLFile().store(out_idxml + "_debug.idXML", protein_ids, peptide_ids);
 
     if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
