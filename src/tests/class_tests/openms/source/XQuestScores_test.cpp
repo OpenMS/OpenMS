@@ -62,8 +62,11 @@ specGen.getLinearIonSpectrum(theo_spec_3, peptide3, 5, true, 2);
 std::vector <std::pair <Size, Size> > alignment1;
 std::vector <std::pair <Size, Size> > alignment2;
 
-OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment1, 20, true, theo_spec_1, theo_spec_2, theo_spec_1.getIntegerDataArrays()[0], theo_spec_2.getIntegerDataArrays()[0]);
-OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment2, 20, true, theo_spec_1, theo_spec_3, theo_spec_1.getIntegerDataArrays()[0], theo_spec_3.getIntegerDataArrays()[0]);
+DataArrays::FloatDataArray dummy_array1;
+DataArrays::FloatDataArray dummy_array2;
+
+OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment1, 20, true, theo_spec_1, theo_spec_2, theo_spec_1.getIntegerDataArrays()[0], theo_spec_2.getIntegerDataArrays()[0], dummy_array1);
+OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment2, 20, true, theo_spec_1, theo_spec_3, theo_spec_1.getIntegerDataArrays()[0], theo_spec_3.getIntegerDataArrays()[0], dummy_array2);
 
 START_SECTION(static float preScore(Size matched_alpha, Size ions_alpha, Size matched_beta, Size ions_beta))
 	TEST_REAL_SIMILAR(XQuestScores::preScore(1, 1, 1, 1), 1.0)
