@@ -289,6 +289,104 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeakAnnotations()[25].annotation, "[alpha|xi$y8]")
 
 END_SECTION
+
+START_SECTION([EXTRA] no data loss)
+{
+  // Create new protein identification object corresponding to a single search
+  vector<ProteinIdentification> protein_ids;
+  ProteinIdentification protein_id;
+
+  protein_id.setIdentifier("Identifier");
+
+  // Each ProteinIdentification object stores a vector of protein hits
+  vector<ProteinHit> protein_hits;
+  ProteinHit protein_hit = ProteinHit();
+  protein_hit.setAccession("MyAccession");
+  protein_hit.setSequence("PEPTIDEPEPTIDEPEPTIDEPEPTIDER");
+  protein_hit.setScore(1.0);
+  protein_hits.push_back(protein_hit);
+
+  protein_id.setHits(protein_hits);
+
+  DateTime now = DateTime::now();
+  String date_string = now.getDate();
+  protein_id.setDateTime(now);
+
+  // Example of possible search parameters
+  ProteinIdentification::SearchParameters search_parameters;
+  search_parameters.db = "database";
+  search_parameters.charges = "+2";
+  protein_id.setSearchParameters(search_parameters);
+
+  // Some search engine meta data
+  protein_id.setSearchEngineVersion("v1.0.0");
+  protein_id.setSearchEngine("SearchEngine");
+  protein_id.setScoreType("HyperScore");
+
+  protein_ids.push_back(protein_id);
+
+  // Create new peptide identifications
+  vector<PeptideIdentification> peptide_ids;
+  PeptideIdentification peptide_id;
+
+  peptide_id.setRT(1243.56);
+  peptide_id.setMZ(440.0);
+  peptide_id.setScoreType("ScoreType");
+  peptide_id.setHigherScoreBetter(false);
+  peptide_id.setIdentifier("Identifier");
+
+  // define additional meta value for the peptide identification
+  peptide_id.setMetaValue("AdditionalMetaValue", "Value");
+
+  // add PeptideHit to a PeptideIdentification
+  vector<PeptideHit> peptide_hits;
+  PeptideHit peptide_hit;
+  peptide_hit.setScore(1.0);
+  peptide_hit.setRank(1);
+  peptide_hit.setCharge(2);
+  peptide_hit.setSequence(AASequence::fromString("DLQM(Oxidation)TQSPSSLSVSVGDR"));
+  peptide_hits.push_back(peptide_hit);
+
+  // add second best PeptideHit to the PeptideIdentification
+  peptide_hit.setScore(1.5);
+  peptide_hit.setRank(2);
+  peptide_hit.setCharge(2);
+  peptide_hit.setSequence(AASequence::fromString("QLDM(Oxidation)TQSPSSLSVSVGDR"));
+  peptide_hits.push_back(peptide_hit);
+
+  // add PeptideHit to PeptideIdentification
+  peptide_id.setHits(peptide_hits);
+
+  // add PeptideIdentification
+  peptide_ids.push_back(peptide_id);
+
+  String actual_file;
+  NEW_TMP_FILE(actual_file)
+
+  // We could now store the identification data in an idXML file
+  IdXMLFile().store(actual_file, protein_ids, peptide_ids);
+  // And load it back with
+  IdXMLFile().load(actual_file, protein_ids, peptide_ids);
+
+  TEST_EQUAL(peptide_ids.size(), 1)
+  TEST_EQUAL(peptide_ids[0].getHits().size(), 2)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getRank(), 1)
+  TEST_EQUAL(peptide_ids[0].getHits()[1].getRank(), 2)
+
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(), 2)
+  TEST_EQUAL(peptide_ids[0].getHits()[1].getCharge(), 2)
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence() == AASequence::fromString("DLQM(Oxidation)TQSPSSLSVSVGDR"), true)
+  TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence() == AASequence::fromString("QLDM(Oxidation)TQSPSSLSVSVGDR"), true)
+
+  TEST_EQUAL(peptide_ids[0].metaValueExists("AdditionalMetaValue"), true)
+
+  TEST_EQUAL(protein_ids.size(), 1)
+  TEST_EQUAL(protein_ids[0].getSearchParameters().db, "database")
+  TEST_EQUAL(protein_ids[0].getSearchParameters().charges, "+2")
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
