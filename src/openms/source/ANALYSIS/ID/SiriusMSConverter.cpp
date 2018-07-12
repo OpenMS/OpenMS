@@ -33,14 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/SiriusMSConverter.h>
+#include <cstdint>
+#include <fstream>
+#include <QDir>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <cstdint>
-
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <fstream>
-
-#include <QDir>
 
 using namespace OpenMS;
 using namespace std;
@@ -382,7 +380,7 @@ namespace OpenMS
 
     StringList adducts;
     uint64_t feature_id;
-    int feature_charge = 0;
+    int feature_charge;
     vector<pair<double, double>> f_isotopes;
     f_isotopes.clear();
 
@@ -397,7 +395,6 @@ namespace OpenMS
         const vector<size_t> feature_associated_ms2 = it->second;
 
         // reset feature information with each iteration
-        feature_charge = 0;
         f_isotopes.clear();
         adducts.clear();
 

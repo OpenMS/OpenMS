@@ -259,11 +259,10 @@ protected:
     KDTreeFeatureMaps fp_map_kd;
     vector<FeatureMap> v_fp;
 
-    std::ifstream afile(featureinfo);
-    if (afile)
+    // if fileparameter is given, file should exists and should be not empty
+    if (featureinfo != "" && File::exists(featureinfo) && !File::empty(featureinfo))
     {
       // read featureXML
-      // TODO: add warning if file could not be openend
       FeatureXMLFile fxml;
       fxml.load(featureinfo, feature_map);
 
@@ -281,6 +280,10 @@ protected:
 
       // mapping of MS2 spectra to features
       feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra, fp_map_kd, precursor_mz_tol, precursor_rt_tol, ppm_prec);
+    }
+    else
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: FeatureXML was empty, please provide a valid file.");
     }
 
     // write msfile

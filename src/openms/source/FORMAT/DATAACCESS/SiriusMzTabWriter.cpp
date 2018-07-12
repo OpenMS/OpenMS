@@ -93,7 +93,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         bool found = boost::regex_search(str, match, regexp_feature);
         if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
         // results from scan were not assigned to a feautre
-        if (feature_id == "id_0"){feature_id = "null";}
+        if (feature_id == "id_0") {feature_id = "null";}
 
         for (Size j = 1; j < top_n_hits_cor; ++j)
 
