@@ -43,6 +43,9 @@
 #include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
+// Helpers
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+
 #include <boost/range/adaptor/map.hpp>
 #include <boost/foreach.hpp>
 
@@ -220,6 +223,16 @@ namespace OpenMS
     // Step 3
     //
     // Go through all transition groups: first create consensus features, then score them
+
+    MRMTransitionGroupPicker trgroup_picker;
+    Param trgroup_picker_param = param_.copy("TransitionGroupPicker:", true);
+    // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score
+    if (su_.use_total_mi_score_)
+    {
+      trgroup_picker_param.setValue("compute_total_mi", "true");
+    }
+    trgroup_picker.setParameters(trgroup_picker_param);
+
     Size progress = 0;
     startProgress(0, transition_group_map.size(), "picking peaks");
     for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
@@ -232,16 +245,6 @@ namespace OpenMS
         continue;
       }
 
-      MRMTransitionGroupPicker trgroup_picker;
-      Param trgroup_picker_param = param_.copy("TransitionGroupPicker:", true);
-
-      // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score
-      if (su_.use_total_mi_score_)
-      {
-        trgroup_picker_param.setValue("compute_total_mi", "true");
-      }
-
-      trgroup_picker.setParameters(trgroup_picker_param);
       trgroup_picker.pickTransitionGroup(transition_group);
       scorePeakgroups(trgroup_it->second, trafo, swath_maps, output);
     }
@@ -259,7 +262,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection)
+  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection)
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> detecting_transitions;
@@ -281,7 +284,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy)
+  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy)
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> identifying_transitions, identifying_transitions_decoy;
@@ -313,7 +316,7 @@ namespace OpenMS
                                                                  const double det_intensity_ratio_score,
                                                                  const double det_mi_ratio_score,
                                                                  bool write_log_messages,
-                                                                 std::vector<OpenSwath::SwathMap> swath_maps)
+                                                                 const std::vector<OpenSwath::SwathMap>& swath_maps)
   {
     MRMFeature idmrmfeature = trgr_ident.getFeaturesMuteable()[feature_idx];
     OpenSwath::IMRMFeature* idimrmfeature;
@@ -448,8 +451,8 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
-                                                TransformationDescription& trafo, 
-                                                std::vector<OpenSwath::SwathMap> swath_maps,
+                                                const TransformationDescription& trafo, 
+                                                const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                 FeatureMap& output, 
                                                 bool ms1only)
   {
@@ -627,7 +630,10 @@ namespace OpenMS
         {
           // try to identify the correct precursor native id
           String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
-          if (precursor_chrom_id.hasSuffix("_Precursor_i0")) {precursor_id = precursor_chrom_id;}
+          if (OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0) == precursor_chrom_id)
+          {
+            precursor_id = precursor_chrom_id;
+          }
         }
 
         OpenSwath_Scores scores;
@@ -954,6 +960,8 @@ namespace OpenMS
       if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break;}
       output.push_back(feature_list[i]);
     }
+
+    // store all data manipulation performed on the features of the transition group
     transition_group = transition_group_detection;
   }
 

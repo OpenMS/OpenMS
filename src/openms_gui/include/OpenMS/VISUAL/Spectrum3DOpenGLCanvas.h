@@ -38,7 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions>
+#include <QOpenGLFunctions_2_0>
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -57,7 +57,7 @@ namespace OpenMS
 
   class OPENMS_GUI_DLLAPI Spectrum3DOpenGLCanvas :
     public QOpenGLWidget, 
-    protected QOpenGLFunctions
+    protected QOpenGLFunctions_2_0
   {
     Q_OBJECT
 
@@ -96,6 +96,10 @@ public:
     void mousePressEvent(QMouseEvent * e) override;
     void focusOutEvent(QFocusEvent * e) override;
     //@}
+
+    void setXLabel(const QString& l) { x_label_ = l; }
+    void setYLabel(const QString& l) { y_label_ = l; }
+    void setZLabel(const QString& l) { z_label_ = l; }
     
     /// updates the min and max values of the intensity
     void updateIntensityScale();
@@ -227,6 +231,10 @@ protected:
     double trans_x_;
     /// y_translation
     double trans_y_;
+
+    QString x_label_;
+    QString y_label_;
+    QString z_label_;
 
 protected slots:
     /// Slot that reacts on action mode changes

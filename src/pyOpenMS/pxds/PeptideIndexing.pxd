@@ -23,7 +23,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS::Pep
         EXECUTION_OK
         DATABASE_EMPTY
         PEPTIDE_IDS_EMPTY
-        DATABASE_CONTAINS_MULTIPLES
         ILLEGAL_PARAMETERS
         UNEXPECTED_RESULT
 

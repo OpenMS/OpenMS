@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>485</width>
-    <height>220</height>
+    <width>570</width>
+    <height>224</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -55,7 +55,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>new window                                </string>
+           <string>&amp;new window                                </string>
           </property>
           <property name="checked">
            <bool>false</bool>
@@ -68,7 +68,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>new layer                                    </string>
+           <string>new &amp;layer                                    </string>
           </property>
          </widget>
         </item>
@@ -81,7 +81,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>merge into layer                           </string>
+           <string>&amp;merge into layer                           </string>
           </property>
          </widget>
         </item>
@@ -119,7 +119,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>1D            </string>
+           <string>&amp;1D            </string>
           </property>
          </widget>
         </item>
@@ -129,7 +129,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>2D            </string>
+           <string>&amp;2D            </string>
           </property>
           <property name="checked">
            <bool>false</bool>
@@ -142,7 +142,7 @@
            <bool>false</bool>
           </property>
           <property name="text">
-           <string>3D            </string>
+           <string>&amp;3D            </string>
           </property>
          </widget>
         </item>
@@ -165,32 +165,20 @@
      <item>
       <widget class="QGroupBox" name="groupBox_3">
        <property name="title">
-        <string>Low intensity cutoff</string>
+        <string>Display Option</string>
        </property>
        <layout class="QVBoxLayout">
         <item>
-         <widget class="QRadioButton" name="cutoff_">
-          <property name="mouseTracking">
-           <bool>false</bool>
-          </property>
+         <widget class="QCheckBox" name="dia_data_">
           <property name="text">
-           <string>on                    </string>
+           <string>DIA / SWATH data</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QRadioButton" name="nocutoff_">
-          <property name="enabled">
-           <bool>true</bool>
-          </property>
-          <property name="mouseTracking">
-           <bool>false</bool>
-          </property>
+         <widget class="QCheckBox" name="intensity_cutoff_">
           <property name="text">
-           <string>off                    </string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
+           <string>Low intensity cutoff</string>
           </property>
          </widget>
         </item>
@@ -282,8 +270,6 @@
   <tabstop>layer_</tabstop>
   <tabstop>d2_</tabstop>
   <tabstop>d3_</tabstop>
-  <tabstop>nocutoff_</tabstop>
-  <tabstop>cutoff_</tabstop>
   <tabstop>cancel_</tabstop>
   <tabstop>ok_</tabstop>
  </tabstops>

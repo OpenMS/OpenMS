@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////local/projects/openms/feature_tmt11plex/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/sachsenb/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" id="cm_13440783915218733453" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="int" name="isoquant:scans_noquant" value="0"/>
 	<UserParam type="int" name="isoquant:scans_total" value="6"/>
@@ -14,74 +14,73 @@
 	<UserParam type="int" name="isoquant:quantifyable_ch130C" value="4"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch131N" value="3"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch131C" value="0"/>
-	<UserParam type="stringList" name="spectra_data" value="[file:///QExactiveHF02_03913.raw]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="IsobaricAnalyzer" version="version_string" />
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<mapList count="11">
-		<map id="0" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_126" size="6">
+		<map id="0" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_126" size="6">
 			<UserParam type="string" name="channel_name" value="126"/>
 			<UserParam type="int" name="channel_id" value="0"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="126.127726"/>
 		</map>
-		<map id="1" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_127N" size="6">
+		<map id="1" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_127N" size="6">
 			<UserParam type="string" name="channel_name" value="127N"/>
 			<UserParam type="int" name="channel_id" value="1"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="127.124761"/>
 		</map>
-		<map id="2" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_127C" size="6">
+		<map id="2" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_127C" size="6">
 			<UserParam type="string" name="channel_name" value="127C"/>
 			<UserParam type="int" name="channel_id" value="2"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="127.131081"/>
 		</map>
-		<map id="3" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_128N" size="6">
+		<map id="3" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_128N" size="6">
 			<UserParam type="string" name="channel_name" value="128N"/>
 			<UserParam type="int" name="channel_id" value="3"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="128.128116"/>
 		</map>
-		<map id="4" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_128C" size="6">
+		<map id="4" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_128C" size="6">
 			<UserParam type="string" name="channel_name" value="128C"/>
 			<UserParam type="int" name="channel_id" value="4"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="128.134436"/>
 		</map>
-		<map id="5" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_129N" size="6">
+		<map id="5" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_129N" size="6">
 			<UserParam type="string" name="channel_name" value="129N"/>
 			<UserParam type="int" name="channel_id" value="5"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="129.131471"/>
 		</map>
-		<map id="6" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_129C" size="6">
+		<map id="6" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_129C" size="6">
 			<UserParam type="string" name="channel_name" value="129C"/>
 			<UserParam type="int" name="channel_id" value="6"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="129.13779"/>
 		</map>
-		<map id="7" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_130N" size="6">
+		<map id="7" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_130N" size="6">
 			<UserParam type="string" name="channel_name" value="130N"/>
 			<UserParam type="int" name="channel_id" value="7"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="130.134825"/>
 		</map>
-		<map id="8" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_130C" size="6">
+		<map id="8" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_130C" size="6">
 			<UserParam type="string" name="channel_name" value="130C"/>
 			<UserParam type="int" name="channel_id" value="8"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="130.141145"/>
 		</map>
-		<map id="9" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_131N" size="6">
+		<map id="9" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_131N" size="6">
 			<UserParam type="string" name="channel_name" value="131N"/>
 			<UserParam type="int" name="channel_id" value="9"/>
 			<UserParam type="string" name="channel_description" value=""/>
 			<UserParam type="float" name="channel_center" value="131.13818"/>
 		</map>
-		<map id="10" name="TMTTenPlexMethod_test.mzML" label="tmt11plex_131C" size="6">
+		<map id="10" name="/home/sachsenb/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML" label="tmt11plex_131C" size="6">
 			<UserParam type="string" name="channel_name" value="131C"/>
 			<UserParam type="int" name="channel_id" value="10"/>
 			<UserParam type="string" name="channel_description" value=""/>

@@ -60,14 +60,18 @@ public:
     SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
     ~SpectraIdentificationViewWidget() override;
-    /// Attach model
-    void attachLayer(LayerData* model);
+
+    /// set / get layer data
+    void setLayer(LayerData* model);
+
+    LayerData* getLayer();
+
     /// Helper function to block outgoing signals
     bool ignore_update;
 
     /// Access the table widget
     QTableWidget* getTableWidget();
-public slots:
+protected slots:
     /// Rebuild table entries
     void updateEntries();
 signals:

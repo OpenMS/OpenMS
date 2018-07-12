@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
     cdef cppclass RNPxlReportRowHeader "OpenMS::RNPxlReportRowHeader":
         RNPxlReportRowHeader(RNPxlReportRowHeader) nogil except + #wrap-ignore
-        String getString(String & separator) nogil except +
+        String getString(const String & separator) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
     
@@ -47,6 +47,5 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>" namespace "OpenMS":
         double m_2H
         double m_3H
         double m_4H
-        String fragment_annotation_string
-        String getString(String & separator) nogil except +
+        String getString(const String & separator) nogil except +
 

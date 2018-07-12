@@ -71,7 +71,10 @@
 
 				Misc:
 				<UL>
-				  <LI> <a class="el" href="http://www.OpenMS.de/support/bugs" target="_blank">Support</a>
+				  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki#contact" target="_blank">Support</a>
+				  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS" target="_blank">Github</a>
+				  <LI> <a class="el" href="https://gitter.im/OpenMS/OpenMS" target="_blank">Gitter chat</a>
+				  <LI> <a class="el" href="https://sourceforge.net/projects/open-ms/lists/open-ms-general" target="_blank">Mailing List</a>
 					<LI> @subpage FAQ
 					<LI> @subpage ChangeLog
 				</UL>
@@ -91,13 +94,12 @@
 				<UL>
                                   <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions" target="_blank">Coding conventions (online)</a>
                                   <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Developer-FAQ" target="_blank">Developer FAQ (online)</a>
-                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/C&%2343;&%2343;-Guide" target="_blank">CPP Guide (online)</a>
+                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Cpp-Guide" target="_blank">CPP Guide (online)</a>
 				</UL>
 
 				Documentation:
 				<UL>
 				  <LI> @subpage OpenMS_tutorial
-				  <LI> @subpage pyOpenMS
 					<LI> @subpage external_code
 				</UL>
 

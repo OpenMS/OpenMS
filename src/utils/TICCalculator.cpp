@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
@@ -334,10 +335,8 @@ protected:
 
       MzMLFile f;
       f.setLogType(log_type_);
-      CachedmzML cacher;
-      cacher.setLogType(log_type_);
 
-      CachedmzML cache;
+      Internal::CachedMzMLHandler cache;
       cache.createMemdumpIndex(in);
       const std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
 
@@ -354,7 +353,7 @@ protected:
         int ms_level = -1;
         double rt = -1.0;
         ifs_.seekg(spectra_index[i]);
-        CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+        Internal::CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
         nr_peaks += intensity_array->data.size();
         for (Size j = 0; j < intensity_array->data.size(); j++)
@@ -387,10 +386,8 @@ protected:
 
       MzMLFile f;
       f.setLogType(log_type_);
-      CachedmzML cacher;
-      cacher.setLogType(log_type_);
 
-      CachedmzML cache;
+      Internal::CachedMzMLHandler cache;
       cache.createMemdumpIndex(in);
       const std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
 
@@ -409,7 +406,7 @@ protected:
         double rt = -1.0;
         // we only change the position of the thread-local filestream
         filestream.getStream().seekg(spectra_index[i]);
-        CachedmzML::readSpectrumFast(mz_array, intensity_array, filestream.getStream(), ms_level, rt);
+        Internal::CachedMzMLHandler::readSpectrumFast(mz_array, intensity_array, filestream.getStream(), ms_level, rt);
 
         double nr_peaks_l = intensity_array->data.size();
         double TIC_l = std::accumulate(intensity_array->data.begin(), intensity_array->data.end(), 0.0);

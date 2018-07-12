@@ -48,7 +48,7 @@
 \begin{titlepage}
 \vspace*{7cm}
 \begin{center}
-{\Large OpenMS Tutorial\\[1ex]\large Version: 2.3.0 }\\
+{\Large OpenMS Tutorial\\[1ex]\large Version: @CF_OPENMS_PACKAGE_VERSION_FULLSTRING@ }\\
 \end{center}
 \end{titlepage}
 

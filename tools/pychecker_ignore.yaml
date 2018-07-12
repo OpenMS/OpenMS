@@ -1441,6 +1441,7 @@ PyOpenMSChecker:
     - OpenMS::BaseModel
     - OpenMS::BaseSuperimposer
     - OpenMS::TOPPBase
+    - OpenMS::Citation
     - OpenMS::TraceFitter
 
     # Abstract Base classes

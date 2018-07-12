@@ -204,16 +204,6 @@ public:
   {
   }
 
-  ~TOPPMSFraggerAdapter()
-  {
-    // Remove the temp working directory if the debug level is smaller than 2
-    // and the working directory has been created
-    if (this->debug_level_ < 2 && this->working_directory != "")
-    {
-      File::removeDir(this->working_directory);
-    }
-  }
-
 
 protected:
   void registerOptionsAndFlags_() final override
@@ -533,7 +523,7 @@ protected:
       const double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      this->working_directory = this->makeTempDirectory_().toQString();
+      QString working_directory = this->makeAutoRemoveTempDirectory_().toQString();
       const QFileInfo tmp_param_file(this->working_directory, "fragger.params");
       this->parameter_file_path =  String(tmp_param_file.absoluteFilePath());
 

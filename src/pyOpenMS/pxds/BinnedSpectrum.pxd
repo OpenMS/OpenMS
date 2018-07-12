@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>" namespace "OpenM
     cdef cppclass BinnedSpectrum:
         BinnedSpectrum() nogil except + #wrap-ignore
         BinnedSpectrum(BinnedSpectrum &) nogil except + #wrap-ignore
-        BinnedSpectrum(MSSpectrum, float size, bool unit_ppm, UInt spread) nogil except +
+        BinnedSpectrum(MSSpectrum, float size, bool unit_ppm, UInt spread, float offset) nogil except +
 
         bool operator==(BinnedSpectrum & rhs) nogil except +
         bool operator!=(BinnedSpectrum & rhs) nogil except +

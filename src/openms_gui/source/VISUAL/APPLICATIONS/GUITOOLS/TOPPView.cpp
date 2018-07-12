@@ -39,12 +39,12 @@
   and several other file formats. It also supports viewing data from an %OpenMS database.
   The following figure shows two instances of TOPPView displaying a HPLC-MS map and a MS raw spectrum:
 
-    @image html TOPPView.png
+  @image html TOPPView.png
 
-    More information about TOPPView can be found in the @ref TOPP_tutorial.
+  More information about TOPPView can be found in the @ref TOPP_tutorial.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_TOPPView.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_TOPPView.cli
 */
 
 //QT
@@ -101,7 +101,7 @@ void print_usage()
        << " - '@r'  after a map file displays the dots in red." << endl
        << " - '@g'  after a map file displays the dots in green." << endl
        << " - '@m'  after a map file displays the dots in magenta." << endl
-       << " - Example: 'TOPPView 1.mzML + 2.mzML @bw + 3.mzML @bg'" << endl
+       << " - Example: '" << tool_name << " 1.mzML + 2.mzML @bw + 3.mzML @bg'" << endl
        << endl;
 }
 

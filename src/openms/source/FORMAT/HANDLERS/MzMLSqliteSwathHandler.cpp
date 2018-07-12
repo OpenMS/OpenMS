@@ -34,6 +34,9 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <sqlite3.h>
 
 namespace OpenMS

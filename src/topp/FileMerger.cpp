@@ -275,7 +275,7 @@ protected:
           adjustRetentionTimes_(map, trafo_out[i], i == 0);
         }
 
-        out += map;
+        out.appendRows(map);
       }
 
       //-------------------------------------------------------------

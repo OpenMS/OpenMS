@@ -56,13 +56,15 @@ namespace OpenMS
   GUIProgressLoggerImpl::GUIProgressLoggerImpl() :
     dlg_(nullptr),
     begin_(0),
-    end_(0)
+    end_(0),
+    current_(0)
   {
   }
 
   void GUIProgressLoggerImpl::startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const
   {
     begin_ = begin;
+    current_ = begin_;
     end_ = end;
     if (!dlg_)
     {
@@ -90,6 +92,10 @@ namespace OpenMS
         std::cout << "ProgressLogger warning: 'setValue' called before 'startProgress'!" << std::endl;
       }
     }
+  }
+  SignedSize GUIProgressLoggerImpl::nextProgress() const
+  {
+    return ++current_;
   }
 
   void GUIProgressLoggerImpl::endProgress(const int /* current_recursion_depth */) const

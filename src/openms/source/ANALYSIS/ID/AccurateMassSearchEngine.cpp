@@ -878,7 +878,7 @@ namespace OpenMS
       ion_mode_internal = resolveAutoMode_(cmap);
     }
 
-    ConsensusMap::FileDescriptions fd_map = cmap.getFileDescriptions();
+    ConsensusMap::ColumnHeaders fd_map = cmap.getColumnHeaders();
     Size num_of_maps = fd_map.size();
 
     // map for storing overall results

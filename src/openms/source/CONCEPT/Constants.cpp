@@ -155,5 +155,9 @@ namespace OpenMS
     // User parameter name for precursor mz error in ppm
     const std::string PRECURSOR_ERROR_PPM_USERPARAM = "OMS:precursor_mz_error_ppm";
 
+    // User parameter name for precursor mz error in ppm
+    const std::string FRAGMENT_ANNOTATION_USERPARAM = "fragment_annotation";
+
+
   }
 }

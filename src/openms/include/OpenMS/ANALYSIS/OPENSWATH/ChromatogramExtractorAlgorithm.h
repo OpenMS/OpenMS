@@ -63,11 +63,11 @@ public:
 
     struct ExtractionCoordinates
     {
-      double mz; ///< m/z value around which should be extracted
-      double ion_mobility; ///< ion mobility value around which should be extracted
-      double mz_precursor; ///< precursor m/z value (is currently ignored by the algorithm)
-      double rt_start; ///< rt start of extraction (in seconds)
-      double rt_end; ///< rt end of extraction (in seconds)
+      double mz = 0.0; ///< m/z value around which should be extracted
+      double ion_mobility = 0.0; ///< ion mobility value around which should be extracted
+      double mz_precursor = 0.0; ///< precursor m/z value (is currently ignored by the algorithm)
+      double rt_start = 0.0; ///< rt start of extraction (in seconds)
+      double rt_end = 0.0; ///< rt end of extraction (in seconds)
       std::string id; ///< identifier
 
       static bool SortExtractionCoordinatesByMZ(
@@ -105,7 +105,7 @@ public:
         double mz_extraction_window,
         bool ppm,
         double im_extraction_window,
-        String filter);
+        const String& filter);
 
     /**
      * @brief Extract the next mz value and add the integrated intensity to integrated_intensity.
@@ -135,7 +135,10 @@ public:
                               std::vector<double>::const_iterator& mz_it,
                               const std::vector<double>::const_iterator& mz_end,
                               std::vector<double>::const_iterator& int_it,
-                              const double& mz, double& integrated_intensity, const double& mz_extraction_window, bool ppm);
+                              const double mz,
+                              double& integrated_intensity,
+                              const double mz_extraction_window,
+                              const bool ppm);
 
     /**
      * @brief Extract the next m/z value and add the integrated intensity to integrated_intensity.
@@ -170,14 +173,16 @@ public:
                               const std::vector<double>::const_iterator& mz_end,
                               std::vector<double>::const_iterator& int_it,
                               std::vector<double>::const_iterator& im_it,
-                              const double& mz,
-                              const double& im,
+                              const double mz,
+                              const double im,
                               double& integrated_intensity,
-                              const double& mz_extraction_window, const double& im_extraction_window, bool ppm);
+                              const double mz_extraction_window,
+                              const double im_extraction_window,
+                              const bool ppm);
 
 private:
 
-    int getFilterNr_(String filter);
+    int getFilterNr_(const String& filter);
 
   };
 

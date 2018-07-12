@@ -70,11 +70,12 @@ namespace OpenMS
   the actual data may not be in memory as this is not efficient for large files
   and therefore may have to be retrieved from disk on-demand. 
 
-  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() may
-  be different than the one retrieved through getPeakData()[index] due to the
-  getCurrentSpectrum() being loaded from disk on-demoand and the calling code
-  cannot assume that they are the same. Therefore all calls in Spectrum1DCanvas
-  should only go through getCurrentSpectrum() and never through getPeakData().
+  @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() is a
+  copy of the actual raw data and *different* from the one retrieved through
+  getPeakData()[index]. Any changes to applied to getCurrentSpectrum() are
+  non-persistent and will be gone the next time the cache is updated.
+  Persistent changes can be applied to getPeakDataMuteable() and will be
+  available on the next cache update.
 
   @note Layer is mainly used as a member variable of SpectrumCanvas which holds
   a vector of LayerData objects.
@@ -209,18 +210,22 @@ public:
     /**
     @brief Returns a const reference to the current in-memory peak data
 
+    @note Depending on the caching strategy (on-disk or in-memory), all or some
+    spectra may have zero size and contain only meta data since peak data is
+    cached on disk.
+
     @note Do *not* use this function to access the current spectrum for the 1D view
-    @note Be careful when using this function as the actual peak data 
-    may not be loaded completely in memory, in which case the spectra will be empty.
     */
     const ConstExperimentSharedPtrType getPeakData() const;
 
     /**
     @brief Returns a mutable reference to the current in-memory peak data
 
+    @note Depending on the caching strategy (on-disk or in-memory), all or some
+    spectra may have zero size and contain only meta data since peak data is
+    cached on disk.
+
     @note Do *not* use this function to access the current spectrum for the 1D view
-    @note Be careful when using this function as the actual peak data 
-    may not be loaded completely in memory, in which case the spectra will be empty.
     */
     const ExperimentSharedPtrType & getPeakDataMuteable() {return peaks;}
 
@@ -282,21 +287,19 @@ public:
     }
 
     /**
-    @brief Returns a mutable reference to the current spectrum (1D view)
-
-    @note Only use this function to access the current spectrum for the 1D view
-    */
-    ExperimentType::SpectrumType & getCurrentSpectrum();
-
-    /**
     @brief Returns a const reference to the current spectrum (1D view)
 
     @note Only use this function to access the current spectrum for the 1D view
     */
     const ExperimentType::SpectrumType & getCurrentSpectrum() const;
 
-    /// Returns a copy of the required spectrum
-    ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
+    void sortCurrentSpectrumByPosition()
+    {
+      cached_spectrum_.sortByPosition();
+    }
+
+    /// Returns a const-copy of the required spectrum which is guaranteed to be populated with raw data
+    const ExperimentType::SpectrumType getSpectrum(Size spectrum_idx) const
     {
       if (spectrum_idx == current_spectrum_) return cached_spectrum_;
 
@@ -323,7 +326,34 @@ public:
       current_spectrum_ = index;
       updateCache_();
     }
-    
+
+    /// Check whether the current layer should be represented as ion mobility
+    bool isIonMobilityData() const
+    {
+      return this->getPeakData()->size() > 0 &&
+             this->getPeakData()->metaValueExists("is_ion_mobility") &&
+             this->getPeakData()->getMetaValue("is_ion_mobility").toBool();
+    }
+
+    void labelAsIonMobilityData() const
+    {
+      peaks->setMetaValue("is_ion_mobility", "true");
+    }
+
+    /// Check whether the current layer contains DIA (SWATH-MS) data
+    bool isDIAData() const
+    {
+      return this->getPeakData()->size() > 0 &&
+             this->getPeakData()->metaValueExists("is_dia_data") &&
+             this->getPeakData()->getMetaValue("is_dia_data").toBool();
+    }
+
+    /// Label the current layer as DIA (SWATH-MS) data
+    void labelAsDIAData()
+    {
+      peaks->setMetaValue("is_dia_data", "true");
+    }
+
     /**
     @brief Check whether the current layer is a chromatogram
      

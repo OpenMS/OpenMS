@@ -41,10 +41,6 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
 
 #include <iostream>
 #include <cmath>
@@ -86,7 +82,8 @@ using namespace std;
   The default value is -10, lower values will result in smaller but purer clusters. If specified peptide search results
   can be provided as idXML files and the MaRaCluster Adapter will annotate cluster ids as attributes to each peptide
   identification, which will be outputed as a merged idXML. Moreover the merged idXML containing only scan numbers,
-  cluster ids and file origin can be outputed without prior peptide identification searches.
+  cluster ids and file origin can be outputed without prior peptide identification searches. The assigned cluster ids in
+  the respective idXML are equal to the scanindex of the produced clustered mzML.
   </p>
 
   <B>The command line parameters of this tool are:</B>
@@ -161,19 +158,28 @@ protected:
   {
     static const bool is_required(true);
     static const bool is_advanced_option(true);
-    
+   
+    //input 
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", is_required);
     setValidFormats_("in", ListUtils::create<String>("mzML,mgf"));
     registerInputFileList_("id_in", "<files>", StringList(), "Optional idXML Input file(s) in the same order as mzML files - for Maracluster Cluster annotation", !is_required);
     setValidFormats_("id_in", ListUtils::create<String>("idXML"));
+
+    //output
     registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("consensus_out", "<file>", "", "Consensus spectra in mzML format", !is_required);
     setValidFormats_("consensus_out", ListUtils::create<String>("mzML"));
+
+    //pvalue cutoff
     registerDoubleOption_("pcut", "<value>", -10.0, "log(p-value) cutoff, has to be < 0.0. Default: -10.0.", !is_required);
     setMaxFloat_("pcut", 0.0);
     registerIntOption_("min_cluster_size", "<value>", 1, "minimum number of spectra in a cluster for consensus spectra", !is_required);
+
+    // minimal cluster size
     setMinInt_("min_cluster_size", 1);
+
+    // executable
     registerInputFile_("maracluster_executable", "<executable>",
         // choose the default value according to the platform where it will be executed
         #ifdef OPENMS_WINDOWSPLATFORM
@@ -193,6 +199,7 @@ protected:
 
   }
 
+  // read and parse clustering output csv to store specnumber and clusterid associations
   void readMClusterOutputAsMap_(String mcout_file, Map<MaRaClusterResult, Int>& specid_to_clusterid_map, const std::map<String, Int>& filename_to_idx_map)
   {
     CsvFile csv_file(mcout_file, '\t');
@@ -311,12 +318,7 @@ protected:
     //-------------------------------------------------------------
 
     // create temp directory to store maracluster temporary files
-    String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
-    writeDebug_("Creating temporary directory '" + temp_directory_body + "'", 1);
-    {
-      QDir d;
-      d.mkpath(temp_directory_body.toQString());
-    }
+    String temp_directory_body = makeAutoRemoveTempDirectory_();
 
     double pcut = getDoubleOption_("pcut");
 
@@ -325,6 +327,7 @@ protected:
     String consensus_output_file(temp_directory_body + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
 
     // Create simple text file with one file path per line
+    // TODO make a bit more exception safe
     ofstream os(input_file_list.c_str());
     map<String,Int> filename_to_file_idx;
     Int file_idx = 0;
@@ -364,31 +367,7 @@ protected:
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
-
-    QProcess qp;
-    qp.start(maracluster_executable.toQString(), arguments);
-    if (qp.waitForFinished(-1) == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
-    {
-      writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments.join(" ").toStdString() + "'.");
-      const QString maracluster_stdout(qp.readAllStandardOutput());
-      const QString maracluster_stderr(qp.readAllStandardError());
-      writeLog_(maracluster_stdout);
-      writeLog_(maracluster_stderr);
-      // clean temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory_body);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "' Error code was: " << qp.exitCode() << endl;
-      }
-      else
-      {
-         LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them. Error code was: " << qp.exitCode() << endl;
-      }
-      return EXTERNAL_PROGRAM_ERROR;
-    }
-    writeLog_("Executed maracluster!");
-
-    qp.close();
+    runExternalProcess_(maracluster_executable.toQString(), arguments);
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
@@ -397,6 +376,7 @@ protected:
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
 
+    //output idXML containing scannumber and cluster id annotation
     if (!out.empty())
     {
       const StringList id_in = getStringList_("id_in");
@@ -411,7 +391,8 @@ protected:
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
             MaRaClusterResult res(file_idx, scan_number);
-            Int cluster_id = specid_to_clusterid_map[res];
+            // cluster index - 1 is equal to scan_number in consensus.mzML
+            Int cluster_id = specid_to_clusterid_map[res] - 1;
             it->setMetaValue("cluster_id", cluster_id);
             String filename = in_list[file_idx];
             it->setMetaValue("file_origin", filename);
@@ -430,11 +411,13 @@ protected:
         for (Map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
           Int scan_nr = sid->first.scan_nr;
           Int file_id = sid->first.file_idx;
+          Int cluster_id = sid->second;
           PeptideIdentification pid;
           PeptideHit pih;
           pid.insertHit(pih);
           pid.setMetaValue("spectrum_reference", "scan=" + String(scan_nr));
-          pid.setMetaValue("cluster_id", sid->second);
+          // cluster index - 1 is equal to scan_number in consensus.mzML
+          pid.setMetaValue("cluster_id", cluster_id - 1);
           pid.setMetaValue("file_origin", in_list[file_id]);
           all_peptide_ids.push_back(pid);
         }
@@ -459,6 +442,7 @@ protected:
       IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
     }
 
+    //output consensus mzML
     if (!consensus_out.empty())
     {
       QStringList arguments_consensus;
@@ -480,30 +464,11 @@ protected:
       // run MaRaCluster for consensus output
       //-------------------------------------------------------------
       // MaRaCluster execution with the executable and the arguments StringList
-      QProcess qp_consensus;
-      qp_consensus.start(maracluster_executable.toQString(), arguments_consensus);
-      if (qp_consensus.waitForFinished(-1) == false || qp_consensus.exitStatus() != 0 || qp_consensus.exitCode() != 0)
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments_consensus);
+      if (exit_code != EXECUTION_OK)
       {
-        writeLog_("MaRaCluster problem. Aborting! Calling command was: '" + maracluster_executable + " " + arguments_consensus.join(" ").toStdString() + "'.");
-        const QString maracluster_stdout_consensus(qp_consensus.readAllStandardOutput());
-        const QString maracluster_stderr_consensus(qp_consensus.readAllStandardError());
-        writeLog_(maracluster_stdout_consensus);
-        writeLog_(maracluster_stderr_consensus);
-        // clean temporary files
-        if (this->debug_level_ < 2)
-        {
-          File::removeDirRecursively(temp_directory_body);
-          LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << qp_consensus.exitCode() << endl;
-        }
-        else
-        {
-          LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << qp_consensus.exitCode() << endl;
-        }
-        return EXTERNAL_PROGRAM_ERROR;
+        return exit_code;
       }
-      writeLog_("Executed maracluster!");
-      qp_consensus.close();
-    
 
       // sort mzML
       FileHandler fh;
@@ -513,17 +478,6 @@ protected:
       fh.loadExperiment(consensus_output_file, exp, in_type, log_type_);
       exp.sortSpectra();
       fh.storeExperiment(consensus_output_file, exp, log_type_);
-
-    }
-
-    if (this->debug_level_ < 5)
-    {
-      File::removeDirRecursively(temp_directory_body);
-      LOG_WARN << "Removing temporary directory for MaRaCluster in/output. Set debug level to >=5 to keep the temporary files." << endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <5 to remove them." << endl;
     }
 
     writeLog_("MaRaClusterAdapter finished successfully!");

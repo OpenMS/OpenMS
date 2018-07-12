@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -70,7 +71,7 @@ using namespace std;
 </CENTER>
 
     Reference:\n
-		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+		Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
     This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them. Retention time adjustment may be necessary to correct for chromatography differences e.g. before data from multiple LC-MS runs can be combined (feature grouping), or when one run should be annotated with peptide identifications obtained in a different run.
 
@@ -309,20 +310,19 @@ private:
       String design_file = getStringOption_("design");
 
       // determine map of fractions to runs
-      map<unsigned, set<unsigned> > frac2run;
+      map<unsigned, vector<String> > frac2files;
 
       // TODO: check if can be put in common helper function
       if (!design_file.empty())
       {
         // parse design file and determine fractions
-        ExperimentalDesign ed;
-        ExperimentalDesign().load(design_file, ed);
+        ExperimentalDesign ed = ExperimentalDesignFile::load(design_file, false);
 
         // determine if design defines more than one fraction (note: fraction and run IDs are one-based)
-        frac2run = ed.getFractionToRunsMapping();
+        frac2files = ed.getFractionToMSFilesMapping();
 
         // check if all fractions have the same number of MS runs associated
-        if (!ed.sameNrOfRunsPerFraction())
+        if (!ed.sameNrOfMSFilesPerFraction())
         {
           writeLog_("Error: Number of runs must match for every fraction!");
           return ILLEGAL_PARAMETERS;
@@ -332,14 +332,15 @@ private:
       {
         for (Size i = 0; i != input_files.size(); ++i)
         {
-          frac2run[1].insert(i + 1); // associate each run with fraction 1
+          // TODO: read proper MS file name from meta data
+          frac2files[1].push_back("file" + String(i)); // associate each file with fraction 1
         }
       }
 
       // TODO: check and handle if featureXML order differs from run order
 
       // perform fraction-based alignment
-      if (frac2run.size() == 1) // group one fraction
+      if (frac2files.size() == 1) // group one fraction
       {
         performAlignment_(algorithm, feature_maps, transformations,
           reference_index);
@@ -347,13 +348,19 @@ private:
       }
       else // group multiple fractions
       {
-        for (Size i = 1; i <= frac2run.size(); ++i)
+        for (Size i = 1; i <= frac2files.size(); ++i)
         {
           vector<FeatureMap> fraction_maps;
           vector<TransformationDescription> fraction_transformations;
-          for (set<unsigned>::const_iterator sit = frac2run[i].begin(); sit != frac2run[i].end(); ++sit)
+
+          size_t n_fractions = frac2files.size();
+
+          // TODO FRACTIONS: determine map index based on annotated MS files (getPrimaryMSRuns())
+          for (size_t feature_map_index = 0; 
+            feature_map_index != n_fractions; 
+            ++feature_map_index)
           {
-            fraction_maps.push_back(feature_maps[*sit - 1]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
+            fraction_maps.push_back(feature_maps[feature_map_index]);
           }
           performAlignment_(algorithm, fraction_maps, fraction_transformations,
             reference_index);
@@ -361,10 +368,14 @@ private:
 
           // copy into transformations and feature maps
           transformations.insert(transformations.end(), fraction_transformations.begin(), fraction_transformations.end());
+
           Size f = 0;
-          for (set<unsigned>::const_iterator sit = frac2run[i].begin(); sit != frac2run[i].end(); ++sit, ++f)
+          for (size_t feature_map_index = 0; 
+            feature_map_index != n_fractions; 
+            ++feature_map_index,
+            ++f)
           {
-            feature_maps[*sit - 1].swap(fraction_maps[f]); // TODO: *sit is currently the run identifier but we need to know the corresponding feature index in ins
+            feature_maps[feature_map_index].swap(fraction_maps[f]);
           }
         }
       }

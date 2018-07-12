@@ -75,7 +75,7 @@ using namespace std;
 </CENTER>
 
     Reference:\n
-    Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+    Weisser <em>et al.</em>: <a href="https://doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
     <B>Input: featureXML or consensusXML</B>
 
@@ -340,7 +340,7 @@ protected:
   Param algo_params_; // parameters for PeptideAndProteinQuant algorithm
   ProteinIdentification proteins_; // protein inference results (proteins)
   vector<PeptideIdentification> peptides_; // protein inference res. (peptides)
-  ConsensusMap::FileDescriptions files_; // information about files involved
+  ConsensusMap::ColumnHeaders files_; // information about files involved
   bool spectral_counting_; // quantification based on spectral counting?
 
   void registerOptionsAndFlags_() override
@@ -418,7 +418,7 @@ protected:
         {
           out << q_it->first.toString() << protein << accessions.size()
               << ab_it->first;
-          for (ConsensusMap::FileDescriptions::iterator file_it =
+          for (ConsensusMap::ColumnHeaders::iterator file_it =
                  files_.begin(); file_it != files_.end(); ++file_it)
           {
             // write abundance for the sample if it exists, 0 otherwise:
@@ -433,7 +433,7 @@ protected:
       {
         // write total abundances (accumulated over all charge states):
         out << q_it->first.toString() << protein << accessions.size() << 0;
-        for (ConsensusMap::FileDescriptions::iterator file_it =
+        for (ConsensusMap::ColumnHeaders::iterator file_it =
                files_.begin(); file_it != files_.end(); ++file_it)
         {
           // write abundance for the sample if it exists, 0 otherwise:
@@ -528,7 +528,7 @@ protected:
       out << n_peptide;
       // make a copy to allow using "operator[]" below:
       SampleAbundances total_abundances = q_it->second.total_abundances;
-      for (ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
+      for (ConsensusMap::ColumnHeaders::iterator file_it = files_.begin();
            file_it != files_.end(); ++file_it)
       {
         out << total_abundances[file_it->first];
@@ -538,7 +538,7 @@ protected:
       {
         double log2 = log(2.0);
         double ref_abundance = total_abundances[files_.begin()->first];
-        for (ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
+        for (ConsensusMap::ColumnHeaders::iterator file_it = files_.begin();
              file_it != files_.end(); ++file_it)
         {
           out << log(total_abundances[file_it->first] / ref_abundance) / log2;
@@ -547,7 +547,7 @@ protected:
       // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
       if (print_SILACratios && files_.size() == 3)
       {
-        ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
+        ConsensusMap::ColumnHeaders::iterator file_it = files_.begin();
         double light = total_abundances[file_it->first]; ++file_it;
         double middle = total_abundances[file_it->first]; ++file_it;
         double heavy = total_abundances[file_it->first];
@@ -600,7 +600,7 @@ protected:
     {
       String desc = "# Files/samples associated with abundance values below: ";
       Size counter = 1;
-      for (ConsensusMap::FileDescriptions::iterator it = files_.begin();
+      for (ConsensusMap::ColumnHeaders::iterator it = files_.begin();
            it != files_.end(); ++it, ++counter)
       {
         if (counter > 1) desc += ", ";
@@ -724,7 +724,7 @@ protected:
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
-      files_ = consensus.getFileDescriptions();
+      files_ = consensus.getColumnHeaders();
       // protein inference results in the consensusXML?
       if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&

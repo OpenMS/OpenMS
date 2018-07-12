@@ -128,10 +128,10 @@ protected:
     setValidFormats_("in_adductinfo", ListUtils::create<String>("featurexml"));
 
     registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
-    setValidFormats_("out_sirius", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_sirius", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
-    setValidFormats_("out_fingerid", ListUtils::create<String>("tsv"));
+    setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));

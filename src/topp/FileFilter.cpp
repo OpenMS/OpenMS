@@ -139,6 +139,7 @@ public:
   }
 
 private:
+
   static bool sequenceIsWhiteListed_(const AASequence& peptide_hit_sequence, 
                                      const StringList& whitelist, 
                                      const String& sequence_comparison_method) 
@@ -319,7 +320,7 @@ protected:
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:int_precision", ListUtils::create<String>("32,64"));
-    registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
+    registerStringOption_("peak_options:indexed_file", "true or false", "true", "Whether to add an index to the file when writing", false);
     setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
 
     registerStringOption_("peak_options:zlib_compression", "true or false", "false", "Whether to store data with zlib compression (lossless compression)", false);
@@ -406,6 +407,7 @@ protected:
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+
     addEmptyLine_();
     // XXX: Change description
     registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist  / accessions_whitelist");
@@ -1074,9 +1076,9 @@ protected:
 
           for (IntList::iterator map_it = maps.begin(); map_it != maps.end(); ++map_it)
           {
-            cm_new.getFileDescriptions()[*map_it].filename = consensus_map_filtered.getFileDescriptions()[*map_it].filename;
-            cm_new.getFileDescriptions()[*map_it].size = consensus_map_filtered.getFileDescriptions()[*map_it].size;
-            cm_new.getFileDescriptions()[*map_it].unique_id = consensus_map_filtered.getFileDescriptions()[*map_it].unique_id;
+            cm_new.getColumnHeaders()[*map_it].filename = consensus_map_filtered.getColumnHeaders()[*map_it].filename;
+            cm_new.getColumnHeaders()[*map_it].size = consensus_map_filtered.getColumnHeaders()[*map_it].size;
+            cm_new.getColumnHeaders()[*map_it].unique_id = consensus_map_filtered.getColumnHeaders()[*map_it].unique_id;
           }
 
           cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());

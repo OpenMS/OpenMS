@@ -36,21 +36,22 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
-
-#include <stack>
 
 namespace OpenMS
 {
   class MetaInfoInterface;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
 
   namespace Internal
   {
+    
 
     /**
       @brief XML handlers for MzXMLFile
@@ -77,6 +78,12 @@ public:
       /// Destructor
       ~MzXMLHandler() override {}
       //@}
+
+      /// handler which support partial loading, implement this method
+      virtual LOADDETAIL getLoadDetail() const override;
+
+      /// handler which support partial loading, implement this method
+      virtual void setLoadDetail(const LOADDETAIL d) override;
 
       // Docu in base class
       void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname) override;
@@ -125,7 +132,6 @@ protected:
 
       /**@name temporary data structures to hold parsed data */
       //@{
-      Base64 decoder_;
       Int nesting_level_;
 
       /**

@@ -199,6 +199,9 @@ public:
 
     /// returns the formula as a string (charges are not included)
     String toString() const;
+
+    /// returns the formula as a map (charges are not included)
+    std::map<std::string, int> toMap() const;
     //@}
 
     /** Assignment
@@ -244,6 +247,9 @@ public:
 
     /// returns true if the formulas differ in elements composition
     bool operator!=(const EmpiricalFormula& rhs) const;
+
+    /// less operator
+    bool operator<(const EmpiricalFormula& rhs) const;
 
     //@}
 

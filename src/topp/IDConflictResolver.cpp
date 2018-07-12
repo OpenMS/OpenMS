@@ -102,34 +102,53 @@ public:
   {
   }
 
+protected:
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
+    registerStringOption_("resolve_between_features", "<resolve_between_features>", "off", "A map may contain multiple features with both identical (possibly modified i.e. not stripped) sequence and charge state. The feature with the 'highest intensity' is very likely the most reliable one. When switched on, the filter removes the sequence annotation from the lower intensity features, thereby resolving the multiplicity. Only the most reliable features for each (possibly modified i.e. not stripped) sequence maintain annotated with this peptide sequence.", false);
+    setValidStrings_("resolve_between_features", ListUtils::create<String>("off,highest_intensity"));
   }
 
   ExitCodes main_(int, const char **) override
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
+    String resolve_between_features = getStringOption_("resolve_between_features");
+    
     FileTypes::Type in_type = FileHandler::getType(in);
-    if (in_type == FileTypes::FEATUREXML)
+    
+    if (in_type == FileTypes::FEATUREXML) // featureXML
     {
       FeatureMap features;
       FeatureXMLFile().load(in, features);
+      
       IDConflictResolverAlgorithm::resolve(features);
-      addDataProcessing_(features,
-                         getProcessingInfo_(DataProcessing::FILTERING));
+      
+      if (resolve_between_features=="highest_intensity")
+      {
+        IDConflictResolverAlgorithm::resolveBetweenFeatures(features);
+      }
+      
+      addDataProcessing_(features, getProcessingInfo_(DataProcessing::FILTERING));
       FeatureXMLFile().store(out, features);
     }
     else // consensusXML
     {
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
+      
       IDConflictResolverAlgorithm::resolve(consensus);
-      addDataProcessing_(consensus,
-                         getProcessingInfo_(DataProcessing::FILTERING));
+      
+      if (resolve_between_features=="highest_intensity")
+      {
+        IDConflictResolverAlgorithm::resolveBetweenFeatures(consensus);
+      }
+      
+      addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::FILTERING));
       ConsensusXMLFile().store(out, consensus);
     }
     return EXECUTION_OK;

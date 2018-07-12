@@ -435,10 +435,10 @@ namespace OpenMS
     features_to_simulate.push_back(final_feature_map);
 
     consensus_.setProteinIdentifications(final_feature_map.getProteinIdentifications());
-    ConsensusMap::FileDescription map_description;
+    ConsensusMap::ColumnHeader map_description;
     map_description.label = "Simulation (Labeling Consensus)";
     map_description.size = features_to_simulate.size();
-    consensus_.getFileDescriptions()[0] = map_description;
+    consensus_.getColumnHeaders()[0] = map_description;
   }
 
   Feature SILACLabeler::mergeFeatures_(Feature& labeled_feature, const String& unmodified_feature_sequence, Map<String, Feature>& feature_index, Int index_channel_id, Int labeled_channel_id) const

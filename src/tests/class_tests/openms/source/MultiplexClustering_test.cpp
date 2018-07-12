@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,18 +36,18 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
+
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
 
 START_TEST(MultiplexFilteringProfile, "$Id$")
 
 // read data
-PeakMap exp;
+MSExperiment exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexClustering.mzML"), exp);
 exp.updateRanges();
 
@@ -57,26 +57,26 @@ Param param = picker.getParameters();
 param.setValue("ms_levels", ListUtils::create<Int>("1"));
 param.setValue("signal_to_noise", 0.0);
 picker.setParameters(param);
-std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
 std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
-PeakMap exp_picked;
+MSExperiment exp_picked;
 picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 
 // set parameters
 int charge_min = 1;
 int charge_max = 4;
-int peaks_per_peptide_min = 3;
-int peaks_per_peptide_max = 6;
-bool missing_peaks = false;
+int isotopes_per_peptide_min = 3;
+int isotopes_per_peptide_max = 6;
 double intensity_cutoff = 10.0;
+double rt_band = 3;
+double rt_typical = 90;
+double rt_minimum = 5;
+double mz_tolerance = 40;
+bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double peptide_similarity = 0.8;
 double averagine_similarity = 0.75;
 double averagine_similarity_scaling = 0.75;
-double mz_tolerance = 40;
-bool mz_tolerance_unit = true;    // ppm (true), Da (false)
-double rt_typical = 90;
-double rt_minimum = 5;
+String averagine_type="peptide";
 
 // construct list of peak patterns
 MultiplexDeltaMasses shifts1;
@@ -91,19 +91,19 @@ shifts2.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(2*8.044370279
 std::vector<MultiplexIsotopicPeakPattern> patterns;
 for (int c = charge_max; c >= charge_min; --c)
 {
-    MultiplexIsotopicPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
+    MultiplexIsotopicPeakPattern pattern1(c, isotopes_per_peptide_max, shifts1, 0);
     patterns.push_back(pattern1);
-    MultiplexIsotopicPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
+    MultiplexIsotopicPeakPattern pattern2(c, isotopes_per_peptide_max, shifts2, 1);
     patterns.push_back(pattern2);
 }
 
-MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling);
-std::vector<MultiplexFilterResult> filter_results = filtering.filter();
+MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type);
+std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
 
 MultiplexClustering* nullPointer = nullptr;
 MultiplexClustering* ptr;
 
-START_SECTION(MultiplexClustering(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum))
+START_SECTION(MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum))
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
     ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
@@ -113,7 +113,7 @@ END_SECTION
 
 MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum);
 
-START_SECTION(std::vector<std::map<int GridBasedCluster> > cluster(const std::vector<MultiplexFilterResult>& filter_results))
+START_SECTION(cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results))
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
     TEST_EQUAL(cluster_results[0].size(), 0);
     TEST_EQUAL(cluster_results[1].size(), 0);

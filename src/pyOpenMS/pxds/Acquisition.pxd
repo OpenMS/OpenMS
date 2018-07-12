@@ -8,6 +8,6 @@ cdef extern from "<OpenMS/METADATA/Acquisition.h>" namespace "OpenMS":
         Acquisition(Acquisition) nogil except +
         bool operator==(Acquisition &rhs) nogil except +
         bool operator!=(Acquisition &rhs) nogil except +
-        String  getIdentifier() nogil except +
-        void setIdentifier(String &identifier) nogil except +
+        String getIdentifier() nogil except +
+        void setIdentifier(const String &identifier) nogil except +
 

@@ -660,8 +660,9 @@ protected:
       // Loading iRT file
       std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
       TraMLFile traml;
-      OpenMS::TargetedExperiment irt_transitions;
-      traml.load(irt_tr_file, irt_transitions);
+      FileTypes::Type tr_type = FileHandler::getType(irt_tr_file);
+      Param tsv_reader_param = TransitionTSVFile().getDefaults();
+      OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
 
       // perform extraction
       OpenSwathRetentionTimeNormalization wf;
@@ -676,6 +677,45 @@ protected:
       }
     }
     return trafo_rtnorm;
+  }
+
+
+  OpenSwath::LightTargetedExperiment loadTransitionList(const FileTypes::Type& tr_type,
+                                                        const String& tr_file,
+                                                        const Param& tsv_reader_param)
+  {
+    OpenSwath::LightTargetedExperiment transition_exp;
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    if (tr_type == FileTypes::TRAML)
+    {
+      progresslogger.startProgress(0, 1, "Load TraML file");
+      TargetedExperiment targeted_exp;
+      TraMLFile().load(tr_file, targeted_exp);
+      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+      progresslogger.endProgress();
+    }
+    else if (tr_type == FileTypes::PQP)
+    {
+      progresslogger.startProgress(0, 1, "Load PQP file");
+      TransitionPQPFile().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+      progresslogger.endProgress();
+    }
+    else if (tr_type == FileTypes::TSV)
+    {
+      progresslogger.startProgress(0, 1, "Load TSV file");
+      TransitionTSVFile tsv_reader;
+      tsv_reader.setParameters(tsv_reader_param);
+      tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+      progresslogger.endProgress();
+    }
+    else
+    {
+      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      // return PARSE_ERROR;
+      throw 0;
+    }
+    return transition_exp;
   }
 
   ExitCodes main_(int, const char **) override
@@ -829,23 +869,12 @@ protected:
     ///////////////////////////////////
     // Load the transitions
     ///////////////////////////////////
-    OpenSwath::LightTargetedExperiment transition_exp;
-    ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
-    if (tr_type == FileTypes::TRAML)
-    {
-      progresslogger.startProgress(0, 1, "Load TraML file");
-      TargetedExperiment targeted_exp;
-      TraMLFile().load(tr_file, targeted_exp);
-      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
-      progresslogger.endProgress();
-    }
-    else if (tr_type == FileTypes::PQP)
-    {
-      progresslogger.startProgress(0, 1, "Load PQP file");
-      TransitionPQPFile().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
-      progresslogger.endProgress();
+    OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(tr_type, tr_file, tsv_reader_param);
+    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
+      transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
+    if (tr_type == FileTypes::PQP)
+    {
       remove(out_osw.c_str());
       if (!out_osw.empty())
       {
@@ -855,22 +884,6 @@ protected:
         dst << src.rdbuf();
       }
     }
-    else if (tr_type == FileTypes::TSV)
-    {
-      progresslogger.startProgress(0, 1, "Load TSV file");
-      TransitionTSVFile tsv_reader;
-      tsv_reader.setParameters(tsv_reader_param);
-      tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
-      progresslogger.endProgress();
-    }
-    else
-    {
-      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
-      return PARSE_ERROR;
-    }
-    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
-      transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
-
 
     ///////////////////////////////////
     // Load the SWATH files

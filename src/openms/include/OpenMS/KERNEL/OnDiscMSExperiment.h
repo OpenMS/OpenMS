@@ -41,7 +41,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+
 
 #include <vector>
 #include <algorithm>
@@ -65,7 +65,7 @@ namespace OpenMS
     @endcode
 
   */
-  class OnDiscMSExperiment
+  class OPENMS_DLLAPI OnDiscMSExperiment
   {
 
   typedef ChromatogramPeak ChromatogramPeakT;
@@ -232,16 +232,7 @@ private:
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
-    void loadMetaData_(const String& filename)
-    {
-      meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
-
-      MzMLFile f;
-      PeakFileOptions options = f.getOptions();
-      options.setFillData(false);
-      f.setOptions(options);
-      f.load(filename, *meta_ms_experiment_.get());
-    }
+    void loadMetaData_(const String& filename);
 
 protected:
 

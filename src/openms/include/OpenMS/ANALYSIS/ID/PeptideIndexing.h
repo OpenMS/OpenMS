@@ -55,6 +55,7 @@
 #include <atomic>
 #include <algorithm>
 #include <fstream>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 
 namespace OpenMS
 {
@@ -73,7 +74,8 @@ namespace OpenMS
         E.g., "sw|P33354_DECOY|YEHR_ECOLI Uncharacterized lipop..." is <b>invalid</b>, since the tool has no knowledge of how SwissProt entries are build up.
         A correct identifier could be "DECOY_sw|P33354|YEHR_ECOLI Uncharacterized li ..." or "sw|P33354|YEHR_ECOLI_DECOY Uncharacterized li", depending on whether you are
         using prefix or suffix annotation.<br>
-        This tool will also report some helpful target/decoy statistics when it is done.
+  
+  Some helpful target/decoy statistics will be reported when done.
 
   By default this tool will fail if an unmatched peptide occurs, i.e. if the database does not contain the corresponding protein.
   You can force it to return successfully in this case by using the flag @p allow_unmatched.
@@ -111,8 +113,11 @@ namespace OpenMS
   or <tt>none</tt> (essentially allowing all hits, no matter their context). These settings should not be used (due to high risk of reporting false positives),
   unless the search engine was instructed to search peptides in the same way.
   
+  The FASTA file should not contain duplicate protein accessions (since accessions are not validated) if a correct unique-matching annotation is important (target/decoy annotation is still correct).
+
   Threading:
   This tool support multiple threads (@p threads option) to speed up computation, at the cost of little extra memory.
+
 */
 
  class OPENMS_DLLAPI PeptideIndexing :
@@ -126,9 +131,9 @@ public:
       EXECUTION_OK,
       DATABASE_EMPTY,
       PEPTIDE_IDS_EMPTY,
-      DATABASE_CONTAINS_MULTIPLES,
       ILLEGAL_PARAMETERS,
-      UNEXPECTED_RESULT
+      UNEXPECTED_RESULT,
+      DECOYSTRING_EMPTY,
     };
 
     /// Default constructor
@@ -137,7 +142,8 @@ public:
     /// Default destructor
     ~PeptideIndexing() override;
 
-    /// forward for old interface and pyOpenMS; use run<T>() for more control
+
+     /// forward for old interface and pyOpenMS; use run<T>() for more control
     inline ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
     {
       FASTAContainer<TFI_Vector> protein_container(proteins);
@@ -182,19 +188,77 @@ public:
     template<typename T>
     ExitCodes run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
     {
-      //-------------------------------------------------------------
-      // parsing parameters
-      //-------------------------------------------------------------
+      // no decoy string provided? try to deduce from data
+      if (decoy_string_.empty())
+      {
+        bool is_decoy_string_auto_successful = findDecoyString_(proteins);
+
+        if (!is_decoy_string_auto_successful && contains_decoys_)
+        {
+          return DECOYSTRING_EMPTY;
+        }
+        else if (!is_decoy_string_auto_successful && !contains_decoys_)
+        {
+          LOG_WARN << "Unable to determine decoy string automatically, not enough decoys were detected! Using default " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "\n"
+                   << "If you think that this is false, please provide a decoy_string and its position manually!" << std::endl;
+        }
+        else
+        {
+          // decoy string and position was extracted successfully
+          LOG_INFO << "Using " << (prefix_ ? "prefix" : "suffix") << " decoy string '" << decoy_string_ << "'" << std::endl;
+        }
+
+        proteins.reset();
+      }
+
+      //---------------------------------------------------------------
+      // parsing parameters, correcting xtandem and MSGFPlus parameters
+      //---------------------------------------------------------------
       ProteaseDigestion enzyme;
       enzyme.setEnzyme(enzyme_name_);
       enzyme.setSpecificity(enzyme.getSpecificityByName(enzyme_specificity_));
 
-      const size_t PROTEIN_CACHE_SIZE = 4e5; // 400k should be enough for most DB's and is not too hard on memory either (~200 MB FASTA)
+      bool xtandem_fix_parameters = true, msgfplus_fix_parameters = true;
+
+      // specificity is none or semi? don't automate xtandem 
+      if (enzyme.getSpecificity() == EnzymaticDigestion::SPEC_SEMI ||
+          enzyme.getSpecificity() == EnzymaticDigestion::SPEC_NONE) 
+      {
+        xtandem_fix_parameters = false;
+      }
+
+      // enzyme is already Trypsin/P? don't automate MSGFPlus
+      if (enzyme.getEnzymeName() == "Trypsin/P") { msgfplus_fix_parameters = false; }
+
+      // determine if search engine is solely xtandem or MSGFPlus
+      for (const auto& prot_id : prot_ids)
+      {
+        if (!msgfplus_fix_parameters && !xtandem_fix_parameters) { break; }
+
+        const std::string& search_engine = prot_id.getSearchEngine();
+        if (search_engine != "XTANDEM") { xtandem_fix_parameters = false; }
+        if (search_engine != "MSGFPLUS" || "MS-GF+") { msgfplus_fix_parameters = false; }
+      }
+
+      //solely xtandem -> enzyme specificity to semi
+      if (xtandem_fix_parameters)
+      {
+        LOG_WARN << "XTandem used but specificity set to full. Setting enzyme specificity to semi specific cleavage to cope with special cutting rules in XTandem." << std::endl; 
+        enzyme.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
+      }
+      // solely MSGFPlus -> Trypsin P as enzyme
+      else if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin") 
+      {
+        LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
+        enzyme.setEnzyme("Trypsin/P");
+      }
 
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
       // cache the first proteins
+      const size_t PROTEIN_CACHE_SIZE = 4e5; // 400k should be enough for most DB's and is not too hard on memory either (~200 MB FASTA)
+
       proteins.cacheChunk(PROTEIN_CACHE_SIZE);
 
       if (proteins.empty()) // we do not allow an empty database
@@ -677,8 +741,163 @@ public:
       return EXECUTION_OK;
     }
 
-protected:
-    struct PeptideProteinMatchInformation
+     const String& getDecoyString() const;
+
+     bool isPrefix() const;
+
+ protected:
+     using DecoyStringToAffixCount = std::map<std::string, std::pair<int, int>>;
+     using CaseInsensitiveToCaseSensitiveDecoy = std::map<std::string, std::string>;
+     bool contains_decoys_;
+
+     template<typename T>
+     bool findDecoyString_(FASTAContainer<T>& proteins)
+     {
+       // common decoy strings in FASTA files
+       // note: decoy prefixes/suffices must be provided in lower case
+       std::vector<std::string> affixes = {"decoy", "dec", "reverse", "rev", "__id_decoy", "xxx", "shuffled", "shuffle", "pseudo", "random"};
+
+       // map decoys to counts of occurrences as prefix/suffix
+       DecoyStringToAffixCount decoy_count;
+       // map case insensitive strings back to original case (as used in fasta)
+       CaseInsensitiveToCaseSensitiveDecoy decoy_case_sensitive;
+
+       // assume that it contains decoys for now
+       contains_decoys_ = true;
+
+       // setup prefix- and suffix regex strings
+       const std::string regexstr_prefix = std::string("^(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)";
+       const std::string regexstr_suffix = std::string("(") + ListUtils::concatenate<std::string>(affixes, "_*|") + "_*)$";
+
+       // setup regexes
+       const boost::regex pattern_prefix(regexstr_prefix);
+       const boost::regex pattern_suffix(regexstr_suffix);
+
+       int all_prefix_occur(0), all_suffix_occur(0), all_proteins_count(0);
+
+       const size_t PROTEIN_CACHE_SIZE = 4e5;
+
+       while (true)
+       {
+         proteins.cacheChunk(PROTEIN_CACHE_SIZE);
+         if (!proteins.activateCache()) break;
+
+         auto prot_count = (SignedSize) proteins.chunkSize();
+         all_proteins_count += prot_count;
+
+         {
+           for (SignedSize i = 0; i < prot_count; ++i)
+           {
+             String seq = proteins.chunkAt(i).identifier;
+
+             String seq_lower = seq;
+             seq_lower.toLower();
+
+             boost::smatch sm;
+             // search for prefix
+             bool found_prefix = boost::regex_search(seq_lower, sm, pattern_prefix);
+             if (found_prefix)
+             {
+               std::string match = sm[0];
+               all_prefix_occur++;
+
+               // increase count of observed prefix
+               decoy_count[match].first++;
+
+               // store observed (case sensitive and with special characters)
+               std::string seq_decoy = StringUtils::prefix(seq, match.length());
+               decoy_case_sensitive[match] = seq_decoy;
+             }
+
+             // search for suffix
+             bool found_suffix = boost::regex_search(seq_lower, sm, pattern_suffix);
+             if (found_suffix)
+             {
+               std::string match = sm[0];
+               all_suffix_occur++;
+
+               // increase count of observed suffix
+               decoy_count[match].second++;
+
+               // store observed (case sensitive and with special characters)
+               std::string seq_decoy = StringUtils::suffix(seq, match.length());
+               decoy_case_sensitive[match] = seq_decoy;
+             }
+           }
+         }
+       }
+
+       // DEBUG ONLY: print counts of found decoys
+       for (auto &a : decoy_count) LOG_DEBUG << a.first << "\t" << a.second.first << "\t" << a.second.second << std::endl;
+
+       // less than 40% of proteins are decoys -> won't be able to determine a decoy string and its position
+       // return default values
+       if (all_prefix_occur + all_suffix_occur < 0.4 * all_proteins_count) {
+         decoy_string_ = "DECOY_";
+         prefix_ = true;
+
+         contains_decoys_ = false;
+         return false;
+       }
+
+       if (all_prefix_occur == all_suffix_occur)
+       {
+         LOG_ERROR << "Unable to determine decoy string!" << std::endl;
+         return false;
+       }
+
+       // Decoy prefix occurred at least 80% of all prefixes + observed in at least 40% of all proteins -> set it as prefix decoy
+       for (const auto& pair : decoy_count)
+       {
+         const std::string & case_insensitive_decoy_string = pair.first;
+         const std::pair<int, int>& prefix_suffix_counts = pair.second;
+         double freq_prefix = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_prefix_occur);
+         double freq_prefix_in_proteins = static_cast<double>(prefix_suffix_counts.first) / static_cast<double>(all_proteins_count);
+
+         if (freq_prefix >= 0.8 && freq_prefix_in_proteins >= 0.4)
+         {
+           prefix_ = true;
+           decoy_string_ = decoy_case_sensitive[case_insensitive_decoy_string];
+
+           if (prefix_suffix_counts.first != all_prefix_occur)
+           {
+             LOG_WARN << "More than one decoy prefix observed!" << std::endl;
+             LOG_WARN << "Using most frequent decoy prefix (" << (int) (freq_prefix * 100) <<"%)" << std::endl;
+           }
+
+           return true;
+         }
+       }
+
+       // Decoy suffix occurred at least 80% of all suffixes + observed in at least 40% of all proteins -> set it as suffix decoy
+       for (const auto& pair : decoy_count)
+       {
+         const std::string& case_insensitive_decoy_string = pair.first;
+         const std::pair<int, int>& prefix_suffix_counts = pair.second;
+         double freq_suffix = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_suffix_occur);
+         double freq_suffix_in_proteins = static_cast<double>(prefix_suffix_counts.second) / static_cast<double>(all_proteins_count);
+
+         if (freq_suffix >= 0.8 && freq_suffix_in_proteins >= 0.4)
+         {
+           prefix_ = false;
+           decoy_string_ = decoy_case_sensitive[case_insensitive_decoy_string];
+
+           if (prefix_suffix_counts.second != all_suffix_occur)
+           {
+             LOG_WARN << "More than one decoy suffix observed!" << std::endl;
+             LOG_WARN << "Using most frequent decoy suffix (" << (int) (freq_suffix * 100) <<"%)" << std::endl;
+           }
+
+           return true;
+         }
+       }
+
+       LOG_ERROR << "Unable to determine decoy string and its position. Please provide a decoy string and its position as parameters." << std::endl;
+       return false;
+     }
+
+
+     struct PeptideProteinMatchInformation
     {
       /// index of the protein the peptide is contained in
       OpenMS::Size protein_index;
@@ -820,6 +1039,6 @@ protected:
     Int aaa_max_;
     Int mm_max_;
 
-  };
+ };
 }
 

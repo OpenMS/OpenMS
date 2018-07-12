@@ -92,11 +92,11 @@ public:
     typedef OpenMS::MSChromatogram MSChromatogramType;
 
     /// Constructor
-    SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler);
+    SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler);
 
-    SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices);
+    SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices);
 
-    SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> indices);
+    SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices);
 
     /// Destructor
     ~SpectrumAccessSqMass() override;

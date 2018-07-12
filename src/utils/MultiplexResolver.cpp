@@ -501,7 +501,7 @@ private:
     // update map sizes
     for (unsigned map_index = 0; map_index < multiplicity; ++map_index)
     {
-      map_out.getFileDescriptions()[map_index].size = map_out.size();
+      map_out.getColumnHeaders()[map_index].size = map_out.size();
     }
     
     map_out.applyMemberFunction(&UniqueIdInterface::setUniqueId);

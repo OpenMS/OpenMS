@@ -281,8 +281,8 @@ START_SECTION(double dot_bias(const BinnedSpectrum &bin1, const BinnedSpectrum &
   peak.setMZ(5);
   s2.push_back(peak);
 
-  BinnedSpectrum bin1(s1, 1, false, 1);
-  BinnedSpectrum bin2(s2, 1, false, 1);
+  BinnedSpectrum bin1(s1, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+  BinnedSpectrum bin2(s2, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
   
   TEST_REAL_SIMILAR(ptr->dot_bias(bin1, bin2, 1), 98.585);
   TEST_REAL_SIMILAR(ptr->dot_bias(bin2, bin1, 1), 98.585);

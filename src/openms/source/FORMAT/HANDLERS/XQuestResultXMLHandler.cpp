@@ -1115,7 +1115,7 @@ namespace OpenMS
         pep_hits[0].removeMetaValue("spectrum_index_heavy");
         pep_hits[0].removeMetaValue("spec_heavy_RT");
         pep_hits[0].removeMetaValue("spec_heavy_MZ");
-        pep_hits[0].removeMetaValue("OMS:precursor_mz_error_ppm");
+        pep_hits[0].removeMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
         pep_hits[0].removeMetaValue("OpenXQuest:fdr");
 
         // also remove MetaValues, that we do not need in xquestXML

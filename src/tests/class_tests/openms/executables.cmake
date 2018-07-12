@@ -69,6 +69,7 @@ set(metadata_executables_list
   DataProcessing_test
   Digestion_test
   DocumentIdentifier_test
+  ExperimentalDesign_test
   ExperimentalSettings_test
   Gradient_test
   HPLC_test
@@ -158,6 +159,7 @@ set(format_executables_list
   DTA2DFile_test
   DTAFile_test
   EDTAFile_test
+  ExperimentalDesignFile_test
   FASTAFile_test
   FeatureFileOptions_test
   FeatureXMLFile_test
@@ -177,6 +179,7 @@ set(format_executables_list
   MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
+  MSPGenericFile_test
   MascotGenericFile_test
   MascotInfile_test
   MascotRemoteQuery_test
@@ -299,13 +302,14 @@ set(filtering_executables_list
   MultiplexClustering_test
   MultiplexDeltaMasses_test
   MultiplexDeltaMassesGenerator_test
+  MultiplexFilteredMSExperiment_test
+  MultiplexFilteredPeak_test
   MultiplexFiltering_test
   MultiplexFilteringCentroided_test
   MultiplexFilteringProfile_test
-  MultiplexFilterResult_test
-  MultiplexFilterResultPeak_test
-  MultiplexFilterResultRaw_test
   MultiplexIsotopicPeakPattern_test
+  MultiplexSatelliteCentroided_test
+  MultiplexSatelliteProfile_test
   MZTrafoModel_test
   NLargest_test
   NeutralLossDiffFilter_test
@@ -473,6 +477,7 @@ set(analysis_executables_list
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
+  PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeakIntensityPredictor_test
   PScore_test
@@ -535,12 +540,14 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithm_test
   FeatureFinderIdentificationAlgorithm_test
+  FeatureFinderMultiplexAlgorithm_test
   FeatureFinderDefs_test
   FeatureFinder_test
   Fitter1D_test
   GaussFitter1D_test
   GaussModel_test
   GaussTraceFitter_test
+  IDConflictResolverAlgorithm_test
   InterpolationModel_test
   IsotopeFitter1D_test
   IsotopeModel_test
@@ -619,6 +626,7 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumHelpers_test
     StatsHelpers_test
     CachedMzML_test
+    CachedMzMLHandler_test
   )
 endif(NOT DISABLE_OPENSWATH)
 

@@ -183,8 +183,8 @@ public:
      *
     */
     void scorePeakgroups(MRMTransitionGroupType& transition_group,
-                         TransformationDescription & trafo,
-                         std::vector<OpenSwath::SwathMap> swath_maps,
+                         const TransformationDescription & trafo,
+                         const std::vector<OpenSwath::SwathMap>& swath_maps,
                          FeatureMap& output,
                          bool ms1only=false);
 
@@ -224,8 +224,11 @@ public:
      * @param rt_extraction_window The used retention time extraction window
      *
     */
-    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment& transition_exp,
-                                       TransitionGroupMapType& transition_group_map, TransformationDescription trafo, double rt_extraction_window);
+    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
+                                       OpenSwath::LightTargetedExperiment& transition_exp,
+                                       TransitionGroupMapType& transition_group_map,
+                                       TransformationDescription trafo,
+                                       double rt_extraction_window);
 private:
 
     /** @brief Splits combined transition groups into detection transition groups
@@ -235,7 +238,8 @@ private:
      * @param transition_group Containing all detecting, identifying transitions
      * @param transition_group_detection To be filled with detecting transitions
     */
-    void splitTransitionGroupsDetection_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection);
+    void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
+                                         MRMTransitionGroupType& transition_group_detection);
 
     /** @brief Splits combined transition groups into identification transition groups
      *
@@ -246,7 +250,9 @@ private:
      * @param transition_group_identification To be filled with identifying transitions
      * @param transition_group_identification_decoy To be filled with identifying decoy transitions
     */
-    void splitTransitionGroupsIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy);
+    void splitTransitionGroupsIdentification_(const MRMTransitionGroupType& transition_group,
+                                              MRMTransitionGroupType& transition_group_identification,
+                                              MRMTransitionGroupType& transition_group_identification_decoy);
 
     /** @brief Provides scoring for target and decoy identification against detecting transitions
      *
@@ -274,7 +280,7 @@ private:
                                           const double det_intensity_ratio_score,
                                           const double det_mi_ratio_score,
                                           bool write_log_messages,
-                                          std::vector<OpenSwath::SwathMap> swath_maps);
+                                          const std::vector<OpenSwath::SwathMap>& swath_maps);
 
     /// Synchronize members with param class
     void updateMembers_() override;

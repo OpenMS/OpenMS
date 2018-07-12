@@ -110,6 +110,12 @@ signals:
     /// Requests to display the whole spectrum in 3D view
     void showCurrentPeaksAs3D();
 
+    /// Requests to display the whole spectrum in ion mobility view
+    void showCurrentPeaksAsIonMobility();
+
+    /// Requests to display a full DIA window
+    void showCurrentPeaksAsDIA();
+
 public slots:
     // Docu in base class
     void showGoToDialog() override;

@@ -110,6 +110,15 @@ START_SECTION(SignedSize getNumberOfAtoms() const)
   TEST_EQUAL(num4, 4);
 END_SECTION
 
+START_SECTION(EmpiricalFormula& operator < (const EmpiricalFormula& rhs))
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
+  TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
+
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C4H2"), false)
+  TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
+END_SECTION
+
 START_SECTION(EmpiricalFormula& operator = (const EmpiricalFormula& rhs))
   EmpiricalFormula ef;
   ef = *e_ptr;
@@ -303,6 +312,14 @@ START_SECTION(String toString() const)
   String str = ef.toString();
   TEST_EQUAL(String(str).hasSubstring("H5"), true)
   TEST_EQUAL(String(str).hasSubstring("C2"), true)
+END_SECTION
+
+    
+START_SECTION((std::map<std::string, int> toMap() const))
+  EmpiricalFormula ef("C2H5");
+  auto m = ef.toMap();
+  TEST_EQUAL(m["C"], 2)
+  TEST_EQUAL(m["H"], 5)
 END_SECTION
 
 START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&)))

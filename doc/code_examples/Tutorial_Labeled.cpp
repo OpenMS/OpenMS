@@ -49,12 +49,12 @@ int main(int argc, const char** argv)
   FeatureXMLFile feature_file;
   feature_file.load(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", maps[0]);
   ConsensusMap out;
-  out.getFileDescriptions()[0].filename = "data/Tutorial_Labeled.featureXML";
-  out.getFileDescriptions()[0].size = maps[0].size();
-  out.getFileDescriptions()[0].label = "light";
-  out.getFileDescriptions()[1].filename = "data/Tutorial_Labeled.featureXML";
-  out.getFileDescriptions()[1].size = maps[0].size();
-  out.getFileDescriptions()[1].label = "heavy";
+  out.getColumnHeaders()[0].filename = "data/Tutorial_Labeled.mzML";
+  out.getColumnHeaders()[0].size = maps[0].size();
+  out.getColumnHeaders()[0].label = "light";
+  out.getColumnHeaders()[1].filename = "data/Tutorial_Labeled.mzML";
+  out.getColumnHeaders()[1].size = maps[0].size();
+  out.getColumnHeaders()[1].label = "heavy";
 
   FeatureGroupingAlgorithmLabeled algorithm;
   // ... set parameters

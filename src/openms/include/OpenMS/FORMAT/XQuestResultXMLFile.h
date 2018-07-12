@@ -97,7 +97,11 @@ public:
       * @param CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out.
       * @param The spectra, that were searched as a PeakMap. The indices in spectrum_pairs correspond to spectra in this map.
       */
-      static void writeXQuestXMLSpec(String out_file, String base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
+    static void writeXQuestXMLSpec(const String& out_file, const String& base_name,
+                                   const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra,
+                                   const std::vector< std::pair<Size, Size> >& spectrum_pairs,
+                                   const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms,
+                                   const PeakMap& spectra);
 
      /**
       * @brief Writes spec.xml output containing spectra for visualization. This version of the function is meant to be used for label-free linkers.
@@ -106,7 +110,9 @@ public:
       * @param CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out.
       * @param The spectra, that were searched as a PeakMap.
       */
-      static void writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra);
+    static void writeXQuestXMLSpec(const String& out_file, const String& base_name,
+                                   const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms,
+                                   const PeakMap& spectra);
 
 
 
