@@ -180,6 +180,8 @@ protected:
     String out_csifingerid = getStringOption_("out_fingerid");
     String featureinfo = getStringOption_("in_featureinfo");
 
+    std::cout << "option" << featureinfo.empty() << std::endl;
+
     // parameter for SiriusAdapter
     bool feature_only = getFlag_("feature_only");
     unsigned int num_masstrace_filter = getIntOption_("filter_by_num_masstraces");
@@ -259,31 +261,41 @@ protected:
     KDTreeFeatureMaps fp_map_kd;
     vector<FeatureMap> v_fp;
 
-    // if fileparameter is given, file should exists and should be not empty
-    if (featureinfo != "" && File::exists(featureinfo) && !File::empty(featureinfo))
+    // if fileparameter is given and should be not empty
+    if (!featureinfo.empty())
     {
-      // read featureXML
-      FeatureXMLFile fxml;
-      fxml.load(featureinfo, feature_map);
+      if (File::exists(featureinfo) && !File::empty(featureinfo))
+      {
+        // read featureXML
+        FeatureXMLFile fxml;
+        fxml.load(featureinfo, feature_map);
 
-      // filter feature by number of masstraces
-      auto map_it = remove_if(feature_map.begin(), feature_map.end(),
-                              [&num_masstrace_filter](const Feature& feat) -> bool
-                              {
-                                unsigned int n_masstraces = feat.getMetaValue("num_of_masstraces");
-                                return n_masstraces < num_masstrace_filter;
-                              });
-      feature_map.erase(map_it, feature_map.end());
+        // filter feature by number of masstraces
+        auto map_it = remove_if(feature_map.begin(), feature_map.end(),
+                                [&num_masstrace_filter](const Feature &feat) -> bool
+                                {
+                                  unsigned int n_masstraces = feat.getMetaValue("num_of_masstraces");
+                                  return n_masstraces < num_masstrace_filter;
+                                });
+        feature_map.erase(map_it, feature_map.end());
 
-      v_fp.push_back(feature_map);
-      fp_map_kd.addMaps(v_fp);
+        v_fp.push_back(feature_map);
+        fp_map_kd.addMaps(v_fp);
 
-      // mapping of MS2 spectra to features
-      feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra, fp_map_kd, precursor_mz_tol, precursor_rt_tol, ppm_prec);
-    }
-    else
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: FeatureXML was empty, please provide a valid file.");
+        // mapping of MS2 spectra to features
+        feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,
+                                                                  fp_map_kd,
+                                                                  precursor_mz_tol,
+                                                                  precursor_rt_tol,
+                                                                  ppm_prec);
+      }
+      else
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__,
+                                           __LINE__,
+                                           __FUNCTION__,
+                                           "Error: FeatureXML was empty, please provide a valid file.");
+      }
     }
 
     // write msfile
