@@ -2167,9 +2167,6 @@ protected:
 
     PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, protein_ids, peptide_ids);
 
-    // write ProteinIdentifications and PeptideIdentifications to IdXML
-    IdXMLFile().store(out_idxml + "_debug.idXML", protein_ids, peptide_ids);
-
     if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
         (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
     {
@@ -2185,39 +2182,6 @@ protected:
       {
         return UNKNOWN_ERROR;
       }
-    } 
-
-    // if we generate decoys, we can report a FDR on the peptide and cross-link level
-    if (generate_decoys)
-    {
-      // partition ids into cross-links and peptides
-      auto it = std::partition(peptide_ids.begin(), peptide_ids.end(), 
-       [](const PeptideIdentification& pid) 
-       {
-         auto const & hits = pid.getHits();
-         // predicate: check if best hit is a cross-link
-         if (!hits.empty() 
-              && hits.front().metaValueExists("RNPxl:RNA")
-              && !hits.front().getMetaValue("RNPxl:RNA").toString().empty())
-         { 
-           return true;
-         }
-         return false;
-       });
-
-      // [begin, it) contains cross-links, [it, end) normal peptides
-      vector<PeptideIdentification> pepids_xls, pepids_normal;
-      std::copy(std::begin(peptide_ids), it, std::back_inserter(pepids_xls));
-      std::copy(it, std::end(peptide_ids), std::back_inserter(pepids_normal));
-
-      // calculate FDR independently
-      FalseDiscoveryRate fdr;     
-      fdr.apply(pepids_xls);
-      fdr.apply(pepids_normal);
-
-      // reassemble in one vector
-      peptide_ids = pepids_xls;    
-      std::copy(std::begin(pepids_normal), std::end(pepids_normal), std::back_inserter(peptide_ids));
     } 
 
     // write ProteinIdentifications and PeptideIdentifications to IdXML
