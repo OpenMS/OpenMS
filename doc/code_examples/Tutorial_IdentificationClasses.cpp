@@ -99,7 +99,7 @@ int main()
   peptide_id.setMZ(440.0);
   peptide_id.setScoreType("ScoreType");
   peptide_id.setHigherScoreBetter(false);
-  peptide_id.setIdentifier("Method");
+  peptide_id.setIdentifier("Identifier");
   
   // define additional meta value for the peptide identification
   peptide_id.setMetaValue("AdditionalMetaValue", "Value");
