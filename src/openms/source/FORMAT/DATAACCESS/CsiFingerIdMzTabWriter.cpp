@@ -85,7 +85,9 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         String feature_id;
         boost::regex regexp_feature("_(?<SCAN>\\d+)-");
         bool found = boost::regex_search(str, match, regexp_feature);
-        if (found && match["SCAN"].matched) { feature_id = "id_" + match["SCAN"].str(); }
+        if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
+        // results from scan were not assigned to a feautre
+        if (feature_id == "id_0"){feature_id = "null";}
 
         const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
         for (Size j = 1; j < top_n_hits_cor; ++j)
