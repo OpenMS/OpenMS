@@ -36,15 +36,13 @@
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <limits> // for "quiet_NaN"
 
 namespace OpenMS
 {
+
   /**
     @brief Helper class for looking up spectrum meta data
 

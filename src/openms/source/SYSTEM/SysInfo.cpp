@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/SysInfo.h>
+
 #include <cstdlib>
 #ifdef OPENMS_WINDOWSPLATFORM
 #include "windows.h"

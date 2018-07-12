@@ -34,6 +34,9 @@
 
 #include <OpenMS/FORMAT/MascotInfile.h>
 
+#include <sstream>
+#include <fstream>
+
 using namespace std;
 
 namespace OpenMS

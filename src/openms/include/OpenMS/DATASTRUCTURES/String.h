@@ -545,5 +545,8 @@ public:
       Size size_;
   }; 
 
+  // convenience declaration, see also ListUtils.h
+  typedef std::vector<String> StringList;
+
 } // namespace OPENMS
 

@@ -34,9 +34,10 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/config.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <vector>
 
 namespace OpenMS
 {

@@ -36,7 +36,6 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-
 #include <sstream>
 #include <iostream>
 #include <list>

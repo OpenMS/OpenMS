@@ -32,8 +32,15 @@
 // $Authors: Mathias Walzer, Matthew The $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+
+#include <OpenMS/config.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace std;
 

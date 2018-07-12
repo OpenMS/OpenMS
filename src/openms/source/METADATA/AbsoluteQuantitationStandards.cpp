@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
 
+#include <OpenMS/KERNEL/FeatureMap.h>
+
 namespace OpenMS
 {
   bool AbsoluteQuantitationStandards::findComponentFeature_(

@@ -322,7 +322,6 @@ namespace OpenMS
     return MRMDecoy::reversePeptide(peptide, false, false);
   }
 
-
   void switchKR(OpenMS::TargetedExperiment::Peptide& peptide)
   {
     static std::string aa[] =

@@ -36,9 +36,7 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>

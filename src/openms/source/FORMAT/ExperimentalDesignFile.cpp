@@ -32,14 +32,15 @@
 // $Authors: Timo Sachsenberg, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>

@@ -33,12 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/InspectInfile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 

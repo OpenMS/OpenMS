@@ -34,6 +34,9 @@
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 using namespace std;
 
 namespace OpenMS

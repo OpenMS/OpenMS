@@ -31,12 +31,13 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/ANALYSIS/PIP/LocalLinearMap.h>
+
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 

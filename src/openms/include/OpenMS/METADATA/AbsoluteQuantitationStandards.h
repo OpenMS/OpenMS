@@ -35,10 +35,15 @@
 #pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 namespace OpenMS
 {
+
+  class FeatureMap;
+  class Feature;
 
   /**
     @brief AbsoluteQuantitationStandards is a class to handle the relationship between

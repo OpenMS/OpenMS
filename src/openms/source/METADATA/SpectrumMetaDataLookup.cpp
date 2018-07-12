@@ -34,6 +34,11 @@
 
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
+
 using namespace std;
 
 namespace OpenMS

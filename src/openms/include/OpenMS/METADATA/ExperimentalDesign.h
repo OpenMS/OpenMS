@@ -36,10 +36,6 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
 #include <map>
@@ -81,6 +77,10 @@ namespace OpenMS
   @ingroup Metadata
 
   **/
+
+  class FeatureMap;
+  class ProteinIdentification;
+  class ConsensusMap;
 
   class OPENMS_DLLAPI ExperimentalDesign
   {

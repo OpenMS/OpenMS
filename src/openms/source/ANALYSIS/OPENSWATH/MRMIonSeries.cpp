@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 
+#include <iostream>
+
 namespace OpenMS
 {
   MRMIonSeries::MRMIonSeries()

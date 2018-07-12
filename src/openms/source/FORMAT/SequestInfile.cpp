@@ -33,11 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/SequestInfile.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/PTMXMLFile.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
