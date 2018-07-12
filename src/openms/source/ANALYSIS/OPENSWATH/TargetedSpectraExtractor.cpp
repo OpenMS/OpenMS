@@ -39,7 +39,6 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <unordered_map>
 
 namespace OpenMS
 {
@@ -395,7 +394,7 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    std::unordered_map<std::string,UInt> transition_best_spec;
+    std::map<std::string,UInt> transition_best_spec;
     for (UInt i = 0; i < scored_spectra.size(); ++i)
     {
       if (scored_spectra[i].getFloatDataArrays()[1][0] < min_select_score_)
@@ -403,7 +402,7 @@ namespace OpenMS
         continue;
       }
       const std::string& transition_name = scored_spectra[i].getName();
-      std::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
+      std::map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
       if (it == transition_best_spec.cend())
       {
         transition_best_spec.emplace(transition_name, i);
