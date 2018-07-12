@@ -91,14 +91,6 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
-/**
-  TODO: Add additional immonium ions observed for Lys
-    1.)    84.0808; C5H10N1 (mainly observed as cross-links)
-    2.)    101.1073; C5H13N2 = classical immonium ion, rarely cross-linked
-    3.)    129.1022; C6H13N2O (intense peak in spectra)
-    All three of them and also the others (e.g., His, Tyr, Phe…) should be annotated as well when there are no shifts. 
-**/
-
 class RNPxlSearch :
   public TOPPBase
 {
@@ -503,6 +495,11 @@ protected:
                                       PeakSpectrum & partial_loss_spectrum,
                                       MSSpectrum::IntegerDataArray & partial_loss_spectrum_charge,
                                       MSSpectrum::StringDataArray & partial_loss_spectrum_annotation);
+
+    static void addSpecialLysImmonumIons(const String& unmodified_sequence,
+                                      PeakSpectrum &spectrum,
+                                      PeakSpectrum::IntegerDataArray &spectrum_charge, 
+                                      PeakSpectrum::StringDataArray &spectrum_annotation);
   };
 
 
@@ -533,8 +530,7 @@ protected:
     SpectrumAlignment spectrum_aligner;
     Param pa = spectrum_aligner.getParameters();
     pa.setValue("tolerance", fragment_mass_tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
-    pa.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm ? "true" : "false");
-  
+    pa.setValue("is_relative_tolerance", fragment_mass_tolerance_unit_ppm ? "true" : "false");  
     spectrum_aligner.setParameters(pa);
 
     // remove all but top n scoring for localization (usually all but the first one)
@@ -655,6 +651,14 @@ protected:
         tmp_generator.setParameters(new_param);
         tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
+        // add special immonium ions
+        RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
+          unmodified_sequence,
+          total_loss_spectrum, 
+          total_loss_spectrum.getIntegerDataArrays()[0],
+          total_loss_spectrum.getStringDataArrays()[0]);
+        total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
+
         PeakSpectrum partial_loss_spectrum;
         RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                     fixed_and_variable_modified_peptide,
@@ -684,6 +688,7 @@ protected:
         vector<PeptideHit::PeakAnnotation> shifted_immonium_ions;
         vector<PeptideHit::PeakAnnotation> annotated_marker_ions;
         vector<PeptideHit::PeakAnnotation> annotated_precursor_ions;
+        vector<PeptideHit::PeakAnnotation> annotated_immonium_ions;
 
         // first annotate total loss peaks (these give no information where the actual shift occured)
         #ifdef DEBUG_RNPXLSEARCH
@@ -783,14 +788,25 @@ protected:
             }
             #endif
           }
-          else if (ion_name.hasPrefix("[M+"))
+          else if (ion_name.hasPrefix("[M+")) // precursor ion
           {
             PeptideHit::PeakAnnotation fa;
             fa.mz = fragment_mz;
             fa.intensity = fragment_intensity;
             fa.charge = 1; // for visualion charge is not really important so we set it to 0
             fa.annotation = ion_name;
+            peak_is_annotated.insert(aligned.second);
             annotated_precursor_ions.push_back(fa);
+          }
+          else if (ion_name.hasPrefix("i")) // immonium ion
+          {
+            PeptideHit::PeakAnnotation fa;
+            fa.mz = fragment_mz;
+            fa.intensity = fragment_intensity;
+            fa.charge = 1;
+            fa.annotation = ion_name;
+            peak_is_annotated.insert(aligned.second);
+            annotated_immonium_ions.push_back(fa);
           }
         }
 
@@ -798,20 +814,24 @@ protected:
         vector<PeptideHit::PeakAnnotation> fas;
         if (!unshifted_b_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
-
         if (!unshifted_y_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
         if (!unshifted_a_ions.empty())
         {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);;
+          const vector<PeptideHit::PeakAnnotation>& fas_tmp = RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);
           fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
         }
+        if (!annotated_immonium_ions.empty())
+        {
+          fas.insert(fas.end(), annotated_immonium_ions.begin(), annotated_immonium_ions.end());          
+        }
+
         vector<double> sites_sum_score(aas.size(), 0);
 
         /////////////////
@@ -1749,6 +1769,12 @@ protected:
               total_loss_spectrum_generator.getSpectrum(total_loss_spectrum_z1, fixed_and_variable_modified_peptide, 1, 1);
               total_loss_spectrum_generator.getSpectrum(total_loss_spectrum_z2, fixed_and_variable_modified_peptide, 1, 2);
               immonium_ion_sub_score_spectrum_generator.getSpectrum(immonium_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
+              RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
+                unmodified_sequence, 
+                immonium_sub_score_spectrum, 
+                immonium_sub_score_spectrum.getIntegerDataArrays()[0], 
+                immonium_sub_score_spectrum.getStringDataArrays()[0]);
+              immonium_sub_score_spectrum.sortByPosition();
               precursor_ion_sub_score_spectrum_generator.getSpectrum(precursor_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
               a_ion_sub_score_spectrum_generator.getSpectrum(a_ion_sub_score_spectrum, fixed_and_variable_modified_peptide, 1, 1);
             }
@@ -2688,6 +2714,27 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addMS2MarkerIons(
   }
 }
 
+void RNPxlSearch::RNPxlFragmentIonGenerator::addSpecialLysImmonumIons(
+  const String& unmodified_sequence,
+  PeakSpectrum &spectrum,
+  PeakSpectrum::IntegerDataArray &spectrum_charge, 
+  PeakSpectrum::StringDataArray &spectrum_annotation)
+{
+   if (unmodified_sequence.has('K'))
+   {
+      const double immonium_ion2_mz = EmpiricalFormula("C5H10N1").getMonoWeight(); 
+      spectrum.emplace_back(immonium_ion2_mz, 1.0);
+      spectrum_charge.emplace_back(1);
+      spectrum_annotation.emplace_back(String("iK(C5H10N1)"));
+
+      // usually only observed without shift (A. Stuetzer)
+      const double immonium_ion3_mz = EmpiricalFormula("C6H13N2O").getMonoWeight(); 
+      spectrum.emplace_back(immonium_ion3_mz, 1.0);
+      spectrum_charge.emplace_back(1);
+      spectrum_annotation.emplace_back(String("iK(C6H13N2O)"));
+    }
+}
+
 void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String &unmodified_sequence,
                                                                     const String &fragment_shift_name,
                                                                     const double fragment_shift_mass,
@@ -2747,16 +2794,24 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
   }
   else if (unmodified_sequence.hasSubstring("K"))
   {
-    const double immonium_ion_mz = 101.10732 + fragment_shift_mass;
+    // classical immonium ion
+    const double immonium_ion_mz = EmpiricalFormula("C5H13N2").getMonoWeight() + fragment_shift_mass;
     partial_loss_spectrum.emplace_back(immonium_ion_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
     partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
 
     // TODO: check if only DNA specific and if also other shifts are observed
-    const double immonium_ion2_mz = 84.0808 + fragment_shift_mass; // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
+    // according to A. Stuetzer mainly observed with C‘-NH3 (94.0167 Da)
+    const double immonium_ion2_mz = EmpiricalFormula("C5H10N1").getMonoWeight()  + fragment_shift_mass; 
     partial_loss_spectrum.emplace_back(immonium_ion2_mz, 1.0);
     partial_loss_spectrum_charge.emplace_back(1);
-    partial_loss_spectrum_annotation.emplace_back(RNPxlFragmentAnnotationHelper::getAnnotatedImmoniumIon('K', fragment_shift_name));
+    partial_loss_spectrum_annotation.emplace_back(String("iK(C5H10N1)" + fragment_shift_name));
+
+    // usually only observed without shift (A. Stuetzer)
+    const double immonium_ion3_mz = EmpiricalFormula("C6H13N2O").getMonoWeight()  + fragment_shift_mass; 
+    partial_loss_spectrum.emplace_back(immonium_ion3_mz, 1.0);
+    partial_loss_spectrum_charge.emplace_back(1);
+    partial_loss_spectrum_annotation.emplace_back(String("iK(C6H13N2O)" + fragment_shift_name));
   }
   else if (unmodified_sequence.hasSubstring("M"))
   {

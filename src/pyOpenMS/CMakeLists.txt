@@ -522,6 +522,7 @@ endif()
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_unittest_testfiles
   test000.py
+  test_tutorial.py
   test_BaselineFiltering.py
   test_ChromatogramExtractor.py
   test_ChromatogramExtractorAlgorithm.py
