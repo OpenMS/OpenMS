@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -1159,7 +1160,12 @@ protected:
         if (deisotope_spectra)
         {
           LOG_DEBUG << "Computing Iso Peak summeries..." << endl;
-          DataArrays::IntegerDataArray num_iso_peaks_array = spectrum.getIntegerDataArrayByName(String("NumIsoPeaks"));
+
+          DataArrays::IntegerDataArray num_iso_peaks_array;
+          auto num_iso_peaks_array_it = getDataArrayByName(spectrum.getIntegerDataArrays(), "NumIsoPeaks");
+          num_iso_peaks_array = *num_iso_peaks_array_it;
+
+          // DataArrays::IntegerDataArray num_iso_peaks_array = spectrum.getIntegerDataArrayByName(String("NumIsoPeaks"));
           csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 
           vector< double > iso_peaks_linear_alpha;
