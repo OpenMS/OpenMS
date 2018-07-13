@@ -1105,9 +1105,6 @@ protected:
         // The match-odds score does not work very well on HCD data and label-free cross-linkers (has the maximal possible value very often), so its weight was drastically reduced here.
         double xcorrx_weight = 2.488;
         double xcorrc_weight = 21.279;
-        // original weight of the match-odds score:
-        //double match_odds_weight = 1.973;
-        // reduced weight of the match-odds score
         double match_odds_weight = 1.973;
         double wTIC_weight = 12.829;
         double intsum_weight = 1.8;
@@ -1134,9 +1131,6 @@ protected:
         csm.log_occupancy_alpha = log_occu_alpha;
         csm.log_occupancy_beta = log_occu_beta;
         csm.log_occupancy_full_spec = log_occupancy_full_spec;
-        // csm.log_occupancy_full_spec_exp = log_occupancy_full_spec_exp;
-
-        // csm.log_occupancy_full_spec = 0;
         csm.log_occupancy_full_spec_exp = 0;
 
         csm.xcorrx_max = xcorrx_max;
