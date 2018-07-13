@@ -56,15 +56,11 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 
-// TESTING SCORES
-#include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
-#include <OpenMS/ANALYSIS/RNPXL/PScore.h>
-
 // preprocessing and filtering
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+// #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+// #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+// #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 
 #include <iostream>
@@ -192,6 +188,8 @@ protected:
 
     registerIntOption_("precursor:min_charge", "<num>", 3, "Minimum precursor charge to be considered.", false, true);
     registerIntOption_("precursor:max_charge", "<num>", 7, "Maximum precursor charge to be considered.", false, true);
+    registerIntList_("precursor:corrections", "<num>", ListUtils::create<int>("-2, -1, 0"), "Monoisotopic peak correction. Looks for possible monoisotopic precurser peaks at given number * (C13-C12) difference to the monoisotopic peak assumed by the instrument. These should be ordered from more extreme to less extreme corrections. Numbers later in the list will be preferred in case of ambiguities.", false, false);
+
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 20.0, "Fragment mass tolerance", false, false);
@@ -229,16 +227,11 @@ protected:
     registerDoubleList_("cross_linker:mass_mono_link", "<mass>", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide", false, false);
     registerStringOption_("cross_linker:name", "<string>", "DSS" ,  "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)", false, false);
 
-    // TODO add additional parameter for a cross-linker specific mass residue
-
-    // TODO add parameters for a,b,c; x,y,z ion types for TSG
-
     registerTOPPSubsection_("algorithm", "Algorithm Options");
     registerFlag_("algorithm:pre_scoring", "Set flag, to use the pre-scoring heuristic. Otherwise a full enumeration will be performed.", false);
     registerIntOption_("algorithm:number_of_scored_candidates", "<num>", 10000, "Number of candidates that are scored using the full scoring function after ranking by a faster pre-scoring function.", false, false);
     registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", false, false);
 
-    // void registerStringOption_(const String& name, const String& argument, const String& default_value, const String& description, bool required = true, bool advanced = false);
     StringList bool_strings = ListUtils::create<String>("true,false");
     registerTOPPSubsection_("ions", "Ion types to search for");
     registerStringOption_("ions:b_ions", "<true/false>", "true", "Search for peaks of b-ions.", false, true);
@@ -255,9 +248,6 @@ protected:
     setValidStrings_("ions:z_ions", bool_strings);
     registerStringOption_("ions:neutral_losses", "<true/false>", "true", "Search for neutral losses of H2O and H3N.", false, true);
     setValidStrings_("ions:neutral_losses", bool_strings);
-
-    // TODO not implemented yet
-    registerDoubleOption_("ions:cleaved_linker", "<mass>", 0.0, "desc", false, true);
 
     // output file
     registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false);
@@ -307,6 +297,7 @@ protected:
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
     double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
     bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
+    IntList precursor_correction_steps = getIntList_("precursor:corrections");
 
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     double fragment_mass_tolerance_xlinks = getDoubleOption_("fragment:mass_tolerance_xlinks");
@@ -539,32 +530,6 @@ protected:
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
     vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses;
     filtered_peptide_masses.assign(peptide_masses.begin(), last);
-    // peptide_masses.clear();
-
-    // progresslogger.startProgress(0, 1, "Enumerating cross-links...");
-    // enumerated_cross_link_masses = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2,
-    //                                                                                                                                               spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-    // progresslogger.endProgress();
-    // cout << "Enumerated cross-links: " << enumerated_cross_link_masses.size() << endl;
-    // sort(enumerated_cross_link_masses.begin(), enumerated_cross_link_masses.end(), OPXLDataStructs::XLPrecursorComparator());
-    // cout << "Sorting of enumerated precursors finished" << endl;
-
-//    // Debug output, writes out all cross-link candidates (which can be a lot!!!), not recommended for real datasets, only small test cases
-//    LOG_DEBUG << "Enumerated candidates: " << endl;
-//    for (Size k = 0; k < enumerated_cross_link_masses.size(); ++k)
-//    {
-//      if (enumerated_cross_link_masses[k].beta_index < filtered_peptide_masses.size())
-//      {
-//        LOG_DEBUG << "alpha: " << filtered_peptide_masses[enumerated_cross_link_masses[k].alpha_index].peptide_seq.toString() << " | beta: " << filtered_peptide_masses[enumerated_cross_link_masses[k].beta_index].peptide_seq.toString() << " | mass: " << enumerated_cross_link_masses[k].precursor_mass << endl;
-//      }
-//      else
-//      {
-//        LOG_DEBUG << "alpha: " << filtered_peptide_masses[enumerated_cross_link_masses[k].alpha_index].peptide_seq.toString() << " | mass: " << enumerated_cross_link_masses[k].precursor_mass << endl;
-//      }
-//    }
-
-    // for PScore, precompute ranks
-    vector<vector<Size> > rankMap = PScore::calculateRankMap(spectra);
 
     // iterate over all spectra
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
@@ -597,27 +562,16 @@ protected:
 
       // determine candidates
       vector< OPXLDataStructs::XLPrecursor > candidates;
-      // use a set to make them unique
-      // set< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates_set;
-      // vector< int > precursor_corrections;
-      // double allowed_error = 0;
 
       // determine MS2 precursors that match to the current peptide mass
       vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
       vector< OPXLDataStructs::XLPrecursor >::const_iterator up_it;
 
-      // TODO turn this into an InteregerList paramerter or something similar
-      // Consider missasignment of the monoisotopic peak
-      // keep this order sorted!
-      std::vector< int > precursor_correction_masses;
-      precursor_correction_masses.push_back(-2);
-      precursor_correction_masses.push_back(-1);
-      precursor_correction_masses.push_back(0);
       vector< double > spectrum_precursor_vector;
       vector< double > allowed_error_vector;
 
       progresslogger.startProgress(0, 1, "Start enumerating candidates...");
-      for (int correction_mass : precursor_correction_masses)
+      for (int correction_mass : precursor_correction_steps)
       {
         double allowed_error = 0;
 
@@ -632,16 +586,8 @@ protected:
           allowed_error = precursor_mass_tolerance;
         }
 
-        // vector< OPXLDataStructs::XLPrecursor > precursor_candidates;
-        // vector< double > spectrum_precursor_vector;
         spectrum_precursor_vector.push_back(corrected_precursor_mass);
         allowed_error_vector.push_back(allowed_error);
-
-        // for (OPXLDataStructs::XLPrecursor candidate : precursor_candidates)
-        // {
-        //   // candidates.push_back(candidate);
-        //   precursor_corrections.push_back(correction_mass);
-        // }
 
       } // end correction mass loop
 
@@ -649,9 +595,9 @@ protected:
       candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursor_vector, precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 
       vector< int > precursor_corrections;
-      for (Size f = 0; f < precursor_correction_positions.size(); ++f)
+      for (Size pc = 0; pc < precursor_correction_positions.size(); ++pc)
       {
-        precursor_corrections.push_back(precursor_correction_masses[precursor_correction_positions[f]]);
+        precursor_corrections.push_back(precursor_correction_steps[precursor_correction_positions[pc]]);
       }
 
       vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
@@ -667,20 +613,9 @@ protected:
 #endif
       cout << "\t#Peaks in this spectrum: " << spectrum.size() << " |\tNumber of candidates for this spectrum: " << cross_link_candidates.size() << endl;
 
-      // // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
-      // vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name);
-
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > prescore_csms_spectrum;
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
-      // prescore_csms_spectrum.clear();
-
-//      // Debug output, writes out all cross-link candidates for the current spectrum (which can be a lot!!!), not recommended for real datasets, only small test cases
-//      LOG_DEBUG << "Candidates build from precursors: " << endl;
-//      for (Size i = 0; i < cross_link_candidates.size(); ++i)
-//      {
-//        LOG_DEBUG << cross_link_candidates[i].alpha.toString() << "-" << cross_link_candidates[i].beta.toString() << " | mass " << cross_link_candidates[i].cross_linker_mass << " | pos " << cross_link_candidates[i].cross_link_position.first << ", " << cross_link_candidates[i].cross_link_position.second << " | term "  << cross_link_candidates[i].term_spec_alpha << ", " << cross_link_candidates[i].term_spec_beta << endl;
-//      }
 
       if (pre_scoring)
       {
@@ -707,91 +642,34 @@ protected:
           }
 
           // Something like this can happen, e.g. with a loop link connecting residues close to the ends of the peptide
-          // TODO make that a parameter?
           if ( (theoretical_spec_linear_alpha.size() < 3) )
           {
             continue;
           }
 
-          // PeakSpectrum theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
           PeakSpectrum theoretical_spec_linear;
           theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_alpha.begin(), theoretical_spec_linear_alpha.end());
           theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_beta.begin(), theoretical_spec_linear_beta.end());
           theoretical_spec_linear.sortByPosition();
-          // LOG_DEBUG << "Pre-scoring | theo spectra sizes: " << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_linear.size() << " | exp spectrum size: " << spectrum.size() <<endl;
-
-
-
-
-          // vector< pair< Size, Size > > matched_spec_linear;
-          // DataArrays::FloatDataArray dummy_array;
-          // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear, theoretical_spec_linear, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, dummy_array);
-          //
-          // // LOG_DEBUG << "Pre-scoring | matches: " << matched_spec_linear.size() << endl;
-          //
-          // // Pre-Score calculations
-          // Size matched_linear_count = matched_spec_linear.size();
-          // Size theor_linear_count = theoretical_spec_linear.size();
-          //
-          // // TODO make that a parameter?
-          // if (matched_linear_count < 1)
-          // {
-          //   continue;
-          // }
-          // // Simplified pre-Score
-          // // double pre_score = 0;
-          // double pre_score = XQuestScores::preScore(matched_linear_count, theor_linear_count);
-
-
-
-
-          // double allowed_error = 0;
-          // if (precursor_mass_tolerance_unit_ppm) // ppm
-          // {
-          //   allowed_error = theoretical_spec_linear.back().getMZ() * precursor_mass_tolerance * 1e-6;
-          // }
-          // else // Dalton
-          // {
-          //   allowed_error = precursor_mass_tolerance;
-          // }
 
           double xcorr_prescore = XQuestScores::xCorrelationPrescore(spectrum, theoretical_spec_linear, 0.1);
 
-          // TODO throw out score=0 candidates
-
-          // store pre_score, take top 100 for further computations
-          OPXLDataStructs::CrossLinkSpectrumMatch csm;
-          csm.cross_link = cross_link_candidate;
-
-          // csm.score = pre_score;
-          // csm.pre_score = pre_score;
-          // csm.xcorrc_max = xcorr_prescore;
-
-
-
-          csm.score = xcorr_prescore;
-          csm.pre_score = xcorr_prescore;
-          csm.xcorrc_max = xcorr_prescore;
-
-          // csm.score = 0;
-          // csm.pre_score = 0;
-          // csm.xcorrc_max = 0;
-
-          if (csm.score == 0)
+          if (xcorr_prescore == 0)
           {
             continue;
           }
 
-          // LOG_DEBUG << "Pre-scoring | score: " << pre_score << endl;
+          // store pre_score, take top 100 for further computations
+          OPXLDataStructs::CrossLinkSpectrumMatch csm;
+          csm.cross_link = cross_link_candidate;
+          csm.score = xcorr_prescore;
+          csm.pre_score = xcorr_prescore;
+          csm.xcorrc_max = xcorr_prescore;
 
           prescore_csms_spectrum.push_back(csm);
         }
         progresslogger.endProgress();
-
-        // progresslogger.startProgress(0, 1, "Start sorting pre-scores...");
         std::sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend());
-        // progresslogger.endProgress();
-
       }
       else
       {
@@ -799,35 +677,12 @@ protected:
         {
           OPXLDataStructs::CrossLinkSpectrumMatch csm;
           csm.cross_link = cross_link_candidates[i];
+          csm.pre_score = 0;
           prescore_csms_spectrum.push_back(csm);
         }
       }
 
-
-// #ifdef _OPENMP
-// #pragma omp critical
-// #endif
-//       cout << "Pre-scoring finished." << endl;
-
-      // needed farther down in the scoring, but only needs to be computed once for a spectrum
-      // vector< double > aucorrx = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.03);
-      // vector< double > aucorrc = XQuestScores::xCorrelation(spectrum, spectrum, 5, 0.02);
-
-      // precompute peak level spectra for the current spectrum
-      // map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
-
-//      // Debug output for pre-scoring ranks
-//      for (Size i = 0; i < prescore_csms_spectrum.size(); ++i)
-//      {
-//#ifdef _OPENMP
-//#pragma omp critical (cout)
-//#endif
-//        LOG_DEBUG << "Pre score rank " << i << " = \t " << prescore_csms_spectrum[i].pre_score << endl;
-//      }
-
-
-      // mass_to_candidates.size() * sizeof(OPXLDataStructs::XLPrecursor) / 1024 / 1024
-      // TODO major memory eater, use a couple of vectors instead
+      // TODO major memory eater, use a couple of vectors instead?
       cout << "Size of prescored candidates: " << double(prescore_csms_spectrum.size()) * sizeof(OPXLDataStructs::CrossLinkSpectrumMatch) / 1024.0 / 1024.0 << " mb" << endl;
 
       Size last_candidate_index = prescore_csms_spectrum.size();
@@ -838,7 +693,6 @@ protected:
 
       for (Size i = 0; i < last_candidate_index ; ++i)
       {
-        // cout << "Pre-Score: " << prescore_csms_spectrum[i].score << "\t| xcorr_prescore: " << prescore_csms_spectrum[i].xcorrc_max << endl;
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = prescore_csms_spectrum[i].cross_link;
         double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 
@@ -852,7 +706,6 @@ protected:
         PeakSpectrum theoretical_spec_linear_beta;
         PeakSpectrum theoretical_spec_xlinks_alpha;
         PeakSpectrum theoretical_spec_xlinks_beta;
-        // PeakSpectrum theoretical_spec_xlinks_complex;
 
         bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
         bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
@@ -865,14 +718,8 @@ protected:
         if (type_is_cross_link)
         {
           specGen_full.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
-          // specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, true, 1, precursor_charge);
-          // specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, precursor_mass, false, 1, precursor_charge);
-
           specGen_full.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
           specGen_full.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
-
-          // TODO complex peaks count as xlinks beta for now,  add them to both alpha and beta? or start a third ion category?
-          // specGen_full.getComplexXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, 1, 4);
         } else
         {
           // Function for mono-links or loop-links
@@ -895,44 +742,27 @@ protected:
         DataArrays::FloatDataArray ppm_error_array_linear_beta;
         DataArrays::FloatDataArray ppm_error_array_xlinks_beta;
 
-        // theoretical_spec_xlinks_alpha = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_alpha, theoretical_spec_xlinks_complex);
-        // theoretical_spec_xlinks_beta = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_xlinks_beta, theoretical_spec_xlinks_complex);
-
-        // // TODO old, complex alignment
-        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_alpha, theoretical_spec_linear_alpha, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_alpha);
-        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_beta, theoretical_spec_linear_beta, spectrum, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_beta);
-        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_alpha);
-        // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, spectrum, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_beta);
-
-        // TODO new simple alignment
-        // cout << "TEST start alignment... " << endl;
         PeakSpectrum::IntegerDataArray& theo_charges_la = theoretical_spec_linear_alpha.getIntegerDataArrays()[0];
         PeakSpectrum::IntegerDataArray theo_charges_xa;
         if (theoretical_spec_xlinks_alpha.getIntegerDataArrays().size() > 0)
         {
-          // cout << "TEST xlinks alpha... " << endl;
           theo_charges_xa = theoretical_spec_xlinks_alpha.getIntegerDataArrays()[0];
         }
         PeakSpectrum::IntegerDataArray theo_charges_lb;
         PeakSpectrum::IntegerDataArray theo_charges_xb;
         if (theoretical_spec_linear_beta.getIntegerDataArrays().size() > 0)
         {
-          // cout << "TEST linear beta... " << endl;
           theo_charges_lb = theoretical_spec_linear_beta.getIntegerDataArrays()[0];
         }
         if (theoretical_spec_xlinks_beta.getIntegerDataArrays().size() > 0)
         {
-          // cout << "TEST xlinks beta... " << endl;
           theo_charges_xb = theoretical_spec_xlinks_beta.getIntegerDataArrays()[0];
         }
-        // cout << "TEST exp_charges... " << endl;
         PeakSpectrum::IntegerDataArray exp_charges;
         if (spectrum.getIntegerDataArrays().size() > 0)
         {
-          // cout << "TEST spectrum data arrays: " << spectrum.getIntegerDataArrays().size() << endl;
           exp_charges = spectrum.getIntegerDataArrays()[0];
         }
-        // cout << "TEST extracted charges..." << endl;
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_alpha, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theoretical_spec_linear_alpha, spectrum, theo_charges_la, exp_charges, ppm_error_array_linear_alpha);
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_beta, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theoretical_spec_linear_beta, spectrum, theo_charges_lb, exp_charges, ppm_error_array_linear_beta);
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, theoretical_spec_xlinks_alpha, spectrum, theo_charges_xa, exp_charges, ppm_error_array_xlinks_alpha);
@@ -1026,9 +856,6 @@ protected:
         //Cross-correlation
         PeakSpectrum theoretical_spec_linear;
         PeakSpectrum theoretical_spec_xlinks;
-        //
-        // LOG_DEBUG << "Computing Merged spectra..." << endl;
-        //
         if (type_is_cross_link)
         {
           theoretical_spec_linear = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_linear_beta);
@@ -1041,64 +868,8 @@ protected:
         }
         //
         PeakSpectrum theoretical_spec = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear, theoretical_spec_xlinks);
-        // PeakSpectrum theoretical_spec_alpha = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_alpha, theoretical_spec_xlinks_alpha);
-        // PeakSpectrum theoretical_spec_beta;
-        // if (type_is_cross_link)
-        // {
-        //   theoretical_spec_beta = OPXLSpectrumProcessingAlgorithms::mergeAnnotatedSpectra(theoretical_spec_linear_beta, theoretical_spec_xlinks_beta);
-        // }
-        double log_occupancy_full_spec = XQuestScores::logOccupancyProb(theoretical_spec, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-        // double log_occupancy_full_spec_exp = XQuestScores::logOccupancyProb(spectrum, matched_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
-
-        // LOG_DEBUG << "Computing xCorr..." << endl;
-        // vector< double > xcorrx = XQuestScores::xCorrelation(spectrum, theoretical_spec_xlinks, 5, 0.03);
-        // vector< double > xcorrc = XQuestScores::xCorrelation(spectrum, theoretical_spec_linear, 5, 0.02);
-
-        // double aucorr_sumx = accumulate(aucorrx.begin(), aucorrx.end(), 0.0);
-        // double aucorr_sumc = accumulate(aucorrc.begin(), aucorrc.end(), 0.0);
-        // double xcorrx_max = accumulate(xcorrx.begin(), xcorrx.end(), 0.0) / aucorr_sumx;
-        // double xcorrc_max = accumulate(xcorrc.begin(), xcorrc.end(), 0.0) / aucorr_sumc;
-
-        // TODO is this xcorr good enough?
         double xcorrx_max = XQuestScores::xCorrelationPrescore(spectrum, theoretical_spec_xlinks, 0.1);
         double xcorrc_max = XQuestScores::xCorrelationPrescore(spectrum, theoretical_spec_linear, 0.1);
-
-        // LOG_DEBUG << "Computing PScore..." << endl;
-        // map<Size, PeakSpectrum> peak_level_spectra = PScore::calculatePeakLevelSpectra(spectrum, rankMap[scan_index]);
-        // csm.PScoreLinear = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_linear);
-        // csm.PScoreXlink = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_xlinks);
-        // csm.PScoreBoth = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec);
-        // csm.PScoreAlpha = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_alpha);
-
-        csm.PScoreLinear = 0;
-        csm.PScoreXlink = 0;
-        csm.PScoreBoth = 0;
-        csm.PScoreAlpha = 0;
-        csm.PScoreBeta = 0;
-
-        // LOG_DEBUG << "Computing HyperScore..." << endl;
-        // csm.HyperLinear = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_linear);
-        // csm.HyperXlink = HyperScore::compute(fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_xlinks);
-        // csm.HyperBoth = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec);
-        // csm.HyperAlpha = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_alpha);
-        // if (theoretical_spec_beta.size() > 0)
-        // {
-        //   LOG_DEBUG << "Computing Pscore and HyperScore Beta..." << endl;
-        //   csm.HyperBeta = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum, theoretical_spec_beta);
-        //   // csm.PScoreBeta = PScore::computePScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, peak_level_spectra, theoretical_spec_beta);
-        //   csm.PScoreBeta = 0;
-        // }
-        // else
-        // {
-        //   csm.HyperBeta = 0;
-        //   csm.PScoreBeta = 0;
-        // }
-
-        csm.HyperAlpha = 0;
-        csm.HyperBeta = 0;
-        csm.HyperLinear = 0;
-        csm.HyperXlink = 0;
-        csm.HyperBoth = 0;
 
         // Compute score from the 4 scores and 4 weights
         // The weights are adapted from the xQuest algorithm (O. Rinner et al., 2008, "Identification of cross-linked peptides from large sequence databases"),
@@ -1131,8 +902,6 @@ protected:
         csm.log_occupancy = log_occu;
         csm.log_occupancy_alpha = log_occu_alpha;
         csm.log_occupancy_beta = log_occu_beta;
-        csm.log_occupancy_full_spec = log_occupancy_full_spec;
-        csm.log_occupancy_full_spec_exp = 0;
 
         csm.xcorrx_max = xcorrx_max;
         csm.xcorrc_max = xcorrc_max;
@@ -1142,7 +911,6 @@ protected:
         csm.matched_xlink_alpha = matched_spec_xlinks_alpha.size();
         csm.matched_xlink_beta = matched_spec_xlinks_beta.size();
         csm.scan_index_light = scan_index;
-        // scan_index_heavy is of type Size, so this index will be UINT_MAX - 1 and hopefully out of range for all spectrum maps
         csm.scan_index_heavy = -1;
 
         // default values to avoid too many "else {var = 0}" in the code below
@@ -1155,7 +923,6 @@ protected:
         csm.precursor_correction = cross_link_candidate.precursor_correction;
 
         // num_iso_peaks array from deisotoping
-        // TODO do not use deisotope_spectra here, but instead the return value from getIntegerDataArrayByName, when that is possible
         bool deisotope_spectra = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
         if (deisotope_spectra)
         {
@@ -1165,7 +932,6 @@ protected:
           auto num_iso_peaks_array_it = getDataArrayByName(spectrum.getIntegerDataArrays(), "NumIsoPeaks");
           num_iso_peaks_array = *num_iso_peaks_array_it;
 
-          // DataArrays::IntegerDataArray num_iso_peaks_array = spectrum.getIntegerDataArrayByName(String("NumIsoPeaks"));
           csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 
           vector< double > iso_peaks_linear_alpha;
@@ -1210,85 +976,53 @@ protected:
             csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
           }
         }
-
         csm.ppm_error_abs_sum_linear_alpha = 0;
-        csm.ppm_error_sum_linear_alpha = 0;
-        csm.ppm_error_variance_linear_alpha = 0;
         csm.ppm_error_abs_sum_linear_beta = 0;
-        csm.ppm_error_sum_linear_beta = 0;
-        csm.ppm_error_variance_linear_beta = 0;
         csm.ppm_error_abs_sum_xlinks_alpha = 0;
-        csm.ppm_error_sum_xlinks_alpha = 0;
-        csm.ppm_error_variance_xlinks_alpha = 0;
         csm.ppm_error_abs_sum_xlinks_beta = 0;
-        csm.ppm_error_sum_xlinks_beta = 0;
-        csm.ppm_error_variance_xlinks_beta = 0;
-
         csm.ppm_error_abs_sum_linear = 0;
-        csm.ppm_error_sum_linear = 0;
-        csm.ppm_error_variance_linear = 0;
         csm.ppm_error_abs_sum_xlinks = 0;
-        csm.ppm_error_sum_xlinks = 0;
-        csm.ppm_error_variance_xlinks = 0;
         csm.ppm_error_abs_sum_alpha = 0;
-        csm.ppm_error_sum_alpha = 0;
-        csm.ppm_error_variance_alpha = 0;
         csm.ppm_error_abs_sum_beta = 0;
-        csm.ppm_error_sum_beta = 0;
-        csm.ppm_error_variance_beta = 0;
         csm.ppm_error_abs_sum = 0;
-        csm.ppm_error_sum = 0;
-        csm.ppm_error_variance = 0;
 
         LOG_DEBUG << "Computing ppm error summeries..." << endl;
 
         // TODO find a better way to compute the absolute sum
         if (ppm_error_array_linear_alpha.size() > 0)
         {
-          // csm.ppm_error_abs_sum_linear_alpha = 0;
           for (Size k = 0; k < ppm_error_array_linear_alpha.size(); ++k)
           {
             csm.ppm_error_abs_sum_linear_alpha += abs(ppm_error_array_linear_alpha[k]);
           }
           csm.ppm_error_abs_sum_linear_alpha = csm.ppm_error_abs_sum_linear_alpha / ppm_error_array_linear_alpha.size();
-          // csm.ppm_error_sum_linear_alpha = Math::sum(ppm_error_array_linear_alpha.begin(), ppm_error_array_linear_alpha.end());
-          // csm.ppm_error_variance_linear_alpha = Math::variance(ppm_error_array_linear_alpha.begin(), ppm_error_array_linear_alpha.end());
         }
 
         if (ppm_error_array_linear_beta.size() > 0)
         {
-          // csm.ppm_error_abs_sum_linear_beta = 0;
           for (Size k = 0; k < ppm_error_array_linear_beta.size(); ++k)
           {
             csm.ppm_error_abs_sum_linear_beta += abs(ppm_error_array_linear_beta[k]);
           }
           csm.ppm_error_abs_sum_linear_beta = csm.ppm_error_abs_sum_linear_beta / ppm_error_array_linear_beta.size();
-          // csm.ppm_error_sum_linear_beta = Math::sum(ppm_error_array_linear_beta.begin(), ppm_error_array_linear_beta.end());
-          // csm.ppm_error_variance_linear_beta = Math::variance(ppm_error_array_linear_beta.begin(), ppm_error_array_linear_beta.end());
         }
 
         if (ppm_error_array_xlinks_alpha.size() > 0)
         {
-          // csm.ppm_error_abs_sum_xlinks_alpha = 0;
           for (Size k = 0; k < ppm_error_array_xlinks_alpha.size(); ++k)
           {
             csm.ppm_error_abs_sum_xlinks_alpha += abs(ppm_error_array_xlinks_alpha[k]);
           }
           csm.ppm_error_abs_sum_xlinks_alpha = csm.ppm_error_abs_sum_xlinks_alpha / ppm_error_array_xlinks_alpha.size();
-          // csm.ppm_error_sum_xlinks_alpha = Math::sum(ppm_error_array_xlinks_alpha.begin(), ppm_error_array_xlinks_alpha.end());
-          // csm.ppm_error_variance_xlinks_alpha = Math::variance(ppm_error_array_xlinks_alpha.begin(), ppm_error_array_xlinks_alpha.end());
         }
 
         if (ppm_error_array_xlinks_beta.size() > 0)
         {
-          // csm.ppm_error_abs_sum_xlinks_beta = 0;
           for (Size k = 0; k < ppm_error_array_xlinks_beta.size(); ++k)
           {
             csm.ppm_error_abs_sum_xlinks_beta += abs(ppm_error_array_xlinks_beta[k]);
           }
           csm.ppm_error_abs_sum_xlinks_beta = csm.ppm_error_abs_sum_xlinks_beta / ppm_error_array_xlinks_beta.size();
-          // csm.ppm_error_sum_xlinks_beta = Math::sum(ppm_error_array_xlinks_beta.begin(), ppm_error_array_xlinks_beta.end());
-          // csm.ppm_error_variance_xlinks_beta = Math::variance(ppm_error_array_xlinks_beta.begin(), ppm_error_array_xlinks_beta.end());
         }
 
         DataArrays::FloatDataArray ppm_error_array_linear;
@@ -1309,62 +1043,47 @@ protected:
 
         if (ppm_error_array_linear.size() > 0)
         {
-          // csm.ppm_error_abs_sum_linear = 0;
           for (double ppm_error : ppm_error_array_linear)
           {
             csm.ppm_error_abs_sum_linear += abs(ppm_error);
           }
           csm.ppm_error_abs_sum_linear = csm.ppm_error_abs_sum_linear / ppm_error_array_linear.size();
-          // csm.ppm_error_sum_linear = Math::sum(ppm_error_array_linear.begin(), ppm_error_array_linear.end());
-          // csm.ppm_error_variance_linear = Math::variance(ppm_error_array_linear.begin(), ppm_error_array_linear.end());
         }
 
         if (ppm_error_array_xlinks.size() > 0)
         {
-          // csm.ppm_error_abs_sum_xlinks = 0;
           for (double ppm_error : ppm_error_array_xlinks)
           {
             csm.ppm_error_abs_sum_xlinks += abs(ppm_error);
           }
           csm.ppm_error_abs_sum_xlinks = csm.ppm_error_abs_sum_xlinks / ppm_error_array_xlinks.size();
-          // csm.ppm_error_sum_xlinks = Math::sum(ppm_error_array_xlinks.begin(), ppm_error_array_xlinks.end());
-          // csm.ppm_error_variance_xlinks = Math::variance(ppm_error_array_xlinks.begin(), ppm_error_array_xlinks.end());
         }
 
         if (ppm_error_array_alpha.size() > 0)
         {
-          // csm.ppm_error_abs_sum_alpha = 0;
           for (double ppm_error : ppm_error_array_alpha)
           {
             csm.ppm_error_abs_sum_alpha += abs(ppm_error);
           }
           csm.ppm_error_abs_sum_alpha = csm.ppm_error_abs_sum_alpha / ppm_error_array_alpha.size();
-          // csm.ppm_error_sum_alpha = Math::sum(ppm_error_array_alpha.begin(), ppm_error_array_alpha.end());
-          // csm.ppm_error_variance_alpha = Math::variance(ppm_error_array_alpha.begin(), ppm_error_array_alpha.end());
         }
 
         if (ppm_error_array_beta.size() > 0)
         {
-          // csm.ppm_error_abs_sum_beta = 0;
           for (double ppm_error : ppm_error_array_beta)
           {
             csm.ppm_error_abs_sum_beta += abs(ppm_error);
           }
           csm.ppm_error_abs_sum_beta = csm.ppm_error_abs_sum_beta / ppm_error_array_beta.size();
-          // csm.ppm_error_sum_beta = Math::sum(ppm_error_array_beta.begin(), ppm_error_array_beta.end());
-          // csm.ppm_error_variance_beta = Math::variance(ppm_error_array_beta.begin(), ppm_error_array_beta.end());
         }
 
         if (ppm_error_array.size() > 0)
         {
-          // csm.ppm_error_abs_sum = 0;
           for (double ppm_error : ppm_error_array)
           {
             csm.ppm_error_abs_sum += abs(ppm_error);
           }
           csm.ppm_error_abs_sum = csm.ppm_error_abs_sum / ppm_error_array.size();
-          // csm.ppm_error_sum = Math::sum(ppm_error_array.begin(), ppm_error_array.end());
-          // csm.ppm_error_variance = Math::variance(ppm_error_array.begin(), ppm_error_array.end());
         }
 
         // write fragment annotations
