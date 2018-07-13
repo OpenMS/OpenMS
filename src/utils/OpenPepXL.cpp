@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -238,6 +239,23 @@ protected:
 
     registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", false, false);
 
+    StringList bool_strings = ListUtils::create<String>("true,false");
+    registerTOPPSubsection_("ions", "Ion types to search for");
+    registerStringOption_("ions:b_ions", "<true/false>", "true", "Search for peaks of b-ions.", false, true);
+    setValidStrings_("ions:b_ions", bool_strings);
+    registerStringOption_("ions:y_ions", "<true/false>", "true", "Search for peaks of y-ions.", false, true);
+    setValidStrings_("ions:y_ions", bool_strings);
+    registerStringOption_("ions:a_ions", "<true/false>", "false", "Search for peaks of a-ions.", false, true);
+    setValidStrings_("ions:a_ions", bool_strings);
+    registerStringOption_("ions:x_ions", "<true/false>", "false", "Search for peaks of x-ions.", false, true);
+    setValidStrings_("ions:x_ions", bool_strings);
+    registerStringOption_("ions:c_ions", "<true/false>", "false", "Search for peaks of c-ions.", false, true);
+    setValidStrings_("ions:c_ions", bool_strings);
+    registerStringOption_("ions:z_ions", "<true/false>", "false", "Search for peaks of z-ions.", false, true);
+    setValidStrings_("ions:z_ions", bool_strings);
+    registerStringOption_("ions:neutral_losses", "<true/false>", "true", "Search for neutral losses of H2O and H3N.", false, true);
+    setValidStrings_("ions:neutral_losses", bool_strings);
+
     // output file
     registerOutputFile_("out_xquestxml", "<file>", "", "Results in the xquest.xml format (at least one of these output parameters should be set, otherwise you will not have any results).", false, false);
     setValidFormats_("out_xquestxml", ListUtils::create<String>("xml,xquest.xml"));
@@ -272,20 +290,31 @@ protected:
       const PeakSpectrum& spectrum_heavy = spectra[scan_index_heavy];
       vector< pair< Size, Size > > matched_fragments_without_shift;
       DataArrays::FloatDataArray dummy_array;
-      OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, dummy_array, 0.3);
+      // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_fragments_without_shift, spectrum_light, spectrum_heavy, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, dummy_array, 0.3);
+      DataArrays::IntegerDataArray dummy_charges;
+      OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_fragments_without_shift, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum_light, spectrum_heavy, dummy_charges, dummy_charges, dummy_array, 0.3);
       LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
 
       // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
       PeakSpectrum xlink_peaks;
       PeakSpectrum::IntegerDataArray spectrum_heavy_charges;
       PeakSpectrum::IntegerDataArray spectrum_light_iso_peaks;
-      if (spectrum_heavy.getIntegerDataArrays().size() > 0)
+
+      auto spectrum_heavy_charges_it = getDataArrayByName(spectrum_heavy.getIntegerDataArrays(), "Charges");
+      if (spectrum_heavy_charges_it != spectrum_heavy.getIntegerDataArrays().end())
       {
-        spectrum_heavy_charges = spectrum_heavy.getIntegerDataArrayByName("Charges");
+        if (!spectrum_heavy_charges_it->empty())
+        {
+          spectrum_heavy_charges = *spectrum_heavy_charges_it;
+        }
       }
-      if (spectrum_light.getIntegerDataArrays().size() > 0)
+      auto spectrum_light_iso_peaks_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "NumIsoPeaks");
+      if (spectrum_light_iso_peaks_it != spectrum_light.getIntegerDataArrays().end())
       {
-        spectrum_light_iso_peaks = spectrum_light.getIntegerDataArrayByName("NumIsoPeaks");
+        if (!spectrum_light_iso_peaks_it->empty())
+        {
+          spectrum_light_iso_peaks = *spectrum_light_iso_peaks_it;
+        }
       }
 
       bool deisotoped = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
@@ -344,7 +373,8 @@ protected:
         {
           // DataArrays::FloatDataArray dummy_array;
           dummy_array.clear();
-          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, dummy_array, 0.3);
+          // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_fragments_with_shift, spectrum_light, spectrum_heavy_to_light, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, dummy_array, 0.3);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_fragments_with_shift, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum_light, spectrum_heavy_to_light, dummy_charges, dummy_charges, dummy_array, 0.3);
 
           LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
 
@@ -374,14 +404,19 @@ protected:
 
       PeakSpectrum::IntegerDataArray spectrum_light_charges;
       // PeakSpectrum::IntegerDataArray spectrum_light_iso_peaks;
-      if (spectrum_light.getIntegerDataArrays().size() > 0)
+
+      auto spectrum_light_charges_it = getDataArrayByName(spectrum_light.getIntegerDataArrays(), "Charges");
+      if (spectrum_light_charges_it != spectrum_light.getIntegerDataArrays().end())
       {
-        spectrum_light_charges = spectrum_light.getIntegerDataArrayByName("Charges");
-        // spectrum_light_iso_peaks = spectrum_light.getIntegerDataArrayByName("NumIsoPeaks");
-        linear_peaks.getIntegerDataArrays().resize(2);
-        linear_peaks.getIntegerDataArrays()[0].setName("Charges");
-        linear_peaks.getIntegerDataArrays()[1].setName("NumIsoPeaks");
+        if (!spectrum_light_charges_it->empty())
+        {
+          spectrum_light_charges = *spectrum_light_charges_it;
+          linear_peaks.getIntegerDataArrays().resize(2);
+          linear_peaks.getIntegerDataArrays()[0].setName("Charges");
+          linear_peaks.getIntegerDataArrays()[1].setName("NumIsoPeaks");
+        }
       }
+
       for (Size i = 0; i != matched_fragments_without_shift.size(); ++i)
       {
         linear_peaks.push_back(spectrum_light[matched_fragments_without_shift[i].first]);
@@ -670,19 +705,28 @@ protected:
 
     // Set parameters for cross-link fragmentation
     Param specGenParams = specGen.getParameters();
+
+    specGenParams.setValue("add_y_ions", getStringOption_("ions:y_ions"), "Add peaks of b-ions to the spectrum");
+    specGenParams.setValue("add_b_ions", getStringOption_("ions:b_ions"), "Add peaks of y-ions to the spectrum");
+    specGenParams.setValue("add_a_ions", getStringOption_("ions:a_ions"), "Add peaks of a-ions to the spectrum");
+    specGenParams.setValue("add_x_ions", getStringOption_("ions:x_ions"), "Add peaks of c-ions to the spectrum");
+    specGenParams.setValue("add_c_ions", getStringOption_("ions:c_ions"), "Add peaks of x-ions to the spectrum");
+    specGenParams.setValue("add_z_ions", getStringOption_("ions:z_ions"), "Add peaks of z-ions to the spectrum");
+    specGenParams.setValue("add_losses", getStringOption_("ions:neutral_losses"), "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+
     specGenParams.setValue("add_metainfo", "true");
     specGenParams.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
     specGenParams.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
-    specGenParams.setValue("add_losses", "true", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
+    // specGenParams.setValue("add_losses", "true", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     specGenParams.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
     specGenParams.setValue("add_abundant_immonium_ions", "false", "Add most abundant immonium ions");
     specGenParams.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
-    specGenParams.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-    specGenParams.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    specGenParams.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
-    specGenParams.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
+    // specGenParams.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
+    // specGenParams.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
+    // specGenParams.setValue("add_a_ions", "true", "Add peaks of a-ions to the spectrum");
+    // specGenParams.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
+    // specGenParams.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
+    // specGenParams.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
     specGenParams.setValue("add_k_linked_ions", "true");
     specGen.setParameters(specGenParams);
 
@@ -791,7 +835,7 @@ protected:
       vector< OPXLDataStructs::XLPrecursor > candidates;
       set< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates_set;
       // vector< int > precursor_corrections;
-      double allowed_error = 0;
+      // double allowed_error = 0;
 
       // determine MS2 precursors that match to the current peptide mass
       vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
@@ -936,13 +980,55 @@ protected:
 
         if (linear_peaks.size() > 0)
         {
-          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_alpha, theoretical_spec_linear_alpha, linear_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_alpha);
-          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_beta, theoretical_spec_linear_beta, linear_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_beta);
+          // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_alpha, theoretical_spec_linear_alpha, linear_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_alpha);
+          // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_linear_beta, theoretical_spec_linear_beta, linear_peaks, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, ppm_error_array_linear_beta);
+
+          DataArrays::IntegerDataArray theo_charges_alpha;
+          DataArrays::IntegerDataArray theo_charges_beta;
+          DataArrays::IntegerDataArray exp_charges;
+
+          auto theo_alpha_it = getDataArrayByName(theoretical_spec_linear_alpha.getIntegerDataArrays(), "Charges");
+          theo_charges_alpha = *theo_alpha_it;
+          if (theoretical_spec_linear_beta.size() > 0)
+          {
+            auto theo_beta_it = getDataArrayByName(theoretical_spec_linear_beta.getIntegerDataArrays(), "Charges");
+            theo_charges_beta = *theo_beta_it;
+          }
+
+          auto exp_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "Charges");
+          if (exp_it != linear_peaks.getIntegerDataArrays().end())
+          {
+            if (!exp_it->empty())
+            {
+              exp_charges = *exp_it;
+            }
+          }
+
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_alpha, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theoretical_spec_linear_alpha, linear_peaks, theo_charges_alpha, exp_charges, ppm_error_array_linear_alpha);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_beta, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, theoretical_spec_linear_beta, linear_peaks, theo_charges_beta, exp_charges, ppm_error_array_linear_beta);
         }
         if (xlink_peaks.size() > 0)
         {
-          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_alpha);
-          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_beta);
+          DataArrays::IntegerDataArray theo_charges_alpha;
+          DataArrays::IntegerDataArray theo_charges_beta;
+          DataArrays::IntegerDataArray exp_charges;
+
+          auto theo_alpha_it = getDataArrayByName(theoretical_spec_xlinks_alpha.getIntegerDataArrays(), "Charges");
+          theo_charges_alpha = *theo_alpha_it;
+          if (theoretical_spec_xlinks_beta.size() > 0)
+          {
+            auto theo_beta_it = getDataArrayByName(theoretical_spec_xlinks_beta.getIntegerDataArrays(), "Charges");
+            theo_charges_beta = *theo_beta_it;
+          }
+
+          auto exp_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "Charges");
+          exp_charges = *exp_it;
+
+          // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_alpha);
+          // OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, xlink_peaks, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, ppm_error_array_xlinks_beta);
+
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, theoretical_spec_xlinks_alpha, xlink_peaks, theo_charges_alpha, exp_charges, ppm_error_array_xlinks_alpha);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, theoretical_spec_xlinks_beta, xlink_peaks, theo_charges_beta, exp_charges, ppm_error_array_xlinks_beta);
         }
 
 
@@ -1139,7 +1225,10 @@ protected:
           double wTIC_weight = 12.829;
           double intsum_weight = 1.8;
 
-          double score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
+          double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
+          csm.xquest_score = xquest_score;
+
+          double score = log_occu + (100 * wTIC);
 
           csm.score = score;
           csm.pre_score = pre_score;
@@ -1147,6 +1236,9 @@ protected:
           csm.wTIC = wTIC;
           csm.wTICold = wTICold;
           csm.int_sum = intsum;
+          csm.intsum_alpha = intsum_alpha;
+          csm.intsum_beta = intsum_beta;
+          csm.total_current = total_current;
 
           csm.match_odds = match_odds;
           csm.match_odds_alpha = match_odds_alpha;
@@ -1155,9 +1247,11 @@ protected:
           csm.log_occupancy_alpha = log_occu_alpha;
           csm.log_occupancy_beta = log_occu_beta;
           csm.log_occupancy_full_spec = log_occupancy_full_spec;
+          csm.log_occupancy_full_spec_exp = 0;
 
           csm.xcorrx_max = xcorrx_max;
           csm.xcorrc_max = xcorrc_max;
+
           csm.matched_linear_alpha = matched_spec_linear_alpha.size();
           csm.matched_linear_beta = matched_spec_linear_beta.size();
           csm.matched_xlink_alpha = matched_spec_xlinks_alpha.size();
@@ -1179,11 +1273,18 @@ protected:
           bool deisotope_spectra = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
           if (deisotope_spectra)
           {
-            DataArrays::IntegerDataArray num_iso_peaks_array = all_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
+            auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            DataArrays::IntegerDataArray num_iso_peaks_array = *num_iso_peaks_array_it;
+            auto num_iso_peaks_array_linear_it = getDataArrayByName(linear_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            DataArrays::IntegerDataArray num_iso_peaks_array_linear = *num_iso_peaks_array_linear_it;
+            auto num_iso_peaks_array_xlinks_it = getDataArrayByName(xlink_peaks.getIntegerDataArrays(), "NumIsoPeaks");
+            DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = *num_iso_peaks_array_xlinks_it;
+
+            // DataArrays::IntegerDataArray num_iso_peaks_array = all_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
             csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
 
-            DataArrays::IntegerDataArray num_iso_peaks_array_linear = linear_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
-            DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = xlink_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
+            // DataArrays::IntegerDataArray num_iso_peaks_array_linear = linear_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
+            // DataArrays::IntegerDataArray num_iso_peaks_array_xlinks = xlink_peaks.getIntegerDataArrayByName(String("NumIsoPeaks"));
 
             vector< double > iso_peaks_linear_alpha;
             vector< double > iso_peaks_linear_beta;
