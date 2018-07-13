@@ -133,7 +133,7 @@ namespace OpenMS
 
     hide_no_identification_ = new QCheckBox("Only hits", this);
     hide_no_identification_->setChecked(true);
- 
+
 
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
 
@@ -178,7 +178,7 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
   {
-    if (row >= table_widget_->rowCount() 
+    if (row >= table_widget_->rowCount()
     || column >= table_widget_->columnCount())
     {
       return;
@@ -231,7 +231,7 @@ namespace OpenMS
     /*test for previous == 0 is important - without it,
       the wrong spectrum will be selected after finishing
       the execution of a TOPP tool on the whole data */
-    if (current == nullptr 
+    if (current == nullptr
     || previous == nullptr)
     {
       return;
@@ -284,8 +284,8 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::updateEntries()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr 
-    || layer_->getPeakData()->size() == 0 
+    if (layer_ == nullptr
+    || layer_->getPeakData()->size() == 0
     || layer_->type != LayerData::DT_PEAK)
     {
       table_widget_->clear();
@@ -454,7 +454,7 @@ namespace OpenMS
         {
           const Precursor & first_precursor = precursors.front();
 
-          // set precursor m/z 
+          // set precursor m/z
           item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, first_precursor.getMZ());
           item->setBackgroundColor(c);
@@ -466,8 +466,8 @@ namespace OpenMS
           if (!first_precursor.getActivationMethods().empty())
           {
             QString t;
-            for (auto it = first_precursor.getActivationMethods().begin(); 
-              it != first_precursor.getActivationMethods().end(); 
+            for (auto it = first_precursor.getActivationMethods().begin();
+              it != first_precursor.getActivationMethods().end();
               ++it)
             {
               if (!t.isEmpty()) { t.append(","); }
@@ -486,13 +486,13 @@ namespace OpenMS
           item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, first_precursor.getIntensity());
           item->setBackgroundColor(c);
-          table_widget_->setItem(table_widget_->rowCount() - 1, 17, item);          
+          table_widget_->setItem(table_widget_->rowCount() - 1, 17, item);
         }
-        else 
+        else
         { // has no precursor
           addTextItemToBottomRow_("-", 3, c);
-          addTextItemToBottomRow_("-", 4, c);         
-          addTextItemToBottomRow_("-", 17, c); // precursor intensity
+          addTextItemToBottomRow_("-", 4, c);
+          addTextItemToBottomRow_("-", 16, c); // precursor intensity
         }
 
         // scan mode
@@ -522,7 +522,7 @@ namespace OpenMS
       else
       {
         c = QColor(175, 255, 175); // with identification: light green
-        
+
         for (Size pi_idx = 0; pi_idx != id_count; ++pi_idx)
         {
           for (Size ph_idx = 0; ph_idx != pi[pi_idx].getHits().size(); ++ph_idx)
@@ -626,8 +626,8 @@ namespace OpenMS
               if (!first_precursor.getActivationMethods().empty())
               {
                 QString t;
-                for (auto it = first_precursor.getActivationMethods().begin(); 
-                  it != first_precursor.getActivationMethods().end(); 
+                for (auto it = first_precursor.getActivationMethods().begin();
+                  it != first_precursor.getActivationMethods().end();
                   ++it)
                 {
                   if (!t.isEmpty()) { t.append(","); }
@@ -646,19 +646,19 @@ namespace OpenMS
               item = table_widget_->itemPrototype()->clone();
               item->setData(Qt::DisplayRole, first_precursor.getIntensity());
               item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount() - 1, 17, item);        
+              table_widget_->setItem(table_widget_->rowCount() - 1, 16, item);
             }
             else // has no precursor (leave fields 3 and 4 empty)
             {
               addTextItemToBottomRow_("-", 3, c);
               addTextItemToBottomRow_("-", 4, c);
-              addTextItemToBottomRow_("-", 17, c); // precursor intensity
+              addTextItemToBottomRow_("-", 16, c); // precursor intensity
             }
 
             // add additional meta value columns
             if (create_rows_for_commmon_metavalue_->isChecked())
             {
-              Int current_col = 18;
+              Int current_col = 17;
               for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
               {
                 DataValue dv = ph.getMetaValue(*sit);
@@ -677,7 +677,7 @@ namespace OpenMS
                 ++current_col;
               }
             }
-            
+
             // scan mode
             QString scan_mode;
             if (spectrum.getInstrumentSettings().getScanMode() > 0)
@@ -770,8 +770,8 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::exportEntries_()
   {
-    if (layer_ == nullptr 
-      || layer_->getPeakData()->size() == 0 
+    if (layer_ == nullptr
+      || layer_->getPeakData()->size() == 0
       || layer_->type != LayerData::DT_PEAK)
     {
       return;
