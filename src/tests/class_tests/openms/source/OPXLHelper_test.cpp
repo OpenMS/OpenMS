@@ -234,7 +234,8 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
   std::vector <std::pair <Size, Size> > alignment;
 
   DataArrays::FloatDataArray dummy_array;
-  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment, theo_spec, exp_spec, 50, true, dummy_array);
+  DataArrays::IntegerDataArray dummy_charge_array;
+  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment, 50, true, theo_spec, exp_spec, dummy_charge_array, dummy_charge_array, dummy_array);
 
   std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
