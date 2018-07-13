@@ -230,8 +230,6 @@ namespace OpenMS
     {
       link_pos_B = link_pos;
     }
-//    cout << "Link_pos: " << link_pos << " | Link_pos_B: " << link_pos_B << " | charge: " << static_cast<double>(charge) << endl;
-//    cout << "Fragmented Peptide: " << peptide.toUnmodifiedString() << " | Size: " << peptide.size() << endl;
 
     double intensity(1);
     switch (res_type)
@@ -247,87 +245,72 @@ namespace OpenMS
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
-//      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
-//      {
-        double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
-        if (peptide.hasNTerminalModification())
+      double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
+      if (peptide.hasNTerminalModification())
+      {
+        mono_weight += peptide.getNTerminalModification()->getDiffMonoMass();
+      }
+
+      switch (res_type)
+      {
+        case Residue::AIon: mono_weight += Residue::getInternalToAIon().getMonoWeight(); break;
+        case Residue::BIon: mono_weight += Residue::getInternalToBIon().getMonoWeight(); break;
+        case Residue::CIon: mono_weight += Residue::getInternalToCIon().getMonoWeight(); break;
+        default: break;
+      }
+
+      Size i = 0;
+      for (; i < link_pos; ++i)
+      {
+        mono_weight += peptide[i].getMonoWeight(Residue::Internal);
+        double pos(mono_weight / static_cast<double>(charge));
+        int frag_index = i+1;
+
+        addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
+        if (add_losses_)
         {
-          mono_weight += peptide.getNTerminalModification()->getDiffMonoMass();
+          addLinearIonLossesFAST_(spectrum, charges, ion_names, mono_weight, res_type, frag_index, intensity, charge, ion_type, forward_losses[i]);
         }
-
-        switch (res_type)
+        if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
         {
-          case Residue::AIon: mono_weight += Residue::getInternalToAIon().getMonoWeight(); break;
-          case Residue::BIon: mono_weight += Residue::getInternalToBIon().getMonoWeight(); break;
-          case Residue::CIon: mono_weight += Residue::getInternalToCIon().getMonoWeight(); break;
-          default: break;
-        }
-
-        Size i = 0;
-        for (; i < link_pos; ++i)
-        {
-          mono_weight += peptide[i].getMonoWeight(Residue::Internal);
-          double pos(mono_weight / static_cast<double>(charge));
-          int frag_index = i+1;
-
-          // fragment testing
-//          double recalc_pos = (peptide.getPrefix(i+1).getMonoWeight(Residue::BIon) + static_cast<double>(charge) ) / static_cast<double>(charge);
-//          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$b" << frag_index << " | pos: " << pos << " | recalc_pos: " << recalc_pos << endl;
-
+          pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
           addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          if (add_losses_)
-          {
-            // addLinearIonLosses_(spectrum, charges, ion_names, peptide.getPrefix(i+1), res_type, frag_index, intensity, charge, ion_type);
-            addLinearIonLossesFAST_(spectrum, charges, ion_names, mono_weight, res_type, frag_index, intensity, charge, ion_type, forward_losses[i]);
-          }
-          if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
-          {
-            pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
-            addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          }
         }
-//      }
+      }
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
-//      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
-//      {
-        double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
-        if (peptide.hasCTerminalModification())
+      double mono_weight(Constants::PROTON_MASS_U * static_cast<double>(charge));
+      if (peptide.hasCTerminalModification())
+      {
+        mono_weight += peptide.getCTerminalModification()->getDiffMonoMass();
+      }
+
+      switch (res_type)
+      {
+        case Residue::XIon: mono_weight += Residue::getInternalToXIon().getMonoWeight(); break;
+        case Residue::YIon: mono_weight += Residue::getInternalToYIon().getMonoWeight(); break;
+        case Residue::ZIon: mono_weight += Residue::getInternalToZIon().getMonoWeight(); break;
+        default: break;
+      }
+
+      for (Size i = peptide.size()-1; i > link_pos_B; --i)
+      {
+        mono_weight += peptide[i].getMonoWeight(Residue::Internal);
+        double pos(mono_weight / static_cast<double>(charge));
+        int frag_index = peptide.size() - i;
+
+        addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
+        if (add_losses_)
         {
-          mono_weight += peptide.getCTerminalModification()->getDiffMonoMass();
+          addLinearIonLossesFAST_(spectrum, charges, ion_names, pos, res_type, frag_index, intensity, charge, ion_type, backward_losses[i]);
         }
-
-        switch (res_type)
+        if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
         {
-          case Residue::XIon: mono_weight += Residue::getInternalToXIon().getMonoWeight(); break;
-          case Residue::YIon: mono_weight += Residue::getInternalToYIon().getMonoWeight(); break;
-          case Residue::ZIon: mono_weight += Residue::getInternalToZIon().getMonoWeight(); break;
-          default: break;
-        }
-
-        for (Size i = peptide.size()-1; i > link_pos_B; --i)
-        {
-          mono_weight += peptide[i].getMonoWeight(Residue::Internal);
-          double pos(mono_weight / static_cast<double>(charge));
-          int frag_index = peptide.size() - i;
-
-//          double recalc_pos = (peptide.getSuffix(frag_index).getMonoWeight(Residue::YIon) + static_cast<double>(charge) ) / static_cast<double>(charge);
-//          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$y" << frag_index << " | pos: " << pos << " | recalc_pos: " << recalc_pos << endl;
-
+          pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
           addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          if (add_losses_)
-          {
-            // addLinearIonLosses_(spectrum, charges, ion_names, peptide.getSuffix(peptide.size() - i), res_type, frag_index, intensity, charge, ion_type);
-            addLinearIonLossesFAST_(spectrum, charges, ion_names, pos, res_type, frag_index, intensity, charge, ion_type, backward_losses[i]);
-          }
-          if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
-          {
-            pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
-            addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          }
         }
-//      }
+      }
     }
 
     return;
@@ -437,8 +420,6 @@ namespace OpenMS
     {
       link_pos_B = link_pos;
     }
-//    cout << "Link_pos: " << link_pos << " | Link_pos_B: " << link_pos_B << " | charge: " << static_cast<double>(charge) << endl;
-//    cout << "Fragmented Peptide: " << peptide.toUnmodifiedString() << " | Size: " << peptide.size() << " | precursor_mass: " << precursor_mass << endl;
 
     double intensity(1);
     switch (res_type)
@@ -454,8 +435,6 @@ namespace OpenMS
 
     if (res_type == Residue::AIon || res_type == Residue::BIon || res_type == Residue::CIon)
     {
-//      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
-//      {
         // whole mass of both peptides + cross-link (or peptide + mono-link), converted to an internal ion
         double mono_weight((Constants::PROTON_MASS_U * static_cast<double>(charge)) + precursor_mass - Residue::getInternalToFull().getMonoWeight());
 
@@ -481,9 +460,6 @@ namespace OpenMS
           double pos(mono_weight / static_cast<double>(charge));
           int frag_index = i;
 
-//          double recalc_pos = (peptide.getPrefix(frag_index+1).getMonoWeight() + static_cast<double>(charge) ) / static_cast<double>(charge);
-//          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$b" << frag_index << " | pos: " << pos << "| current_residue_mass: " << peptide[i].getMonoWeight(Residue::Internal) << " | recalc_pos: " << recalc_pos << endl;
-
           addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
           if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
           {
@@ -495,44 +471,37 @@ namespace OpenMS
     }
     else // if (res_type == Residue::XIon || res_type == Residue::YIon || res_type == Residue::ZIon)
     {
-        // not needed yet, since there is no alternative yet
-//      if ((!add_isotopes_) || max_isotope_ <= 2) // add single peaks (and maybe a second isotopic peak)
-//      {
-        // whole mass of both peptides + cross-link (or peptide + mono-link), converted to an internal ion
-        double mono_weight((Constants::PROTON_MASS_U * static_cast<double>(charge)) + precursor_mass - Residue::getInternalToFull().getMonoWeight()); // whole mass
+      // whole mass of both peptides + cross-link (or peptide + mono-link), converted to an internal ion
+      double mono_weight((Constants::PROTON_MASS_U * static_cast<double>(charge)) + precursor_mass - Residue::getInternalToFull().getMonoWeight()); // whole mass
 
-        if (peptide.hasNTerminalModification())
+      if (peptide.hasNTerminalModification())
+      {
+        mono_weight -= peptide.getNTerminalModification()->getDiffMonoMass();
+      }
+
+      // adjust mass to given residue type
+      switch (res_type)
+      {
+        case Residue::XIon: mono_weight += Residue::getInternalToXIon().getMonoWeight(); break;
+        case Residue::YIon: mono_weight += Residue::getInternalToYIon().getMonoWeight(); break;
+        case Residue::ZIon: mono_weight += Residue::getInternalToZIon().getMonoWeight(); break;
+        default: break;
+      }
+
+      // subtract one residue at a time
+      for (Size i = 0; i < link_pos; ++i)
+      {
+        mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
+        double pos(mono_weight / static_cast<double>(charge));
+        int frag_index = peptide.size() - 1 - i;
+
+        addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
+        if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
         {
-          mono_weight -= peptide.getNTerminalModification()->getDiffMonoMass();
-        }
-
-        // adjust mass to given residue type
-        switch (res_type)
-        {
-          case Residue::XIon: mono_weight += Residue::getInternalToXIon().getMonoWeight(); break;
-          case Residue::YIon: mono_weight += Residue::getInternalToYIon().getMonoWeight(); break;
-          case Residue::ZIon: mono_weight += Residue::getInternalToZIon().getMonoWeight(); break;
-          default: break;
-        }
-
-        // subtract one residue at a time
-        for (Size i = 0; i < link_pos; ++i)
-        {
-          mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
-          double pos(mono_weight / static_cast<double>(charge));
-          int frag_index = peptide.size() - 1 - i;
-
-//          double recalc_pos = (peptide.getSuffix(frag_index+1).getMonoWeight() + static_cast<double>(charge) ) / static_cast<double>(charge);
-//          cout << "Current residue: " << i << " = " << peptide.toUnmodifiedString()[i] << " | ion_type: " << ion_type << "$y" << frag_index << " | pos: " << pos << "| current_residue_mass: " << peptide[i].getMonoWeight(Residue::Internal) << " | recalc_pos: " << recalc_pos << endl;
-
+          pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
           addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
-          {
-            pos += Constants::C13C12_MASSDIFF_U / static_cast<double>(charge);
-            addPeak_(spectrum, charges, ion_names, pos, intensity, res_type, frag_index, charge, ion_type);
-          }
         }
-//      }
+      }
     }
     return;
   }
@@ -741,23 +710,11 @@ namespace OpenMS
         charges.push_back(charge);
       }
       spectrum.push_back(p);
-
-      // if (add_isotopes_ && max_isotope_ >= 2) // add second isotopic peak with fast method, if two or more peaks are asked for
-      // {
-      //   p.setMZ((mass_with_loss + Constants::C13C12_MASSDIFF_U) / static_cast<double>(charge));
-      //   spectrum.push_back(p);
-      //   if (add_metainfo_)
-      //   {
-      //     ion_names.push_back(ion_name);
-      //     charges.push_back(charge);
-      //   }
-      // }
     }
   }
 
   void TheoreticalSpectrumGeneratorXLMS::addPrecursorPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double precursor_mass, int charge) const
   {
-    // TODO precursors, mostly 4+ and 5+  (derive this and all other charges from precursor charges?)
     Peak1D p;
     String ion_name("[M+H]");
 
