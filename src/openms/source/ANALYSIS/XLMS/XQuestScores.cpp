@@ -56,13 +56,11 @@ namespace OpenMS
     float matched_alpha_float = matched_alpha;
     if (matched_alpha <= 0)
     {
-//      matched_alpha_float = std::numeric_limits<float>::min();
       matched_alpha_float = 0.1f;
     }
     float matched_beta_float = matched_beta;
     if (matched_beta <= 0)
     {
-//      matched_beta_float = std::numeric_limits<float>::min();
       matched_beta_float = 0.1f;
     }
 
@@ -84,8 +82,6 @@ namespace OpenMS
   double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
   {
     using boost::math::binomial;
-
-    // Size matched_size = matched_spec.size();
     Size theo_size = theoretical_spec.size();
 
     if (matched_size < 1 || theo_size < 1)
@@ -121,9 +117,6 @@ namespace OpenMS
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
     match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
-
-    //     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial_(theo_size, matched_size, a_priori_p)
-    //              << " | match_odds: " << match_odds << endl;
 
     // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
@@ -206,7 +199,6 @@ namespace OpenMS
   {
     if (!type_is_cross_link)
     {
-      // TODO what to do for mono-links, does this work?
       beta_size = alpha_size;
     }
 
@@ -302,17 +294,11 @@ namespace OpenMS
     for (Size i = 0; i < spec1.size(); ++i)
     {
       Size pos = static_cast<Size>(ceil(spec1[i].getMZ() / tolerance));
-      // with this line, use real intensities
-//      ion_table1[pos] = spec1[i].getIntensity();
-      // with this line, use intensities normalized to 10
       ion_table1[pos] = 10.0;
     }
     for (Size i = 0; i < spec2.size(); ++i)
     {
       Size pos =static_cast<Size>(ceil(spec2[i].getMZ() / tolerance));
-      // with this line, use real intensities
-//      ion_table2[pos] = spec2[i].getIntensity();
-      // with this line, use intensities normalized to 10
       ion_table2[pos] = 10.0;
     }
 
@@ -352,9 +338,6 @@ namespace OpenMS
 
   double XQuestScores::xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance)
   {
-    // generate vector of results, filled with zeroes
-    // std::vector< double > results(maxshift * 2 + 1, 0);
-
     // return 0 = no correlation, when one of the spectra is empty
     if (spec1.size() == 0 || spec2.size() == 0) {
       return 0.0;
@@ -387,7 +370,6 @@ namespace OpenMS
     // determine the smaller spectrum and normalize by the number of peaks in it
     double peaks = std::min(spec1.size(), spec2.size());
     return dot_product / peaks;
-    // return dot_product;
   }
 
 }
