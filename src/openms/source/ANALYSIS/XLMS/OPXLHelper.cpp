@@ -945,6 +945,7 @@ namespace OpenMS
         ph_beta.setMetaValue("xl_pos2", DataValue(beta_pos));
         ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
         ph_beta.setMetaValue("spectrum_index", scan_index);
+        ph_beta.setMetaValue("xl_type", xltype);
         ph_beta.setMetaValue("xl_term_spec", beta_term);
         ph_beta.setMetaValue("precursor_correction", top_csms_spectrum[i].precursor_correction);
 
