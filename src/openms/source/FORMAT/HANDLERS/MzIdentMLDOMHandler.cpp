@@ -922,7 +922,7 @@ namespace OpenMS
                     mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
                    if (mname == "unknown modification")
                    {
-                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>                     
+                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
                      mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("value")));
                    }
                   }
@@ -1262,6 +1262,13 @@ namespace OpenMS
                   ++index_counter;
                 }
 
+                // fix for label-free mono-links
+                // those only have one SII and no "cross-link spectrum identification item" value
+                if (xl_val_set.empty())
+                {
+                  xl_val_set.insert("0");
+                  xl_val_map.insert(make_pair("0", 0));
+                }
                 for (set<String>::const_iterator set_it = xl_val_set.begin(); set_it != xl_val_set.end(); ++set_it)
                 {
                   parseSpectrumIdentificationItemSetXLMS(set_it, xl_val_map, element_res, spectrumID);
@@ -1760,8 +1767,6 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_term_spec", "ANYWHERE");
       }
 
-
-
       if (xl_type == "cross-link")
       {
         PeptideHit ph_beta;
@@ -1773,7 +1778,7 @@ namespace OpenMS
         ph_beta.setRank(rank);
         ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
-
+        ph_beta.setMetaValue("xl_type", xl_type);
 
         if (labeled)
         {
@@ -2465,24 +2470,24 @@ namespace OpenMS
                 xl_donor_pos_map_.insert(make_pair(pep_id, index-1));
               }
             }
-            else // general case: no XL-MS result 
+            else // general case: no XL-MS result
             {
               DOMElement* cvp = element_sib->getFirstElementChild();
               while (cvp)
               {
                 CVTerm cv = parseCvParam_(cvp);
                 if (cv.getAccession() == "MS:1001460") // unknown modification
-                {                  
+                {
                   const String & cvvalue = cv.getValue();
                   if (cv.hasValue() && ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())  // why do we need to check for empty?
-                  { 
-                    // Case 1: unknown (to e.g., thid-party tool) modification known to OpenMS (see value)     
+                  {
+                    // Case 1: unknown (to e.g., thid-party tool) modification known to OpenMS (see value)
                     //  <Modification location="0" monoisotopicMassDelta="17.031558">
                     //  <cvParam cvRef="PSI-MS" accession="MS:1001460" name="unknown modification" value="Methyl:2H(2)13C"/>
                     const String & mname = cvvalue;
                     if (index == 0)
                     {
-                      aas.setNTerminalModification(mname);  
+                      aas.setNTerminalModification(mname);
                     }
                     else if (index == (int)aas.size() + 1)
                     {
@@ -2608,7 +2613,7 @@ namespace OpenMS
                   cvp = cvp->getNextElementSibling();
                   continue;
                 }
-                
+
                 if (index == 0)
                 {
                   if (cv.getName() == "unknown modification")
@@ -2643,7 +2648,7 @@ namespace OpenMS
                     LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
                   }
                 }
-                
+
                 cvp = cvp->getNextElementSibling();
               }
             }

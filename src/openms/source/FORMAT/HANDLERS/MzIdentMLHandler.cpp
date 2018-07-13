@@ -1281,7 +1281,12 @@ namespace OpenMS
 
           if (is_ppxl)
           {
-            sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, ppxl_linkid) + "\n"; // cross-linked spectrum identification item
+            // TODO this would be the correct way, but need to adjust parsing as well
+            if (copy_jt.metaValueExists("spec_heavy_MZ") || copy_jt.getMetaValue("xl_type") == "cross-link")
+            {
+              sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, ppxl_linkid) + "\n"; // cross-linked spectrum identification item
+            }
+
             copy_jt.removeMetaValue("xl_rank");  // not so sure: it->getMetaValue("xl_rank")
             copy_jt.removeMetaValue("xl_type");
             copy_jt.removeMetaValue("xl_pos");
@@ -1677,8 +1682,12 @@ namespace OpenMS
         }
         else
         {
-          LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
-          LOG_WARN << kt->annotation << std::endl;
+          // since PeakAnnotations are very flexible and not all of them fit into the limited mzid fragment structure,
+          // this would happen quite often and flood the output, but we still need them for other output formats
+          // TODO find ways to represent additional fragment types or filter out known incompatible types
+
+          // LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
+          // LOG_WARN << kt->annotation << std::endl;
           continue;
         }
         String lt = "frag: " + iontype + " ion";
@@ -1709,6 +1718,11 @@ namespace OpenMS
         }
       }
 
+      // stop and return, if no mzid compatible fragments were found
+      if (annotation_map.empty())
+      {
+        return;
+      }
       //double map: charge + ion type; collect in StringList: index + annotations; write:
       s += String(indent, '\t') + "<Fragmentation>\n";
       for (std::map<UInt,std::map<String,std::vector<StringList> > >::iterator i=annotation_map.begin();
