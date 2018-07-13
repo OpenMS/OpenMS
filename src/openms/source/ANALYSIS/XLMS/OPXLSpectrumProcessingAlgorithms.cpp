@@ -181,211 +181,6 @@ namespace OpenMS
     return filtered_spectra;
   }
 
-  void OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(std::vector<std::pair<Size, Size> > & alignment, const PeakSpectrum & s1, const PeakSpectrum & s2, double tolerance, bool relative_tolerance, DataArrays::FloatDataArray & ppm_error_array, double intensity_cutoff)
-  {
-    if (!s1.isSorted() || !s2.isSorted())
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input to SpectrumAlignment is not sorted!");
-    }
-
-    std::map<Size, std::map<Size, double> > ppm_error_matrix;
-
-    vector<double> max_dists1;
-    vector<double> max_dists2;
-
-    if (relative_tolerance)
-    {
-      for (Size i = 0; i < s1.size(); ++i)
-      {
-        max_dists1.push_back( s1[i].getMZ() * tolerance * 1e-6 );
-      }
-      for (Size i = 0; i < s2.size(); ++i)
-      {
-        max_dists2.push_back( s2[i].getMZ() * tolerance * 1e-6 );
-      }
-    }
-    else
-    {
-      max_dists1.assign(s1.size(), tolerance);
-      max_dists2.assign(s2.size(), tolerance);
-    }
-
-    // clear result
-    alignment.clear();
-
-    // the weight of the intensity ratio term of the alignment score, and the gap penalty (since the ratio will always be between 0 and 1)
-    // TODO this weight should somehow be proportional to the tolerance, since the tolerance penalty varies, maybe 1/2 of absolute tol?
-    double intensity_weight = 0.1;
-
-//    if (!(relative_tolerance))
-//    {
-      std::map<Size, std::map<Size, std::pair<Size, Size> > > traceback;
-      std::map<Size, std::map<Size, double> > matrix;
-
-      // initialize to tolerance, will not change if tolerance is absolute (Da), updated for each position if tol is relative (ppm)
-//      double max_dist = tolerance;
-
-      // init the matrix with "gap costs" tolerance + 1 for worst intensity ratio
-      matrix[0][0] = 0;
-      for (Size i = 1; i <= s1.size(); ++i)
-      {
-        // update relative max_dist at new position
-//        if (relative_tolerance)
-//        {
-//          max_dist = s1[i-1].getMZ() * tolerance * 1e-6;
-//        }
-        matrix[i][0] = i * max_dists1[i-1] + i;
-        traceback[i][0]  = std::make_pair(i - 1, 0);
-      }
-      for (Size j = 1; j <= s2.size(); ++j)
-      {
-//        if (relative_tolerance)
-//        {
-//          max_dist = s2[j-1].getMZ() * tolerance * 1e-6;
-//        }
-        matrix[0][j] = j * max_dists2[j-1] + j;
-        traceback[0][j] = std::make_pair(0, j - 1);
-      }
-
-      // fill in the matrix
-      Size left_ptr(1);
-      Size last_i(0), last_j(0);
-
-      //Size off_band_counter(0);
-      for (Size i = 1; i <= s1.size(); ++i)
-      {
-        double pos1(s1[i - 1].getMZ());
-
-        // update relative max_dist at new position
-//        if (relative_tolerance)
-//        {
-//          max_dist = pos1 * tolerance * 1e-6;
-//        }
-
-        for (Size j = left_ptr; j <= s2.size(); ++j)
-        {
-          bool off_band(false);
-          // find min of the three possible directions
-          double pos2(s2[j - 1].getMZ());
-          double diff_align = fabs(pos1 - pos2);
-
-          // running off the right border of the band?
-          if (pos2 > pos1 && diff_align >= max_dists1[i-1])
-          {
-            if (i < s1.size() && j < s2.size() && s1[i].getMZ() < pos2)
-            {
-              off_band = true;
-            }
-          }
-
-          // can we tighten the left border of the band?
-          if (pos1 > pos2 && diff_align >= max_dists1[i-1] && j > left_ptr + 1)
-          {
-            ++left_ptr;
-          }
-
-          double score_align = diff_align;
-
-          if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j - 1) != matrix[i - 1].end())
-          {
-            score_align += matrix[i - 1][j - 1];
-          }
-          else
-          {
-            score_align += (i - 1 + j - 1) * max_dists1[i-1] + (i - 1 + j - 1) * intensity_weight;
-          }
-
-          double score_up = max_dists1[i-1] + intensity_weight;
-          if (matrix.find(i) != matrix.end() && matrix[i].find(j - 1) != matrix[i].end())
-          {
-            score_up += matrix[i][j - 1];
-          }
-          else
-          {
-            score_up += (i + j - 1) * max_dists1[i-1] + (i + j - 1) / 10;
-          }
-
-          double score_left = max_dists1[i-1] + intensity_weight;
-          if (matrix.find(i - 1) != matrix.end() && matrix[i - 1].find(j) != matrix[i - 1].end())
-          {
-            score_left += matrix[i - 1][j];
-          }
-          else
-          {
-            score_left += (i - 1 + j) * max_dists1[i-1] + (i - 1 + j) * intensity_weight;
-          }
-
-          // check for similar intensity values
-          double intensity1(s1[i - 1].getIntensity());
-          double intensity2(s2[j - 1].getIntensity());
-          double int_ratio = min(intensity1, intensity2) / max(intensity1, intensity2);
-          bool diff_int_clear = int_ratio > intensity_cutoff;
-
-          // check for same charge (loose restriction, only excludes matches if both charges are known but unequal)
-          bool charge_fits = true;
-          if (s1.getIntegerDataArrays().size() > 0 && s2.getIntegerDataArrays().size() > 0)
-          {
-            int s1_charge = s1.getIntegerDataArrays()[0][i - 1];
-            int s2_charge = s2.getIntegerDataArrays()[0][j - 1];
-            charge_fits = s1_charge == s2_charge || s1_charge == 0 || s2_charge == 0;
-//            LOG_DEBUG << "s1 charge: " << s1_charge << " | s2 charge: " << s2_charge << " | charge fits: " << charge_fits << endl;
-          }
-
-          // int_ratio is between 0 and 1, multiply with intensity_weight for penalty
-          score_align += (1 - int_ratio) * intensity_weight;
-
-          if (score_align <= score_up && score_align <= score_left && diff_align < max_dists1[i-1] && diff_int_clear && charge_fits)
-          {
-//            cout << "Aligning peaks | score_align = " << score_align << "\t| int_ratio = " << int_ratio << "\t| score_up = " << score_up << "\t| score_left = " << score_left << endl;
-            matrix[i][j] = score_align;
-            traceback[i][j] = std::make_pair(i - 1, j - 1);
-            last_i = i;
-            last_j = j;
-            ppm_error_matrix[i][j] = (pos1 - pos2) / pos1 / 1e-6;
-          }
-          else
-          {
-            if (score_up <= score_left)
-            {
-              matrix[i][j] = score_up;
-              traceback[i][j] = std::make_pair(i, j - 1);
-            }
-            else
-            {
-              matrix[i][j] = score_left;
-              traceback[i][j] = std::make_pair(i - 1, j);
-            }
-          }
-
-          if (off_band)
-          {
-            break;
-          }
-        }
-      }
-
-      // do traceback
-      Size i = last_i;
-      Size j = last_j;
-
-      while (i >= 1 && j >= 1)
-      {
-        if (traceback[i][j].first == i - 1 && traceback[i][j].second == j - 1)
-        {
-          alignment.push_back(std::make_pair(i - 1, j - 1));
-          ppm_error_array.push_back(ppm_error_matrix[i][j]);
-        }
-        Size new_i = traceback[i][j].first;
-        Size new_j = traceback[i][j].second;
-
-        i = new_i;
-        j = new_j;
-      }
-
-      std::reverse(alignment.begin(), alignment.end());
-      std::reverse(ppm_error_array.begin(), ppm_error_array.end());
-  }
-
   void OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(
     std::vector<std::pair<Size, Size> > & alignment, double fragment_mass_tolerance,
     bool fragment_mass_tolerance_unit_ppm,
@@ -404,8 +199,6 @@ namespace OpenMS
     const Size n_t(theo_spectrum.size());
     const Size n_e(exp_spectrum.size());
     const bool has_charge = !(exp_charges.empty() || theo_charges.empty());
-
-    // std::cout << "Attempt new alignment!" << std::endl;
 
     if (n_t == 0 || n_e == 0) { return; }
 
@@ -431,7 +224,6 @@ namespace OpenMS
 
       if (fabs(d) <= max_dist_dalton) // match in tolerance window?
       {
-        // std::cout << "initial match | exp_mz: " << exp_mz << " | theo_mz: " << theo_mz << " | int: " << exp_spectrum[e].getIntensity() << " | d = " << d << " | max_dist_dalton = " << max_dist_dalton << std::endl;
         // get first peak with matching charge in tolerance window
         if (!tz_matches_ez)
         {
@@ -519,8 +311,6 @@ namespace OpenMS
           }
         }
         while (e < n_e - 1);
-
-      //  std::cout << "added peak | exp_mz: " << exp_spectrum[closest_exp_peak].getMZ() << " | theo_mz: " << theo_mz << " | exp_int: " << exp_spectrum[closest_exp_peak].getIntensity() << std::endl;
 
         // search in tolerance window for an experimental peak closer to theoretical one
         alignment.emplace_back(std::make_pair(t, closest_exp_peak));
@@ -617,7 +407,6 @@ namespace OpenMS
 
             if (has_min_isopeaks)
             {
-              //LOG_DEBUG << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
               mono_isotopic_peak[current_peak] = q;
               for (Size i = 0; i != extensions.size(); ++i)
               {
@@ -631,8 +420,6 @@ namespace OpenMS
 
 
       // creating PeakSpectrum containing charges
-      //out.clear(false);
-
       for (Size i = 0; i != old_spectrum.size(); ++i)
       {
         Int z = mono_isotopic_peak[i];
@@ -718,8 +505,6 @@ namespace OpenMS
 
       out.getIntegerDataArrays().push_back(charge_array);
       out.getIntegerDataArrays().push_back(num_iso_peaks);
-
-//      out.sortByPosition();
       return out;
     }
 
