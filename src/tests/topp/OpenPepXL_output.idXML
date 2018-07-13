@@ -21,7 +21,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-07-13T18:42:37" search_engine="OpenXQuest" search_engine_version="2.4.0-feature-xlms-tool-2018-07-13" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-07-13T21:50:15" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-13" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -73,18 +73,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.549549170221576"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0628654398321434"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.03623290061101"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00177861292905081"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00560801188605114"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0171596261044587"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0171596261044587"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00560801188605114"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0226724900538774"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -136,18 +124,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.549549170221576"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0628654398321434"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.03623290061101"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00177861292905081"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00560801188605114"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0171596261044587"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0171596261044587"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00560801188605114"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0226724900538774"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -190,18 +166,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.377801973720929"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.349860428391194"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.405743519050664"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000525518134459726"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0109298169768322"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.701463953644391"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.802149999467821"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00416703260662215"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.90449978562723"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -253,18 +217,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.377801973720929"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.349860428391194"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.405743519050664"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000525518134459726"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0109298169768322"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.701463953644391"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.802149999467821"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00416703260662215"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.90449978562723"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="KLRDK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -307,18 +259,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.76221477841808"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.98606929061181"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.53836026622434"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000100904806073036"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="12.5650697679762"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.52343573908265"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05297537403953"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.8480008025057"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.5891198108302"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="2"/>
 				<UserParam type="int" name="matched_linear_alpha" value="5"/>
@@ -370,18 +310,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.76221477841808"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.98606929061181"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.53836026622434"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000100904806073036"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="12.5650697679762"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.52343573908265"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05297537403953"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.8480008025057"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.5891198108302"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="SAVIKTSTR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -424,18 +352,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.354391333646063"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.708782667292127"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.67853442133205e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.812005982191031"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0572252179854778"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.97228759369279"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -487,18 +403,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.354391333646063"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.708782667292127"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.67853442133205e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.812005982191031"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0572252179854778"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.97228759369279"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -541,18 +445,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.163543271904509"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00584156059589396"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.321244983213125"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.6402935689849e-09"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.107433116104662"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0176116605665942"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0176116605665942"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.811961724052222"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.9262280397417"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -604,18 +496,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.163543271904509"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00584156059589396"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.321244983213125"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.6402935689849e-09"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.107433116104662"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0176116605665942"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0176116605665942"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.811961724052222"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.9262280397417"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -658,18 +538,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.280923195022288"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.561846390044576"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.67853442133205e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.812005982191031"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0572252179854778"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.97228759369279"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -721,18 +589,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.280923195022288"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.561846390044576"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.67853442133205e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.812005982191031"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0572252179854778"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.97228759369279"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -775,18 +631,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.05664698948314"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.98606929061181"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.12722468835447"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000608468740101783"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="15.8996231749995"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.28473988317518"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05297537403953"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="15.2078465028376"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.2817364500811"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="3"/>
 				<UserParam type="int" name="matched_linear_alpha" value="5"/>
@@ -838,18 +682,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="2.05664698948314"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.98606929061181"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.12722468835447"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000608468740101783"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="15.8996231749995"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.28473988317518"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.05297537403953"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="15.2078465028376"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.2817364500811"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="SAVIKTSTR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -892,18 +724,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.344912331526277"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00584156059589396"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.683983102456661"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.5354817646453e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.811961724052222"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0176116605665942"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0176116605665942"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.811961724052222"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.9262280397417"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -955,18 +775,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.344912331526277"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00584156059589396"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.683983102456661"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.5354817646453e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.811961724052222"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0176116605665942"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0176116605665942"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.811961724052222"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.9262280397417"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1009,18 +817,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.600122029318825"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.20024405863765"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.27588185190206e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0453326599139591"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0572252179854778"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.97228759369279"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="3"/>
@@ -1072,18 +868,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.600122029318825"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.20024405863765"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.27588185190206e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0453326599139591"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0572252179854778"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.97228759369279"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1126,18 +910,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.490078849670875"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.980157699341751"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.27588185190206e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0453326599139591"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0572252179854778"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.97228759369279"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="3"/>
@@ -1189,18 +961,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.490078849670875"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.980157699341751"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.27588185190206e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0453326599139591"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.92187112248"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0572252179854778"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.97228759369279"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1243,18 +1003,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.7818396311897"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.98760249492765"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.57607676745175"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000608468740101783"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="12.4468184157773"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="12.311687744963"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.53624396407732"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.7854915426874"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.0561787246832"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="3"/>
 				<UserParam type="int" name="matched_linear_alpha" value="5"/>
@@ -1306,18 +1054,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.7818396311897"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.98760249492765"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.57607676745175"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000608468740101783"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="12.4468184157773"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="12.311687744963"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.53624396407732"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.7854915426874"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="26.0561787246832"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="SAVIKTSTR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1360,18 +1096,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.166415602805664"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00584156059589396"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.326989645015434"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.5354817646453e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0534783175307594"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.35093031640639"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.783316565736296"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.53565369071023"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.09869489746187"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -1423,18 +1147,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.166415602805664"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00584156059589396"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.326989645015434"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.5354817646453e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0534783175307594"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.35093031640639"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.783316565736296"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.53565369071023"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.09869489746187"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1477,18 +1189,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.354619475982355"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.70923895196471"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.27634371622783e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.755096111778452"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0461006632290082"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.90766002573903"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619602264124125"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.65617082428873"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -1540,18 +1240,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.354619475982355"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.70923895196471"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.27634371622783e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.755096111778452"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0461006632290082"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.90766002573903"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619602264124125"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.65617082428873"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1594,18 +1282,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.28115110246281"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.56230220492562"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.27634371622783e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.755096111778452"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0461006632290082"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.90766002573903"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619602264124125"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.65617082428873"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -1657,18 +1333,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.28115110246281"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.56230220492562"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.27634371622783e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.755096111778452"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0461006632290082"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.90766002573903"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619602264124125"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.65617082428873"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1711,18 +1375,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.8163424902005"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.98760249492765"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.64508248547335"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00134415298793867"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="14.6566472156022"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="14.5091797230051"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.53624396407732"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="14.2694301048186"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="27.5805674709122"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="4"/>
 				<UserParam type="int" name="matched_linear_alpha" value="5"/>
@@ -1774,18 +1426,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.8163424902005"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="1.98760249492765"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.64508248547335"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00134415298793867"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="14.6566472156022"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="14.5091797230051"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="5.53624396407732"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="14.2694301048186"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="27.5805674709122"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="SAVIKTSTR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1828,18 +1468,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.347784662427432"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00584156059589396"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.68972776425897"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.07692829346595e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.757745536150628"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.35093031640639"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.783316565736296"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.53565369071023"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.09869489746187"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -1891,18 +1519,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.347784662427432"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00584156059589396"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.68972776425897"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.07692829346595e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.757745536150628"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="3.35093031640639"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.783316565736296"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.53565369071023"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="4.09869489746187"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -1945,18 +1561,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.354619475982355"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.70923895196471"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.27634371622783e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.757745536150628"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0461006632290082"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.801023807285352"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619602264124125"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.54996841060841"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -2008,18 +1612,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.354619475982355"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.70923895196471"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.27634371622783e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.757745536150628"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0461006632290082"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.801023807285352"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619602264124125"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.54996841060841"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -2062,18 +1654,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.28115110246281"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.56230220492562"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.27634371622783e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.757745536150628"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0461006632290082"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.801023807285352"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619602264124125"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.54996841060841"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -2125,18 +1705,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.28115110246281"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.56230220492562"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.27634371622783e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.757745536150628"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0461006632290082"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.801023807285352"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0619602264124125"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.54996841060841"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -2179,18 +1747,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.406511295345451"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.510331788996077"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.302690801694825"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="3.55474521900093e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.801396149673881"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.295373210480679"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.801396149673881"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.295373210480679"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.16879277339488"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -2242,18 +1798,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.406511295345451"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.510331788996077"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.302690801694825"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="3.55474521900093e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.801396149673881"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.295373210480679"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.801396149673881"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.295373210480679"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.16879277339488"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="KVADLK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -2296,18 +1840,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0262849634028996"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0525699268057992"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.53112628997733e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.171615324290002"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.171615324290002"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.171615324290002"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -2359,18 +1891,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0262849634028996"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0525699268057992"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.53112628997733e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.171615324290002"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.171615324290002"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.171615324290002"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DTALEKYK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -2412,18 +1932,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.108614092570659"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.108614092570659"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0107756515109861"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00907954947100905"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.00907954947100905"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.00907954947100905"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -2484,18 +1992,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.235408675113798"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.470817350227596"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.90044230620493e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0824649173979771"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0149554504839421"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0824649173979771"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.789391848390081"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -2547,18 +2043,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.235408675113798"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.470817350227596"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.90044230620493e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0824649173979771"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0149554504839421"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0824649173979771"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.789391848390081"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="GAFKV"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -2601,18 +2085,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0470955543170114"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.0941911086340229"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="6.58930737256387e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0824649173979771"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.163112835947657"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.163112835947657"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -2664,18 +2136,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0470955543170114"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.0941911086340229"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="6.58930737256387e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0824649173979771"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.163112835947657"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.163112835947657"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="KLGVKPPK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -2718,18 +2178,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0559676472950442"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.111935294590088"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="9.04102682017932e-10"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00261475098847331"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.696073764976184"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.696073764976184"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -2781,18 +2229,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0559676472950442"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.111935294590088"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="9.04102682017932e-10"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00261475098847331"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.696073764976184"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.696073764976184"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="EWDSKLK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -2835,18 +2271,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.27295204181846"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.06095706736791"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.484947016269017"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0138784541377703"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="7.41098941809327"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.19676826593032"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.56815277736109"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.418041323402"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="10.2754965630913"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="2"/>
 				<UserParam type="int" name="matched_xlink_beta" value="2"/>
 				<UserParam type="int" name="matched_linear_alpha" value="5"/>
@@ -2898,18 +2322,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.27295204181846"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.06095706736791"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.484947016269017"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0138784541377703"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="7.41098941809327"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="8.19676826593032"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="4.56815277736109"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="2.418041323402"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="10.2754965630913"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="SAVIKTSTR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -2952,18 +2364,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0247363600042416"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.0494727200084832"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.54253511395027e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -3015,18 +2415,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0247363600042416"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.0494727200084832"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.54253511395027e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -3069,18 +2457,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.00626810662097095"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0125362132419419"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="9.78200670548136e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0092617549471832"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0092617549471832"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -3132,18 +2508,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.00626810662097095"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0125362132419419"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="9.78200670548136e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0092617549471832"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0092617549471832"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -3186,18 +2550,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.79931045014303"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.15857099387718"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.44004990640888"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.196451795850818"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="9.37018673998617"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="19.5753281838445"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="7.93777289212891"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="7.23374144647142"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="22.2520144642706"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="3"/>
 				<UserParam type="int" name="matched_xlink_beta" value="5"/>
 				<UserParam type="int" name="matched_linear_alpha" value="5"/>
@@ -3249,18 +2601,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.79931045014303"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.15857099387718"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.44004990640888"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.196451795850818"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="9.37018673998617"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="19.5753281838445"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="7.93777289212891"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="7.23374144647142"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="22.2520144642706"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="SAVIKTSTR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -3303,18 +2643,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.231253429311422"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.462506858622845"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.75139024697374e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.128216428148265"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.848035394857813"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.848035394857813"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="2"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -3366,18 +2694,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.231253429311422"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.462506858622845"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.75139024697374e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.128216428148265"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.848035394857813"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.848035394857813"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -3420,18 +2736,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.133825084912548"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.267650169825097"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.6676639478553e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -3483,18 +2787,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.133825084912548"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.267650169825097"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.6676639478553e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0856736740370098"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -3537,18 +2829,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.167993524615888"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.335987049231776"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="9.78200670548136e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -3600,18 +2880,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.167993524615888"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.335987049231776"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="9.78200670548136e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0302657654452197"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -3654,18 +2922,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.66817652074164"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.15857099387718"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.1777820476061"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0813505551821652"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="10.3279912107947"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="10.0716332531741"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="10.7217131749241"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="5.72157119395302"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.5776831098825"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="3"/>
 				<UserParam type="int" name="matched_xlink_beta" value="2"/>
 				<UserParam type="int" name="matched_linear_alpha" value="5"/>
@@ -3717,18 +2973,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.66817652074164"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.15857099387718"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.1777820476061"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.0813505551821652"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="10.3279912107947"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="10.0716332531741"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="10.7217131749241"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="5.72157119395302"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="23.5776831098825"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="SAVIKTSTR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -3771,18 +3015,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.185358851610804"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.370717703221608"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.32954171742324e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180730501750282"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -3834,18 +3066,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.185358851610804"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.370717703221608"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.32954171742324e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180730501750282"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -3888,18 +3108,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.303033148381258"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.606066296762516"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00157927245802192"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.949192772410232"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="2"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -3951,18 +3159,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.303033148381258"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.606066296762516"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00157927245802192"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.949192772410232"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4005,18 +3201,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.36066453050609"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.721329061012181"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000401317173707615"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0895841543324634"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -4068,18 +3252,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.36066453050609"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.721329061012181"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000401317173707615"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0895841543324634"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.747941249606645"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4122,18 +3294,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.94637823509447"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.06095706736791"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.83179940282104"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.196451795850818"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="11.7340328312971"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="14.8951592267546"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="8.77371679688911"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.0011273237485"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="27.9030949857028"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="2"/>
 				<UserParam type="int" name="matched_xlink_beta" value="5"/>
 				<UserParam type="int" name="matched_linear_alpha" value="5"/>
@@ -4185,18 +3345,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.94637823509447"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="2.06095706736791"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.83179940282104"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.196451795850818"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="11.7340328312971"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="14.8951592267546"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="8.77371679688911"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="12.0011273237485"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="27.9030949857028"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="SAVIKTSTR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4239,18 +3387,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.185358851610804"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.370717703221608"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.32954171742324e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180730501750282"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -4302,18 +3438,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.185358851610804"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.370717703221608"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.32954171742324e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180730501750282"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4356,18 +3480,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.133825084912548"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.267650169825097"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.6676639478553e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180730501750282"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -4419,18 +3531,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.133825084912548"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.267650169825097"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="7.6676639478553e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.180730501750282"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4473,18 +3573,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.167993524615888"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.335987049231776"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="9.78200670548136e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -4536,18 +3624,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.167993524615888"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.335987049231776"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="9.78200670548136e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0527512761647755"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKDLR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4590,18 +3666,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.303496225866087"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.606992451732175"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="5.23841249528791e-09"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.708921135256259"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0229609661080973"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.83013907730779"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.83013907730779"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -4653,18 +3717,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.303496225866087"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.606992451732175"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="5.23841249528791e-09"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.708921135256259"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0229609661080973"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.83013907730779"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.83013907730779"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DAFALAKEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4707,18 +3759,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.14973194940246"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.299463898804921"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.96290269300049e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00102695610155772"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.67171084710315"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.48451789602721"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.48451789602721"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -4770,18 +3810,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.14973194940246"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.299463898804921"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.96290269300049e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00102695610155772"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.67171084710315"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.48451789602721"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.48451789602721"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="KNEEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4824,18 +3852,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.416603242145923"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.833206484291847"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.59413524331755e-09"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.752773779589633"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.799851673974814"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.799851673974814"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -4887,18 +3903,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.416603242145923"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.833206484291847"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.59413524331755e-09"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.752773779589633"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.799851673974814"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.799851673974814"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="STMLEKIK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -4941,18 +3945,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.177750993211644"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.355501986423288"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="8.21251504995134e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0325947324525721"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.701309066441109"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0365531218045291"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.704332756866276"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.83909883943012"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -5004,18 +3996,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.177750993211644"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.355501986423288"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="8.21251504995134e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0325947324525721"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.701309066441109"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0365531218045291"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.704332756866276"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.83909883943012"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="GKYYPLK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5058,18 +4038,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.561042850299081"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.88481199442733"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.237273706170832"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000500399983626755"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.853551179593348"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.45176762082509"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.853551179593348"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00924346239979932"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.96004242703906"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="2"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -5121,18 +4089,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.561042850299081"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.88481199442733"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.237273706170832"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000500399983626755"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.853551179593348"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="2.45176762082509"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.853551179593348"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00924346239979932"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.96004242703906"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="STMLEKIK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5175,18 +4131,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.578786789755031"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.249995868608303"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.907577710901759"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000375241356178756"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.763814297795141"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.398639046282275"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.922089033787243"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0548839207015608"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.65913198038121"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -5238,18 +4182,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.578786789755031"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.249995868608303"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.907577710901759"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.000375241356178756"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.763814297795141"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.398639046282275"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.922089033787243"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0548839207015608"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.65913198038121"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="KNEEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5292,18 +4224,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.754476491512032"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.400263209825547"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.10868977319852"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00100680046159597"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.788759037630913"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.1079948081027"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0429770298858115"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.841665836904251"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.57196725990554"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -5355,18 +4275,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.754476491512032"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.400263209825547"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.10868977319852"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00100680046159597"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.788759037630913"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.1079948081027"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0429770298858115"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.841665836904251"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.57196725990554"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="GKYYPLK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5409,18 +4317,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.633340100221258"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.359102489540757"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.907577710901759"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00132977946979297"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.763814297795141"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.229865777075947"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.41186877488243"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0548839207015608"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.56401559005948"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="2"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -5472,18 +4368,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.633340100221258"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.359102489540757"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.907577710901759"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="0.00132977946979297"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.763814297795141"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.229865777075947"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.41186877488243"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0548839207015608"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.56401559005948"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="KNEEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5526,18 +4410,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.609118984444831"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.310660257987904"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.907577710901759"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="8.53959551066476e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.750764091839031"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.1079948081027"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0105722774174745"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0548839207015608"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.758041582783075"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -5589,18 +4461,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.609118984444831"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.310660257987904"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.907577710901759"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="8.53959551066476e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.750764091839031"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.1079948081027"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0105722774174745"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0548839207015608"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.758041582783075"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="KNEEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5642,18 +4502,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="3.63091063482224"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="3.63091063482224"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.76505001524123"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="5.59770114368979"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="4.32762764114041"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="11.9960758128656"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="11.9960758128656"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="3"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="6"/>
@@ -5714,18 +4562,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.211714337091237"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.423428674182473"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="3.84665079371823e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.816659645792712"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.00252938254024443"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.814418812241153"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.816659645792712"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -5777,18 +4613,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.211714337091237"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.423428674182473"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="3.84665079371823e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.816659645792712"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.00252938254024443"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.814418812241153"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.816659645792712"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DLVKK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5831,18 +4655,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.09753074505522"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.157462201050991"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.03759928905944"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.13774962957338e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0783719558651125"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.15366952075615"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0604439087489421"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.16572155280851"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.30244097662627"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="2"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -5894,18 +4706,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="1.09753074505522"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.157462201050991"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="2.03759928905944"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.13774962957338e-06"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0783719558651125"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.15366952075615"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0604439087489421"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="1.16572155280851"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="2.30244097662627"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="KNEEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5948,18 +4748,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.310031459543569"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.491157222150537"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.128905696936601"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.46569249807148e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.919865569334564"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.289333392335026"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.04683755050748"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.153321205497375"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.1568896593975"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -6011,18 +4799,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.310031459543569"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.491157222150537"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.128905696936601"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.46569249807148e-05"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.919865569334564"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.289333392335026"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.04683755050748"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.153321205497375"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.1568896593975"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="IHLEKVSK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -6065,18 +4841,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.162836734821669"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.325673469643338"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.17859186108243e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.175773946066712"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.175773946066712"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.175773946066712"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -6128,18 +4892,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.162836734821669"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.325673469643338"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.17859186108243e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.175773946066712"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.175773946066712"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.175773946066712"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="IDVLFSKIR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -6182,18 +4934,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.116206841658936"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.000581009424267261"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.231832673893605"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.63369318073725e-12"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0117242968929245"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0117242968929245"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0118544547328155"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -6245,18 +4985,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.116206841658936"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.000581009424267261"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.231832673893605"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.63369318073725e-12"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0117242968929245"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.0117242968929245"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.0118544547328155"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="ETEKLAEER"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -6299,18 +5027,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0635183449805626"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.127036689961125"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.96935825822344e-13"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -6362,18 +5078,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0635183449805626"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.127036689961125"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.96935825822344e-13"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DLVKKYDK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -6416,18 +5120,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0635183449805626"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.127036689961125"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.96935825822344e-13"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -6479,18 +5171,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0635183449805626"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.127036689961125"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.96935825822344e-13"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.000131692728735304"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DLVKKYDK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -6533,18 +5213,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0456562077940023"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0913124155880045"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.48474574280128e-10"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0775651197706684"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.772127715018153"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.772127715018153"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="1"/>
@@ -6596,18 +5264,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0456562077940023"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.0913124155880045"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.48474574280128e-10"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.0775651197706684"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.772127715018153"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.772127715018153"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="FIVKASSGPR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -6650,18 +5306,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.598170177478071"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00125651462421178"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.19508384033193"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="3.9723444618626e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.732200181368762"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.000153378662106383"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.00986161012035937"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -6713,18 +5357,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.598170177478071"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.00125651462421178"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.19508384033193"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="3.9723444618626e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.732200181368762"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.000153378662106383"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.00986161012035937"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="GKYYPLK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -6767,18 +5399,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.597541920165965"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.19508384033193"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.93791939538855e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0389054743957535"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -6830,18 +5450,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.597541920165965"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="1.19508384033193"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.93791939538855e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0389054743957535"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.00970971340173648"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="GKYYPLK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -6884,18 +5492,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.105451879035372"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.210903758070743"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.49915882429113e-10"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.771812930114481"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.88096782693676"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.88096782693676"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="2"/>
@@ -6947,18 +5543,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.105451879035372"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.210903758070743"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="4.49915882429113e-10"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0.771812930114481"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.88096782693676"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.88096782693676"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="LKVELAK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -7001,18 +5585,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.382198302736249"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.764396605472498"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.74657047089819e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="1.79615530138521"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.79615530138521"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.79615530138521"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="3"/>
@@ -7064,18 +5636,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.382198302736249"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.764396605472498"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.74657047089819e-07"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="1.79615530138521"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.79615530138521"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.79615530138521"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="GGNMKEVFR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -7118,18 +5678,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.000200734917249424"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.000401469834498848"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="-0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.709715471250633"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.080225640519982"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0450642258624849"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.815034292136221"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -7181,18 +5729,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.000200734917249424"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.000401469834498848"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="-0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.709715471250633"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.080225640519982"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0.0450642258624849"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.815034292136221"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="NKADYYTNICDRER"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -7235,18 +5771,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="6.29866767960722e-05"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.000125973353592144"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="-0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0414126695649786"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.15616496524286"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.15616496524286"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -7298,18 +5822,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="6.29866767960722e-05"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.000125973353592144"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="-0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0414126695649786"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="1.15616496524286"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="1.15616496524286"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="VMKSEFQRLTHEK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -7351,18 +5863,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="5.56064137683205"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="5.56064137683205"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="8.80568838854304"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="10.6472563044049"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="1.91262764132315"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="18.3241600748259"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="18.3241600748259"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="4"/>
 				<UserParam type="int" name="matched_xlink_beta" value="0"/>
 				<UserParam type="int" name="matched_linear_alpha" value="10"/>
@@ -7423,18 +5923,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.117408185033106"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.000932991653032311"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.233883378413179"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="8.30133110145154e-09"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.696948054616574"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.00190224285767671"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.00190224285767671"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="1"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -7486,18 +5974,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.117408185033106"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0.000932991653032311"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.233883378413179"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="8.30133110145154e-09"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.696948054616574"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0.00190224285767671"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0.00190224285767671"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="EKASFAR"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -7540,18 +6016,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0730636577274055"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.146127315454811"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.86099682485311e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0188615301032417"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -7603,18 +6067,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0730636577274055"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.146127315454811"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.86099682485311e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0188615301032417"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DLVKKYDK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -7657,18 +6109,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0730636577274055"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.146127315454811"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.49585611683677e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0188615301032417"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -7720,18 +6160,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0730636577274055"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.146127315454811"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.49585611683677e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0188615301032417"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DLVKKYDK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -7774,18 +6202,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0722874943006031"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.144574988601206"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.86099682485311e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0188615301032417"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -7837,18 +6253,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0722874943006031"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.144574988601206"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="2.86099682485311e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0188615301032417"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DLVKKYDK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -7891,18 +6295,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0722874943006031"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.144574988601206"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.49585611683677e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0188615301032417"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="int" name="matched_xlink_alpha" value="0"/>
 				<UserParam type="int" name="matched_xlink_beta" value="1"/>
 				<UserParam type="int" name="matched_linear_alpha" value="0"/>
@@ -7954,18 +6346,6 @@
 				<UserParam type="float" name="OpenXQuest:log_occupancy" value="0.0722874943006031"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_alpha" value="0"/>
 				<UserParam type="float" name="OpenXQuest:log_occupancy_beta" value="0.144574988601206"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec" value="1.49585611683677e-08"/>
-				<UserParam type="float" name="OpenXQuest:log_occupancy_full_spec_exp" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperXlink" value="0.0188615301032417"/>
-				<UserParam type="float" name="OpenPepXL:HyperAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:HyperBoth" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreLinear" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreXlink" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreAlpha" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBeta" value="0"/>
-				<UserParam type="float" name="OpenPepXL:PScoreBoth" value="0"/>
 				<UserParam type="string" name="selected" value="false"/>
 				<UserParam type="string" name="beta_sequence" value="DLVKKYDK"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
