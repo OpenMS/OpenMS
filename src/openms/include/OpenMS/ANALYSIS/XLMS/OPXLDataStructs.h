@@ -99,20 +99,6 @@ namespace OpenMS
                       term_spec_alpha == other.term_spec_alpha &&
                       term_spec_beta == other.term_spec_beta;
         }
-
-        // used mainly for inserting into a set to remove duplicates
-        // cross-link candidates are equal, if the peptides with modifications and the cross-linked positions are the same
-        // the additional meta-information (mainly precursor_correction), can be responsible for redundant duplicates in the first place
-        bool operator<(const ProteinProteinCrossLink & other) const
-        {
-          String compare_string1 = String(cross_link_position.first) + String(cross_link_position.second) + alpha.toString() + beta.toString();
-          String compare_string2 = String(other.cross_link_position.first) + String(other.cross_link_position.second) + other.alpha.toString() + other.beta.toString();
-
-          return compare_string1 < compare_string2;
-          // return (cross_link_position < other.cross_link_position) ||
-          //             (cross_link_position == other.cross_link_position && beta.toString() < other.beta.toString()) ||
-          //             (cross_link_position == other.cross_link_position && beta.toString() == other.beta.toString() && alpha.toString() < other.alpha.toString());
-        }
       };
 
       /**
@@ -154,52 +140,18 @@ namespace OpenMS
         double log_occupancy;
         double log_occupancy_alpha;
         double log_occupancy_beta;
-        double log_occupancy_full_spec;
-        double log_occupancy_full_spec_exp;
-        std::vector< double > xcorrx;
         double xcorrx_max;
-        std::vector< double > xcorrc;
         double xcorrc_max;
         Size matched_linear_alpha;
         Size matched_linear_beta;
         Size matched_xlink_alpha;
         Size matched_xlink_beta;
-        double HyperLinear;
-        double HyperXlink;
-        double HyperAlpha;
-        double HyperBeta;
-        double HyperBoth;
-        double PScoreLinear;
-        double PScoreXlink;
-        double PScoreAlpha;
-        double PScoreBeta;
-        double PScoreBoth;
-        double num_iso_peaks_mean;
 
+        double num_iso_peaks_mean;
         double num_iso_peaks_mean_linear_alpha;
         double num_iso_peaks_mean_linear_beta;
         double num_iso_peaks_mean_xlinks_alpha;
         double num_iso_peaks_mean_xlinks_beta;
-
-        double ppm_error_sum_linear_alpha;
-        double ppm_error_sum_linear_beta;
-        double ppm_error_sum_xlinks_alpha;
-        double ppm_error_sum_xlinks_beta;
-        double ppm_error_sum_linear;
-        double ppm_error_sum_xlinks;
-        double ppm_error_sum_alpha;
-        double ppm_error_sum_beta;
-        double ppm_error_sum;
-
-        double ppm_error_variance_linear_alpha;
-        double ppm_error_variance_linear_beta;
-        double ppm_error_variance_xlinks_alpha;
-        double ppm_error_variance_xlinks_beta;
-        double ppm_error_variance_linear;
-        double ppm_error_variance_xlinks;
-        double ppm_error_variance_alpha;
-        double ppm_error_variance_beta;
-        double ppm_error_variance;
 
         double ppm_error_abs_sum_linear_alpha;
         double ppm_error_abs_sum_linear_beta;
@@ -234,24 +186,12 @@ namespace OpenMS
                      wTIC == other.wTIC &&
                      int_sum == other.int_sum &&
                      match_odds == other.match_odds &&
-                     xcorrx == other.xcorrx &&
                      xcorrx_max == other.xcorrx_max &&
-                     xcorrc == other.xcorrc &&
                      xcorrc_max == other.xcorrc_max &&
                      matched_linear_alpha == other.matched_linear_alpha &&
                      matched_linear_beta == other.matched_linear_beta &&
                      matched_xlink_alpha == other.matched_xlink_alpha &&
-                     matched_xlink_beta == other.matched_xlink_beta &&
-                     HyperLinear == other.HyperLinear &&
-                     HyperXlink == other.HyperXlink &&
-                     HyperAlpha == other.HyperAlpha &&
-                     HyperBeta == other.HyperBeta &&
-                     HyperBoth == other.HyperBoth &&
-                     PScoreLinear == other.PScoreLinear &&
-                     PScoreXlink == other.PScoreXlink &&
-                     PScoreAlpha == other.PScoreAlpha &&
-                     PScoreBeta == other.PScoreBeta &&
-                     PScoreBoth == other.PScoreBoth;
+                     matched_xlink_beta == other.matched_xlink_beta;
         }
       };
 
@@ -371,5 +311,3 @@ namespace OpenMS
 
   }; // class
 } // namespace OpenMS
-
-
