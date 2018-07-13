@@ -212,7 +212,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("idXML,mzid,pepXML,FASTA");
+    String formats("idXML,mzid,pepXML,FASTA,xquest.xml");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -592,6 +592,11 @@ protected:
     {
       MzIdentMLFile().store(out, protein_identifications,
                             peptide_identifications);
+    }
+
+    else if (out_type == FileTypes::XQUESTXML)
+    {
+      XQuestResultXMLFile().store(out, protein_identifications, peptide_identifications);
     }
 
     else if (out_type == FileTypes::FASTA)
