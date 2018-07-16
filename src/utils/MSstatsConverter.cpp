@@ -422,11 +422,12 @@ protected:
             set< Coordinate > retention_times;
             set< Intensity > intensities;
             for (const pair< Intensity, Coordinate > p : line.second)
-            {
-              fatalErrorIf_(
-                  retention_times.find(p.second) != retention_times.end(),
-                  "Peptide ion appears multiple times at the same retention time. This is not expected",
-                  ILLEGAL_PARAMETERS);
+            {              
+              if (retention_times.find(p.second) != retention_times.end())
+              {
+                LOG_WARN << "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
+              }
+                  
               retention_times.insert(p.second);
               intensities.insert(p.first);
             }

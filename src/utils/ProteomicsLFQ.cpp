@@ -124,25 +124,33 @@ protected:
     registerOutputFile_("out", "<file>", "", "output mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
+    registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
+    setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
+
+    registerStringOption_("mass_recalibration", "<option>", "true", "Mass recalibration.", false, true);
+    setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
+
+
     /// TODO: think about export of quality control files (qcML?)
 
     Param pp_defaults = PeakPickerHiRes().getDefaults();
     Param ffm_defaults = FeatureFindingMetabo().getDefaults();
     Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
-    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
+//    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
+    Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
     Param pep_defaults = Math::PosteriorErrorProbabilityModel().getParameters();
     //Param pi_defaults = ProteinInferenceAlgorithmXX().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
 
     Param combined;
     combined.insert("Centroiding:", pp_defaults);
-    combined.insert("Assembling:", ffm_defaults);
-    combined.insert("Peptide Quantification:", ffi_defaults);
+    combined.insert("Seeds:", ffm_defaults);
+    combined.insert("PeptideQuantification:", ffi_defaults);
     combined.insert("Alignment:", ma_defaults);
     combined.insert("Linking:", fl_defaults);
     // combined.insert("Protein Inference:", pi_defaults);
-    combined.insert("Protein Quantification:", pq_defaults);
+    combined.insert("ProteinQuantification:", pq_defaults);
     combined.insert("Posterior Error Probability:", pep_defaults);
 
     registerFullParam_(combined);
@@ -229,11 +237,6 @@ protected:
     Param pp_param = getParam_().copy("Centroiding:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
 
-    Param ffm_param = getParam_().copy("Assembling:", true);
-    writeDebug_("Parameters passed to FeatureFindingMetabo algorithm", ffm_param, 3);
-
-    Param ffi_param = getParam_().copy("Peptide Quantification:", true);
-    writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
     Param ma_param = getParam_().copy("Alignment:", true);
     writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
@@ -246,11 +249,9 @@ protected:
 
     // TODO: inference parameter
 
-    Param pq_param = getParam_().copy("Protein Quantification:", true);
+    Param pq_param = getParam_().copy("ProteinQuantification:", true);
     writeDebug_("Parameters passed to PeptideAndProteinQuant algorithm", pq_param, 3);
 
-    Param mtd_param = getParam_().copy("algorithm:mtd:", true);
-    writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
 
     Param com_param = getParam_().copy("algorithm:common:", true);
     writeDebug_("Common parameters passed to both sub-algorithms (mtd and epd)", com_param, 3);
@@ -407,39 +408,42 @@ protected:
         // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
         // TODO: check if this improves targeted extraction
         //-------------------------------------------------------------
-        InternalCalibration ic;
-        ic.setLogType(log_type_);
-        ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
-        MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
-        bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
-        Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
-        Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
-        MZTrafoModel::setRANSACParams(p);
-        // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
-        MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
-
-        IntList ms_level = {1};
-        double rt_chunk = 300.0; // 5 minutes
-        String qc_residual_path, qc_residual_png_path;
-        if (debug_level_ >= 1)
+        if (getStringOption_("mass_recalibration") == "true")
         {
-          const String & id_basename = File::basename(id_file_abs_path);
-          qc_residual_path = id_basename + "qc_residuals.tsv";
-          qc_residual_png_path = id_basename + "qc_residuals.png";
-        } 
+          InternalCalibration ic;
+          ic.setLogType(log_type_);
+          ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
+          MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
+          bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
+          Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
+          Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
+          MZTrafoModel::setRANSACParams(p);
+          // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
+          MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
 
-        if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
-                      10.0,
-                      5.0, 
-                      "",                      
-                      "",
-                      qc_residual_path,
-                      qc_residual_png_path,
-                      "Rscript"))
-        {
-          LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;          
+          IntList ms_level = {1};
+          double rt_chunk = 300.0; // 5 minutes
+          String qc_residual_path, qc_residual_png_path;
+          if (debug_level_ >= 1)
+          {
+            const String & id_basename = File::basename(id_file_abs_path);
+            qc_residual_path = id_basename + "qc_residuals.tsv";
+            qc_residual_png_path = id_basename + "qc_residuals.png";
+          } 
+
+          if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
+                        10.0,
+                        5.0, 
+                        "",                      
+                        "",
+                        qc_residual_path,
+                        qc_residual_png_path,
+                        "Rscript"))
+          {
+            LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;          
+          }
         }
-
+        
         //-------------------------------------------------------------
         // Posterior Error Probability calculation
         //-------------------------------------------------------------
@@ -494,9 +498,9 @@ protected:
         // Chromatographic parameter estimation
         //////////////////////////////////////////
         MassTraceDetection mt_ext;
-        mtd_param.insert("", com_param);
-        mtd_param.remove("chrom_fwhm");
-        mt_ext.setParameters(mtd_param);
+        Param mtd_param = mt_ext.getParameters();
+        writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
+
         std::vector<MassTrace> m_traces;
         mt_ext.run(ms_centroided, m_traces, 1000);
 
@@ -531,30 +535,32 @@ protected:
         sl.push_back(mz_file);
         seeds.setPrimaryMSRunPath(sl);
 
-        MassTraceDetection mt_ext_full;
-        mtd_param.insert("", com_param);
-        mtd_param.remove("chrom_fwhm");
-        mt_ext.setParameters(mtd_param);
-        std::vector<MassTrace> m_traces_full;
-        mt_ext.run(ms_centroided, m_traces_full);
+        if (getStringOption_("targeted_only") == "false")
+        {
+          std::vector<MassTrace> m_traces_full;
+          mt_ext.run(ms_centroided, m_traces_full);
 
-        std::vector<MassTrace> splitted_mtraces;
-        ElutionPeakDetection epdet;
-        epdet.detectPeaks(m_traces_full, splitted_mtraces);
+          std::vector<MassTrace> splitted_mtraces;
+          ElutionPeakDetection epdet;
+          epdet.detectPeaks(m_traces_full, splitted_mtraces);
 
-        FeatureFindingMetabo ffm;
-        ffm_param.setValue("mz_scoring_13C", "true");
-        ffm_param.setValue("isotope_filtering_model", "peptides");
-        ffm_param.setValue("remove_single_traces", "true");
-        ffm_param.setValue("chrom_fwhm", median_fwhm);
-        ffm_param.setValue("charge_lower_bound", 2);
-        ffm_param.setValue("charge_upper_bound", 5);
-        ffm_param.setValue("report_chromatograms", "false");
-        ffm.setLogType(log_type_);
-        ffm.setParameters(ffm_param);
-        std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
-        ffm.run(splitted_mtraces, seeds, chromatograms);
-        LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
+          FeatureFindingMetabo ffm;
+          Param ffm_param = getParam_().copy("Seeds:", true);
+          ffm_param.setValue("mz_scoring_13C", "true");
+          ffm_param.setValue("isotope_filtering_model", "peptides");
+          ffm_param.setValue("remove_single_traces", "true");
+          ffm_param.setValue("chrom_fwhm", median_fwhm);
+          ffm_param.setValue("charge_lower_bound", 2);
+          ffm_param.setValue("charge_upper_bound", 5);
+          ffm_param.setValue("report_chromatograms", "false");
+          ffm.setLogType(log_type_);
+          ffm.setParameters(ffm_param);
+          std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
+          writeDebug_("Parameters passed to FeatureFindingMetabo algorithm", ffm_param, 3);
+
+          ffm.run(splitted_mtraces, seeds, chromatograms);
+          LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
+        }
 
         /////////////////////////////////////////////////
         // Run FeatureFinderIdentification
@@ -568,8 +574,12 @@ protected:
         FeatureFinderIdentificationAlgorithm ffi;
         ffi.getMSData().swap(ms_centroided);
         ffi.getProgressLogger().setLogType(log_type_);
+
+        Param ffi_param = getParam_().copy("PeptideQuantification:", true);
         ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
         ffi.setParameters(ffi_param);
+        writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
+
         ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back(), seeds);
         
         if (debug_level_ > 666)
@@ -636,19 +646,20 @@ protected:
         // Link all features of this fraction
         //-------------------------------------------------------------
         writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
-        FeatureGroupingAlgorithmKD linker;
         // grouping tolerance = max alignment error + median FWHM
-        /* QT
+        FeatureGroupingAlgorithmQT linker;
         fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-        fl_param.setValue("distance_MZ:max_difference", 5.0);
+        fl_param.setValue("distance_MZ:max_difference", 10.0);
         fl_param.setValue("distance_MZ:unit", "ppm");
-        */
+        fl_param.setValue("distance_MZ:weight", 5.0);
+        fl_param.setValue("distance_intensity:weight", 0.1); 
 
+/*      FeatureGroupingAlgorithmKD linker;
         fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
         fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
         fl_param.setValue("link:mz_tol", 10.0);
         fl_param.setValue("mz_unit", "ppm");
-        
+  */      
         linker.setParameters(fl_param);      
         linker.group(feature_maps, consensus_fraction);
         addDataProcessing_(consensus_fraction,
