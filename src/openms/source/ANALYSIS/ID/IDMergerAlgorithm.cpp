@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 namespace OpenMS
@@ -44,50 +45,149 @@ namespace OpenMS
     {
 
     }
+
   //merge proteins across fractions and replicates
-  void IDMergerAlgorithm::mergeProteinsAcrossFractionsAndReplicates(ConsensusMap& cmap, const ExperimentalDesign& exp_design)
+  void IDMergerAlgorithm::mergeProteinsAcrossFractionsAndReplicates(ConsensusMap& cmap, const ExperimentalDesign& exp_design) const
   {
-    const auto toMerge = exp_design.getSampleWOReplicatesToMSFilesMapping();
+    const vector<vector<pair<String, unsigned>>> toMerge = exp_design.getSampleWOReplicatesToMSFilesMapping();
+
+    // one of label-free, labeled_MS1, labeled_MS2
+    const String & experiment_type = cmap.getExperimentType();
 
     //Not supported because an ID would need to reference multiple protID runs.
     //we could replicate the ID in the future or allow multiple references.
-    if (cmap.getExperimentType() == "labelled") return; //TODO throw error.
+    bool labelfree = false;
+    if (experiment_type != "label-free")
+    {
+      LOG_WARN << "Merging untested for labelled experiments" << endl;
+      labelfree = true;
+    }
 
     //out of the path/label combos, construct sets of map indices to be merged
-    unsigned int repBatchIdx(0);
+    unsigned lab(0);
     map<unsigned, unsigned> mapIdx2repBatch{};
-    for (auto& repBatch : toMerge)
+    for (auto& consHeader : cmap.getColumnHeaders())
     {
-      std::cout << "Merging: (";
-      for (const std::pair<String, unsigned>& rep : repBatch)
+      bool found = false;
+      if (consHeader.second.metaValueExists("channel_id"))
       {
-        std::cout << rep.first << ", ";
-        for (auto& consHeader : cmap.getColumnHeaders())
+        lab = static_cast<unsigned int>(consHeader.second.getMetaValue("channel_id")) + 1;
+      }
+      else
+      {
+        if (labelfree)
         {
-          pair<String, unsigned> pathLab{consHeader.second.filename, consHeader.second.unique_id};
+          LOG_WARN << "No channel id annotated in consensusXML. Assuming one channel." << endl;
+        }
+        lab = 1;
+      }
+      pair<String, unsigned> pathLab{consHeader.second.filename, lab};
+
+      unsigned repBatchIdx(0);
+      for (auto& repBatch : toMerge)
+      {
+        for (const std::pair<String, unsigned>& rep : repBatch)
+        {
           if (pathLab == rep)
           {
             mapIdx2repBatch[consHeader.first] = repBatchIdx;
+            found = true;
+            break;
           }
         }
+        if (found) break;
+        repBatchIdx++;
       }
-      std::cout << ")" << std::endl;
-      repBatchIdx++;
+      if (!found)
+      {
+        throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "ConsensusHeader entry ("
+            + consHeader.second.filename + ", "
+            + consHeader.second.label + ") could not be matched"
+            + " to the given experimental design.");
+      }
     }
 
-    vector<ProteinIdentification> newProtIDs{toMerge.size()};
-    int j = 0;
+    mergeProteinIDRuns(cmap, mapIdx2repBatch);
+  }
+
+  void IDMergerAlgorithm::mergeProteinIDRuns(ConsensusMap &cmap,
+                                             map<unsigned, unsigned> const &mapIdx_to_new_protIDRun) const
+  {
+    checkOldRunConsistency_(cmap);
+    // one of label-free, labeled_MS1, labeled_MS2
+    const String & experiment_type = cmap.getExperimentType();
+
+    //Not supported because an ID would need to reference multiple protID runs.
+    //we could replicate the ID in the future or allow multiple references.
+    bool labelfree = true;
+    if (experiment_type != "label-free")
+    {
+      LOG_WARN << "Merging untested for labelled experiments" << endl;
+      labelfree = false;
+    }
+
+    // Unfortunately we need a kind of bimap here.
+    // For the features we need map -> IDRun
+    // For the new runs we need IDRun -> <maps> once to initialize them with metadata
+    // TODO should we instead better try to collect the primaryMSRuns from the old Runs?
+    // Or are the filenames in the consensusHeaders always equivalent?
+    map<unsigned, pair<vector<String>,vector<Int>>> newIdcs;
+    for (const auto& newIdx : mapIdx_to_new_protIDRun)
+    {
+      const auto& newIdcsIt = newIdcs.find(newIdx.second);
+      if (newIdcsIt == newIdcs.end())
+      {
+        newIdcs[newIdx.second] = make_pair(vector<String>{cmap.getColumnHeaders()[newIdx.first].filename},vector<Int>{static_cast<Int>(newIdx.first)});
+      }
+      else
+      {
+        (*newIdcsIt).second.first.emplace_back(cmap.getColumnHeaders()[newIdx.first].filename);
+        (*newIdcsIt).second.second.emplace_back(static_cast<Int>(newIdx.first));
+      }
+    }
+    Size new_size = newIdcs.size();
+
+    if (new_size == 1)
+    {
+      LOG_WARN << "Number of new protein ID runs is one. Consider using mergeAllProteinRuns for some additional speed." << endl;
+    }
+    else if (new_size >= cmap.getColumnHeaders().size())
+    {
+      throw Exception::InvalidValue(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Number of new protein runs after merging"
+          " is smaller or equal to the original ones."
+          " Aborting. Nothing would be merged.", String(new_size));
+    }
+
+    vector<ProteinIdentification> newProtIDs{new_size};
+    unsigned j = 0;
     for (auto& pid : newProtIDs)
     {
       pid.setIdentifier("condition" + String(j));
+      //TODO merge SearchParams e.g. in case of SILAC
+      pid.setSearchEngine(cmap.getProteinIdentifications()[0].getSearchEngine());
+      pid.setSearchEngineVersion(cmap.getProteinIdentifications()[0].getSearchEngineVersion());
+      pid.setSearchParameters(cmap.getProteinIdentifications()[0].getSearchParameters());
+      pid.setPrimaryMSRunPath(newIdcs.at(j).first);
+      //TODO is setting a map_index or a label necessary?
+      pid.setMetaValue("map_indices", newIdcs.at(j).second);
+      j++;
     }
+
     //stores the index in the newProtIDs ProteinHits + 1. So an entry of 0 means not yet in there.
-    unordered_map<string, vector<Size>> acc2ProtHitIdxPerBatch{};
+    unordered_map<string, vector<Size>> acc2ProtHitIdxPerRun{};
     for (auto& cf : cmap)
     {
       for (auto& pid : cf.getPeptideIdentifications())
       {
-        int mapIdx(0);
+        int mapIdx(-1);
         //set<int> mapIdcs; //would be needed for itraq
         if (pid.metaValueExists("map_index"))
         {
@@ -96,11 +196,17 @@ namespace OpenMS
         }
         else
         {
-          if (cmap.getExperimentType() == "label-free")
+          if (labelfree)
           {
-            //error, should not happen
+            throw Exception::MissingInformation(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "UserParam 'map_index' not found for PeptideIdentification"
+                "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") in feature " + String(cf.getUniqueId()) +  "."
+                " Cannot associate it to the experimental design");
           }
-          else if (cmap.getExperimentType() == "labelled") //TODO how to check between ITraq and SILAC?
+          else //TODO how to check between ITraq and SILAC? Does it make sense?
           {
             //if SILAC, add to an extra prot id run or ignore
             // should not really happen if searched with fixed mod.
@@ -109,6 +215,7 @@ namespace OpenMS
             // currently not supported
           }
         }
+
         ProteinIdentification* oldProtIDRun(nullptr);
         const String& runID = pid.getIdentifier();
         for (auto& protIDRun : cmap.getProteinIdentifications())
@@ -120,46 +227,346 @@ namespace OpenMS
         }
         if (!oldProtIDRun)
         {
-          std::cout << "Skipped PID because old ProtID Run ID could not be found."
-          continue; //TODO Throw warning or exception that the old ProtIDrun could not be found.
+          throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "Old IdentificationRun not found for PeptideIdentification "
+              "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") in feature " + String(cf.getUniqueId()) +  ".");
         }
 
         //for (const auto& mapIdx : mapIdcs)
         //{
-        unsigned repBatchToPut = mapIdx2repBatch[mapIdx];
-        ProteinIdentification& newProtIDRun = newProtIDs[repBatchToPut];
+        unsigned runToPut;
+        const auto& foundIt = mapIdx_to_new_protIDRun.find(mapIdx);
+        if (foundIt == mapIdx_to_new_protIDRun.end())
+        {
+          throw Exception::BaseException(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "ElementNotFound",
+              "Mapping for map_index " + String(mapIdx) + " not found. Check experimental design.");
+        }
+        else
+        {
+          runToPut = foundIt->second;
+        }
+        ProteinIdentification& newProtIDRun = newProtIDs[runToPut];
         pid.setIdentifier(newProtIDRun.getIdentifier());
 
         for (auto& phit : pid.getHits())
         {
           for (auto& pev : phit.getPeptideEvidences())
           {
-            auto acc2ProtHitIdxPerBatchIt = acc2ProtHitIdxPerBatch.find(pev.getProteinAccession());
-            if (acc2ProtHitIdxPerBatchIt != acc2ProtHitIdxPerBatch.end())
+            auto acc2ProtHitIdxPerRunIt = acc2ProtHitIdxPerRun.find(pev.getProteinAccession());
+            if (acc2ProtHitIdxPerRunIt != acc2ProtHitIdxPerRun.end())
             {
-              if (acc2ProtHitIdxPerBatchIt->second[repBatchToPut] != 0) //already there
+              if (acc2ProtHitIdxPerRunIt->second[runToPut] != 0) //already there
               {
                 //TODO update target decoy info? Can this happen? Should not!
                 //Remember to access the proteinID with
-                //newProtIDs[repBatchToPut][acc2ProtHitIdxPerBatchIt->second[repBatchToPut] - 1]
+                //newProtIDs[runToPut][acc2ProtHitIdxPerRunIt->second[runToPut] - 1]
               }
               else
               {
                 newProtIDRun.getHits().emplace_back(*oldProtIDRun->findHit(pev.getProteinAccession()));
+                acc2ProtHitIdxPerRunIt->second[runToPut] = newProtIDRun.getHits().size();
               }
             }
             else
             {
               newProtIDRun.getHits().emplace_back(*oldProtIDRun->findHit(pev.getProteinAccession()));
-              vector<Size> initVec{toMerge.size(), 0u};
-              initVec[repBatchToPut] = newProtIDRun.getHits().size();
-              acc2ProtHitIdxPerBatch[pev.getProteinAccession()] = move(initVec);
+              vector<Size> initVec{new_size, 0u};
+              initVec[runToPut] = newProtIDRun.getHits().size();
+              acc2ProtHitIdxPerRun[pev.getProteinAccession()] = move(initVec);
             }
           }
         }
         //}
       }
     }
+
+    for (auto& upid : cmap.getUnassignedPeptideIdentifications())
+    {
+      int mapIdx(-1);
+      //set<int> mapIdcs; //would be needed for itraq
+      if (upid.metaValueExists("map_index"))
+      {
+        //mapIdcs.insert(static_cast<int>(pid.getMetaValue("map_index")));
+        mapIdx = static_cast<int>(upid.getMetaValue("map_index"));
+      }
+      else
+      {
+        if (labelfree)
+        {
+          throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "UserParam 'map_index' not found for UnassignedPeptideIdentification "
+              "(" + String(upid.getMZ()) + ", " + String(upid.getRT()) + ")."
+              " Cannot associate it to the experimental design");
+        }
+        else //TODO how to check between ITraq and SILAC? Does it make sense?
+        {
+          //if SILAC, add to an extra prot id run or ignore unlabeled
+          // should not really happen if searched with fixed mod.
+
+          //if itraq/tmt, infer the map_indices by looking at non-zero quants
+          // currently not supported as we probably would have to replicate IDs
+          // for every map
+        }
+      }
+
+      ProteinIdentification* oldProtIDRun(nullptr);
+      const String& runID = upid.getIdentifier();
+      for (auto& protIDRun : cmap.getProteinIdentifications())
+      {
+        if (protIDRun.getIdentifier() == runID)
+        {
+          oldProtIDRun = &protIDRun;
+        }
+      }
+      if (!oldProtIDRun)
+      {
+        throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Old IdentificationRun for UnassignedPeptideIdentification"
+            "(" + String(upid.getMZ()) + ", " + String(upid.getRT()) + ") not found.");
+      }
+
+      //for (const auto& mapIdx : mapIdcs)
+      //{
+      unsigned runToPut;
+      const auto& foundIt = mapIdx_to_new_protIDRun.find(mapIdx);
+      if (foundIt == mapIdx_to_new_protIDRun.end())
+      {
+        throw Exception::BaseException(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "ElementNotFound",
+            "Mapping for map_index " + String(mapIdx) + " not found. Check experimental design.");
+      }
+      else
+      {
+        runToPut = foundIt->second;
+      }
+      ProteinIdentification& newProtIDRun = newProtIDs[runToPut];
+      upid.setIdentifier(newProtIDRun.getIdentifier());
+
+      for (auto& phit : upid.getHits())
+      {
+        for (auto& pev : phit.getPeptideEvidences())
+        {
+          auto acc2ProtHitIdxPerRunIt = acc2ProtHitIdxPerRun.find(pev.getProteinAccession());
+          if (acc2ProtHitIdxPerRunIt != acc2ProtHitIdxPerRun.end())
+          {
+            if (acc2ProtHitIdxPerRunIt->second[runToPut] != 0) //already there
+            {
+              //TODO update target decoy info? Can this happen? Should not!
+              //Remember to access the proteinID with
+              //newProtIDs[repBatchToPut][acc2ProtHitIdxPerRunIt->second[repBatchToPut] - 1]
+            }
+            else
+            {
+              newProtIDRun.getHits().emplace_back(*oldProtIDRun->findHit(pev.getProteinAccession()));
+              acc2ProtHitIdxPerRunIt->second[runToPut] = newProtIDRun.getHits().size();
+            }
+          }
+          else
+          {
+            newProtIDRun.getHits().emplace_back(*oldProtIDRun->findHit(pev.getProteinAccession()));
+            vector<Size> initVec{new_size, 0u};
+            initVec[runToPut] = newProtIDRun.getHits().size();
+            acc2ProtHitIdxPerRun[pev.getProteinAccession()] = move(initVec);
+          }
+        }
+      }
+      //}
+    }
     cmap.setProteinIdentifications(newProtIDs);
+  }
+
+  //merge proteins across fractions and replicates
+  void IDMergerAlgorithm::mergeAllIDRuns(ConsensusMap& cmap) const
+  {
+    checkOldRunConsistency_(cmap);
+
+    ProteinIdentification newProtIDRun;
+    newProtIDRun.setIdentifier("merged");
+    //TODO merge SearchParams e.g. in case of SILAC
+    newProtIDRun.setSearchEngine(cmap.getProteinIdentifications()[0].getSearchEngine());
+    newProtIDRun.setSearchEngineVersion(cmap.getProteinIdentifications()[0].getSearchEngineVersion());
+    newProtIDRun.setSearchParameters(cmap.getProteinIdentifications()[0].getSearchParameters());
+    //TODO based on old IDRuns or based on consensusHeaders?
+    //vector<String> mergedOriginFiles = cmap.getProteinIdentifications()...
+    vector<String> mergedOriginFiles{};
+    for (const auto& chead : cmap.getColumnHeaders())
+    {
+      mergedOriginFiles.push_back(chead.second.filename);
+    }
+    newProtIDRun.setPrimaryMSRunPath(mergedOriginFiles);
+
+    unordered_set<string> proteinsCollected{};
+    for (auto& cf : cmap)
+    {
+      for (auto& pid : cf.getPeptideIdentifications())
+      {
+        ProteinIdentification* oldProtIDRun(nullptr);
+        const String& runID = pid.getIdentifier();
+        for (auto& protIDRun : cmap.getProteinIdentifications())
+        {
+          if (protIDRun.getIdentifier() == runID)
+          {
+            oldProtIDRun = &protIDRun;
+          }
+        }
+        if (!oldProtIDRun)
+        {
+          throw Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "Old IdentificationRun not found for PeptideIdentification "
+              "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") in feature " + String(cf.getUniqueId()) +  ".");
+
+        }
+
+        pid.setIdentifier(newProtIDRun.getIdentifier());
+
+        for (auto& phit : pid.getHits())
+        {
+          for (auto& pev : phit.getPeptideEvidences())
+          {
+            auto acc = proteinsCollected.find(pev.getProteinAccession());
+            if (acc != proteinsCollected.end())
+            {
+              newProtIDRun.getHits().emplace_back(*oldProtIDRun->findHit(pev.getProteinAccession()));
+            }
+            else
+            {
+              proteinsCollected.insert(pev.getProteinAccession());
+            }
+          }
+        }
+      }
+    }
+
+    for (auto& upid : cmap.getUnassignedPeptideIdentifications())
+    {
+      ProteinIdentification* oldProtIDRun(nullptr);
+      const String& runID = upid.getIdentifier();
+      for (auto& protIDRun : cmap.getProteinIdentifications())
+      {
+        if (protIDRun.getIdentifier() == runID)
+        {
+          oldProtIDRun = &protIDRun;
+        }
+      }
+      if (!oldProtIDRun)
+      {
+        throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Old IdentificationRun not found for UnassignedPeptideIdentification "
+            "(" + String(upid.getMZ()) + ", " + String(upid.getRT()) + ").");
+
+      }
+
+      upid.setIdentifier(newProtIDRun.getIdentifier());
+
+      for (auto& phit : upid.getHits())
+      {
+        for (auto& pev : phit.getPeptideEvidences())
+        {
+          auto acc = proteinsCollected.find(pev.getProteinAccession());
+          if (acc != proteinsCollected.end())
+          {
+            newProtIDRun.getHits().emplace_back(*oldProtIDRun->findHit(pev.getProteinAccession()));
+          }
+          else
+          {
+            proteinsCollected.insert(pev.getProteinAccession());
+          }
+        }
+      }
+    }
+    cmap.setProteinIdentifications(vector<ProteinIdentification>{newProtIDRun});
+  }
+
+  bool IDMergerAlgorithm::checkOldRunConsistency_(const ConsensusMap& cmap) const
+  {
+    String engine = cmap.getProteinIdentifications()[0].getSearchEngine();
+    String version = cmap.getProteinIdentifications()[0].getSearchEngineVersion();
+    ProteinIdentification::SearchParameters params = cmap.getProteinIdentifications()[0].getSearchParameters();
+    set<String> fixed_mods(params.fixed_modifications.begin(), params.fixed_modifications.end());
+    set<String> var_mods(params.variable_modifications.begin(), params.variable_modifications.end());
+    bool ok = false;
+    unsigned runID = 0;
+    for (const auto& idRun : cmap.getProteinIdentifications())
+    {
+      ok = true;
+      if (idRun.getSearchEngine() != engine || idRun.getSearchEngineVersion() != version)
+      {
+        ok = false;
+        LOG_WARN << "Search engine " + idRun.getSearchEngine() + "from IDRun " + String(runID) + " does not match "
+                    "with the others. You probably do not want to merge the results with this tool.";
+        break;
+      }
+      const ProteinIdentification::SearchParameters& sp = idRun.getSearchParameters();
+      if (params.precursor_mass_tolerance != sp.precursor_mass_tolerance ||
+          params.precursor_mass_tolerance_ppm != sp.precursor_mass_tolerance_ppm ||
+          params.db != sp.db ||
+          params.db_version != sp.db_version ||
+          params.fragment_mass_tolerance != sp.fragment_mass_tolerance ||
+          params.fragment_mass_tolerance_ppm != sp.fragment_mass_tolerance_ppm ||
+          params.charges != sp.charges ||
+          params.digestion_enzyme != sp.digestion_enzyme ||
+          params.taxonomy != sp.taxonomy)
+      {
+        ok = false;
+        LOG_WARN << "Searchengine settings from IDRun " + String(runID) + " does not match with the others."
+        " You probably do not want to merge the results with this tool if they differ significantly.";
+        break;
+      }
+
+      set<String> curr_fixed_mods(sp.fixed_modifications.begin(), sp.fixed_modifications.end());
+      set<String> curr_var_mods(sp.variable_modifications.begin(), sp.variable_modifications.end());
+      if (fixed_mods != curr_fixed_mods ||
+          var_mods != curr_var_mods)
+      {
+        if (cmap.getExperimentType() != "labeled_MS1")
+        {
+          ok = false;
+          LOG_WARN << "Used modification settings from IDRun " + String(runID) + " does not match with the others."
+          " Since the experiment is not annotated as MS1-labeled you probably do not want to merge the results with this tool.";
+          break;
+        }
+        else
+        {
+          //TODO actually introduce a flag for labelling modifications in the Mod datastructures?
+          //OR put a unique ID for the used mod as a UserParam to the mapList entries (consensusHeaders)
+          //TODO actually you would probably need an experimental design here, because
+          //settings have to agree exactly in a FractionGroup but can slightly differ across runs.
+          LOG_WARN << "Used modification settings from IDRun " + String(runID) + " does not match with the others."
+          " Although it seems to be an MS1-labeled experiment, check carefully that only non-labelling mods differ.";
+        }
+      }
+    }
+    if (!ok /*&& TODO and no force flag*/)
+    {
+      throw Exception::BaseException(__FILE__,
+                                    __LINE__,
+                                    OPENMS_PRETTY_FUNCTION,
+                                    "InvalidData",
+                                    "Search settings are not matching across IdentificationRuns. "
+                                    "See warnings. Aborting..");
+    }
+    return ok;
   }
 } // namespace OpenMS

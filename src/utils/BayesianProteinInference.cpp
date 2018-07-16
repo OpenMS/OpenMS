@@ -72,6 +72,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
+    //TODO remove until ExitCode and allow a (merged) ConsensusXML as input
     vector<PeptideIdentification> peps;
     vector<ProteinIdentification> prots;
     ConsensusMap cmap;
@@ -82,6 +83,7 @@ protected:
     ExperimentalDesign expDesign = expFile.load(getStringOption_("exp_design"), false);
     merger.mergeProteinsAcrossFractionsAndReplicates(cmap, expDesign);
     cXML.store(getStringOption_("out"), cmap);
+
     return ExitCodes::EXECUTION_OK;
 
     IdXMLFile idXML;

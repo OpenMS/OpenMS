@@ -260,9 +260,10 @@ namespace OpenMS
     {
       const auto& facset = sample_section_.getFactors();
       set<String> nonRepFacs{};
+
       for (const String& fac : facset)
       {
-        if (fac == "Sample" && !fac.hasSubstring("replicate") && !fac.hasSubstring("Replicate"))
+        if (fac != "Sample" && !fac.hasSubstring("replicate") && !fac.hasSubstring("Replicate"))
         {
           nonRepFacs.insert(fac);
         }

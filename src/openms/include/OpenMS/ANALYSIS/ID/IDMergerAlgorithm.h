@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
@@ -47,9 +48,37 @@ namespace OpenMS
   {
   public:
     IDMergerAlgorithm ();
-    /// Takes a cmap with one ProteinIDRun per column and merges them to one proteinIDRun per Sample
+    /// Takes a cmap with one IDRun per column and merges them to one proteinIDRun per Condition
     /// while reassociating the PeptideEvidences
-    void mergeProteinsAcrossFractionsAndReplicates(ConsensusMap& cmap, const ExperimentalDesign& exp_design);
+    /// Constructs the mapping based on the exp. design and then uses mergeProteinIDRuns
+    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
+    void mergeProteinsAcrossFractionsAndReplicates(ConsensusMap& cmap, const ExperimentalDesign& exp_design) const;
+
+    /// Similar to above, merges every ID Run into one big run. Proteins get only inserted once but Peptides stay unfiltered
+    /// i.e. might occur in several PeptideIdentifications afterwards
+    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
+    void mergeAllIDRuns(ConsensusMap& cmap) const;
+
+    /// Takes a ConsensusMap and a mapping between ConsensusMap column index (map index) and
+    /// the new ProteinIdentificationRun index and merges them. If you know the number of resulting
+    /// ProteinIDRuns, consider specifying new_size.
+    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
+    void mergeProteinIDRuns(ConsensusMap &cmap,
+                            std::map<unsigned, unsigned> const &mapIdx_to_new_protIDRun) const;
+
   private:
+    struct RunDescription
+    {
+      String engine;
+      String version;
+      ProteinIdentification::SearchParameters params;
+    };
+
+    /// Checks consistency of search engines and settings across runs before merging.
+    /// @return a merged RunDescription about what to put in the new runs
+    /// @throws BaseException for disagreeing settings
+    bool checkOldRunConsistency_(const ConsensusMap& cmap) const;
+
+
   };
 } // namespace OpenMS
