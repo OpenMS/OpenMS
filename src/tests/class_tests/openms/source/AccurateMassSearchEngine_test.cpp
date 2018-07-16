@@ -194,9 +194,12 @@ START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_i
   test_feat.setMetaValue("num_of_masstraces", 3);
   test_feat.setCharge(1.0);
 
-  test_feat.setMetaValue("masstrace_intensity_0", 100.0);
-  test_feat.setMetaValue("masstrace_intensity_1", 26.1);
-  test_feat.setMetaValue("masstrace_intensity_2", 4.0);
+  vector<double> masstrace_intenstiy = {100.0, 26.1, 4.0};
+  test_feat.setMetaValue("masstrace_intensity", masstrace_intenstiy);
+
+  //test_feat.setMetaValue("masstrace_intensity_0", 100.0);
+  //test_feat.setMetaValue("masstrace_intensity_1", 26.1);
+  //test_feat.setMetaValue("masstrace_intensity_2", 4.0);
 
   std::vector<AccurateMassSearchResult> results;
   

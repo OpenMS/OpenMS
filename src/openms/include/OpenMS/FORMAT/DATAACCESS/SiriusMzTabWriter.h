@@ -45,6 +45,25 @@ namespace OpenMS
     for the conversion of the sirius output to an mzTab.
     @ingroup ID
 
+    SiriusAdapterHit:
+    formula (String) - Sumformula
+    adduct (String) - Assigned adduct
+    rank (int)  - Rank of the possible sumformula for a compound (spectrum) calculated by Sirius
+    score (double) - Overall score of the possible sumformula for a compound (spectrum) calculated by Sirius
+    treescore (double) - Fragmentation pattern score
+    isoscore (double) - Isotope pattern score
+    explainedpeaks (int) - Number of explained peaks
+    explainedintensity (double) - Relative amount of explained intensity
+
+    SiriusAdapterIdentification:
+    scan_index (int) - Index of the spectrum used
+    scan_number (int) - NativeId of the spectrum used
+    feature_id (String) - FeatureId (if spectrum was assigned to a feature)
+    hits (vector<SiriusAdapterHit>)
+
+    SiriusAdapterRun:
+    identifications (vector<SiriusAdapterIdentification>)
+
     Store a specific @param number of lines from sirius output
     @return mzTab
     */
@@ -63,8 +82,9 @@ namespace OpenMS
 
     struct SiriusAdapterIdentification
     {
-      OpenMS::String scan_index;
-      OpenMS::String scan_number;
+      int scan_index;
+      int scan_number;
+      OpenMS::String feature_id;
       std::vector<SiriusAdapterHit> hits;
     };
 
@@ -76,7 +96,7 @@ namespace OpenMS
     /**
     @brief Extract scan_index from filepath
     */
-    static String extract_scan_index(const String & path);
+    static int extract_scan_index(const String & path);
  
     /**
     @brief Conversion of sirius output to mzTab
@@ -88,7 +108,10 @@ namespace OpenMS
     
     @return: Result written to mzTab
     */
-    static void read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result);
+    static void read(const std::vector<String>& sirius_output_paths,
+                     const String& original_input_mzml,
+                     const Size& top_n_hits,
+                     MzTab& result);
 
   };
 

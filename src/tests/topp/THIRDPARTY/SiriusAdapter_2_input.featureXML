@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_10428424608955185744" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<dataProcessing completion_time="2018-06-27T12:59:03">
-		<software name="FeatureFinderMetabo" version="2.4.0-feature-SiriusAdapter-featuremapping-2018-06-27" />
+<featureMap version="1.9" id="fm_16485329175168128683" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2018-07-11T09:30:30">
+		<software name="FeatureFinderMetabo" version="2.4.0-feature-SiriusAdapter-featuremapping-2018-06-28" />
 		<processingAction name="Quantitation" />
-		<UserParam type="string" name="parameter: in" value="/Users/alka/Desktop/SiriusAdapter_test/SiriusAdapter_5_input.mzML"/>
-		<UserParam type="string" name="parameter: out" value="/Users/alka/Desktop/SiriusAdapter_test/FFM/test.featureXML"/>
+		<UserParam type="string" name="parameter: in" value="/Users/alka/Desktop/SiriusAdapter_tolerance_window/SiriusAdapter_4_input.mzML"/>
+		<UserParam type="string" name="parameter: out" value="/Users/alka/Desktop/SiriusAdapter_tolerance_window/SiriusAdapter_4_input.featureXML"/>
 		<UserParam type="string" name="parameter: log" value=""/>
 		<UserParam type="int" name="parameter: debug" value="0"/>
 		<UserParam type="int" name="parameter: threads" value="1"/>
@@ -41,7 +41,7 @@
 		<UserParam type="string" name="parameter: algorithm:ffm:remove_single_traces" value="false"/>
 	</dataProcessing>
 	<featureList count="20">
-		<feature id="f_7872560933242676860">
+		<feature id="f_8992161814508550724">
 			<position dim="0">414.69499999998</position>
 			<position dim="1">288.185393170519</position>
 			<intensity>3710.71</intensity>
@@ -81,7 +81,7 @@
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 			<UserParam type="string" name="scan_polarity" value="positive"/>
 		</feature>
-		<feature id="f_10754569905330600121">
+		<feature id="f_10902159312726316066">
 			<position dim="0">425.02399999998</position>
 			<position dim="1">288.235941440369</position>
 			<intensity>25991</intensity>
@@ -138,7 +138,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_14647877917145590344">
+		<feature id="f_2821980206323995609">
 			<position dim="0">425.02399999998</position>
 			<position dim="1">289.121888629217</position>
 			<intensity>3.56041e+06</intensity>
@@ -551,7 +551,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00282977356221, 0.994493551135008, 1.00231533186974, 1.00201601158562]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_11095419508379423171">
+		<feature id="f_14362717643518499810">
 			<position dim="0">425.02399999998</position>
 			<position dim="1">289.946965266596</position>
 			<intensity>16195.8</intensity>
@@ -594,7 +594,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_3580622142318382313">
+		<feature id="f_687264538637235520">
 			<position dim="0">410.145</position>
 			<position dim="1">291.226394349173</position>
 			<intensity>38506.6</intensity>
@@ -657,7 +657,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_12924639030487192261">
+		<feature id="f_170982103014133583">
 			<position dim="0">424.614</position>
 			<position dim="1">291.944663308388</position>
 			<intensity>4681.53</intensity>
@@ -690,7 +690,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_13442776035824190606">
+		<feature id="f_12648171926825749403">
 			<position dim="0">410.145</position>
 			<position dim="1">292.121752827683</position>
 			<intensity>5.44664e+06</intensity>
@@ -1075,7 +1075,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00311035605245, 0.994292420509851, 1.00245459530885, 1.00191686344891]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_490713176758491305">
+		<feature id="f_14370237923664725898">
 			<position dim="0">410.55499999998</position>
 			<position dim="1">292.866216068584</position>
 			<intensity>11546.5</intensity>
@@ -1126,7 +1126,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00398758324968]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_13703487497078702624">
+		<feature id="f_9643777388981699736">
 			<position dim="0">410.145</position>
 			<position dim="1">292.91676229323</position>
 			<intensity>23148</intensity>
@@ -1171,7 +1171,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_611204643119987881">
+		<feature id="f_8966045464651319014">
 			<position dim="0">410.145</position>
 			<position dim="1">292.950969868088</position>
 			<intensity>28297.9</intensity>
@@ -1222,7 +1222,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_13226524427561830034">
+		<feature id="f_17100328887283626633">
 			<position dim="0">410.55499999998</position>
 			<position dim="1">293.061501031199</position>
 			<intensity>6656.73</intensity>
@@ -1261,7 +1261,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_7048161120850532591">
+		<feature id="f_10085776333486374908">
 			<position dim="0">435.543</position>
 			<position dim="1">294.136331255356</position>
 			<intensity>60548.5</intensity>
@@ -1382,7 +1382,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00286109152961, 0.994673433282742]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_1840683695748049111">
+		<feature id="f_7252753945467102808">
 			<position dim="0">428.724</position>
 			<position dim="1">294.136688932569</position>
 			<intensity>89740.6</intensity>
@@ -1511,7 +1511,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[1.00268308485147, 0.994443114119235]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_14257666535742798886">
+		<feature id="f_15927395912842195658">
 			<position dim="0">411.375</position>
 			<position dim="1">294.785330236958</position>
 			<intensity>2104.37</intensity>
@@ -1542,7 +1542,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_18413861722654712">
+		<feature id="f_4411734486351187421">
 			<position dim="0">410.55499999998</position>
 			<position dim="1">294.947884044299</position>
 			<intensity>7095.5</intensity>
@@ -1599,7 +1599,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[0.967146337325175]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="1"/>
 		</feature>
-		<feature id="f_13327680899985993117">
+		<feature id="f_18423660155008265393">
 			<position dim="0">422.094</position>
 			<position dim="1">295.027220567533</position>
 			<intensity>5880.55</intensity>
@@ -1638,7 +1638,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_16165633642102794211">
+		<feature id="f_5722693569854252535">
 			<position dim="0">410.145</position>
 			<position dim="1">295.053118558984</position>
 			<intensity>2814.07</intensity>
@@ -1667,7 +1667,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_12026853624275534943">
+		<feature id="f_6290781441107110768">
 			<position dim="0">432.81100000002</position>
 			<position dim="1">295.188523029083</position>
 			<intensity>6676.01</intensity>
@@ -1734,7 +1734,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_10224223077149402090">
+		<feature id="f_15237134804819935538">
 			<position dim="0">410.55499999998</position>
 			<position dim="1">295.500679835427</position>
 			<intensity>2354.55</intensity>
@@ -1761,7 +1761,7 @@
 			<UserParam type="floatList" name="isotope_distances" value="[]"/>
 			<UserParam type="int" name="legal_isotope_pattern" value="-1"/>
 		</feature>
-		<feature id="f_6470013507010682934">
+		<feature id="f_2451947465796850333">
 			<position dim="0">409.73500000002</position>
 			<position dim="1">295.753736042058</position>
 			<intensity>1962.87</intensity>

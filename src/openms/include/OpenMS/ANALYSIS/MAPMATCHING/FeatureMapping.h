@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,43 +34,42 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/METADATA/SpectrumLookup.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
 
-  class OPENMS_DLLAPI SiriusMSFile
-  {
-public:
+  class OPENMS_DLLAPI FeatureMapping
+      {
+          public:
 
-  /**
-    @brief Internal structure used in @ref SiriusAdapter that is used
-    for the conversion of a MzMlFile to an internal format.
+          /**
+            @brief Allocate ms2 spectra to feature within the minimal distance
 
-    @ingroup ID
+            @return FeatureToMS2Indices
 
-    Store .ms file.
-    Adducts are written to SIRIUS .ms file. If adduct information for a spectrum is missing, 
-    no adduct information is written. In this case, SIRIUS assumes default adducts for the respective spectrum.
-    
-    @return string (full path to file)
-    
-    @param spectra: Peakmap from input mzml
-    @param msfile: (internal) written .ms file from sirius 
-    @param map_precursor_to_adducts: adducts of a spectrum (index). 
-    */
+            @param spectra: Input of PeakMap/MSExperiment with spectra information
+            @param fp_map_kd: KDTree used for query and match spectra with features
+            @param precursor_mz_tolerance: mz_tolerance used for query
+            @param precursor_rt_tolernace: rt tolerance used for query
+            @param ppm: mz tolernace window calculation in ppm or Da
 
-    // preprocessing e.g. feature information
-    static void store(const PeakMap& spectra,
-                      const OpenMS::String& msfile,
-                      const FeatureMapping::FeatureToMs2Indices& feature_mapping,
-                      const bool& feature_only,
-                      const int& isotope_pattern_iterations,
-                      const bool no_mt_info);
+          */
 
-  };
+          struct FeatureToMs2Indices
+          {
+             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
+             std::vector<size_t> unassignedMS2;
+          };
 
+          // return map of ms2 to feature and a vector of unassigned ms2
+          static FeatureToMs2Indices assignMS2IndexToFeature(PeakMap& spectra,
+                                                             const KDTreeFeatureMaps& fp_map_kd,
+                                                             const double& precursor_mz_tolerance,
+                                                             const double& precursor_rt_tolerance,
+                                                             bool& ppm);
+
+      };
 }
-

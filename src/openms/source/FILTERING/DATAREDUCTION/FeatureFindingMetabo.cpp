@@ -218,6 +218,27 @@ namespace OpenMS
     return tmp;
   }
 
+  // TODO: e.g. check
+  std::vector<double> FeatureHypothesis::getAllCentroidMZ() const
+  {
+    std::vector<double> tmp;
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      tmp.push_back(iso_pattern_[i]->getCentroidMZ());
+    }
+    return tmp;
+  }
+
+  std::vector<double> FeatureHypothesis::getAllCentroidRT() const
+  {
+    std::vector<double> tmp;
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      tmp.push_back(iso_pattern_[i]->getCentroidRT());
+    }
+    return tmp;
+  }
+
   std::vector<double> FeatureHypothesis::getIsotopeDistances() const
   {
     std::vector<double> tmp;
@@ -910,12 +931,11 @@ namespace OpenMS
       // store isotope intensities
       std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
       f.setMetaValue("num_of_masstraces", all_ints.size());
-      for (Size int_idx = 0; int_idx < all_ints.size(); ++int_idx)
-      {
-        f.setMetaValue("masstrace_intensity_" + String(int_idx), all_ints[int_idx]);
-      }
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
+      f.setMetaValue("masstrace_intensity", all_ints);
+      f.setMetaValue("masstrace_centroid_rt", feat_hypos[hypo_idx].getAllCentroidRT());
+      f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());;
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       f.applyMemberFunction(&UniqueIdInterface::setUniqueId);
