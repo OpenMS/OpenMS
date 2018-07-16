@@ -287,6 +287,7 @@ namespace OpenMS
       ConsensusFeature new_cf;
       new_cf.setCharge(cf.getCharge());
       new_cf.setRT(cf.getRT());
+      new_cf.setMZ(cf.getMZ());
       new_cf.setQuality(cf.getQuality());
       new_cf.setIntensity(cf.getIntensity());
       new_cf.setWidth(cf.getWidth());
