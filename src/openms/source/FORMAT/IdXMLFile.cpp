@@ -1058,7 +1058,10 @@ namespace OpenMS
   {
     String val;
     PeptideHit::PeakAnnotation::writePeakAnnotationsString_(val, annotations);
-    os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+    if (!val.empty())
+    {
+      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
+    }
   }
 
   void IdXMLFile::parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation> & annotations)
