@@ -124,8 +124,12 @@ protected:
     registerOutputFile_("out", "<file>", "", "output mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
-    registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification", false, false);
+    registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
+
+    registerStringOption_("mass_recalibration", "<option>", "true", "Mass recalibration.", false, true);
+    setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
+
 
     /// TODO: think about export of quality control files (qcML?)
 
@@ -404,39 +408,42 @@ protected:
         // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
         // TODO: check if this improves targeted extraction
         //-------------------------------------------------------------
-        InternalCalibration ic;
-        ic.setLogType(log_type_);
-        ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
-        MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
-        bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
-        Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
-        Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
-        MZTrafoModel::setRANSACParams(p);
-        // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
-        MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
-
-        IntList ms_level = {1};
-        double rt_chunk = 300.0; // 5 minutes
-        String qc_residual_path, qc_residual_png_path;
-        if (debug_level_ >= 1)
+        if (getStringOption_("mass_recalibration") == "true")
         {
-          const String & id_basename = File::basename(id_file_abs_path);
-          qc_residual_path = id_basename + "qc_residuals.tsv";
-          qc_residual_png_path = id_basename + "qc_residuals.png";
-        } 
+          InternalCalibration ic;
+          ic.setLogType(log_type_);
+          ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
+          MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
+          bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
+          Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
+          Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
+          MZTrafoModel::setRANSACParams(p);
+          // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
+          MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
 
-        if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
-                      10.0,
-                      5.0, 
-                      "",                      
-                      "",
-                      qc_residual_path,
-                      qc_residual_png_path,
-                      "Rscript"))
-        {
-          LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;          
+          IntList ms_level = {1};
+          double rt_chunk = 300.0; // 5 minutes
+          String qc_residual_path, qc_residual_png_path;
+          if (debug_level_ >= 1)
+          {
+            const String & id_basename = File::basename(id_file_abs_path);
+            qc_residual_path = id_basename + "qc_residuals.tsv";
+            qc_residual_png_path = id_basename + "qc_residuals.png";
+          } 
+
+          if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
+                        10.0,
+                        5.0, 
+                        "",                      
+                        "",
+                        qc_residual_path,
+                        qc_residual_png_path,
+                        "Rscript"))
+          {
+            LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;          
+          }
         }
-
+        
         //-------------------------------------------------------------
         // Posterior Error Probability calculation
         //-------------------------------------------------------------
