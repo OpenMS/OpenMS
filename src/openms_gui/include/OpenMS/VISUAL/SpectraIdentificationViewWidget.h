@@ -91,6 +91,7 @@ private:
     QCheckBox* create_rows_for_commmon_metavalue_;
     QTableWidget* table_widget_;
     bool is_ms1_shown_;
+    QTableWidget* fragment_window_;
 private slots:
     /// Emits spectrumSelected with the current spectrum index
     void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
@@ -106,4 +107,3 @@ private slots:
     void cellClicked_(int row, int column);
   };
 }
-

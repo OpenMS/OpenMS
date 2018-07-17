@@ -64,7 +64,8 @@ namespace OpenMS
     DefaultParamHandler("SpectraIdentificationViewWidget"),
     ignore_update(false),
     layer_(nullptr),
-    is_ms1_shown_(false)
+    is_ms1_shown_(false),
+    fragment_window_(nullptr)
   {
     // set common defaults
     defaults_.setValue("default_path", ".", "Default path for loading/storing data.");
@@ -184,7 +185,7 @@ namespace OpenMS
     {
       return;
     }
-    
+
     int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
 
     if (table_widget_->horizontalHeaderItem(column)->text() == "precursor m/z")
@@ -198,7 +199,7 @@ namespace OpenMS
           if ((*layer_->getPeakData())[ms1_spectrum_index].getMSLevel() == 1)
           {
             break;
-          } 
+          }
         }
 
         if (ms1_spectrum_index != -1)
@@ -231,7 +232,7 @@ namespace OpenMS
 
       int current_identification_index = table_widget_->item(current->row(), 12)->data(Qt::DisplayRole).toInt();  // peptide id. index
 
-      if (current_identification_index < 0 
+      if (current_identification_index < 0
        || current_identification_index >= static_cast<int>((*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications().size()))
        {
          return;
@@ -242,47 +243,58 @@ namespace OpenMS
       const vector<PeptideIdentification>& peptide_ids = (*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications();
       const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
 
-      if (current_peptide_hit_index < 0 
+      if (current_peptide_hit_index < 0
        || current_peptide_hit_index >= static_cast<int>(phits.size()))
       {
         return;
       }
       const PeptideHit& hit = phits[current_peptide_hit_index];
 
-      QTableWidget* fragment_window = new QTableWidget();
-      fragment_window->verticalHeader()->setHidden(true); // hide vertical column
-      
-      QStringList header_labels;
-      header_labels << "m/z" << "name" << "intensity" << "charge";
-      fragment_window->setColumnCount(header_labels.size());
-      fragment_window->setHorizontalHeaderLabels(header_labels);
+      // initialize window, when the table is requested for the first time
+      // afterwards the size will stay at the manually resized window size
+      if (fragment_window_ == nullptr)
+      {
+        fragment_window_ = new QTableWidget();
+        fragment_window_->resize(320, 500);
 
-      QTableWidgetItem* proto_item = new QTableWidgetItem();
-      proto_item->setTextAlignment(Qt::AlignCenter);
-      fragment_window->setItemPrototype(proto_item);
-      fragment_window->setSortingEnabled(true);
+        fragment_window_->verticalHeader()->setHidden(true); // hide vertical column
+
+        QStringList header_labels;
+        header_labels << "m/z" << "name" << "intensity" << "charge";
+        fragment_window_->setColumnCount(header_labels.size());
+        fragment_window_->setHorizontalHeaderLabels(header_labels);
+
+        QTableWidgetItem* proto_item = new QTableWidgetItem();
+        proto_item->setTextAlignment(Qt::AlignCenter);
+        fragment_window_->setItemPrototype(proto_item);
+        fragment_window_->setSortingEnabled(true);
+        fragment_window_->setWindowTitle(QApplication::translate("tr_fragment_annotation", "Peak Annotations"));
+      }
+
+      // reset table, if a new ID is chosen
+      fragment_window_->setRowCount(0);
 
       for (const PeptideHit::PeakAnnotation & pa : hit.getPeakAnnotations())
       {
-        fragment_window->insertRow(fragment_window->rowCount());
-        QTableWidgetItem * item = fragment_window->itemPrototype()->clone();
+        fragment_window_->insertRow(fragment_window_->rowCount());
+        QTableWidgetItem * item = fragment_window_->itemPrototype()->clone();
         item->setData(Qt::DisplayRole, pa.mz);
-        fragment_window->setItem(fragment_window->rowCount() - 1, 0, item);
-        item = fragment_window->itemPrototype()->clone();
+        fragment_window_->setItem(fragment_window_->rowCount() - 1, 0, item);
+        item = fragment_window_->itemPrototype()->clone();
         item->setData(Qt::DisplayRole, pa.annotation.toQString());
-        fragment_window->setItem(fragment_window->rowCount() - 1, 1, item);
-        item = fragment_window->itemPrototype()->clone();
+        fragment_window_->setItem(fragment_window_->rowCount() - 1, 1, item);
+        item = fragment_window_->itemPrototype()->clone();
         item->setData(Qt::DisplayRole, pa.intensity);
-        fragment_window->setItem(fragment_window->rowCount() - 1, 2, item);
-        item = fragment_window->itemPrototype()->clone();
+        fragment_window_->setItem(fragment_window_->rowCount() - 1, 2, item);
+        item = fragment_window_->itemPrototype()->clone();
         item->setData(Qt::DisplayRole, pa.charge);
-        fragment_window->setItem(fragment_window->rowCount() - 1, 3, item);
+        fragment_window_->setItem(fragment_window_->rowCount() - 1, 3, item);
       }
-      
-      fragment_window->setWindowTitle(QApplication::translate("tr_fragment_annotation", "Peak Annotations"));      
-      fragment_window->resizeColumnsToContents();
-      fragment_window->resize(fragment_window->sizeHint());
-      fragment_window->show();
+
+      fragment_window_->resizeColumnsToContents();
+      fragment_window_->show();
+      fragment_window_->setFocus(Qt::ActiveWindowFocusReason);
+      QApplication::setActiveWindow(fragment_window_);
     }
   }
 
@@ -763,7 +775,7 @@ namespace OpenMS
               }
               // add peak annotation column
               if (has_peak_annotations)
-              {            
+              {
                 addTextItemToBottomRow_("show", current_col, c);
               }
             }
