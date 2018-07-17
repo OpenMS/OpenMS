@@ -33,6 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAlgorithm.h>
 
@@ -56,5 +62,52 @@ START_SECTION(~FeatureFinderMultiplexAlgorithm())
 }
 END_SECTION
 
+START_SECTION((virtual void run()))
+{
+  MzMLFile mzml_file;
+  MSExperiment exp;
+  ConsensusMap result;
+  
+  mzml_file.getOptions().addMSLevel(1);
+  mzml_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderMultiplex_1_input.mzML"), exp);
+  exp.updateRanges(1);
+  
+  Param param;
+  ParamXMLFile paramFile;
+  paramFile.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderMultiplex_1_parameters.ini"), param);
+  param = param.copy("FeatureFinderMultiplex:1:algorithm:",true);param.remove("in");
+  param.remove("out");
+  param.remove("out_multiplets");
+  param.remove("log");
+  param.remove("debug");
+  param.remove("threads");
+  param.remove("no_progress");
+  param.remove("force");
+  param.remove("test");
+  //param = param.copy("FeatureFinderMultiplex:1:algorithm:",true);
+  
+  FeatureFinderMultiplexAlgorithm algorithm;
+  algorithm.setParameters(param);
+  algorithm.run(exp, true);
+  result = algorithm.getConsensusMap();
+  
+  TEST_EQUAL(result.size(), 2);
+  
+  double x = result[0].getFeatures().begin()->getIntensity();
+  
+  std::cout << "x = " << x << "\n";
+  
+  /*ConsensusFeature::HandleSetType::const_iterator it;
+  std::vector<double> intensities;
+  for (it = result[0].getFeatures().begin(); it != result[0].getFeatures().end(); ++it)
+  {
+    intensities.push_back(it->getIntensity());
+  }
+  
+  // Check that the HEAVY:LIGHT ratio is close to 4:1
+  TOLERANCE_ABSOLUTE(0.2);
+  TEST_REAL_SIMILAR(intensities[1]/intensities[0], 4.0);*/
+}
+END_SECTION
 
 END_TEST
