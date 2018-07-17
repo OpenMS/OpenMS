@@ -236,7 +236,7 @@ namespace OpenMS
   
   std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites)
   {
-    // determine peptide intesities and RT shift between the peptides
+    // determine peptide intensities and RT shift between the peptides
     // i.e. first determine the RT centre of mass for each peptide
     std::vector<double> rt_peptide;
     std::vector<double> intensity_peptide;
