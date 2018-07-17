@@ -15,14 +15,14 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenM
 
         void getDefaultParameters(Param) nogil except +
 
-        PI_PeakArea integratePeak(MSChromatogram chromatogram, double left, double right) nogil except +
-        PI_PeakArea integratePeak(MSSpectrum spectrum, double left, double right) nogil except +
+        PI_PeakArea integratePeak(MSChromatogram& chromatogram, double left, double right) nogil except +
+        PI_PeakArea integratePeak(MSSpectrum& spectrum, double left, double right) nogil except +
 
-        PI_PeakBackground estimateBackground(MSChromatogram chromatogram, double left, double right, double peak_apex_pos) nogil except +
-        PI_PeakBackground estimateBackground(MSSpectrum spectrum, double left, double right, double peak_apex_pos) nogil except +
+        PI_PeakBackground estimateBackground(MSChromatogram& chromatogram, double left, double right, double peak_apex_pos) nogil except +
+        PI_PeakBackground estimateBackground(MSSpectrum& spectrum, double left, double right, double peak_apex_pos) nogil except +
 
-        PI_PeakShapeMetrics calculatePeakShapeMetrics(MSChromatogram chromatogram, double left, double right, double peak_height, double peak_apex_pos) nogil except +
-        PI_PeakShapeMetrics calculatePeakShapeMetrics(MSSpectrum spectrum, double left, double right, double peak_height, double peak_apex_pos) nogil except +
+        PI_PeakShapeMetrics calculatePeakShapeMetrics(MSChromatogram& chromatogram, double left, double right, double peak_height, double peak_apex_pos) nogil except +
+        PI_PeakShapeMetrics calculatePeakShapeMetrics(MSSpectrum& spectrum, double left, double right, double peak_height, double peak_apex_pos) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>" namespace "OpenMS::PeakIntegrator":

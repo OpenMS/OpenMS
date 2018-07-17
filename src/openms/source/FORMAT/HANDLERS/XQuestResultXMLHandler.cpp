@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1017,7 +1017,7 @@ namespace OpenMS
         pep_hits[0].removeMetaValue("spectrum_index_heavy");
         pep_hits[0].removeMetaValue("spec_heavy_RT");
         pep_hits[0].removeMetaValue("spec_heavy_MZ");
-        pep_hits[0].removeMetaValue("OMS:precursor_mz_error_ppm");
+        pep_hits[0].removeMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM);
         pep_hits[0].removeMetaValue("OpenXQuest:fdr");
 
         // also remove MetaValues, that we do not need in xquestXML

@@ -391,6 +391,14 @@ def testEmpiricalFormula():
     ins.isCharged()
     ins.hasElement( pyopenms.Element() )
 
+    ef = pyopenms.EmpiricalFormula(b"C2H5")
+    s = ef.toString()
+    assert s == b"C2H5"
+    m = ef.getElementalComposition()
+    assert m["C"] == 2
+    assert m["H"] == 5
+    assert ef.getNumberOfAtoms() == 7
+
 @report
 def testIdentificationHit():
     """

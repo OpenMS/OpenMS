@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,6 +55,8 @@ using namespace std;
 
 ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
+//#define DEBUG_IDENTIFICATION_VIEW 1
+
 namespace OpenMS
 {
   SpectraIdentificationViewWidget::SpectraIdentificationViewWidget(const Param&, QWidget* parent) :
@@ -102,7 +104,7 @@ namespace OpenMS
     table_widget_->setColumnWidth(3, 70); // precursor m/z
     table_widget_->setColumnWidth(4, 55); // dissociation
     table_widget_->setColumnHidden(4, true);
-    table_widget_->setColumnWidth(5, 45);
+    table_widget_->setColumnWidth(5, 45); // scan type
     table_widget_->setColumnHidden(5, true);
     table_widget_->setColumnWidth(6, 45);
     table_widget_->setColumnHidden(6, true);
@@ -123,9 +125,6 @@ namespace OpenMS
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setShowGrid(false);
 
-    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
-    connect(table_widget_, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateData_(QTableWidgetItem*)));
-
     spectra_widget_layout->addWidget(table_widget_);
 
     ////////////////////////////////////
@@ -134,16 +133,15 @@ namespace OpenMS
 
     hide_no_identification_ = new QCheckBox("Only hits", this);
     hide_no_identification_->setChecked(true);
-    connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+ 
 
     create_rows_for_commmon_metavalue_ = new QCheckBox("Show advanced\nannotations", this);
-    connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+
 
     QPushButton* save_IDs = new QPushButton("Save IDs", this);
     connect(save_IDs, SIGNAL(clicked()), this, SLOT(saveIDs_()));
 
     QPushButton* export_table = new QPushButton("Export table", this);
-    connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
 
     tmp_hbox_layout->addWidget(hide_no_identification_);
     tmp_hbox_layout->addWidget(create_rows_for_commmon_metavalue_);
@@ -163,9 +161,14 @@ namespace OpenMS
 
     // header context menu
     table_widget_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint &)));
 
+    connect(table_widget_->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(headerContextMenu_(const QPoint &)));
     connect(table_widget_, SIGNAL(cellClicked(int, int)), this, SLOT(cellClicked_(int, int)));
+    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
+    connect(table_widget_, SIGNAL(itemChanged(QTableWidgetItem*)), this, SLOT(updateData_(QTableWidgetItem*)));
+    connect(hide_no_identification_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+    connect(create_rows_for_commmon_metavalue_, SIGNAL(toggled(bool)), this, SLOT(updateEntries()));
+    connect(export_table, SIGNAL(clicked()), this, SLOT(exportEntries_()));
   }
 
   QTableWidget* SpectraIdentificationViewWidget::getTableWidget()
@@ -175,7 +178,8 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
   {
-    if (row >= table_widget_->rowCount() || column >= table_widget_->columnCount())
+    if (row >= table_widget_->rowCount() 
+    || column >= table_widget_->columnCount())
     {
       return;
     }
@@ -227,7 +231,8 @@ namespace OpenMS
     /*test for previous == 0 is important - without it,
       the wrong spectrum will be selected after finishing
       the execution of a TOPP tool on the whole data */
-    if (current == nullptr || previous == nullptr)
+    if (current == nullptr 
+    || previous == nullptr)
     {
       return;
     }
@@ -240,7 +245,7 @@ namespace OpenMS
     if (is_ms1_shown_)
     {
 #ifdef DEBUG_IDENTIFICATION_VIEW
-      cout << "selection Change MS1 deselect: " << layer_->current_spectrum << endl;
+      cout << "selection Change MS1 deselect: " << layer_->getCurrentSpectrumIndex() << endl;
 #endif
       emit spectrumDeselected(int(layer_->getCurrentSpectrumIndex()));
     }
@@ -265,29 +270,31 @@ namespace OpenMS
     }
   }
 
-  void SpectraIdentificationViewWidget::attachLayer(LayerData* cl)
+  void SpectraIdentificationViewWidget::setLayer(LayerData* cl)
   {
     layer_ = cl;
+    updateEntries();
+  }
+
+  LayerData* SpectraIdentificationViewWidget::getLayer()
+  {
+    return layer_;
   }
 
   void SpectraIdentificationViewWidget::updateEntries()
   {
     // no valid peak layer attached
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr 
+    || layer_->getPeakData()->size() == 0 
+    || layer_->type != LayerData::DT_PEAK)
     {
       table_widget_->clear();
       return;
     }
 
-    if (ignore_update)
-    {
-      return;
-    }
+    if (ignore_update) { return; }
 
-    if (!this->isVisible())
-    {
-      return;
-    }
+    if (!isVisible()) { return; }
 
     set<String> common_keys;
     // determine meta values common to all hits
@@ -358,25 +365,18 @@ namespace OpenMS
 
     QTableWidgetItem* proto_item = new QTableWidgetItem();
     proto_item->setTextAlignment(Qt::AlignCenter);
-
     table_widget_->setItemPrototype(proto_item);
 
     table_widget_->setSortingEnabled(false);
     table_widget_->setUpdatesEnabled(false);
     table_widget_->blockSignals(true);
 
-    if (layer_ == nullptr)
-    {
-      return;
-    }
-
-    QTableWidgetItem* item = nullptr;
-    QTableWidgetItem* selected_item = nullptr;
-    Size selected_row = 0;
-
     // generate flat list
+    int selected_row(-1);
     for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
     {
+      QTableWidgetItem* item = nullptr;
+
       const MSSpectrum & spectrum = (*layer_->getPeakData())[i];
       const UInt ms_level = spectrum.getMSLevel();
       const vector<PeptideIdentification>& pi = spectrum.getPeptideIdentifications();
@@ -691,6 +691,18 @@ namespace OpenMS
                 ++current_col;
               }
             }
+            
+            // scan mode
+            QString scan_mode;
+            if (spectrum.getInstrumentSettings().getScanMode() > 0)
+            {
+              scan_mode = QString::fromStdString(spectrum.getInstrumentSettings().NamesOfScanMode[spectrum.getInstrumentSettings().getScanMode()]);
+            }
+            else
+            {
+              scan_mode = "-";
+            }
+            addTextItemToBottomRow_(scan_mode, 5, c);
 
             // zoom scan
             QString is_zoom;
@@ -709,21 +721,18 @@ namespace OpenMS
 
       if (i == layer_->getCurrentSpectrumIndex())
       {
-        // just remember it, select later
-        selected_item = item;
-        selected_row = i;
+        selected_row = item->row(); // get model index of selected spectrum
       }
     }
-
 
     table_widget_->setSortingEnabled(true);
     table_widget_->setHorizontalHeaderLabels(header_labels);
     table_widget_->resizeColumnsToContents();
 
-    if (selected_item)
+    if (selected_row != -1)  // select and scroll down to item
     {
-      // now, select and scroll down to item
-      table_widget_->selectRow(int(selected_row));
+      table_widget_->selectRow(selected_row);
+      QTableWidgetItem* selected_item = table_widget_->item(selected_row, 0);
       selected_item->setSelected(true);
       table_widget_->setCurrentItem(selected_item);
       table_widget_->scrollToItem(selected_item);
@@ -775,7 +784,9 @@ namespace OpenMS
 
   void SpectraIdentificationViewWidget::exportEntries_()
   {
-    if (layer_ == nullptr || layer_->getPeakData()->size() == 0 || layer_->type != LayerData::DT_PEAK)
+    if (layer_ == nullptr 
+      || layer_->getPeakData()->size() == 0 
+      || layer_->type != LayerData::DT_PEAK)
     {
       return;
     }
@@ -808,7 +819,11 @@ namespace OpenMS
         strList.clear();
         for (int c = 0; c < table_widget_->columnCount(); ++c)
         {
-          strList << table_widget_->item(r, c)->text();
+          QTableWidgetItem* ti = table_widget_->item(r, c);
+          if (ti != nullptr)
+          {
+            strList << table_widget_->item(r, c)->text();
+          }
         }
         ts << strList.join("\t") + "\n";
       }
