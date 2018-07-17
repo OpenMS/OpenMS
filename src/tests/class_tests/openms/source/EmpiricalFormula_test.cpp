@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -108,6 +108,15 @@ END_SECTION
 START_SECTION(SignedSize getNumberOfAtoms() const)
   Size num4 = e_ptr->getNumberOfAtoms();
   TEST_EQUAL(num4, 4);
+END_SECTION
+
+START_SECTION(EmpiricalFormula& operator < (const EmpiricalFormula& rhs))
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
+  TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
+
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C4H2"), false)
+  TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator = (const EmpiricalFormula& rhs))
@@ -305,6 +314,14 @@ START_SECTION(String toString() const)
   TEST_EQUAL(String(str).hasSubstring("C2"), true)
 END_SECTION
 
+    
+START_SECTION((std::map<std::string, int> toMap() const))
+  EmpiricalFormula ef("C2H5");
+  auto m = ef.toMap();
+  TEST_EQUAL(m["C"], 2)
+  TEST_EQUAL(m["H"], 5)
+END_SECTION
+
 START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&)))
   stringstream ss;
   EmpiricalFormula ef("C2H5");
@@ -348,12 +365,12 @@ END_SECTION
 
 START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   EmpiricalFormula ef("C");
-  IsotopeDistribution iso = ef.getIsotopeDistribution(20);
+  IsotopeDistribution iso = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(20));
   double result[] = { 0.9893, 0.0107};
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result[i])
   }
 END_SECTION
 
@@ -369,7 +386,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result[i])
   }
 
   precursor_isotopes.clear();
@@ -380,7 +397,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result2[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result2[i])
   }
 
   precursor_isotopes.insert(0);
@@ -390,7 +407,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result3[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result3[i])
   }
 
   precursor_isotopes.insert(2);
@@ -403,7 +420,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result4[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result4[i])
   }
 
   precursor_isotopes.insert(3);
@@ -414,7 +431,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->second, result4[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result4[i])
   }
 
   precursor = EmpiricalFormula("C10H10N10O10S2");
@@ -428,19 +445,19 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   IsotopeDistribution small_iso = small_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
 
   // When we isolate only the M+1 precursor isotope, the big_fragment is more likely to exist as M+1 than M0.
-  TEST_EQUAL(big_iso.getContainer()[0].second < 0.2, true)
-  TEST_EQUAL(big_iso.getContainer()[1].second > 0.8, true)
+  TEST_EQUAL(big_iso.getContainer()[0].getIntensity() < 0.2, true)
+  TEST_EQUAL(big_iso.getContainer()[1].getIntensity() > 0.8, true)
 
   // The small_fragment, however, is more likely to exist as M0 than M+1.
-  TEST_EQUAL(small_iso.getContainer()[0].second > 0.8, true)
-  TEST_EQUAL(small_iso.getContainer()[1].second < 0.2, true)
+  TEST_EQUAL(small_iso.getContainer()[0].getIntensity() > 0.8, true)
+  TEST_EQUAL(small_iso.getContainer()[1].getIntensity() < 0.2, true)
 
   // Since the two fragments also happen to be complementary, their probabilities are perfectly reversed.
   IsotopeDistribution::ConstIterator big_it = big_iso.begin();
   IsotopeDistribution::ConstReverseIterator small_it = small_iso.rbegin();
   for (; big_it != big_iso.end(); ++big_it, ++small_it)
   {
-    TEST_REAL_SIMILAR(big_it->second, small_it->second)
+    TEST_REAL_SIMILAR(big_it->getIntensity(), small_it->getIntensity())
   }
 
 END_SECTION

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,9 @@ namespace OpenMS
   {
 
     XMLHandler::XMLHandler(const String & filename, const String & version) :
-      error_message_(""),
       file_(filename),
-      version_(version)
+      version_(version),
+      load_detail_(LD_ALLDATA)
     {
     }
 
@@ -165,6 +165,20 @@ namespace OpenMS
     String XMLHandler::errorString()
     {
       return error_message_;
+    }
+
+    /// handlers which support partial loading, implement this method
+    /// @throws Exception::NotImplemented
+    XMLHandler::LOADDETAIL XMLHandler::getLoadDetail() const
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    /// handlers which support partial loading, implement this method
+    /// @throws Exception::NotImplemented
+    void XMLHandler::setLoadDetail(const LOADDETAIL /*d*/)
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     void XMLHandler::writeUserParam_(const String & tag_name, std::ostream & os, const MetaInfoInterface & meta, UInt indent) const

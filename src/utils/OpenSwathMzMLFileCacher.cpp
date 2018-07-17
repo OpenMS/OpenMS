@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CachedMzML.h>
+#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -231,14 +232,14 @@ class TOPPOpenSwathMzMLFileCacher
         f.setOptions(opt);
         f.transform(in, &consumer, exp, false, false);
 
-        CachedmzML cacher;
+        Internal::CachedMzMLHandler cacher;
         cacher.setLogType(log_type_);
         cacher.writeMetadata(exp, out_meta, true);
       }
       else
       {
         MapType exp;
-        CachedmzML cacher;
+        Internal::CachedMzMLHandler cacher;
         MzMLFile f;
 
         cacher.setLogType(log_type_);
@@ -253,7 +254,7 @@ class TOPPOpenSwathMzMLFileCacher
     {
       MzMLFile f;
       MapType meta_exp;
-      CachedmzML cacher;
+      Internal::CachedMzMLHandler cacher;
       MapType exp_reading;
 
       cacher.setLogType(log_type_);

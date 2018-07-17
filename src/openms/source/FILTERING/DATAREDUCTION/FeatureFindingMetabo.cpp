@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
@@ -218,6 +218,27 @@ namespace OpenMS
     return tmp;
   }
 
+  // TODO: e.g. check
+  std::vector<double> FeatureHypothesis::getAllCentroidMZ() const
+  {
+    std::vector<double> tmp;
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      tmp.push_back(iso_pattern_[i]->getCentroidMZ());
+    }
+    return tmp;
+  }
+
+  std::vector<double> FeatureHypothesis::getAllCentroidRT() const
+  {
+    std::vector<double> tmp;
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      tmp.push_back(iso_pattern_[i]->getCentroidRT());
+    }
+    return tmp;
+  }
+
   std::vector<double> FeatureHypothesis::getIsotopeDistances() const
   {
     std::vector<double> tmp;
@@ -292,6 +313,9 @@ namespace OpenMS
     defaults_.setValue("report_chromatograms", "false", "Adds Chromatogram for each reported feature (Output in mzml).");
     defaults_.setValidStrings("report_chromatograms", ListUtils::create<String>("false,true"));
 
+    defaults_.setValue("remove_single_traces", "false", "Remove unassembled traces (single traces).");
+    defaults_.setValidStrings("remove_single_traces", ListUtils::create<String>("false,true"));
+
     defaultsToParam_();
 
     this->setLogType(CMD);
@@ -320,15 +344,17 @@ namespace OpenMS
     use_mz_scoring_C13_ = param_.getValue("mz_scoring_13C").toBool();
     report_convex_hulls_ = param_.getValue("report_convex_hulls").toBool();
     report_chromatograms_ = param_.getValue("report_chromatograms").toBool();
+
+    remove_single_traces_ = param_.getValue("remove_single_traces").toBool();
   }
 
   double FeatureFindingMetabo::computeAveragineSimScore_(const std::vector<double>& hypo_ints, const double& mol_weight) const
   {
-    IsotopeDistribution isodist(hypo_ints.size());
-    isodist.estimateFromPeptideWeight(mol_weight);
+    CoarseIsotopePatternGenerator solver(hypo_ints.size());
+    auto isodist = solver.estimateFromPeptideWeight(mol_weight);
     // isodist.renormalize();
 
-    std::vector<std::pair<Size, double> > averagine_dist = isodist.getContainer();
+    IsotopeDistribution::ContainerType averagine_dist = isodist.getContainer();
     double max_int(0.0), theo_max_int(0.0);
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
@@ -337,9 +363,9 @@ namespace OpenMS
         max_int = hypo_ints[i];
       }
 
-      if (averagine_dist[i].second > theo_max_int)
+      if (averagine_dist[i].getIntensity() > theo_max_int)
       {
-        theo_max_int = averagine_dist[i].second;
+        theo_max_int = averagine_dist[i].getIntensity();
       }
     }
 
@@ -347,7 +373,7 @@ namespace OpenMS
     std::vector<double> averagine_ratios, hypo_isos;
     for (Size i = 0; i < hypo_ints.size(); ++i)
     {
-      averagine_ratios.push_back(averagine_dist[i].second / theo_max_int);
+      averagine_ratios.push_back(averagine_dist[i].getIntensity() / theo_max_int);
       hypo_isos.push_back(hypo_ints[i] / max_int);
     }
 
@@ -875,6 +901,12 @@ namespace OpenMS
         continue;
       }
 
+      // filter out single traces if option is set
+      if (remove_single_traces_ && feat_hypos[hypo_idx].getCharge() == 0)
+      {
+        continue;
+      }
+
       //
       // Now accept hypothesis
       //
@@ -899,12 +931,11 @@ namespace OpenMS
       // store isotope intensities
       std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
       f.setMetaValue("num_of_masstraces", all_ints.size());
-      for (Size int_idx = 0; int_idx < all_ints.size(); ++int_idx)
-      {
-        f.setMetaValue("masstrace_intensity_" + String(int_idx), all_ints[int_idx]);
-      }
       if (report_convex_hulls_) f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
       f.setOverallQuality(feat_hypos[hypo_idx].getScore());
+      f.setMetaValue("masstrace_intensity", all_ints);
+      f.setMetaValue("masstrace_centroid_rt", feat_hypos[hypo_idx].getAllCentroidRT());
+      f.setMetaValue("masstrace_centroid_mz", feat_hypos[hypo_idx].getAllCentroidMZ());;
       f.setMetaValue("isotope_distances", feat_hypos[hypo_idx].getIsotopeDistances());
       f.setMetaValue("legal_isotope_pattern", pass_isotope_filter);
       f.applyMemberFunction(&UniqueIdInterface::setUniqueId);

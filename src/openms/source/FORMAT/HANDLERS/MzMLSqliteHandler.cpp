@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1168,7 +1168,7 @@ namespace OpenMS
         }
         spec_id_++;
 
-        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statments
+        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statements
         {
           // prevent writing of empty data which would throw an SQL exception
           if (!data.empty())
@@ -1363,7 +1363,7 @@ namespace OpenMS
         }
         chrom_id_++;
 
-        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statments
+        if (sql_it > sql_batch_size_) // flush as sqlite can only handle so many bind_blob statements
         {
           // prevent writing of empty data which would throw an SQL exception
           if (!data.empty())

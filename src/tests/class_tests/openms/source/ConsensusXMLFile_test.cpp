@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,16 +99,16 @@ TEST_EQUAL(map.getExperimentType() == "label-free", true)
 TEST_EQUAL(map.getMetaValue("name1") == DataValue("value1"), true)
 TEST_EQUAL(map.getMetaValue("name2") == DataValue(2), true)
 //file descriptions
-TEST_EQUAL(map.getFileDescriptions()[0].filename == "data/MapAlignmentFeatureMap1.xml", true)
-TEST_EQUAL(map.getFileDescriptions()[0].label, "label")
-TEST_EQUAL(map.getFileDescriptions()[0].size, 144)
-TEST_EQUAL(map.getFileDescriptions()[0].getMetaValue("name3") == DataValue("value3"), true)
-TEST_EQUAL(map.getFileDescriptions()[0].getMetaValue("name4") == DataValue(4), true)
-TEST_STRING_EQUAL(map.getFileDescriptions()[1].filename, "data/MapAlignmentFeatureMap2.xml")
-TEST_EQUAL(map.getFileDescriptions()[1].label, "")
-TEST_EQUAL(map.getFileDescriptions()[1].size, 0)
-TEST_EQUAL(map.getFileDescriptions()[1].getMetaValue("name5") == DataValue("value5"), true)
-TEST_EQUAL(map.getFileDescriptions()[1].getMetaValue("name6") == DataValue(6.0), true)
+TEST_EQUAL(map.getColumnHeaders()[0].filename == "data/MapAlignmentFeatureMap1.xml", true)
+TEST_EQUAL(map.getColumnHeaders()[0].label, "label")
+TEST_EQUAL(map.getColumnHeaders()[0].size, 144)
+TEST_EQUAL(map.getColumnHeaders()[0].getMetaValue("name3") == DataValue("value3"), true)
+TEST_EQUAL(map.getColumnHeaders()[0].getMetaValue("name4") == DataValue(4), true)
+TEST_STRING_EQUAL(map.getColumnHeaders()[1].filename, "data/MapAlignmentFeatureMap2.xml")
+TEST_EQUAL(map.getColumnHeaders()[1].label, "")
+TEST_EQUAL(map.getColumnHeaders()[1].size, 0)
+TEST_EQUAL(map.getColumnHeaders()[1].getMetaValue("name5") == DataValue("value5"), true)
+TEST_EQUAL(map.getColumnHeaders()[1].getMetaValue("name6") == DataValue(6.0), true)
 //data processing
 TEST_EQUAL(map.getDataProcessing().size(), 2)
 TEST_STRING_EQUAL(map.getDataProcessing()[0].getSoftware().getName(), "Software1")

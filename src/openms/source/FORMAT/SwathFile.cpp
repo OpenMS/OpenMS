@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,10 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/FORMAT/SwathFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -291,7 +290,7 @@ namespace OpenMS
     // Create new consumer, transform infile, write out metadata
     MSDataCachedConsumer* cachedConsumer = new MSDataCachedConsumer(cached_file, true);
     MzMLFile().transform(in, cachedConsumer, *experiment_metadata.get());
-    CachedmzML().writeMetadata(*experiment_metadata.get(), meta_file, true);
+    Internal::CachedMzMLHandler().writeMetadata(*experiment_metadata.get(), meta_file, true);
     delete cachedConsumer; // ensure that filestream gets closed
 
     boost::shared_ptr<PeakMap > exp(new PeakMap);

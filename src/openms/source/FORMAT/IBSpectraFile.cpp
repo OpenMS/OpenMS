@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,15 +121,15 @@ namespace OpenMS
     }
 
     // we take the mapcount as approximation
-    if (cm.getFileDescriptions().size() == 4)
+    if (cm.getColumnHeaders().size() == 4)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqFourPlexQuantitationMethod);
     }
-    else if (cm.getFileDescriptions().size() == 6)
+    else if (cm.getColumnHeaders().size() == 6)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new TMTSixPlexQuantitationMethod);
     }
-    else if (cm.getFileDescriptions().size() == 8)
+    else if (cm.getColumnHeaders().size() == 8)
     {
       return boost::shared_ptr<IsobaricQuantitationMethod>(new ItraqEightPlexQuantitationMethod);
     }

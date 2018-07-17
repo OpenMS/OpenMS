@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -122,7 +121,7 @@ namespace OpenMS
     virtual void unWeightData(DataPoints& data);
     
     /**
-    @brief Check for a valid wighting function string
+    @brief Check for a valid weighting function string
     */
     bool checkValidWeight(const String& weight, const std::vector<String>& valid_weights) const;
 
@@ -180,4 +179,3 @@ namespace OpenMS
 
 } // end of namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H

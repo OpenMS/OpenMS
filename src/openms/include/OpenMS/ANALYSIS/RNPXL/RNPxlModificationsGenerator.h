@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
-#define OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -58,16 +57,17 @@ namespace OpenMS
   class OPENMS_DLLAPI RNPxlModificationsGenerator
   {
     public:
-      static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
-
-      // calculates the monoisotopic mass of the nucleotide sequence using the formulas provided in nucleotide_to_formula. For a sequence of n nucleotides, n-1 loss of water are considered.
-      double calculateNucleotideChainMass(const std::map<char, EmpiricalFormula>& monophosphate_to_formula, const String& sequence);
-
+      static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides,
+                                                                     std::set<char> can_xl,
+                                                                     StringList mappings,
+                                                                     StringList modifications,
+                                                                     String sequence_restriction,
+                                                                     bool cysteine_adduct,
+                                                                     Int max_length = 4);
     private:
       static bool notInSeq(String res_seq, String query);
       static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
     };
 }
 
-#endif // OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_BASE64_H
-#define OPENMS_FORMAT_BASE64_H
+#pragma once
 
 #ifndef OPENMS_IS_BIG_ENDIAN
 #if defined OPENMS_BIG_ENDIAN
@@ -53,6 +52,10 @@
 
 #include <QByteArray>
 #include <zlib.h>
+
+#ifdef OPENMS_COMPILER_MSVC
+#pragma comment(linker, "/export:compress")
+#endif
 
 namespace OpenMS
 {
@@ -75,7 +78,7 @@ public:
       BYTEORDER_BIGENDIAN,                  ///< Big endian type
       BYTEORDER_LITTLEENDIAN            ///< Little endian type
     };
-
+	
     /**
         @brief Encodes a vector of floating point numbers to a Base64 string
 
@@ -893,4 +896,3 @@ private:
 
 } //namespace OpenMS
 
-#endif /* OPENMS_FORMAT_BASE64_H */

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,12 +75,6 @@ START_SECTION((virtual ~ProteinResolver()))
 END_SECTION
 
 START_SECTION((ProteinResolver& operator=(const ProteinResolver &rhs)))
-{
-  // TODO
-}
-END_SECTION
-
-START_SECTION((void resolve(std::vector< ISDGroup > &isd_groups, std::vector< MSDGroup > &msd_groups, std::vector< FASTAFile::FASTAEntry > &protein_data, std::vector< Size > &reindexed_proteins, std::vector< Size > &reindexed_peptides, std::vector< ProteinEntry > &protein_nodes, std::vector< PeptideEntry > &peptide_nodes, std::vector< PeptideIdentification > peptide_identifications, ConsensusMap consensus, EnzymaticDigestion digestor, bool id, UInt min_size)))
 {
   // TODO
 }

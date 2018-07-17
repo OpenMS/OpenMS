@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,10 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_ISOTOPEMARKER_H
-#define OPENMS_FILTERING_TRANSFORMERS_ISOTOPEMARKER_H
+#pragma once
 
 #include <OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <map>
 #include <vector>
@@ -102,8 +101,8 @@ public:
         Size j = i + 1;
 
         //std::vector<std::pair<double, double> > isotopes = SpectrumGenerator::instance()->isotopepeaks(mz, intensity);
-        IsotopeDistribution id;
-        id.estimateFromPeptideWeight(mz);
+        CoarseIsotopePatternGenerator solver;
+        auto id = solver.estimateFromPeptideWeight(mz);
 
         while (j < spectrum.size() && spectrum[j].getPosition()[0] <= mz + 3 + mzvariation)
         {
@@ -115,7 +114,7 @@ public:
             ++j;
             continue;
           }
-          if (std::fabs(id.begin()->second * intensity - curIntensity) < invariation * id.begin()->second * intensity)
+          if (std::fabs(id.begin()->getIntensity() * intensity - curIntensity) < invariation * id.begin()->getIntensity() * intensity)
           {
             isotopemarks[mz]++;
             isotopemarks[curmz]++;
@@ -146,4 +145,3 @@ public:
 
 }
 
-#endif //OPENMS_FILTERING_TRANSFORMERS_ISOTOPEMARKER_H

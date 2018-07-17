@@ -2,7 +2,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 -----------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above
@@ -189,3 +189,8 @@ Crux:
   - License:
   http://www.apache.org/licenses/LICENSE-2.0
 
+MaRaCluster:
+  - URL and source code:
+  https://github.com/statisticalbiotechnology/maracluster
+  - License
+  http://www.apache.org/licenses/LICENSE-2.0.html

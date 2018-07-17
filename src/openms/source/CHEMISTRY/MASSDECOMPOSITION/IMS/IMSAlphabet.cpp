@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,9 +36,6 @@
 #include <functional>
 #include <algorithm>
 
-#include <OpenMS/CONCEPT/BinaryComposeFunctionAdapter.h>
-#include <OpenMS/CONCEPT/UnaryComposeFunctionAdapter.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSAlphabet.h>
@@ -68,8 +65,8 @@ namespace OpenMS
     bool IMSAlphabet::hasName(const name_type & name) const
     {
       return std::find_if(elements_.begin(), elements_.end(),
-                          unaryCompose(std::bind2nd(std::equal_to<name_type>(), name),
-                                       std::mem_fun_ref(&element_type::getName))) < elements_.end();
+                          [&name](const element_type& e) { return e.getName() == name; })
+             != elements_.end();
     }
 
     const IMSAlphabet::element_type & IMSAlphabet::getElement(const name_type & name) const
@@ -145,10 +142,8 @@ namespace OpenMS
     void IMSAlphabet::sortByNames()
     {
       std::sort(elements_.begin(), elements_.end(),
-                binaryCompose(
-                  std::less<name_type>(),
-                  std::mem_fun_ref(&element_type::getName),
-                  std::mem_fun_ref(&element_type::getName)));
+                [&](const element_type& a, const element_type& b)
+                { return a.getName() < b.getName(); });
     }
 
     void IMSAlphabet::sortByValues()

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 #
 # prefix a variable with 'CF_' if it is used to configure a file!
 # e.g., CF_LibOpenMSExport
-set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}" CACHE INTERNAL "OpenMS VERSION" FORCE)
+
+# Version should not have unescaped "_" because it is used in the Latex tutorials
+set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION}" CACHE INTERNAL "OpenMS VERSION" FORCE)
+set(CF_OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION_FULLSTRING}" CACHE INTERNAL "OpenMS version with additional identifier" FORCE)
 
 #------------------------------------------------------------------------------
 # En/disable assertions
@@ -106,9 +109,6 @@ endif()
 
 if (TBB_FOUND)
  list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
-endif()
-if (MSVC) ## TODO check if necessary, does it need to go to OpenMS_GUI?
-	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
 if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_LABELING_ITRAQLABELER_H
-#define OPENMS_SIMULATION_LABELING_ITRAQLABELER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
@@ -142,4 +141,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif //#ifndef OPENMS_SIMULATION_LABELING_ITRAQLabeler_H

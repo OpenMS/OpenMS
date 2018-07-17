@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,21 +118,53 @@ namespace OpenMS
   void PeakIntegrator::getDefaultParameters(Param& params)
   {
     params.clear();
+
     params.setValue("integration_type", INTEGRATION_TYPE_INTENSITYSUM, "The integration technique to use in integratePeak() and estimateBackground() which uses either the summed intensity, integration by Simpson's rule or trapezoidal integration.");
     params.setValidStrings("integration_type", ListUtils::create<String>("intensity_sum,simpson,trapezoid"));
+
     params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
     params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
+
+    params.setValue("fit_EMG", "false", "Fit the chromatogram/spectrum to the EMG peak model.");
+    params.setValidStrings("fit_EMG", ListUtils::create<String>("false,true"));
   }
 
   void PeakIntegrator::updateMembers_()
   {
     integration_type_ = (String)param_.getValue("integration_type");
     baseline_type_ = (String)param_.getValue("baseline_type");
+    fit_EMG_ = param_.getValue("fit_EMG").toBool();
   }
 
   template <typename PeakContainerT>
-  PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& p, const double left, const double right) const
+  PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& pc, double left, double right) const
   {
+    PeakContainerT emg_pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
+
+    std::function<double(const double, const double)>
+    compute_peak_area_trapezoid = [&p](const double left, const double right)
+    {
+      double peak_area { 0.0 };
+      for (typename PeakContainerT::ConstIterator it = p.PosBegin(left); it != p.PosEnd(right) - 1; ++it)
+      {
+        peak_area += ((it + 1)->getPos() - it->getPos()) * ((it->getIntensity() + (it + 1)->getIntensity()) / 2.0);
+      }
+      return peak_area;
+    };
+
+    std::function<double(const double, const double)>
+    compute_peak_area_intensity_sum = [&p](const double left, const double right)
+    {
+      // LOG_WARN << "WARNING: intensity_sum method is being used." << std::endl;
+      double peak_area { 0.0 };
+      for (typename PeakContainerT::ConstIterator it = p.PosBegin(left); it != p.PosEnd(right); ++it)
+      {
+        peak_area += it->getIntensity();
+      }
+      return peak_area;
+    };
+
     double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
     ConvexHull2D::PointArrayType hull_points;
     UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
@@ -145,56 +177,57 @@ namespace OpenMS
         peak_apex_pos = it->getPos();
       }
     }
+
     if (integration_type_ == INTEGRATION_TYPE_TRAPEZOID)
     {
-      for (auto it = p.PosBegin(left); it != p.PosEnd(right) - 1; ++it)
+      if (n_points >= 2)
       {
-        peak_area += ((it + 1)->getPos() - it->getPos()) * ((it->getIntensity() + (it + 1)->getIntensity()) / 2.0);
+        peak_area = compute_peak_area_trapezoid(left, right);
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_SIMPSON)
     {
-      if (n_points < 3)
+      if (n_points == 2)
       {
-        LOG_DEBUG << std::endl << "Error in integratePeak: number of points must be >=3 for Simpson's rule" << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The number of points must be >= 3.");
+        LOG_WARN << std::endl << "PeakIntegrator::integratePeak:"
+          "number of points is 2, falling back to `trapezoid`." << std::endl;
+        peak_area = compute_peak_area_trapezoid(left, right);
       }
-      if (n_points % 2)
+      else if (n_points > 2)
       {
-        peak_area = simpson(p.PosBegin(left), p.PosEnd(right));
-      }
-      else
-      {
-        double areas[4] = {-1.0, -1.0, -1.0, -1.0};
-        areas[0] = simpson(p.PosBegin(left), p.PosEnd(right) - 1);   // without last point
-        areas[1] = simpson(p.PosBegin(left) + 1, p.PosEnd(right));   // without first point
-        if (p.begin() <= p.PosBegin(left) - 1)
+        if (n_points % 2)
         {
-          areas[2] = simpson(p.PosBegin(left) - 1, p.PosEnd(right)); // with one more point on the left
+          peak_area = simpson(p.PosBegin(left), p.PosEnd(right));
         }
-        if (p.PosEnd(right) < p.end())
+        else
         {
-          areas[3] = simpson(p.PosBegin(left), p.PosEnd(right) + 1); // with one more point on the right
-        }
-        UInt valids = 0;
-        for (auto area : areas)
-        {
-          if (area != -1.0)
+          double areas[4] = {-1.0, -1.0, -1.0, -1.0};
+          areas[0] = simpson(p.PosBegin(left), p.PosEnd(right) - 1);   // without last point
+          areas[1] = simpson(p.PosBegin(left) + 1, p.PosEnd(right));   // without first point
+          if (p.begin() <= p.PosBegin(left) - 1)
           {
-            peak_area += area;
-            ++valids;
+            areas[2] = simpson(p.PosBegin(left) - 1, p.PosEnd(right)); // with one more point on the left
           }
+          if (p.PosEnd(right) < p.end())
+          {
+            areas[3] = simpson(p.PosBegin(left), p.PosEnd(right) + 1); // with one more point on the right
+          }
+          UInt valids = 0;
+          for (auto area : areas)
+          {
+            if (area != -1.0)
+            {
+              peak_area += area;
+              ++valids;
+            }
+          }
+          peak_area /= valids;
         }
-        peak_area /= valids;
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
-      LOG_DEBUG << "\nWARNING: intensity_sum method is being used.\n";
-      for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
-      {
-        peak_area += it->getIntensity();
-      }
+      peak_area = compute_peak_area_intensity_sum(left, right);
     }
     else
     {
@@ -226,10 +259,13 @@ namespace OpenMS
 
   template <typename PeakContainerT>
   PeakIntegrator::PeakBackground PeakIntegrator::estimateBackground_(
-    const PeakContainerT& p, const double left, const double right,
+    const PeakContainerT& pc, double left, double right,
     const double peak_apex_pos
   ) const
   {
+    PeakContainerT emg_pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
+
     const double int_l = p.PosBegin(left)->getIntensity();
     const double int_r = (p.PosEnd(right) - 1)->getIntensity();
     const double delta_int = int_r - int_l;
@@ -306,10 +342,13 @@ namespace OpenMS
 
   template <typename PeakContainerT>
   PeakIntegrator::PeakShapeMetrics PeakIntegrator::calculatePeakShapeMetrics_(
-    const PeakContainerT& p, const double left, const double right,
+    const PeakContainerT& pc, double left, double right,
     const double peak_height, const double peak_apex_pos
   ) const
   {
+    PeakContainerT emg_pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
+
     PeakShapeMetrics psm;
     psm.points_across_baseline = 0;
     psm.points_across_half_height = 0;
@@ -374,5 +413,23 @@ namespace OpenMS
       ) {}
     }
     return closest->getPos();
+  }
+
+  template <typename PeakContainerT>
+  const PeakContainerT& PeakIntegrator::EMGPreProcess_(
+    const PeakContainerT& pc,
+    PeakContainerT& emg_pc,
+    double& left,
+    double& right
+  ) const
+  {
+    if (fit_EMG_)
+    {
+      emg_.fitEMGPeakModel(pc, emg_pc, left, right);
+      left = emg_pc.front().getPos();
+      right = emg_pc.back().getPos();
+      return emg_pc;
+    }
+    return pc;
   }
 }

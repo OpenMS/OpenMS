@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,17 +77,17 @@ namespace OpenMS
   {
     if (input_maps.size() != 1)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "exactly one input map required");
-    if (result_map.getFileDescriptions().size() != 2)
+    if (result_map.getColumnHeaders().size() != 2)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "two file descriptions required");
-    if (result_map.getFileDescriptions().begin()->second.filename != result_map.getFileDescriptions().rbegin()->second.filename)
+    if (result_map.getColumnHeaders().begin()->second.filename != result_map.getColumnHeaders().rbegin()->second.filename)
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "the two file descriptions have to contain the same file name");
     checkIds_(input_maps);
 
     //look up the light and heavy index
     Size light_index = numeric_limits<Size>::max();
     Size heavy_index = numeric_limits<Size>::max();
-    for (ConsensusMap::FileDescriptions::const_iterator it = result_map.getFileDescriptions().begin();
-         it != result_map.getFileDescriptions().end();
+    for (ConsensusMap::ColumnHeaders::const_iterator it = result_map.getColumnHeaders().begin();
+         it != result_map.getColumnHeaders().end();
          ++it)
     {
       if (it->second.label == "heavy")

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors:  Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_APPLICATIONS_TOPPBASE_H
-#define OPENMS_APPLICATIONS_TOPPBASE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
@@ -55,7 +54,8 @@
 
 #include <fstream>
 
-class QStringList;
+#include <QStringList>
+
 
 namespace OpenMS
 {
@@ -198,18 +198,23 @@ public:
     static void setMaxNumberOfThreads(int num_threads);
 
 private:
-
     /// Tool name.  This is assigned once and for all in the constructor.
     String const tool_name_;
 
     /// Tool description. This is assigned once and for all in the constructor.
     String const tool_description_;
 
-    ///Instance number
+    /// Instance number
     Int const instance_number_;
 
-    ///Location in the ini file where to look for parameters.
+    /// Location in the ini file where to look for parameters.
     String const ini_location_;
+
+    /// An optional temporary working directory.
+    String working_dir_;
+
+    /// Debug level at which to keep working dir.
+    Int working_dir_keep_debug_lvl_;
 
     /// No default constructor.  It is "declared away".
     TOPPBase();
@@ -795,8 +800,11 @@ protected:
 
     ///@name Temporary directories
     //@{
-    /// Creates a unique temporary directory and returns its name
+    /// Creates a unique temporary directory and returns its name (you have to clean it up yourself)
     String makeTempDirectory_() const;
+
+    /// Creates a unique temporary directory and returns its name (will be cleaned up automatically if debug level is high enough)
+    String makeAutoRemoveTempDirectory_(Int keep_debug = 2);
 
     /**
        @brief Removes a (temporary) directory
@@ -804,6 +812,12 @@ protected:
        If @p keep_debug is set to a positive value (> 0), the directory is kept if the current debug level (@p debug_level_) is at least at that value.
     */
     void removeTempDirectory_(const String& dirname, Int keep_debug = 2) const;
+    //@}
+
+    ///@name External processes (TODO consider creating another AdapterBase class)
+    //@{
+    /// Runs an external process via QProcess and reports its status in the logs
+    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "") const;
     //@}
 
     /**
@@ -946,4 +960,3 @@ private:
 
 } // namespace OpenMS
 
-#endif //OPENMS_APPLICATIONS_TOPPBASE_H

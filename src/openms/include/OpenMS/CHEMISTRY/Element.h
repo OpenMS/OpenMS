@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,12 +33,11 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_ELEMENT_H
-#define OPENMS_CHEMISTRY_ELEMENT_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #define OPENMS_CHEMISTRY_ELEMENT_NAME_DEFAULT "unknown"
 #define OPENMS_CHEMISTRY_ELEMENT_SYMBOL_DEFAULT "??"
@@ -55,6 +54,7 @@ namespace OpenMS
   {
 public:
 
+   
     /** @name Constructor and Destructors
     */
     //@{
@@ -131,6 +131,9 @@ public:
 
     /// inequality operator
     bool operator!=(const Element & element) const;
+
+    /// less operator
+    bool operator<(const Element & element) const;
     //@}
 
     /// writes the element to an output stream
@@ -161,4 +164,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

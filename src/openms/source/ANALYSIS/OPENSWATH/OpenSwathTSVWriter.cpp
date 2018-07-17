@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,20 +38,21 @@ namespace OpenMS
 {
 
 
-  OpenSwathTSVWriter::OpenSwathTSVWriter(String output_filename, 
-                       String input_filename,
-                       bool ms1_scores, 
-                       bool sonar, 
-                       bool uis_scores) :
-      ofs(output_filename.c_str()),
-      input_filename_(input_filename),
-      doWrite_(!output_filename.empty()),
-      use_ms1_traces_(ms1_scores),
-      sonar_(sonar),
-      enable_uis_scoring_(uis_scores)
-      {}
+  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename, 
+                                         const String& input_filename,
+                                         bool ms1_scores, 
+                                         bool sonar, 
+                                         bool uis_scores) :
+    ofs(output_filename.c_str()),
+    input_filename_(input_filename),
+    doWrite_(!output_filename.empty()),
+    use_ms1_traces_(ms1_scores),
+    sonar_(sonar),
+    enable_uis_scoring_(uis_scores)
+    {
+    }
 
-    bool OpenSwathTSVWriter::isActive()
+    bool OpenSwathTSVWriter::isActive() const
     {
       return doWrite_;
     }
@@ -108,7 +109,7 @@ namespace OpenMS
 
     String OpenSwathTSVWriter::prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id)
+        const FeatureMap& output, const String id) const
     {
         String result = "";
         String decoy = "0"; // 0 = false
@@ -130,8 +131,8 @@ namespace OpenMS
           String aggr_prec_Fragment_Annotation = "";
           for (std::vector<Feature>::const_iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
-            sprintf(intensity_char, "%f", sub_it->getIntensity());
-            sprintf(intensity_apex_char, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
+            snprintf(intensity_char, 40, "%f", sub_it->getIntensity());
+            snprintf(intensity_apex_char, 40, "%f", (double)sub_it->getMetaValue("peak_apex_int"));
             if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
             {
               aggr_Peak_Area += (String)intensity_char + ";";
@@ -186,6 +187,16 @@ namespace OpenMS
             protein_name = pep.protein_refs[0];
           }
 
+          String main_var = "0";
+          if (feature_it->metaValueExists("main_var_xx_swath_prelim_score"))
+          {
+            main_var = (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score");
+          }
+          else if (feature_it->metaValueExists("main_var_xx_lda_prelim_score"))
+          {
+            main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
+          }
+
           String line = "";
           line += id + "_run0"
             + "\t" + group_label
@@ -204,7 +215,7 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
             + "\t" + (String)feature_it->getMetaValue("delta_rt")
             + "\t" + (String)feature_it->getMetaValue("leftWidth")
-            + "\t" + (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score")
+            + "\t" + main_var
             + "\t" + (String)feature_it->getMetaValue("norm_RT")
             + "\t" + (String)feature_it->getMetaValue("nr_peaks")
             + "\t" + (String)feature_it->getMetaValue("peak_apices_sum")
@@ -295,5 +306,4 @@ namespace OpenMS
     }
 
 }
-
 

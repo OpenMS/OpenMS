@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -388,7 +388,7 @@ namespace OpenMS
 //                                       TopPerc::lq_PeptideEvidence);
 //                  pev.resize(uni-pev.begin());
 //                  merger->setPeptideEvidences(pev);
-                //There is no mutable getPeptideEvidences() accessor in PeptideHit - above will not werk, but so long:
+                //There is no mutable getPeptideEvidences() accessor in PeptideHit - above will not work, but so long:
                 //Implying PeptideIndexer was applied (with the same search db each) will care for that all PeptideEvidences from two hits with equal AASequence are the same
 
                 //merge meta values

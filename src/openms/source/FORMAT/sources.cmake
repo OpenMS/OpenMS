@@ -18,9 +18,8 @@ CsvFile.cpp
 DTA2DFile.cpp
 DTAFile.cpp
 EDTAFile.cpp
+ExperimentalDesignFile.cpp
 FASTAFile.cpp
-FastaIterator.cpp
-FastaIteratorIntern.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
 FileTypes.cpp
@@ -38,6 +37,7 @@ MRMFeatureQCFile.cpp
 MS2File.cpp
 MSNumpressCoder.cpp
 MSPFile.cpp
+MSPGenericFile.cpp
 MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
@@ -93,4 +93,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT" FILES ${sources})
-

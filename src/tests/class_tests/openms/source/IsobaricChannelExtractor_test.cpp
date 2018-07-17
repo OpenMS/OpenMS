@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -126,32 +126,32 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
     ice.extractChannels(exp, cm_out);
 
     // check channel meta information
-    TEST_EQUAL(cm_out.getFileDescriptions().size(), 4)
-    ABORT_IF(cm_out.getFileDescriptions().size() != 4)
+    TEST_EQUAL(cm_out.getColumnHeaders().size(), 4)
+    ABORT_IF(cm_out.getColumnHeaders().size() != 4)
 
-    TEST_EQUAL(cm_out.getFileDescriptions()[0].label, "itraq4plex_114")
-    TEST_EQUAL(cm_out.getFileDescriptions()[0].getMetaValue("channel_name"), "114")
-    TEST_EQUAL(cm_out.getFileDescriptions()[0].getMetaValue("channel_id"), 0)
-    TEST_EQUAL(cm_out.getFileDescriptions()[0].getMetaValue("channel_description"), "ref")
-    TEST_EQUAL(cm_out.getFileDescriptions()[0].getMetaValue("channel_center"), 114.1112)
+    TEST_EQUAL(cm_out.getColumnHeaders()[0].label, "itraq4plex_114")
+    TEST_EQUAL(cm_out.getColumnHeaders()[0].getMetaValue("channel_name"), "114")
+    TEST_EQUAL(cm_out.getColumnHeaders()[0].getMetaValue("channel_id"), 0)
+    TEST_EQUAL(cm_out.getColumnHeaders()[0].getMetaValue("channel_description"), "ref")
+    TEST_EQUAL(cm_out.getColumnHeaders()[0].getMetaValue("channel_center"), 114.1112)
 
-    TEST_EQUAL(cm_out.getFileDescriptions()[1].label, "itraq4plex_115")
-    TEST_EQUAL(cm_out.getFileDescriptions()[1].getMetaValue("channel_name"), "115")
-    TEST_EQUAL(cm_out.getFileDescriptions()[1].getMetaValue("channel_id"), 1)
-    TEST_EQUAL(cm_out.getFileDescriptions()[1].getMetaValue("channel_description"), "something")
-    TEST_EQUAL(cm_out.getFileDescriptions()[1].getMetaValue("channel_center"), 115.1082)
+    TEST_EQUAL(cm_out.getColumnHeaders()[1].label, "itraq4plex_115")
+    TEST_EQUAL(cm_out.getColumnHeaders()[1].getMetaValue("channel_name"), "115")
+    TEST_EQUAL(cm_out.getColumnHeaders()[1].getMetaValue("channel_id"), 1)
+    TEST_EQUAL(cm_out.getColumnHeaders()[1].getMetaValue("channel_description"), "something")
+    TEST_EQUAL(cm_out.getColumnHeaders()[1].getMetaValue("channel_center"), 115.1082)
 
-    TEST_EQUAL(cm_out.getFileDescriptions()[2].label, "itraq4plex_116")
-    TEST_EQUAL(cm_out.getFileDescriptions()[2].getMetaValue("channel_name"), "116")
-    TEST_EQUAL(cm_out.getFileDescriptions()[2].getMetaValue("channel_id"), 2)
-    TEST_EQUAL(cm_out.getFileDescriptions()[2].getMetaValue("channel_description"), "else")
-    TEST_EQUAL(cm_out.getFileDescriptions()[2].getMetaValue("channel_center"), 116.1116)
+    TEST_EQUAL(cm_out.getColumnHeaders()[2].label, "itraq4plex_116")
+    TEST_EQUAL(cm_out.getColumnHeaders()[2].getMetaValue("channel_name"), "116")
+    TEST_EQUAL(cm_out.getColumnHeaders()[2].getMetaValue("channel_id"), 2)
+    TEST_EQUAL(cm_out.getColumnHeaders()[2].getMetaValue("channel_description"), "else")
+    TEST_EQUAL(cm_out.getColumnHeaders()[2].getMetaValue("channel_center"), 116.1116)
 
-    TEST_EQUAL(cm_out.getFileDescriptions()[3].label, "itraq4plex_117")
-    TEST_EQUAL(cm_out.getFileDescriptions()[3].getMetaValue("channel_name"), "117")
-    TEST_EQUAL(cm_out.getFileDescriptions()[3].getMetaValue("channel_id"), 3)
-    TEST_EQUAL(cm_out.getFileDescriptions()[3].getMetaValue("channel_description"), "")
-    TEST_EQUAL(cm_out.getFileDescriptions()[3].getMetaValue("channel_center"), 117.1149)
+    TEST_EQUAL(cm_out.getColumnHeaders()[3].label, "itraq4plex_117")
+    TEST_EQUAL(cm_out.getColumnHeaders()[3].getMetaValue("channel_name"), "117")
+    TEST_EQUAL(cm_out.getColumnHeaders()[3].getMetaValue("channel_id"), 3)
+    TEST_EQUAL(cm_out.getColumnHeaders()[3].getMetaValue("channel_description"), "")
+    TEST_EQUAL(cm_out.getColumnHeaders()[3].getMetaValue("channel_center"), 117.1149)
 
     // compare results
     TEST_EQUAL(cm_out.size(), 5)

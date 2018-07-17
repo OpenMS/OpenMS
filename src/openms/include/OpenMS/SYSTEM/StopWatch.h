@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SYSTEM_STOPWATCH_H
-#define OPENMS_SYSTEM_STOPWATCH_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -271,4 +270,3 @@ private:
 
 
 
-#endif // OPENMS_SYSTEM_STOPWATCH_H

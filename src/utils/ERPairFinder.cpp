@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -219,10 +219,10 @@ protected:
 
 
     ConsensusMap results_map;
-    results_map.getFileDescriptions()[0].label = "light";
-    results_map.getFileDescriptions()[0].filename = in;
-    results_map.getFileDescriptions()[1].label = "heavy";
-    results_map.getFileDescriptions()[1].filename = in;
+    results_map.getColumnHeaders()[0].label = "light";
+    results_map.getColumnHeaders()[0].filename = in;
+    results_map.getColumnHeaders()[1].label = "heavy";
+    results_map.getColumnHeaders()[1].filename = in;
 
     FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());

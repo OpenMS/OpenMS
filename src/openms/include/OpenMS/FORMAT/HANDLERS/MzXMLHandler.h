@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,26 +32,26 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZXMLHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
-
-#include <stack>
 
 namespace OpenMS
 {
   class MetaInfoInterface;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
 
   namespace Internal
   {
+    
 
     /**
       @brief XML handlers for MzXMLFile
@@ -78,6 +78,12 @@ public:
       /// Destructor
       ~MzXMLHandler() override {}
       //@}
+
+      /// handler which support partial loading, implement this method
+      virtual LOADDETAIL getLoadDetail() const override;
+
+      /// handler which support partial loading, implement this method
+      virtual void setLoadDetail(const LOADDETAIL d) override;
 
       // Docu in base class
       void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname) override;
@@ -126,7 +132,6 @@ protected:
 
       /**@name temporary data structures to hold parsed data */
       //@{
-      Base64 decoder_;
       Int nesting_level_;
 
       /**
@@ -242,4 +247,3 @@ private:
 
 } // namespace OpenMS
 
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -181,9 +181,9 @@ namespace OpenMS
 
   }
 
-  std::map<int, MS1Signal> * FeatureLCProfile::getLCelutionSignalMap(){ return &LCelutionSignals; }
-  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsStart(){ return LCelutionSignals.begin(); }
-  std::map<int, MS1Signal>::reverse_iterator FeatureLCProfile::getLastLCelutionSignal(){ return LCelutionSignals.rbegin(); }
-  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsEnd(){ return LCelutionSignals.end(); }
-  int FeatureLCProfile::getNbLCelutionSignals(){ return (int) LCelutionSignals.size(); }
+  std::map<int, MS1Signal> * FeatureLCProfile::getLCelutionSignalMap() { return &LCelutionSignals; }
+  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsStart() { return LCelutionSignals.begin(); }
+  std::map<int, MS1Signal>::reverse_iterator FeatureLCProfile::getLastLCelutionSignal() { return LCelutionSignals.rbegin(); }
+  std::map<int, MS1Signal>::iterator FeatureLCProfile::getLCelutionSignalsEnd() { return LCelutionSignals.end(); }
+  int FeatureLCProfile::getNbLCelutionSignals() { return (int) LCelutionSignals.size(); }
 }

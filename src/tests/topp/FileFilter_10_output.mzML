@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="lsid" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -594,7 +595,7 @@
 						<userParam name="AcqComment" type="xsd:string" value="Acquisition 2"/>
 					</scan>
 				</scanList>
-			<precursorList count="2">
+				<precursorList count="2">
 					<precursor>
 						<isolationWindow>
 							<cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1.2" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -632,7 +633,7 @@
 							<userParam name="ActivationComment" type="xsd:string" value="active2"/>
 						</activation>
 					</precursor>
-			</precursorList>
+				</precursorList>
 				<binaryDataArrayList count="10">
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
@@ -699,3 +700,14 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="spectrum=10">19539</offset>
+		<offset idRef="spectrum=12">25232</offset>
+		<offset idRef="spectrum=14">30488</offset>
+		<offset idRef="spectrum=15">35744</offset>
+	</index>
+</indexList>
+<indexListOffset>43646</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_RNPXL_MORPHEUSSCORE_H
-#define OPENMS_ANALYSIS_RNPXL_MORPHEUSSCORE_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -52,11 +51,12 @@ struct OPENMS_DLLAPI MorpheusScore
   /// score and subscores
   struct OPENMS_DLLAPI Result
   {
-    double score; // Morpheus score (matched peaks + matched ion current / TIC)
-    Size matches; // matched theoretical peaks
-    Size n_peaks; // number of theoretical peaks
-    double MIC; // ion current of matches (experimental peaks)
-    double TIC; // total ion current (experimental peak) 
+    Size matches = 0; // matched theoretical peaks
+    Size n_peaks = 0; // number of theoretical peaks
+    float score = 0; // Morpheus score (matched peaks + matched ion current / TIC)
+    float MIC = 0; // ion current of matches (experimental peaks)
+    float TIC = 0; // total ion current (experimental peak) 
+    float err = 0; // average absolute mass error of matched fragments (in Da)
   };
 
   /// returns Morpheus Score, #matched ions, #total ions, #matched intensities, #total fragment intensities (TIC)
@@ -68,5 +68,4 @@ struct OPENMS_DLLAPI MorpheusScore
 
 }
 
-#endif
 

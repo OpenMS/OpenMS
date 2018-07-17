@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,16 +54,16 @@ namespace OpenMS
   vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold, const String& acc_filter, const String& desc_filter)
   {
     Size number_of_features = map.size();
-    Size number_of_maps = map.getFileDescriptions().size();
+    Size number_of_maps = map.getColumnHeaders().size();
     vector<vector<double> > feature_int(number_of_maps);
 
     //get map with most features, resize feature_int
     UInt map_with_most_features_idx = 0;
-    ConsensusMap::FileDescriptions::const_iterator map_with_most_features = map.getFileDescriptions().find(0);
+    ConsensusMap::ColumnHeaders::const_iterator map_with_most_features = map.getColumnHeaders().find(0);
     for (UInt i = 0; i < number_of_maps; i++)
     {
       feature_int[i].resize(number_of_features);
-      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
+      ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
       if (it->second.size > map_with_most_features->second.size)
       {
         map_with_most_features = it;

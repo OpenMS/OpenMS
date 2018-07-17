@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,12 +83,20 @@ START_SECTION(size_t getChunkOffset() const)
   TEST_EQUAL(fv.getChunkOffset(), 0)
 END_SECTION
 
-
 START_SECTION(bool activateCache())
   // FCFile: tested below
   FCVec fv(fev);
   TEST_EQUAL(fv.activateCache(), 1)
   TEST_EQUAL(fv.activateCache(), 0)
+END_SECTION
+
+START_SECTION(void reset())
+  // FCFile: tested below
+  FCVec fv(fev);
+  TEST_EQUAL(fv.activateCache(), 1)
+  TEST_EQUAL(fv.activateCache(), 0)
+  fv.reset();
+  TEST_EQUAL(fv.activateCache(), 1)
 END_SECTION
 
 START_SECTION(bool cacheChunk(int suggested_size))
@@ -180,6 +188,36 @@ START_SECTION(size_t size() const)
 
   FCVec fv(fev);
   TEST_EQUAL(fv.size(), 4);
+
+  // read, then reset and start reading again
+  f.reset();
+  TEST_EQUAL(f.cacheChunk(2), true)
+  TEST_EQUAL(f.size(), 2)
+  TEST_EQUAL(f.activateCache(), true)
+  TEST_EQUAL(f.size(), 2)
+  FASTAFile::FASTAEntry pe3, pe4;
+  TEST_EQUAL(f.readAt(pe3, 0), true);
+  pe4 = f.chunkAt(0);
+  TEST_EQUAL(pe3 == pe4, true)
+  TEST_EQUAL(pe3.description, "This is the description of the first protein")
+  pe4 = f.chunkAt(1);
+  TEST_EQUAL(pe3 == pe4, false)
+  TEST_EQUAL(pe4.description, "This is the description of the second protein")
+
+  f.reset();
+  TEST_EQUAL(f.cacheChunk(2), true)
+  TEST_EQUAL(f.size(), 2)
+  TEST_EQUAL(f.activateCache(), true)
+  TEST_EQUAL(f.size(), 2)
+  FASTAFile::FASTAEntry pe5, pe6;
+  TEST_EQUAL(f.readAt(pe5, 0), true);
+  pe6 = f.chunkAt(0);
+  TEST_EQUAL(pe5 == pe6, true)
+  TEST_EQUAL(pe5.description, "This is the description of the first protein")
+  pe6 = f.chunkAt(1);
+  TEST_EQUAL(pe5 == pe6, false)
+  TEST_EQUAL(pe6.description, "This is the description of the second protein")
+
 END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

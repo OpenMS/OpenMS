@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -330,7 +330,7 @@ namespace OpenMS
     //Changed it to try-catch-block but I am not sure if this correction should be made
     //at all. Can someone please verify?
     Math::GaussFitter::GaussFitResult result_gauss (gauss_A, gauss_x0, gauss_sigma);
-    try{
+    try {
         result_gauss = gf.fit(diff_data);
     }
     catch(Exception::UnableToFit& /* e */)

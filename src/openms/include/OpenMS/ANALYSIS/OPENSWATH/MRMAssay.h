@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMASSAY_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMASSAY_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -103,7 +102,14 @@ public:
       @param round_decPow round product m/z values to decimal power (default: -4)
 
     */
-    void reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
+    void reannotateTransitions(OpenMS::TargetedExperiment& exp,
+                               double precursor_mz_threshold,
+                               double product_mz_threshold,
+                               const std::vector<String>& fragment_types,
+                               const std::vector<size_t>& fragment_charges,
+                               bool enable_specific_losses,
+                               bool enable_unspecific_losses,
+                               int round_decPow = -4);
 
     /**
       @brief Restrict and filter transitions in a TargetedExperiment
@@ -115,7 +121,9 @@ public:
       into the precursor isolation window)
 
     */
-    void restrictTransitions(OpenMS::TargetedExperiment& exp, double lower_mz_limit, double upper_mz_limit, std::vector<std::pair<double, double> > swathes);
+    void restrictTransitions(OpenMS::TargetedExperiment& exp,
+        double lower_mz_limit, double upper_mz_limit,
+        const std::vector<std::pair<double, double> >& swathes);
 
     /**
       @brief Select detecting fragment ions
@@ -144,19 +152,20 @@ public:
       @param disable_decoy_transitions whether to disable generation of decoy UIS transitions
     */
     void uisTransitions(OpenMS::TargetedExperiment& exp,
-                        std::vector<String> fragment_types,
-                        std::vector<size_t> fragment_charges,
+                        const std::vector<String>& fragment_types,
+                        const std::vector<size_t>& fragment_charges,
                         bool enable_specific_losses,
                         bool enable_unspecific_losses,
                         bool enable_ms2_precursors,
                         double mz_threshold,
-                        std::vector<std::pair<double, double> > swathes,
+                        const std::vector<std::pair<double, double> >& swathes,
                         int round_decPow = -4,
                         size_t max_num_alternative_localizations = 20,
                         int shuffle_seed = -1,
                         bool disable_decoy_transitions = false);
 
 protected:
+
     /**
       @brief Check whether fragment ion are unique ion signatures in vector within threshold and return matching peptidoforms
 
@@ -209,7 +218,7 @@ protected:
 
       @value a vector of all N index combinations
     */
-    std::vector<std::vector<size_t> > nchoosekcombinations_(std::vector<size_t> n, size_t k);
+    std::vector<std::vector<size_t> > nchoosekcombinations_(const std::vector<size_t>& n, size_t k);
 
     /**
       @brief Generate modified peptide forms based on all possible combinations
@@ -222,7 +231,9 @@ protected:
 
       @value a vector of all modified peptides.
     */
-    std::vector<OpenMS::AASequence> addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification);
+    std::vector<OpenMS::AASequence> addModificationsSequences_(const std::vector<OpenMS::AASequence>& sequences,
+                                                               const std::vector<std::vector<size_t> >& mods_combs,
+                                                               const OpenMS::String& modification);
 
     /**
       @brief Generate alternative modified peptide forms according to ModificationsDB
@@ -235,7 +246,7 @@ protected:
 
       @value a vector of all alternative modified peptides.
     */
-    std::vector<OpenMS::AASequence> combineModifications_(OpenMS::AASequence sequence);
+    std::vector<OpenMS::AASequence> combineModifications_(const OpenMS::AASequence& sequence);
 
     /**
       @brief Generate alternative modified peptide forms according to ModificationsDB
@@ -254,7 +265,7 @@ protected:
       @value a vector of all alternative modified peptides.
 
     */
-    std::vector<OpenMS::AASequence> combineDecoyModifications_(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence);
+    std::vector<OpenMS::AASequence> combineDecoyModifications_(const OpenMS::AASequence& sequence, const OpenMS::AASequence& decoy_sequence);
 
     /**
       @brief Generate target in silico map
@@ -262,13 +273,13 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-    void generateTargetInSilicoMap_(OpenMS::TargetedExperiment& exp,
-                                    std::vector<String> fragment_types,
-                                    std::vector<size_t> fragment_charges,
+    void generateTargetInSilicoMap_(const OpenMS::TargetedExperiment& exp,
+                                    const std::vector<String>& fragment_types,
+                                    const std::vector<size_t>& fragment_charges,
                                     bool enable_specific_losses,
                                     bool enable_unspecific_losses,
                                     bool enable_ms2_precursors,
-                                    std::vector<std::pair<double, double> > swathes,
+                                    const std::vector<std::pair<double, double> >& swathes,
                                     int round_decPow,
                                     size_t max_num_alternative_localizations,
                                     SequenceMapT& TargetSequenceMap,
@@ -281,9 +292,8 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-    void generateDecoySequences_(boost::unordered_map<size_t,
-                                 boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap,
-                                 boost::unordered_map<String, String>& DecoySequenceMap, 
+    void generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
+                                 boost::unordered_map<String, String>& DecoySequenceMap,
                                  int shuffle_seed);
 
     /**
@@ -292,12 +302,13 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-    void generateDecoyInSilicoMap_(OpenMS::TargetedExperiment& exp,
-                                   std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
+    void generateDecoyInSilicoMap_(const OpenMS::TargetedExperiment& exp,
+                                   const std::vector<String>& fragment_types,
+                                   const std::vector<size_t>& fragment_charges,
                                    bool enable_specific_losses,
                                    bool enable_unspecific_losses,
                                    bool enable_ms2_precursors,
-                                   std::vector<std::pair<double, double> > swathes,
+                                   const std::vector<std::pair<double, double> >& swathes,
                                    int round_decPow,
                                    TargetDecoyMapT& TargetDecoyMap,
                                    PeptideMapT& TargetPeptideMap,
@@ -311,9 +322,10 @@ protected:
       @details Used internally by MRMAssay::uisTransitions
 
     */
-   void generateTargetAssays_(OpenMS::TargetedExperiment& exp,
-                              TransitionVectorType& transitions, double mz_threshold,
-                              std::vector<std::pair<double, double> > swathes,
+   void generateTargetAssays_(const OpenMS::TargetedExperiment& exp,
+                              TransitionVectorType& transitions,
+                              double mz_threshold,
+                              const std::vector<std::pair<double, double> >& swathes,
                               int round_decPow,
                               PeptideMapT& TargetPeptideMap,
                               IonMapT& TargetIonMap);
@@ -323,20 +335,17 @@ protected:
 
       @details Used internally by MRMAssay::uisTransitions
 
-      TODO: why make copy of IonMapT ?
-
     */
-   void generateDecoyAssays_(OpenMS::TargetedExperiment& exp,
+   void generateDecoyAssays_(const OpenMS::TargetedExperiment& exp,
                              TransitionVectorType& transitions,
                              double mz_threshold,
-                             std::vector<std::pair<double, double> > swathes,
+                             const std::vector<std::pair<double, double> >& swathes,
                              int round_decPow,
-                             PeptideMapT& DecoyPeptideMap,
-                             TargetDecoyMapT& TargetDecoyMap, 
-                             IonMapT DecoyIonMap, 
-                             IonMapT TargetIonMap);
+                             const PeptideMapT& DecoyPeptideMap,
+                             TargetDecoyMapT& TargetDecoyMap,
+                             const IonMapT& DecoyIonMap,
+                             const IonMapT& TargetIonMap);
 
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMASSAY_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,7 @@ namespace OpenMS
     for (Size i = 0; i < maps.size(); ++i)
     {
       const ConsensusMap& map = maps[i];
-      for (ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().begin(); it != map.getFileDescriptions().end(); ++it)
+      for (ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().begin(); it != map.getColumnHeaders().end(); ++it)
       {
         if (used_ids.find(it->first) != used_ids.end())
         {

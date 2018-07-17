@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,10 +125,9 @@ namespace OpenMS
     Internal::MzXMLHandler handler(experimental_settings, filename_in, getVersion(), *this);
 
     // set temporary options for handler
-    tmp_options.setSizeOnly(true);
     tmp_options.setMetadataOnly( skip_full_count );
     handler.setOptions(tmp_options);
-
+    handler.setLoadDetail(Internal::XMLHandler::LD_RAWCOUNTS);
     parse_(filename_in, &handler);
 
     // After parsing, collect information

@@ -4,7 +4,6 @@ from autowrap.ConversionProvider import (TypeConverterBase,
                                          mangle,
                                          StdMapConverter)
 
-
 class OpenMSDPosition2(TypeConverterBase):
 
     def get_base_types(self):
@@ -173,6 +172,11 @@ class OpenMSStringConverter(TypeConverterBase):
         return ""
 
     def type_check_expression(self, cpp_type, argument_var):
+        # Need to treat ptr and reference differently as these may be modified
+        # and the results needs to be available in Python
+        if (cpp_type.is_ptr or cpp_type.is_ref) and not cpp_type.is_const:
+            return "isinstance(%s, String)" % (argument_var)
+
         # Allow conversion from unicode str, bytes and OpenMS::String
         return "(isinstance(%s, str) or isinstance(%s, unicode) or isinstance(%s, bytes) or isinstance(%s, String))" % (
             argument_var,argument_var,argument_var, argument_var)
@@ -183,8 +187,12 @@ class OpenMSStringConverter(TypeConverterBase):
         call_as = "deref((convString(%s)).get())" % argument_var
         cleanup = ""
         code = ""
-        if cpp_type.is_ptr:
-            call_as = "(convString(%s)).get()" % argument_var
+        # Need to treat ptr and reference differently as these may be modified
+        # and the results needs to be available in Python
+        if cpp_type.is_ptr and not cpp_type.is_const:
+            call_as = "((<String>%s).inst.get())" % argument_var
+        if cpp_type.is_ref and not cpp_type.is_const:
+            call_as = "deref((<String>%s).inst.get())" % argument_var
         return code, call_as, cleanup
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
@@ -310,7 +318,9 @@ class StdVectorStringConverter(TypeConverterBase):
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
 
-        assert not cpp_type.is_ptr
+        if cpp_type.is_ptr:
+            raise AssertionError()
+
         it = mangle("it_" + input_cpp_var)
         item = mangle("item_" + output_py_var)
         code = Code().add("""
@@ -397,7 +407,9 @@ class StdSetStringConverter(TypeConverterBase):
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
 
-        assert not cpp_type.is_ptr
+        if cpp_type.is_ptr:
+            raise AssertionError()
+
         it = mangle("it_" + input_cpp_var)
         item = mangle("item_" + output_py_var)
         code = Code().add("""
@@ -425,8 +437,11 @@ class OpenMSMapConverter(StdMapConverter):
         tt_key, tt_value = cpp_type.template_args
         inner_conv_1 = self.converters.get(tt_key)
         inner_conv_2 = self.converters.get(tt_value)
-        assert inner_conv_1 is not None, "arg type %s not supported" % tt_key
-        assert inner_conv_2 is not None, "arg type %s not supported" % tt_value
+
+        if inner_conv_1 is None:
+            raise Exception("arg type %s not supported" % tt_key)
+        if inner_conv_2 is None:
+            raise Exception("arg type %s not supported" % tt_value)
 
         inner_check_1 = inner_conv_1.type_check_expression(tt_key, "k")
         inner_check_2 = inner_conv_2.type_check_expression(tt_value, "v")
@@ -515,7 +530,8 @@ class OpenMSMapConverter(StdMapConverter):
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
 
-        assert not cpp_type.is_ptr
+        if cpp_type.is_ptr:
+            raise AssertionError()
 
         tt_key, tt_value = cpp_type.template_args
         cy_tt_key = self.converters.cython_type(tt_key)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_CLASSTEST_H
-#define OPENMS_CONCEPT_CLASSTEST_H
+#pragma once
 
 // Avoid OpenMS includes here at all costs
 // When the included headers are changed, *all* tests have to be recompiled!
@@ -1225,4 +1224,3 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
 //@} // end of ClassTest
 
-#endif //OPENMS_CONCEPT_CLASSTEST_H

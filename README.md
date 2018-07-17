@@ -3,8 +3,11 @@ OpenMS
 
 [![License (3-Clause BSD)](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg?style=flat-square)](http://opensource.org/licenses/BSD-3-Clause)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/93e71bad214f46d2a534ec92dbc2efc9)](https://www.codacy.com/app/OpenMS/OpenMS?utm_source=github.com&utm_medium=referral&utm_content=OpenMS/OpenMS&utm_campaign=badger)
-[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms) [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS)
+[![Project Stats](https://www.openhub.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OpenMS/OpenMS?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/openms/README.html)
+[![documentation](https://codedocs.xyz/doxygen/doxygen.svg)](https://ftp.mi.fu-berlin.de/pub/OpenMS/develop-documentation/html/index.html)
 
 
 <a href="http://www.openms.org/" target="_blank">OpenMS</a> 
@@ -34,8 +37,11 @@ Berlin, and the ETH Zürich.
 
 Features
 --------
-- Core C++ library
-- TOPP Tools, 150+ analysis tools (150+), covering most MS and LC-MS data processing and mining tasks. 
+- Core C++ library under three-clause BSD licence.
+- Python bindings to the C++ API through pyOpenMS.
+- Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks. 
+- Powerful 2D and 3D visualization tools (TOPPView)
+- Support for most MS identification and quantification workflows (label-free, isobaric and stable isotope).
 - Support for all major platforms (Windows [XP, 7, 8, 10], macOS and Linux).
 
 Licence
@@ -49,4 +55,5 @@ The file [AUTHORS](AUTHORS) contains a list of all authors who worked on OpenMS.
 Documentation
 -------------
 Users and developers should start by reading the [OpenMS wiki](https://github.com/OpenMS/OpenMS/wiki) and consult the [current documentation](http://www.openms.de/current_doxygen/).
+Documentation for the Python bindings pyOpenMS can be found on the [pyOpenMS online documentation](https://pyopenms.readthedocs.io).
 

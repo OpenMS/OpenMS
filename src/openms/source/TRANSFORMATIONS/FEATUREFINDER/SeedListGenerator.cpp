@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,9 +97,9 @@ namespace OpenMS
       DPosition<2> point(cons_it->getRT(), cons_it->getMZ());
       // for each sub-map in the consensus map, add a seed at the position of
       // this consensus feature:
-      for (ConsensusMap::FileDescriptions::const_iterator file_it =
-             consensus.getFileDescriptions().begin(); file_it !=
-           consensus.getFileDescriptions().end(); ++file_it)
+      for (ConsensusMap::ColumnHeaders::const_iterator file_it =
+             consensus.getColumnHeaders().begin(); file_it !=
+           consensus.getColumnHeaders().end(); ++file_it)
         seed_lists[file_it->first].push_back(point);
       // for each feature contained in the consensus feature, remove the seed of
       // the corresponding map:

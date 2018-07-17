@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,8 +129,14 @@ namespace OpenMS
 
   Int LPWrapper::addColumn(std::vector<Int> column_indices, std::vector<double> column_values, const String& name)
   {
+    if (column_indices.empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Column indices for Row are empty");
+    }
     if (column_indices.size() != column_values.size())
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Indices and values vectors differ in size");
+    }
     if (solver_ == SOLVER_GLPK)
     {
       Int index = glp_add_cols(lp_problem_, 1);

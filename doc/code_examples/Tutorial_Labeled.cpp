@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,12 +49,12 @@ int main(int argc, const char** argv)
   FeatureXMLFile feature_file;
   feature_file.load(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", maps[0]);
   ConsensusMap out;
-  out.getFileDescriptions()[0].filename = "data/Tutorial_Labeled.featureXML";
-  out.getFileDescriptions()[0].size = maps[0].size();
-  out.getFileDescriptions()[0].label = "light";
-  out.getFileDescriptions()[1].filename = "data/Tutorial_Labeled.featureXML";
-  out.getFileDescriptions()[1].size = maps[0].size();
-  out.getFileDescriptions()[1].label = "heavy";
+  out.getColumnHeaders()[0].filename = "data/Tutorial_Labeled.mzML";
+  out.getColumnHeaders()[0].size = maps[0].size();
+  out.getColumnHeaders()[0].label = "light";
+  out.getColumnHeaders()[1].filename = "data/Tutorial_Labeled.mzML";
+  out.getColumnHeaders()[1].size = maps[0].size();
+  out.getColumnHeaders()[1].label = "heavy";
 
   FeatureGroupingAlgorithmLabeled algorithm;
   // ... set parameters

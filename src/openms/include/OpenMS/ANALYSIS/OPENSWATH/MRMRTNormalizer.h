@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -71,7 +70,7 @@ protected:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int jackknifeOutlierCandidate_(std::vector<double>& x, std::vector<double>& y);
+    static int jackknifeOutlierCandidate_(const std::vector<double>& x, const std::vector<double>& y);
 
     /**
       @brief This function computes a candidate outlier peptide by computing
@@ -84,7 +83,7 @@ protected:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int residualOutlierCandidate_(std::vector<double>& x, std::vector<double>& y);
+    static int residualOutlierCandidate_(const std::vector<double>& x, const std::vector<double>& y);
 
 public:
  
@@ -113,12 +112,12 @@ public:
       @exception Exception::UnableToFit is thrown if fitting cannot be
       performed (rsq_limit and coverage_limit cannot be fulfilled)
     */ 
-    static std::vector<std::pair<double, double> > removeOutliersRANSAC(std::vector<std::pair<double, double> >& pairs,
-        double rsq_limit,
-        double coverage_limit,
-        size_t max_iterations,
-        double max_rt_threshold,
-        size_t sampling_size);
+    static std::vector<std::pair<double, double> > removeOutliersRANSAC(const std::vector<std::pair<double, double> >& pairs,
+                                                                        double rsq_limit,
+                                                                        double coverage_limit,
+                                                                        size_t max_iterations,
+                                                                        double max_rt_threshold,
+                                                                        size_t sampling_size);
 
     /**
       @brief This function removes potential outliers in a linear regression dataset.
@@ -146,11 +145,11 @@ public:
       @exception Exception::UnableToFit is thrown if fitting cannot be
       performed (rsq_limit and coverage_limit cannot be fulfilled)
     */
-    static std::vector<std::pair<double, double> > removeOutliersIterative(std::vector<std::pair<double, double> >& pairs,
-                                                               double rsq_limit, 
-                                                               double coverage_limit, 
-                                                               bool use_chauvenet,
-                                                               std::string method);
+    static std::vector<std::pair<double, double> > removeOutliersIterative(const std::vector<std::pair<double, double> >& pairs,
+                                                                           double rsq_limit, 
+                                                                           double coverage_limit, 
+                                                                           bool use_chauvenet,
+                                                                           const std::string& method);
 
     /**
       @brief This function computes Chauvenet's criterion probability for a vector
@@ -158,7 +157,7 @@ public:
 
       @return Chauvenet's criterion probability
     */
-    static double chauvenet_probability(std::vector<double>& residuals, int pos);
+    static double chauvenet_probability(const std::vector<double>& residuals, int pos);
 
     /**
       @brief This function computes Chauvenet's criterion for a vector and a value
@@ -166,7 +165,7 @@ public:
 
       @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
     */
-    static bool chauvenet(std::vector<double>& residuals, int pos);
+    static bool chauvenet(const std::vector<double>& residuals, int pos);
 
     /**
       * @brief Computes coverage of the RT normalization peptides over the whole RT range, ensuring that each bin has enough peptides
@@ -189,5 +188,4 @@ public:
   };
 
 }
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
 

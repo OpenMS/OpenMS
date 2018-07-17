@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger, Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPFILE_H
-#define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPFILE_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
@@ -58,6 +57,7 @@ namespace OpenMS
   {
 
 private:
+
     /** @brief Read PQP SQLite file
      *
      * @param filename The input file
@@ -113,5 +113,4 @@ public:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_TRANSITIONPQPREADER_H
 

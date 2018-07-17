@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,7 +63,7 @@ AbsoluteQuantitationMethodFile* ptr = nullptr;
 AbsoluteQuantitationMethodFile* nullPointer = nullptr;
 const String in_file_1 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_1.csv");
 const String in_file_2 = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_in_2.csv");
-const String out_file = OPENMS_GET_TEST_DATA_PATH("AbsoluteQuantitationMethodFile_out.csv");
+const String out_file = File::getTemporaryFile();
 
 START_SECTION((AbsoluteQuantitationMethodFile()))
 	ptr = new AbsoluteQuantitationMethodFile();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,7 +118,7 @@ namespace OpenMS
     map<String, StringList> design2FilePath;
     findRelevantFilePaths_(design2FileBaseName, design2FilePath, file_paths);
 
-    //determine wether we deal with idXML or featureXML
+    //determine whether we deal with idXML or featureXML
     FileTypes::Type in_type = FileHandler::getType(file_paths.front());
 
     if (in_type == FileTypes::FEATUREXML)
@@ -168,7 +168,7 @@ namespace OpenMS
       {
         it->setMetaValue("experiment", DataValue(experiment));
       }
-      out += map;
+      out.appendRows(map);
     }
     LOG_INFO << endl;
   }
@@ -228,12 +228,13 @@ namespace OpenMS
           DateTime date_time = prot_it->getDateTime();
           String new_id;
           String search_engine = prot_it->getSearchEngine();
+          
           do
           {
             date_time = date_time.addSecs(1);
             new_id = search_engine + "_" + date_time.toString(Qt::ISODate);
-          }
-          while (used_ids.find(new_id) != used_ids.end());
+          } while (used_ids.find(new_id) != used_ids.end());
+
           LOG_INFO << "New identifier '" + new_id + "' generated as replacement." << endl;
           // update fields:
           prot_it->setIdentifier(new_id);

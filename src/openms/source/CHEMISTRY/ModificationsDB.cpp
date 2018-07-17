@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -161,8 +161,6 @@ namespace OpenMS
 
   bool ModificationsDB::has(String modification) const
   {
-    OPENMS_PRECONDITION(!modification_names_.has(modification) || (int)findModificationIndex(modification) >= 0,
-        "The modification being present implies that it can be found."); // NOTE: some very smart compilers may remove this statement ...
     return modification_names_.has(modification);
   }
 

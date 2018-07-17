@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
-#define OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -334,6 +333,9 @@ public:
 
     /// inequality operator
     bool operator!=(const ResidueModification& modification) const;
+
+    /// less operator
+    bool operator<(const ResidueModification& modification) const;
     //@}
 
 protected:
@@ -379,4 +381,3 @@ protected:
   };
 }
 
-#endif // OPENMS_CHEMISTRY_RESIDUEMODIFICATION_H

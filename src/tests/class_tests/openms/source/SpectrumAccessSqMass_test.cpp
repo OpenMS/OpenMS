@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,9 @@ START_SECTION(SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler))
 }
 END_SECTION
 
-START_SECTION(SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices))
+    
+
+START_SECTION(SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices))
 {
   OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
 
@@ -80,7 +82,7 @@ START_SECTION(SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, 
 }
 END_SECTION
 
-START_SECTION(SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> indices))
+START_SECTION(SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices))
 {
   OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
-#define OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
+#pragma once
 
 #include <OpenMS/INTERFACES/DataStructures.h>
 
@@ -42,7 +41,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+
 
 #include <vector>
 #include <algorithm>
@@ -66,7 +65,7 @@ namespace OpenMS
     @endcode
 
   */
-  class OnDiscMSExperiment
+  class OPENMS_DLLAPI OnDiscMSExperiment
   {
 
   typedef ChromatogramPeak ChromatogramPeakT;
@@ -171,6 +170,11 @@ public:
       return boost::static_pointer_cast<const ExperimentalSettings>(meta_ms_experiment_);
     }
 
+    boost::shared_ptr<PeakMap> getMetaData() const
+    {
+      return meta_ms_experiment_;
+    }
+
     /// alias for getSpectrum
     inline MSSpectrum operator[](Size n)
     {
@@ -228,17 +232,7 @@ private:
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLHandler
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */);
 
-    void loadMetaData_(const String& filename)
-    {
-      meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
-
-      MzMLFile f;
-      PeakFileOptions options = f.getOptions();
-      options.setFillData(false);
-      f.setOptions(options);
-      f.load(filename, *meta_ms_experiment_.get());
-    }
-
+    void loadMetaData_(const String& filename);
 
 protected:
 
@@ -254,5 +248,4 @@ typedef OpenMS::OnDiscMSExperiment OnDiscPeakMap;
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
 

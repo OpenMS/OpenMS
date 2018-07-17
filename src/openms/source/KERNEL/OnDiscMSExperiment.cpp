@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,21 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
+#include <OpenMS/FORMAT/MzMLFile.h>
 namespace OpenMS
 {
+
+  void OnDiscMSExperiment::loadMetaData_(const String& filename)
+  {
+    meta_ms_experiment_ = boost::shared_ptr< PeakMap >(new PeakMap);
+
+    MzMLFile f;
+    PeakFileOptions options = f.getOptions();
+    options.setFillData(false);
+    f.setOptions(options);
+    f.load(filename, *meta_ms_experiment_.get());
+  }
 } //namespace OpenMS
 

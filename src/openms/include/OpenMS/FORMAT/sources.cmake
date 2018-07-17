@@ -32,9 +32,8 @@ CsvFile.h
 DTA2DFile.h
 DTAFile.h
 EDTAFile.h
+ExperimentalDesignFile.h
 FASTAFile.h
-FastaIterator.h
-FastaIteratorIntern.h
 FeatureXMLFile.h
 FileHandler.h
 GzipIfstream.h
@@ -51,6 +50,7 @@ MRMFeatureQCFile.h
 MS2File.h
 MSNumpressCoder.h
 MSPFile.h
+MSPGenericFile.h
 MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
@@ -106,4 +106,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\FORMAT" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,18 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/LayerData.h>
+
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+
+#include <iostream>
 
 using namespace std;
 
 namespace OpenMS
 {
   const std::string LayerData::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
-
-  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
-  {
-    return (*peaks)[current_spectrum_];
-  }
 
   std::ostream & operator<<(std::ostream & os, const LayerData & rhs)
   {
@@ -56,14 +54,46 @@ namespace OpenMS
     return os;
   }
 
+  const LayerData::ConstExperimentSharedPtrType LayerData::getPeakData() const
+  {
+    return boost::static_pointer_cast<const ExperimentType>(peaks);
+  }
+
+  void LayerData::updateRanges()
+  {
+    peaks->updateRanges();
+    features->updateRanges();
+    consensus->updateRanges();
+    // on_disc_peaks->updateRanges(); // note: this is not going to work since its on disk! We currently don't have a good way to access these ranges
+    chromatograms->updateRanges();
+    cached_spectrum_.updateRanges();
+  }
+
+  void LayerData::updateCache_()
+  {
+    if (peaks->getNrSpectra() > current_spectrum_ && (*peaks)[current_spectrum_].size() > 0)
+    {
+      cached_spectrum_ = (*peaks)[current_spectrum_];
+    }
+    else if (on_disc_peaks->getNrSpectra() > current_spectrum_)
+    {
+      cached_spectrum_ = on_disc_peaks->getSpectrum(current_spectrum_);
+    }
+  }
+
+  const LayerData::ExperimentType::SpectrumType & LayerData::getCurrentSpectrum() const
+  {
+    return cached_spectrum_;
+  }
+
   void LayerData::synchronizePeakAnnotations()
   {
-    int spectrum_index = getCurrentSpectrumIndex();
-
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    // get mutable access to the spectrum
+    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
+
     int ms_level = spectrum.getMSLevel();
 
     if (ms_level == 2)
@@ -87,7 +117,7 @@ namespace OpenMS
           updatePeptideHitAnnotations_(hit);
         }
         else
-        {
+        { // no hits? add empty hit
           PeptideHit hit;
           updatePeptideHitAnnotations_(hit);
           hits.push_back(hit);
@@ -98,7 +128,7 @@ namespace OpenMS
         // copy user annotations to fragment annotation vector
         Annotations1DContainer & las = getAnnotations(current_spectrum_);
 
-        // no annoations so we don't need to synchronize
+        // no annotations so we don't need to synchronize
         bool has_peak_annotation(false);
         for (auto& a : las)
         {
@@ -112,8 +142,8 @@ namespace OpenMS
         pep_id.setIdentifier("Unknown");
 
         // create a dummy ProteinIdentification for all ID-less PeakAnnotations
-        vector<ProteinIdentification>& prot_ids = getPeakData()->getProteinIdentifications();
-        if (prot_ids.back().getIdentifier() != String("Unknown"))
+        vector<ProteinIdentification>& prot_ids = getPeakDataMuteable()->getProteinIdentifications();
+        if (prot_ids.empty() || prot_ids.back().getIdentifier() != String("Unknown"))
         {
           ProteinIdentification prot_id;
           prot_id.setIdentifier("Unknown");
@@ -154,19 +184,56 @@ namespace OpenMS
     // for each annotation item on the canvas
     for (auto& a : las)
     {
-      // only store peak annotations
+      // only store peak annotations (skip general lables and distance annotations)
       Annotation1DPeakItem* pa = dynamic_cast<Annotation1DPeakItem*>(a);
       if (pa == nullptr) { continue; }
 
-      int tmp_charge(0);
-
       // add new fragment annotation
-      QString peak_anno = pa->getText();
+      QString peak_anno = pa->getText();     
+
+      // read charge and text from annotation item string
+      // we support two notations for the charge suffix: '2+' or '++'
+      // cut and convert the trailing + or - to a proper charge
       int match_pos = reg_exp.indexIn(peak_anno);
+      int tmp_charge(0);
       if (match_pos >= 0)
       {
         tmp_charge = reg_exp.cap(1).toInt();
         peak_anno = peak_anno.left(match_pos);
+      }
+      else
+      {
+        // count number of + and - in suffix (e.g., to support "++" as charge 2 anotation)
+        int plus(0), minus(0);
+        for (int p = (int)peak_anno.size() - 1; p >= 0; ++p)
+        {        
+          if (peak_anno[p] == '+') 
+          { 
+            ++plus;
+            continue;
+          }
+          else if (peak_anno[p] == '-')
+          {
+            --minus;
+            continue;
+          }
+          else // not '+' or '-'?
+          {            
+            if (plus > 0 && minus == 0) // found pluses?
+            { 
+              tmp_charge = plus;
+              peak_anno = peak_anno.left(peak_anno.size() - plus);
+              break;
+            }
+            else if (minus > 0 && plus == 0)  // found minuses?
+            {
+              tmp_charge = -minus;
+              peak_anno = peak_anno.left(peak_anno.size() - minus);
+              break;
+            }
+            break;
+          }
+        }
       }
 
       PeptideHit::PeakAnnotation fa;
@@ -174,29 +241,33 @@ namespace OpenMS
       fa.mz = pa->getPeakPosition()[0];
       fa.intensity = pa->getPeakPosition()[1];
       fa.annotation = peak_anno;
+      
       fas.push_back(fa);
       annotations_changed = true;
     }
-    if (annotations_changed) { hit.setPeakAnnotations(fas); }
+
+    if (annotations_changed) 
+    { 
+      hit.setPeakAnnotations(fas); 
+    }
   }
 
   void LayerData::removePeakAnnotationsFromPeptideHit(const std::vector<Annotation1DItem*>& selected_annotations)
   {
-    int spectrum_index = getCurrentSpectrumIndex();
-
     // Return if no valid peak layer attached
     if (getPeakData()->size() == 0 || type != LayerData::DT_PEAK) { return; }
 
     // no ID selected
     if (peptide_id_index == -1 || peptide_hit_index == -1) { return; }
 
-    MSSpectrum & spectrum = (*getPeakData())[spectrum_index];
+    // get mutable access to the spectrum
+    MSSpectrum & spectrum = getPeakDataMuteable()->getSpectrum(current_spectrum_);
     int ms_level = spectrum.getMSLevel();
 
     // wrong MS level
     if (ms_level < 2) { return; }
 
-    // extract Peptideidentification and PeptideHit if possible.
+    // extract PeptideIdentification and PeptideHit if possible.
     // that this function returns prematurely is unlikely,
     // since we are deleting existing annotations,
     // that have to be somewhere, but better make sure
@@ -237,4 +308,5 @@ namespace OpenMS
     }
     if (annotations_changed) { hit.setPeakAnnotations(fas); }
   }
+
 } //Namespace

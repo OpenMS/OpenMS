@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -176,12 +176,6 @@ endforeach()
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
   set(${CMAKE_CXX_FLAGS_RELEASE} ${_TMP_CMAKE_CXX_FLAGS_RELEASE})
 endif()
-
-#------------------------------------------------------------------------------
-# all target that we require to show up in the targets list
-# and in the nightly build log (to test if they can be build properly)
-add_custom_target(extra_targets ALL)
-add_dependencies(extra_targets Tutorials_build)
 
 #------------------------------------------------------------------------------
 # add filenames to Visual Studio solution tree
