@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_3332699010107892018" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<featureList count="8">
-		<feature id="f_4835329514588776807">
+		<feature id="f_13440783915218733453">
 			<position dim="0">1789.3613688151</position>
 			<position dim="1">833.779044601332</position>
-			<intensity>49595.6</intensity>
+			<intensity>16963.7</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -34,10 +34,10 @@
 				<pt x="1788.20275878906" y="834.782071891325" />
 			</convexhull>
 		</feature>
-		<feature id="f_17749660155506638460">
+		<feature id="f_15916652588957785155">
 			<position dim="0">1789.60347039074</position>
 			<position dim="1">830.443470891003</position>
-			<intensity>908832</intensity>
+			<intensity>910613</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -73,10 +73,10 @@
 				<pt x="1788.20275878906" y="832.113579955968" />
 			</convexhull>
 		</feature>
-		<feature id="f_7804704400743266335">
+		<feature id="f_15157403601844400700">
 			<position dim="0">1790.86966034192</position>
 			<position dim="1">831.409991007333</position>
-			<intensity>1.32274e+09</intensity>
+			<intensity>1.52821e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -112,10 +112,10 @@
 				<pt x="1791.53846191406" y="833.452186292261" />
 			</convexhull>
 		</feature>
-		<feature id="f_15004869347769368353">
+		<feature id="f_6408859317243173796">
 			<position dim="0">1791.13948759749</position>
 			<position dim="1">819.915254361738</position>
-			<intensity>1.25917e+09</intensity>
+			<intensity>5.15083e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -157,10 +157,10 @@
 				<pt x="1790.48083496094" y="822.454519918697" />
 			</convexhull>
 		</feature>
-		<feature id="f_3332699010107892018">
+		<feature id="f_474525871221756682">
 			<position dim="0">1791.32677052553</position>
 			<position dim="1">827.402216566653</position>
-			<intensity>8.12621e+08</intensity>
+			<intensity>4.78162e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -202,10 +202,10 @@
 				<pt x="1794.81104492188" y="829.941863700673" />
 			</convexhull>
 		</feature>
-		<feature id="f_13440783915218733453">
+		<feature id="f_12999979801269632061">
 			<position dim="0">1791.33681047428</position>
 			<position dim="1">815.907842856666</position>
-			<intensity>2.99935e+09</intensity>
+			<intensity>1.36557e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -235,10 +235,10 @@
 				<pt x="1788.20275878906" y="817.446913457052" />
 			</convexhull>
 		</feature>
-		<feature id="f_15916652588957785155">
+		<feature id="f_17413765565443951891">
 			<position dim="0">1792.49960480228</position>
 			<position dim="1">849.492650831647</position>
-			<intensity>5.88179e+07</intensity>
+			<intensity>1.75768e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -262,10 +262,10 @@
 				<pt x="1789.40051269531" y="851.529165243134" />
 			</convexhull>
 		</feature>
-		<feature id="f_15157403601844400700">
+		<feature id="f_2927519776102075938">
 			<position dim="0">1792.82850374491</position>
 			<position dim="1">841.47800470622</position>
-			<intensity>5.97451e+08</intensity>
+			<intensity>4.30201e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>

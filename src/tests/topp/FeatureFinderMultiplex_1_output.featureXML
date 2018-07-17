@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_5233264595117471314" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_7804704400743266335" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<featureList count="4">
-		<feature id="f_4835329514588776807">
+		<feature id="f_15004869347769368353">
 			<position dim="0">1481.3672326728</position>
 			<position dim="1">476.304773819883</position>
-			<intensity>1.6154e+10</intensity>
+			<intensity>8.57687e+10</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -46,10 +46,10 @@
 				<pt x="1487.39465332031" y="478.836256137118" />
 			</convexhull>
 		</feature>
-		<feature id="f_17749660155506638460">
+		<feature id="f_3332699010107892018">
 			<position dim="0">1481.91170682959</position>
 			<position dim="1">472.282340766101</position>
-			<intensity>4.6503e+10</intensity>
+			<intensity>2.23206e+10</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -91,10 +91,10 @@
 				<pt x="1477.11376953125" y="474.785751169547" />
 			</convexhull>
 		</feature>
-		<feature id="f_7804704400743266335">
+		<feature id="f_13440783915218733453">
 			<position dim="0">1484.18179263412</position>
 			<position dim="1">474.32536238458</position>
-			<intensity>3.28017e+10</intensity>
+			<intensity>3.58967e+10</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -124,10 +124,10 @@
 				<pt x="1476.74047851562" y="475.846743795122" />
 			</convexhull>
 		</feature>
-		<feature id="f_15004869347769368353">
+		<feature id="f_15916652588957785155">
 			<position dim="0">1484.48374199201</position>
 			<position dim="1">470.303156673582</position>
-			<intensity>1.55212e+10</intensity>
+			<intensity>8.98024e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
