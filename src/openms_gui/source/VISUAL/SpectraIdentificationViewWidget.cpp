@@ -179,14 +179,15 @@ namespace OpenMS
   void SpectraIdentificationViewWidget::cellClicked_(int row, int column)
   {
     if (row >= table_widget_->rowCount()
-    || column >= table_widget_->columnCount())
+    || column >= table_widget_->columnCount()
+    || table_widget_->horizontalHeaderItem(column) == nullptr)
     {
       return;
     }
-
+    
     int ms2_spectrum_index = table_widget_->item(row, 1)->data(Qt::DisplayRole).toInt();
 
-    if (column == 3) // precursor mz column
+    if (table_widget_->horizontalHeaderItem(column)->text() == "precursor m/z")
     {
       if (!(*layer_->getPeakData())[ms2_spectrum_index].getPrecursors().empty()) // has precursor
       {
@@ -197,7 +198,7 @@ namespace OpenMS
           if ((*layer_->getPeakData())[ms1_spectrum_index].getMSLevel() == 1)
           {
             break;
-          }
+          } 
         }
 
         if (ms1_spectrum_index != -1)
@@ -223,6 +224,65 @@ namespace OpenMS
           emit requestVisibleArea1D(isolation_window_lower_mz - 50.0, isolation_window_upper_mz +  50.0);
         }
       }
+    }
+    else if (table_widget_->horizontalHeaderItem(column)->text() == "PeakAnnotations")
+    {
+      QTableWidgetItem* current = table_widget_->item(row, column);
+
+      int current_identification_index = table_widget_->item(current->row(), 12)->data(Qt::DisplayRole).toInt();  // peptide id. index
+
+      if (current_identification_index < 0 
+       || current_identification_index >= static_cast<int>((*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications().size()))
+       {
+         return;
+       }
+
+      int current_peptide_hit_index = table_widget_->item(current->row(), 13)->data(Qt::DisplayRole).toInt();  // peptide hit index
+
+      const vector<PeptideIdentification>& peptide_ids = (*layer_->getPeakData())[ms2_spectrum_index].getPeptideIdentifications();
+      const vector<PeptideHit>& phits = peptide_ids[current_identification_index].getHits();
+
+      if (current_peptide_hit_index < 0 
+       || current_peptide_hit_index >= static_cast<int>(phits.size()))
+      {
+        return;
+      }
+      const PeptideHit& hit = phits[current_peptide_hit_index];
+
+      QTableWidget* fragment_window = new QTableWidget();
+      fragment_window->verticalHeader()->setHidden(true); // hide vertical column
+      
+      QStringList header_labels;
+      header_labels << "m/z" << "name" << "intensity" << "charge";
+      fragment_window->setColumnCount(header_labels.size());
+      fragment_window->setHorizontalHeaderLabels(header_labels);
+
+      QTableWidgetItem* proto_item = new QTableWidgetItem();
+      proto_item->setTextAlignment(Qt::AlignCenter);
+      fragment_window->setItemPrototype(proto_item);
+      fragment_window->setSortingEnabled(true);
+
+      for (const PeptideHit::PeakAnnotation & pa : hit.getPeakAnnotations())
+      {
+        fragment_window->insertRow(fragment_window->rowCount());
+        QTableWidgetItem * item = fragment_window->itemPrototype()->clone();
+        item->setData(Qt::DisplayRole, pa.mz);
+        fragment_window->setItem(fragment_window->rowCount() - 1, 0, item);
+        item = fragment_window->itemPrototype()->clone();
+        item->setData(Qt::DisplayRole, pa.annotation.toQString());
+        fragment_window->setItem(fragment_window->rowCount() - 1, 1, item);
+        item = fragment_window->itemPrototype()->clone();
+        item->setData(Qt::DisplayRole, pa.intensity);
+        fragment_window->setItem(fragment_window->rowCount() - 1, 2, item);
+        item = fragment_window->itemPrototype()->clone();
+        item->setData(Qt::DisplayRole, pa.charge);
+        fragment_window->setItem(fragment_window->rowCount() - 1, 3, item);
+      }
+      
+      fragment_window->setWindowTitle(QApplication::translate("tr_fragment_annotation", "Peak Annotations"));      
+      fragment_window->resizeColumnsToContents();
+      fragment_window->resize(fragment_window->sizeHint());
+      fragment_window->show();
     }
   }
 
@@ -703,17 +763,8 @@ namespace OpenMS
               }
               // add peak annotation column
               if (has_peak_annotations)
-              {
-                vector<PeptideHit::PeakAnnotation> peak_annos = ph.getPeakAnnotations();
-                String annotation_string;
-                PeptideHit::PeakAnnotation::writePeakAnnotationsString_(annotation_string, peak_annos);
-
-                item = table_widget_->itemPrototype()->clone();
-                item->setTextAlignment(Qt::AlignLeft);
-                item->setText(annotation_string.toQString());
-                item->setBackgroundColor(c);
-                table_widget_->setItem(table_widget_->rowCount() - 1, current_col, item);
-                table_widget_->setColumnWidth(current_col, 70);
+              {            
+                addTextItemToBottomRow_("show", current_col, c);
               }
             }
 
