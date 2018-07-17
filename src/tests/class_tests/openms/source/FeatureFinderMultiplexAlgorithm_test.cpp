@@ -75,7 +75,8 @@ START_SECTION((virtual void run()))
   Param param;
   ParamXMLFile paramFile;
   paramFile.load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderMultiplex_1_parameters.ini"), param);
-  param = param.copy("FeatureFinderMultiplex:1:algorithm:",true);param.remove("in");
+  param = param.copy("FeatureFinderMultiplex:1:",true);
+  param.remove("in");
   param.remove("out");
   param.remove("out_multiplets");
   param.remove("log");
@@ -84,7 +85,6 @@ START_SECTION((virtual void run()))
   param.remove("no_progress");
   param.remove("force");
   param.remove("test");
-  //param = param.copy("FeatureFinderMultiplex:1:algorithm:",true);
   
   FeatureFinderMultiplexAlgorithm algorithm;
   algorithm.setParameters(param);
@@ -93,20 +93,12 @@ START_SECTION((virtual void run()))
   
   TEST_EQUAL(result.size(), 2);
   
-  double x = result[0].getFeatures().begin()->getIntensity();
-  
-  std::cout << "x = " << x << "\n";
-  
-  /*ConsensusFeature::HandleSetType::const_iterator it;
-  std::vector<double> intensities;
-  for (it = result[0].getFeatures().begin(); it != result[0].getFeatures().end(); ++it)
-  {
-    intensities.push_back(it->getIntensity());
-  }
-  
-  // Check that the HEAVY:LIGHT ratio is close to 4:1
+  double L = result[0].getFeatures().begin()->getIntensity();
+  double H = (++(result[0].getFeatures().begin()))->getIntensity();
+
+  // Check that the HEAVY:LIGHT ratio is close to the expected 4:1 ratio
   TOLERANCE_ABSOLUTE(0.2);
-  TEST_REAL_SIMILAR(intensities[1]/intensities[0], 4.0);*/
+  TEST_REAL_SIMILAR(H/L, 4.0);
 }
 END_SECTION
 
