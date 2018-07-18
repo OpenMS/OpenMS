@@ -972,11 +972,11 @@ namespace OpenMS
     }
 
     bool centroided;
-    if (param_.getValue("algorithm:spectrum_type")=="automatic")
+    if (param_.getValue("algorithm:spectrum_type") == "automatic")
     {
-      centroided = spectrum_type == SpectrumSettings::CENTROID;
+      centroided = (spectrum_type == SpectrumSettings::CENTROID);
     }
-    else if (param_.getValue("algorithm:spectrum_type")=="centroid")
+    else if (param_.getValue("algorithm:spectrum_type") == "centroid")
     {
       centroided = true;
     }
