@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -161,15 +161,17 @@ public:
 private:
     /// internal counter, that stores the next index to assign
     UInt next_index_;
+    using MapString2IndexType = std::map<String, UInt>;
+    using MapIndex2StringType = std::map<UInt, String>;
+    
     /// map from name to index
-    std::map<String, UInt> name_to_index_;
+    MapString2IndexType name_to_index_;
     /// map from index to name
-    std::map<UInt, String> index_to_name_;
+    MapIndex2StringType index_to_name_;
     /// map from index to description
-    std::map<UInt, String> index_to_description_;
+    MapIndex2StringType index_to_description_;
     /// map from index to unit
-    std::map<UInt, String> index_to_unit_;
-
+    MapIndex2StringType index_to_unit_;
   };
 
 } // namespace OpenMS

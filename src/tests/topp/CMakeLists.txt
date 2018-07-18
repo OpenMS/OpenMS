@@ -3,7 +3,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -166,6 +166,15 @@ set_tests_properties("TOPP_CLI_INVALIDNAME" PROPERTIES WILL_FAIL 1)
 # TOPP tests
 #------------------------------------------------------------------------------
 
+# FuzzyDiff tests
+add_test("UTILS_FuzzyDiff_1" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -in1 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML)
+add_test("UTILS_FuzzyDiff_2" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -in1 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_1_in2.featureXML)
+add_test("UTILS_FuzzyDiff_3" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -in1 ${DATA_DIR_TOPP}/FuzzyDiff_3_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_3_in2.featureXML)
+add_test("UTILS_FuzzyDiff_4" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -in1 ${DATA_DIR_TOPP}/lorem_ipsum.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_3_in2.featureXML)
+set_tests_properties("UTILS_FuzzyDiff_1" PROPERTIES WILL_FAIL 1) ## needs to fail due to different numbers
+set_tests_properties("UTILS_FuzzyDiff_2" PROPERTIES WILL_FAIL 1) ## needs to fail (cheating)
+set_tests_properties("UTILS_FuzzyDiff_4" PROPERTIES WILL_FAIL 1) ## needs to fail (file does not exist)
+
 #------------------------------------------------------------------------------
 # IDMerger tests
 add_test("TOPP_IDMerger_1" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDMerger_1_input1.idXML ${DATA_DIR_TOPP}/IDMerger_1_input2.idXML -out IDMerger_1_output.tmp -annotate_file_origin)
@@ -308,7 +317,7 @@ add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_
 add_test("TOPP_FileConverter_1_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileConverter_1.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML )
 set_tests_properties("TOPP_FileConverter_1_out1" PROPERTIES DEPENDS "TOPP_FileConverter_1")
 add_test("TOPP_FileConverter_2" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_2_input.someInputDTA2D -in_type dta2d -out FileConverter_2.tmp -out_type mzML)
-add_test("TOPP_FileConverter_2_out1" ${DIFF} -whitelist "id=" "location=" "href=" "<offset"-in1 FileConverter_2.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_2_output.mzML )
+add_test("TOPP_FileConverter_2_out1" ${DIFF} -whitelist "id=" "location=" "href=" "<offset" -in1 FileConverter_2.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_2_output.mzML )
 set_tests_properties("TOPP_FileConverter_2_out1" PROPERTIES DEPENDS "TOPP_FileConverter_2")
 add_test("TOPP_FileConverter_3" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_3_input.featureXML -out FileConverter_3.tmp -out_type mzML)
 add_test("TOPP_FileConverter_3_out1" ${DIFF} -in1 FileConverter_3.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_3_output.mzML )
@@ -724,6 +733,10 @@ set_tests_properties("TOPP_IDConflictResolver_2_out1" PROPERTIES DEPENDS "TOPP_I
 add_test("TOPP_IDConflictResolver_3" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_3_input.consensusXML -out IDConflictResolver_3_output.tmp)
 add_test("TOPP_IDConflictResolver_3_out1" ${DIFF} -in1 IDConflictResolver_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDConflictResolver_3_output.consensusXML )
 set_tests_properties("TOPP_IDConflictResolver_3_out1" PROPERTIES DEPENDS "TOPP_IDConflictResolver_3")
+# Tests resolve_between_features option
+add_test("TOPP_IDConflictResolver_4" ${TOPP_BIN_PATH}/IDConflictResolver -test -in ${DATA_DIR_TOPP}/IDConflictResolver_4_input.featureXML -resolve_between_features highest_intensity -out IDConflictResolver_4.tmp)
+add_test("TOPP_IDConflictResolver_4_out" ${DIFF} -in1 IDConflictResolver_4.tmp -in2 ${DATA_DIR_TOPP}/IDConflictResolver_4_output.featureXML)
+set_tests_properties("TOPP_IDConflictResolver_4_out" PROPERTIES DEPENDS "TOPP_IDConflictResolver_4")
 
 #------------------------------------------------------------------------------
 # IDFileConverter tests
@@ -824,6 +837,10 @@ set_tests_properties("TOPP_IDFileConverter_24_out1" PROPERTIES DEPENDS "TOPP_IDF
 add_test("TOPP_IDFileConverter_25" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_25_input.idXML -out IDFileConverter_25_output.tmp -out_type pepXML)
 add_test("TOPP_IDFileConverter_25_out1" ${DIFF} -in1 IDFileConverter_25_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_25_output.pep.xml)
 set_tests_properties("TOPP_IDFileConverter_25_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_25")
+# MS-GF+ mzid with non-Unimod modifications
+add_test("TOPP_IDFileConverter_26" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_26_input.mzid -out IDFileConverter_26_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_26_out1" ${DIFF} -in1 IDFileConverter_26_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_26_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_26_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_26")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -1080,6 +1097,10 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
 ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_3.TraML -out OpenSwathDecoyGenerator_3.TraML.tmp -out_type TraML -method pseudo-reverse -separate)
   add_test("TOPP_OpenSwathDecoyGenerator_test_3_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_3.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_3.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_3")
+  add_test("TOPP_OpenSwathDecoyGenerator_test_4"
+    ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_4.tsv -out OpenSwathDecoyGenerator_4.TraML.tmp -out_type TraML -method pseudo-reverse -separate -switchKR true -enable_detection_unspecific_losses  -enable_detection_specific_losses -min_decoy_fraction 0.4)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_4_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_4.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_4.TraML)
+  set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_4")
 
   # TargetedFileConverter : convert from and to different targeted files
   # Contains heavy and light transitions in 2 different notations
@@ -1128,6 +1149,19 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_TargetedFileConverter_test_4_out1" ${DIFF} -in1 TargetedFileConverter_4_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_4_output.TraML)
   set_tests_properties("TOPP_TargetedFileConverter_test_4_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_4")
   set_tests_properties("TOPP_TargetedFileConverter_test_4" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_3")
+
+  # Proteomics PQP/TSV/TraML peptidoforms conversion
+  add_test("TOPP_TargetedFileConverter_test_8_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_8_input.tsv -out TargetedFileConverter_8_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_8" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in TargetedFileConverter_8_output.TraML.tmp -in_type TraML -out TargetedFileConverter_8_output.tsv.tmp -out_type tsv)
+  add_test("TOPP_TargetedFileConverter_test_8_out1" ${DIFF} -in1 TargetedFileConverter_8_output.tsv.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_8_input.tsv)
+  set_tests_properties("TOPP_TargetedFileConverter_test_8_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_8")
+  set_tests_properties("TOPP_TargetedFileConverter_test_8" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_8_prepare")
+
+  add_test("TOPP_TargetedFileConverter_test_9_prepare" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in ${DATA_DIR_TOPP}/TargetedFileConverter_9_input.TraML -out TargetedFileConverter_9_output.pqp.tmp -out_type pqp)
+  add_test("TOPP_TargetedFileConverter_test_9" ${TOPP_BIN_PATH}/TargetedFileConverter -algorithm:override_group_label_check -test -in TargetedFileConverter_9_output.pqp.tmp -in_type pqp -out TargetedFileConverter_9_output.TraML.tmp -out_type TraML)
+  add_test("TOPP_TargetedFileConverter_test_9_out1" ${DIFF} -whitelist "id=" -in1 TargetedFileConverter_9_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/TargetedFileConverter_9_input.TraML)
+  set_tests_properties("TOPP_TargetedFileConverter_test_9_out1" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_9")
+  set_tests_properties("TOPP_TargetedFileConverter_test_9" PROPERTIES DEPENDS "TOPP_TargetedFileConverter_test_9_prepare")
 
   # additional tests (previously ConvertTSVToTraML tests)
   add_test("TOPP_TargetedFileConverter_test_5" ${TOPP_BIN_PATH}/TargetedFileConverter -test -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_output.TraML -out ConvertTraMLToTSV_output.tmp.tsv -out_type tsv)
@@ -1531,6 +1565,12 @@ ${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch
 add_test("TOPP_RNPxlSearch_1_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 RNPxlSearch_1_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_1_output.idXML )
 set_tests_properties("TOPP_RNPxlSearch_1_out1" PROPERTIES DEPENDS "TOPP_RNPxlSearch_1")
+add_test("TOPP_RNPxlSearch_2" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
+# test internal decoy generation
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_2_output.tmp -RNPxl:decoys -ini ${DATA_DIR_TOPP}/RNPxlSearch_1_parameters.ini)
+add_test("TOPP_RNPxlSearch_2_out1" ${DIFF} -whitelist "IdentificationRun date"
+"db=" -in1 RNPxlSearch_2_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_2_output.idXML )
+set_tests_properties("TOPP_RNPxlSearch_2_out1" PROPERTIES DEPENDS "TOPP_RNPxlSearch_2")
 
 #------------------------------------------------------------------------------
 # RTModel tests

@@ -5,136 +5,46 @@ MTD	description	Sirius-4.0
 MTD	smallmolecule_search_engine_score[1]	[, , score, ]
 MTD	smallmolecule_search_engine_score[2]	[, , treescore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , isoscore, ]
-MTD	ms_run[1]-location	/home/alka/software/openms_oa/source/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_3_input.mzML
+MTD	ms_run[1]-location	/Users/alka/Documents/work/software/openms_oa_1/OpenMS/src/tests/topp/THIRDPARTY/SiriusAdapter_3_input.mzML
 
-SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	adduct	rank	explainedPeaks	explainedIntensity	compoundId	compoundScanNumber
-SML	null	C32H40N10O12	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	13	1638
-SML	null	C31H44N6O16	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	13	1638
-SML	null	C44H36N8O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	13	1638
-SML	null	C30H48N2O20	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	13	1638
-SML	null	C28H36N16O10	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	5	1	0	13	1638
-SML	null	C31H44N6O16	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	15	1640
-SML	null	C44H36N8O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	15	1640
-SML	null	C30H48N2O20	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	15	1640
-SML	null	C28H36N16O10	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	15	1640
-SML	null	C43H40N4O9	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	5	1	0	15	1640
-SML	null	C32H40N10O12	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	17	1642
-SML	null	C31H44N6O16	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	17	1642
-SML	null	C44H36N8O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	17	1642
-SML	null	C30H48N2O20	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	17	1642
-SML	null	C28H36N16O10	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	5	1	0	17	1642
-SML	null	C32H40N10O12	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	19	1644
-SML	null	C31H44N6O16	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	19	1644
-SML	null	C44H36N8O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	19	1644
-SML	null	C30H48N2O20	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	19	1644
-SML	null	C28H36N16O10	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	5	1	0	19	1644
-SML	null	C32H40N10O12	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	21	1646
-SML	null	C31H44N6O16	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	21	1646
-SML	null	C44H36N8O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	21	1646
-SML	null	C30H48N2O20	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	21	1646
-SML	null	C28H36N16O10	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	5	1	0	21	1646
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	10.8791405885966	0.960779286846719	9.91836130174991	null	[M + H]+	1	1	0	23	1648
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5693116115865	0.960779286846719	9.60853232473981	null	[M + H]+	2	1	0	23	1648
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5567942284207	0.960779286846719	9.59601494157402	null	[M + H]+	3	1	0	23	1648
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.326779677589	0.960779286846719	9.36600039074226	null	[M + H]+	4	1	0	23	1648
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.1911956410996	0.960779286846719	9.2304163542529	null	[M + H]+	5	1	0	23	1648
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	11.0149813681928	0.960779286846719	10.0542020813461	null	[M + H]+	1	1	0	25	1650
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.8346597655803	0.960779286846719	9.87388047873357	null	[M + H]+	2	1	0	25	1650
-SML	null	C40H46N8O8	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5964506645693	1.80032340245803	8.79612726211131	null	[M + H]+	3	2	1	25	1650
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.592749422981	0.960779286846719	9.63197013613429	null	[M + H]+	4	1	0	25	1650
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5792464658428	0.960779286846719	9.61846717899605	null	[M + H]+	5	1	0	25	1650
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6046199598601	0.960779286846719	9.64384067301339	null	[M + H]+	1	1	0	27	1652
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.33868547544	0.960779286846719	9.37790618859329	null	[M + H]+	2	1	0	27	1652
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.1806479268822	0.960779286846719	9.21986864003547	null	[M + H]+	3	1	0	27	1652
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	9.97927412796659	0.960779286846719	9.01849484111988	null	[M + H]+	4	1	0	27	1652
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	9.83994523463074	0.960779286846719	8.87916594778402	null	[M + H]+	5	1	0	27	1652
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	10.9547485682811	1	9.95474856828109	null	[M + H]+	1	1	0	29	1654
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.8187196005434	1	9.81871960054344	null	[M + H]+	2	1	0	29	1654
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5973060327673	1	9.59730603276729	null	[M + H]+	3	1	0	29	1654
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5661854553793	1	9.56618545537931	null	[M + H]+	4	1	0	29	1654
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5274323517885	1	9.52743235178854	null	[M + H]+	5	1	0	29	1654
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	10.7253238401852	1	9.72532384018516	null	[M + H]+	1	1	0	31	1656
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5966873096565	1	9.59668730965651	null	[M + H]+	2	1	0	31	1656
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5779166493248	1	9.57791664932477	null	[M + H]+	3	1	0	31	1656
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5163663083638	1	9.51636630836381	null	[M + H]+	4	1	0	31	1656
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.15080971373	1	9.15080971372998	null	[M + H]+	5	1	0	31	1656
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	11.0059555344892	1	10.0059555344892	null	[M + H]+	1	1	0	33	1658
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.8506900303303	1	9.85069003033033	null	[M + H]+	2	1	0	33	1658
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6854963272848	1	9.68549632728481	null	[M + H]+	3	1	0	33	1658
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5543754835598	1	9.5543754835598	null	[M + H]+	4	1	0	33	1658
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.4647601724255	1	9.46476017242548	null	[M + H]+	5	1	0	33	1658
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	10.9628443560473	1	9.96284435604732	null	[M + H]+	1	1	0	35	1660
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6873250840173	1	9.68732508401727	null	[M + H]+	2	1	0	35	1660
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6633928410719	1	9.66339284107193	null	[M + H]+	3	1	0	35	1660
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.3622983805165	1	9.36229838051648	null	[M + H]+	4	1	0	35	1660
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.1510673220989	1	9.15106732209892	null	[M + H]+	5	1	0	35	1660
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	11.0510107886379	1	10.0510107886379	null	[M + H]+	1	1	0	37	1662
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.8975299048558	1	9.89752990485585	null	[M + H]+	2	1	0	37	1662
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.8686468294818	1	9.86864682948182	null	[M + H]+	3	1	0	37	1662
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.4516476460736	1	9.45164764607355	null	[M + H]+	4	1	0	37	1662
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.3632336432009	1	9.36323364320087	null	[M + H]+	5	1	0	37	1662
-SML	null	C33H50N8O13	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	1	1	0	39	1664
-SML	null	C46H42N10O2	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	2	1	0	39	1664
-SML	null	C32H54N4O17	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	3	1	0	39	1664
-SML	null	C30H42N18O7	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	4	1	0	39	1664
-SML	null	C45H46N6O6	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	5	1	0	39	1664
-SML	null	C33H50N8O13	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	1	1	0	41	1666
-SML	null	C46H42N10O2	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	2	1	0	41	1666
-SML	null	C32H54N4O17	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	3	1	0	41	1666
-SML	null	C30H42N18O7	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	4	1	0	41	1666
-SML	null	C45H46N6O6	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	5	1	0	41	1666
-SML	null	C33H50N8O13	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	1	1	0	43	1668
-SML	null	C46H42N10O2	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	2	1	0	43	1668
-SML	null	C32H54N4O17	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	3	1	0	43	1668
-SML	null	C30H42N18O7	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	4	1	0	43	1668
-SML	null	C45H46N6O6	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	5	1	0	43	1668
-SML	null	C33H50N8O13	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	1	1	0	45	1670
-SML	null	C46H42N10O2	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	2	1	0	45	1670
-SML	null	C32H54N4O17	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	3	1	0	45	1670
-SML	null	C30H42N18O7	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	4	1	0	45	1670
-SML	null	C45H46N6O6	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	5	1	0	45	1670
-SML	null	C33H50N8O13	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	1	1	0	47	1672
-SML	null	C46H42N10O2	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	2	1	0	47	1672
-SML	null	C32H54N4O17	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	3	1	0	47	1672
-SML	null	C30H42N18O7	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	4	1	0	47	1672
-SML	null	C45H46N6O6	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	5	1	0	47	1672
-SML	null	C33H50N8O13	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	1	1	0	49	1674
-SML	null	C46H42N10O2	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	2	1	0	49	1674
-SML	null	C32H54N4O17	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	3	1	0	49	1674
-SML	null	C30H42N18O7	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	4	1	0	49	1674
-SML	null	C45H46N6O6	null	null	null	null	null	null	null	null	null	null	null	null	null	1	1	0	null	[M + Na]+	5	1	0	49	1674
-SML	null	C33H56O21	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	51	1676
-SML	null	C31H44N14O11	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	51	1676
-SML	null	C46H48N2O10	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	51	1676
-SML	null	C30H48N10O15	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	51	1676
-SML	null	C43H40N12O4	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	5	1	0	51	1676
-SML	null	C33H56O21	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	53	1678
-SML	null	C31H44N14O11	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	53	1678
-SML	null	C46H48N2O10	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	3	1	0	53	1678
-SML	null	C30H48N10O15	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	4	1	0	53	1678
-SML	null	C43H40N12O4	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	5	1	0	53	1678
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	11.1329669897673	0.960779286846719	10.1721877029206	null	[M + H]+	1	1	0	55	1680
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	11.1243328249151	0.960779286846719	10.1635535380683	null	[M + H]+	2	1	0	55	1680
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.9865637319028	0.960779286846719	10.0257844450561	null	[M + H]+	3	1	0	55	1680
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6520043505299	0.960779286846719	9.69122506368314	null	[M + H]+	4	1	0	55	1680
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5774265802196	0.960779286846719	9.61664729337287	null	[M + H]+	5	1	0	55	1680
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	11.0121297001264	0.960779286846719	10.0513504132797	null	[M + H]+	1	1	0	57	1682
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.9563294529293	0.960779286846719	9.99555016608257	null	[M + H]+	2	1	0	57	1682
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6689850546369	0.960779286846719	9.70820576779017	null	[M + H]+	3	1	0	57	1682
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6308349210609	0.960779286846719	9.67005563421417	null	[M + H]+	4	1	0	57	1682
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6203564327055	0.960779286846719	9.65957714585876	null	[M + H]+	5	1	0	57	1682
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	11.00522934081	0.960779286846719	10.0444500539633	null	[M + H]+	1	1	0	59	1684
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.9566989786645	0.960779286846719	9.99591969181777	null	[M + H]+	2	1	0	59	1684
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6732177987827	0.960779286846719	9.71243851193599	null	[M + H]+	3	1	0	59	1684
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6553767728853	0.960779286846719	9.69459748603862	null	[M + H]+	4	1	0	59	1684
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6304669831791	0.960779286846719	9.66968769633239	null	[M + H]+	5	1	0	59	1684
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	11.2615564070455	0.960779286846719	10.3007771201988	null	[M + H]+	1	1	0	61	1686
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	11.1052654181145	0.960779286846719	10.1444861312678	null	[M + H]+	2	1	0	61	1686
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	11.0442765987597	0.960779286846719	10.0834973119129	null	[M + H]+	3	1	0	61	1686
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.7880206119467	0.960779286846719	9.82724132509998	null	[M + H]+	4	1	0	61	1686
-SML	null	C32H38N20O4	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6623098872747	0.960779286846719	9.70153060042797	null	[M + H]+	5	1	0	61	1686
-SML	null	C38H54O16	null	null	null	null	null	null	null	null	null	null	null	null	null	11.0287792424015	0.960779286846719	10.0679999555547	null	[M + H]+	1	1	0	63	1688
-SML	null	C35H46N10O10	null	null	null	null	null	null	null	null	null	null	null	null	null	10.6638240416097	0.960779286846719	9.70304475476295	null	[M + H]+	2	1	0	63	1688
-SML	null	C34H50N6O14	null	null	null	null	null	null	null	null	null	null	null	null	null	10.5722937691649	0.960779286846719	9.61151448231816	null	[M + H]+	3	1	0	63	1688
-SML	null	C39H50N4O12	null	null	null	null	null	null	null	null	null	null	null	null	null	10.4221705235479	0.960779286846719	9.46139123670116	null	[M + H]+	4	1	0	63	1688
-SML	null	C36H42N14O6	null	null	null	null	null	null	null	null	null	null	null	null	null	10.1609964875778	0.960779286846719	9.20021720073109	null	[M + H]+	5	1	0	63	1688
+SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	adduct	rank	explainedPeaks	explainedIntensity	compoundId	compoundScanNumber	featureId
+SML	null	C16H13N5O	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	2	4	null
+SML	null	C15H17NO5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	2	4	null
+SML	null	C12H21NO5S	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	3	1	0	2	4	null
+SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	4	1	0	2	4	null
+SML	null	C16H21NS2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	5	1	0	2	4	null
+SML	null	C14H18N3O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	3.48417094572855	-0.981048761397028	4.46521970712558	null	[M + H]+	1	1	0	4	6	null
+SML	null	C16H13N5O	null	null	null	null	null	null	null	null	null	null	null	null	null	3.37768467297529	-1.04077856904307	4.41846324201836	null	[M + H]+	2	1	0	4	6	null
+SML	null	C13H25NS3	null	null	null	null	null	null	null	null	null	null	null	null	null	1.41702476541275	-1.52991005836147	2.94693482377422	null	[M + H]+	3	1	0	4	6	null
+SML	null	C18H15N2O2	null	null	null	null	null	null	null	null	null	null	null	null	null	0.33551783002796	-4.21472246002377	4.55024029005173	null	[M + H]+	4	1	0	4	6	null
+SML	null	C13H17N5OS	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.245023775422665	-1.52635714481214	1.28133336938947	null	[M + H]+	5	1	0	4	6	null
+SML	null	C15H18ClN3O	null	null	null	null	null	null	null	null	null	null	null	null	null	15.3475562422173	-1.05964104271936	16.4071972849367	null	[M + H]+	1	1	0	6	5	id_13442776035824190606
+SML	null	C13H23ClNO2P	null	null	null	null	null	null	null	null	null	null	null	null	null	12.2700901583721	-2.97904921169235	15.2491393700645	null	[M + H]+	2	1	0	6	5	id_13442776035824190606
+SML	null	C15H24ClN	null	null	null	null	null	null	null	null	null	null	null	null	null	12.081063932865	-5.38613384670471	17.4671977795697	null	[M + K]+	3	1	0	6	5	id_13442776035824190606
+SML	null	C12H26ClO3	null	null	null	null	null	null	null	null	null	null	null	null	null	10.727390151598	-5.80055175318126	16.5279419047793	null	[M + K]+	4	1	0	6	5	id_13442776035824190606
+SML	null	C17H20ClO2	null	null	null	null	null	null	null	null	null	null	null	null	null	9.86042648605242	-5.71784965996071	15.5782761460131	null	[M + H]+	5	1	0	6	5	id_13442776035824190606
+SML	null	C13H17N3O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.26817272617047	0.26817272617047	0	null	[M + H]+	1	1	0	11	3	null
+SML	null	C9H13N9O3	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.572292560546739	-0.572292560546739	0	null	[M + H]+	2	1	0	11	3	null
+SML	null	C14H13N7O	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.2044889552908	-1.2044889552908	0	null	[M + H]+	3	1	0	11	3	null
+SML	null	C7H18N7O4P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.50401586206295	-1.50401586206295	0	null	[M + H]+	4	1	0	11	3	null
+SML	null	C17H17N3S	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.82079322584226	-1.82079322584226	0	null	[M + H]+	5	1	0	11	3	null
+SML	null	C13H17N3O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.801038404986894	0.801038404986894	0	null	[M + H]+	1	1	0	13	4	null
+SML	null	C14H13N7O	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.326604763712441	-0.326604763712441	0	null	[M + H]+	2	1	0	13	4	null
+SML	null	C9H13N9O3	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.47069878412981	-1.47069878412981	0	null	[M + H]+	3	1	0	13	4	null
+SML	null	C14H21N3S2	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.47077609395349	-1.47077609395349	0	null	[M + H]+	4	1	0	13	4	null
+SML	null	C7H18N7O4P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.98078230674294	-1.98078230674294	0	null	[M + H]+	5	1	0	13	4	null
+SML	null	C14H13N7O	null	null	null	null	null	null	null	null	null	null	null	null	null	0.703776516452899	0.703776516452899	0	null	[M + H]+	1	1	0	15	2	null
+SML	null	C13H17N3O5	null	null	null	null	null	null	null	null	null	null	null	null	null	0.34156111474069	0.34156111474069	0	null	[M + H]+	2	1	0	15	2	null
+SML	null	C14H21N3S2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.671538431374925	-0.671538431374925	0	null	[M + H]+	3	1	0	15	2	null
+SML	null	C11H22NO6P	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.13303317437525	-1.13303317437525	0	null	[M + H]+	4	1	0	15	2	null
+SML	null	C12H18N5O2P	null	null	null	null	null	null	null	null	null	null	null	null	null	-2.48049774371702	-2.48049774371702	0	null	[M + H]+	5	1	0	15	2	null
+SML	null	C13H22N6O2	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	1	1	0	43	3	null
+SML	null	C12H26N2O6	null	null	null	null	null	null	null	null	null	null	null	null	null	0.960779286846719	0.960779286846719	0	null	[M + H]+	2	1	0	43	3	null
+SML	null	C11H27N4O3P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	3	1	0	43	3	null
+SML	null	C13H30N2OS2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.648658625587382	-0.648658625587382	0	null	[M + H]+	4	1	0	43	3	null
+SML	null	C9H18N12	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.05697325244426	-1.05697325244426	0	null	[M + H]+	5	1	0	43	3	null
+SML	null	C12H19NO7	null	null	null	null	null	null	null	null	null	null	null	null	null	0.592913354034559	0.592913354034559	0	null	[M + H]+	1	1	0	49	6	null
+SML	null	C13H15N5O3	null	null	null	null	null	null	null	null	null	null	null	null	null	0.447997612989534	0.447997612989534	0	null	[M + H]+	2	1	0	49	6	null
+SML	null	C13H23NO2S2	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.824243246652225	-0.824243246652225	0	null	[M + H]+	3	1	0	49	6	null
+SML	null	C8H22N2O7P	null	null	null	null	null	null	null	null	null	null	null	null	null	-0.897755144282232	-0.897755144282232	0	null	[M + H]+	4	1	0	49	6	null
+SML	null	C12H24BrN3	null	null	null	null	null	null	null	null	null	null	null	null	null	-1.79555590730244	-1.79555590730244	0	null	[M + H]+	5	1	0	49	6	null

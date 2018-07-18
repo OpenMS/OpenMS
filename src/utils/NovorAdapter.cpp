@@ -268,7 +268,7 @@ protected:
 
 
     // print novor command line
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(path_to_executable, process_params);
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(java_executable.toQString(), process_params, path_to_executable);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,7 @@ namespace OpenMS
 
     Similarity-based algorithms require posterior error probabilities (PEPs) as peptide scores, in order to combine scores and similarities into a consensus score for each peptide. See the following publication for the formula governing this calculation:
 
-    Nahnsen <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
+    Nahnsen <em>et al.</em>: <a href="https://doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
 
     Derived classes should implement getSimilarity_(), which defines how similarity of two peptide sequences is quantified.
 

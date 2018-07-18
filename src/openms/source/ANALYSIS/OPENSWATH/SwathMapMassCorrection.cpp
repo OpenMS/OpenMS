@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,8 @@ namespace OpenMS
     LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
     bool is_ppm = bool(corr_type == "quadratic_regression_delta_ppm" ||
-                       corr_type == "weighted_quadratic_regression_delta_ppm");
+                       corr_type == "weighted_quadratic_regression_delta_ppm" ||
+                       corr_type == "regression_delta_ppm");
 
     if (corr_type == "none")
     {
@@ -210,6 +211,16 @@ namespace OpenMS
       regression_params.push_back(qr.getA());
       regression_params.push_back(qr.getB());
       regression_params.push_back(qr.getC());
+    }
+    else if (corr_type == "regression_delta_ppm")
+    {
+      // Regression fit using ppm differences
+      double confidence_interval_P(0.0);
+      Math::LinearRegression lr;
+      lr.computeRegression(confidence_interval_P, exp_mz.begin(), exp_mz.end(), delta_ppm.begin());
+      regression_params.push_back(lr.getIntercept());
+      regression_params.push_back(lr.getSlope());
+      regression_params.push_back(0.0);
     }
     else if (corr_type == "weighted_quadratic_regression_delta_ppm")
     {

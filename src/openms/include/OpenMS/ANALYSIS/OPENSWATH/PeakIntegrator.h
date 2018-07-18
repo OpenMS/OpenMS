@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 
 namespace OpenMS
 {
-
   /**
     @brief Compute the area, background and shape metrics of a peak.
 
@@ -537,12 +537,12 @@ protected:
 
     template <typename PeakContainerT>
     PeakArea integratePeak_(
-      const PeakContainerT& p, const double left, const double right
+      const PeakContainerT& pc, double left, double right
     ) const;
 
     template <typename PeakContainerT>
     PeakBackground estimateBackground_(
-      const PeakContainerT& p, const double left, const double right,
+      const PeakContainerT& pc, double left, double right,
       const double peak_apex_pos
     ) const;
 
@@ -551,7 +551,7 @@ protected:
 
     template <typename PeakContainerT>
     PeakShapeMetrics calculatePeakShapeMetrics_(
-      const PeakContainerT& p, const double left, const double right,
+      const PeakContainerT& pc, double left, double right,
       const double peak_height, const double peak_apex_pos
     ) const;
 
@@ -601,6 +601,10 @@ private:
     String baseline_type_ = BASELINE_TYPE_BASETOBASE;
     ///@}
 
+    /// Enable/disable EMG peak model fitting
+    bool fit_EMG_;
+    EmgGradientDescent emg_;
+
     /** @name Helper methods
       The Simpson's rule implementations for an odd number of unequally spaced points.
     */
@@ -638,5 +642,26 @@ private:
     */
     double simpson(MSSpectrum::ConstIterator it_begin, MSSpectrum::ConstIterator it_end) const;
     ///@}
+
+    /**
+      @brief Fit the peak to the EMG model
+
+      The fitting process happens only if `fit_EMG_` is true. `left` and `right`
+      are updated accordingly.
+
+      @tparam PeakContainerT Either a MSChromatogram or a MSSpectrum
+      @param[in] pc Input peak
+      @param[out] emg_pc Will possibly contain the processed peak
+      @param[in] left RT or MZ value of the first point of interest
+      @param[in] right RT or MZ value of the first point of interest
+      @return A const reference to `emg_pc` if the fitting is executed, `pc` otherwise.
+    */
+    template <typename PeakContainerT>
+    const PeakContainerT& EMGPreProcess_(
+      const PeakContainerT& pc,
+      PeakContainerT& emg_pc,
+      double& left,
+      double& right
+    ) const;
   };
 }

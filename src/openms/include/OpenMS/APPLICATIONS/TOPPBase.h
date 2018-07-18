@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,8 @@
 
 #include <fstream>
 
-class QStringList;
+#include <QStringList>
+
 
 namespace OpenMS
 {
@@ -816,7 +817,7 @@ protected:
     ///@name External processes (TODO consider creating another AdapterBase class)
     //@{
     /// Runs an external process via QProcess and reports its status in the logs
-    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments) const;
+    ExitCodes runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir = "") const;
     //@}
 
     /**

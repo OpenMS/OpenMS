@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,11 +63,11 @@ public:
 
     struct ExtractionCoordinates
     {
-      double mz; ///< m/z value around which should be extracted
-      double ion_mobility; ///< ion mobility value around which should be extracted
-      double mz_precursor; ///< precursor m/z value (is currently ignored by the algorithm)
-      double rt_start; ///< rt start of extraction (in seconds)
-      double rt_end; ///< rt end of extraction (in seconds)
+      double mz = 0.0; ///< m/z value around which should be extracted
+      double ion_mobility = 0.0; ///< ion mobility value around which should be extracted
+      double mz_precursor = 0.0; ///< precursor m/z value (is currently ignored by the algorithm)
+      double rt_start = 0.0; ///< rt start of extraction (in seconds)
+      double rt_end = 0.0; ///< rt end of extraction (in seconds)
       std::string id; ///< identifier
 
       static bool SortExtractionCoordinatesByMZ(

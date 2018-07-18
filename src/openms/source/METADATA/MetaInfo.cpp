@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,7 @@ namespace OpenMS
 
   const DataValue & MetaInfo::getValue(const String & name) const
   {
-    map<UInt, DataValue>::const_iterator it = index_to_value_.find(registry_.getIndex(name));
+    MapType::const_iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
     {
       return it->second;
@@ -86,7 +86,7 @@ namespace OpenMS
 
   const DataValue & MetaInfo::getValue(UInt index) const
   {
-    map<UInt, DataValue>::const_iterator it = index_to_value_.find(index);
+    MapType::const_iterator it = index_to_value_.find(index);
     if (it != index_to_value_.end())
     {
       return it->second;
@@ -128,7 +128,7 @@ namespace OpenMS
 
   void MetaInfo::removeValue(const String & name)
   {
-    map<UInt, DataValue>::iterator it = index_to_value_.find(registry_.getIndex(name));
+    MapType::iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
     {
       index_to_value_.erase(it);
@@ -137,7 +137,7 @@ namespace OpenMS
 
   void MetaInfo::removeValue(UInt index)
   {
-    map<UInt, DataValue>::iterator it = index_to_value_.find(index);
+    MapType::iterator it = index_to_value_.find(index);
     if (it != index_to_value_.end())
     {
       index_to_value_.erase(it);
@@ -148,7 +148,7 @@ namespace OpenMS
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
-    for (map<UInt, DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+    for (MapType::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
     {
       keys[i++] = registry_.getName(it->first);
     }
@@ -158,7 +158,7 @@ namespace OpenMS
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
-    for (map<UInt, DataValue>::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+    for (MapType::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
     {
       keys[i++] = it->first;
     }

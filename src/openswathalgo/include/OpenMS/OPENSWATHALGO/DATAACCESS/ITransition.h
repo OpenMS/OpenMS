@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,10 +46,10 @@ namespace OpenSwath
   {
 public:
     virtual ~IFeature(){}
-    virtual void getRT(std::vector<double>& rt) = 0;
-    virtual void getIntensity(std::vector<double>& intens) = 0;
-    virtual float getIntensity() = 0;
-    virtual double getRT() = 0;
+    virtual void getRT(std::vector<double>& rt) const = 0;
+    virtual void getIntensity(std::vector<double>& intens) const = 0;
+    virtual float getIntensity() const = 0;
+    virtual double getRT() const = 0;
   };
 
   class OPENSWATHALGO_DLLAPI IMRMFeature
@@ -60,23 +60,23 @@ public:
     virtual boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) = 0;
     virtual std::vector<std::string> getNativeIDs() const = 0;
     virtual std::vector<std::string> getPrecursorIDs() const = 0;
-    virtual float getIntensity() = 0;
-    virtual double getRT() = 0;
-    virtual size_t size() = 0;
+    virtual float getIntensity() const = 0;
+    virtual double getRT() const = 0;
+    virtual size_t size() const = 0;
   };
 
   struct OPENSWATHALGO_DLLAPI ITransitionGroup
   {
     virtual ~ITransitionGroup() {}
-    virtual std::size_t size() = 0;
-    virtual std::vector<std::string> getNativeIDs() = 0;
-    virtual void getLibraryIntensities(std::vector<double>& intensities) = 0;
+    virtual std::size_t size() const = 0;
+    virtual std::vector<std::string> getNativeIDs() const = 0;
+    virtual void getLibraryIntensities(std::vector<double>& intensities) const = 0;
   };
 
   struct OPENSWATHALGO_DLLAPI ISignalToNoise
   {
     virtual ~ISignalToNoise() {}
-    virtual double getValueAtRT(double RT) = 0;
+    virtual double getValueAtRT(double RT) = 0; // cannot be const due to OpenMS implementation
   };
   typedef boost::shared_ptr<ISignalToNoise> ISignalToNoisePtr;
 

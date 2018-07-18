@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -236,6 +236,10 @@ protected:
     // iterate over modification names and add to vector
     for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
     {
+      if (mod_it->empty())
+      {
+        continue;
+      }
       String modification(*mod_it);
       modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
     }
@@ -460,18 +464,27 @@ protected:
     //      add_N/Cterm_peptide = xxx       protein not available yet
     vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
     vector<ResidueModification> fixed_modifications = getModifications_(fixed_modifications_names);
-    for (vector<ResidueModification>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+    // Comet sets Carbamidometyl (C) as modification as default even if not specified
+    // Therefor there is the need to set it to 0 if not set as flag
+    if (fixed_modifications.empty())
     {
-      String AA = it->getOrigin();
-      if ((AA!="N-term") && (AA!="C-term"))
+      os << "add_C_cysteine = 0.0000" << endl;
+    }
+    else
+    {
+      for (vector<ResidueModification>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
       {
-      const Residue* r = ResidueDB::getInstance()->getResidue(AA);
-      String name = r->getName();
-      os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << it->getDiffMonoMass() << endl;
-      }
-      else
-      {
-      os << "add_" << AA.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
+        String AA = it->getOrigin();
+        if ((AA!="N-term") && (AA!="C-term"))
+        {
+          const Residue* r = ResidueDB::getInstance()->getResidue(AA);
+          String name = r->getName();
+          os << "add_" << r->getOneLetterCode() << "_" << name.toLower() << " = " << it->getDiffMonoMass() << endl;
+        }
+        else
+        {
+          os << "add_" << AA.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
+        }
       }
     }
 

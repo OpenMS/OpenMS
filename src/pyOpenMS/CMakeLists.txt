@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -522,6 +522,7 @@ endif()
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_unittest_testfiles
   test000.py
+  test_tutorial.py
   test_BaselineFiltering.py
   test_ChromatogramExtractor.py
   test_ChromatogramExtractorAlgorithm.py

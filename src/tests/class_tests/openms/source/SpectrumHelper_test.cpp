@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -183,6 +183,102 @@ START_SECTION((MSChromatogram::IntegerDataArrays::iterator getDataArrayByName(MS
         TEST_EQUAL(getDataArrayByName(ds.getIntegerDataArrays(), "f3") - ds.getIntegerDataArrays().begin(), 2);
 END_SECTION
 
+START_SECTION(void removePeaks(PeakContainerT& p, const double pos_start, const double pos_end))
+{
+  MSSpectrum s;
+  MSChromatogram c;
+  DataArrays::IntegerDataArray ida;
+
+  for (Size i = 5; i < 15; ++i) // RTs: [5 14]
+  {
+    s.push_back(Peak1D(i, 0));
+    c.push_back(ChromatogramPeak(i, 0));
+    ida.push_back(i);
+  }
+
+  s.getIntegerDataArrays().push_back(ida);
+  c.getIntegerDataArrays().push_back(ida);
+
+  MSSpectrum s1 = s;
+  removePeaks(s1, 3, 6); // start rt (3) is lower than the minimum (5) within the spectrum
+  TEST_EQUAL(s1.size(), 2)
+  TEST_EQUAL(s1.getIntegerDataArrays()[0].size(), 2)
+  TEST_REAL_SIMILAR(s1[0].getPos(), 5)
+  TEST_REAL_SIMILAR(s1[1].getPos(), 6)
+
+  MSSpectrum s2 = s;
+  removePeaks(s2, 0, 4); // no peak within the requested range
+  TEST_EQUAL(s2.size(), 0)
+  TEST_EQUAL(s2.getIntegerDataArrays()[0].size(), 0)
+
+  MSChromatogram c1 = c;
+  removePeaks(c1, 12, 16); // end rt (16) is higher than the maximum (14) within the chromatogram
+  TEST_EQUAL(c1.size(), 3)
+  TEST_EQUAL(c1.getIntegerDataArrays()[0].size(), 3)
+  TEST_REAL_SIMILAR(c1[0].getPos(), 12)
+  TEST_REAL_SIMILAR(c1[1].getPos(), 13)
+  TEST_REAL_SIMILAR(c1[2].getPos(), 14)
+
+  MSChromatogram c2 = c;
+  removePeaks(c2, 9, 12); // all within the range
+  TEST_EQUAL(c2.size(), 4)
+  TEST_EQUAL(c2.getIntegerDataArrays()[0].size(), 4)
+  TEST_REAL_SIMILAR(c2[0].getPos(), 9)
+  TEST_REAL_SIMILAR(c2[1].getPos(), 10)
+  TEST_REAL_SIMILAR(c2[2].getPos(), 11)
+  TEST_REAL_SIMILAR(c2[3].getPos(), 12)
+
+  MSSpectrum s_empty;
+  removePeaks(s_empty, 9, 12);
+  TEST_EQUAL(s_empty.size(), 0)
+}
+END_SECTION
+
+START_SECTION(void subtractMinimumIntensity(PeakContainerT& p))
+{
+  MSSpectrum s;
+  MSChromatogram c;
+
+  for (Int i = -5; i < 5; ++i) // Intensities: [-5 4]
+  {
+    s.push_back(Peak1D(0, i));
+    c.push_back(ChromatogramPeak(0, i));
+  }
+
+  subtractMinimumIntensity(s);
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 0)
+  TEST_REAL_SIMILAR(s[1].getIntensity(), 1)
+  TEST_REAL_SIMILAR(s[9].getIntensity(), 9)
+
+  subtractMinimumIntensity(c);
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 0)
+  TEST_REAL_SIMILAR(c[1].getIntensity(), 1)
+  TEST_REAL_SIMILAR(c[9].getIntensity(), 9)
+
+  MSChromatogram c_empty;
+  subtractMinimumIntensity(c_empty);
+  TEST_EQUAL(c_empty.size(), 0)
+
+  s.clear(true);
+  c.clear(true);
+
+  for (Int i = 5; i < 15; ++i) // Intensities: [5 14]
+  {
+    s.push_back(Peak1D(0, i));
+    c.push_back(ChromatogramPeak(0, i));
+  }
+
+  subtractMinimumIntensity(s);
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 0)
+  TEST_REAL_SIMILAR(s[1].getIntensity(), 1)
+  TEST_REAL_SIMILAR(s[9].getIntensity(), 9)
+
+  subtractMinimumIntensity(c);
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 0)
+  TEST_REAL_SIMILAR(c[1].getIntensity(), 1)
+  TEST_REAL_SIMILAR(c[9].getIntensity(), 9)
+}
+END_SECTION
 
 END_TEST
 

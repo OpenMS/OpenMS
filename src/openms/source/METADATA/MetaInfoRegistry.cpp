@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,11 @@ namespace OpenMS
 {
 
   MetaInfoRegistry::MetaInfoRegistry() :
-    next_index_(1024), name_to_index_(), index_to_name_(), index_to_description_(), index_to_unit_()
+    next_index_(1024), 
+    name_to_index_(), 
+    index_to_name_(), 
+    index_to_description_(), 
+    index_to_unit_()
   {
     name_to_index_["isotopic_range"] = 1;
     index_to_name_[1] = "isotopic_range";
@@ -139,7 +143,7 @@ namespace OpenMS
     UInt rv;
 #pragma omp critical (MetaInfoRegistry)
     {
-      map<String, UInt>::iterator it = name_to_index_.find(name);
+      MapString2IndexType::iterator it = name_to_index_.find(name);
       if (it == name_to_index_.end())
       {
         name_to_index_[name] = next_index_;
@@ -158,7 +162,7 @@ namespace OpenMS
 
   void MetaInfoRegistry::setDescription(UInt index, const String& description)
   {
-    map<UInt, String>::iterator pos;
+    MapIndex2StringType::iterator pos;
 #pragma omp critical (MetaInfoRegistry)
     {
       pos = index_to_description_.find(index);
@@ -175,7 +179,7 @@ namespace OpenMS
 
   void MetaInfoRegistry::setDescription(const String& name, const String& description)
   {
-    map<String, UInt>::iterator pos;
+    MapString2IndexType::iterator pos;
 #pragma omp critical (MetaInfoRegistry)
     {
       pos = name_to_index_.find(name);
@@ -192,7 +196,7 @@ namespace OpenMS
 
   void MetaInfoRegistry::setUnit(UInt index, const String& unit)
   {
-    map<UInt, String>::iterator pos;
+    MapIndex2StringType::iterator pos;
 #pragma omp critical (MetaInfoRegistry)
     {
       pos = index_to_unit_.find(index);
@@ -209,7 +213,7 @@ namespace OpenMS
 
   void MetaInfoRegistry::setUnit(const String& name, const String& unit)
   {
-    map<String, UInt>::iterator pos;
+    MapString2IndexType::iterator pos;
 #pragma omp critical (MetaInfoRegistry)
     {
       pos = name_to_index_.find(name);
@@ -229,7 +233,7 @@ namespace OpenMS
     UInt rv = UInt(-1);
 #pragma omp critical (MetaInfoRegistry)
     {
-      map<String, UInt>::const_iterator it = name_to_index_.find(name);
+      MapString2IndexType::const_iterator it = name_to_index_.find(name);
       if (it != name_to_index_.end())
       {
         rv = it->second;
@@ -243,7 +247,7 @@ namespace OpenMS
     String result;
 #pragma omp critical (MetaInfoRegistry)
     {
-      map<UInt, String>::const_iterator it = index_to_description_.find(index);
+      MapIndex2StringType::const_iterator it = index_to_description_.find(index);
       if (it == index_to_description_.end())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
@@ -276,7 +280,7 @@ namespace OpenMS
     String result;
 #pragma omp critical (MetaInfoRegistry)
     {
-      map<UInt, String>::const_iterator it = index_to_unit_.find(index);
+      MapIndex2StringType::const_iterator it = index_to_unit_.find(index);
       if (it == index_to_unit_.end())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unregistered index!", String(index));
@@ -309,7 +313,7 @@ namespace OpenMS
     String rv;
 #pragma omp critical (MetaInfoRegistry)
     {
-      map<UInt, String>::const_iterator it = index_to_name_.find(index);
+      MapIndex2StringType::const_iterator it = index_to_name_.find(index);
       if (it != index_to_name_.end())
       {
         rv = it->second;

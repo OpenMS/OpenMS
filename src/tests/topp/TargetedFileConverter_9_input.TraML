@@ -1,0 +1,2440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TraML version="1.0.0" xmlns="http://psi.hupo.org/ms/traml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/traml TraML1.0.0.xsd">
+  <cvList>
+    <cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" version="unknown" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
+    <cv id="UO" fullName="Unit Ontology" version="unknown" URI="http://obo.cvs.sourceforge.net/obo/obo/ontology/phenotype/unit.obo"/>
+  </cvList>
+  <ProteinList>
+    <Protein id="DECOY_KLDSGQSSFR">
+      <Sequence></Sequence>
+    </Protein>
+    <Protein id="KLDSGQSSFR">
+      <Sequence></Sequence>
+    </Protein>
+  </ProteinList>
+  <CompoundList>
+    <Peptide id="19" sequence="KSQSDFLGSR">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="NA"/>
+      <userParam name="full_peptide_name" type="xsd:string" value="KS(UniMod:21)QSDFLGSR(UniMod:267)"/>
+      <ProteinRef ref="DECOY_KLDSGQSSFR"/>
+      <Modification location="2" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:21" name="Phospho"/>
+      </Modification>
+      <Modification location="10" monoisotopicMassDelta="10.008269" averageMassDelta="9.9296">
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:267" name="Label:13C(6)15N(4)"/>
+      </Modification>
+      <RetentionTimeList>
+        <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="-30.6"/>
+        </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+    <Peptide id="1" sequence="KLDSGQSSFR">
+      <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="NA"/>
+      <userParam name="full_peptide_name" type="xsd:string" value="KLDSGQS(UniMod:21)SFR(UniMod:267)"/>
+      <ProteinRef ref="KLDSGQSSFR"/>
+      <Modification location="7" monoisotopicMassDelta="79.966331" averageMassDelta="79.9799">
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:21" name="Phospho"/>
+      </Modification>
+      <Modification location="10" monoisotopicMassDelta="10.008269" averageMassDelta="9.9296">
+        <cvParam cvRef="UNIMOD" accession="UNIMOD:267" name="Label:13C(6)15N(4)"/>
+      </Modification>
+      <RetentionTimeList>
+        <RetentionTime>
+          <cvParam cvRef="MS" accession="MS:1002005" name="iRT retention time normalization standard" value="-30.6"/>
+        </RetentionTime>
+      </RetentionTimeList>
+    </Peptide>
+  </CompoundList>
+  <TransitionList>
+    <Transition id="0" peptideRef="19">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="329.1807" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1927.05"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+    </Transition>
+    <Transition id="1" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="351.6557" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="2" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="352.1483" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="3" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="352.4604" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="4" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="355.1495" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="5" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="357.2132" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2058.7"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+    </Transition>
+    <Transition id="6" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="357.2132" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="7" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="357.6459" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="8" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="358.6823" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="9" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="362.8212" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="10" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="368.1916" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="11" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="369.1769" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="12" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="380.6842" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="13" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.1567" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="14" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.2022" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="15" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="386.659" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="16" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="387.1874" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="17" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="391.6388" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="18" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="392.1315" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="19" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="393.193" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="20" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="398.6655" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="21" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="401.2171" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="22" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="23" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="419.2277" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1927.05"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+    </Transition>
+    <Transition id="24" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="419.2277" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="25" peptideRef="19">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="424.1592" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2058.7"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+    </Transition>
+    <Transition id="26" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="426.2347" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="27" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="429.6727" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="28" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="435.1549" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="29" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="435.6475" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="30" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="438.1977" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="31" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="442.1815" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="32" peptideRef="19">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="442.2648" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1912.6"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+    </Transition>
+    <Transition id="33" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="443.6805" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="34" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="444.2453" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1026.51"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+    </Transition>
+    <Transition id="35" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="444.2453" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="36" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="450.6877" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="37" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="455.2236" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="38" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="466.1685" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="39" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="466.7273" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="40" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="467.1538" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="41" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="473.2342" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="42" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="479.1984" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="43" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="483.2198" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="44" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="483.2562" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="45" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="487.1862" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="46" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="488.2491" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="47" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="492.6689" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="48" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="494.7397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="49" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="499.194" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="3"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="50" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="499.6762" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="51" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501.2304" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="52" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501.2667" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2080.08"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+    </Transition>
+    <Transition id="53" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="501.2667" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="54" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="506.2597" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="55" peptideRef="19">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="511.1912" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1026.51"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+    </Transition>
+    <Transition id="56" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="515.7157" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="57" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="524.2116" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="58" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="528.1869" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="59" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="543.7282" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="60" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="553.2005" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="61" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="570.2506" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="62" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="581.1967" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="63" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="581.2331" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="64" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="586.226" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1912.6"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+    </Transition>
+    <Transition id="65" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="586.226" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="4"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="66" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="588.2612" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="67" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="598.2467" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="68" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="611.3148" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="69" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.2573" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="70" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="616.3077" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="71" peptideRef="19">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="626.2182" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2080.08"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+    </Transition>
+    <Transition id="72" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="629.3253" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1231.6"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+    </Transition>
+    <Transition id="73" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="629.3253" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="74" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="634.3183" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="75" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="668.2275" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="76" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="673.3292" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="77" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="684.2935" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="78" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="685.2788" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="79" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="691.3397" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="80" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="696.2236" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="81" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="698.3468" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="82" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="702.3041" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="83" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="703.2893" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="84" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="709.2917" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="85" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="714.2846" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="5"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="86" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="716.3573" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="87" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="760.3612" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="88" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="771.3061" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="89" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="772.3108" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="90" peptideRef="19">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="773.2866" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1231.6"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+    </Transition>
+    <Transition id="91" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="782.2704" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="92" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="783.2557" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="93" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="785.3788" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="94" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="796.3237" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="95" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="858.3381" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="96" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="869.3024" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="7"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="97" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="870.2877" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="98" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="875.3881" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="99" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="883.3557" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="100" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="886.3537" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="101" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="900.3681" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="102" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="932.4472" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="103" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="957.3896" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="104" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="973.365" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="105" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="984.3306" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="106" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="988.4722" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="107" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="998.345" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="8"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="108" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1030.4241" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001224" name="frag: b ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="109" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1055.3665" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002008" name="decoy SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="IGES(Phospho)NDSSNR(Label:13C(6)15N(4))|IGESNDS(Phospho)SNR(Label:13C(6)15N(4))|IGESNDSS(Phospho)NR(Label:13C(6)15N(4))"/>
+    </Transition>
+    <Transition id="110" peptideRef="1">
+      <Precursor>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="405.5195" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+      </Precursor>
+      <Product>
+        <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="1"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1086.4491" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
+        <InterpretationList>
+          <Interpretation>
+            <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="9"/>
+            <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001220" name="frag: y ion"/>
+          </Interpretation>
+        </InterpretationList>
+      </Product>
+      <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="-1"/>
+      <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
+      <userParam name="detecting_transition" type="xsd:boolean" value="false"/>
+      <userParam name="identifying_transition" type="xsd:boolean" value="true"/>
+      <userParam name="quantifying_transition" type="xsd:boolean" value="false"/>
+      <userParam name="Peptidoforms" type="xsd:string" value="KLDS(Phospho)GQSSFR(Label:13C(6)15N(4))|KLDSGQS(Phospho)SFR(Label:13C(6)15N(4))|KLDSGQSS(Phospho)FR(Label:13C(6)15N(4))"/>
+    </Transition>
+  </TransitionList>
+</TraML>

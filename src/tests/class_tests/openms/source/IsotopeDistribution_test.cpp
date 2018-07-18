@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,6 +106,18 @@ START_SECTION(IsotopeDistribution& operator = (const CoarseIsotopePatternGenerat
 	TEST_EQUAL(copy.getMin(), iso->getMin())
 	TEST_EQUAL(copy.getMax(), iso->getMax())
 	TEST_EQUAL(copy.size(), iso->size())
+END_SECTION
+
+START_SECTION(IsotopeDistribution& operator < (const CoarseIsotopePatternGenerator& isotope_distribution))
+	IsotopeDistribution iso1, iso2;
+	TEST_EQUAL(iso1 < iso2, false)
+	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
+    iso4(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+	TEST_EQUAL(iso3 < iso4, true)
+
+	IsotopeDistribution iso5(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(1)));
+    IsotopeDistribution iso6(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(1000)));
+	TEST_EQUAL(iso5 < iso6, true)
 END_SECTION
 
 

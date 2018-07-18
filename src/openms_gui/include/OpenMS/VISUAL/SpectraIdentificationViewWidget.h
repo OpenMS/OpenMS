@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,14 +60,18 @@ public:
     SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
     ~SpectraIdentificationViewWidget() override;
-    /// Attach model
-    void attachLayer(LayerData* model);
+
+    /// set / get layer data
+    void setLayer(LayerData* model);
+
+    LayerData* getLayer();
+
     /// Helper function to block outgoing signals
     bool ignore_update;
 
     /// Access the table widget
     QTableWidget* getTableWidget();
-public slots:
+protected slots:
     /// Rebuild table entries
     void updateEntries();
 signals:

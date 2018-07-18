@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+
 
 ///////////////////////////
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -242,21 +244,29 @@ END_SECTION
 
 START_SECTION((ConsensusMap& appendColumns(const ConsensusMap &rhs)))
 {
-  ConsensusMap m1, m2, m3;
+  ConsensusMap m1, m2;
 
-  // adding empty map has no effect:
-  m1.appendColumns(m2) ;
-  TEST_EQUAL(m1, m3);
+  // Test1: adding empty map has no effect:
+  m1.appendColumns(ConsensusMap()) ;
+  TEST_EQUAL(m1, ConsensusMap());
 
-  // addint empty map to map with content
-  ConsensusFeature f1;
-  f1.setMZ(100.12);
-  m1.push_back(f1);
-  m3 = m1;
-  m1.appendColumns(m2);
-  TEST_EQUAL(m1, m3);
+  // one consensus feature with one element referencing the first map
+  Feature f1;
+  f1.setRT(1);
+  f1.setMZ(1);
+  f1.setIntensity(1);
+  f1.setUniqueId(1);
+  ConsensusFeature cf1;
+  cf1.insert(0, f1, 0); // map = 0, feature 1, element = 0
+  cf1.setMZ(100.12);
+  m1.push_back(cf1);
+  // m1 now contains one consensus feature with one element associated with map 0
 
-  // test basic classes
+  // Test2: adding empty map to map with content
+  ConsensusMap old_m1 = m1;
+  m1.appendColumns(ConsensusMap());
+  TEST_EQUAL(m1, old_m1);
+
   m1.setIdentifier("123");
   m1.getDataProcessing().resize(1);
   m1.getProteinIdentifications().resize(1);
@@ -268,23 +278,63 @@ START_SECTION((ConsensusMap& appendColumns(const ConsensusMap &rhs)))
   m2.getDataProcessing().resize(2);
   m2.getProteinIdentifications().resize(2);
   m2.getUnassignedPeptideIdentifications().resize(2);
-  m2.push_back(ConsensusFeature());
-  m2.push_back(ConsensusFeature());
   m2.getColumnHeaders()[0].filename = "m2_1";
   m2.getColumnHeaders()[1].filename = "m2_2";
 
-  m1.appendColumns(m2); // now contain 1 + 2 columns
+  // one consensus feature with two elements referencing the first and second map
+  Feature f2, f3;
+  f2.setRT(2);
+  f2.setMZ(2);
+  f2.setIntensity(2);
+  f2.setUniqueId(2);
+  f3.setRT(3);
+  f3.setMZ(3);
+  f3.setIntensity(3);
+  f3.setUniqueId(3);
+  ConsensusFeature cf2;
+  cf2.insert(0, f2, 0); // first map, feature2, first element
+  cf2.insert(1, f3, 1); // second map, feature3, second element
+  m2.push_back(cf2);
+
+  // append columns of m2 to m1
+  m1.appendColumns(m2); // now contains 1 (m1) + 2 columns (m2)
 
   TEST_EQUAL(m1.getIdentifier(), "");
   TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false);
   TEST_EQUAL(m1.getDataProcessing().size(), 3);
   TEST_EQUAL(m1.getProteinIdentifications().size(), 3);
   TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(), 3);
-  TEST_EQUAL(m1.size(), 3);
+  TEST_EQUAL(m1.size(), 2);
   TEST_EQUAL(m1.getColumnHeaders().size(), 3);
   TEST_EQUAL(m1.getColumnHeaders()[0].filename, "m1");
   TEST_EQUAL(m1.getColumnHeaders()[1].filename, "m2_1");
   TEST_EQUAL(m1.getColumnHeaders()[2].filename, "m2_2");
+
+  auto cfh1 = m1[0].getFeatures();
+  TEST_EQUAL(cfh1.begin()->getIntensity(), 1);
+  TEST_EQUAL(cfh1.begin()->getUniqueId(), 0);
+  TEST_EQUAL(cfh1.begin()->getMapIndex(), 0);
+
+  // test the second consensus feature with two elements
+  // they should now reference to the second and third map (map index 1 and 2)
+  auto cfh2 = m1[1].getFeatures();
+  Size element(0); 
+  for (auto & h : cfh2)
+  {
+    if (element == 0)
+    {
+      TEST_EQUAL(h.getIntensity(), 2);
+      TEST_EQUAL(h.getUniqueId(), 0); // references the unique id of the original feature
+      TEST_EQUAL(h.getMapIndex(), 1);
+    }
+    else
+    {
+      TEST_EQUAL(h.getIntensity(), 3);
+      TEST_EQUAL(h.getUniqueId(), 1); // references the unique id of the original feature
+      TEST_EQUAL(h.getMapIndex(), 2);
+    }
+    ++element;
+  }
 }
 END_SECTION
 

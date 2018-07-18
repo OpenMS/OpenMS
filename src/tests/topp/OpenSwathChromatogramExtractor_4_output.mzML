@@ -145,6 +145,12 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
@@ -178,6 +184,12 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
@@ -211,6 +223,12 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
@@ -244,6 +262,12 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
@@ -277,6 +301,12 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="412.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
@@ -310,6 +340,12 @@
 							<cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 							<cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="12.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						</isolationWindow>
+						<selectedIonList count="1">
+							<selectedIon>
+								<cvParam cvRef="MS" accession="MS:1000744" name="selected ion m/z" value="417.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+								<cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2" />
+							</selectedIon>
+						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
 							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEB"/>
@@ -341,13 +377,13 @@
 <indexList count="1">
 	<index name="chromatogram">
 		<offset idRef="tr1">10716</offset>
-		<offset idRef="4">13520</offset>
-		<offset idRef="tr2">16322</offset>
-		<offset idRef="5">19126</offset>
-		<offset idRef="3">21928</offset>
-		<offset idRef="6">24730</offset>
+		<offset idRef="4">13855</offset>
+		<offset idRef="tr2">16992</offset>
+		<offset idRef="5">20131</offset>
+		<offset idRef="3">23268</offset>
+		<offset idRef="6">26405</offset>
 	</index>
 </indexList>
-<indexListOffset>27566</indexListOffset>
+<indexListOffset>29576</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
