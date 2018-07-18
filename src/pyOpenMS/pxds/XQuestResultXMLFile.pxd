@@ -33,9 +33,9 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
         void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                 OPXL_PreprocessedPairSpectra & preprocessed_pair_spectra,
                                 libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & spectrum_pairs,
-                                libcpp_vector[ libcpp_vector[ OPXL_CrossLinkSpectrumMatch ] ] & all_top_csms,
+                                libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ] & all_top_csms,
                                 MSExperiment & spectra) nogil except +
 
         void writeXQuestXMLSpec(const String& out_file, const String& base_name,
-                                libcpp_vector[ libcpp_vector[ OPXL_CrossLinkSpectrumMatch] ] & all_top_csms,
+                                libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch] ] & all_top_csms,
                                 MSExperiment & spectra) nogil except +
