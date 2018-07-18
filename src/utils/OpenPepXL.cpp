@@ -236,6 +236,9 @@ protected:
     registerTOPPSubsection_("algorithm", "Algorithm Options");
 
     registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", false, false);
+    StringList deisotope_strings = ListUtils::create<String>("true,false,auto");
+    registerStringOption_("algorithm:deisotope", "<true/false/auto>", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", false, true);
+    setValidStrings_("algorithm:deisotope", deisotope_strings);
 
     StringList bool_strings = ListUtils::create<String>("true,false");
     registerTOPPSubsection_("ions", "Ion types to search for");
@@ -269,7 +272,7 @@ protected:
   }
 
   // create linear / shifted peak spectra for all pairs
-  OPXLDataStructs::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm)
+  OPXLDataStructs::PreprocessedPairSpectra preprocessPairs_(const PeakMap& spectra, const vector< pair<Size, Size> >& spectrum_pairs, const double cross_link_mass_iso_shift, double fragment_mass_tolerance, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm, bool deisotope)
   {
     OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra(spectrum_pairs.size());
 
@@ -312,9 +315,7 @@ protected:
         }
       }
 
-      bool deisotoped = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
-
-      if (deisotoped)
+      if (deisotope)
       {
         xlink_peaks.getIntegerDataArrays().resize(2);
         xlink_peaks.getIntegerDataArrays()[0].setName("Charges");
@@ -342,7 +343,7 @@ protected:
         {
           bool charge_fits = true;
           // check if the charge for the heavy peak determined by deisotoping matches the currently considered charge
-          if (deisotoped && spectrum_heavy_charges[i] != 0 && static_cast<unsigned int>(spectrum_heavy_charges[i]) != charge)
+          if (deisotope && spectrum_heavy_charges[i] != 0 && static_cast<unsigned int>(spectrum_heavy_charges[i]) != charge)
           {
             charge_fits = false;
           }
@@ -381,7 +382,7 @@ protected:
               xlink_peaks.push_back(spectrum_light[matched_fragments_with_shift[i].first]);
               xlink_peaks.getIntegerDataArrays()[0].push_back(charge);
               used_peaks.push_back(matched_fragments_with_shift[i].first);
-              if (deisotoped)
+              if (deisotope)
               {
                 xlink_peaks.getIntegerDataArrays()[1].push_back(spectrum_light_iso_peaks[matched_fragments_with_shift[i].first]);
               }
@@ -508,6 +509,13 @@ protected:
     Size peptide_min_size = getIntOption_("peptide:min_size");
 
     Int number_top_hits = getIntOption_("algorithm:number_top_hits");
+    String deisotope_mode = getStringOption_("algorithm:deisotope");
+
+    // deisotope if "true" or if "auto" and the tolerance is below the threshold (0.1 Da or 100 ppm)
+    bool deisotope = (deisotope_mode == "true") ||
+                      (deisotope_mode == "auto" &&
+                      ((!fragment_mass_tolerance_unit_ppm && fragment_mass_tolerance < 0.1) ||
+                      (fragment_mass_tolerance_unit_ppm && fragment_mass_tolerance < 100)));
 
     if (fixed_unique.size() != fixedModNames.size())
     {
@@ -539,7 +547,7 @@ protected:
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    PeakMap spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, true);
+    PeakMap spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, deisotope, true);
     progresslogger.endProgress();
 
     // load linked features
@@ -624,7 +632,7 @@ protected:
 
     // create linear peak / shifted peak spectra for all pairs
     progresslogger.startProgress(0, 1, "Preprocessing Spectra Pairs...");
-    OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm);
+    OPXLDataStructs::PreprocessedPairSpectra preprocessed_pair_spectra = preprocessPairs_(spectra, spectrum_pairs, cross_link_mass_iso_shift, fragment_mass_tolerance, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, deisotope);
     progresslogger.endProgress();
 
     // one identification run
@@ -867,8 +875,8 @@ protected:
         if (type_is_cross_link)
         {
           specGen.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
-          specGen.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
-          specGen.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
+          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
+          specGen.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
         } else
         {
           // Function for mono-links or loop-links
@@ -1108,9 +1116,7 @@ protected:
           csm.precursor_correction = cross_link_candidate.precursor_correction;
 
           // num_iso_peaks array from deisotoping
-          // TODO do not use deisotope_spectra here, but instead the return value from getIntegerDataArrayByName, when that is possible
-          bool deisotope_spectra = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
-          if (deisotope_spectra)
+          if (deisotope)
           {
             auto num_iso_peaks_array_it = getDataArrayByName(all_peaks.getIntegerDataArrays(), "NumIsoPeaks");
             DataArrays::IntegerDataArray num_iso_peaks_array = *num_iso_peaks_array_it;
@@ -1302,7 +1308,7 @@ protected:
       } // candidates for peak finished, determine best matching candidate
 
       // collect top n matches to spectrum
-      sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend());
+      sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
       Size max_hit = min(all_csms_spectrum.size(), static_cast<Size>(number_top_hits));
 
       for (Size top = 0; top < max_hit; top++)
