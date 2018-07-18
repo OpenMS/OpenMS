@@ -124,7 +124,7 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("fasta"));
 
     registerOutputFile_("out", "<file>", "", "Output file: mzTab");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
