@@ -97,7 +97,8 @@ namespace OpenMS
                       cross_linker_mass == other.cross_linker_mass &&
                       cross_linker_name == other.cross_linker_name &&
                       term_spec_alpha == other.term_spec_alpha &&
-                      term_spec_beta == other.term_spec_beta;
+                      term_spec_beta == other.term_spec_beta &&
+                      precursor_correction == other.precursor_correction;
         }
       };
 
@@ -168,30 +169,17 @@ namespace OpenMS
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
         Size peptide_id_index;
+      };
 
-        bool operator<(const CrossLinkSpectrumMatch& other) const
-        {
-          return score < other.score;
-        }
+      /**
+        * @brief Comparator to sort CrossLinkSpectrumMatches by the main score
 
-        bool operator==(const CrossLinkSpectrumMatch& other) const
+       */
+      struct CLSMScoreComparator
+      {
+        bool operator() (const CrossLinkSpectrumMatch& a, const CrossLinkSpectrumMatch& b)
         {
-          return cross_link == other.cross_link &&
-                     scan_index_light == other.scan_index_light &&
-                     scan_index_heavy == other.scan_index_heavy &&
-                     score == other.score &&
-                     rank == other.rank &&
-                     pre_score == other.pre_score &&
-                     percTIC == other.percTIC &&
-                     wTIC == other.wTIC &&
-                     int_sum == other.int_sum &&
-                     match_odds == other.match_odds &&
-                     xcorrx_max == other.xcorrx_max &&
-                     xcorrc_max == other.xcorrc_max &&
-                     matched_linear_alpha == other.matched_linear_alpha &&
-                     matched_linear_beta == other.matched_linear_beta &&
-                     matched_xlink_alpha == other.matched_xlink_alpha &&
-                     matched_xlink_beta == other.matched_xlink_beta;
+          return a.score < b.score;
         }
       };
 
