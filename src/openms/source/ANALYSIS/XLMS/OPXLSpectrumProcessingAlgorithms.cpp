@@ -96,7 +96,7 @@ namespace OpenMS
     return resulting_spectrum;
   }
 
-  PeakMap OPXLSpectrumProcessingAlgorithms::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance_xlinks, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, bool labeled)
+  PeakMap OPXLSpectrumProcessingAlgorithms::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, bool deisotope, bool labeled)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -111,9 +111,6 @@ namespace OpenMS
     LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
 
     PeakMap filtered_spectra;
-
-    // with a lower resolution there is no use in trying to deisotope
-    bool deisotope_spectra = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -138,9 +135,9 @@ namespace OpenMS
       }
       exp[exp_index].sortByPosition();
 
-      if (deisotope_spectra)
+      if (deisotope)
       {
-        PeakSpectrum deisotoped = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 7, 100, fragment_mass_tolerance_unit_ppm, false, 3, 10, false);
+        PeakSpectrum deisotoped = OPXLSpectrumProcessingAlgorithms::deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 7, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 10, false);
 
         // only consider spectra, that have at least as many peaks as two times the minimal peptide size after deisotoping
         if (deisotoped.size() > peptide_min_size * 2 || labeled)
