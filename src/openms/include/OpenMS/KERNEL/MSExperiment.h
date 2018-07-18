@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -291,12 +291,12 @@ public:
       @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
       @param add_mass_traces If true, each container element is searched for the metavalue
                              "num_of_masstraces".
-                             If found, "masstrace_intensity_<X>" (X>=0) meta values are added as data points (with 13C spacing).
+                             If found, "masstrace_intensity" (X>=0) meta values are added as data points (with 13C spacing).
                              This is useful for, e.g., FF-Metabo output.
                              Note that the actual feature will NOT be added if mass traces are found (since MT0 is usually identical)
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
-      retention time (in debug AND release mode) OR a "masstrace_intensity_<X>" value is expected but not found
+      retention time (in debug AND release mode) OR a "masstrace_intensity" value is expected but not found
          
     */
     template <bool add_mass_traces, class Container>
