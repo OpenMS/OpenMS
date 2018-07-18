@@ -4,6 +4,7 @@ from Residue cimport *
 from DefaultParamHandler cimport *
 from MSSpectrum cimport *
 from AASequence cimport *
+from ProteinProteinCrossLink cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespace "OpenMS":
 
@@ -20,3 +21,6 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
         void getXLinkIonSpectrum(MSSpectrum& spectrum, AASequence peptide,
                 Size link_pos, double precursor_mass, bool frag_alpha,
                 int mincharge, int maxcharge, Size link_pos_2) nogil except +
+
+        void getXLinkIonSpectrum(MSSpectrum& spectrum, ProteinProteinCrossLink& crosslink,
+                bool frag_alpha, int mincharge, int maxcharge) nogil except +
