@@ -231,6 +231,9 @@ protected:
     registerFlag_("algorithm:pre_scoring", "Set flag, to use the pre-scoring heuristic. Otherwise a full enumeration will be performed.", false);
     registerIntOption_("algorithm:number_of_scored_candidates", "<num>", 10000, "Number of candidates that are scored using the full scoring function after ranking by a faster pre-scoring function.", false, false);
     registerIntOption_("algorithm:number_top_hits", "<num>", 5, "Number of top hits reported for each spectrum pair", false, false);
+    StringList deisotope_strings = ListUtils::create<String>("true,false,auto");
+    registerStringOption_("algorithm:deisotope", "<true/false/auto>", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", false, true);
+    setValidStrings_("algorithm:deisotope", deisotope_strings);
 
     StringList bool_strings = ListUtils::create<String>("true,false");
     registerTOPPSubsection_("ions", "Ion types to search for");
@@ -322,6 +325,13 @@ protected:
     Int number_top_hits = getIntOption_("algorithm:number_top_hits");
     bool pre_scoring(getFlag_("algorithm:pre_scoring"));
     Int number_of_scored_candidates = getIntOption_("algorithm:number_of_scored_candidates");
+    String deisotope_mode = getStringOption_("algorithm:deisotope");
+
+    // deisotope if "true" or if "auto" and the tolerance is below the threshold (0.1 Da or 100 ppm)
+    bool deisotope = (deisotope_mode == "true") ||
+                      (deisotope_mode == "auto" &&
+                      ((!fragment_mass_tolerance_unit_ppm && fragment_mass_tolerance < 0.1) ||
+                      (fragment_mass_tolerance_unit_ppm && fragment_mass_tolerance < 100)));
 
     if (fixed_unique.size() != fixedModNames.size())
     {
@@ -353,7 +363,7 @@ protected:
 
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    PeakMap spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, false);
+    PeakMap spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, peptide_min_size, min_precursor_charge, max_precursor_charge, deisotope, false);
     progresslogger.endProgress();
 
     // load linked features
@@ -669,7 +679,7 @@ protected:
           prescore_csms_spectrum.push_back(csm);
         }
         progresslogger.endProgress();
-        std::sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend());
+        std::sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
       }
       else
       {
@@ -718,8 +728,8 @@ protected:
         if (type_is_cross_link)
         {
           specGen_full.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 2);
-          specGen_full.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
-          specGen_full.getXLinkIonSpectrumWithLosses(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
+          specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
+          specGen_full.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
         } else
         {
           // Function for mono-links or loop-links
@@ -923,8 +933,7 @@ protected:
         csm.precursor_correction = cross_link_candidate.precursor_correction;
 
         // num_iso_peaks array from deisotoping
-        bool deisotope_spectra = fragment_mass_tolerance_unit_ppm && (fragment_mass_tolerance_xlinks < 100);
-        if (deisotope_spectra)
+        if (deisotope)
         {
           LOG_DEBUG << "Computing Iso Peak summeries..." << endl;
 
@@ -1110,7 +1119,7 @@ protected:
       } // candidates for peak finished, determine best matching candidate
 
       // collect top n matches to spectrum
-      sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend());
+      sort(all_csms_spectrum.rbegin(), all_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
       Size max_hit = min(all_csms_spectrum.size(), static_cast<Size>(number_top_hits));
 
       for (Size top = 0; top < max_hit; top++)
