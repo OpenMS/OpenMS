@@ -105,7 +105,7 @@ protected:
     registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
 
     // Specifies how peptide ions eluding at different retention times should be resolved
-    registerStringOption_(TOPPMSstatsConverter::param_retention_time_summarization_method, "<retention_time_summarization_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
+    registerStringOption_(TOPPMSstatsConverter::param_retention_time_summarization_method, "<retention_time_summarization_method>", "max", "How undistinguishable peptides at different retention times should be treated", false, true);
     setValidStrings_(TOPPMSstatsConverter::param_retention_time_summarization_method, ListUtils::create<String>("manual,max,min,mean,sum"));
 
     // Output CSV file
@@ -423,12 +423,15 @@ protected:
             set< Intensity > intensities;
             for (const pair< Intensity, Coordinate > p : line.second)
             {
-              fatalErrorIf_(
-                  retention_times.find(p.second) != retention_times.end(),
-                  "Peptide ion appears multiple times at the same retention time. This is not expected",
-                  ILLEGAL_PARAMETERS);
-              retention_times.insert(p.second);
-              intensities.insert(p.first);
+              if (retention_times.find(p.second) != retention_times.end())
+              {
+                LOG_WARN << "Peptide ion appears multiple times at the same retention time. This is not expected." << endl;
+              }
+              else
+              {
+                retention_times.insert(p.second);
+                intensities.insert(p.first);
+              }
             }
 
             tuple<String, String, String > tpl = make_tuple(
