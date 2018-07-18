@@ -45,6 +45,9 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -121,7 +124,8 @@ struct AssayRow
 };
 
 class TOPPAssayGeneratorMetabo :
-  public TOPPBase
+  public TOPPBase,
+  private TransitionTSVFile
 {
 public:
   TOPPAssayGeneratorMetabo() :
@@ -129,11 +133,11 @@ public:
     {}
 
 protected:
-
   void registerOptionsAndFlags_() override
   {
 
-    registerInputFile_("in", "<file>", "", "MzML Input file");
+    //registerInputFileList_("in", "<file>", "", "MzML Input files used for assay library building");
+    registerInputFile_("in", "<file>", "", "MzML Input file used for assay library building");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
     registerInputFile_("in_id", "<file>", "", "FeatureXML Input with id information (accurate mass search)");
@@ -169,9 +173,8 @@ protected:
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
   }
 
-  // map precursors to closest feature and retrieve annotated metadata (if possible)
-  // extract meta information from featureXML (MetaboliteAdductDecharger)
-  map<const BaseFeature*, std::vector<size_t>> extractMetaInformation(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm)
+  // map with closest feature to index of ms2 spectra
+  map<const BaseFeature*, std::vector<size_t>> mappingFeatureToMS2Index(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm)
   {
     map<const BaseFeature*, vector<size_t>> feature_ms2_spectra_map;
 
@@ -341,16 +344,21 @@ protected:
     if (sn > 0)
     {
       SignalToNoiseEstimatorMedian<PeakMap::SpectrumType> snm;
-      Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
+      Param const &dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
       snm.setParameters(dc_param);
       for (PeakMap::Iterator it = spectra.begin(); it != spectra.end(); ++it)
       {
         snm.init(it->begin(), it->end());
         for (PeakMap::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
         {
-          if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
+          if (snm.getSignalToNoise(spec) < sn)
+            spec->setIntensity(0);
         }
-        it->erase(remove_if(it->begin(), it->end(), InIntensityRange<PeakMap::PeakType>(1, numeric_limits<PeakMap::PeakType::IntensityType>::max(), true)), it->end());
+        it->erase(remove_if(it->begin(),
+                            it->end(),
+                            InIntensityRange<PeakMap::PeakType>(1,
+                                                                numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                true)), it->end());
       }
     }
 
@@ -360,7 +368,7 @@ protected:
     fxml.load(id, feature_map);
 
     // check if correct featureXML is given and set use_known_unkowns parameter if no id information is available
-    const std::vector<DataProcessing>& processing = feature_map.getDataProcessing();
+    const std::vector<DataProcessing> &processing = feature_map.getDataProcessing();
     for (auto it = processing.begin(); it != processing.end(); ++it)
     {
       if (it->getSoftware().getName() == "FeatureFinderMetabo")
@@ -378,11 +386,11 @@ protected:
 
     // filter feature by number of masstraces
     auto map_it = remove_if(feature_map.begin(), feature_map.end(),
-                                                 [&num_masstrace_filter](const Feature& f) -> bool
-                                                 {
-                                                   unsigned int n_masstraces = f.getMetaValue("num_of_masstraces");
-                                                   return n_masstraces < num_masstrace_filter;
-                                                 });
+                            [&num_masstrace_filter](const Feature &f) -> bool
+                            {
+                              unsigned int n_masstraces = f.getMetaValue("num_of_masstraces");
+                              return n_masstraces < num_masstrace_filter;
+                            });
     feature_map.erase(map_it, feature_map.end());
 
     KDTreeFeatureMaps fp_map_kd;
@@ -392,71 +400,92 @@ protected:
 
     // read FeatureMap in KDTree for feature-precursor assignment
     // only spectra with precursors are in the map - no need to check for presence of precursors
-    map<const BaseFeature*, std::vector<size_t> > feature_ms2_spectra_map = extractMetaInformation(spectra, fp_map_kd, precursor_mz_tol, precursor_rt_tol, ppm_prec);
+    map<const BaseFeature *, std::vector<size_t> > feature_ms2_spectra_map = mappingFeatureToMS2Index(spectra,
+                                                                                                      fp_map_kd,
+                                                                                                      precursor_mz_tol,
+                                                                                                      precursor_rt_tol,
+                                                                                                      ppm_prec);
 
     std::vector<AssayRow> assaylib;
+    TargetedExperiment t_exp;
+    vector<TargetedExperiment::Compound> v_cmp;
+    vector<ReactionMonitoringTransition> v_rmt;
     int transition_group_counter = 0;
 
-    for (std::map<const BaseFeature*, std::vector<size_t>>::iterator it = feature_ms2_spectra_map.begin();
+    for (std::map<const BaseFeature *, std::vector<size_t>>::iterator it = feature_ms2_spectra_map.begin();
          it != feature_ms2_spectra_map.end();
          ++it)
     {
 
       String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
+      StringList v_description, v_sumformula, v_adduct;
+
       double feature_rt;
-      const BaseFeature* min_distance_feature = it->first;
+      const BaseFeature *min_distance_feature = it->first;
       feature_rt = min_distance_feature->getRT();
 
       // extract metadata from featureXML
       if (!(min_distance_feature->getPeptideIdentifications().empty()) &&
           !(min_distance_feature->getPeptideIdentifications()[0].getHits().empty()))
       {
-        description = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
-        sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("chemical_formula");
-        adduct = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("modifications");
+        // Accurate Mass Search may provide multiple possible Hits
+        for (unsigned int i = 0; i != min_distance_feature->getPeptideIdentifications()[0].getHits().size(); ++i)
+        {
+          description = min_distance_feature->getPeptideIdentifications()[0].getHits()[i].getMetaValue("description");
+          sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[i].getMetaValue("chemical_formula");
+          adduct = min_distance_feature->getPeptideIdentifications()[0].getHits()[i].getMetaValue("modifications");
 
-        // change format of adduct information M+H;1+ -> [M+H]1+
-        String adduct_prefix = adduct.prefix(';').trim();
-        String adduct_suffix = adduct.suffix(';').trim();
-        adduct = "["+adduct_prefix+"]"+adduct_suffix;
+          // change format of description [name] to name
+          description.erase(std::remove_if(std::begin(description),
+                                           std::end(description),
+                                           [](char c) { return c == '[' || c == ']'; }), std::end(description));
 
-        std::cout << "feature_id: " << min_distance_feature->getUniqueId();
-        std::cout << "description: " << description << std::endl;
-        std::cout << "sumformula: " << sumformula << std::endl;
-        std::cout << "adduct: " << adduct << std::endl;
+          // change format of adduct information M+H;1+ -> [M+H]1+
+          String adduct_prefix = adduct.prefix(';').trim();
+          String adduct_suffix = adduct.suffix(';').trim();
+          adduct = "[" + adduct_prefix + "]" + adduct_suffix;
+
+          v_description.push_back(description);
+          v_sumformula.push_back(sumformula);
+          v_adduct.push_back(adduct);
+        }
+
+        std::cout << "-----------" << std::endl;
+        for (auto d_it = v_description.begin(); d_it != v_description.end(); ++d_it)
+        {
+          std::cout << "des: " << *d_it << std::endl;
+        }
+
       }
 
+      // TODO: does it still apply with the vector?
       // check if known unknown should be used
-      if (description == "UNKNOWN" && sumformula == "UNKNOWN" && adduct == "UNKNOWN" && !use_known_unknowns) { continue; }
+      if (description == "UNKNOWN" && sumformula == "UNKNOWN" && adduct == "UNKNOWN" && !use_known_unknowns)
+      {
+        continue;
+      }
 
       double highest_precursor_mz = 0.0;
       float highest_precursor_int = 0.0;
       MSSpectrum highest_precursor_int_spectrum;
       MSSpectrum transition_spectrum;
+      String native_id;
 
       // find precursor/spectrum with highest intensity precursor
       std::vector<size_t> index = it->second;
       for (std::vector<size_t>::iterator index_it = index.begin(); index_it != index.end(); ++index_it)
       {
-        std::cout << "index: " << *index_it << std::endl;
         const MSSpectrum &spectrum = spectra[*index_it];
-        std::cout << "MSSpectrum_rt: " << spectrum.getRT() << std::endl;
         const vector<Precursor> &precursor = spectrum.getPrecursors();
-
-        for (auto pit = precursor.begin(); pit != precursor.end(); ++pit)
-        {
-          // TODO: Problem is that the spectrum seem to be empty.
-          std::cout << "precursor_mz: " << pit->getMZ() << std::endl;
-        }
 
         // get m/z and intensity of precursor
         // only spectra with precursors are in the map, therefore no need to check for their presence
         double precursor_mz = precursor[0].getMZ();
-
-        // TODO: Issue - there is no precursor intensity assigned to the ms2 precursor
         float precursor_int = precursor[0].getIntensity();
 
-        std::cout << "precursor_int:" << precursor_int << std::endl;
+        // TODO: Why does it not work later on? - Peak1D?
+
+        native_id = spectrum.getNativeID();
 
         // spectrum with highest intensity precursor
         if (precursor_int > highest_precursor_int)
@@ -468,9 +497,6 @@ protected:
         transition_spectrum = highest_precursor_int_spectrum;
       }
 
-      std::cout << "transition_spectrum_rt: " << transition_spectrum.getRT() << std::endl;
-      std::cout << "transition_spectrum: " << transition_spectrum << std::endl;
-
       // if only one MS2 is available and the consensus method is used - jump right to the transition list calculation
       // fallback: highest intensity precursor
       if (method_consensus_spectrum && index.size() >= 2)
@@ -479,13 +505,21 @@ protected:
         std::vector<BinnedSpectrum> binned;
         std::vector<MSSpectrum> similar_spectra;
         MSExperiment exp;
-        const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
+        const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum,
+                                                BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES,
+                                                false,
+                                                1,
+                                                BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
         // calculation of contrast angle (cosine simiarity)
         for (std::vector<size_t>::iterator index_it = index.begin(); index_it != index.end(); ++index_it)
         {
           const MSSpectrum &spectrum = spectra[*index_it];
-          const BinnedSpectrum binned_spectrum(spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
+          const BinnedSpectrum binned_spectrum(spectrum,
+                                               BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES,
+                                               false,
+                                               1,
+                                               BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
           BinnedSpectralContrastAngle bspa;
           double cosine_sim = bspa(binned_highest_int, binned_spectrum);
@@ -501,7 +535,7 @@ protected:
         SpectraMerger merger;
         Param p;
         p.setValue("precursor_method:mz_tolerance", precursor_mz_distance);
-        p.setValue("precursor_method:rt_tolerance", precursor_rt_tol*2);
+        p.setValue("precursor_method:rt_tolerance", precursor_rt_tol * 2);
         merger.setParameters(p);
 
         // all MS spectra should have the same precursor
@@ -518,7 +552,9 @@ protected:
       // calculate max intensity peak and threshold
       float max_int = 0.0;
       float min_int = numeric_limits<float>::max();
-      for (MSSpectrum::const_iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
+      for (MSSpectrum::const_iterator spec_it = transition_spectrum.begin();
+           spec_it != transition_spectrum.end();
+           ++spec_it)
       {
         //find the max intensity peak
         if (spec_it->getIntensity() > max_int)
@@ -532,65 +568,97 @@ protected:
       }
 
       // no peaks or all peaks have same intensity (single peak / noise)
-      if (min_int >= max_int) { continue; }
+      if (min_int >= max_int)
+      {
+        continue;
+      }
 
       // threshold should be at x % of the maximum intensity
       // hard minimal threshold of min_int * 1.1
-      float threshold_transition = max_int * (transition_threshold/100);
+      float threshold_transition = max_int * (transition_threshold / 100);
       float threshold_noise = min_int * 1.1;
 
       AssayRow row;
-      int transition_counter = 1;
+      int transition_counter = 0;
 
       // TODO: Other datastructure (min/max transitions) - min -> transitions with highest intensity?
       // TODO: Put stuff in vector first? then sort by intensity? maybe map Transition intensity: everything else
       // TODO: Think about it if you have multiple files
 
-      for (MSSpectrum::iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
+      ReactionMonitoringTransition rmt;
+      rmt.clearMetaInfo();
+      // TODO: Correct use of native ID for ConsensusSpektrum
+
+      // TODO: this is one transition spectrum
+      for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
         float current_int = spec_it->getIntensity();
         double current_mz = spec_it->getMZ();
 
-        // write row for each transistion
+        // write row for each transition
         // current int has to be higher than transition thresold and should not be smaller than threshold noise
         if (current_int > threshold_transition && current_int > threshold_noise)
         {
-          float rel_int = current_int/max_int;
-          row.precursor_mz = highest_precursor_mz;
-          row.product_mz = current_mz;
-          row.library_int = rel_int;
-          row.normalized_rt = feature_rt;
-          row.compound_name = description;
+          float rel_int = current_int / max_int;
+
+          TargetedExperiment::Compound cmp;
+          rmt.setPrecursorMZ(highest_precursor_mz);
+          rmt.setProductMZ(current_mz);
+          rmt.setLibraryIntensity(rel_int);
+          ReactionMonitoringTransition::RetentionTime rt;
+          rt.setRT(feature_rt);
+          rmt.setRetentionTime(rt);
+
+          if (description == "UNKNOWN")
+          {
+            rmt.setCompoundRef(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
+            cmp.id = String(transition_group_counter) + "_" + String(transition_counter) + "_" + description;
+            std::cout << String(transition_group_counter) + "_" + String(transition_counter) + "_" + description << std::endl;
+            rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
+          }
+          else
+          {
+            for (auto iter = v_description.begin(); iter != v_description.end(); ++iter)
+            {
+              std::cout << "description: " << " " << *iter << std::endl;
+            }
+            description = ListUtils::concatenate(v_description, ",");
+            rmt.setCompoundRef(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
+            cmp.id = String(transition_group_counter) + "_" + String(transition_counter) + "_" + description;
+            rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
+          }
           row.smiles = "none"; // not in AccurateMassSearch output yet
-          row.sumformula = sumformula;
-          row.adduct = adduct;
-          // for conversion to TRAML transition_id need to be unique _ due to multiple adducts with the same sumformula -> adduct information will be appended to name
-          row.transition_group_id = String(transition_group_counter)+"_"+sumformula+"_"+adduct;
-          row.transition_id = String(transition_group_counter)+"_"+String(transition_counter)+"_"+sumformula+"_"+adduct;
-          row.decoy = 0;
-          transition_counter += 1;
+          if (sumformula == "UNKNOWN")
+          {
+            cmp.molecular_formula = sumformula;
+          }
+          else
+          {
+            sumformula = ListUtils::concatenate(v_sumformula, ",");
+            cmp.molecular_formula = sumformula;
+          }
+          if (adduct == "UNKNOWN")
+          {
+            cmp.setMetaValue("adducts", adduct);
+          }
+          else
+          {
+            adduct = ListUtils::concatenate(v_adduct, ",");
+            cmp.setMetaValue("adducts", adduct);
+          }
+          v_cmp.push_back(cmp);
+          v_rmt.push_back(rmt);
         }
-        else
-        {
-          continue;
-        }
-      assaylib.push_back(row);
+        transition_counter += 1;
       }
-       transition_group_counter += 1;
+      transition_group_counter += 1;
     }
+    // TODO: is it at the right position in the loop?
+    // TODO: check how transition name is generated!
+    t_exp.setCompounds(v_cmp);
+    t_exp.setTransitions(v_rmt);
 
-    // TODO: use TransitionTSVWriter writer for output
-    // write output
-    TextFile tf;
-    tf.addLine("PrecursorMz\tProductMz\tLibraryIntensity\tRetentionTime\tCompoundName\tSMILES\tSumFormula\ttransition_name\ttransition_group_id\tAdduct\tDecoy\n");
-    for (auto & entry : assaylib)
-    {
-      tf.addLine(String(entry.precursor_mz)+"\t"+String(entry.product_mz)+"\t"+String(entry.library_int)+"\t"+String(entry.normalized_rt)+
-                 "\t"+entry.compound_name+"\t"+entry.smiles+"\t"+entry.sumformula+"\t"+entry.transition_id+"\t"+entry.transition_group_id+
-                 "\t"+entry.adduct+"\t"+entry.decoy+"\n");
-    }
-    tf.store(out);
-
+    OpenMS::TransitionTSVFile::convertTargetedExperimentToTSV(out.c_str(), t_exp);
     return EXECUTION_OK;
   }
 };
