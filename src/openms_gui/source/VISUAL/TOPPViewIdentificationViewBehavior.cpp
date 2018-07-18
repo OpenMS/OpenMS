@@ -627,7 +627,7 @@ namespace OpenMS
       row[row.size() - 1] = (code == "3'-p" ? "p" : code);
     }
   }
-*/
+
 
   template <typename SeqType>
   String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(

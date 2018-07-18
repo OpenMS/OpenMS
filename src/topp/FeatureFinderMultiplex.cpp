@@ -218,8 +218,6 @@ public:
     // only read MS1 spectra
     std::vector<int> levels;
     levels.push_back(1);
-    if (also_do_ms2_)
-        levels.push_back(2);
     file.getOptions().setMSLevels(levels);
     
     LOG_DEBUG << "Loading input..." << endl;

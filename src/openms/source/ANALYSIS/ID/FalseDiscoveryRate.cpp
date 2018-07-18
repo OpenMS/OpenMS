@@ -561,7 +561,7 @@ namespace OpenMS
     IdentificationData::ScoreTypeRef score_ref,
     vector<double>& target_scores, vector<double>& decoy_scores,
     map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
-    map<IdentificationData::QueryMatchRef, double>& match_to_score)
+    map<IdentificationData::QueryMatchRef, double>& match_to_score) const
   {
     IdentificationData::MoleculeType molecule_type =
       match_ref->getMoleculeType();
