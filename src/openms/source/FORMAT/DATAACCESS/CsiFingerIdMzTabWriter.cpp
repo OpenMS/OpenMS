@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,10 @@
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths,
+                                  const String & original_input_mzml,
+                                  const Size & top_n_hits,
+                                  MzTab & result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
@@ -71,11 +74,20 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
         // extract scan_index from path
         OpenMS::String str = File::path(pathtocsicsv);
-        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
+        int scan_index = SiriusMzTabWriter::extract_scan_index(str);
     
         // extract scan_number from string
         boost::regex regexp("-(?<SCAN>\\d+)-");
         int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
+
+        // extract feature_id from string
+        boost::smatch match;
+        String feature_id;
+        boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+        bool found = boost::regex_search(str, match, regexp_feature);
+        if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
+        // results from scan were not assigned to a feautre
+        if (feature_id == "id_0") {feature_id = "null";}
 
         const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
         for (Size j = 1; j < top_n_hits_cor; ++j)
@@ -99,6 +111,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
         csi_id.scan_index = scan_index;
         csi_id.scan_number = scan_number;
+        csi_id.feature_id = feature_id;
         csi_result.identifications.push_back(csi_id);
 
         // write metadata to mzTab file
@@ -156,9 +169,14 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             compoundScanNumber.first = "compoundScanNumber";
             compoundScanNumber.second = MzTabString(id.scan_number);
 
+            MzTabOptionalColumnEntry featureId;
+            featureId.first = "featureId";
+            featureId.second = MzTabString(csi_id.feature_id);
+
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
+            smsr.opt_.push_back(featureId);
             smsd.push_back(smsr);
           } 
         }

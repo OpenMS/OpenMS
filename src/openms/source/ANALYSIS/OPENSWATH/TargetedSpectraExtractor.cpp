@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,6 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <unordered_map>
 
 namespace OpenMS
 {
@@ -395,7 +394,7 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    std::unordered_map<std::string,UInt> transition_best_spec;
+    std::map<std::string,UInt> transition_best_spec;
     for (UInt i = 0; i < scored_spectra.size(); ++i)
     {
       if (scored_spectra[i].getFloatDataArrays()[1][0] < min_select_score_)
@@ -403,7 +402,7 @@ namespace OpenMS
         continue;
       }
       const std::string& transition_name = scored_spectra[i].getName();
-      std::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
+      std::map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
       if (it == transition_best_spec.cend())
       {
         transition_best_spec.emplace(transition_name, i);
@@ -523,5 +522,94 @@ namespace OpenMS
     }
 
     // std::cout << "MATCH TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
+  }
+
+  void TargetedSpectraExtractor::targetedMatching(
+    const std::vector<MSSpectrum>& spectra,
+    const Comparator& cmp,
+    FeatureMap& features
+  )
+  {
+    if (spectra.size() != features.size())
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    std::vector<Size> no_matches_idx; // to keep track of those features without a match
+    const Size tmp = top_matches_to_report_;
+    top_matches_to_report_ = 1;
+
+    for (Size i = 0; i < spectra.size(); ++i)
+    {
+      std::vector<Match> matches;
+      matchSpectrum(spectra[i], cmp, matches);
+      if (matches.size())
+      {
+        features[i].setMetaValue("spectral_library_name", matches[0].spectrum.getName());
+        features[i].setMetaValue("spectral_library_score", matches[0].score);
+        const String& comments = matches[0].spectrum.metaValueExists("Comments") ?
+          matches[0].spectrum.getMetaValue("Comments") : "";
+        features[i].setMetaValue("spectral_library_comments", comments);
+      }
+      else
+      {
+        no_matches_idx.push_back(i);
+        features[i].setMetaValue("spectral_library_name", "");
+        features[i].setMetaValue("spectral_library_score", 0.0);
+        features[i].setMetaValue("spectral_library_comments", "");
+      }
+    }
+
+    top_matches_to_report_ = tmp;
+
+    if (no_matches_idx.size())
+    {
+      String warn_msg = "No match was found for " + std::to_string(no_matches_idx.size()) + " `Feature`s. Indices: ";
+      for (const Size idx : no_matches_idx)
+      {
+        warn_msg += std::to_string(idx) + " ";
+      }
+      LOG_WARN << std:: endl << warn_msg << std::endl;
+    }
+  }
+
+  void TargetedSpectraExtractor::untargetedMatching(
+    const std::vector<MSSpectrum>& spectra,
+    const Comparator& cmp,
+    FeatureMap& features
+  )
+  {
+    features.clear(true);
+
+    std::vector<MSSpectrum> picked(spectra.size());
+    for (Size i = 0; i < spectra.size(); ++i)
+    {
+      pickSpectrum(spectra[i], picked[i]);
+    }
+
+    // remove empty picked<> spectra
+    for (Int i = spectra.size() - 1; i >= 0; --i)
+    {
+      if (picked[i].empty())
+      {
+        picked.erase(picked.begin() + i);
+      }
+    }
+
+    for (const MSSpectrum& spectrum : picked)
+    {
+      const std::vector<Precursor>& precursors = spectrum.getPrecursors();
+      if (precursors.empty())
+      {
+        LOG_WARN << "untargetedMatching(): No precursor MZ found. Setting spectrum_mz to 0." << std::endl;
+      }
+      const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
+      Feature feature;
+      feature.setRT(spectrum.getRT());
+      feature.setMZ(spectrum_mz);
+      features.push_back(feature);
+    }
+
+    targetedMatching(picked, cmp, features);
   }
 }
