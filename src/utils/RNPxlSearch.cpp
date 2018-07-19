@@ -535,7 +535,7 @@ protected:
 
     // remove all but top n scoring for localization (usually all but the first one)
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for 
 #endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -1656,7 +1656,7 @@ protected:
     Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic, 100)
 #endif
     for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
     {
@@ -2183,6 +2183,13 @@ protected:
         return UNKNOWN_ERROR;
       }
     } 
+
+    if (generate_decoys)	
+    {
+      // calculate FDR
+      FalseDiscoveryRate fdr;     	
+      fdr.apply(peptide_ids);	
+    }
 
     // write ProteinIdentifications and PeptideIdentifications to IdXML
     IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
