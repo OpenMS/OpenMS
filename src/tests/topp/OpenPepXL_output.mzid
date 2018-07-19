@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_5990834678922985545"
-	creationDate="2018-07-13T21:50:16">
+	creationDate="2018-07-17T19:09:50">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -1052,7 +1052,7 @@
 	<PeptideEvidence id="PEV_9949257177078866781" peptide_ref="PEP_17876486934271562208" dBSequence_ref="PROT_15916652588957785155" post="Q" pre="K" start="119" end="127" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-07-13T21:50:15">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-07-17T19:09:49">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -2302,11 +2302,11 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="81.7858189216252"/>
+					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="80.5908095777419"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="4424849434463425713"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.0833333333333333"/>
 					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.5"/>
-					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.3429485224438"/>
+					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.70818602347634"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="3.02076792344451"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.78154908286803"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="101"/>
@@ -2314,14 +2314,14 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="63"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.737557645104141"/>
-					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="23.1115585236959"/>
+					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="21.8591721132331"/>
 					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="3.02076792344451"/>
 					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="3.86510327970609"/>
 					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.78154908286803"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0750000029802322"/>
-					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="3.63091063482224"/>
-					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="3.63091063482224"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0584415569901466"/>
+					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="2.43590129093893"/>
+					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="2.43590129093893"/>
 					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
@@ -2381,11 +2381,11 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="81.7858189216252"/>
+					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="80.5908095777419"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="4424849434463425713"/>
 					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.0833333333333333"/>
 					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.5"/>
-					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.3429485224438"/>
+					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="0.70818602347634"/>
 					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="3.02076792344451"/>
 					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.78154908286803"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="101"/>
@@ -2393,14 +2393,14 @@
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="63"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="0.737557645104141"/>
-					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="23.1115585236959"/>
+					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="21.8591721132331"/>
 					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="3.02076792344451"/>
 					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="3.86510327970609"/>
 					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.78154908286803"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0750000029802322"/>
-					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="3.63091063482224"/>
-					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="3.63091063482224"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0584415569901466"/>
+					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="2.43590129093893"/>
+					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="2.43590129093893"/>
 					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0"/>
 					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="3"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
@@ -8290,28 +8290,28 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="72.303622567895"/>
+					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="72.7229673632905"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17059567378767716987"/>
-					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.0625"/>
+					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.125"/>
 					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.357142857142857"/>
-					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="2.10246747524248"/>
-					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.24292096868157"/>
-					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.66742981191063"/>
+					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.15445677035251"/>
+					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.3120330311358"/>
+					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.687995606019592"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="180"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="6.21114448230428"/>
-					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="18.7947212817569"/>
-					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="2.24292096868157"/>
+					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="17.2921440643012"/>
+					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="2.3120330311358"/>
 					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="3.36053458903916"/>
-					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.66742981191063"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0897435918450356"/>
-					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="5.56064137683205"/>
-					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="5.56064137683205"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.687995606019592"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0707547143101692"/>
+					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="3.92340676133129"/>
+					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="3.92340676133129"/>
 					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0"/>
-					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="10"/>
 					<userParam name="matched_linear_beta" unitName="xsd:integer" value="0"/>
@@ -8322,13 +8322,13 @@
 					<userParam name="num_iso_peaks_mean_xlinks_beta" unitName="xsd:double" value="0"/>
 					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="157.315740299225"/>
 					<userParam name="ppm_error_abs_sum_linear_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="133.620111227036"/>
+					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="115.257928276062"/>
 					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="0"/>
 					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="157.315740299225"/>
-					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="133.620111227036"/>
-					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="150.545560564314"/>
+					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="115.257928276062"/>
+					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="143.296469624837"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="150.545560564314"/>
+					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="143.296469624837"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="-"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="153"/>
@@ -8369,28 +8369,28 @@
 							<cvParam accession="MS:1001220" cvRef="PSI-MS" name="frag: y ion"/>
 						</IonType>
 					</Fragmentation>
-					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="72.303622567895"/>
+					<cvParam accession="MS:1002681" cvRef="PSI-MS" name="OpenXQuest:combined score" value="72.7229673632905"/>
 					<cvParam accession="MS:1002511" cvRef="PSI-MS" name="cross-link spectrum identification item" value="17059567378767716987"/>
-					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.0625"/>
+					<cvParam accession="MS:1002682" cvRef="PSI-MS" name="OpenXQuest:xcorr xlink" value="0.125"/>
 					<cvParam accession="MS:1002683" cvRef="PSI-MS" name="OpenXQuest:xcorr common" value="0.357142857142857"/>
-					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="2.10246747524248"/>
-					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.24292096868157"/>
-					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.66742981191063"/>
+					<cvParam accession="MS:1002684" cvRef="PSI-MS" name="OpenXQuest:match-odds" value="1.15445677035251"/>
+					<cvParam accession="MS:1002685" cvRef="PSI-MS" name="OpenXQuest:intsum" value="2.3120330311358"/>
+					<cvParam accession="MS:1002686" cvRef="PSI-MS" name="OpenXQuest:wTIC" value="0.687995606019592"/>
 					<userParam name="spectrum_index" unitName="xsd:integer" value="195"/>
 					<userParam name="xl_term_spec" unitName="xsd:string" value="ANYWHERE"/>
 					<userParam name="precursor_correction" unitName="xsd:integer" value="0"/>
 					<userParam name="spectrum_index_heavy" unitName="xsd:integer" value="180"/>
 					<userParam name="OMS:precursor_mz_error_ppm" unitName="xsd:double" value="6.21114448230428"/>
-					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="18.7947212817569"/>
-					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="2.24292096868157"/>
+					<userParam name="OpenXQuest:xquest_score" unitName="xsd:double" value="17.2921440643012"/>
+					<userParam name="OpenXQuest:intsum_alpha" unitName="xsd:double" value="2.3120330311358"/>
 					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="3.36053458903916"/>
-					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.66742981191063"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0897435918450356"/>
-					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="5.56064137683205"/>
-					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="5.56064137683205"/>
+					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.687995606019592"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.0707547143101692"/>
+					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="3.92340676133129"/>
+					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="3.92340676133129"/>
 					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0"/>
-					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="4"/>
+					<userParam name="matched_xlink_alpha" unitName="xsd:integer" value="5"/>
 					<userParam name="matched_xlink_beta" unitName="xsd:integer" value="0"/>
 					<userParam name="matched_linear_alpha" unitName="xsd:integer" value="10"/>
 					<userParam name="matched_linear_beta" unitName="xsd:integer" value="0"/>
@@ -8401,13 +8401,13 @@
 					<userParam name="num_iso_peaks_mean_xlinks_beta" unitName="xsd:double" value="0"/>
 					<userParam name="ppm_error_abs_sum_linear_alpha" unitName="xsd:double" value="157.315740299225"/>
 					<userParam name="ppm_error_abs_sum_linear_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="133.620111227036"/>
+					<userParam name="ppm_error_abs_sum_xlinks_alpha" unitName="xsd:double" value="115.257928276062"/>
 					<userParam name="ppm_error_abs_sum_xlinks_beta" unitName="xsd:double" value="0"/>
 					<userParam name="ppm_error_abs_sum_linear" unitName="xsd:double" value="157.315740299225"/>
-					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="133.620111227036"/>
-					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="150.545560564314"/>
+					<userParam name="ppm_error_abs_sum_xlinks" unitName="xsd:double" value="115.257928276062"/>
+					<userParam name="ppm_error_abs_sum_alpha" unitName="xsd:double" value="143.296469624837"/>
 					<userParam name="ppm_error_abs_sum_beta" unitName="xsd:double" value="0"/>
-					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="150.545560564314"/>
+					<userParam name="ppm_error_abs_sum" unitName="xsd:double" value="143.296469624837"/>
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="-"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="153"/>
@@ -13205,7 +13205,7 @@
 					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="3.74994031619281"/>
 					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0243227697225158"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00531914876773953"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00393700785934925"/>
 					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="0.108614092570659"/>
 					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="0.108614092570659"/>
 					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0"/>
@@ -13254,7 +13254,7 @@
 					<userParam name="OpenXQuest:intsum_beta" unitName="xsd:double" value="0"/>
 					<userParam name="OpenXQuest:total_current" unitName="xsd:double" value="3.74994031619281"/>
 					<userParam name="OpenXQuest:TIC" unitName="xsd:double" value="0.0243227697225158"/>
-					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00531914876773953"/>
+					<userParam name="OpenXQuest:prescore" unitName="xsd:double" value="0.00393700785934925"/>
 					<userParam name="OpenXQuest:log_occupancy" unitName="xsd:double" value="0.108614092570659"/>
 					<userParam name="OpenXQuest:log_occupancy_alpha" unitName="xsd:double" value="0.108614092570659"/>
 					<userParam name="OpenXQuest:log_occupancy_beta" unitName="xsd:double" value="0"/>
