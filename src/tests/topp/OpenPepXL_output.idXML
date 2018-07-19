@@ -21,7 +21,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-07-17T19:09:49" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-13" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-07-19T10:40:11" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-19" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -53,7 +53,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.70141601562"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="601.70166015625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=42"/>
@@ -107,7 +107,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.70141601562"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="601.70166015625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=42"/>
@@ -146,7 +146,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.70141601562"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="601.70166015625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=42"/>
@@ -200,7 +200,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.70141601562"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="601.70166015625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=42"/>
@@ -332,7 +332,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -386,7 +386,7 @@
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -425,7 +425,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -479,7 +479,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -518,7 +518,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -572,7 +572,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -704,7 +704,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -758,7 +758,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -797,7 +797,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -851,7 +851,7 @@
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -890,7 +890,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -944,7 +944,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -1076,7 +1076,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -1130,7 +1130,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -1169,7 +1169,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -1223,7 +1223,7 @@
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -1262,7 +1262,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -1316,7 +1316,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2096.1025390625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.084228515625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=40"/>
@@ -1448,7 +1448,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -1502,7 +1502,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -1541,7 +1541,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -1595,7 +1595,7 @@
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -1634,7 +1634,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -1688,7 +1688,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2128.08715820312"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="544.082763671875"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=120"/>
@@ -1727,7 +1727,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
@@ -1781,7 +1781,7 @@
 				<UserParam type="int" name="xl_pos" value="10"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
@@ -1820,7 +1820,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
@@ -1874,7 +1874,7 @@
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
@@ -1972,7 +1972,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
@@ -2026,7 +2026,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2099.09545898438"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="732.436096191406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=48"/>
@@ -2344,7 +2344,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -2398,7 +2398,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -2437,7 +2437,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -2491,7 +2491,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -2623,7 +2623,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -2677,7 +2677,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -2716,7 +2716,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -2770,7 +2770,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -2809,7 +2809,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -2863,7 +2863,7 @@
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -2995,7 +2995,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -3049,7 +3049,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -3088,7 +3088,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -3142,7 +3142,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -3181,7 +3181,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -3235,7 +3235,7 @@
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2089.55322265625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.108947753906"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=23"/>
@@ -3367,7 +3367,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -3421,7 +3421,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -3460,7 +3460,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -3514,7 +3514,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -3553,7 +3553,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -3607,7 +3607,7 @@
 				<UserParam type="int" name="xl_pos" value="7"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2125.5966796875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="725.109252929688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=113"/>
@@ -3646,7 +3646,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2116.37963867188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="537.300903320313"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=90"/>
@@ -3700,7 +3700,7 @@
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2116.37963867188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="537.300903320313"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=90"/>
@@ -3739,7 +3739,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2116.37963867188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="537.300903320313"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=90"/>
@@ -3793,7 +3793,7 @@
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2116.37963867188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="537.300903320313"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=90"/>
@@ -3832,7 +3832,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2116.37963867188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="537.300903320313"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=90"/>
@@ -3886,7 +3886,7 @@
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2116.37963867188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="537.300903320313"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=90"/>
@@ -3925,7 +3925,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2116.37963867188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="537.300903320313"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=90"/>
@@ -3979,7 +3979,7 @@
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2116.37963867188"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="537.300903320313"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=90"/>
@@ -4018,7 +4018,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4072,7 +4072,7 @@
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4111,7 +4111,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4165,7 +4165,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4204,7 +4204,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4258,7 +4258,7 @@
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4297,7 +4297,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4351,7 +4351,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4390,7 +4390,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4444,7 +4444,7 @@
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2115.5791015625"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="716.065673828125"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=88"/>
@@ -4542,7 +4542,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2126.93701171875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="649.728942871094"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=117"/>
@@ -4596,7 +4596,7 @@
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2126.93701171875"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="649.728942871094"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=117"/>
@@ -4635,7 +4635,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2181.46240233668"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="837.494995117188"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=188"/>
@@ -4689,7 +4689,7 @@
 				<UserParam type="int" name="xl_pos" value="11"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2181.46240233668"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="837.494995117188"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=188"/>
@@ -4728,7 +4728,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2181.46240233668"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="837.494995117188"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=188"/>
@@ -4782,7 +4782,7 @@
 				<UserParam type="int" name="xl_pos" value="9"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2181.46240233668"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="837.494995117188"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=188"/>
@@ -4821,7 +4821,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2181.46240233668"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="837.494995117188"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=188"/>
@@ -4875,7 +4875,7 @@
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2181.46240233668"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="837.494995117188"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=188"/>
@@ -5007,7 +5007,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2176.58422850855"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="674.863525390625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=173"/>
@@ -5061,7 +5061,7 @@
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2176.58422850855"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="674.863525390625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=173"/>
@@ -5100,7 +5100,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2176.58422850855"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="674.863525390625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=173"/>
@@ -5154,7 +5154,7 @@
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2176.58422850855"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="674.863525390625"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=173"/>
@@ -5193,7 +5193,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5247,7 +5247,7 @@
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5286,7 +5286,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5340,7 +5340,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5379,7 +5379,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5433,7 +5433,7 @@
 				<UserParam type="int" name="xl_pos" value="10"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5472,7 +5472,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5526,7 +5526,7 @@
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5565,7 +5565,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5619,7 +5619,7 @@
 				<UserParam type="int" name="xl_pos" value="1"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2229.32958978732"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="915.510314941406"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=240"/>
@@ -5751,7 +5751,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2230.30517572482"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="901.480346679688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=243"/>
@@ -5805,7 +5805,7 @@
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2230.30517572482"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="901.480346679688"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=243"/>
@@ -5996,7 +5996,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2236.94824213107"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="877.493286132813"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=260"/>
@@ -6050,7 +6050,7 @@
 				<UserParam type="int" name="xl_pos" value="9"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2236.94824213107"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="877.493286132813"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=260"/>
@@ -6089,7 +6089,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2236.94824213107"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="877.493286132813"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=260"/>
@@ -6143,7 +6143,7 @@
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2236.94824213107"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="877.493286132813"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=260"/>
@@ -6182,7 +6182,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2236.94824213107"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="877.493286132813"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=260"/>
@@ -6236,7 +6236,7 @@
 				<UserParam type="int" name="xl_pos" value="9"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2236.94824213107"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="877.493286132813"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=260"/>
@@ -6275,7 +6275,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2236.94824213107"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="877.493286132813"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=260"/>
@@ -6329,7 +6329,7 @@
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="spec_heavy_RT" value="2236.94824213107"/>
 				<UserParam type="float" name="spec_heavy_MZ" value="877.493286132813"/>
 				<UserParam type="string" name="spectrum_reference_heavy" value="spectrum=260"/>

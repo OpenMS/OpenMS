@@ -19,7 +19,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="397"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-07-18T17:01:17" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-13" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-07-19T10:40:14" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-19" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -94,7 +94,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.75051104358744"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="5.5001518650821"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0566037735849057"/>
@@ -145,7 +145,7 @@
 				<UserParam type="int" name="spectrum_index" value="10"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="N_TERM"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.75051104358744"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="5.5001518650821"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0566037735849057"/>
@@ -179,7 +179,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.59808425814875"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.52317591234077"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0471698113207547"/>
@@ -230,7 +230,7 @@
 				<UserParam type="int" name="spectrum_index" value="10"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.59808425814875"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.52317591234077"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0471698113207547"/>
@@ -349,7 +349,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.1040852839333"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.354939236294"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0284552845528455"/>
@@ -400,7 +400,7 @@
 				<UserParam type="int" name="spectrum_index" value="15"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.1040852839333"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.354939236294"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0284552845528455"/>
@@ -434,7 +434,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.62899014029127"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.20098901781552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0294117647058824"/>
@@ -485,7 +485,7 @@
 				<UserParam type="int" name="spectrum_index" value="17"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.62899014029127"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.20098901781552"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0294117647058824"/>
@@ -519,7 +519,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.67337395764352"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.36911512318979"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0323529411764706"/>
@@ -570,7 +570,7 @@
 				<UserParam type="int" name="spectrum_index" value="17"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.67337395764352"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.36911512318979"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0323529411764706"/>
@@ -604,7 +604,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.67337395764352"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.89727894093041"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0294117647058824"/>
@@ -655,7 +655,7 @@
 				<UserParam type="int" name="spectrum_index" value="17"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.67337395764352"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.89727894093041"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0294117647058824"/>
@@ -689,7 +689,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.87723642558975"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.19892147926092"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0492610837438424"/>
@@ -740,7 +740,7 @@
 				<UserParam type="int" name="spectrum_index" value="18"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.87723642558975"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.19892147926092"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0492610837438424"/>
@@ -774,7 +774,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.92170544971825"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="0.659700518943826"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0394088669950739"/>
@@ -825,7 +825,7 @@
 				<UserParam type="int" name="spectrum_index" value="18"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.92170544971825"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="0.659700518943826"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0394088669950739"/>
@@ -859,7 +859,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.04273401882825"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.1078377372238"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0236842105263158"/>
@@ -910,7 +910,7 @@
 				<UserParam type="int" name="spectrum_index" value="19"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.04273401882825"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.1078377372238"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0236842105263158"/>
@@ -944,7 +944,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.00731176890478"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.92791484061909"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0236842105263158"/>
@@ -995,7 +995,7 @@
 				<UserParam type="int" name="spectrum_index" value="20"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.00731176890478"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.92791484061909"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0236842105263158"/>
@@ -1029,7 +1029,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.93157416963957"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.39874540771213"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0380952380952381"/>
@@ -1080,7 +1080,7 @@
 				<UserParam type="int" name="spectrum_index" value="21"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.93157416963957"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.39874540771213"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0380952380952381"/>
@@ -1114,7 +1114,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.88361071183591"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.83496704459434"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0490196078431373"/>
@@ -1165,7 +1165,7 @@
 				<UserParam type="int" name="spectrum_index" value="31"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.88361071183591"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.83496704459434"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0490196078431373"/>
@@ -1284,7 +1284,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.13859093506125"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.58498165252891"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0392156862745098"/>
@@ -1335,7 +1335,7 @@
 				<UserParam type="int" name="spectrum_index" value="31"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.13859093506125"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.58498165252891"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0392156862745098"/>
@@ -1369,7 +1369,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.68663840420256"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="16.0742689902564"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0703883495145631"/>
@@ -1420,7 +1420,7 @@
 				<UserParam type="int" name="spectrum_index" value="32"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.68663840420256"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="16.0742689902564"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0703883495145631"/>
@@ -1454,7 +1454,7 @@
 				<UserParam type="string" name="xl_type" value="loop-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-4.5507121059865"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.1634241477011"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0434782608695652"/>
@@ -1680,7 +1680,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.26124168121041"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.79320747083537"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0552631578947368"/>
@@ -1731,7 +1731,7 @@
 				<UserParam type="int" name="spectrum_index" value="32"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.26124168121041"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.79320747083537"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0552631578947368"/>
@@ -1765,7 +1765,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.94560314316315"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.4858304574232"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0447368421052632"/>
@@ -1816,7 +1816,7 @@
 				<UserParam type="int" name="spectrum_index" value="35"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.94560314316315"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.4858304574232"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0447368421052632"/>
@@ -1850,7 +1850,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.39044915933352"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.31061217287128"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0166666666666667"/>
@@ -1901,7 +1901,7 @@
 				<UserParam type="int" name="spectrum_index" value="36"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.39044915933352"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.31061217287128"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0166666666666667"/>
@@ -1935,7 +1935,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.39044915933352"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.06917534825609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0291666666666667"/>
@@ -1986,7 +1986,7 @@
 				<UserParam type="int" name="spectrum_index" value="36"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.39044915933352"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.06917534825609"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0291666666666667"/>
@@ -2020,7 +2020,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.12548283537292"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.2756605320857"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0263157894736842"/>
@@ -2071,7 +2071,7 @@
 				<UserParam type="int" name="spectrum_index" value="37"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.12548283537292"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="2.2756605320857"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0263157894736842"/>
@@ -2190,7 +2190,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="7.71328722742566"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.897780266226"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0509259259259259"/>
@@ -2241,7 +2241,7 @@
 				<UserParam type="int" name="spectrum_index" value="39"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="7.71328722742566"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.897780266226"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0509259259259259"/>
@@ -2386,7 +2386,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.07614865503835"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.9259389537594"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0637254901960784"/>
@@ -2437,7 +2437,7 @@
 				<UserParam type="int" name="spectrum_index" value="39"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.07614865503835"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.9259389537594"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0637254901960784"/>
@@ -2471,7 +2471,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.91755308424659"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.5095630958374"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0421052631578947"/>
@@ -2522,7 +2522,7 @@
 				<UserParam type="int" name="spectrum_index" value="40"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.91755308424659"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.5095630958374"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0421052631578947"/>
@@ -2556,7 +2556,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.34894141131353"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.2151312039848"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0368421052631579"/>
@@ -2607,7 +2607,7 @@
 				<UserParam type="int" name="spectrum_index" value="41"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.34894141131353"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.2151312039848"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0368421052631579"/>
@@ -2641,7 +2641,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.34894141131353"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.01518833294339"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0447368421052632"/>
@@ -2692,7 +2692,7 @@
 				<UserParam type="int" name="spectrum_index" value="41"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.34894141131353"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.01518833294339"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0447368421052632"/>
@@ -2726,7 +2726,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.30501202868019"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.08094862424074"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0447368421052632"/>
@@ -2777,7 +2777,7 @@
 				<UserParam type="int" name="spectrum_index" value="41"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.30501202868019"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.08094862424074"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0447368421052632"/>
@@ -2811,7 +2811,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.97339268765628"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="19.173643728555"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0732323232323232"/>
@@ -2862,7 +2862,7 @@
 				<UserParam type="int" name="spectrum_index" value="43"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.97339268765628"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="19.173643728555"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0732323232323232"/>
@@ -2981,7 +2981,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.97339268765628"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="18.2907256236661"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0681818181818182"/>
@@ -3032,7 +3032,7 @@
 				<UserParam type="int" name="spectrum_index" value="43"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.97339268765628"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="18.2907256236661"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0681818181818182"/>
@@ -3066,7 +3066,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.40924143796952"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="18.2275763102845"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0657894736842105"/>
@@ -3117,7 +3117,7 @@
 				<UserParam type="int" name="spectrum_index" value="43"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.40924143796952"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="18.2275763102845"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0657894736842105"/>
@@ -3151,7 +3151,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.40924143796952"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="17.8222784997596"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0657894736842105"/>
@@ -3202,7 +3202,7 @@
 				<UserParam type="int" name="spectrum_index" value="43"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.40924143796952"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="17.8222784997596"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0657894736842105"/>
@@ -3236,7 +3236,7 @@
 				<UserParam type="string" name="xl_type" value="loop-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.54868345349453"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="25.5616353122103"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0797101449275362"/>
@@ -3632,7 +3632,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.12811998588114"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.788175588232"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0648148148148148"/>
@@ -3683,7 +3683,7 @@
 				<UserParam type="int" name="spectrum_index" value="49"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.12811998588114"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.788175588232"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0648148148148148"/>
@@ -3802,7 +3802,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.10669425984399"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.62213699550683"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0686274509803922"/>
@@ -3853,7 +3853,7 @@
 				<UserParam type="int" name="spectrum_index" value="49"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.10669425984399"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.62213699550683"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0686274509803922"/>
@@ -3943,7 +3943,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.10669425984399"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.20421807119827"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0686274509803922"/>
@@ -3994,7 +3994,7 @@
 				<UserParam type="int" name="spectrum_index" value="49"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.10669425984399"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.20421807119827"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0686274509803922"/>
@@ -4113,7 +4113,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.38829711329071"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.75312290522593"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0787037037037037"/>
@@ -4164,7 +4164,7 @@
 				<UserParam type="int" name="spectrum_index" value="50"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.38829711329071"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.75312290522593"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0787037037037037"/>
@@ -4198,7 +4198,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.366086442785764"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.02166390470516"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0294117647058824"/>
@@ -4249,7 +4249,7 @@
 				<UserParam type="int" name="spectrum_index" value="50"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.366086442785764"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.02166390470516"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0294117647058824"/>
@@ -4283,7 +4283,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.366086442785764"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.06973450599138"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0441176470588235"/>
@@ -4334,7 +4334,7 @@
 				<UserParam type="int" name="spectrum_index" value="50"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.366086442785764"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.06973450599138"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0441176470588235"/>
@@ -4538,7 +4538,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.3286794617865"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.6857160250175"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0736842105263158"/>
@@ -4589,7 +4589,7 @@
 				<UserParam type="int" name="spectrum_index" value="53"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.3286794617865"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.6857160250175"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0736842105263158"/>
@@ -4708,7 +4708,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.54841648374839"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.9547837528404"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0558252427184466"/>
@@ -4759,7 +4759,7 @@
 				<UserParam type="int" name="spectrum_index" value="53"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.54841648374839"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.9547837528404"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0558252427184466"/>
@@ -4878,7 +4878,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.931540834159628"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="15.4743561158562"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0657894736842105"/>
@@ -4929,7 +4929,7 @@
 				<UserParam type="int" name="spectrum_index" value="54"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.931540834159628"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="15.4743561158562"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0657894736842105"/>
@@ -4963,7 +4963,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.94557847392467"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.6890367753488"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0606796116504854"/>
@@ -5014,7 +5014,7 @@
 				<UserParam type="int" name="spectrum_index" value="54"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.94557847392467"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.6890367753488"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0606796116504854"/>
@@ -5048,7 +5048,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.931540834159628"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.39932373069"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0631578947368421"/>
@@ -5099,7 +5099,7 @@
 				<UserParam type="int" name="spectrum_index" value="54"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.931540834159628"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.39932373069"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0631578947368421"/>
@@ -5473,7 +5473,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.89418792150014"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.6842979169449"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -5524,7 +5524,7 @@
 				<UserParam type="int" name="spectrum_index" value="56"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.89418792150014"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.6842979169449"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -5558,7 +5558,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.89418792150014"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.54215667787286"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.043859649122807"/>
@@ -5609,7 +5609,7 @@
 				<UserParam type="int" name="spectrum_index" value="56"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="9.89418792150014"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.54215667787286"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.043859649122807"/>
@@ -5643,7 +5643,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.29010120569817"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="20.490979007859"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0881226053639847"/>
@@ -5698,7 +5698,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.29010120569817"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.4666390736275"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.072463768115942"/>
@@ -5753,7 +5753,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.29010120569817"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.5247053859241"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0599250936329588"/>
@@ -5808,7 +5808,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.98329371607578"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.6701816437988"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0552631578947368"/>
@@ -5859,7 +5859,7 @@
 				<UserParam type="int" name="spectrum_index" value="57"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.98329371607578"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.6701816437988"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0552631578947368"/>
@@ -5893,7 +5893,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.14027820875772"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="12.0057021970271"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0631578947368421"/>
@@ -5944,7 +5944,7 @@
 				<UserParam type="int" name="spectrum_index" value="57"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.14027820875772"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="12.0057021970271"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0631578947368421"/>
@@ -5978,7 +5978,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.15606764122527"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.45485714995763"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -6029,7 +6029,7 @@
 				<UserParam type="int" name="spectrum_index" value="58"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.15606764122527"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.45485714995763"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -6063,7 +6063,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.15606764122527"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.4129759917854"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0570175438596491"/>
@@ -6114,7 +6114,7 @@
 				<UserParam type="int" name="spectrum_index" value="58"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.15606764122527"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.4129759917854"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0570175438596491"/>
@@ -6403,7 +6403,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.975380175460475"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.41402277005225"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0263157894736842"/>
@@ -6454,7 +6454,7 @@
 				<UserParam type="int" name="spectrum_index" value="59"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.975380175460475"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.41402277005225"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0263157894736842"/>
@@ -6488,7 +6488,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.33175084513136"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.5476573139707"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0745614035087719"/>
@@ -6539,7 +6539,7 @@
 				<UserParam type="int" name="spectrum_index" value="60"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.33175084513136"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.5476573139707"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0745614035087719"/>
@@ -6573,7 +6573,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.33175084513136"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.2688504011104"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0701754385964912"/>
@@ -6624,7 +6624,7 @@
 				<UserParam type="int" name="spectrum_index" value="60"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.33175084513136"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.2688504011104"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0701754385964912"/>
@@ -6913,7 +6913,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.2715144080143"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.8207441749228"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -6964,7 +6964,7 @@
 				<UserParam type="int" name="spectrum_index" value="61"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.2715144080143"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.8207441749228"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -6998,7 +6998,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.2715144080143"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.07574101847209"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -7049,7 +7049,7 @@
 				<UserParam type="int" name="spectrum_index" value="61"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.2715144080143"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.07574101847209"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -7083,7 +7083,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.22021745524418"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.99151315656421"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0392156862745098"/>
@@ -7134,7 +7134,7 @@
 				<UserParam type="int" name="spectrum_index" value="61"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.22021745524418"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.99151315656421"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0392156862745098"/>
@@ -7168,7 +7168,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.62775716332067"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="18.9330214191533"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0740740740740741"/>
@@ -7219,7 +7219,7 @@
 				<UserParam type="int" name="spectrum_index" value="62"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.62775716332067"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="18.9330214191533"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0740740740740741"/>
@@ -7253,7 +7253,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.62775716332067"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.9789713567146"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0787037037037037"/>
@@ -7304,7 +7304,7 @@
 				<UserParam type="int" name="spectrum_index" value="62"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.62775716332067"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.9789713567146"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0787037037037037"/>
@@ -7593,7 +7593,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.01125810384573"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.2127283226068"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0570175438596491"/>
@@ -7644,7 +7644,7 @@
 				<UserParam type="int" name="spectrum_index" value="63"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.01125810384573"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.2127283226068"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0570175438596491"/>
@@ -7763,7 +7763,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.01125810384573"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.52801800961717"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0570175438596491"/>
@@ -7814,7 +7814,7 @@
 				<UserParam type="int" name="spectrum_index" value="63"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.01125810384573"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.52801800961717"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0570175438596491"/>
@@ -8188,7 +8188,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.01125810384573"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="12.4424812276843"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0701754385964912"/>
@@ -8239,7 +8239,7 @@
 				<UserParam type="int" name="spectrum_index" value="67"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.01125810384573"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="12.4424812276843"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0701754385964912"/>
@@ -8273,7 +8273,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.01125810384573"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.3193262641982"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0657894736842105"/>
@@ -8324,7 +8324,7 @@
 				<UserParam type="int" name="spectrum_index" value="67"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.01125810384573"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.3193262641982"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0657894736842105"/>
@@ -8528,7 +8528,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.74298972240271"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.94254381206135"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0490196078431373"/>
@@ -8579,7 +8579,7 @@
 				<UserParam type="int" name="spectrum_index" value="70"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.74298972240271"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.94254381206135"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0490196078431373"/>
@@ -8613,7 +8613,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.74298972240271"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.84416627693105"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0637254901960784"/>
@@ -8664,7 +8664,7 @@
 				<UserParam type="int" name="spectrum_index" value="70"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-7.74298972240271"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.84416627693105"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0637254901960784"/>
@@ -8698,7 +8698,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.96811884699058"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.448302279963"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0651260504201681"/>
@@ -8749,7 +8749,7 @@
 				<UserParam type="int" name="spectrum_index" value="73"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="4.96811884699058"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.448302279963"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0651260504201681"/>
@@ -9173,7 +9173,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.19202219221207"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.29633433430214"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0753968253968254"/>
@@ -9224,7 +9224,7 @@
 				<UserParam type="int" name="spectrum_index" value="84"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.19202219221207"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.29633433430214"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0753968253968254"/>
@@ -9343,7 +9343,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.54225589345586"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.30571533021374"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0476190476190476"/>
@@ -9394,7 +9394,7 @@
 				<UserParam type="int" name="spectrum_index" value="88"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.54225589345586"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.30571533021374"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0476190476190476"/>
@@ -9428,7 +9428,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.54225589345586"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="5.42573132080279"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0357142857142857"/>
@@ -9479,7 +9479,7 @@
 				<UserParam type="int" name="spectrum_index" value="88"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.54225589345586"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="5.42573132080279"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0357142857142857"/>
@@ -9513,7 +9513,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.89128379169777"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.71307961579707"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0634920634920635"/>
@@ -9564,7 +9564,7 @@
 				<UserParam type="int" name="spectrum_index" value="89"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.89128379169777"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.71307961579707"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0634920634920635"/>
@@ -9598,7 +9598,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.76267384359025"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.8823884758905"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.05"/>
@@ -9649,7 +9649,7 @@
 				<UserParam type="int" name="spectrum_index" value="94"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.76267384359025"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.8823884758905"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.05"/>
@@ -9683,7 +9683,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.76267384359025"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.40179325932291"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0458333333333333"/>
@@ -9734,7 +9734,7 @@
 				<UserParam type="int" name="spectrum_index" value="94"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.76267384359025"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="6.40179325932291"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0458333333333333"/>
@@ -9768,7 +9768,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.15913815995978"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.2789358582361"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0625"/>
@@ -9819,7 +9819,7 @@
 				<UserParam type="int" name="spectrum_index" value="96"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.15913815995978"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.2789358582361"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0625"/>
@@ -9853,7 +9853,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.15913815995978"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.68548463603515"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.05"/>
@@ -9904,7 +9904,7 @@
 				<UserParam type="int" name="spectrum_index" value="96"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.15913815995978"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.68548463603515"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.05"/>
@@ -10023,7 +10023,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.57961787087765"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.97866906994397"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0666666666666667"/>
@@ -10074,7 +10074,7 @@
 				<UserParam type="int" name="spectrum_index" value="98"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.57961787087765"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="9.97866906994397"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0666666666666667"/>
@@ -10108,7 +10108,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.57961787087765"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.87251402655433"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0625"/>
@@ -10159,7 +10159,7 @@
 				<UserParam type="int" name="spectrum_index" value="98"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.57961787087765"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.87251402655433"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0625"/>
@@ -10193,7 +10193,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.673258766259024"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="5.10524766065036"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0458333333333333"/>
@@ -10244,7 +10244,7 @@
 				<UserParam type="int" name="spectrum_index" value="99"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.673258766259024"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="5.10524766065036"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0458333333333333"/>
@@ -10278,7 +10278,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.673258766259024"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.91666649108796"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.05"/>
@@ -10329,7 +10329,7 @@
 				<UserParam type="int" name="spectrum_index" value="99"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.673258766259024"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.91666649108796"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.05"/>
@@ -10588,7 +10588,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.73836943494766"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.9408548760594"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0515873015873016"/>
@@ -10639,7 +10639,7 @@
 				<UserParam type="int" name="spectrum_index" value="105"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.73836943494766"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.9408548760594"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0515873015873016"/>
@@ -10673,7 +10673,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.73836943494766"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.9347406266468"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0436507936507936"/>
@@ -10724,7 +10724,7 @@
 				<UserParam type="int" name="spectrum_index" value="105"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-6.73836943494766"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.9347406266468"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0436507936507936"/>
@@ -10758,7 +10758,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="8.39024190816125"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.76462044666586"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0583333333333333"/>
@@ -10809,7 +10809,7 @@
 				<UserParam type="int" name="spectrum_index" value="107"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="8.39024190816125"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.76462044666586"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0583333333333333"/>
@@ -10843,7 +10843,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="8.39024190816125"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="5.34557016546802"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0583333333333333"/>
@@ -10894,7 +10894,7 @@
 				<UserParam type="int" name="spectrum_index" value="107"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="8.39024190816125"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="5.34557016546802"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0583333333333333"/>
@@ -11013,7 +11013,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.72005261802233"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="18.1408071899464"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0741758241758242"/>
@@ -11064,7 +11064,7 @@
 				<UserParam type="int" name="spectrum_index" value="110"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.72005261802233"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="18.1408071899464"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0741758241758242"/>
@@ -11098,7 +11098,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.9410316832645"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.5221859305233"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.047979797979798"/>
@@ -11149,7 +11149,7 @@
 				<UserParam type="int" name="spectrum_index" value="110"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.9410316832645"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.5221859305233"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.047979797979798"/>
@@ -11183,7 +11183,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.9410316832645"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.1058704059273"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.047979797979798"/>
@@ -11234,7 +11234,7 @@
 				<UserParam type="int" name="spectrum_index" value="110"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="5.9410316832645"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.1058704059273"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.047979797979798"/>
@@ -11268,7 +11268,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="8.60921744027883"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="15.0828106495944"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0606060606060606"/>
@@ -11319,7 +11319,7 @@
 				<UserParam type="int" name="spectrum_index" value="110"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="8.60921744027883"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="15.0828106495944"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0606060606060606"/>
@@ -11353,7 +11353,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.139559681642189"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="19.22825039181"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0833333333333333"/>
@@ -11404,7 +11404,7 @@
 				<UserParam type="int" name="spectrum_index" value="112"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.139559681642189"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="19.22825039181"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0833333333333333"/>
@@ -11438,7 +11438,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.139559681642189"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.651884490973"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0740740740740741"/>
@@ -11489,7 +11489,7 @@
 				<UserParam type="int" name="spectrum_index" value="112"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.139559681642189"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.651884490973"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0740740740740741"/>
@@ -11523,7 +11523,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.20280937397924"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.6821342912799"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0570175438596491"/>
@@ -11574,7 +11574,7 @@
 				<UserParam type="int" name="spectrum_index" value="112"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.20280937397924"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="8.6821342912799"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0570175438596491"/>
@@ -11608,7 +11608,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.139559681642189"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.20380002687066"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0482456140350877"/>
@@ -11659,7 +11659,7 @@
 				<UserParam type="int" name="spectrum_index" value="112"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.139559681642189"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.20380002687066"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0482456140350877"/>
@@ -11693,7 +11693,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.139559681642189"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.96681632962656"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -11744,7 +11744,7 @@
 				<UserParam type="int" name="spectrum_index" value="112"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.139559681642189"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.96681632962656"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0526315789473684"/>
@@ -11778,7 +11778,7 @@
 				<UserParam type="string" name="xl_type" value="mono-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.403228736140206"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="25.9073068261514"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0684931506849315"/>
@@ -11888,7 +11888,7 @@
 				<UserParam type="string" name="xl_type" value="loop-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="3.35507008124316"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="10.0229436503458"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0357142857142857"/>
@@ -11944,7 +11944,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.61625650897736"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.45666742001914"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.03125"/>
@@ -11995,7 +11995,7 @@
 				<UserParam type="int" name="spectrum_index" value="113"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="6.61625650897736"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.45666742001914"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.03125"/>
@@ -12114,7 +12114,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.28047107937473"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="12.2897170119386"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.05"/>
@@ -12165,7 +12165,7 @@
 				<UserParam type="int" name="spectrum_index" value="115"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.28047107937473"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="12.2897170119386"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.05"/>
@@ -12284,7 +12284,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.31757497685279"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.03429493514478"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0565217391304348"/>
@@ -12335,7 +12335,7 @@
 				<UserParam type="int" name="spectrum_index" value="115"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-2.31757497685279"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.03429493514478"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0565217391304348"/>
@@ -12369,7 +12369,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="5"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.66036952970365"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.07937723264073"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0565217391304348"/>
@@ -12420,7 +12420,7 @@
 				<UserParam type="int" name="spectrum_index" value="115"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.66036952970365"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="7.07937723264073"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0565217391304348"/>
@@ -12509,7 +12509,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.73015039088008"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.7138105942412"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0436507936507936"/>
@@ -12560,7 +12560,7 @@
 				<UserParam type="int" name="spectrum_index" value="117"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-5.73015039088008"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.7138105942412"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0436507936507936"/>
@@ -12849,7 +12849,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.97797709397164"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.9166853658812"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0394736842105263"/>
@@ -12900,7 +12900,7 @@
 				<UserParam type="int" name="spectrum_index" value="124"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.97797709397164"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="14.9166853658812"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0394736842105263"/>
@@ -12934,7 +12934,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.48390219715565"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.8201131566226"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0651340996168582"/>
@@ -12985,7 +12985,7 @@
 				<UserParam type="int" name="spectrum_index" value="124"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-3.48390219715565"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="13.8201131566226"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0651340996168582"/>
@@ -13019,7 +13019,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.97797709397164"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.9385645724941"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0563380281690141"/>
@@ -13070,7 +13070,7 @@
 				<UserParam type="int" name="spectrum_index" value="124"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.97797709397164"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="11.9385645724941"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0563380281690141"/>
@@ -13104,7 +13104,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="4"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.97797709397164"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.4910031468215"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0333333333333333"/>
@@ -13155,7 +13155,7 @@
 				<UserParam type="int" name="spectrum_index" value="124"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-9.97797709397164"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.4910031468215"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0333333333333333"/>
@@ -13189,7 +13189,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="1"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.63422845712834"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.82986337521629"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0245098039215686"/>
@@ -13240,7 +13240,7 @@
 				<UserParam type="int" name="spectrum_index" value="126"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.63422845712834"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="4.82986337521629"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0245098039215686"/>
@@ -13274,7 +13274,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="2"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.00096527413458"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.99076326758391"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.053921568627451"/>
@@ -13325,7 +13325,7 @@
 				<UserParam type="int" name="spectrum_index" value="126"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-2"/>
+				<UserParam type="int" name="precursor_correction" value="2"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.00096527413458"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.99076326758391"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.053921568627451"/>
@@ -13359,7 +13359,7 @@
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="int" name="xl_rank" value="3"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.63422845712834"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.40280158697556"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0392156862745098"/>
@@ -13410,7 +13410,7 @@
 				<UserParam type="int" name="spectrum_index" value="126"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
 				<UserParam type="string" name="xl_term_spec" value="ANYWHERE"/>
-				<UserParam type="int" name="precursor_correction" value="-1"/>
+				<UserParam type="int" name="precursor_correction" value="1"/>
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-8.63422845712834"/>
 				<UserParam type="float" name="OpenXQuest:xquest_score" value="3.40280158697556"/>
 				<UserParam type="float" name="OpenXQuest:xcorr xlink" value="0.0392156862745098"/>
