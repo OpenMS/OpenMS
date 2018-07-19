@@ -429,6 +429,7 @@ namespace OpenMS
     //TODO let user modify Grid for GridSearch and/or provide some more default settings
   }*/
 
+
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs)
   {
     // get enzyme settings from peptideID

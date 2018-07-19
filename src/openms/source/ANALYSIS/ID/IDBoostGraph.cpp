@@ -246,6 +246,7 @@ namespace OpenMS
     }
   }
 
+
   /// Do sth on ccs
   void IDBoostGraph::clusterIndistProteinsAndPeptides()
   {
@@ -267,6 +268,7 @@ namespace OpenMS
                                                              boost::get(boost::vertex_bundle, fg));
       std::cout << "Printing cc " << i << std::endl;
       //boost::print_graph(fg);
+
       boost::write_graphviz(std::cout, fg, boost::make_label_writer(labels));
       #endif
 

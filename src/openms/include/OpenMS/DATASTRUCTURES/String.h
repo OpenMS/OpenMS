@@ -486,11 +486,6 @@ public:
     {
     }
 
-    // create view on string
-    StringView(const std::string& s) : begin_(s.data()), size_(s.size()) 
-    {
-    }
-
     // construct from other view
     StringView(const StringView& s) : begin_(s.begin_), size_(s.size_) 
     {
@@ -531,7 +526,13 @@ public:
     inline Size size() const
     {
       return size_;
-    }   
+    }
+
+    /// converts to a begin position, size pair
+    inline std::pair<Size,Size> toPair() const
+    {
+      return make_pair<Size,Size>(begin_, size_);
+    }
 
     /// create String object from view
     inline String getString() const

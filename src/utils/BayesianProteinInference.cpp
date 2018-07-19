@@ -61,7 +61,7 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
-    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML,fasta"));
     registerInputFile_("exp_design", "<file>", "", "Input: experimental design");
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     //TODO make required of course
@@ -72,6 +72,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
+
     //TODO remove until ExitCode and allow a (merged) ConsensusXML as input
     vector<PeptideIdentification> peps;
     vector<ProteinIdentification> prots;
