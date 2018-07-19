@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lukas Zimmermann $
+// $Maintainer: Eugen Netz $
 // $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -96,7 +96,7 @@ namespace OpenMS
     std::cout << "Writing spec.xml to " << out_file << std::endl;
     spec_xml_file.open(out_file.c_str(), std::ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
     // TODO write actual data
-    spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << std::endl;
+    spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra author=\"Eugen Netz\" deffile=\"xquest.def\" >" << std::endl;
 
     // collect indices of spectra, that need to be written out
     std::vector <std::pair <Size, Size> > spectrum_indices;
@@ -166,7 +166,7 @@ namespace OpenMS
     std::cout << "Writing spec.xml to " << out_file << std::endl;
     spec_xml_file.open(out_file.c_str(), std::ios::trunc); // ios::app = append to file, ios::trunc = overwrites file
     // TODO write actual data
-    spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra compare_peaks_version=\"3.4\" date=\"Tue Nov 24 12:41:18 2015\" author=\"Thomas Walzthoeni,Oliver Rinner\" homepage=\"http://proteomics.ethz.ch\" resultdir=\"aleitner_M1012_004_matched\" deffile=\"xquest.def\" >" << std::endl;
+    spec_xml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xquest_spectra author=\"Eugen Netz\" deffile=\"xquest.def\" >" << std::endl;
 
     // collect indices of spectra, that need to be written out
     std::vector <Size> spectrum_indices;
