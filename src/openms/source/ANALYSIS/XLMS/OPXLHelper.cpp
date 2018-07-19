@@ -100,7 +100,7 @@ namespace OpenMS
 // Multithreading options: schedule: static, dynamic, guided
 // use OpenMP to run this for-loop on multiple CPU cores
 #ifdef _OPENMP
-#pragma omp parallel for schedule(guided)
+#pragma omp parallel for schedule(static)
 #endif
     for (SignedSize p1 = 0; p1 < static_cast<SignedSize>(peptides.size()); ++p1)
     {
@@ -749,7 +749,7 @@ namespace OpenMS
         weight += top_csms_spectrum[i].cross_link.cross_linker_mass;
       }
       double precursor_mass = (precursor_mz * static_cast<double>(precursor_charge)) - (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)
-                                + (static_cast<double>(top_csms_spectrum[i].precursor_correction) * Constants::C13C12_MASSDIFF_U);
+                                - (static_cast<double>(top_csms_spectrum[i].precursor_correction) * Constants::C13C12_MASSDIFF_U);
       double error = precursor_mass - weight;
       double rel_error = (error / precursor_mass) / 1e-6;
 

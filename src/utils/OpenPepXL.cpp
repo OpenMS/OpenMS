@@ -195,7 +195,7 @@ protected:
 
     registerIntOption_("precursor:min_charge", "<num>", 3, "Minimum precursor charge to be considered.", false, true);
     registerIntOption_("precursor:max_charge", "<num>", 7, "Maximum precursor charge to be considered.", false, true);
-    registerIntList_("precursor:corrections", "<num>", ListUtils::create<int>("-2, -1, 0"), "Monoisotopic peak correction. Looks for possible monoisotopic peaks at given number * (C13-C12) difference to the monoisotopic peak assumed by the instrument. These should be ordered from more extreme to less extreme corrections. Numbers later in the list will be preferred in case of ambiguities.", false, false);
+    registerIntList_("precursor:corrections", "<num>", ListUtils::create<int>("2, 1, 0"), "Monoisotopic peak correction. Matches candidates for possible monoisotopic precursor peaks for experimental mass m and given numbers n at masses (m - n * (C13-C12)). These should be ordered from more extreme to less extreme corrections. Numbers later in the list will be preferred in case of ambiguities.", false, false);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 0.2, "Fragment mass tolerance", false, false);
@@ -811,7 +811,7 @@ protected:
         vector< int > precursor_corrections;
         double allowed_error = 0;
 
-        double corrected_precursor_mass = precursor_mass + (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
+        double corrected_precursor_mass = precursor_mass - (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
 
         if (precursor_mass_tolerance_unit_ppm) // ppm
         {
