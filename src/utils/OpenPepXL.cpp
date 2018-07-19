@@ -368,7 +368,7 @@ protected:
         if (spectrum_heavy_to_light.size() > 0)
         {
           dummy_array.clear();
-          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_fragments_with_shift, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum_light, spectrum_heavy_to_light, dummy_charges, dummy_charges, dummy_array, 0.3);
+          OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_fragments_with_shift, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, spectrum_light, spectrum_heavy_to_light, dummy_charges, dummy_charges, dummy_array, 0.3);
 
           LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
 
@@ -491,7 +491,7 @@ protected:
     {
       fragment_mass_tolerance_xlinks = fragment_mass_tolerance;
     }
-    cout << "XLinks Tolerance: " << fragment_mass_tolerance_xlinks << endl;
+    LOG_DEBUG << "XLinks Tolerance: " << fragment_mass_tolerance_xlinks << endl;
 
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
 
@@ -724,7 +724,7 @@ protected:
     search_params.setMetaValue("MS:1001029", peptide_masses.size()); // number of sequences searched = MS:1001029
     protein_ids[0].setSearchParameters(search_params);
 
-    cout << "Number of paired precursor masses: " << spectrum_precursors.size() << endl;
+    LOG_DEBUG << "Number of paired precursor masses: " << spectrum_precursors.size() << endl;
 
     sort(peptide_masses.begin(), peptide_masses.end(), OPXLDataStructs::AASeqWithMassComparator());
 
@@ -746,7 +746,7 @@ protected:
     // maximal possible peptide mass given the largest precursor
     double max_peptide_mass = max_precursor_mass - cross_link_mass_light + max_peptide_allowed_error;
 
-    cout << "Filtering peptides with precursors" << endl;
+    LOG_DEBUG << "Filtering peptides with precursors" << endl;
 
     // search for the first mass greater than the maximim, use everything before that peptide
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
@@ -767,15 +767,6 @@ protected:
 #endif
     for (SignedSize pair_index = 0; pair_index < static_cast<SignedSize>(spectrum_pairs.size()); ++pair_index)
     {
-
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-      {
-        spectrum_counter++;
-        cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << endl;
-      }
-
       Size scan_index = spectrum_pairs[pair_index].first;
       Size scan_index_heavy = spectrum_pairs[pair_index].second;
       LOG_DEBUG << "Scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
@@ -783,6 +774,14 @@ protected:
       const double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
       const double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
       const double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
+
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+      {
+        spectrum_counter++;
+        cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << " |\tLight Spectrum index: " << scan_index << " |\tHeavy Spectrum index: " << scan_index_heavy << "\t| at: " << DateTime::now().getTime() << endl;
+      }
 
       const PeakSpectrum& linear_peaks = preprocessed_pair_spectra.spectra_linear_peaks[pair_index];
       const PeakSpectrum& xlink_peaks = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index];
@@ -840,7 +839,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      cout << "#Peaks in this spectrum: " << spectrum_light.size() << " |\tNumber of candidates for this spectrum: " << candidates.size() << endl;
+      cout << "Pair number: " << spectrum_counter << " |\tNumber of peaks in light spectrum: " << spectrum_light.size() << " |\tNumber of candidates: " << candidates.size() << endl;
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
 
@@ -1340,7 +1339,7 @@ protected:
     // end of matching / scoring
     progresslogger.endProgress();
 
-    cout << "# Peptide IDs: " << peptide_ids.size() << " | # all_top_csms: " << all_top_csms.size() << endl;
+    LOG_DEBUG << "# Peptide IDs: " << peptide_ids.size() << " | # all_top_csms: " << all_top_csms.size() << endl;
 
     // Add protein identifications
     PeptideIndexing pep_indexing;
