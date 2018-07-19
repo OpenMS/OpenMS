@@ -77,6 +77,13 @@ namespace OpenMS
     */
     static double matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum = false, Size n_charges = 1);
 
+    /**
+     * @brief compute the logOccupancyProb score, similar to the match_odds, a score based on the probability of getting the given number of matched peaks by chance
+     * @param theoretical_spec theoretical spectrum, sorted by position
+     * @param matched_size number of matched peaks between experimental and theoretical spectra
+     * @param fragment_mass_tolerance the tolerance of the alignment
+     * @param fragment_mass_tolerance_unit the tolerance unit of the alignment, true = ppm, false = Da
+     */
     static double logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
 
 
@@ -133,8 +140,13 @@ namespace OpenMS
     */
     static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance);
 
+    /**
+     * @brief computes a crude dot product between two spectra. Crude, because it uses a static binsize based on a tolerance in Da and it uses equal intensities for all peaks
+     * @param spec1 first spectrum
+     * @param spec2 second spectrum
+     * @param tolerance tolerance or binsize in Da
+     */
     static double xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance);
   };
 
 }
-
