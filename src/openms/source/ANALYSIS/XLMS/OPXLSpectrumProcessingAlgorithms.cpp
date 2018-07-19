@@ -270,7 +270,7 @@ namespace OpenMS
 
         // Invariant: closest_exp_peak always point to best match
 
-        double new_d, new_ez(0);
+        double new_ez(0);
         double best_d = exp_spectrum[closest_exp_peak].getMZ() - theo_mz;
 
         do // check for better match in tolerance window
@@ -279,7 +279,7 @@ namespace OpenMS
           ++e;
 
           // determine distance of next peak
-          new_d = exp_spectrum[e].getMZ() - theo_mz;
+          double new_d = exp_spectrum[e].getMZ() - theo_mz;
           const bool in_tolerance_window = (fabs(new_d) < max_dist_dalton);
           // std::cout << "  new peak | exp_mz: " << exp_spectrum[e].getMZ() << " | theo_mz: " << theo_mz << " | new d: " << new_d << " | in window:" << in_tolerance_window << "\n";
 
