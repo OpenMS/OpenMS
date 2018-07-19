@@ -512,7 +512,7 @@ protected:
       spectrum_precursors.push_back(current_precursor_mass);
     }
     sort(spectrum_precursors.begin(), spectrum_precursors.end());
-    cout << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
+    LOG_DEBUG << "Number of precursor masses in the spectra: " << spectrum_precursors.size() << endl;
 
     sort(peptide_masses.begin(), peptide_masses.end(), OPXLDataStructs::AASeqWithMassComparator());
     // The largest peptides given a fixed maximal precursor mass are possible with loop links
@@ -532,7 +532,7 @@ protected:
 
     double max_peptide_mass = max_precursor_mass - cross_link_mass + max_peptide_allowed_error;
 
-    cout << "Filtering peptides with precursors" << endl;
+    LOG_DEBUG << "Filtering peptides with precursors" << endl;
 
     // search for the first mass greater than the maximim, cut off everything larger
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
@@ -545,7 +545,7 @@ protected:
 
     Size spectrum_counter = 0;
 
-    cout << "Spectra left after preprocessing and filtering: " << spectra.size() << " of " << unprocessed_spectra.size() << endl;
+    LOG_DEBUG << "Spectra left after preprocessing and filtering: " << spectra.size() << " of " << unprocessed_spectra.size() << endl;
 
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
@@ -559,7 +559,7 @@ protected:
 #endif
       {
         spectrum_counter++;
-        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << "\tSpectrum ID: " << spectrum.getNativeID()  << "\t| at: " << DateTime::now().getTime() << endl;
+        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum index: " << scan_index << "\t| at: " << DateTime::now().getTime() << endl;
       }
 
       const double precursor_charge = spectrum.getPrecursors()[0].getCharge();
@@ -578,7 +578,6 @@ protected:
       vector< double > spectrum_precursor_vector;
       vector< double > allowed_error_vector;
 
-      progresslogger.startProgress(0, 1, "Start enumerating candidates...");
       for (int correction_mass : precursor_correction_steps)
       {
         double allowed_error = 0;
@@ -610,16 +609,13 @@ protected:
 
       vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
 
-      progresslogger.endProgress();
-
-      cout << "Size of enumerated candidates: " << double(cross_link_candidates.size()) * sizeof(OPXLDataStructs::ProteinProteinCrossLink) / 1024.0 / 1024.0 << " mb" << endl;
-
-      // vector< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates(cross_link_candidates_set.begin(), cross_link_candidates_set.end());
+      LOG_DEBUG << "Size of enumerated candidates: " << double(cross_link_candidates.size()) * sizeof(OPXLDataStructs::ProteinProteinCrossLink) / 1024.0 / 1024.0 << " mb" << endl;
 
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-      cout << "\t#Peaks in this spectrum: " << spectrum.size() << " |\tNumber of candidates for this spectrum: " << cross_link_candidates.size() << endl;
+      cout << "Spectrum number: " << spectrum_counter << " |\tNumber of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
+
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > prescore_csms_spectrum;
@@ -679,7 +675,7 @@ protected:
         progresslogger.endProgress();
         std::sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
       }
-      else
+      else // if pre-scoring is turned off, then the pre-scored candidates will just be the list of all candidates
       {
         for (Size i = 0; i < cross_link_candidates.size(); ++i)
         {
@@ -690,8 +686,7 @@ protected:
         }
       }
 
-      // TODO major memory eater, use a couple of vectors instead?
-      cout << "Size of prescored candidates: " << double(prescore_csms_spectrum.size()) * sizeof(OPXLDataStructs::CrossLinkSpectrumMatch) / 1024.0 / 1024.0 << " mb" << endl;
+      LOG_DEBUG << "Size of prescored candidates: " << double(prescore_csms_spectrum.size()) * sizeof(OPXLDataStructs::CrossLinkSpectrumMatch) / 1024.0 / 1024.0 << " mb" << endl;
 
       Size last_candidate_index = prescore_csms_spectrum.size();
       if (pre_scoring)
@@ -968,7 +963,6 @@ protected:
           {
             for (auto match : matched_spec_xlinks_alpha)
             {
-              // cout << "TEST: " << num_iso_peaks_array.size() << " | " << match.second << " | " << num_iso_peaks_array[match.second] << endl;
               iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
             }
             csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
@@ -1138,8 +1132,6 @@ protected:
         }
       }
 
-      cout << "Size of all top csms: " << double(all_top_csms.size()) * sizeof(OPXLDataStructs::CrossLinkSpectrumMatch) / 1024.0 / 1024.0 << " mb" << endl;
-
       // Write PeptideIdentifications and PeptideHits for n top hits
       if (!top_csms_spectrum.empty())
       {
@@ -1166,8 +1158,6 @@ protected:
     pep_indexing.run(fasta_db, protein_ids, peptide_ids);
 
     OPXLHelper::addProteinPositionMetaValues(peptide_ids);
-
-    cout << "Size of all top PeptideIDs: " << double(peptide_ids.size()) * sizeof(PeptideIdentification) / 1024.0 / 1024.0 << " mb" << endl;
 
     // write output
     progresslogger.startProgress(0, 1, "Writing output...");
