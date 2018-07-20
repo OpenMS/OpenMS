@@ -119,6 +119,10 @@ namespace OpenMS
     using ParentMoleculeGroups =
       IdentificationDataInternal::ParentMoleculeGroups;
     using ParentGroupRef = IdentificationDataInternal::ParentGroupRef;
+    using ParentMoleculeGrouping =
+      IdentificationDataInternal::ParentMoleculeGrouping;
+    using ParentMoleculeGroupings =
+      IdentificationDataInternal::ParentMoleculeGroupings;
 
     using AddressLookup = boost::unordered_set<uintptr_t>;
 
@@ -149,7 +153,7 @@ namespace OpenMS
       identified_oligos_.swap(other.identified_oligos_);
       query_matches_.swap(other.query_matches_);
       query_match_groups_.swap(other.query_match_groups_);
-      parent_molecule_groups_.swap(other.parent_molecule_groups_);
+      parent_molecule_groupings_.swap(other.parent_molecule_groupings_);
     }
 
     InputFileRef registerInputFile(const String& file);
@@ -171,8 +175,7 @@ namespace OpenMS
 
     ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent);
 
-    ParentGroupRef registerParentMoleculeGroup(const ParentMoleculeGroup&
-                                               group);
+    void registerParentMoleculeGrouping(const ParentMoleculeGrouping& grouping);
 
     IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide&
                                                    peptide);
@@ -226,9 +229,9 @@ namespace OpenMS
       return parent_molecules_;
     }
 
-    const ParentMoleculeGroups& getParentMoleculeGroups() const
+    const ParentMoleculeGroupings& getParentMoleculeGroupings() const
     {
-      return parent_molecule_groups_;
+      return parent_molecule_groupings_;
     }
 
     const IdentifiedPeptides& getIdentifiedPeptides() const
@@ -322,7 +325,7 @@ namespace OpenMS
     ScoreTypes score_types_;
     DataQueries data_queries_;
     ParentMolecules parent_molecules_;
-    ParentMoleculeGroups parent_molecule_groups_;
+    ParentMoleculeGroupings parent_molecule_groupings_;
     IdentifiedPeptides identified_peptides_;
     IdentifiedCompounds identified_compounds_;
     IdentifiedOligos identified_oligos_;
