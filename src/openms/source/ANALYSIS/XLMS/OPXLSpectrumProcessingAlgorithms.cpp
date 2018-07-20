@@ -216,22 +216,29 @@ namespace OpenMS
       }
       const bool tz_matches_ez = (ez == tz || !ez || !tz);
 
+      double ti = theo_spectrum[t].getIntensity();
+      double ei = exp_spectrum[e].getIntensity();
+      const bool initial_intensity_matches = ( std::min(ti, ei) / std::max(ti, ei) ) > intensity_cutoff;
+
+
       double d = exp_mz - theo_mz;
       const double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
       if (fabs(d) <= max_dist_dalton) // match in tolerance window?
       {
         // get first peak with matching charge in tolerance window
-        if (!tz_matches_ez)
+        if (!tz_matches_ez || !initial_intensity_matches)
         {
           Size e_candidate(e);
           while (e_candidate < n_e-1)
           {
             ++e_candidate;
             double new_ez = has_charge ? exp_charges[e_candidate] : 0;
+            double new_ei = exp_spectrum[e_candidate].getIntensity();
             const bool charge_matches = (new_ez == tz || !new_ez || !tz);
+            const bool intensity_matches = ( std::min(ti, new_ei) / std::max(ti, new_ei) ) > intensity_cutoff;
             double new_d = exp_spectrum[e].getMZ() - theo_mz;
-            if (charge_matches && new_d <= max_dist_dalton)
+            if (charge_matches && new_d <= max_dist_dalton && intensity_matches)
             { // found a match
               break;
             }
@@ -252,12 +259,11 @@ namespace OpenMS
           }
         }
 
-        // Invariant: e now points to the first peak in tolerance window, that matches in charge
+        // Invariant: e now points to the first peak in tolerance window, that matches in charge and intensity
 
         // last peak? there can't be a better one in this tolerance window
         if (e >= n_e - 1)
         {
-          // std::cout << "added final peak | exp_mz: " << exp_spectrum[e].getMZ() << " | theo_mz: " << theo_mz << " | exp_int: " << exp_spectrum[e].getIntensity() << std::endl;
           // add match
           alignment.emplace_back(std::make_pair(t, e));
           // add ppm error
@@ -281,18 +287,19 @@ namespace OpenMS
           // determine distance of next peak
           double new_d = exp_spectrum[e].getMZ() - theo_mz;
           const bool in_tolerance_window = (fabs(new_d) < max_dist_dalton);
-          // std::cout << "  new peak | exp_mz: " << exp_spectrum[e].getMZ() << " | theo_mz: " << theo_mz << " | new d: " << new_d << " | in window:" << in_tolerance_window << "\n";
 
           if (!in_tolerance_window) { break; }
 
           // Invariant: e is in tolerance window
 
-          // check if charge of next peak matches
+          // check if charge and intensity of next peak matches
           if (has_charge) { new_ez = exp_charges[e]; }
           const bool charge_matches = (new_ez == tz || !new_ez || !tz);
-          if (!charge_matches) { continue; }
+          double new_ei = exp_spectrum[e].getIntensity();
+          const bool intensity_matches = ( std::min(ti, new_ei) / std::max(ti, new_ei) ) > intensity_cutoff;
+          if (!charge_matches || !intensity_matches) { continue; }
 
-          // Invariant: charge matches
+          // Invariant: charge and intensity matches
 
           const bool better_distance = (fabs(new_d) <= fabs(best_d));
 
