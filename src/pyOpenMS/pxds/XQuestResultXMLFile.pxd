@@ -1,11 +1,9 @@
 from Types cimport *
-from libcpp cimport bool
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp.vector cimport vector as libcpp_vector
 from XMLFile cimport *
 from PeptideIdentification cimport *
 from ProteinIdentification cimport *
-from XQuestResultXMLFile cimport *
 from CrossLinkSpectrumMatch cimport *
 from PreprocessedPairSpectra cimport *
 from MSExperiment cimport *

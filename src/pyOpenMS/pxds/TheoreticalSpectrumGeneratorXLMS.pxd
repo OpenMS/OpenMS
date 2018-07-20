@@ -1,6 +1,5 @@
 from Types cimport *
 from libcpp cimport bool
-from Residue cimport *
 from DefaultParamHandler cimport *
 from MSSpectrum cimport *
 from AASequence cimport *

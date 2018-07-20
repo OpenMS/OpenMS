@@ -1,7 +1,5 @@
 from Types cimport *
 from libcpp cimport bool
-from PeptideHit cimport *
-from MSExperiment cimport *
 from ResidueModification cimport *
 from AASequence cimport *
 from OPXLDataStructs cimport *
