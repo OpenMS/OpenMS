@@ -959,7 +959,8 @@ namespace OpenMS
       {
         hits[1].setMetaValue("selected", sel);
       }
-    } else // general case, update only the selected PepideHit
+    }
+    else // general case, update only the selected PepideHit
     {
       hits[num_ph].setMetaValue("selected", sel);
     }
