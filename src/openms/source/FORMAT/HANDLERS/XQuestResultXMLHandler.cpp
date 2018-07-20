@@ -780,10 +780,10 @@ namespace OpenMS
       Size current_index = 0;
 
       Size count = 0;
-      while(current_index < input.size() && count < n)
+      while (current_index < input.size() && count < n)
       {
         current_index++;
-        if(input.at(current_index) == separator)
+        if (input.at(current_index) == separator)
         {
           count++;
         }
