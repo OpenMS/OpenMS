@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 
@@ -43,51 +42,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // check whether the candidate pair is within the given tolerance to at least one precursor mass in the spectra data
-  bool filter_and_add_candidate(vector<OPXLDataStructs::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OPXLDataStructs::XLPrecursor precursor)
-  {
-    vector< double >::iterator low_it;
-    vector< double >::iterator up_it;
-
-    // compute absolute tolerance from relative, if necessary
-    double allowed_error = 0;
-    if (precursor_mass_tolerance_unit_ppm) // ppm
-    {
-      allowed_error = precursor.precursor_mass * precursor_mass_tolerance * 1e-6;
-    }
-    else // Dalton
-    {
-      allowed_error = precursor_mass_tolerance;
-    }
-
-    // find precursor with m/z >= low end of range
-    low_it = lower_bound(spectrum_precursors.begin(), spectrum_precursors.end(), precursor.precursor_mass - allowed_error);
-    // find precursor with m/z > (not equal to) high end of range
-    up_it =  upper_bound(spectrum_precursors.begin(), spectrum_precursors.end(), precursor.precursor_mass + allowed_error);
-    // if these two are equal, there is no precursor within the range
-
-    if (low_it != up_it) // if they are not equal, there are matching precursors in the data
-    {
-      // found_matching_precursors = true;
-
-// don't access this vector from two processing threads at the same time
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-      {
-        mass_to_candidates.push_back(precursor);
-        // take the position of the highest matching precursor mass in the vector (prioritize smallest correction)
-        precursor_correction_positions.push_back(std::distance(spectrum_precursors.begin(), std::prev(up_it, 1)));
-      }
-      return true;
-    }
-    else
-    {
-      return false;
-    }
-  }
-
-
   // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
   vector<OPXLDataStructs::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses(const vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
@@ -128,7 +82,6 @@ namespace OpenMS
           break;
         }
       }
-
 
        // test if this peptide could have loop-links: one cross-link with both sides attached to the same peptide
        // TODO check for distance between the two linked residues
@@ -214,6 +167,49 @@ namespace OpenMS
     }
     // cout << "Enumerated pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << " | current size in mb: " << mass_to_candidates.size() * sizeof(OPXLDataStructs::XLPrecursor) / 1024 / 1024 << endl;
     return mass_to_candidates;
+  }
+
+  bool OPXLHelper::filter_and_add_candidate(vector<OPXLDataStructs::XLPrecursor>& mass_to_candidates, vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OPXLDataStructs::XLPrecursor precursor)
+  {
+    vector< double >::iterator low_it;
+    vector< double >::iterator up_it;
+
+    // compute absolute tolerance from relative, if necessary
+    double allowed_error = 0;
+    if (precursor_mass_tolerance_unit_ppm) // ppm
+    {
+      allowed_error = precursor.precursor_mass * precursor_mass_tolerance * 1e-6;
+    }
+    else // Dalton
+    {
+      allowed_error = precursor_mass_tolerance;
+    }
+
+    // find precursor with m/z >= low end of range
+    low_it = lower_bound(spectrum_precursors.begin(), spectrum_precursors.end(), precursor.precursor_mass - allowed_error);
+    // find precursor with m/z > (not equal to) high end of range
+    up_it =  upper_bound(spectrum_precursors.begin(), spectrum_precursors.end(), precursor.precursor_mass + allowed_error);
+    // if these two are equal, there is no precursor within the range
+
+    if (low_it != up_it) // if they are not equal, there are matching precursors in the data
+    {
+      // found_matching_precursors = true;
+
+// don't access this vector from two processing threads at the same time
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+      {
+        mass_to_candidates.push_back(precursor);
+        // take the position of the highest matching precursor mass in the vector (prioritize smallest correction)
+        precursor_correction_positions.push_back(std::distance(spectrum_precursors.begin(), std::prev(up_it, 1)));
+      }
+      return true;
+    }
+    else
+    {
+      return false;
+    }
   }
 
   vector<ResidueModification> OPXLHelper::getModificationsFromStringList(StringList modNames)
@@ -994,5 +990,4 @@ namespace OpenMS
       }
     }
   }
-
 }
