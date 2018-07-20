@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <iostream>
 
@@ -50,7 +51,7 @@ int main()
   // Create new protein identification object corresponding to a single search
   vector<ProteinIdentification> protein_ids;
   ProteinIdentification protein_id;
-  
+
   protein_id.setIdentifier("Identifier");
 
   // Each ProteinIdentification object stores a vector of protein hits
@@ -60,24 +61,24 @@ int main()
   protein_hit.setSequence("PEPTIDEPEPTIDEPEPTIDEPEPTIDER");
   protein_hit.setScore(1.0);
   protein_hits.push_back(protein_hit);
-  
-  protein_id.setHits(protein_hits);    
+
+  protein_id.setHits(protein_hits);
 
   DateTime now = DateTime::now();
   String date_string = now.getDate();
   protein_id.setDateTime(now);
-    
+
   // Example of possible search parameters
   ProteinIdentification::SearchParameters search_parameters;
   search_parameters.db = "database";
-  search_parameters.charges = "+2";  
+  search_parameters.charges = "+2";
   protein_id.setSearchParameters(search_parameters);
- 
-  // Some search engine meta data 
+
+  // Some search engine meta data
   protein_id.setSearchEngineVersion("v1.0.0");
   protein_id.setSearchEngine("SearchEngine");
   protein_id.setScoreType("HyperScore");
-  
+
   protein_ids.push_back(protein_id);
 
   // Iterate over protein identifications and protein hits
@@ -99,8 +100,8 @@ int main()
   peptide_id.setMZ(440.0);
   peptide_id.setScoreType("ScoreType");
   peptide_id.setHigherScoreBetter(false);
-  peptide_id.setIdentifier("Method");
-  
+  peptide_id.setIdentifier("Identifier");
+
   // define additional meta value for the peptide identification
   peptide_id.setMetaValue("AdditionalMetaValue", "Value");
 
@@ -112,35 +113,39 @@ int main()
   peptide_hit.setCharge(2);
   peptide_hit.setSequence(AASequence::fromString("DLQM(Oxidation)TQSPSSLSVSVGDR"));
   peptide_hits.push_back(peptide_hit);
-  
+
+  // add second best PeptideHit to the PeptideIdentification
+  peptide_hit.setScore(1.5);
+  peptide_hit.setRank(2);
+  peptide_hit.setCharge(2);
+  peptide_hit.setSequence(AASequence::fromString("QLDM(Oxidation)TQSPSSLSVSVGDR"));
+  peptide_hits.push_back(peptide_hit);
+
   // add PeptideHit to PeptideIdentification
-  peptide_id.setHits(peptide_hits);    
-  
+  peptide_id.setHits(peptide_hits);
+
   // add PeptideIdentification
   peptide_ids.push_back(peptide_id);
-  
-  // We could now store the identification data in an idXML file  
-  // IdXMLFile().store(out, protein_ids, peptide_ids);
+
+  // We could now store the identification data in an idXML file
+  // IdXMLFile().store(outfile, protein_ids, peptide_ids);
   // And load it back with
-  // IdXMLFile().load(id, protein_ids, peptide_ids);
-   
+  // IdXMLFile().load(outfile, protein_ids, peptide_ids);
+
   // Iterate over PeptideIdentification
-  for (auto peptide_id = peptide_ids.begin(); peptide_id != peptide_ids.end(); 
-    ++peptide_id)
+  for (const auto& peptide_id : peptide_ids)
   {
     // Peptide identification values
-    cout << "Peptide ID m/z: " << peptide_id->getMZ() << endl;
-    cout << "Peptide ID rt: " << peptide_id->getRT() << endl;
-    cout << "Peptide ID score type: " << peptide_id->getScoreType() << endl;
-    
+    cout << "Peptide ID m/z: " << peptide_id.getMZ() << endl;
+    cout << "Peptide ID rt: " << peptide_id.getRT() << endl;
+    cout << "Peptide ID score type: " << peptide_id.getScoreType() << endl;
+
     // PeptideHits
-    for (auto hit = peptide_id->getHits().begin(); 
-      hit < peptide_id->getHits().end(); 
-      ++hit)
+    for (const auto& scored_hit : peptide_id.getHits())
     {
-      PeptideHit scored_hit = *hit;
-      cout << "Peptide hit sequence: " << scored_hit.getSequence().toString() << endl;
-      cout << "Peptide hit score: " << scored_hit.getScore() << endl;
+      cout << " - Peptide hit rank: " << scored_hit.getRank() << endl;
+      cout << " - Peptide hit sequence: " << scored_hit.getSequence().toString() << endl;
+      cout << " - Peptide hit score: " << scored_hit.getScore() << endl;
     }
   }
   // ...
