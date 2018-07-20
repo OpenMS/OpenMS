@@ -21,7 +21,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-07-20T21:44:16" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-20" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-07-20T22:17:51" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-20" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -5094,7 +5094,7 @@
 				<UserParam type="int" name="spectrum_index" value="152"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.0680796"/>
-				<UserParam type="int" name="xl_pos2" value="3"/>
+				<UserParam type="int" name="xl_pos2" value="4"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
@@ -5143,13 +5143,13 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="string" name="XL_Protein_position_alpha" value="299"/>
-				<UserParam type="string" name="XL_Protein_position_beta" value="37"/>
+				<UserParam type="string" name="XL_Protein_position_beta" value="38"/>
 				<UserParam type="string" name="accessions_beta" value="Protein1"/>
 			</PeptideHit>
 			<PeptideHit score="0.131607528979936" sequence="DLVKKYDK" charge="4" aa_before="R" aa_after="T" start="33" end="40" protein_refs="PH_0" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=185"/>
 				<UserParam type="int" name="spectrum_index" value="152"/>
-				<UserParam type="int" name="xl_pos2" value="3"/>
+				<UserParam type="int" name="xl_pos2" value="4"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
@@ -5176,7 +5176,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="string" name="XL_Protein_position_alpha" value="299"/>
-				<UserParam type="string" name="XL_Protein_position_beta" value="37"/>
+				<UserParam type="string" name="XL_Protein_position_beta" value="38"/>
 				<UserParam type="string" name="accessions_beta" value="Protein1"/>
 			</PeptideHit>
 		</PeptideIdentification>
@@ -5187,7 +5187,7 @@
 				<UserParam type="int" name="spectrum_index" value="152"/>
 				<UserParam type="string" name="xl_mod" value="DSS"/>
 				<UserParam type="float" name="xl_mass" value="138.0680796"/>
-				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="xl_pos2" value="3"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002509"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
@@ -5236,13 +5236,13 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="string" name="XL_Protein_position_alpha" value="299"/>
-				<UserParam type="string" name="XL_Protein_position_beta" value="38"/>
+				<UserParam type="string" name="XL_Protein_position_beta" value="37"/>
 				<UserParam type="string" name="accessions_beta" value="Protein1"/>
 			</PeptideHit>
 			<PeptideHit score="0.131607528979936" sequence="DLVKKYDK" charge="4" aa_before="R" aa_after="T" start="33" end="40" protein_refs="PH_0" >
 				<UserParam type="string" name="spectrum_reference" value="spectrum=185"/>
 				<UserParam type="int" name="spectrum_index" value="152"/>
-				<UserParam type="int" name="xl_pos2" value="4"/>
+				<UserParam type="int" name="xl_pos2" value="3"/>
 				<UserParam type="string" name="xl_chain" value="MS:1002510"/>
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="xl_type" value="cross-link"/>
@@ -5269,7 +5269,7 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 				<UserParam type="string" name="XL_Protein_position_alpha" value="299"/>
-				<UserParam type="string" name="XL_Protein_position_beta" value="38"/>
+				<UserParam type="string" name="XL_Protein_position_beta" value="37"/>
 				<UserParam type="string" name="accessions_beta" value="Protein1"/>
 			</PeptideHit>
 		</PeptideIdentification>

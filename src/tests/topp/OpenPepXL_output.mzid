@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_12751666269820925800"
-	creationDate="2018-07-20T21:44:17">
+	creationDate="2018-07-20T22:17:52">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -250,7 +250,7 @@
 	</Peptide>
  	<Peptide id="PEP_13840404847456553128" name="DLVKKYDK">
 		<PeptideSequence>DLVKKYDK</PeptideSequence>
-		<Modification location="4" residues="K" monoisotopicMassDelta="0">
+		<Modification location="5" residues="K" monoisotopicMassDelta="0">
 			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="1319457452123930579"/>
 		</Modification>
 	</Peptide>
@@ -618,7 +618,7 @@
 	</Peptide>
  	<Peptide id="PEP_4792429637698684195" name="DLVKKYDK">
 		<PeptideSequence>DLVKKYDK</PeptideSequence>
-		<Modification location="5" residues="K" monoisotopicMassDelta="0">
+		<Modification location="4" residues="K" monoisotopicMassDelta="0">
 			<cvParam accession="MS:1002510" cvRef="PSI-MS" name="cross-link acceptor" value="15144574220516646540"/>
 		</Modification>
 	</Peptide>
@@ -1067,7 +1067,7 @@
 	<PeptideEvidence id="PEV_9957466978292038540" peptide_ref="PEP_4995866191739044173" dBSequence_ref="PROT_474525871221756682" post="G" pre="K" start="116" end="129" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-07-20T21:44:16">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-07-20T22:17:51">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -6785,7 +6785,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="DLVKKYDK"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="299"/>
-					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="37"/>
+					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="38"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2180.57080077418" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -6834,7 +6834,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="DLVKKYDK"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="299"/>
-					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="37"/>
+					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="38"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2176.58422850855" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -6862,7 +6862,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="DLVKKYDK"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="299"/>
-					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="37"/>
+					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="38"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2180.57080077418" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -6890,7 +6890,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="DLVKKYDK"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="299"/>
-					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="37"/>
+					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="38"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2176.58422850855" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -6939,7 +6939,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="DLVKKYDK"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="299"/>
-					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="38"/>
+					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="37"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2180.57080077418" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -6988,7 +6988,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="DLVKKYDK"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="299"/>
-					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="38"/>
+					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="37"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2176.58422850855" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -7016,7 +7016,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="DLVKKYDK"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="299"/>
-					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="38"/>
+					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="37"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2180.57080077418" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -7044,7 +7044,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="beta_sequence" unitName="xsd:string" value="DLVKKYDK"/>
 					<userParam name="XL_Protein_position_alpha" unitName="xsd:string" value="299"/>
-					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="38"/>
+					<userParam name="XL_Protein_position_beta" unitName="xsd:string" value="37"/>
 					<userParam name="accessions_beta" unitName="xsd:string" value="Protein1"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2176.58422850855" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
