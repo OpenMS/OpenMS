@@ -75,7 +75,7 @@ namespace OpenMS
       static PeakMap preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, bool deisotope, bool labeled);
 
       /**
-       * @brief Computes a spectrum alignment while considering fragment charges stored in a IntegerDataArray and an intensity difference ratio
+       * @brief Computes a spectrum alignment while considering fragment charges stored in a IntegerDataArray and a cut-off for the intensity difference ratio
        * @param alignment The empty alignment, that will be filled by the algorithm
        * @param fragment_mass_tolerance The peak mass tolerance
        * @param fragment_mass_tolerance_unit_ppm True if the given tolerance is a ppm tolerance, false if tolerance is in Da
