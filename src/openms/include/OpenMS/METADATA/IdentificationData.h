@@ -148,12 +148,20 @@ namespace OpenMS
       score_types_.swap(other.score_types_);
       data_queries_.swap(other.data_queries_);
       parent_molecules_.swap(other.parent_molecules_);
+      parent_molecule_groupings_.swap(other.parent_molecule_groupings_);
       identified_peptides_.swap(other.identified_peptides_);
       identified_compounds_.swap(other.identified_compounds_);
       identified_oligos_.swap(other.identified_oligos_);
       query_matches_.swap(other.query_matches_);
       query_match_groups_.swap(other.query_match_groups_);
-      parent_molecule_groupings_.swap(other.parent_molecule_groupings_);
+      swap(current_step_ref_, other.current_step_ref_);
+      // look-up tables:
+      data_query_lookup_.swap(other.data_query_lookup_);
+      parent_molecule_lookup_.swap(other.parent_molecule_lookup_);
+      identified_peptide_lookup_.swap(other.identified_peptide_lookup_);
+      identified_compound_lookup_.swap(other.identified_compound_lookup_);
+      identified_oligo_lookup_.swap(other.identified_oligo_lookup_);
+      query_match_lookup_.swap(other.query_match_lookup_);
     }
 
     InputFileRef registerInputFile(const String& file);
