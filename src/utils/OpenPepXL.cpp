@@ -754,8 +754,6 @@ protected:
     filtered_peptide_masses.assign(peptide_masses.begin(), last);
     peptide_masses.clear();
 
-    vector<OPXLDataStructs::XLPrecursor> enumerated_cross_link_masses;
-
     // iterate over all spectra
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
     vector< vector< OPXLDataStructs::CrossLinkSpectrumMatch > > all_top_csms;
@@ -796,18 +794,12 @@ protected:
       }
       // determine candidates
       vector< OPXLDataStructs::XLPrecursor > candidates;
-      set< OPXLDataStructs::ProteinProteinCrossLink > cross_link_candidates_set;
-
-      // determine MS2 precursors that match to the current peptide mass
-      vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
-      vector< OPXLDataStructs::XLPrecursor >::const_iterator up_it;
 
       vector< double > spectrum_precursor_vector;
       vector< double > allowed_error_vector;
 
       for (double correction_mass : precursor_correction_steps)
       {
-        vector< int > precursor_corrections;
         double allowed_error = 0;
 
         double corrected_precursor_mass = precursor_mass - (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
