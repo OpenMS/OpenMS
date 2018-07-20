@@ -500,8 +500,6 @@ protected:
     search_params.setMetaValue("MS:1001029", peptide_masses.size()); // number of sequences searched = MS:1001029
     protein_ids[0].setSearchParameters(search_params);
 
-    vector<OPXLDataStructs::XLPrecursor> enumerated_cross_link_masses;
-
     // Collect precursor MZs for filtering enumerated peptide pairs
     vector< double > spectrum_precursors;
     for (Size i = 0; i < spectra.size(); i++)
@@ -570,10 +568,6 @@ protected:
 
       // determine candidates
       vector< OPXLDataStructs::XLPrecursor > candidates;
-
-      // determine MS2 precursors that match to the current peptide mass
-      vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
-      vector< OPXLDataStructs::XLPrecursor >::const_iterator up_it;
 
       vector< double > spectrum_precursor_vector;
       vector< double > allowed_error_vector;
