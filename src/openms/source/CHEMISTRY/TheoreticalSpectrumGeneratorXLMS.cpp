@@ -804,7 +804,8 @@ namespace OpenMS
         {
           peptide = crosslink.alpha;
           link_pos = crosslink.cross_link_position.first;
-        } else
+        }
+        else
         {
           peptide = crosslink.beta;
           link_pos = crosslink.cross_link_position.second;
@@ -872,7 +873,8 @@ namespace OpenMS
       peptide = crosslink.alpha;
       peptide2 = crosslink.beta;
       link_pos = crosslink.cross_link_position.first;
-    } else
+    }
+    else
     {
       ion_type = "beta|xi";
       peptide = crosslink.beta;
