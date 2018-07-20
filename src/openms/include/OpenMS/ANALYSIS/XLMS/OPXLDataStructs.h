@@ -179,7 +179,19 @@ namespace OpenMS
       {
         bool operator() (const CrossLinkSpectrumMatch& a, const CrossLinkSpectrumMatch& b)
         {
-          return a.score < b.score;
+          if (a.score == b.score)
+          {
+            // in rare cases when the sequences are the same, multiple candidates with different cross-linked positions can have the same score
+            // that leads to ambigious sorting and may cause differences between compilers
+            // in those cases we prefer higher positions (just like the score),
+            // because the lower position might be an N-term link, which is usually less likely and all other positions are equal (because the score is equal)
+            if (a.cross_link.cross_link_position.first == b.cross_link.cross_link_position.first)
+            {
+              return a.cross_link.cross_link_position.second < b.cross_link.cross_link_position.second;
+            }
+            return a.cross_link.cross_link_position.first < b.cross_link.cross_link_position.first;
+          }
+          return a.score < b.score ;
         }
       };
 
