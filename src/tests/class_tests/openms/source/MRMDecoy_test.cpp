@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -477,11 +477,22 @@ END_SECTION
 
 /// Public methods
 
-START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                   String method, String decoy_tag, int max_attempts, double identity_threshold,
-                                   double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
-                                   std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
-                                   bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow); ))
+START_SECTION((void generateDecoys(const OpenMS::TargetedExperiment& exp,
+                        OpenMS::TargetedExperiment& dec,
+                        const String& method,
+                        const double aim_decoy_fraction,
+                        const bool switchKR,
+                        const String& decoy_tag,
+                        const int max_attempts,
+                        const double identity_threshold,
+                        const double precursor_mz_shift,
+                        const double product_mz_shift,
+                        const double product_mz_threshold,
+                        const std::vector<String>& fragment_types,
+                        const std::vector<size_t>& fragment_charges,
+                        const bool enable_specific_losses,
+                        const bool enable_unspecific_losses,
+                        const int round_decPow = -4) const))
 {
   String method = "pseudo-reverse";
   double identity_threshold = 0.7;
@@ -520,6 +531,8 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::Targ
   decoys.generateDecoys(targeted_exp, 
                         targeted_decoy,
                         method,
+                        1.0,
+                        false,
                         decoy_tag,
                         max_attempts,
                         identity_threshold,

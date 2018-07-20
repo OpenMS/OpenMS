@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,7 +88,8 @@ namespace OpenMS
       // found peak match
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
-        dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
+//        double mass_error = 1.0 - std::abs(theo_mz - exp_mz) / max_dist_dalton;
+        dot_product += exp_spectrum[index].getIntensity() * theo_intensity /* * mass_error */;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
         if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
         {
@@ -106,8 +107,7 @@ namespace OpenMS
         }
       }
     }
-  
-    // discard very low scoring hits (basically no matching peaks)
+
     const double yFact = logfactorial_(y_ion_count);
     const double bFact = logfactorial_(b_ion_count);
     const double hyperScore = log1p(dot_product) + yFact + bFact;

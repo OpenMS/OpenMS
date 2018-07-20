@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -80,7 +79,7 @@ namespace OpenMS
         return result;
       }
 
-      // Converts from a narrow-character string to a wide-charactr string.
+      // Converts from a narrow-character string to a wide-character string.
       inline XercesString fromNative_(const String& str) const
       {
         return fromNative_(str.c_str());
@@ -170,6 +169,14 @@ public:
         STORE               ///< Storing a file
       };
 
+      enum LOADDETAIL 
+      {  
+        LD_ALLDATA,       // default; load all data
+        LD_RAWCOUNTS,     // only count the total number of spectra and chromatograms (usually very fast)
+        LD_COUNTS_WITHOPTIONS // count the number of spectra, while respecting PeakFileOptions (msLevel and RTRange) and chromatograms (fast)
+      };
+
+
       /// Default constructor
       XMLHandler(const String & filename, const String & version);
       /// Destructor
@@ -210,6 +217,12 @@ public:
       /// Returns the last error description
       String errorString();
 
+      /// handler which support partial loading, implement this method
+      virtual LOADDETAIL getLoadDetail() const;
+
+      /// handler which support partial loading, implement this method
+      virtual void setLoadDetail(const LOADDETAIL d);
+
       /**
         @brief Escapes a string and returns the escaped string
 
@@ -249,6 +262,10 @@ protected:
           This member is used only in those XML parsers that need this information.
       */
       std::vector<String> open_tags_;
+
+      /// parse only until total number of scans and chroms have been determined from attributes
+      LOADDETAIL load_detail_; 
+
 
       /// Returns if two Xerces strings are equal
       inline bool equal_(const XMLCh * a, const XMLCh * b) const
@@ -737,5 +754,4 @@ private:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 

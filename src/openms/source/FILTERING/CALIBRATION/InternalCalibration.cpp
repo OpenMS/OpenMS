@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -292,7 +292,8 @@ namespace OpenMS
         applyTransformation(exp, target_mslvl, tms[0]);
         hasValidModels = true;
       }
-    } else
+    }
+    else
     { // one model per spectrum (not all might be needed, if certain MS levels are excluded from calibration)
       tms.reserve(exp.size());
       // go through spectra and calibrate

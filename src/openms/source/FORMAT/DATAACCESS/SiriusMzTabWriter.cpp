@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,12 +45,15 @@ using namespace OpenMS;
 using namespace std;
 
 
-String SiriusMzTabWriter::extract_scan_index(const String &path)
+int SiriusMzTabWriter::extract_scan_index(const String &path)
 {
-  return path.substr(path.find_last_not_of("0123456789") + 1);
+  return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
 }
 
-void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
+void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
+                             const String & original_input_mzml,
+                             const Size & top_n_hits,
+                             MzTab & result)
 {
 
   SiriusMzTabWriter::SiriusAdapterRun sirius_result;
@@ -72,17 +75,26 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
       {
         const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount : top_n_hits;
         
-        // fill indentification structure containing all candidate hits for a single spectrum
+        // fill identification structure containing all candidate hits for a single spectrum
         SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
 
         // extract scan_number from path
         OpenMS::String str = File::path(pathtosiriuscsv);
-        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
-        
+        int scan_index = SiriusMzTabWriter::extract_scan_index(str);
+
         // extract scan_number from string
         boost::regex regexp("-(?<SCAN>\\d+)-");
-        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);      
- 
+        int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
+
+        // extract feature_id from string
+        boost::smatch match;
+        String feature_id;
+        boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+        bool found = boost::regex_search(str, match, regexp_feature);
+        if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
+        // results from scan were not assigned to a feautre
+        if (feature_id == "id_0") {feature_id = "null";}
+
         for (Size j = 1; j < top_n_hits_cor; ++j)
 
         {
@@ -106,6 +118,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
 
         sirius_id.scan_index = scan_index;
         sirius_id.scan_number = scan_number;
+        sirius_id.feature_id = feature_id;
         sirius_result.identifications.push_back(sirius_id);
 
         // write metadata to mzTab file
@@ -165,12 +178,17 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths, co
             compoundScanNumber.first = "compoundScanNumber";
             compoundScanNumber.second = MzTabString(id.scan_number);
 
+            MzTabOptionalColumnEntry featureId;
+            featureId.first = "featureId";
+            featureId.second = MzTabString(id.feature_id);
+
             smsr.opt_.push_back(adduct);
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(explainedPeaks);
             smsr.opt_.push_back(explainedIntensity);
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
+            smsr.opt_.push_back(featureId);
             smsd.push_back(smsr);
           }
         }  

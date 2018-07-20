@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1248,8 +1248,7 @@ namespace OpenMS
 
       }               //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt, area, distance_from_scan_border, ms_level, direction))
       it_pick_begin = raw_peak_array.begin();
-    }
-    while (number_of_peaks != 0);
+    } while (number_of_peaks != 0);
 
     // start the nonlinear optimization for all peaks in split
 #ifdef DEBUG_PEAK_PICKING

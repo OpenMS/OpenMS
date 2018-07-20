@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -106,6 +107,10 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   vector<PeptideIdentification> peptides_in;
   PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml"), proteins_in, peptides_in, "PepXMLFile_test");
 
+  TEST_EQUAL(proteins_in.size(), 1);
+  TEST_EQUAL(proteins_in[0].getHits().size(), 4);
+  TEST_EQUAL(peptides_in.size(), 2);
+
   IdentificationData ids;
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
 
@@ -113,8 +118,10 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   vector<PeptideIdentification> peptides_out;
   IdentificationDataConverter::exportIDs(ids, proteins_out, peptides_out);
 
-  TEST_EQUAL(peptides_in.size(), peptides_out.size());
-  TEST_EQUAL(proteins_in.size(), proteins_out.size());
+  // the additional Peptide-/InterProphet scores cause multiple ID runs upon
+  // export:
+  TEST_EQUAL(proteins_out.size(), 3);
+  TEST_EQUAL(peptides_out.size(), 4);
 
   String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_pepXML_out.idXML");
   // NEW_TMP_FILE(filename);
@@ -122,6 +129,44 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   IdXMLFile().store(filename, proteins_out, peptides_out);
 }
 END_SECTION
+
+/*
+// performance test on a large file:
+START_SECTION(([[EXTRA]] void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const vector<PeptideIdentification>&)))
+{
+  SysInfo::MemUsage mem_usage;
+  vector<ProteinIdentification> proteins_in;
+  vector<PeptideIdentification> peptides_in;
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("large_test.idXML"), proteins_in, peptides_in);
+  STATUS(mem_usage.delta("PeptideIdentification/ProteinIdentification"));
+
+  TEST_EQUAL(proteins_in.size(), 1);
+  TEST_EQUAL(proteins_in[0].getHits().size(), 11098);
+  TEST_EQUAL(peptides_in.size(), 328591);
+  TEST_EQUAL(proteins_in[0].getIndistinguishableProteins().size(), 10853);
+  TEST_EQUAL(proteins_in[0].getProteinGroups().size(), 9092);
+
+  mem_usage.reset();
+  mem_usage.before();
+  IdentificationData ids;
+  IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
+  STATUS(mem_usage.delta("IdentificationData"));
+
+  TEST_EQUAL(ids.getParentMolecules().size(), 11098);
+  // problem: input data comes from multiple files, spectra with matching names
+  // in different files get merged together -> lower number of data queries:
+  TEST_EQUAL(ids.getDataQueries().size(), 55522);
+  TEST_EQUAL(ids.getIdentifiedPeptides().size(), 73950);
+  // according to "grep" on the input file, there should be 335250 peptide hits
+  // in total - maybe some duplicates?:
+  TEST_EQUAL(ids.getMoleculeQueryMatches().size(), 332778);
+
+  TEST_EQUAL(ids.getParentMoleculeGroupings().size(), 2);
+  TEST_EQUAL(ids.getParentMoleculeGroupings()[0].groups.size(), 10853);
+  TEST_EQUAL(ids.getParentMoleculeGroupings()[1].groups.size(), 9092);
+}
+END_SECTION
+*/
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

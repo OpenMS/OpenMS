@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_6888843767287282833" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<?xml-stylesheet type="text/xsl" href="file:////home/sachsenb/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_6888843767287282833" experiment_type="label-free" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="2017-04-21T15:32:16">
 		<software name="FeatureLinkerUnlabeledQT" version="2.1.0" />
 		<processingAction name="Feature grouping" />
@@ -403,11 +403,6 @@
 		</PeptideHit>
 		<UserParam type="string" name="feature_id" value="not mapped"/>
 	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75" RT="1586.72680664062" spectrum_reference="spectrum=2385" >
-		<UserParam type="int" name="spectrum_index" value="599"/>
-		<UserParam type="int" name="map_index" value="4"/>
-		<UserParam type="string" name="feature_id" value="17962861576887891871"/>
-	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75048828125" RT="1525.90893554688" spectrum_reference="spectrum=2321" >
 		<UserParam type="int" name="spectrum_index" value="540"/>
 		<UserParam type="int" name="map_index" value="2"/>
@@ -426,6 +421,11 @@
 	<UnassignedPeptideIdentification identification_run_ref="PI_15" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75" RT="1586.72680664062" spectrum_reference="spectrum=2385" >
 		<UserParam type="int" name="spectrum_index" value="599"/>
 		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="string" name="feature_id" value="17962861576887891871"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.749572753906" RT="1571.3095703125" spectrum_reference="spectrum=2463" >
+		<UserParam type="int" name="spectrum_index" value="585"/>
+		<UserParam type="int" name="map_index" value="0"/>
 		<UserParam type="string" name="feature_id" value="17962861576887891871"/>
 	</UnassignedPeptideIdentification>
 	<UnassignedPeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="531.220703125" RT="2365.1015625" spectrum_reference="spectrum=3126" >
@@ -529,9 +529,9 @@
 				<element map="4" id="5197685355969128079" rt="1595.95941974638" mz="763.749333898306" it="210602" charge="2"/>
 				<element map="5" id="17450310248252634930" rt="1595.95941974638" mz="763.749333898306" it="210602" charge="2"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.749572753906" RT="1571.3095703125" spectrum_reference="spectrum=2463" >
-				<UserParam type="int" name="spectrum_index" value="585"/>
-				<UserParam type="int" name="map_index" value="0"/>
+			<PeptideIdentification identification_run_ref="PI_12" score_type="" higher_score_better="true" significance_threshold="0" MZ="763.75" RT="1586.72680664062" spectrum_reference="spectrum=2385" >
+				<UserParam type="int" name="spectrum_index" value="599"/>
+				<UserParam type="int" name="map_index" value="4"/>
 				<UserParam type="string" name="feature_id" value="17962861576887891871"/>
 			</PeptideIdentification>
 			<UserParam type="string" name="feature_id" value="17962861576887891871"/>

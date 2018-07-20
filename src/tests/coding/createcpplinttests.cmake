@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -59,6 +59,7 @@ macro(add_cpplint_tests _directory)
         "${PYTHON_EXECUTABLE}"
         "${PROJECT_SOURCE_DIR}/cpplint.py"
         "--verbose=5"
+        "--filter=-readability/namespace,-build/namespaces,-whitespace/empty_loop_body,-build/c++11"
         "${OPENMS_HOST_DIRECTORY}/src/${_directory}/${_file_to_test}")
 
       set_tests_properties(

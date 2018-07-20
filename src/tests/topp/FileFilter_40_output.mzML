@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -294,3 +295,18 @@
 		</spectrumList>
 	</run>
 </mzML>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="spectrum=1">5440</offset>
+		<offset idRef="spectrum=2">19551</offset>
+		<offset idRef="spectrum=3">31970</offset>
+		<offset idRef="spectrum=4">33500</offset>
+		<offset idRef="spectrum=5">35066</offset>
+		<offset idRef="spectrum=6">36680</offset>
+		<offset idRef="spectrum=9">52328</offset>
+		<offset idRef="spectrum=10">53858</offset>
+	</index>
+</indexList>
+<indexListOffset>67589</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

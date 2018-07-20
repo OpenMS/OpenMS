@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,8 +88,8 @@ START_SECTION((double operator()(const BinnedSpectrum &spec1, const BinnedSpectr
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s2);
   s2.pop_back();
-  BinnedSpectrum bs1(s1, 1.5, false, 2);
-  BinnedSpectrum bs2(s2, 1.5, false, 2);
+  BinnedSpectrum bs1(s1, 1.5, false, 2, 0);
+  BinnedSpectrum bs2(s2, 1.5, false, 2, 0);
 
   double score = (*ptr)(bs1, bs2);
   TEST_REAL_SIMILAR(score, 0.997118)
@@ -104,7 +104,7 @@ START_SECTION((double operator()(const BinnedSpectrum &spec) const ))
 {
   PeakSpectrum s1;
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
-  BinnedSpectrum bs1(s1, 1.5, false, 2);
+  BinnedSpectrum bs1(s1, 1.5, false, 2, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
   double score = (*ptr)(bs1);
   TEST_REAL_SIMILAR(score,1);
 }

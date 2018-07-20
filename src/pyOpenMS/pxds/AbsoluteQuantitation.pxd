@@ -18,17 +18,17 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitation.h>" namespa
 
         void setQuantMethods(libcpp_vector[ AbsoluteQuantitationMethod ]& quant_methods) nogil except +
         libcpp_vector[ AbsoluteQuantitationMethod ] getQuantMethods() nogil except +
-        double calculateRatio(Feature & component_1, Feature & component_2, String & feature_name) nogil except +
+        double calculateRatio(Feature & component_1, Feature & component_2, const String & feature_name) nogil except +
         # double calculateBias(double actual_concentration, double calculated_concentration) nogil except +
-        double applyCalibration(Feature & component, Feature & IS_component, String & feature_name, 
-                                String & transformation_model, Param & transformation_model_params) nogil except +
+        double applyCalibration(const Feature & component, const Feature & IS_component, const String & feature_name, 
+                                const String & transformation_model, const Param & transformation_model_params) nogil except +
         void quantifyComponents(FeatureMap& unknowns) nogil except +
 
         bool optimizeCalibrationCurveIterative(
             libcpp_vector[ AQS_featureConcentration ] & component_concentrations,
-            String & feature_name,
-            String & transformation_model,
-            Param & transformation_model_params,
+            const String & feature_name,
+            const String & transformation_model,
+            const Param & transformation_model_params,
             Param & optimized_params) nogil except +
 
         void optimizeSingleCalibrationCurve(

@@ -17,7 +17,7 @@ if "--no-optimization" in sys.argv:
 
 # import config
 from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
-                  QT_QTCORE_LIBRARY, QT_QTNETWORK_LIBRARY, MSVS_RTLIBS,
+                  QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
                   PY_NUM_MODULES, PY_NUM_THREADS)
@@ -76,7 +76,6 @@ ctime = os.stat("pyopenms").st_mtime
 ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
-
 version = OPEN_MS_VERSION
 
 with open("pyopenms/version.py", "w") as fp:
@@ -102,8 +101,7 @@ if iswin:
     else:
         libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
-    ## TODO evaluate if xerces can be removed here since we usually build it statically
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "Qt5Core", "Qt5Network"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
 else:
@@ -118,8 +116,8 @@ library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "bin"),
                 j(OPEN_MS_BUILD_DIR, "bin", "Release"),
                 j(OPEN_MS_BUILD_DIR, "Release"),
-                QT_QTCORE_LIBRARY,
-                QT_QTNETWORK_LIBRARY,
+                QT_INSTALL_BINS,
+                QT_INSTALL_LIBS,
                 ]
 
 # extend with contrib lib dirs
@@ -188,15 +186,13 @@ for module in mnames:
         libraries=libraries,
         include_dirs=include_dirs + autowrap_include_dirs,
         extra_compile_args=extra_compile_args,
-        extra_link_args=extra_link_args
+        extra_link_args=extra_link_args,
+		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
+		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
+		## TODO just take over compile definitions from OpenMS (CMake)
     ))
 
 share_data = []
-
-# Preferred to link statically (as it is now)
-#if iswin:
-#    share_data += MSVS_RTLIBS.split(";") + ["xerces-c_3_1.dll", "sqlite3.dll"]
-
 share_data.append("License.txt")
 
 # enforce 64bit-only build as OpenMS is not available in 32bit on osx
@@ -208,6 +204,9 @@ setup(
     name="pyopenms",
     packages=["pyopenms"],
     ext_package="pyopenms",
+	install_requires=[
+          'numpy',
+    ],
 
     version=version,
 

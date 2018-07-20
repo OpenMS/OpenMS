@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,7 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
@@ -458,7 +458,7 @@ namespace OpenMS
   {
     double pos = ion.getMonoWeight(res_type, charge);
     Peak1D p;
-    IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope_);
+    IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
 
     String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + String((Size)abs(charge), '+');
 
@@ -466,8 +466,8 @@ namespace OpenMS
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
     {
       // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
-      p.setMZ((double)(pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-      p.setIntensity(intensity * it->second);
+      p.setMZ((double)(pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
+      p.setIntensity(intensity * it->getIntensity());
       if (add_metainfo_) // one entry per peak
       {
         ion_names.push_back(ion_name);
@@ -480,16 +480,10 @@ namespace OpenMS
 
   void TheoreticalSpectrumGenerator::addIsotopeCluster_(PeakSpectrum& spectrum, const NASequence& ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, NASequence::NASFragmentType res_type, Int charge, double intensity) const
   {
-    // char charge_sign = '+';
-    double charge_unit = 1.0; //double equivalent of sign
-    if (charge < 0)
-    {
-      // charge_sign = '-';
-      charge_unit = -1.0;
-    }
+    double charge_unit = (charge < 0) ? -1.0 : 1.0; // pos. or neg. charge?
     double pos = ion.getMonoWeight(res_type, charge);
     Peak1D p;
-    IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope_);
+    IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
 
     String ion_name = ribonucleotideTypeToIonCode_(res_type, ion.size()); // + String((Size)abs(charge), charge_sign);
 
@@ -497,8 +491,8 @@ namespace OpenMS
     for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
     {
       // TODO: this is usually dominated by 13C-12C mass shift which deviates a bit from neutron mass
-      p.setMZ((double)(pos + j * Constants::NEUTRON_MASS_U *charge_unit) / (double)abs(charge));
-      p.setIntensity(intensity * it->second);
+      p.setMZ((double)(pos + j * Constants::C13C12_MASSDIFF_U * charge_unit) / (double)abs(charge));
+      p.setIntensity(intensity * it->getIntensity());
       if (add_metainfo_) // one entry per peak
       {
         ion_names.push_back(ion_name);
@@ -554,7 +548,7 @@ namespace OpenMS
 
       if (add_isotopes_)
       {
-        IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope_);
+        IsotopeDistribution dist = loss_ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
 
         // note: important to construct a string from char. If omitted it will perform pointer arithmetics on the "-" string literal
         String ion_name = String(residueTypeToIonLetter_(res_type)) + String(ion.size()) + "-" + loss_name + String((Size)abs(charge), '+');
@@ -562,8 +556,8 @@ namespace OpenMS
         double j(0.0);
         for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso, ++j)
         {
-          p.setMZ((double)(loss_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-          p.setIntensity(intensity * rel_loss_intensity_ * iso->second);
+          p.setMZ((double)(loss_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
+          p.setIntensity(intensity * rel_loss_intensity_ * iso->getIntensity());
           if (add_metainfo_)
           {
             ion_names.push_back(ion_name);
@@ -870,12 +864,12 @@ namespace OpenMS
 
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = peptide.getFormula(Residue::Full, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
       double j(0.0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_ *  it->second);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
+        p.setIntensity(pre_int_ * it->getIntensity());
         if (add_metainfo_)
         {
           ion_names.push_back(ion_name);
@@ -902,12 +896,12 @@ namespace OpenMS
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_H2O_ *  it->second);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
+        p.setIntensity(pre_int_H2O_ *  it->getIntensity());
         if (add_metainfo_)
         {
           String ion_name("[M+H]-H2O" + String((Size)abs(charge), '+'));
@@ -935,12 +929,12 @@ namespace OpenMS
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U) / (double)charge);
-        p.setIntensity(pre_int_NH3_ *  it->second);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U) / (double)charge);
+        p.setIntensity(pre_int_NH3_ *  it->getIntensity());
         if (add_metainfo_)
         {
           String ion_name("[M+H]-NH3" + String((Size)abs(charge), '+'));
@@ -984,12 +978,12 @@ namespace OpenMS
 
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = nucleotide.getFormula(NASequence::Full, charge).getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = nucleotide.getFormula(NASequence::Full, charge).getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
       double j(0.0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U * charge_unit) / (double)(abs(charge)));
-        p.setIntensity(pre_int_ *  it->second);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U * charge_unit) / (double)(abs(charge)));
+        p.setIntensity(pre_int_ * it->getIntensity());
         if (add_metainfo_)
         {
           ion_names.push_back(ion_name);
@@ -1016,12 +1010,12 @@ namespace OpenMS
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U * charge_unit ) / (double)(abs(charge)));
-        p.setIntensity(pre_int_H2O_ *  it->second);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U * charge_unit ) / (double)(abs(charge)));
+        p.setIntensity(pre_int_H2O_ *  it->getIntensity());
         if (add_metainfo_)
         {
           String ion_name("[M"+ String(charge_sign)+"H]-H2O" + String((Size)abs(charge), charge_sign));
@@ -1049,12 +1043,12 @@ namespace OpenMS
     mono_pos = ion.getMonoWeight();
     if (add_isotopes_)
     {
-      IsotopeDistribution dist = ion.getIsotopeDistribution(max_isotope_);
+      IsotopeDistribution dist = ion.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
       UInt j(0);
       for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
       {
-        p.setMZ((double)(mono_pos + j * Constants::NEUTRON_MASS_U * charge_unit ) / (double)(abs(charge)));
-        p.setIntensity(pre_int_NH3_ *  it->second);
+        p.setMZ((double)(mono_pos + j * Constants::C13C12_MASSDIFF_U * charge_unit ) / (double)(abs(charge)));
+        p.setIntensity(pre_int_NH3_ *  it->getIntensity());
         if (add_metainfo_)
         {
           String ion_name("[M"+String(charge_sign)+"H]-NH3" + String((Size)abs(charge), charge_sign));

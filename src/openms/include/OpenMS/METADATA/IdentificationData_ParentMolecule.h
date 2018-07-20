@@ -174,8 +174,9 @@ namespace OpenMS
     /*!
       Group of ambiguously identified parent molecules
     */
-    struct ParentMoleculeGroup: public ScoredProcessingResult
+    struct ParentMoleculeGroup
     {
+      ScoreList scores;
       // @TODO: does this need a "leader" or some such?
       std::set<ParentMoleculeRef> parent_molecule_refs;
     };
@@ -184,11 +185,23 @@ namespace OpenMS
       ParentMoleculeGroup,
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_unique<
-          boost::multi_index::member<
-            ParentMoleculeGroup, std::set<ParentMoleculeRef>,
-            &ParentMoleculeGroup::parent_molecule_refs>>>
+        boost::multi_index::member<
+          ParentMoleculeGroup, std::set<ParentMoleculeRef>,
+          &ParentMoleculeGroup::parent_molecule_refs>>>
       > ParentMoleculeGroups;
     typedef IteratorWrapper<ParentMoleculeGroups::iterator> ParentGroupRef;
+
+    /*!
+      Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
+    */
+    struct ParentMoleculeGrouping
+    {
+      String label; // @TODO: use "label" as a uniqueness constraint?
+      std::vector<ProcessingStepRef> processing_step_refs;
+      ParentMoleculeGroups groups;
+    };
+
+    typedef std::vector<ParentMoleculeGrouping> ParentMoleculeGroupings;
 
 
     /*!

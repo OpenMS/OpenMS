@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
-#define OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
+#pragma once
 
 #include <iosfwd>
 #include <map>
@@ -42,13 +41,15 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
+
+
 namespace OpenMS
 {
   class String;
   class Element;
   class ElementDB;
   class IsotopeDistribution;
-
+  class IsotopePatternGenerator;
   /**
     @ingroup Chemistry
 
@@ -91,6 +92,8 @@ public:
     /// Iterators
     typedef MapType_::const_iterator ConstIterator;
     typedef MapType_::const_iterator const_iterator;
+    typedef MapType_::iterator Iterator;
+    typedef MapType_::iterator iterator;
     //@}
 
     /** @name Constructors and Destructors
@@ -116,6 +119,8 @@ public:
     virtual ~EmpiricalFormula();
     //@}
 
+
+
     /** @name Accessors
     */
     //@{
@@ -124,6 +129,9 @@ public:
 
     /// returns the average weight of the formula (includes proton charges)
     double getAverageWeight() const;
+
+    /// returns the total number of discrete isotopes
+    double calculateTheoreticalIsotopesNumber() const;
 
     /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight and approximate elemental stoichiometry
@@ -160,14 +168,14 @@ public:
     /**
       @brief returns the isotope distribution of the formula
       The details of the calculation of the isotope distribution
-      are described in the doc to the IsotopeDistribution class.
+      are described in the doc to the CoarseIsotopePatternGenerator class.
 
-      @param max_depth: the maximum isotope which is considered, if 0 all are reported
+      @param method: the method that will be used for the calculation of the IsotopeDistribution 
     */
-    IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
-
+    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;    
+    
     /**
-      @brief returns the fragment isotope distribution of this given a precursor formula
+      @brief returns the fragment iUsotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
 
       The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
@@ -191,6 +199,9 @@ public:
 
     /// returns the formula as a string (charges are not included)
     String toString() const;
+
+    /// returns the formula as a map (charges are not included)
+    std::map<std::string, int> toMap() const;
     //@}
 
     /** Assignment
@@ -237,6 +248,9 @@ public:
     /// returns true if the formulas differ in elements composition
     bool operator!=(const EmpiricalFormula& rhs) const;
 
+    /// less operator
+    bool operator<(const EmpiricalFormula& rhs) const;
+
     //@}
 
     /// writes the formula to a stream
@@ -248,6 +262,10 @@ public:
     inline ConstIterator begin() const { return formula_.begin(); }
 
     inline ConstIterator end() const { return formula_.end(); }
+    
+    inline Iterator begin() { return formula_.begin(); }
+
+    inline Iterator end() { return formula_.end(); }
     //@}
 
 protected:
@@ -266,4 +284,3 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
-#endif

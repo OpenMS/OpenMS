@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,8 +156,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
 }
 
 
-void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
-  const
+void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) const
 {
   if (model_ == nullptr)
   {
@@ -170,7 +169,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes)
   if (indexes.empty())
   {
     indexes.reserve(n_obs);
-    for (Size i = 0; i < n_obs; indexes.push_back(i++));
+    for (Size i = 0; i < n_obs; indexes.push_back(i++)){};
   }
   Size n_classes = svm_get_nr_class(model_);
   vector<Int> labels(n_classes);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
-#define OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
+#pragma once
 
 #include <OpenMS/config.h>
 
@@ -77,7 +76,7 @@ namespace OpenMS
       IS concentration.
 
     Terms:
-    component: A protein, peptide, or compund fragment, transition, or whole species that is measured by e.g.,
+    component: A protein, peptide, or compound fragment, transition, or whole species that is measured by e.g.,
       LC-MS, LC-MS/MS, GC-MS, GC-MS/MS, LC-MS-TOF, HPLC-UV, HPLC-IR, etc.
     calibration curve:  A series of standards that are used to correlate instrument measurements to
       actual concentrations
@@ -263,7 +262,7 @@ public:
 
 protected:
     /**
-      @brief This function extractous out the components.
+      @brief This function extracts out the components.
 
       @param component_concentrations list of structures with features and concentrations
       @param component_concentrations_indices indices to extract out
@@ -335,5 +334,4 @@ private:
   };
 
 }
-#endif // OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATION_H
 

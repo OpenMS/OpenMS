@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -250,8 +250,11 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "\nadd row " << std::endl;
 #endif
-      model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"),
-                     LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
+      if (!indices.empty())
+      {
+        model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"),
+                       LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
+      }
 
 #ifdef DEBUG_OPS
       std::cout << stop - start << " PREC_ACQU_LIMIT_" << String(i) << std::endl;

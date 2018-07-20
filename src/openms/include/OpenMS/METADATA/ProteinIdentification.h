@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PROTEINIDENTIFICATION_H
-#define OPENMS_METADATA_PROTEINIDENTIFICATION_H
+#pragma once
 
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -220,6 +219,8 @@ public:
     void setSearchParameters(const SearchParameters& search_parameters);
     /// Returns the search parameters
     const SearchParameters& getSearchParameters() const;
+    /// Returns the search parameters (mutable)
+    SearchParameters& getSearchParameters();    
     /// Returns the identifier
     const String& getIdentifier() const;
     /// Sets the identifier
@@ -253,4 +254,3 @@ protected:
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_PROTEINIDENTIFICATION_H

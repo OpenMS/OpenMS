@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,10 +43,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <iostream>
 #include <cmath>
@@ -402,10 +399,14 @@ protected:
         hit.setMetaValue("SpecId", scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
-        if (!hit.metaValueExists("target_decoy") || hit.getMetaValue("target_decoy").toString().empty()) continue;
+        if (!hit.metaValueExists("target_decoy") 
+          || hit.getMetaValue("target_decoy").toString().empty()) 
+        {
+          continue;
+        }
         
         int label = 1;
-        if (String(hit.getMetaValue("target_decoy")).hasSubstring("decoy"))
+        if (hit.getMetaValue("target_decoy") == "decoy")
         {
           label = -1;
         }
@@ -416,8 +417,18 @@ protected:
         
         double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
         hit.setMetaValue("CalcMass", calc_mass);
-        
-        
+
+        if (hit.metaValueExists("IsotopeError"))  // MSGFPlus
+        {
+          float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+        else if (hit.metaValueExists("isotope_error")) // e.g. SimpleSearchEngine /RNPxlSearch
+        {
+          float isoErr = hit.getMetaValue("isotope_error").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+                
         hit.setMetaValue("ExpMass", exp_mass);
         hit.setMetaValue("mass", exp_mass);
         
@@ -452,9 +463,21 @@ protected:
         String aa_after(hit.getPeptideEvidences().front().getAAAfter());
         aa_before = aa_before=="["?'-':aa_before;
         aa_after = aa_after=="]"?'-':aa_after;
-        sequence += aa_before; 
-        sequence += "." + hit.getSequence().toString() + ".";
+        sequence += aa_before;
+        // In OpenMS sequence nomenclature, dots are set only for modified N/C-term modifications, e.g. .(Dimethyl)VGDMYTSSDIFDSVR
+        // In Percolator sequence nomenclature, dots are always present for all N/C-term modifications, e.g. R.(Dimethyl)VGDMYTSSDIFDSVR.F
+        // Consequently, dots need only be added for unmodified N/C-termini.
+        if (hit.getSequence().getNTerminalModificationName().empty())
+        {
+          sequence += ".";
+        }
+        sequence += hit.getSequence().toString();
+        if (hit.getSequence().getCTerminalModificationName().empty())
+        {
+          sequence += ".";
+        }
         sequence += aa_after;
+        
         hit.setMetaValue("Peptide", sequence);
         
         //proteinId1
@@ -564,7 +587,7 @@ protected:
               pht->setMetaValue("target_decoy", "target");
             }
           }
-          else if (pht->getMetaValue("target_decoy").toString().hasSubstring("decoy"))
+          else if (pht->getMetaValue("target_decoy").toString() == "decoy")
           {
             found_decoys = true;
           }
@@ -744,11 +767,8 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
-    {
-      QDir d;
-      d.mkpath(temp_directory_body.toQString());
-    }
+    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    
     String txt_designator = File::getUniqueName();
     String pin_file(temp_directory_body + txt_designator + "_pin.tab");
     String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
@@ -951,24 +971,11 @@ protected:
     // run percolator
     //-------------------------------------------------------------
     // Percolator execution with the executable and the arguments StringList
-    int status = QProcess::execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
-    if (status != 0)
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
     {
-      writeLog_("Percolator problem. Aborting! Calling command was: '" + percolator_executable + " \"" + arguments.join("-").toStdString() + "\".");
-      // clean temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory_body);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
-      }
-      else
-      {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
-      }
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
-    writeLog_("Executed percolator!");
-
 
     //-------------------------------------------------------------
     // reintegrate pout results
@@ -992,17 +999,6 @@ protected:
     {
       readProteinPoutAsMap_(pout_target_file_proteins, protein_map);
       readProteinPoutAsMap_(pout_decoy_file_proteins, protein_map);
-    }
-    
-    // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
-    if (this->debug_level_ < 5)
-    {
-      File::removeDirRecursively(temp_directory_body);
-      LOG_WARN << "Removing temporary directory for Percolator in/output. Set debug level to >=5 to keep the temporary files." << endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <5 to remove them." << endl;
     }
 
     // idXML or mzid input

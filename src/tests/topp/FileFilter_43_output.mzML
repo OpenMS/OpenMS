@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd">
 <mzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd" accession="" version="1.1.0">
 	<cvList count="5">
 		<cv id="MS" fullName="Proteomics Standards Initiative Mass Spectrometry Ontology" URI="http://psidev.cvs.sourceforge.net/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"/>
@@ -751,3 +752,33 @@
 		</chromatogramList>
 	</run>
 </mzML>
+<indexList count="2">
+	<index name="spectrum">
+		<offset idRef="scan=1 and &amp; &quot;impsum&quot; &lt;&gt;">6972</offset>
+		<offset idRef="scan=2">13535</offset>
+		<offset idRef="scan=3">19972</offset>
+		<offset idRef="scan=4">26276</offset>
+		<offset idRef="scan=5">32292</offset>
+		<offset idRef="scan=6">38180</offset>
+		<offset idRef="scan=7">43984</offset>
+		<offset idRef="scan=8">50016</offset>
+		<offset idRef="scan=9">55712</offset>
+		<offset idRef="scan=10">61439</offset>
+		<offset idRef="scan=11">67600</offset>
+		<offset idRef="scan=12">79186</offset>
+		<offset idRef="scan=13">95841</offset>
+		<offset idRef="scan=14">99247</offset>
+		<offset idRef="scan=15">117535</offset>
+		<offset idRef="scan=16">120877</offset>
+		<offset idRef="scan=17">124476</offset>
+		<offset idRef="scan=18">127835</offset>
+		<offset idRef="scan=19">143949</offset>
+		<offset idRef="scan=20">147886</offset>
+	</index>
+	<index name="chromatogram">
+		<offset idRef="TIC description &amp; &quot;impsum&quot; &lt;&gt;">151792</offset>
+	</index>
+</indexList>
+<indexListOffset>153244</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>

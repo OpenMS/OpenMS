@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -53,11 +54,11 @@ Int main()
        << sum.getAverageWeight() << endl;
 
   // extract the isotope distribution
-  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(3);
+  IsotopeDistribution iso_dist = sum.getIsotopeDistribution(CoarseIsotopePatternGenerator(3));
 
-  for (IsotopeDistribution::ConstIterator it = iso_dist.begin(); it != iso_dist.end(); ++it)
+  for (const auto& it : iso_dist)
   {
-    cout << it->first << " " << it->second << endl;
+    cout << it.getMZ() << " " << it.getIntensity() << endl;
   }
 
   return 0;

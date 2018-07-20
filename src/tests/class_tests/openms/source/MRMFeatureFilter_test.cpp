@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -465,7 +465,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 0.75);
-  TEST_REAL_SIMILAR(components[1].getMetaValue("QC_transition_group_score"), 0.666666666666667);
+  TEST_REAL_SIMILAR(components[1].getMetaValue("QC_transition_group_score"), 0.777777777777778);
   TEST_REAL_SIMILAR(components[1].getSubordinates()[0].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[1].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   
@@ -816,7 +816,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
-  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_score"), 0.842105263157895);
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_score"), 0.892857142857143);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 1.0);
@@ -858,7 +858,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
-  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_score"), 0.842105263157895);
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_score"), 0.892857142857143);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 1.0);
@@ -891,7 +891,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_EQUAL(components[0].getMetaValue("QC_transition_group_message"), "n_transitions");
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
-  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_score"), 0.833333333333333);
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_score"), 0.888888888888889);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   components.clear();
@@ -932,7 +932,7 @@ START_SECTION(void FilterFeatureMap(FeatureMap& features, MRMFeatureQC& filter_c
   TEST_EQUAL(components[0].getSubordinates()[0].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[1].getMetaValue("QC_transition_pass"), true);
   TEST_EQUAL(components[0].getSubordinates()[2].getMetaValue("QC_transition_pass"), true);
-  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_score"), 0.947368421052632);
+  TEST_REAL_SIMILAR(components[0].getMetaValue("QC_transition_group_score"), 0.964285714285714);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[0].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[1].getMetaValue("QC_transition_score"), 1.0);
   TEST_REAL_SIMILAR(components[0].getSubordinates()[2].getMetaValue("QC_transition_score"), 1.0);

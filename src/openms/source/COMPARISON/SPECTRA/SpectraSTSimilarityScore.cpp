@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,8 +70,9 @@ namespace OpenMS
 
   double SpectraSTSimilarityScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const
   {
-    BinnedSpectrum bin1(s1, 1, false, 1);
-    BinnedSpectrum bin2(s2, 1, false, 1);
+    // TODO: check if this operator makes sense (as it doesn't allow to fine tune resolution)
+    BinnedSpectrum bin1(s1, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+    BinnedSpectrum bin2(s2, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
 
     // normalized dot product
     bin1.getBins() /= bin1.getBins().norm();
@@ -118,7 +119,8 @@ namespace OpenMS
 
   BinnedSpectrum SpectraSTSimilarityScore::transform(const PeakSpectrum & spec)
   {
-    BinnedSpectrum bin(spec, 1, false, 1);
+    // TODO: resolution seems rather low. Check with current original implementations.
+    BinnedSpectrum bin(spec, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
     bin.getBins() /= bin.getBins().norm();
     return bin;
   }

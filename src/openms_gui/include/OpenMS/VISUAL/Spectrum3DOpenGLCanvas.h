@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,13 @@
 // $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QOpenGLWidget>
+#include <QOpenGLFunctions_2_0>
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -56,7 +56,8 @@ namespace OpenMS
   */
 
   class OPENMS_GUI_DLLAPI Spectrum3DOpenGLCanvas :
-    public QOpenGLWidget
+    public QOpenGLWidget, 
+    protected QOpenGLFunctions_2_0
   {
     Q_OBJECT
 
@@ -95,6 +96,10 @@ public:
     void mousePressEvent(QMouseEvent * e) override;
     void focusOutEvent(QFocusEvent * e) override;
     //@}
+
+    void setXLabel(const QString& l) { x_label_ = l; }
+    void setYLabel(const QString& l) { y_label_ = l; }
+    void setZLabel(const QString& l) { z_label_ = l; }
     
     /// updates the min and max values of the intensity
     void updateIntensityScale();
@@ -227,9 +232,12 @@ protected:
     /// y_translation
     double trans_y_;
 
+    QString x_label_;
+    QString y_label_;
+    QString z_label_;
+
 protected slots:
     /// Slot that reacts on action mode changes
     void actionModeChange();
   };
 }
-#endif

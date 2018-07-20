@@ -16,30 +16,30 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         bool operator==(ResidueModification & modification) nogil except +
         bool operator!=(ResidueModification & modification) nogil except +
 
-        void setId(String & id_) nogil except +
+        void setId(const String & id_) nogil except +
         String  getId() nogil except +
-        void setFullId(String & full_id) nogil except +
+        void setFullId(const String & full_id) nogil except +
         String  getFullId() nogil except +
 
         Int getUniModRecordId() nogil except +
         void setUniModRecordId(Int id_) nogil except +
         String  getUniModAccession() nogil except +
 
-        void setPSIMODAccession(String & id_) nogil except +
+        void setPSIMODAccession(const String & id_) nogil except +
         String getPSIMODAccession() nogil except +
-        void setFullName(String & full_name) nogil except +
+        void setFullName(const String & full_name) nogil except +
         String getFullName() nogil except +
-        void setName(String & name) nogil except +
+        void setName(const String & name) nogil except +
         String getName() nogil except +
         void setTermSpecificity(TermSpecificity term_spec) nogil except +
-        void setTermSpecificity(String & name) nogil except +
+        void setTermSpecificity(const String & name) nogil except +
 
         TermSpecificity getTermSpecificity() nogil except +
         String getTermSpecificityName(TermSpecificity ) nogil except +
         void setOrigin(char origin) nogil except +
         char  getOrigin() nogil except +
 
-        void setSourceClassification(String & classification) nogil except +
+        void setSourceClassification(const String & classification) nogil except +
         void setSourceClassification(SourceClassification classification) nogil except +
         SourceClassification getSourceClassification() nogil except +
         String getSourceClassificationName(SourceClassification classification) nogil except +
@@ -53,13 +53,13 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         void setDiffMonoMass(double mass) nogil except +
         double getDiffMonoMass() nogil except +
 
-        void setFormula(String & composition) nogil except +
+        void setFormula(const String & composition) nogil except +
         String  getFormula() nogil except +
         void setDiffFormula(EmpiricalFormula & diff_formula) nogil except +
         EmpiricalFormula  getDiffFormula() nogil except +
 
         void setSynonyms(libcpp_set[ String ] & synonyms) nogil except +
-        void addSynonym(String & synonym) nogil except +
+        void addSynonym(const String & synonym) nogil except +
         libcpp_set[ String ] getSynonyms() nogil except +
 
         void setNeutralLossDiffFormula(EmpiricalFormula & loss) nogil except +

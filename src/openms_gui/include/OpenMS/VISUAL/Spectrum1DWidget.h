@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM1DWIDGET_H
-#define OPENMS_VISUAL_SPECTRUM1DWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -111,6 +110,12 @@ signals:
     /// Requests to display the whole spectrum in 3D view
     void showCurrentPeaksAs3D();
 
+    /// Requests to display the whole spectrum in ion mobility view
+    void showCurrentPeaksAsIonMobility();
+
+    /// Requests to display a full DIA window
+    void showCurrentPeaksAsDIA();
+
 public slots:
     // Docu in base class
     void showGoToDialog() override;
@@ -132,4 +137,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

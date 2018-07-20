@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
-#define OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
@@ -109,8 +108,8 @@ namespace OpenMS
     /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
     void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
 
-    /// Adds spectrum comprising annotated peaks
-    void addAnnotationsSpectrumLayer_(const PeptideHit& hit, bool align = false);
+    /// Add peak annotatios from id data structure
+    void addPeakAnnotationsFromID_(const PeptideHit& hit);
 
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
@@ -145,4 +144,3 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H

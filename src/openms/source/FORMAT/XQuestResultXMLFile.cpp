@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,7 +89,7 @@ namespace OpenMS
   }
 
   // version for labeled linkers
-  void XQuestResultXMLFile::writeXQuestXMLSpec(String out_file, String base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  void XQuestResultXMLFile::writeXQuestXMLSpec(const String& out_file, const String& base_name, const OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, const std::vector< std::pair<Size, Size> >& spectrum_pairs, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
     // XML Header
     std::ofstream spec_xml_file;
@@ -134,7 +134,7 @@ namespace OpenMS
         spec_xml_file << "</spectrum>" << std::endl;
 
         // the preprocessed pair spectra are sorted by another index
-        // because some pairs do not yield any resonable hits, the index from the spectrum matches or spectrum_indices does not address the right pair anymore
+        // because some pairs do not yield any reasonable hits, the index from the spectrum matches or spectrum_indices does not address the right pair anymore
         // use find with the pair of spectrum indices to find the correct index for the preprocessed common and cross-linked ion spectra
         std::vector<std::pair <Size, Size> >::const_iterator pair_it = std::find(spectrum_pairs.begin(), spectrum_pairs.end(), spectrum_indices[i]);
         Size pair_index = std::distance(spectrum_pairs.begin(), pair_it);
@@ -158,7 +158,7 @@ namespace OpenMS
   }
 
   // version for label-free linkers
-  void XQuestResultXMLFile::writeXQuestXMLSpec(String out_file, String base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
+  void XQuestResultXMLFile::writeXQuestXMLSpec(const String& out_file, const String& base_name, const std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, const PeakMap& spectra)
   {
     // String spec_xml_filename = base_name + "_matched.spec.xml";
     // XML Header

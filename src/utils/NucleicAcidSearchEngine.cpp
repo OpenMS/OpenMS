@@ -124,7 +124,7 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("fasta"));
 
     registerOutputFile_("out", "<file>", "", "Output file: mzTab");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
@@ -137,7 +137,7 @@ protected:
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around uncharged precursor mass)", false);
 
-    registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
+    registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance", false, false);
     setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
     registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
@@ -161,7 +161,7 @@ protected:
     registerTOPPSubsection_("fragment", "Fragment (Product Ion) Options");
     registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
 
-    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
+    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
     registerStringList_("fragment:ions", "<choice>", ListUtils::create<String>("a-B,c,w,y"), "Fragment ions to include in theoretical spectra", false);

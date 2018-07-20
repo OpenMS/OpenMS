@@ -119,6 +119,10 @@ namespace OpenMS
     using ParentMoleculeGroups =
       IdentificationDataInternal::ParentMoleculeGroups;
     using ParentGroupRef = IdentificationDataInternal::ParentGroupRef;
+    using ParentMoleculeGrouping =
+      IdentificationDataInternal::ParentMoleculeGrouping;
+    using ParentMoleculeGroupings =
+      IdentificationDataInternal::ParentMoleculeGroupings;
 
     using AddressLookup = boost::unordered_set<uintptr_t>;
 
@@ -144,12 +148,20 @@ namespace OpenMS
       score_types_.swap(other.score_types_);
       data_queries_.swap(other.data_queries_);
       parent_molecules_.swap(other.parent_molecules_);
+      parent_molecule_groupings_.swap(other.parent_molecule_groupings_);
       identified_peptides_.swap(other.identified_peptides_);
       identified_compounds_.swap(other.identified_compounds_);
       identified_oligos_.swap(other.identified_oligos_);
       query_matches_.swap(other.query_matches_);
       query_match_groups_.swap(other.query_match_groups_);
-      parent_molecule_groups_.swap(other.parent_molecule_groups_);
+      swap(current_step_ref_, other.current_step_ref_);
+      // look-up tables:
+      data_query_lookup_.swap(other.data_query_lookup_);
+      parent_molecule_lookup_.swap(other.parent_molecule_lookup_);
+      identified_peptide_lookup_.swap(other.identified_peptide_lookup_);
+      identified_compound_lookup_.swap(other.identified_compound_lookup_);
+      identified_oligo_lookup_.swap(other.identified_oligo_lookup_);
+      query_match_lookup_.swap(other.query_match_lookup_);
     }
 
     InputFileRef registerInputFile(const String& file);
@@ -171,8 +183,7 @@ namespace OpenMS
 
     ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent);
 
-    ParentGroupRef registerParentMoleculeGroup(const ParentMoleculeGroup&
-                                               group);
+    void registerParentMoleculeGrouping(const ParentMoleculeGrouping& grouping);
 
     IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide&
                                                    peptide);
@@ -226,9 +237,9 @@ namespace OpenMS
       return parent_molecules_;
     }
 
-    const ParentMoleculeGroups& getParentMoleculeGroups() const
+    const ParentMoleculeGroupings& getParentMoleculeGroupings() const
     {
-      return parent_molecule_groups_;
+      return parent_molecule_groupings_;
     }
 
     const IdentifiedPeptides& getIdentifiedPeptides() const
@@ -322,7 +333,7 @@ namespace OpenMS
     ScoreTypes score_types_;
     DataQueries data_queries_;
     ParentMolecules parent_molecules_;
-    ParentMoleculeGroups parent_molecule_groups_;
+    ParentMoleculeGroupings parent_molecule_groupings_;
     IdentifiedPeptides identified_peptides_;
     IdentifiedCompounds identified_compounds_;
     IdentifiedOligos identified_oligos_;

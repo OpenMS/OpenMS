@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MRMFEATUREPICKERFILE_H
-#define OPENMS_FORMAT_MRMFEATUREPICKERFILE_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeaturePicker.h>
@@ -121,4 +120,3 @@ protected:
   };
 }
 
-#endif // OPENMS_FORMAT_MRMFEATUREPICKERFILE_H

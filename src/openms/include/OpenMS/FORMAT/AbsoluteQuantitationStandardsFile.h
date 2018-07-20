@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_ABSOLUTEQUANTITATIONSTANDARDSFILE_H
-#define OPENMS_FORMAT_ABSOLUTEQUANTITATIONSTANDARDSFILE_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/FORMAT/CsvFile.h>
@@ -88,4 +87,3 @@ protected:
   };
 }
 
-#endif // OPENMS_FORMAT_ABSOLUTEQUANTITATIONSTANDARDSFILE_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H
-#define OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/IdentificationData.h>
@@ -71,14 +70,14 @@ public:
        @param fwd_ids forward peptide identifications
        @param rev_ids reverse peptide identifications
     */
-    void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids);
+    void apply(std::vector<PeptideIdentification>& fwd_ids, std::vector<PeptideIdentification>& rev_ids) const;
 
     /**
         @brief Calculates the FDR of one run from a concatenated sequence DB search
 
         @param id peptide identifications, containing target and decoy hits
     */
-    void apply(std::vector<PeptideIdentification>& id);
+    void apply(std::vector<PeptideIdentification>& id) const;
 
     /**
        @brief Calculates the FDR of two runs, a forward run and decoy run on protein level
@@ -86,14 +85,14 @@ public:
        @param fwd_ids forward protein identifications
        @param rev_ids reverse protein identifications
     */
-    void apply(std::vector<ProteinIdentification>& fwd_ids, std::vector<ProteinIdentification>& rev_ids);
+    void apply(std::vector<ProteinIdentification>& fwd_ids, std::vector<ProteinIdentification>& rev_ids) const;
 
     /**
        @brief Calculate the FDR of one run from a concatenated sequence db search
 
        @param ids protein identifications, containing target and decoy hits
     */
-    void apply(std::vector<ProteinIdentification>& ids);
+    void apply(std::vector<ProteinIdentification>& ids) const;
 
     /**
        @brief Calculate FDR on the level of molecule-query matches (e.g. peptide-spectrum matches) for "general" identification data
@@ -103,7 +102,7 @@ public:
 
        @return Key of the FDR score
     */
-    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref);
+    IdentificationData::ScoreTypeRef applyToQueryMatches(IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref) const;
 
   private:
     /// Not implemented
@@ -113,18 +112,17 @@ public:
     FalseDiscoveryRate& operator=(const FalseDiscoveryRate&);
 
     /// calculates the FDR, given two vectors of scores
-    void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better);
+    void calculateFDRs_(std::map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
 
     /// Helper function for applyToQueryMatches()
     void handleQueryMatch_(
         IdentificationData::QueryMatchRef match_ref,
         IdentificationData::ScoreTypeRef score_ref,
-        std::vector<double>& target_scores, std::vector<double>& decoy_scores,
-        std::map<IdentificationData::IdentifiedMoleculeRef, bool>&
-        molecule_to_decoy,
-        std::map<IdentificationData::QueryMatchRef, double>& match_to_score);
+        std::vector<double>& target_scores,
+        std::vector<double>& decoy_scores,
+        std::map<IdentificationData::IdentifiedMoleculeRef, bool>& molecule_to_decoy,
+        std::map<IdentificationData::QueryMatchRef, double>& match_to_score) const;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_FALSEDISCOVERYRATE_H

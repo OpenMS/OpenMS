@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -281,8 +281,8 @@ START_SECTION(double dot_bias(const BinnedSpectrum &bin1, const BinnedSpectrum &
   peak.setMZ(5);
   s2.push_back(peak);
 
-  BinnedSpectrum bin1(s1, 1, false, 1);
-  BinnedSpectrum bin2(s2, 1, false, 1);
+  BinnedSpectrum bin1(s1, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
+  BinnedSpectrum bin2(s2, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
   
   TEST_REAL_SIMILAR(ptr->dot_bias(bin1, bin2, 1), 98.585);
   TEST_REAL_SIMILAR(ptr->dot_bias(bin2, bin1, 1), 98.585);

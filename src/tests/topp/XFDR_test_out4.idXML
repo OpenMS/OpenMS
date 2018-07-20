@@ -17,7 +17,7 @@
 				<UserParam type="string" name="input_mzML" value="GUA0001_2.mzML"/>
 				<UserParam type="float" name="cross_link:mass" value="138.0680796"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-03-06T11:52:13" search_engine="OpenXQuest" search_engine_version="2.3.0" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-03-06T11:52:13" search_engine="OpenXQuest" search_engine_version="2.4.0-GIT-NOTFOUND-GIT-NOTFOUND" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|Q5S007-v1|LRRK2_HUMAN" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -17368,7 +17368,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="false"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="true"/>
-				<UserParam type="float" name="delta_score" value="5.376891957216"/>
+				<UserParam type="float" name="delta_score" value="0.818815067897546"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.918604651162791"/>
 			</PeptideHit>
 			<PeptideHit score="5.376891957216" sequence="ACMSKITK" charge="4" protein_refs="PH_0" >
@@ -17396,7 +17396,7 @@
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="false"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="true"/>
-				<UserParam type="float" name="delta_score" value="5.376891957216"/>
+				<UserParam type="float" name="delta_score" value="0.818815067897546"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.918604651162791"/>
 			</PeptideHit>
 			<UserParam type="int" name="OpenXQuest:xprophet_f" value="1"/>
@@ -17430,7 +17430,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
-				<UserParam type="float" name="delta_score" value="15.8041285827853"/>
+				<UserParam type="float" name="delta_score" value="0.980908417315868"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="-0.0909090909090909"/>
 			</PeptideHit>
 			<PeptideHit score="15.8041285827853" sequence="INKSFQEYFK" charge="4" protein_refs="PH_1" >
@@ -17458,7 +17458,7 @@
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
-				<UserParam type="float" name="delta_score" value="15.8041285827853"/>
+				<UserParam type="float" name="delta_score" value="0.980908417315868"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="-0.0909090909090909"/>
 			</PeptideHit>
 			<UserParam type="int" name="OpenXQuest:xprophet_f" value="1"/>
@@ -17492,6 +17492,7 @@
 				<UserParam type="int" name="xl_pos" value="3"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="false"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="true"/>
+				<UserParam type="float" name="delta_score" value="4.40268015302559"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.918604651162791"/>
 			</PeptideHit>
 			<PeptideHit score="4.40268015302559" sequence="ACMSKITK" charge="4" protein_refs="PH_0" >
@@ -17519,6 +17520,7 @@
 				<UserParam type="int" name="xl_pos" value="4"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="false"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="true"/>
+				<UserParam type="float" name="delta_score" value="4.40268015302559"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.918604651162791"/>
 			</PeptideHit>
 			<UserParam type="int" name="OpenXQuest:xprophet_f" value="0"/>
@@ -17552,6 +17554,7 @@
 				<UserParam type="int" name="xl_pos" value="5"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
+				<UserParam type="float" name="delta_score" value="0.975477489461473"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="-0.0909090909090909"/>
 			</PeptideHit>
 			<PeptideHit score="15.5024027551964" sequence="FYEQFSKNIK" charge="4" protein_refs="PH_2" >
@@ -17579,6 +17582,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
+				<UserParam type="float" name="delta_score" value="0.975477489461473"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="-0.0909090909090909"/>
 			</PeptideHit>
 			<UserParam type="int" name="OpenXQuest:xprophet_f" value="0"/>
@@ -17612,6 +17616,7 @@
 				<UserParam type="int" name="xl_pos" value="0"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
+				<UserParam type="float" name="delta_score" value="15.1222449202596"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.0526315789473684"/>
 			</PeptideHit>
 			<PeptideHit score="15.1222449202596" sequence="INKSFQEYFK" charge="4" protein_refs="PH_1" >
@@ -17639,6 +17644,7 @@
 				<UserParam type="int" name="xl_pos" value="2"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
+				<UserParam type="float" name="delta_score" value="15.1222449202596"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.0526315789473684"/>
 			</PeptideHit>
 			<UserParam type="int" name="OpenXQuest:xprophet_f" value="0"/>
@@ -19408,7 +19414,7 @@
 				<UserParam type="int" name="xl_pos" value="8"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
-				<UserParam type="float" name="delta_score" value="11.3458407959368"/>
+				<UserParam type="float" name="delta_score" value="0.983517641590276"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.0714285714285714"/>
 			</PeptideHit>
 			<PeptideHit score="11.3458407959368" sequence="LHLSHNKLK" charge="4" protein_refs="PH_0" >
@@ -19436,7 +19442,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
-				<UserParam type="float" name="delta_score" value="11.3458407959368"/>
+				<UserParam type="float" name="delta_score" value="0.983517641590276"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.0714285714285714"/>
 			</PeptideHit>
 			<UserParam type="int" name="OpenXQuest:xprophet_f" value="1"/>
@@ -19532,6 +19538,7 @@
 				<UserParam type="int" name="xl_pos" value="15"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
+				<UserParam type="float" name="delta_score" value="11.1588345814785"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.0714285714285714"/>
 			</PeptideHit>
 			<PeptideHit score="11.1588345814785" sequence="LHLSHNKLK" charge="4" protein_refs="PH_0" >
@@ -19559,6 +19566,7 @@
 				<UserParam type="int" name="xl_pos" value="6"/>
 				<UserParam type="string" name="OpenXQuest:is_intraprotein" value="true"/>
 				<UserParam type="string" name="OpenXQuest:is_interprotein" value="false"/>
+				<UserParam type="float" name="delta_score" value="11.1588345814785"/>
 				<UserParam type="float" name="OpenXQuest:fdr" value="0.0714285714285714"/>
 			</PeptideHit>
 			<UserParam type="int" name="OpenXQuest:xprophet_f" value="0"/>

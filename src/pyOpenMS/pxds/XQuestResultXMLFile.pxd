@@ -18,11 +18,11 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
         XQuestResultXMLFile() nogil except +
         XQuestResultXMLFile(XQuestResultXMLFile) nogil except + #wrap-ignore
 
-        void load(String & filename,
+        void load(const String & filename,
                 libcpp_vector[ PeptideIdentification ] & pep_ids,
                 libcpp_vector[ ProteinIdentification ] & prot_ids) nogil except +
 
-        void store(String & filename,
+        void store(const String & filename,
                 libcpp_vector[ ProteinIdentification ] & poid,
                 libcpp_vector[ PeptideIdentification ] & peid) nogil except +
 
@@ -30,12 +30,12 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
         double getMinScore() nogil except +
         double getMaxScore() nogil except +
 
-        void writeXQuestXMLSpec(String out_file, String base_name,
+        void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                 OPXL_PreprocessedPairSpectra & preprocessed_pair_spectra,
                                 libcpp_vector[ libcpp_pair[ size_t, size_t ] ] & spectrum_pairs,
                                 libcpp_vector[ libcpp_vector[ OPXL_CrossLinkSpectrumMatch ] ] & all_top_csms,
                                 MSExperiment & spectra) nogil except +
 
-        void writeXQuestXMLSpec(String out_file, String base_name,
+        void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                 libcpp_vector[ libcpp_vector[ OPXL_CrossLinkSpectrumMatch] ] & all_top_csms,
                                 MSExperiment & spectra) nogil except +

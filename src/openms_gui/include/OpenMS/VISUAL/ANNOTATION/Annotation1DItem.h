@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATION1DITEM_H
-#define OPENMS_VISUAL_ANNOTATION_ANNOTATION1DITEM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
@@ -121,5 +120,3 @@ protected:
     QString text_;
   };
 } // namespace OpenMS
-
-#endif

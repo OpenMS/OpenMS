@@ -114,9 +114,12 @@ namespace OpenMS
                                 run_label);
         Size groups_counter = 0;
 
-        IdentificationData::ScoreType score("indistinguishable_protein_group_probability", true);
+        IdentificationData::ScoreType score("probability", true);
         IdentificationData::ScoreTypeRef score_ref =
           id_data.registerScoreType(score);
+
+        IdentificationData::ParentMoleculeGrouping grouping;
+        grouping.label = "indistinguishable proteins";
 
         for (const auto& group : prot.getIndistinguishableProteins())
         {
@@ -131,8 +134,9 @@ namespace OpenMS
               id_data.registerParentMolecule(parent);
             new_group.parent_molecule_refs.insert(ref);
           }
-          id_data.registerParentMoleculeGroup(new_group);
+          grouping.groups.insert(new_group);
         }
+        id_data.registerParentMoleculeGrouping(grouping);
         sublogger.endProgress();
       }
       // other protein groups:
@@ -142,9 +146,12 @@ namespace OpenMS
                                 "converting protein groups " + run_label);
         Size groups_counter = 0;
 
-        IdentificationData::ScoreType score("protein_group_probability", true);
+        IdentificationData::ScoreType score("probability", true);
         IdentificationData::ScoreTypeRef score_ref =
           id_data.registerScoreType(score);
+
+        IdentificationData::ParentMoleculeGrouping grouping;
+        grouping.label = "protein groups";
 
         for (const auto& group : prot.getProteinGroups())
         {
@@ -159,8 +166,9 @@ namespace OpenMS
               id_data.registerParentMolecule(parent);
             new_group.parent_molecule_refs.insert(ref);
           }
-          id_data.registerParentMoleculeGroup(new_group);
+          grouping.groups.insert(new_group);
         }
+        id_data.registerParentMoleculeGrouping(grouping);
         sublogger.endProgress();
       }
 
@@ -520,6 +528,34 @@ namespace OpenMS
       if (ss_pos != id_data.getDBSearchSteps().end())
       {
         protein.setSearchParameters(exportDBSearchParameters_(ss_pos->second));
+      }
+
+      // protein groups:
+      for (const auto& grouping : id_data.getParentMoleculeGroupings())
+      {
+        // do these protein groups belong to the current search run?
+        if (find(grouping.processing_step_refs.begin(),
+                 grouping.processing_step_refs.end(), step_ref) !=
+            grouping.processing_step_refs.end())
+        {
+          for (const auto& group : grouping.groups)
+          {
+            ProteinIdentification::ProteinGroup new_group;
+            new_group.probability = group.scores.back().second;
+            for (auto parent_ref : group.parent_molecule_refs)
+            {
+              new_group.accessions.push_back(parent_ref->accession);
+            }
+            if (grouping.label == "indistinguishable proteins")
+            {
+              protein.insertIndistinguishableProteins(new_group);
+            }
+            else
+            {
+              protein.insertProteinGroup(new_group);
+            }
+          }
+        }
       }
 
       proteins.push_back(protein);

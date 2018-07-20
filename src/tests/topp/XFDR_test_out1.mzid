@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_6300734980347453079"
-	creationDate="2018-03-06T16:20:13">
+	creationDate="2018-05-23T16:41:19">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -17,7 +17,7 @@
 			<cvParam accession="MS:1002673" cvRef="PSI-MS" name="OpenXQuest"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.3.0" name="TOPP software" id="SOF_7511764747664357488">
+	<AnalysisSoftware version="OpenMS TOPP v2.4.0-GIT-NOTFOUND-GIT-NOTFOUND" name="TOPP software" id="SOF_7511764747664357488">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -24487,7 +24487,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
-					<userParam name="delta_score" unitName="xsd:double" value="15.8041285827853"/>
+					<userParam name="delta_score" unitName="xsd:double" value="0.980908417315868"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="-0.0909090909090909"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4309.98312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -24518,7 +24518,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
-					<userParam name="delta_score" unitName="xsd:double" value="15.8041285827853"/>
+					<userParam name="delta_score" unitName="xsd:double" value="0.980908417315868"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="-0.0909090909090909"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4309.98312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -24583,6 +24583,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
+					<userParam name="delta_score" unitName="xsd:double" value="0.975477489461473"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="-0.0909090909090909"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4309.98312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -24613,6 +24614,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
+					<userParam name="delta_score" unitName="xsd:double" value="0.975477489461473"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="-0.0909090909090909"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4309.98312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -24677,6 +24679,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
+					<userParam name="delta_score" unitName="xsd:double" value="15.1222449202596"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.0526315789473684"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4309.98312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -24707,6 +24710,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
+					<userParam name="delta_score" unitName="xsd:double" value="15.1222449202596"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.0526315789473684"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4309.98312" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -26053,7 +26057,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
-					<userParam name="delta_score" unitName="xsd:double" value="11.3458407959368"/>
+					<userParam name="delta_score" unitName="xsd:double" value="0.983517641590276"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.0655737704918033"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4358.16288" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -26084,7 +26088,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
-					<userParam name="delta_score" unitName="xsd:double" value="11.3458407959368"/>
+					<userParam name="delta_score" unitName="xsd:double" value="0.983517641590276"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.0655737704918033"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4358.16288" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -26135,6 +26139,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
+					<userParam name="delta_score" unitName="xsd:double" value="11.1588345814785"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.0655737704918033"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4358.16288" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -26165,6 +26170,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="true"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="false"/>
+					<userParam name="delta_score" unitName="xsd:double" value="11.1588345814785"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.0655737704918033"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4358.16288" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -34048,7 +34054,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="true"/>
-					<userParam name="delta_score" unitName="xsd:double" value="5.376891957216"/>
+					<userParam name="delta_score" unitName="xsd:double" value="0.818815067897546"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.896551724137931"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4651.81956" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -34079,7 +34085,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="true"/>
-					<userParam name="delta_score" unitName="xsd:double" value="5.376891957216"/>
+					<userParam name="delta_score" unitName="xsd:double" value="0.818815067897546"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.896551724137931"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4651.81956" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -34123,6 +34129,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="true"/>
+					<userParam name="delta_score" unitName="xsd:double" value="4.40268015302559"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.896551724137931"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4651.81956" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>
@@ -34153,6 +34160,7 @@
 					<userParam name="selected" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_intraprotein" unitName="xsd:string" value="false"/>
 					<userParam name="OpenXQuest:is_interprotein" unitName="xsd:string" value="true"/>
+					<userParam name="delta_score" unitName="xsd:double" value="4.40268015302559"/>
 					<userParam name="OpenXQuest:fdr" unitName="xsd:double" value="0.896551724137931"/>
 					<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4651.81956" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				</SpectrumIdentificationItem>

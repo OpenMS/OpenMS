@@ -287,21 +287,36 @@ namespace OpenMS
   }
 
 
-  IdentificationData::ParentGroupRef
-  IdentificationData::registerParentMoleculeGroup(const ParentMoleculeGroup&
-                                                  group)
+  void IdentificationData::registerParentMoleculeGrouping(
+    const ParentMoleculeGrouping& grouping)
   {
-    for (auto ref : group.parent_molecule_refs)
+    checkProcessingSteps_(grouping.processing_step_refs);
+
+    for (const auto& group : grouping.groups)
     {
-      if (!isValidHashedReference_(ref, parent_molecule_lookup_))
+      checkScoreTypes_(group.scores);
+
+      for (auto ref : group.parent_molecule_refs)
       {
-        String msg = "invalid reference to a parent molecule - register that first";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
+        if (!isValidHashedReference_(ref, parent_molecule_lookup_))
+        {
+          String msg = "invalid reference to a parent molecule - register that first";
+          throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                           OPENMS_PRETTY_FUNCTION, msg);
+        }
       }
     }
 
-    return insertIntoMultiIndex_(parent_molecule_groups_, group);
+    parent_molecule_groupings_.push_back(grouping);
+
+    // add the current processing step?
+    if ((current_step_ref_ != processing_steps_.end()) &&
+        (grouping.processing_step_refs.empty() ||
+         (grouping.processing_step_refs.back() != current_step_ref_)))
+    {
+      parent_molecule_groupings_.back().processing_step_refs.push_back(
+        current_step_ref_);
+    }
   }
 
 
@@ -572,11 +587,14 @@ namespace OpenMS
     if (require_parent_group)
     {
       parent_molecule_lookup_.clear(); // will become invalid anyway
-      for (const auto& group : parent_molecule_groups_)
+      for (const auto& grouping: parent_molecule_groupings_)
       {
-        for (const auto& ref : group.parent_molecule_refs)
+        for (const auto& group : grouping.groups)
         {
-          parent_molecule_lookup_.insert(ref);
+          for (const auto& ref : group.parent_molecule_refs)
+          {
+            parent_molecule_lookup_.insert(ref);
+          }
         }
       }
       removeFromSetIfNotHashed_(parent_molecules_, parent_molecule_lookup_);
@@ -715,28 +733,32 @@ namespace OpenMS
 
     // remove entries from parent molecule groups based on parent molecules:
     bool warn = false;
-    for (auto group_it = parent_molecule_groups_.begin();
-         group_it != parent_molecule_groups_.end(); )
+    for (auto& grouping : parent_molecule_groupings_)
     {
-      Size old_size = group_it->parent_molecule_refs.size();
-      parent_molecule_groups_.modify(
-        group_it, [&](ParentMoleculeGroup& group)
-        {
-          removeFromSetIfNotHashed_(group.parent_molecule_refs,
-                                    parent_molecule_lookup_);
-        });
-      if (group_it->parent_molecule_refs.empty())
+      for (auto group_it = grouping.groups.begin();
+           group_it != grouping.groups.end(); )
       {
-        group_it = parent_molecule_groups_.erase(group_it);
-      }
-      else
-      {
-        if (group_it->parent_molecule_refs.size() != old_size)
+        Size old_size = group_it->parent_molecule_refs.size();
+        grouping.groups.modify(
+          group_it, [&](ParentMoleculeGroup& group)
+          {
+            removeFromSetIfNotHashed_(group.parent_molecule_refs,
+                                      parent_molecule_lookup_);
+          });
+        if (group_it->parent_molecule_refs.empty())
         {
-          warn = true;
+          group_it = grouping.groups.erase(group_it);
         }
-        ++group_it;
+        else
+        {
+          if (group_it->parent_molecule_refs.size() != old_size)
+          {
+            warn = true;
+          }
+          ++group_it;
+        }
       }
+      // @TODO: if no group is left, remove the whole grouping?
     }
     if (warn)
     {

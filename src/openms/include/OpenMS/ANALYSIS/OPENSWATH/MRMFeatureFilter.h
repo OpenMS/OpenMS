@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -162,7 +161,7 @@ public:
       @brief Sorts, removes duplicates, and concatenates a list of Strings
 
       @param str_vec vector of Strings
-      @param delim token to seperate Strings in the list
+      @param delim token to separate Strings in the list
 
       @return A concatenated string.
     */ 
@@ -192,7 +191,4 @@ private:
     std::map<std::vector<String>,std::vector<QcMLFile::QualityParameter>> multi_component_group_qc_report_;
   };
 }
-
-#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFILTER_H
-
 

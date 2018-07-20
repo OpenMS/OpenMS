@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SOURCEFILE_H
-#define OPENMS_METADATA_SOURCEFILE_H
+#pragma once
 
 #include <OpenMS/METADATA/CVTermList.h>
 
@@ -122,4 +121,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_SOURCEFILE_H
