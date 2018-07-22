@@ -191,7 +191,7 @@ namespace OpenMS
             }
             return a.cross_link.cross_link_position.first < b.cross_link.cross_link_position.first;
           }
-          return a.score < b.score ;
+          return a.score < b.score;
         }
       };
 
