@@ -1,6 +1,5 @@
-from Types cimport *
-from AASequence cimport *
 from OPXLDataStructs cimport *
+from AASequence cimport AASequence
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS":
 

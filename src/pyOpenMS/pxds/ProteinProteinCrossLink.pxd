@@ -1,8 +1,9 @@
-from Types cimport *
-from libcpp cimport bool
-from ResidueModification cimport *
-from AASequence cimport *
 from OPXLDataStructs cimport *
+from String cimport String
+from libcpp cimport bool
+from ResidueModification cimport TermSpecificity
+from AASequence cimport AASequence
+
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
 

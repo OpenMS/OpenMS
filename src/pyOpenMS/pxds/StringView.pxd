@@ -1,5 +1,5 @@
 from Types cimport *
-from String cimport *
+from String cimport String
 from libcpp cimport bool
 
 cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":

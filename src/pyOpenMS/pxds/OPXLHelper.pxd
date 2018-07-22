@@ -6,7 +6,7 @@ from XLPrecursor cimport *
 from AASeqWithMass cimport *
 from DoubleList cimport *
 from StringList cimport *
-from ResidueModification cimport *
+from ResidueModification cimport ResidueModification
 from FASTAFile cimport *
 from EnzymaticDigestion cimport *
 from ProteinProteinCrossLink cimport *

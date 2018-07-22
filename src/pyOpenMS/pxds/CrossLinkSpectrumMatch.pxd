@@ -1,6 +1,6 @@
-from Types cimport *
-from ProteinProteinCrossLink cimport *
-from PeptideHit cimport *
+from OPXLDataStructs cimport *
+from ProteinProteinCrossLink cimport ProteinProteinCrossLink
+from PeptideHit cimport PeptideHit_PeakAnnotation
 
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
