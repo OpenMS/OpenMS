@@ -1668,7 +1668,7 @@ protected:
 
       IF_MASTERTHREAD
       {
-        progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
+        progresslogger.setProgress((SignedSize)count_proteins);
       }
 
       vector<StringView> current_digest;
