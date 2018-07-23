@@ -197,7 +197,8 @@ protected:
     setValidStrings_("oligo:enzyme", all_enzymes);
 
     registerTOPPSubsection_("report", "Reporting Options");
-    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported", false, true);
+    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top-scoring hits per spectrum that are reported ('0' for all hits)", false, true);
+    setMinInt_("report:top_hits", 0);
 
     registerTOPPSubsection_("fdr", "False Discovery Rate Options");
     registerStringOption_("fdr:decoy_pattern", "<string>", "", "String used as part of the accession to annotate decoy sequences (e.g. 'DECOY_'). Leave empty to skip the FDR/q-value calculation.", false);
@@ -227,18 +228,13 @@ protected:
   {
     IdentificationData::IdentifiedOligoRef oligo_ref;
     SignedSize mod_index; // enumeration index of the modification
-    double score; // the score
     double precursor_error_ppm; // precursor mass error in ppm
     vector<PeptideHit::PeakAnnotation> annotations; // peak/ion annotations
     Int charge;
     String adduct;
-
-    static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
-    {
-      return a.score > b.score;
-    }
   };
 
+  typedef multimap<double, AnnotatedHit, greater<double>> HitsByScore;
 
   // query modified residues from database
   vector<ConstRibonucleotidePtr> getModifications_(const set<String>& mod_names)
@@ -563,27 +559,14 @@ protected:
 
 
   void postProcessHits_(const PeakMap& exp,
-                        vector<vector<AnnotatedHit>>& annotated_hits,
+                        vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
                         IdentificationData::InputFileRef file_ref,
-                        Size top_hits,
-                        const vector<ConstRibonucleotidePtr>& fixed_modifications,
-                        const vector<ConstRibonucleotidePtr>& variable_modifications,
+                        const vector<ConstRibonucleotidePtr>& fixed_mods,
+                        const vector<ConstRibonucleotidePtr>& variable_mods,
                         Size max_variable_mods_per_oligo,
                         bool negative_mode)
   {
-    // remove all but top n scoring
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
-    {
-      // sort and keeps n best elements according to score
-      Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
-      std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
-      annotated_hits[scan_index].resize(topn);
-    }
-
     IdentificationData::ScoreType score("hyperscore", true);
     IdentificationData::ScoreTypeRef score_ref = id_data.registerScoreType(score);
 
@@ -600,15 +583,17 @@ protected:
         IdentificationData::DataQueryRef query_ref = id_data.registerDataQuery(query);
 
         // create full oligo hit structure from annotated hits
-        for (const AnnotatedHit& hit : annotated_hits[scan_index])
+        for (const auto& pair : annotated_hits[scan_index])
         {
+          const AnnotatedHit& hit = pair.second;
+          double score = pair.first;
           // get unmodified string
           NASequence seq = hit.oligo_ref->sequence;
           LOG_DEBUG << "Hit sequence: " << seq << endl;
           // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<NASequence> all_modified_oligos;
-          ModifiedNASequenceGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), seq);
-          ModifiedNASequenceGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), seq, max_variable_mods_per_oligo, all_modified_oligos);
+          ModifiedNASequenceGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq);
+          ModifiedNASequenceGenerator::applyVariableModifications(variable_mods.begin(), variable_mods.end(), seq, max_variable_mods_per_oligo, all_modified_oligos);
 
           // transfer parent matches from unmodified oligo:
           IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
@@ -620,7 +605,7 @@ protected:
           if ((charge > 0) && negative_mode) charge = -charge;
           IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
                                                        charge);
-          match.scores.push_back(make_pair(score_ref, hit.score));
+          match.scores.push_back(make_pair(score_ref, score));
           match.peak_annotations[id_data.getCurrentProcessingStep()] =
             hit.annotations;
           // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
@@ -738,7 +723,7 @@ protected:
     IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
                                   getIntList_("precursor:isotopes"));
     Size max_variable_mods_per_oligo = getIntOption_("modifications:variable_max_per_oligo");
-    Int report_top_hits = getIntOption_("report:top_hits");
+    Size report_top_hits = getIntOption_("report:top_hits");
 
     StringList potential_adducts = getStringList_("precursor:potential_adducts");
     map<double, String> adduct_masses;
@@ -907,7 +892,7 @@ protected:
     param.setValue("add_metainfo", "true");
     spectrum_generator.setParameters(param);
 
-    vector<vector<AnnotatedHit>> annotated_hits(spectra.size());
+    vector<HitsByScore> annotated_hits(spectra.size());
     MSExperiment exp_ms2_spectra, theo_ms2_spectra; // debug output
 
     progresslogger.startProgress(0, 1, "loading database from FASTA file...");
@@ -1041,7 +1026,6 @@ protected:
           AnnotatedHit ah;
           ah.oligo_ref = oligo_ref;
           ah.mod_index = mod_idx;
-          ah.score = score;
           // @TODO: is "observed - calculated" the right way around?
           ah.precursor_error_ppm =
             (low_it->first - candidate_mass) / candidate_mass * 1.0e6;
@@ -1062,7 +1046,25 @@ protected:
 #pragma omp critical (annotated_hits_access)
 #endif
           {
-            annotated_hits[scan_index].push_back(ah);
+            HitsByScore& scan_hits = annotated_hits[scan_index];
+            if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits))
+            {
+              scan_hits.insert(make_pair(score, ah));
+            }
+            else // we already have enough hits for this spectrum - replace one?
+            {
+              double worst_score = (--scan_hits.end())->first;
+              if (score >= worst_score)
+              {
+                scan_hits.insert(make_pair(score, ah));
+                // prune list of hits if possible (careful about tied scores!):
+                Size n_worst = scan_hits.count(worst_score);
+                if (scan_hits.size() - n_worst >= report_top_hits)
+                {
+                  scan_hits.erase(worst_score);
+                }
+              }
+            }
           }
         }
       }
@@ -1085,9 +1087,8 @@ protected:
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
     postProcessHits_(spectra, annotated_hits, id_data, file_ref,
-                     report_top_hits, fixed_modifications,
-                     variable_modifications, max_variable_mods_per_oligo,
-                     negative_mode);
+                     fixed_modifications, variable_modifications,
+                     max_variable_mods_per_oligo, negative_mode);
     progresslogger.endProgress();
 
     // FDR:
