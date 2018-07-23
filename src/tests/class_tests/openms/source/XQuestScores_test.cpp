@@ -160,7 +160,7 @@ START_SECTION(static double matchedCurrentChain(const std::vector< std::pair< Si
 END_SECTION
 
 START_SECTION(static double totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks))
-    TEST_REAL_SIMILAR(XQuestScores::totalMatchedCurrent(alignment1, alignment2, alignment1, alignment2, theo_spec_2, theo_spec_3), 54.0)
+    TEST_REAL_SIMILAR(XQuestScores::totalMatchedCurrent(alignment1, alignment1, alignment2, alignment2, theo_spec_2, theo_spec_3), 38.0)
 END_SECTION
 
 START_SECTION(static std::vector< double > xCorrelation(const PeakSpectrum & spec1, const PeakSpectrum & spec2, Int maxshift, double tolerance))
