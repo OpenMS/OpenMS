@@ -233,6 +233,8 @@ protected:
     registerFlag_("peptide-level-fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
     registerFlag_("protein-level-fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy-pattern to set the Fasta file and decoy pattern.");
     registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: Either \"ms1\", \"ms2\" or \"transition\"; the data level selected for scoring.", !is_required);
+    registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
+    setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
 
     //Advanced parameters
     registerFlag_("generic-feature-set", "Use only generic (i.e. not search engine specific) features. Generating search engine specific features for common search engines by PSMFeatureExtractor will typically boost the identification rate significantly.", is_advanced_option);
@@ -1024,8 +1026,10 @@ protected:
       for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
       {
         it->setIdentifier(run_identifier);
-        it->setScoreType("q-value");
-        it->setHigherScoreBetter(false);
+
+        const String scoreType = getStringOption_("score_type");
+        it->setScoreType(scoreType);
+        it->setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = getScanIdentifier_(it, all_peptide_ids.begin());
         
@@ -1041,12 +1045,32 @@ protected:
             hit->setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit->setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
             hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
-            hit->setScore(pr->second.qvalue);
+
+            if (scoreType == "q-value")
+            {
+              hit->setScore(pr->second.qvalue);
+            }
+            else if (scoreType == "pep")
+            {
+              hit->setScore(pr->second.posterior_error_prob);
+            }
+            else if (scoreType == "svm")
+            {
+              hit->setScore(pr->second.score);
+            }
+
             ++cnt;
           }
           else
           {
-            hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
+            if (scoreType == "q-value" || scoreType == "pep")
+            {
+              hit->setScore(1.0); // set q-value or PEP to 1.0 if hit not found in results
+            }
+            else if (scoreType == "svm")
+            {
+              hit->setScore(0.0); // set SVM score to 0.0 if hit not found in results
+            }
           }
         }
       }
