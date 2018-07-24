@@ -411,6 +411,13 @@ protected:
       double exp_mass = it->getMZ();
       for (vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
       {
+        if (jt->getPeptideEvidences().empty())
+        {
+          LOG_WARN << "PSM (PeptideHit) without protein reference found. " 
+                   << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong enzyme settings)." 
+                   << "Will skip this PSM." << endl;
+          continue;
+        }
         PeptideHit hit(*jt); // make a copy of the hit to store temporary features
         hit.setMetaValue("SpecId", scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
@@ -458,10 +465,14 @@ protected:
         {
            hit.setMetaValue("charge" + String(i), charge == i);
         }
-        
-        bool enzN = isEnz_(hit.getPeptideEvidences().front().getAABefore(), unmodified_sequence.prefix(1)[0], enz);
+
+        // just first peptide evidence
+        char aa_before = hit.getPeptideEvidences().front().getAABefore();
+        char aa_after = hit.getPeptideEvidences().front().getAAAfter();
+
+        bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], enz);
         hit.setMetaValue("enzN", enzN);
-        bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], hit.getPeptideEvidences().front().getAAAfter(), enz);
+        bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, enz);
         hit.setMetaValue("enzC", enzC);
         int enzInt = countEnzymatic_(unmodified_sequence, enz);
         hit.setMetaValue("enzInt", enzInt);
@@ -474,11 +485,9 @@ protected:
         
         //peptide
         String sequence = "";
-        // just first peptide evidence
-        String aa_before(hit.getPeptideEvidences().front().getAABefore());
-        String aa_after(hit.getPeptideEvidences().front().getAAAfter());
-        aa_before = aa_before == "[" ? '-' : aa_before;
-        aa_after = aa_after == "]" ? '-' : aa_after;
+
+        aa_before = aa_before == '[' ? '-' : aa_before;
+        aa_after = aa_after == ']' ? '-' : aa_after;
 
         sequence += aa_before;
         sequence += "."; 
