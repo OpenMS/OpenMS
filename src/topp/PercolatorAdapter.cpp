@@ -139,17 +139,27 @@ protected:
       {
         // peptide sequence
         StringList pep;
-        row[4].split(".", pep);
-        //TODO test pep size 3
-        peptide = pep[1];
-        preAA = pep[0]=="-"?'[':pep[0].c_str()[0];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
-        postAA = pep[2]=="-"?']':pep[2].c_str()[0]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+        std::size_t left_dot = row[4].find_first_of('.');
+        std::size_t right_dot = row[4].find_last_of('.');
+      
+        OPENMS_PRECONDITION(left_dot < right_dot, "Peptide sequence encoding must have dot notation (e.g., A.PEPTIDER.C).")
+ 
+        // retrieve pre and post AA, e.g., A and C in A.PEPTIDE.C
+        preAA = (row[4][left_dot - 1] == '-') ? '[' : row[4][left_dot - 1];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
+        postAA = (row[4][right_dot + 1] == '-') ? ']' : row[4][right_dot + 1]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+
+        // retrieve sequence between dots, e.g., PEPTIDE
+        peptide = row[4].substr(left_dot + 1, (right_dot - 1) - (left_dot + 1) + 1);
+
         // SVM-score
         score = row[1].toDouble();
+
         // q-Value
         qvalue = row[2].toDouble();
+
         // PEP
         posterior_error_prob = row[3].toDouble();
+
         // scannr. as written in preparePIN
         PSMId = row[0];
         proteinIds = vector<String>(row.begin()+5,row.end());
@@ -467,21 +477,13 @@ protected:
         // just first peptide evidence
         String aa_before(hit.getPeptideEvidences().front().getAABefore());
         String aa_after(hit.getPeptideEvidences().front().getAAAfter());
-        aa_before = aa_before=="["?'-':aa_before;
-        aa_after = aa_after=="]"?'-':aa_after;
+        aa_before = aa_before == "[" ? '-' : aa_before;
+        aa_after = aa_after == "]" ? '-' : aa_after;
+
         sequence += aa_before;
-        // In OpenMS sequence nomenclature, dots are set only for modified N/C-term modifications, e.g. .(Dimethyl)VGDMYTSSDIFDSVR
-        // In Percolator sequence nomenclature, dots are always present for all N/C-term modifications, e.g. R.(Dimethyl)VGDMYTSSDIFDSVR.F
-        // Consequently, dots need only be added for unmodified N/C-termini.
-        if (hit.getSequence().getNTerminalModificationName().empty())
-        {
-          sequence += ".";
-        }
+        sequence += "."; 
         sequence += hit.getSequence().toString();
-        if (hit.getSequence().getCTerminalModificationName().empty())
-        {
-          sequence += ".";
-        }
+        sequence += "."; 
         sequence += aa_after;
         
         hit.setMetaValue("Peptide", sequence);
@@ -521,6 +523,8 @@ protected:
       csv_file.getRow(i, row);
       PercolatorResult res(row);
       String spec_ref = res.PSMId + res.peptide;
+      writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
+
       // retain only the best result in the unlikely case that a PSMId+peptide combination occurs multiple times
       if (pep_map.find(spec_ref) == pep_map.end())
       {
@@ -1039,6 +1043,8 @@ protected:
           String peptide_sequence = hit->getSequence().toString();
           String psm_identifier = scan_identifier + peptide_sequence;
           
+          writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);        
+ 
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
           {
