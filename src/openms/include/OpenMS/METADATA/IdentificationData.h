@@ -111,6 +111,8 @@ namespace OpenMS
       IdentificationDataInternal::MoleculeQueryMatches;
     using QueryMatchRef = IdentificationDataInternal::QueryMatchRef;
 
+    // @TODO: allow multiple sets of groups, like with parent molecules
+    // ("ParentMoleculeGroupings")?
     using QueryMatchGroup = IdentificationDataInternal::QueryMatchGroup;
     using QueryMatchGroups = IdentificationDataInternal::QueryMatchGroups;
     using MatchGroupRef = IdentificationDataInternal::MatchGroupRef;
