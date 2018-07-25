@@ -56,7 +56,6 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
-
     const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
 
     ifstream file(pathtocsicsv);
@@ -68,7 +67,8 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
     
       if (rowcount > 1)
       {
-        
+        const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount : top_n_hits;
+
         // fill identification structure containing all candidate hits for a single spectrum
         CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
 
@@ -89,7 +89,6 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         // results from scan were not assigned to a feautre
         if (feature_id == "id_0") {feature_id = "null";}
 
-        const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
         for (Size j = 1; j < top_n_hits_cor; ++j)
         {
           
@@ -138,7 +137,8 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             const CsiFingerIdMzTabWriter::CsiAdapterHit &hit = id.hits[j];
             MzTabSmallMoleculeSectionRow smsr;
 
-            map <Size, MzTabDouble> engine_score = {{1, MzTabDouble(hit.score)}};
+            map <Size, MzTabDouble> engine_score;
+            engine_score[1] = MzTabDouble(hit.score);
             smsr.best_search_engine_score = engine_score;
 
             smsr.chemical_formula = MzTabString(hit.molecular_formula);
@@ -171,7 +171,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
             MzTabOptionalColumnEntry featureId;
             featureId.first = "featureId";
-            featureId.second = MzTabString(csi_id.feature_id);
+            featureId.second = MzTabString(id.feature_id);
 
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);

@@ -60,14 +60,12 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
-
     const std::string pathtosiriuscsv = *it + "/summary_sirius.csv";
 
     ifstream file(pathtosiriuscsv);
 
     if (file) 
     {
-      
       CsvFile compounds(pathtosiriuscsv, '\t');
       const UInt rowcount = compounds.rowCount();
 
@@ -96,7 +94,6 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         if (feature_id == "id_0") {feature_id = "null";}
 
         for (Size j = 1; j < top_n_hits_cor; ++j)
-
         {
           
           StringList sl;
