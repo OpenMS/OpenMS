@@ -225,7 +225,7 @@ using namespace std;
 
       if (count_error_highest_intenstiy != 0)
       {
-        LOG_WARN << "Error: The method highest_intensity_peak failed" << count_error_highest_intenstiy << "times.";
+        LOG_WARN << "Error: The method highest_intensity_peak failed " << count_error_highest_intenstiy << "times.";
       }
 
       return corrected_precursors;
