@@ -106,6 +106,7 @@ protected:
       String CompoundName;
       String SMILES;
       String SumFormula;
+      String adducts;
       String precursor_charge;
       String peptide_group_label;
       String label_type;

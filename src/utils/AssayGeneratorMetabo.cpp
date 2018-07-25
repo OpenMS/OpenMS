@@ -483,8 +483,6 @@ protected:
         double precursor_mz = precursor[0].getMZ();
         float precursor_int = precursor[0].getIntensity();
 
-        // TODO: Why does it not work later on? - Peak1D?
-
         native_id = spectrum.getNativeID();
 
         // spectrum with highest intensity precursor
@@ -583,13 +581,20 @@ protected:
 
       // TODO: Other datastructure (min/max transitions) - min -> transitions with highest intensity?
       // TODO: Put stuff in vector first? then sort by intensity? maybe map Transition intensity: everything else
-      // TODO: Think about it if you have multiple files
+
+      // TODO: test if output is correct and add adduct information.
+      // if multiple files are used other datastructure is needed
+      // feature mz and rt and save transition with compound use TargetedExperiment
+      // and precursor intensity information
+      // compare mz and rt (what about rt shift?)
+      // and compare precursor intenstiy -> use the higher one for calculation of the
+      // transition or use both ms2 consensus? (not sure if that is a good idea?
+
 
       ReactionMonitoringTransition rmt;
       rmt.clearMetaInfo();
-      // TODO: Correct use of native ID for ConsensusSpektrum
 
-      // TODO: this is one transition spectrum
+      // here ms2 spectra information is used
       for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
         float current_int = spec_it->getIntensity();
@@ -602,32 +607,33 @@ protected:
           float rel_int = current_int / max_int;
 
           TargetedExperiment::Compound cmp;
+
+          // TODO: use TE::Helper for the retention time of the feature;
+          //TargetedExperiment::Helper
+
+          //cmp.rts // nur in OpenSWATH genutzt
           rmt.setPrecursorMZ(highest_precursor_mz);
           rmt.setProductMZ(current_mz);
           rmt.setLibraryIntensity(rel_int);
-          ReactionMonitoringTransition::RetentionTime rt;
-          rt.setRT(feature_rt);
-          rmt.setRetentionTime(rt);
+
+          TargetedExperimentHelper::RetentionTime cmp_rt;
+          cmp_rt.setRT(feature_rt);
 
           if (description == "UNKNOWN")
           {
             rmt.setCompoundRef(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
             cmp.id = String(transition_group_counter) + "_" + String(transition_counter) + "_" + description;
-            std::cout << String(transition_group_counter) + "_" + String(transition_counter) + "_" + description << std::endl;
-            rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
+            rmt.setNativeID(String(transition_group_counter) + "_" + description);
           }
           else
           {
-            for (auto iter = v_description.begin(); iter != v_description.end(); ++iter)
-            {
-              std::cout << "description: " << " " << *iter << std::endl;
-            }
             description = ListUtils::concatenate(v_description, ",");
             rmt.setCompoundRef(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
             cmp.id = String(transition_group_counter) + "_" + String(transition_counter) + "_" + description;
             rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
           }
-          row.smiles = "none"; // not in AccurateMassSearch output yet
+          // smiles to supported in AccurateMassSearch
+          row.smiles = "none";
           if (sumformula == "UNKNOWN")
           {
             cmp.molecular_formula = sumformula;
@@ -653,8 +659,7 @@ protected:
       }
       transition_group_counter += 1;
     }
-    // TODO: is it at the right position in the loop?
-    // TODO: check how transition name is generated!
+    // TODO: add adduct information in TargetedExperiment::Compound
     t_exp.setCompounds(v_cmp);
     t_exp.setTransitions(v_rmt);
 

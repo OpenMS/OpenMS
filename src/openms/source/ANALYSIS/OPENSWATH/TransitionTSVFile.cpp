@@ -377,6 +377,7 @@ namespace OpenMS
       //// Targeted Metabolomics
       !extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict) &&
       !extractName(mytransition.CompoundName, "CompoundId", tmp_line, header_dict);
+      !extractName(mytransition.adducts, "adducts", tmp_line, header_dict);
       extractName(mytransition.SumFormula, "SumFormula", tmp_line, header_dict);
       extractName(mytransition.SMILES, "SMILES", tmp_line, header_dict);
 
@@ -1257,6 +1258,10 @@ namespace OpenMS
       if (compound.metaValueExists("CompoundName"))
       {
         mytransition.CompoundName = compound.getMetaValue("CompoundName");
+      }
+      if (compound.metaValueExists("adducts"))
+      {
+        mytransition.adducts = compound.getMetaValue("adducts");
       }
     }
     else
