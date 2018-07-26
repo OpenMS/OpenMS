@@ -13,8 +13,6 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
 
     cdef cppclass PrecursorCorrection:
 
-        String csv_header nogil except +
-
         void getPrecursor(MSExperiment & exp,
                           libcpp_vector[ Precursor ] & precursors,
                           libcpp_vector[ double ] & precursors_rt,
