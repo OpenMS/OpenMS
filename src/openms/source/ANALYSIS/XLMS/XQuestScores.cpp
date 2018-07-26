@@ -235,7 +235,7 @@ namespace OpenMS
   double XQuestScores::totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks)
   {
     // make vectors of matched peak indices
-    double intsum = 0;
+    double intsum(0);
     std::vector< Size > indices_linear;
     std::vector< Size > indices_xlinks;
     for (Size j = 0; j < matched_spec_linear_alpha.size(); ++j)
