@@ -16,34 +16,40 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
         void getPrecursor(MSExperiment & exp,
                           libcpp_vector[ Precursor ] & precursors,
                           libcpp_vector[ double ] & precursors_rt,
-                          libcpp_vector[ Size ] & precursor_scan_index) nogil except +
+                          libcpp_vector[ size_t ] & precursor_scan_index) nogil except +
 
         void writeHist(String & out_csv,
                        libcpp_vector[ double ] & delta_mzs,
                        libcpp_vector[ double ] & mzs,
                        libcpp_vector[ double ] & rts) nogil except +
 
-        libcpp_set[ Size ] correctToNearestMS1Peak(MSExperiment & exp,
-                                                   double mz_tolerance,
-                                                   bool ppm,
-                                                   libcpp_vector[ double ] & delta_mzs,
-                                                   libcpp_vector[ double ] & mzs,
-                                                   libcpp_vector[ double ] & rts) nogil except +
+        libcpp_set[ size_t ] correctToNearestMS1Peak(MSExperiment & exp,
+                                                     double mz_tolerance,
+                                                     bool ppm,
+                                                     libcpp_vector[ double ] & delta_mzs,
+                                                     libcpp_vector[ double ] & mzs,
+                                                     libcpp_vector[ double ] & rts) nogil except +
 
-        libcpp_set[ Size ] correctToHighestintensityMS1Peak(MSExperiment & exp,
-                                                            double mz_tolerance,
-                                                            libcpp_vector[ double ] & delta_mzs,
-                                                            libcpp_vector[ double ] & mzs,
-                                                            libcpp_vector[ double ] & rts) nogil except +
-
-        libcpp_set[ Size ] corrrectToNearestFeature(FeatureMap & features,
-                                                    MSExperiment & exp,
-                                                    double rt_tolerance_s = 0.0,
-                                                    double mz_tolerance = 0.0,
-                                                    bool ppm = true,
-                                                    bool believe_charge = false,
-                                                    bool keep_original = false,
-                                                    bool all_matching_features = false,
-                                                    int max_trace = 2,
-                                                    int debug_level = 0) nogil except +
+        libcpp_set[ size_t ] correctToHighestintensityMS1Peak(MSExperiment & exp,
+                                                              double mz_tolerance,
+                                                              libcpp_vector[ double ] & delta_mzs,
+                                                              libcpp_vector[ double ] & mzs,
+                                                              libcpp_vector[ double ] & rts) nogil except +
+        
+        libcpp_set[ size_t ] corrrectToNearestFeature(FeatureMap & features,
+                                                      MSExperiment & exp,
+                                                      double rt_tolerance_s,
+                                                      double mz_tolerance,
+                                                      bool ppm) nogil except +
+        
+        libcpp_set[ size_t ] corrrectToNearestFeature(FeatureMap & features,
+                                                      MSExperiment & exp,
+                                                      double rt_tolerance_s,
+                                                      double mz_tolerance,
+                                                      bool ppm,
+                                                      bool believe_charge,
+                                                      bool keep_original,
+                                                      bool all_matching_features,
+                                                      int max_trace,
+                                                      int debug_level) nogil except +
 
