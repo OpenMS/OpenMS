@@ -13,30 +13,30 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
 
     cdef cppclass PrecursorCorrection:
 
-        String csv_header;
+        String csv_header nogil except +
 
         void getPrecursor(MSExperiment & exp,
                           libcpp_vector[ Precursor ] & precursors,
                           libcpp_vector[ double ] & precursors_rt,
-                          libcpp_vector[ Size ] & precursor_scan_index) nogil+
+                          libcpp_vector[ Size ] & precursor_scan_index) nogil except+
 
         void writeHist(String & out_csv,
                        libcpp_vector[ double ] & delta_mzs,
                        libcpp_vector[ double ] & mzs,
-                       libcpp_vector[ double ] & rts) nogil+
+                       libcpp_vector[ double ] & rts) nogil except +
 
         libcpp_set[ Size ] correctToNearestMS1Peak(MSExperiment & exp,
                                                    double mz_tolerance,
                                                    bool ppm,
                                                    libcpp_vector[ double ] & delta_mzs,
                                                    libcpp_vector[ double ] & mzs,
-                                                   libcpp_vector[ double ] & rts) nogil+
+                                                   libcpp_vector[ double ] & rts) nogil except +
 
         libcpp_set[ Size ] correctToHighestintensityMS1Peak(MSExperiment & exp,
                                                             double mz_tolerance,
                                                             libcpp_vector[ double ] & delta_mzs,
                                                             libcpp_vector[ double ] & mzs,
-                                                            libcpp_vector[ double ] & rts) nogil+
+                                                            libcpp_vector[ double ] & rts) nogil except +
 
         libcpp_set[ Size ] corrrectToNearestFeature(FeatureMap & features,
                                                     MSExperiment & exp,
@@ -47,5 +47,5 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
                                                     bool keep_original = false,
                                                     bool all_matching_features = false,
                                                     int max_trace = 2,
-                                                    int debug_level = 0) nogil+
+                                                    int debug_level = 0) nogil except +
 
