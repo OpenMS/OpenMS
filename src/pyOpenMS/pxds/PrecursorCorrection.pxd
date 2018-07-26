@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
         void getPrecursor(MSExperiment & exp,
                           libcpp_vector[ Precursor ] & precursors,
                           libcpp_vector[ double ] & precursors_rt,
-                          libcpp_vector[ Size ] & precursor_scan_index) nogil except+
+                          libcpp_vector[ Size ] & precursor_scan_index) nogil except +
 
         void writeHist(String & out_csv,
                        libcpp_vector[ double ] & delta_mzs,
