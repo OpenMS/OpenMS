@@ -8,8 +8,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
     cdef cppclass CrossLinkSpectrumMatch "OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch":
 
         CrossLinkSpectrumMatch(CrossLinkSpectrumMatch) nogil except +
-        #wrap-attach:
-        #    OPXLDataStructs
+        CrossLinkSpectrumMatch() nogil except +
 
         ProteinProteinCrossLink cross_link
 

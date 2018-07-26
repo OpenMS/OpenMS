@@ -8,9 +8,10 @@ from AASequence cimport AASequence
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
 
     cdef cppclass ProteinProteinCrossLink "OpenMS::OPXLDataStructs::ProteinProteinCrossLink":
+
         ProteinProteinCrossLink(ProteinProteinCrossLink) nogil except +
-        #wrap-attach:
-        #    OPXLDataStructs
+        ProteinProteinCrossLink() nogil except +
+
 
         AASequence alpha
         AASequence beta
@@ -22,4 +23,4 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         int precursor_correction
 
         ProteinProteinCrossLinkType getType() nogil except +
-        bool operator==(ProteinProteinCrossLink & other) nogil except +
+        bool operator==(ProteinProteinCrossLink other) nogil except +

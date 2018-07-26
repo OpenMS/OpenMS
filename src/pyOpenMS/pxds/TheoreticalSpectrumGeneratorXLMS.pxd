@@ -21,5 +21,5 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>" namespa
                 Size link_pos, double precursor_mass, bool frag_alpha,
                 int mincharge, int maxcharge, Size link_pos_2) nogil except +
 
-        void getXLinkIonSpectrum(MSSpectrum& spectrum, ProteinProteinCrossLink& crosslink,
+        void getXLinkIonSpectrum(MSSpectrum& spectrum, ProteinProteinCrossLink crosslink,
                 bool frag_alpha, int mincharge, int maxcharge) nogil except +

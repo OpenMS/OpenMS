@@ -6,7 +6,7 @@ from XLPrecursor cimport *
 from AASeqWithMass cimport *
 from DoubleList cimport *
 from StringList cimport *
-from ResidueModification cimport ResidueModification
+from ResidueModification cimport *
 from FASTAFile cimport *
 from EnzymaticDigestion cimport *
 from ProteinProteinCrossLink cimport *
@@ -22,11 +22,14 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
 
     cdef cppclass OPXLHelper:
 
-        libcpp_vector[ XLPrecursor ] enumerateCrossLinksAndMasses(const libcpp_vector[ AASeqWithMass ]&  peptides,
+        OPXLHelper(OPXLHelper) nogil except +
+        OPXLHelper() nogil except +
+
+        libcpp_vector[ XLPrecursor ] enumerateCrossLinksAndMasses(libcpp_vector[ AASeqWithMass ]  peptides,
                                                                   double cross_link_mass_light,
-                                                                  const DoubleList& cross_link_mass_mono_link,
-                                                                  const StringList& cross_link_residue1,
-                                                                  const StringList& cross_link_residue2,
+                                                                  DoubleList cross_link_mass_mono_link,
+                                                                  StringList cross_link_residue1,
+                                                                  StringList cross_link_residue2,
                                                                   libcpp_vector[ double ]& spectrum_precursors,
                                                                   libcpp_vector[ int ]& precursor_correction_positions,
                                                                   double precursor_mass_tolerance,
@@ -50,22 +53,22 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                                                                  const StringList& cross_link_residue1,
                                                                  const StringList& cross_link_residue2,
                                                                  double cross_link_mass,
-                                                                 const DoubleList& cross_link_mass_mono_link,
+                                                                 DoubleList cross_link_mass_mono_link,
                                                                  libcpp_vector[ double ]& spectrum_precursor_vector,
                                                                  libcpp_vector[ double ]& allowed_error_vector,
                                                                  String cross_link_name) nogil except +
 
 
         void buildFragmentAnnotations(libcpp_vector[ PeptideHit_PeakAnnotation ]& frag_annotations,
-                                      const libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matching,
-                                      const MSSpectrum& theoretical_spectrum,
-                                      const MSSpectrum& experiment_spectrum) nogil except +
+                                      libcpp_vector[ libcpp_pair[ size_t, size_t ] ] matching,
+                                      MSSpectrum theoretical_spectrum,
+                                      MSSpectrum experiment_spectrum) nogil except +
 
         void buildPeptideIDs(libcpp_vector[ PeptideIdentification ]& peptide_ids,
-                             const libcpp_vector[ CrossLinkSpectrumMatch ]& top_csms_spectrum,
+                             libcpp_vector[ CrossLinkSpectrumMatch ] top_csms_spectrum,
                              libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ]& all_top_csms,
                              Size all_top_csms_current_index,
-                             const MSExperiment& spectra,
+                             MSExperiment spectra,
                              Size scan_index,
                              Size scan_index_heavy) nogil except +
 
