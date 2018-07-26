@@ -62,7 +62,7 @@ using namespace std;
     }
 
     void PrecursorCorrection::writeHist(const String& out_csv,
-                                        const vector<double> & deltaMZs,
+                                        const vector<double> & delta_mzs,
                                         const vector<double> & mzs,
                                         const vector<double> & rts)
     {
@@ -74,9 +74,9 @@ using namespace std;
       csv_file << ListUtils::concatenate(ListUtils::create<String>(csv_header), "\t") << "\n";
 
       // entries
-      for (vector<double>::const_iterator it = deltaMZs.begin(); it != deltaMZs.end(); ++it)
+      for (vector<double>::const_iterator it = delta_mzs.begin(); it != delta_mzs.end(); ++it)
       {
-        UInt index = it - deltaMZs.begin();
+        UInt index = it - delta_mzs.begin();
         csv_file << rts[index] << "\t" << mzs[index] << "\t" << mzs[index] + *it  << "\t" << *it << "\n";
       }
       csv_file.close();
@@ -85,7 +85,7 @@ using namespace std;
      set<Size> PrecursorCorrection::correctToNearestMS1Peak(MSExperiment & exp,
                                                             double mz_tolerance,
                                                             bool ppm,
-                                                            vector<double> & deltaMZs,
+                                                            vector<double> & delta_mzs,
                                                             vector<double> & mzs,
                                                             vector<double> & rts)
     {
@@ -143,8 +143,8 @@ using namespace std;
           }
 
           // cout << mz << " -> " << nearest_peak_mz << endl;
-          double deltaMZ = nearest_peak_mz - mz;
-          deltaMZs.push_back(deltaMZ);
+          double delta_mz = nearest_peak_mz - mz;
+          delta_mzs.push_back(delta_mz);
           mzs.push_back(mz);
           rts.push_back(rt);
           // correct entries
@@ -160,7 +160,7 @@ using namespace std;
     //Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
     set<Size> PrecursorCorrection::correctToHighestIntensityMS1Peak(MSExperiment & exp,
                                                                     double mz_tolerance,
-                                                                    vector<double> & deltaMZs,
+                                                                    vector<double> & delta_mzs,
                                                                     vector<double> & mzs,
                                                                     vector<double> & rts)
     {
@@ -212,8 +212,8 @@ using namespace std;
         double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();
 
         // cout << mz << " -> " << nearest_peak_mz << endl;
-        double deltaMZ = highest_peak_mz - mz;
-        deltaMZs.push_back(deltaMZ);
+        double delta_mz = highest_peak_mz - mz;
+        delta_mzs.push_back(delta_mz);
         mzs.push_back(mz);
         rts.push_back(rt);
         // correct entries

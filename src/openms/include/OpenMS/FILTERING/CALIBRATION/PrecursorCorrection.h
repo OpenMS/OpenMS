@@ -16,7 +16,7 @@
 // For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THEA
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
 // INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
@@ -52,16 +52,22 @@
 namespace OpenMS
 {
   /**
-  @brief A class with functions for precursor correction
+  @brief This class provides methods for precursor correction.
+
+  Supported methods:
+  getPrecursors: Extract precursors and associated information (mz, scan index).
+  writeHist: Write output .csv for validation purposes (corrected, uncorrected).
+  correctToNearestMS1Peak: Correct to the peak in closest proximity in a certrain mass range.
+  correctToHighestIntensityMS1Peak: Correct to the peak with the highest intensity in a certain mass range.
+  correctToNearestFeature: Use feature information to reannotate a precursor (e.g. falsely assigned to non mono-isotopic trace).
   */
 class OPENMS_DLLAPI PrecursorCorrection
 {
     public:
     static const std::string csv_header;
 
-    // TODO: add comments
     /**
-    @brief Get precursor information
+    @brief Extract precursors and associated information (precursor retention time and precursor scan index)
     */
     static void getPrecursors(const MSExperiment & exp,
                               std::vector<Precursor> & precursors,
@@ -70,28 +76,40 @@ class OPENMS_DLLAPI PrecursorCorrection
 
 
     /**
-    @brief Writer can be used in association with correctToNearestMS1Peak or correctTOHighestIntensityMS1Peak
+    @brief Writer can be used in association with correctToNearestMS1Peak or correctToHighestIntensityMS1Peak
+
+    Format:
+    RT	    uncorrectedMZ	correctedMZ	deltaMZ
+    100.1	509.9999	    510	         0.0001
+    180.9	610.0001	    610	        -0.0001
+    183.92	611.0035	    611.0033	  -0.0002
     */
     static void writeHist(const String& out_csv,
-                          const std::vector<double> & deltaMZs,
+                          const std::vector<double> & delta_mzs,
                           const std::vector<double> & mzs,
                           const std::vector<double> & rts);
     /**
     @brief Selection of the peak in closest proximity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
+
+    For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
+    In the MS1, the peak closest to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
     */
     static std::set<Size> correctToNearestMS1Peak(MSExperiment & exp,
                                                   double mz_tolerance,
                                                   bool ppm,
-                                                  std::vector<double> & deltaMZs,
+                                                  std::vector<double> & delta_mzs,
                                                   std::vector<double> & mzs,
                                                   std::vector<double> & rts);
 
      /**
      @brief Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
+
+     For each MS2 spectrum the corresponding MS1 spectrum is determined by using the rt information of the precursor.
+     In the MS1, the peak with the highest intensity in a given mass range to the uncorrected precursor m/z is selected and used as corrected precursor m/z.
      */
      static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment & exp,
                                                            double mz_tolerance,
-                                                           std::vector<double> & deltaMZs,
+                                                           std::vector<double> & delta_mzs,
                                                            std::vector<double> & mzs,
                                                            std::vector<double> & rts);
 
@@ -105,7 +123,6 @@ class OPENMS_DLLAPI PrecursorCorrection
     keep_original will create a copy of the precursor and tandem spectrum for the new mono-isotopic mass trace and retain the original one
     all_matching_features does this not for only the closest feature but all features in a question
     */
-
     static std::set<Size> correctToNearestFeature(const FeatureMap& features,
                                                   MSExperiment & exp,
                                                   double rt_tolerance_s = 0.0,
@@ -118,11 +135,22 @@ class OPENMS_DLLAPI PrecursorCorrection
                                                   int debug_level = 0);
 
   protected:
+
+    /**
+    @brief Check if precursor is located in the bounding box of a features convex hull.
+    Here the bounding box of the feature is extended by the retention time tolerance and
+    afterwards the precursor location is validated.
+    */
     static bool overlaps_(const Feature& feature,
                           const double rt,
                           const double pc_mz,
                           const double rt_tolerance);
- 
+
+    /**
+    @brief Check precursor and feature compatiblity
+    If the precursor mz is in one of the masstraces the feature is compatible.
+    Dependend on 13C mass difference and charge.
+    */
     static bool compatible_(const Feature& feature,
                             double pc_mz,
                             double mz_tolerance,
