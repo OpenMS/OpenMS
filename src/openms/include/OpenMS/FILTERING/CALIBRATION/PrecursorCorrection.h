@@ -51,58 +51,83 @@
 
 namespace OpenMS
 {
-
+  /**
+  @brief A class with functions for precursor correction
+  */
 class OPENMS_DLLAPI PrecursorCorrection
 {
     public:
     static const std::string csv_header;
 
-    static void getPrecursors(
-        const MSExperiment & exp, 
-        std::vector<Precursor> & precursors, 
-        std::vector<double> & precursors_rt, 
-        std::vector<Size> precursor_scan_index);
-    
-    static void writeHist(const String& out_csv, const std::vector<double> & deltaMZs, const std::vector<double> & mzs, const std::vector<double> & rts);
+    // TODO: add comments
+    /**
+    @brief Get precursor information
+    */
+    static void getPrecursors(const MSExperiment & exp,
+                              std::vector<Precursor> & precursors,
+                              std::vector<double> & precursors_rt,
+                              std::vector<Size> & precursor_scan_index);
 
-    static std::set<Size> correctToNearestMS1Peak(
-      MSExperiment & exp, 
-      double mz_tolerance, 
-      bool ppm, 
-      std::vector<double> & deltaMZs, 
-      std::vector<double> & mzs, 
-      std::vector<double> & rts);
 
-    //Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
-    static std::set<Size> correctToHighestIntensityMS1Peak(
-      MSExperiment & exp, 
-      double mz_tolerance, 
-      std::vector<double> & deltaMZs, 
-      std::vector<double> & mzs, 
-      std::vector<double> & rts);
+    /**
+    @brief Writer can be used in association with correctToNearestMS1Peak or correctTOHighestIntensityMS1Peak
+    */
+    static void writeHist(const String& out_csv,
+                          const std::vector<double> & deltaMZs,
+                          const std::vector<double> & mzs,
+                          const std::vector<double> & rts);
+    /**
+    @brief Selection of the peak in closest proximity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
+    */
+    static std::set<Size> correctToNearestMS1Peak(MSExperiment & exp,
+                                                  double mz_tolerance,
+                                                  bool ppm,
+                                                  std::vector<double> & deltaMZs,
+                                                  std::vector<double> & mzs,
+                                                  std::vector<double> & rts);
 
-    // Wrong assignment of the mono-isotopic mass for precursors are assumed:
-    // - if precursor_mz matches the mz of a non-monoisotopic feature mass trace
-    // - and in the case that believe_charge is true: if feature_charge matches the precursor_charge
-    // In the case of wrong mono-isotopic assignment several options for correction are available:
-    // keep_original will create a copy of the precursor and tandem spectrum for the new mono-isotopic mass trace and retain the original one
-    // all_matching_features does this not for only the closest feature but all features in a question
-    static std::set<Size> correctToNearestFeature(
-      const FeatureMap& features, 
-      MSExperiment & exp, 
-      double rt_tolerance_s = 0.0, 
-      double mz_tolerance = 0.0, 
-      bool ppm = true, 
-      bool believe_charge = false, 
-      bool keep_original = false, 
-      bool all_matching_features = false, 
-      int max_trace = 2,
-      int debug_level = 0);
+     /**
+     @brief Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
+     */
+     static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment & exp,
+                                                           double mz_tolerance,
+                                                           std::vector<double> & deltaMZs,
+                                                           std::vector<double> & mzs,
+                                                           std::vector<double> & rts);
+
+
+    /**
+    @brief Reassigns a precursor to the nearest feature in a given rt and mass range.
+    Wrong assignment of the mono-isotopic mass for precursors are assumed:
+    - if precursor_mz matches the mz of a non-monoisotopic feature mass trace
+    - and in the case that believe_charge is true: if feature_charge matches the precursor_charge
+    In the case of wrong mono-isotopic assignment several options for correction are available:
+    keep_original will create a copy of the precursor and tandem spectrum for the new mono-isotopic mass trace and retain the original one
+    all_matching_features does this not for only the closest feature but all features in a question
+    */
+
+    static std::set<Size> correctToNearestFeature(const FeatureMap& features,
+                                                  MSExperiment & exp,
+                                                  double rt_tolerance_s = 0.0,
+                                                  double mz_tolerance = 0.0,
+                                                  bool ppm = true,
+                                                  bool believe_charge = false,
+                                                  bool keep_original = false,
+                                                  bool all_matching_features = false,
+                                                  int max_trace = 2,
+                                                  int debug_level = 0);
 
   protected:
-    static bool overlaps_(const Feature& feature, const double rt, const double pc_mz, const double rt_tolerance);
+    static bool overlaps_(const Feature& feature,
+                          const double rt,
+                          const double pc_mz,
+                          const double rt_tolerance);
  
-    static bool compatible_(const Feature& feature, double pc_mz, double mz_tolerance, Size max_trace_number = 2, int debug_level = 0);
+    static bool compatible_(const Feature& feature,
+                            double pc_mz,
+                            double mz_tolerance,
+                            Size max_trace_number = 2,
+                            int debug_level = 0);
 };
 
 const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";

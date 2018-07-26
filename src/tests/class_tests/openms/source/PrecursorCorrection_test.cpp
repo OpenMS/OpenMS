@@ -178,7 +178,7 @@ START_SECTION(~PrecursorCorrection())
 }
 END_SECTION
 
-START_SECTION((static void getPrecursors(const MSExperiment &exp, std::vector< Precursor > &precursors, std::vector< double > &precursors_rt, std::vector< Size > precursor_scan_index)))
+START_SECTION((static void getPrecursors(const MSExperiment &exp, std::vector< Precursor > &precursors, std::vector< double > &precursors_rt, std::vector< Size > &precursor_scan_index)))
 {
   MSExperiment getP_exp = exp;
   vector<Precursor> precursor;
@@ -188,7 +188,7 @@ START_SECTION((static void getPrecursors(const MSExperiment &exp, std::vector< P
 
   TEST_EQUAL(precursor.size(), 3);
   TEST_EQUAL(rt.size(), 3);
-  TEST_EQUAL(index.size(), 0);
+  TEST_EQUAL(index.size(), 3);
   TEST_REAL_SIMILAR(precursor[0].getMZ(), 509.9999)
   TEST_REAL_SIMILAR(precursor[0].getIntensity(), 240.0);
   TEST_REAL_SIMILAR(rt[0], 100.1);

@@ -42,11 +42,10 @@
 using namespace OpenMS;
 using namespace std;
 
-   void PrecursorCorrection::getPrecursors(
-       const MSExperiment & exp, 
-       vector<Precursor> & precursors, 
-       vector<double> & precursors_rt, 
-       vector<Size> precursor_scan_index)
+   void PrecursorCorrection::getPrecursors(const MSExperiment & exp,
+                                           vector<Precursor> & precursors,
+                                           vector<double> & precursors_rt,
+                                           vector<Size> & precursor_scan_index)
     {
       for (Size i = 0; i != exp.size(); ++i)
       {
@@ -62,7 +61,10 @@ using namespace std;
       }
     }
 
-    void PrecursorCorrection::writeHist(const String& out_csv, const vector<double> & deltaMZs, const vector<double> & mzs, const vector<double> & rts)
+    void PrecursorCorrection::writeHist(const String& out_csv,
+                                        const vector<double> & deltaMZs,
+                                        const vector<double> & mzs,
+                                        const vector<double> & rts)
     {
       //cout << "writting data" << endl;
       ofstream csv_file(out_csv.c_str());
@@ -80,13 +82,12 @@ using namespace std;
       csv_file.close();
     }
 
-     set<Size> PrecursorCorrection::correctToNearestMS1Peak(
-      MSExperiment & exp, 
-      double mz_tolerance, 
-      bool ppm, 
-      vector<double> & deltaMZs, 
-      vector<double> & mzs, 
-      vector<double> & rts)
+     set<Size> PrecursorCorrection::correctToNearestMS1Peak(MSExperiment & exp,
+                                                            double mz_tolerance,
+                                                            bool ppm,
+                                                            vector<double> & deltaMZs,
+                                                            vector<double> & mzs,
+                                                            vector<double> & rts)
     {
       set<Size> corrected_precursors;
       // load experiment and extract precursors
@@ -157,12 +158,11 @@ using namespace std;
     }
 
     //Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
-    set<Size> PrecursorCorrection::correctToHighestIntensityMS1Peak(
-      MSExperiment & exp, 
-      double mz_tolerance, 
-      vector<double> & deltaMZs, 
-      vector<double> & mzs, 
-      vector<double> & rts)
+    set<Size> PrecursorCorrection::correctToHighestIntensityMS1Peak(MSExperiment & exp,
+                                                                    double mz_tolerance,
+                                                                    vector<double> & deltaMZs,
+                                                                    vector<double> & mzs,
+                                                                    vector<double> & rts)
     {
       set<Size> corrected_precursors;
       // load experiment and extract precursors
@@ -231,23 +231,17 @@ using namespace std;
       return corrected_precursors;
     }
 
-    // Wrong assignment of the mono-isotopic mass for precursors are assumed:
-    // - if precursor_mz matches the mz of a non-monoisotopic feature mass trace
-    // - and in the case that believe_charge is true: if feature_charge matches the precursor_charge
-    // In the case of wrong mono-isotopic assignment several options for correction are available:
-    // keep_original will create a copy of the precursor and tandem spectrum for the new mono-isotopic mass trace and retain the original one
-    // all_matching_features does this not for only the closest feature but all features in a question
-    set<Size> PrecursorCorrection::correctToNearestFeature(
-      const FeatureMap& features, 
-      MSExperiment & exp, 
-      double rt_tolerance_s, 
-      double mz_tolerance, 
-      bool ppm, 
-      bool believe_charge, 
-      bool keep_original, 
-      bool all_matching_features, 
-      int max_trace,
-      int debug_level)
+
+    set<Size> PrecursorCorrection::correctToNearestFeature(const FeatureMap& features,
+                                                           MSExperiment & exp,
+                                                           double rt_tolerance_s,
+                                                           double mz_tolerance,
+                                                           bool ppm,
+                                                           bool believe_charge,
+                                                           bool keep_original,
+                                                           bool all_matching_features,
+                                                           int max_trace,
+                                                           int debug_level)
     {
       set<Size> corrected_precursors;
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
@@ -388,7 +382,10 @@ using namespace std;
       return corrected_precursors;
     }
 
-    bool PrecursorCorrection::overlaps_(const Feature& feature, const double rt, const double pc_mz, const double rt_tolerance)
+    bool PrecursorCorrection::overlaps_(const Feature& feature,
+                                        const double rt,
+                                        const double pc_mz,
+                                        const double rt_tolerance)
     {
       if (feature.getConvexHulls().empty())
       {
@@ -412,7 +409,11 @@ using namespace std;
       }
     }
 
-    bool PrecursorCorrection::compatible_(const Feature& feature, double pc_mz, double mz_tolerance, Size max_trace_number, int debug_level)
+    bool PrecursorCorrection::compatible_(const Feature& feature,
+                                          double pc_mz,
+                                          double mz_tolerance,
+                                          Size max_trace_number,
+                                          int debug_level)
     {
       const int f_charge = feature.getCharge();
       const double f_mz = feature.getMZ();
