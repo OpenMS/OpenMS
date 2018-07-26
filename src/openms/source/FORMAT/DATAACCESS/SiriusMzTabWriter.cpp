@@ -71,7 +71,10 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
       if (rowcount > 1)
       {
-        const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount : top_n_hits;
+        // correction if the rowcount is smaller than the number of hits used as parameter
+        // rowcount-1 because the csv header will be skipped in the loop later on.
+        int header = 1;
+        const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
         
         // fill identification structure containing all candidate hits for a single spectrum
         SiriusMzTabWriter::SiriusAdapterIdentification sirius_id;
@@ -90,12 +93,11 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         boost::regex regexp_feature("_(?<SCAN>\\d+)-");
         bool found = boost::regex_search(str, match, regexp_feature);
         if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
-        // results from scan were not assigned to a feautre
-        if (feature_id == "id_0") {feature_id = "null";}
+        String unassigned = "null";
 
-        for (Size j = 1; j < top_n_hits_cor; ++j)
+        // j = 1 because of .csv file format (header)
+        for (Size j = 1; j <= top_n_hits_cor; ++j)
         {
-          
           StringList sl;
           compounds.getRow(j, sl);
           SiriusMzTabWriter::SiriusAdapterHit sirius_hit;
@@ -115,7 +117,15 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
         sirius_id.scan_index = scan_index;
         sirius_id.scan_number = scan_number;
-        sirius_id.feature_id = feature_id;
+        // check if results were assigned to a feature
+        if (feature_id != "id_0")
+        {
+          sirius_id.feature_id = feature_id;
+        }
+        else
+        {
+          sirius_id.feature_id = unassigned;
+        }
         sirius_result.identifications.push_back(sirius_id);
 
         // write metadata to mzTab file
