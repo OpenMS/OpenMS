@@ -118,6 +118,11 @@ START_SECTION(IsotopeDistribution& operator < (const CoarseIsotopePatternGenerat
 	IsotopeDistribution iso5(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(1)));
     IsotopeDistribution iso6(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(1000)));
 	TEST_EQUAL(iso5 < iso6, true)
+
+    IsotopeDistribution iso7(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, false)));
+    IsotopeDistribution iso8(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+    // iso7 should be less because its second isotope's mass is 61 (atomic number), while for iso8 it is 61.003 (expected mass)
+    TEST_EQUAL(iso7 < iso8, true)
 END_SECTION
 
 
@@ -127,6 +132,11 @@ START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) c
 	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
     iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso3 == iso4, true)
+
+    IsotopeDistribution iso5(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, false))),
+    iso6(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+    // the masses should be different
+    TEST_EQUAL(iso5 == iso6, false)
 END_SECTION
 
 START_SECTION(void set(const ContainerType &distribution))
@@ -144,14 +154,20 @@ END_SECTION
 
 START_SECTION(Size getMax() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-	TEST_EQUAL(iso.getMax(), 6)
+	TEST_REAL_SIMILAR(iso.getMax(), 6.02907)
+	IsotopeDistribution iso2(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, false)));
+	TEST_EQUAL(iso2.getMax(), 6)
 END_SECTION
 
 START_SECTION(Size getMin() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-	TEST_EQUAL(iso.getMin(), 2)
-	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-	TEST_EQUAL(iso2.getMin(), 48)
+	TEST_REAL_SIMILAR(iso.getMin(), 2.01565)
+	IsotopeDistribution iso2(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, false)));
+	TEST_EQUAL(iso2.getMin(), 2)
+	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+	TEST_REAL_SIMILAR(iso3.getMin(), 48)
+	IsotopeDistribution iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, false)));
+	TEST_EQUAL(iso4.getMin(), 48)
 END_SECTION
 
 START_SECTION(Size size() const)

@@ -75,6 +75,8 @@ namespace OpenMS
 
     CoarseIsotopePatternGenerator(const Size& max_isotope);
 
+    CoarseIsotopePatternGenerator(const Size& max_isotope, const bool calc_mass);
+
     virtual ~CoarseIsotopePatternGenerator();
 
     /// @name Accessors
@@ -87,8 +89,14 @@ namespace OpenMS
     */
     void setMaxIsotope(const Size& max_isotope);
 
+    /// sets the calc_mass_ flag to calculate and return expected masses (true) or atomic numbers (false).
+    void setCalcMass(const bool calc_mass);
+
     /// returns the currently set maximum isotope
     Size getMaxIsotope() const;
+
+    /// returns the current value of the flag to return expected masses (true) or atomic numbers (false).
+    bool getCalcMass() const;
     
     Size getMin() const;
     Size getMax() const;
@@ -269,8 +277,9 @@ namespace OpenMS
        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
        @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
+       @param fragment_mono_mass the monoisotopic mass of the fragment. It is only used to compute masses if getCalcMass() is true.
     */
-    IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes, const double fragment_mono_mass) const;
 
     CoarseIsotopePatternGenerator& operator=(const CoarseIsotopePatternGenerator& iso);
 
@@ -283,7 +292,10 @@ namespace OpenMS
     /// convolves the distribution @p input with itself and stores the result in @p result
     IsotopeDistribution::ContainerType convolveSquare_(const IsotopeDistribution::ContainerType & input) const;
 
-protected:
+    /// converts the masses of distribution @p input from atomic numbers to atomic masses
+    IsotopeDistribution::ContainerType correctMass_(const IsotopeDistribution::ContainerType & input, const double mono_weight) const;
+
+  protected:
 
     /** @brief calculates the fragment distribution for a fragment molecule and stores it in @p result.
 
@@ -291,7 +303,7 @@ protected:
         @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
         @param precursor_isotopes which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
     */
-    IsotopeDistribution calcFragmentIsotopeDist_(const IsotopeDistribution::ContainerType& fragment_isotope_dist, const IsotopeDistribution::ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes);
+    IsotopeDistribution calcFragmentIsotopeDist_(const IsotopeDistribution::ContainerType& fragment_isotope_dist, const IsotopeDistribution::ContainerType& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes) const;
 
     /// fill a gapped isotope pattern (i.e. certain masses are missing), with zero probability masses
     IsotopeDistribution::ContainerType fillGaps_(const IsotopeDistribution::ContainerType& id) const;
@@ -299,6 +311,8 @@ protected:
  protected:
     /// maximal isotopes which is used to calculate the distribution
     Size max_isotope_;
+    /// flag to determine whether expected masses or atomic numbers are returned
+    bool calc_mass_;
 
   };
 

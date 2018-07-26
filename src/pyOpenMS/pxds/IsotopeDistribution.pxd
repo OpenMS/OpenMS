@@ -53,10 +53,16 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
 
         CoarseIsotopePatternGenerator() nogil except + 
         CoarseIsotopePatternGenerator(Size max_isotope) nogil except +
-
+        CoarseIsotopePatternGenerator(Size max_isotope, bool calc_mass) nogil except +
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
-        
+
+        # returns the current value of the flag to return expected masses (true) or atomic numbers (false)
+        bool getCalcMass() nogil except +
+
+        # sets the calc_mass_ flag to calculate and return expected masses (true) or atomic numbers (false)
+        void setCalcMass(Size max_isotope) nogil except +
+
         # returns the currently set maximum isotope
         Size getMaxIsotope() nogil except +
         
@@ -103,5 +109,4 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
         IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor, double average_weight_fragment, libcpp_set[ unsigned int ]& precursor_isotopes, double C, double H, double N, double O, double S, double P) nogil except +
 
         # Calculate isotopic distribution for a fragment molecule
-
-        IsotopeDistribution calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
+        IsotopeDistribution calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist, IsotopeDistribution& comp_fragment_isotope_dist, libcpp_set[ unsigned int ]& precursor_isotopes, double fragment_mono_mass) nogil except +
