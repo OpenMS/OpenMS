@@ -114,8 +114,6 @@ namespace OpenMS
 
   void MultiplexFiltering::updateWhiteMSExperiment_()
   {
-    std::cout << "\n\nUpdating White Experiment.\n";
-    
     // reset both the white MS experiment and the corresponding mapping to the complete i.e. origibal MS experiment
     exp_picked_white_.clear(true);
     exp_picked_mapping_.clear();
@@ -131,12 +129,8 @@ namespace OpenMS
       // loop over m/z
       for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
-        //std::cout << "blacklist entry " << (it_rt - exp_picked_.begin()) << "  " << (it_mz - it_rt->begin()) << "  " << blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] << "\n";
-        
         if (blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] == -1)
         {
-          //std::cout << "non-black " << (it_rt - exp_picked_.begin()) << "  " << (it_mz - it_rt->begin()) << "\n";
-          
           Peak1D peak;
           peak.setMZ(it_mz->getMZ());
           peak.setIntensity(it_mz->getIntensity());
