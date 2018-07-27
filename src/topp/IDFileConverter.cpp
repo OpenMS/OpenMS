@@ -102,6 +102,9 @@ information for the use of ProteinProphet.
 
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
 
+The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
+of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
+
 <B>Details on additional parameters:</B>
 
 @p mz_file:@n
