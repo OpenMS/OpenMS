@@ -53,15 +53,15 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
 
         CoarseIsotopePatternGenerator() nogil except + 
         CoarseIsotopePatternGenerator(Size max_isotope) nogil except +
-        CoarseIsotopePatternGenerator(Size max_isotope, bool calc_mass) nogil except +
+        CoarseIsotopePatternGenerator(Size max_isotope, bool round_masses) nogil except +
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
 
-        # returns the current value of the flag to return expected masses (true) or atomic numbers (false)
-        bool getCalcMass() nogil except +
+        # returns the current value of the flag to round masses to integer values (true) or return accurate masses (false)
+        bool getRoundMasses() nogil except +
 
-        # sets the calc_mass_ flag to calculate and return expected masses (true) or atomic numbers (false)
-        void setCalcMass(Size max_isotope) nogil except +
+        /// sets the round_masses_ flag to round masses to integer values (true) or return accurate masses (false)
+        void setRoundMasses(bool round_masses_) nogil except +
 
         # returns the currently set maximum isotope
         Size getMaxIsotope() nogil except +

@@ -53,6 +53,12 @@ namespace OpenMS
     *         For example for (13)Carbon it assumes that the mass of the isotope is 13Da
     *         instead of 13.0033548378
     *
+    *         The output is a list of nominal isotope probabilities
+    *         with either accurate or rounded masses. The accurate masses assume the
+    *         nominal isotopes are mostly due to (13)Carbon.
+    *         To return accurate vs rounded masses, use setRoundMasses accordingly.
+    *         The default is to return accurate masses.
+    *
     *         The most important value which should be set is the max isotope value.
     *         This value can be set using the setMaxIsotope method. It is an upper
     *         bound for the number of isotopes which are calculated
@@ -62,8 +68,6 @@ namespace OpenMS
     *         number of values, if the mass value is large!
     *
     *         See also method run()
-    *
-    *         Distributions can be added to one another or scaled by an integer.
     **/
 
   class OPENMS_DLLAPI CoarseIsotopePatternGenerator 
@@ -75,7 +79,7 @@ namespace OpenMS
 
     CoarseIsotopePatternGenerator(const Size& max_isotope);
 
-    CoarseIsotopePatternGenerator(const Size& max_isotope, const bool calc_mass);
+    CoarseIsotopePatternGenerator(const Size& max_isotope, const bool round_masses);
 
     virtual ~CoarseIsotopePatternGenerator();
 
@@ -89,14 +93,14 @@ namespace OpenMS
     */
     void setMaxIsotope(const Size& max_isotope);
 
-    /// sets the calc_mass_ flag to calculate and return expected masses (true) or atomic numbers (false).
-    void setCalcMass(const bool calc_mass);
+    /// sets the round_masses_ flag to round masses to integer values (true) or return accurate masses (false)
+    void setRoundMasses(const bool round_masses);
 
     /// returns the currently set maximum isotope
     Size getMaxIsotope() const;
 
     /// returns the current value of the flag to return expected masses (true) or atomic numbers (false).
-    bool getCalcMass() const;
+    bool getRoundMasses() const;
     
     Size getMin() const;
     Size getMax() const;
@@ -277,7 +281,8 @@ namespace OpenMS
        @param fragment_isotope_dist the isotopic distribution of the fragment (as if it was a precursor).
        @param comp_fragment_isotope_dist the isotopic distribution of the complementary fragment (as if it was a precursor).
        @param precursor_isotopes a list of which precursor isotopes were isolated. 0 corresponds to the mono-isotopic molecule (M0), 1->M1, etc.
-       @param fragment_mono_mass the monoisotopic mass of the fragment. It is only used to compute masses if getCalcMass() is true.
+       @param fragment_mono_mass the monoisotopic mass of the fragment.
+       @pre fragment_isotope_dist and comp_fragment_isotope_dist are gapless (no missing isotopes between the min/max isotopes of the dist)
     */
     IsotopeDistribution calcFragmentIsotopeDist(const IsotopeDistribution& fragment_isotope_dist, const IsotopeDistribution& comp_fragment_isotope_dist, const std::set<UInt>& precursor_isotopes, const double fragment_mono_mass) const;
 
@@ -292,7 +297,7 @@ namespace OpenMS
     /// convolves the distribution @p input with itself and stores the result in @p result
     IsotopeDistribution::ContainerType convolveSquare_(const IsotopeDistribution::ContainerType & input) const;
 
-    /// converts the masses of distribution @p input from atomic numbers to atomic masses
+    /// converts the masses of distribution @p input from atomic numbers to accurate masses
     IsotopeDistribution::ContainerType correctMass_(const IsotopeDistribution::ContainerType & input, const double mono_weight) const;
 
   protected:
@@ -311,8 +316,8 @@ namespace OpenMS
  protected:
     /// maximal isotopes which is used to calculate the distribution
     Size max_isotope_;
-    /// flag to determine whether expected masses or atomic numbers are returned
-    bool calc_mass_;
+    /// flag to determine whether masses should be rounded or not
+    bool round_masses_;
 
   };
 

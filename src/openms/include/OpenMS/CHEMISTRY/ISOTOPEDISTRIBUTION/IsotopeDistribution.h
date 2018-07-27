@@ -64,7 +64,7 @@ namespace OpenMS
         atomic masses.
         The CoarseIsotopePatternGenerator solver quantizes the atomic masses to integer 
         numbers that correspond to the atomic number. Then the calculation of the 
-        IsotopeDistribution produces only atomic numbers.
+        IsotopeDistribution can produce nominal isotopes with accurate or rounded masses
 
     */
   class Element; 

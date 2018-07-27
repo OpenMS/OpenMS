@@ -356,7 +356,7 @@ def testCoarseIsotopePatternGenerator():
     iso = pyopenms.CoarseIsotopePatternGenerator(10)
     isod = iso.run(methanol)
     assert len(isod.getContainer()) == 10, len(isod.getContainer()) 
-    assert isod.getContainer()[0].getMZ() == 32.0, isod.getContainer()[0].getMZ()
+    assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
     assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
     
 @report

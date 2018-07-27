@@ -52,21 +52,21 @@ namespace OpenMS
   CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator() : 
     IsotopePatternGenerator(),
     max_isotope_(0),
-    calc_mass_(true)
+    round_masses_(false)
   {
   }
 
   CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope) :
     IsotopePatternGenerator(),
     max_isotope_(max_isotope),
-    calc_mass_(true)
+    round_masses_(false)
   {
   }
 
-  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope, const bool calc_mass) :
+  CoarseIsotopePatternGenerator::CoarseIsotopePatternGenerator(const Size& max_isotope, const bool round_masses) :
     IsotopePatternGenerator(),
     max_isotope_(max_isotope),
-    calc_mass_(calc_mass)
+    round_masses_(round_masses)
   {
   }
 
@@ -84,14 +84,14 @@ namespace OpenMS
     return max_isotope_;
   }
 
-  void CoarseIsotopePatternGenerator::setCalcMass(const bool calc_mass)
+  void CoarseIsotopePatternGenerator::setRoundMasses(const bool round_masses)
   {
-      calc_mass_ = calc_mass;
+    round_masses_ = round_masses;
   }
 
-  bool CoarseIsotopePatternGenerator::getCalcMass() const
+  bool CoarseIsotopePatternGenerator::getRoundMasses() const
   {
-    return calc_mass_;
+    return round_masses_;
   }
 
   IsotopeDistribution CoarseIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
@@ -106,12 +106,8 @@ namespace OpenMS
                            convolvePow_(tmp.getContainer(), it->second)));
     }
 
-    // convolve_ returns atomic numbers for the mass.
-    // Check if they should be replaced with expected masses
-    if (getCalcMass())
-    {
-      result.set(correctMass_(result.getContainer(), formula.getMonoWeight()));
-    }
+    // replace atomic numbers with masses.
+    result.set(correctMass_(result.getContainer(), formula.getMonoWeight()));
 
     result.renormalize();
 
@@ -215,12 +211,8 @@ namespace OpenMS
   {
     IsotopeDistribution result = calcFragmentIsotopeDist_(fragment_isotope_dist.getContainer(), comp_fragment_isotope_dist.getContainer(), precursor_isotopes);
 
-    // calcFragmentIsotopeDist_ returns atomic numbers for the mass.
-    // Check if they should be replaced with expected masses
-    if (getCalcMass())
-    {
-      result.set(correctMass_(result.getContainer(), fragment_mono_mass));
-    }
+    // replace atomic numbers with masses.
+    result.set(correctMass_(result.getContainer(), fragment_mono_mass));
 
     return result;
   }
@@ -367,12 +359,7 @@ namespace OpenMS
       return result;
     }
 
-    // ensure the isotope cluster has no gaps
-    // (e.g. from Bromine there is only Bromine-79 & Bromine-81, so we need to insert Bromine-80 with zero probability)
-    IsotopeDistribution::ContainerType fragment_isotope_dist_l = fillGaps_(fragment_isotope_dist);
-    IsotopeDistribution::ContainerType comp_fragment_isotope_dist_l = fillGaps_(comp_fragment_isotope_dist);
-
-    IsotopeDistribution::ContainerType::size_type r_max = fragment_isotope_dist_l.size();
+    IsotopeDistribution::ContainerType::size_type r_max = fragment_isotope_dist.size();
 
     if ((IsotopeDistribution::ContainerType::size_type)max_isotope_ != 0 && r_max > (IsotopeDistribution::ContainerType::size_type)max_isotope_)
     {
@@ -383,7 +370,7 @@ namespace OpenMS
     result.resize(r_max);
     for (IsotopeDistribution::ContainerType::size_type i = 0; i != r_max; ++i)
     {
-      result[i] = Peak1D(fragment_isotope_dist_l[0].getMZ() + i, 0);
+      result[i] = Peak1D(fragment_isotope_dist[0].getMZ() + i, 0);
     }
 
     // Example: Let the Precursor formula be C2, and assume precursors M0, M+1, and M+2 were isolated.
@@ -420,17 +407,17 @@ namespace OpenMS
     //
     // normalization is needed to get true conditional probabilities if desired.
     //
-    for (Size i = 0; i < fragment_isotope_dist_l.size(); ++i)
+    for (Size i = 0; i < fragment_isotope_dist.size(); ++i)
     {
       for (std::set<UInt>::const_iterator precursor_itr = precursor_isotopes.begin(); precursor_itr != precursor_isotopes.end(); ++precursor_itr)
       {
         if (*precursor_itr >= i &&
-            (*precursor_itr-i) < comp_fragment_isotope_dist_l.size())
+            (*precursor_itr-i) < comp_fragment_isotope_dist.size())
         {
-          result[i].setIntensity( result[i].getIntensity() + comp_fragment_isotope_dist_l[*precursor_itr-i].getIntensity());
+          result[i].setIntensity( result[i].getIntensity() + comp_fragment_isotope_dist[*precursor_itr-i].getIntensity());
         }
       }
-      result[i].setIntensity(result[i].getIntensity() * fragment_isotope_dist_l[i].getIntensity());
+      result[i].setIntensity(result[i].getIntensity() * fragment_isotope_dist[i].getIntensity());
     }
     return result;
 
@@ -462,10 +449,16 @@ namespace OpenMS
 
       for (Size i = 0; i < input.size(); ++i)
       {
-          // We assume that a coarse isotopic peak is mostly composed of carbon-13's
-          // and therefore use the mass difference between carbon-13 and carbon-12
-          // to determine the expected mass of a coarse isotopic peak.
-          result[i] = Peak1D(mono_weight + (i * Constants::C13C12_MASSDIFF_U), input[i].getIntensity() );
+        // We assume that a coarse isotopic peak is mostly composed of carbon-13's
+        // and therefore use the mass difference between carbon-13 and carbon-12
+        // to determine the expected mass of a coarse isotopic peak.
+        double mass = mono_weight + (i * Constants::C13C12_MASSDIFF_U);
+        if (getRoundMasses())
+        {
+          mass = round(mass);
+        }
+
+        result[i] = Peak1D(mass, input[i].getIntensity() );
       }
 
       return result;

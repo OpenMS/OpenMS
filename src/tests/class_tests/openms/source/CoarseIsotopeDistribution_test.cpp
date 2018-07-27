@@ -70,7 +70,7 @@ START_SECTION(CoarseIsotopePatternGenerator())
 	ptr = new CoarseIsotopePatternGenerator();
 	Size max_isotope = ptr->getMaxIsotope();
     TEST_EQUAL(max_isotope, 0)
-	TEST_EQUAL(ptr->getCalcMass(), true)
+	TEST_EQUAL(ptr->getRoundMasses(), false)
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
@@ -81,16 +81,16 @@ START_SECTION(CoarseIsotopePatternGenerator(Size max_isotope))
 	CoarseIsotopePatternGenerator* ptr = new CoarseIsotopePatternGenerator(117);
 	Size max_isotope = ptr->getMaxIsotope();
     TEST_EQUAL(max_isotope, 117)
-	TEST_EQUAL(ptr->getCalcMass(), true)
+	TEST_EQUAL(ptr->getRoundMasses(), false)
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
 
 START_SECTION(CoarseIsotopePatternGenerator(Size max_isotope, bool calc_mass))
-	CoarseIsotopePatternGenerator* ptr = new CoarseIsotopePatternGenerator(117, false);
+	CoarseIsotopePatternGenerator* ptr = new CoarseIsotopePatternGenerator(117, true);
 	Size max_isotope = ptr->getMaxIsotope();
 	TEST_EQUAL(max_isotope, 117)
-	TEST_EQUAL(ptr->getCalcMass(), false)
+	TEST_EQUAL(ptr->getRoundMasses(), true)
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
@@ -103,14 +103,14 @@ START_SECTION(~CoarseIsotopePatternGenerator())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void setCalcMass(bool calc_mass))
+START_SECTION(void setRoundMasses(bool round_masses))
     CoarseIsotopePatternGenerator solver2 = CoarseIsotopePatternGenerator();
-    TEST_EQUAL(solver2.getCalcMass(), true)
-    solver2.setCalcMass(false);
-    TEST_EQUAL(solver2.getCalcMass(), false)
+    TEST_EQUAL(solver2.getRoundMasses(), false)
+    solver2.setRoundMasses(true);
+    TEST_EQUAL(solver2.getRoundMasses(), true)
 END_SECTION
 
-START_SECTION(bool getCalcMass() const)
+START_SECTION(bool getRoundMasses() const)
     NOT_TESTABLE
 END_SECTION
 
@@ -238,17 +238,17 @@ START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::estimateFromPept
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.046495)
     TEST_REAL_SIMILAR(iso.begin()->getMZ(), 9994.041);
 
-    solver->setCalcMass(false);
+    solver->setRoundMasses(true);
     iso = solver->estimateFromPeptideWeight(100.0);
     TEST_REAL_SIMILAR(iso.begin()->getMZ(), 100);
 
     iso = solver->estimateFromPeptideWeight(1000.0);
-    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 999);
+    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 1000);
 
     iso = solver->estimateFromPeptideWeight(10000.0);
-    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 9989);
+    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 9994);
 
-    solver->setCalcMass(true);
+    solver->setRoundMasses(false);
 END_SECTION
 
 
@@ -442,13 +442,13 @@ START_SECTION(IsotopeDistribution estimateForFragmentFromPeptideWeight(double av
 		TEST_REAL_SIMILAR(it2->getIntensity(), it2->getIntensity())
 	}
 
-	solver->setCalcMass(false);
+	solver->setRoundMasses(true);
 
-    // Calculating atomic number instead of expected mass
+    // Rounded masses
     iso = solver->estimateForFragmentFromPeptideWeight(200.0, 100.0, precursor_isotopes);
     TEST_EQUAL(iso.begin()->getMZ(), 100);
 
-	solver->setCalcMass(true);
+	solver->setRoundMasses(false);
 
 END_SECTION
 
@@ -555,8 +555,8 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopePat
   EmpiricalFormula ef_fragment = EmpiricalFormula("C1");
   // The input to calcFragmentIsotopeDist should be isotope distributions
   // where the solver used atomic numbers for the mass field
-  IsotopeDistribution iso1(ef_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(11, false))); // fragment
-  IsotopeDistribution iso2(ef_complementary_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(11, false))); // complementary fragment
+  IsotopeDistribution iso1(ef_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true))); // fragment
+  IsotopeDistribution iso2(ef_complementary_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true))); // complementary fragment
 
   std::set<UInt> precursor_isotopes;
   precursor_isotopes.insert(0);
@@ -568,7 +568,7 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopePat
   iso3 = solver->calcFragmentIsotopeDist(iso1, iso2, precursor_isotopes, ef_fragment.getMonoWeight());
   iso3.renormalize();
 
-  // Need the distribution with expected masses for the next comparison
+  // Need the distribution with accurate masses for the next comparison
   // because that's what the solver used for the fragment distribution
   IsotopeDistribution iso1_calc_mass(ef_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(11))); // fragment
 
@@ -598,19 +598,19 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopePat
   TEST_REAL_SIMILAR(iso4.getContainer()[0].getIntensity(), 0.989524)
   TEST_REAL_SIMILAR(iso4.getContainer()[1].getIntensity(), 0.010479)
 
-  solver->setCalcMass(false);
+  solver->setRoundMasses(true);
   IsotopeDistribution iso5 = solver->calcFragmentIsotopeDist(iso1, iso2, precursor_isotopes, ef_fragment.getMonoWeight());
-  double result_expected_mass[] = { 12.0, 13.0033548378 };
-  double result_atomic_number[] = { 12, 13 };
+  double result_mass[] = { 12.0, 13.0033548378 };
+  double result_rounded_mass[] = { 12, 13 };
   Size i = 0;
   // making sure that the masses are correct depending on whether we asked the IsotopeDistribution solver
-  // to return atomic numbers or expected masses
+  // to return rounded masses
   for (it1 = iso3.begin(), it2 = iso5.begin(); it1 != iso3.end(); ++it1, ++it2, ++i)
   {
-    TEST_REAL_SIMILAR(it1->getMZ(), result_expected_mass[i])
-    TEST_EQUAL(it2->getMZ(), result_atomic_number[i])
+    TEST_REAL_SIMILAR(it1->getMZ(), result_mass[i])
+    TEST_EQUAL(it2->getMZ(), result_rounded_mass[i])
   }
-  solver->setCalcMass(true);
+  solver->setRoundMasses(false);
 
 END_SECTION
 

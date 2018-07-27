@@ -87,7 +87,7 @@ START_SECTION((EmpiricalFormula(SignedSize number, const Element* element, Signe
   TEST_EQUAL(ef.getCharge(), 0)
 END_SECTION
 
-START_SECTION(const Element* getElement(UInt atomic_number) const)
+START_SECTION(const Element* getElement(UInt rounded_mass) const)
   const Element* e = db->getElement(6);
   TEST_EQUAL(e->getSymbol(), "C")
 END_SECTION
@@ -366,25 +366,25 @@ END_SECTION
 START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   EmpiricalFormula ef("C");
   IsotopeDistribution iso = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(20));
-  double result_expected_mass[] = { 12, 13.0033548378 };
+  double result_mass[] = { 12, 13.0033548378 };
   double result_prob[] = { 0.9893, 0.0107 };
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
     TEST_REAL_SIMILAR(it->getIntensity(), result_prob[i])
-    // expected masses should have been calculated
-    TEST_REAL_SIMILAR(it->getMZ(), result_expected_mass[i])
+    // accurate masses should have been calculated
+    TEST_REAL_SIMILAR(it->getMZ(), result_mass[i])
   }
 
-  IsotopeDistribution iso2 = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(20, false));
-  double result_atomic_number[] = { 12, 13 };
+  IsotopeDistribution iso2 = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(20, true));
+  double result_rounded_mass[] = { 12, 13 };
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso2.begin(); it != iso2.end(); ++it, ++i)
   {
     // probabilities should not change due to mass vs atomic number calculations
     TEST_REAL_SIMILAR(it->getIntensity(), result_prob[i])
     // atomic numbers should have been calculated
-    TEST_REAL_SIMILAR(it->getMZ(), result_atomic_number[i])
+    TEST_REAL_SIMILAR(it->getMZ(), result_rounded_mass[i])
   }
 
   // Formula of Bovine Serum Albumin (BSA) that is has been processed and is missing the first 24 AA
@@ -393,9 +393,9 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   // monoisotopic mass
   TEST_REAL_SIMILAR(iso3.begin()->getMZ(), 66389.863)
 
-  IsotopeDistribution iso4 = ef2.getIsotopeDistribution(CoarseIsotopePatternGenerator(20, false));
-  // due to rounding, the atomic number should be smaller than the monoisotopic mass of BSA
-  TEST_REAL_SIMILAR(iso4.begin()->getMZ(), 66357)
+  IsotopeDistribution iso4 = ef2.getIsotopeDistribution(CoarseIsotopePatternGenerator(20, true));
+  // rounded monoisotopic mass
+  TEST_REAL_SIMILAR(iso4.begin()->getMZ(), 66390)
 
 END_SECTION
 
@@ -408,12 +408,12 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   // isolated precursor isotope is M0
   IsotopeDistribution iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
   double result_prob[] = { 1.0 };
-  double result_expected_mass[] = { 12.0 };
+  double result_mass[] = { 12.0 };
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
     TEST_REAL_SIMILAR(it->getIntensity(), result_prob[i])
-    TEST_REAL_SIMILAR(it->getMZ(), result_expected_mass[i])
+    TEST_REAL_SIMILAR(it->getMZ(), result_mass[i])
   }
 
   precursor_isotopes.clear();
@@ -421,12 +421,12 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   // isolated precursor isotope is M+1
   iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
   double result_prob2[] = { 0.5, 0.5 };
-  double result_expected_mass2[] = { 12.0, 13.0033548378 };
+  double result_mass2[] = { 12.0, 13.0033548378 };
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
     TEST_REAL_SIMILAR(it->getIntensity(), result_prob2[i])
-    TEST_REAL_SIMILAR(it->getMZ(), result_expected_mass2[i])
+    TEST_REAL_SIMILAR(it->getMZ(), result_mass2[i])
   }
 
   precursor_isotopes.insert(0);
@@ -437,8 +437,8 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
     TEST_REAL_SIMILAR(it->getIntensity(), result_prob3[i])
-    // The expected masses shouldn't change
-    TEST_REAL_SIMILAR(it->getMZ(), result_expected_mass2[i])
+    // The masses shouldn't change
+    TEST_REAL_SIMILAR(it->getMZ(), result_mass2[i])
   }
 
   precursor_isotopes.insert(2);
@@ -465,13 +465,13 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
     TEST_REAL_SIMILAR(it->getIntensity(), result4[i])
   }
 
-  // Testing atomic numbers instead of expected masses
-  iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator(0, false));
-  double result_atomic_numbers[] = { 12, 13 };
+  // Testing rounded masses
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator(0, true));
+  double result_rounded_masss[] = { 12, 13 };
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->getMZ(), result_atomic_numbers[i])
+    TEST_REAL_SIMILAR(it->getMZ(), result_rounded_masss[i])
   }
 
   precursor = EmpiricalFormula("C10H10N10O10S2");

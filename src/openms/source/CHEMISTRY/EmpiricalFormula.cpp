@@ -205,8 +205,7 @@ namespace OpenMS
     IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
     IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
 
-    IsotopeDistribution result;
-    result = solver.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes, getMonoWeight());
+    IsotopeDistribution result = solver.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes, getMonoWeight());
 
     // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)
     result.renormalize();
