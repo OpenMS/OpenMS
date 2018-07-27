@@ -648,6 +648,7 @@ protected:
         Param new_param(partial_loss_spectrum_generator.getParameters());
         new_param.setValue("add_all_precursor_charges", "true");
         new_param.setValue("add_abundant_immonium_ions", "true");
+        new_param.setValue("add_losses", "true");
         tmp_generator.setParameters(new_param);
         tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
@@ -1564,6 +1565,12 @@ protected:
     // calculate all feasible fragment adducts from all possible precursor adducts
     RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_);
 
+    // calculate FDR
+    FalseDiscoveryRate fdr;
+    Param p = fdr.getParameters();
+    p.setValue("add_decoy_peptides", "true"); // we still want decoys in the result (e.g., to run percolator)
+    fdr.setParameters(p);
+
     // load MS2 map
     PeakMap spectra;
     MzMLFile f;
@@ -1656,7 +1663,7 @@ protected:
     Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic, 100)
+#pragma omp parallel for schedule(guided)
 #endif
     for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
     {
@@ -2186,8 +2193,6 @@ protected:
 
     if (generate_decoys)	
     {
-      // calculate FDR
-      FalseDiscoveryRate fdr;     	
       fdr.apply(peptide_ids);	
     }
 
