@@ -170,6 +170,18 @@ START_SECTION(Size getMin() const)
 	TEST_EQUAL(iso4.getMin(), 48)
 END_SECTION
 
+START_SECTION(Size getMostAbundant() const)
+	IsotopeDistribution iso(EmpiricalFormula("C1").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
+    // The most abundant isotope is the monoisotope
+	TEST_EQUAL(iso.getMostAbundant().getMZ(), 12)
+	IsotopeDistribution iso2(EmpiricalFormula("C100").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
+    // In this case, the most abundant isotope isn't the monoisotope
+	TEST_EQUAL(iso2.getMostAbundant().getMZ(), 1201)
+	IsotopeDistribution iso3;
+    // Making sure an empty distribution doesn't crash it.
+    TEST_EQUAL(iso3.getMostAbundant().getMZ(), 0);
+END_SECTION
+
 START_SECTION(Size size() const)
 	IsotopeDistribution iso1, iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso1.size(), 1)

@@ -23,6 +23,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
         # returns the minimal weight isotope which is stored in the distribution
         Size getMin() nogil except +
 
+        # returns the most abundant isotope which is stored in the distribution
+        Peak1D getMostAbundant() nogil except +
+
         # returns the size of the distribution which is the number of isotopes in the distribution
         Size size() nogil except +
 

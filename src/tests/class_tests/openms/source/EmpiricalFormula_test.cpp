@@ -387,15 +387,30 @@ START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
     TEST_REAL_SIMILAR(it->getMZ(), result_rounded_mass[i])
   }
 
-  // Formula of Bovine Serum Albumin (BSA) that is has been processed and is missing the first 24 AA
+  // Formula of Bovine Serum Albumin (BSA) that has been processed and is missing the first 24 AA
   EmpiricalFormula ef2("C2934H4615N781O897S39");
-  IsotopeDistribution iso3 = ef2.getIsotopeDistribution(CoarseIsotopePatternGenerator(20));
+  IsotopeDistribution iso3 = ef2.getIsotopeDistribution(CoarseIsotopePatternGenerator(100));
   // monoisotopic mass
   TEST_REAL_SIMILAR(iso3.begin()->getMZ(), 66389.863)
+  // the average mass of the IsotopeDistribution is computed from its masses and probabilities
+  // and should be extremely close to the result from the EmpiricalFormula which uses the
+  // average weights of each atom.
+  TEST_REAL_SIMILAR(iso3.averageMass(), ef2.getAverageWeight())
 
-  IsotopeDistribution iso4 = ef2.getIsotopeDistribution(CoarseIsotopePatternGenerator(20, true));
+  Peak1D most_abundant = iso3.getMostAbundant();
+  // Partially a regression test. For such a large molecule, consecutive isotopes have very similar probabilities
+  // and a small change could change the result by 1Da (e.g. numerical error, elemental isotope probabilities)
+  TEST_REAL_SIMILAR(most_abundant.getMZ(), 66432.0037);
+  TEST_REAL_SIMILAR(most_abundant.getIntensity(), 0.057);
+
+  IsotopeDistribution iso4 = ef2.getIsotopeDistribution(CoarseIsotopePatternGenerator(100, true));
   // rounded monoisotopic mass
-  TEST_REAL_SIMILAR(iso4.begin()->getMZ(), 66390)
+  TEST_EQUAL(iso4.begin()->getMZ(), 66390)
+  TEST_REAL_SIMILAR(iso4.averageMass(), ef2.getAverageWeight())
+
+  most_abundant = iso4.getMostAbundant();
+  TEST_EQUAL(most_abundant.getMZ(), 66432);
+  TEST_REAL_SIMILAR(most_abundant.getIntensity(), 0.057);
 
 END_SECTION
 

@@ -121,6 +121,9 @@ public:
     /// returns the minimal weight isotope which is stored in the distribution
     Peak1D::CoordinateType getMin() const;
 
+    /// returns the most abundant isotope which is stored in the distribution
+    Peak1D getMostAbundant() const;
+
     /// returns the size of the distribution which is the number of isotopes in the distribution
     Size size() const;
 
