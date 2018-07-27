@@ -110,6 +110,10 @@ namespace OpenMS
 
   Peak1D IsotopeDistribution::getMostAbundant() const
   {
+      if (distribution_.empty())
+      {
+          return Peak1D(0, 1);
+      }
       return *std::max_element(begin(), end(), MassAbundance::IntensityLess());
   }
 

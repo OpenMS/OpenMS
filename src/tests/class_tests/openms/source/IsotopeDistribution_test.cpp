@@ -177,9 +177,10 @@ START_SECTION(Size getMostAbundant() const)
 	IsotopeDistribution iso2(EmpiricalFormula("C100").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
     // In this case, the most abundant isotope isn't the monoisotope
 	TEST_EQUAL(iso2.getMostAbundant().getMZ(), 1201)
-	IsotopeDistribution iso3;
-    // Making sure an empty distribution doesn't crash it.
-    TEST_EQUAL(iso3.getMostAbundant().getMZ(), 0);
+    // Empty distribution
+    iso2.clear();
+    TEST_EQUAL(iso2.getMostAbundant().getMZ(), 0);
+	TEST_EQUAL(iso2.getMostAbundant().getIntensity(), 1);
 END_SECTION
 
 START_SECTION(Size size() const)
