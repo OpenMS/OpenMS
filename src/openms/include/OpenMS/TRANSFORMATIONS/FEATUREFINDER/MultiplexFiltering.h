@@ -115,6 +115,9 @@ protected:
      * @param mapping    index mapping of 'white' peak positions to their position in the corresponding, original spectrum 
      */
     MSExperiment getWhiteMSExperiment_(White2Original& mapping);
+    
+    // Will replace getWhiteMSExperiment_()
+    void updateWhiteMSExperiment_();
 
     /**
      * @brief check for significant peak
@@ -203,6 +206,18 @@ protected:
      */
     std::vector<std::vector<int> > blacklist_;
     
+    /**
+     * @brief "white" centroided experimental data
+     *
+     * subset of all peaks of <exp_picked_> which are not blacklisted in <blacklist_>
+     */
+    MSExperiment exp_picked_white_;
+    
+    /**
+     * @brief mapping of peak indices from a 'white' experiment <exp_picked_white_> to its original experiment <exp_picked_>
+     */
+    White2Original exp_picked_mapping_;
+
     /**
      * @brief list of peak patterns
      */

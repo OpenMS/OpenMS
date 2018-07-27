@@ -131,6 +131,10 @@ namespace OpenMS
     return exp_picked_white;
   }
   
+  void MultiplexFiltering::updateWhiteMSExperiment_()
+  {
+  }
+  
   bool MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const
   {
     // Check that there is a peak.
