@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2018.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -396,7 +396,7 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   String input_file= OPENMS_GET_TEST_DATA_PATH("MzIdentML_XLMS_labelled.mzid");
   MzIdentMLFile().load(input_file, protein_ids, peptide_ids);
 
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("xl_pos"), 0)
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("xl_pos2"), 0)
   TEST_EQUAL(peptide_ids[1].getHits()[1].getMetaValue("xl_term_spec"), "N_TERM")
   TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence().toString(), "KELLK")
 
@@ -438,7 +438,7 @@ START_SECTION(([EXTRA] XLMS data labeled cross-linker))
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getSequence().toString(), "LM(Oxidation)VEMEKKLEK")
   TEST_EQUAL(peptide_ids2[1].getHits()[1].getSequence().toString(), "KELLK")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_pos"), 6)
-  TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_pos"), 0)
+  TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_pos2"), 0)
   TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_term_spec"), "N_TERM")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mass"), 138.0680796)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mod"), "DSS")
@@ -501,7 +501,7 @@ START_SECTION(([EXTRA] XLMS data unlabeled cross-linker))
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getSequence().toString(), "FIVKASSGPR")
   TEST_EQUAL(peptide_ids2[1].getHits()[1].getSequence().toString(), "SAVIKTSTR")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_pos"), 3)
-  TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_pos"), 4)
+  TEST_EQUAL(peptide_ids2[1].getHits()[1].getMetaValue("xl_pos2"), 4)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mass"), 138.0680796)
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getMetaValue("xl_mod"), "DSS")
   TEST_EQUAL(peptide_ids2[1].getHits()[0].getPeakAnnotations()[0].annotation, "[alpha|ci$b2]")

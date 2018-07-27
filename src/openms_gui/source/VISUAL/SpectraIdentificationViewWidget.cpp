@@ -407,7 +407,7 @@ namespace OpenMS
 
     // create header labels (setting header labels must occur after fill)
     QStringList header_labels;
-    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated" << "precursor error (|ppm|)" << "XL position (Protein)" << "precursor intensity";
+    header_labels << "MS" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan type" << "zoom" << "score" << "rank" << "charge" << "sequence" << "accessions" << "#ID" << "#PH" << "Curated" << "precursor error (|ppm|)" << "precursor intensity";
     for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
     {
       header_labels << sit->toQString();
@@ -529,9 +529,6 @@ namespace OpenMS
         // ppm error
         addTextItemToBottomRow_("-", 15, c);
 
-        // cross-link position in Protein
-        addTextItemToBottomRow_("-", 16, c);
-
         // fill precursor information in columns
         if (!precursors.empty())
         {
@@ -575,7 +572,7 @@ namespace OpenMS
         { // has no precursor
           addTextItemToBottomRow_("-", 3, c);
           addTextItemToBottomRow_("-", 4, c);
-          addTextItemToBottomRow_("-", 17, c); // precursor intensity
+          addTextItemToBottomRow_("-", 16, c); // precursor intensity
         }
 
         // scan mode
@@ -611,6 +608,13 @@ namespace OpenMS
           for (Size ph_idx = 0; ph_idx != pi[pi_idx].getHits().size(); ++ph_idx)
           {
             const PeptideHit & ph = pi[pi_idx].getHits()[ph_idx];
+
+            // for XL-MS data, do not show the beta peptide hit, as it is largely redundant
+            // and not visualized correctly; "MS:1002510" is the CV term for beta chain
+            if (ph.metaValueExists("xl_chain") && ph.getMetaValue("xl_chain") == "MS:1002510")
+            {
+              continue;
+            }
 
             // add new row at the end of the table
             table_widget_->insertRow(table_widget_->rowCount());
@@ -688,27 +692,6 @@ namespace OpenMS
               addDoubleItemToBottomRow_(ppm_error, 15, c);
             }
 
-            // cross-link position in Protein
-            if (ph.metaValueExists("xl_pos") && ph.getPeptideEvidences().size() > 0)
-            {
-              const vector<PeptideEvidence> pevs = ph.getPeptideEvidences();
-              String positions = "";
-              // positions for all protein accessions, separated by "," just like the accessions themselves
-              for (vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
-              {
-                // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-                Int prot_link_pos = pev->getStart() + int(ph.getMetaValue("xl_pos")) + 1;
-                positions = positions + "," + prot_link_pos;
-              }
-              // remove leading "," of first position
-              positions = positions.suffix(positions.size()-1);
-              addTextItemToBottomRow_(positions.toQString(), 16, c);
-            }
-            else
-            {
-              addTextItemToBottomRow_("-", 16, c);
-            }
-
             // fill precursor information in columns
             if (!precursors.empty()) // has precursor
             {
@@ -743,19 +726,19 @@ namespace OpenMS
               item = table_widget_->itemPrototype()->clone();
               item->setData(Qt::DisplayRole, first_precursor.getIntensity());
               item->setBackgroundColor(c);
-              table_widget_->setItem(table_widget_->rowCount() - 1, 17, item);
+              table_widget_->setItem(table_widget_->rowCount() - 1, 16, item);
             }
             else // has no precursor (leave fields 3 and 4 empty)
             {
               addTextItemToBottomRow_("-", 3, c);
               addTextItemToBottomRow_("-", 4, c);
-              addTextItemToBottomRow_("-", 17, c); // precursor intensity
+              addTextItemToBottomRow_("-", 16, c); // precursor intensity
             }
 
             // add additional meta value columns
             if (create_rows_for_commmon_metavalue_->isChecked())
             {
-              Int current_col = 18;
+              Int current_col = 17;
               for (set<String>::iterator sit = common_keys.begin(); sit != common_keys.end(); ++sit)
               {
                 DataValue dv = ph.getMetaValue(*sit);

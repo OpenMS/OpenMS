@@ -1,16 +1,18 @@
-from Types cimport *
+from OPXLDataStructs cimport *
+from String cimport String
 from libcpp cimport bool
-from PeptideHit cimport *
-from MSExperiment cimport *
-from ResidueModification cimport *
-from FASTAFile cimport *
-from ProteaseDigestion cimport *
-from AASequence cimport *
+from ResidueModification cimport TermSpecificity
+from AASequence cimport AASequence
+
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
-    
+
     cdef cppclass ProteinProteinCrossLink "OpenMS::OPXLDataStructs::ProteinProteinCrossLink":
-        ProteinProteinCrossLink(ProteinProteinCrossLink) nogil except + #wrap-ignore
+
+        ProteinProteinCrossLink(ProteinProteinCrossLink) nogil except +
+        ProteinProteinCrossLink() nogil except +
+
+
         AASequence alpha
         AASequence beta
         libcpp_pair[ ptrdiff_t, ptrdiff_t] cross_link_position
@@ -18,6 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         String cross_linker_name
         TermSpecificity term_spec_alpha
         TermSpecificity term_spec_beta
-        # ProteinProteinCrossLinkType getType() nogil except +
-        bool operator==(ProteinProteinCrossLink & other) nogil except +
+        int precursor_correction
 
+        ProteinProteinCrossLinkType getType() nogil except +
+        bool operator==(ProteinProteinCrossLink other) nogil except +
