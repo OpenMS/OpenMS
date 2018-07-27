@@ -16,7 +16,7 @@ autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
 # autowrap_include_dirs = ['/usr/local/lib/python2.7/dist-packages/autowrap/data_files/boost', '/usr/local/lib/python2.7/dist-packages/autowrap/data_files', '/path/to/pyOpenMS/pxds', 'from Map cimport Map as _Map']
 
 
-from Cython.Compiler.Main import compile, CompilationOptions
+from Cython.Compiler.Main import compile as cy_compile, CompilationOptions
 from Cython.Compiler.Options import directive_defaults
 directive_defaults["boundscheck"] = False
 directive_defaults["wraparound"] = False
@@ -30,6 +30,6 @@ options = dict(include_path=autowrap_include_dirs,
 print("Compiling with Cython the file", infile)
 print("Using include_path", autowrap_include_dirs)
 options = CompilationOptions(**options)
-compile(infile, options=options)
+cy_compile(infile, options=options)
 print("Success!")
 
