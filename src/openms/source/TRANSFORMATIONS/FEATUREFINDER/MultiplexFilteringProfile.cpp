@@ -40,7 +40,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#define DEBUG
+// #define DEBUG
 
 using namespace std;
 using namespace boost::math;
@@ -116,8 +116,6 @@ namespace OpenMS
       MultiplexFilteredMSExperiment result;
 
       // update white experiment
-      //White2Original exp_picked_mapping;
-      //MSExperiment exp_picked_white = getWhiteMSExperiment_(exp_picked_mapping_);
       updateWhiteMSExperiment_();
 
       // loop over spectra
@@ -147,7 +145,7 @@ namespace OpenMS
           double mz = it_mz->getMZ();
           MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping_[it_rt_picked - exp_picked_white_.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white_.begin());
           
-          if (!(filterPeakPositions_(it_mz, exp_picked_mapping_, exp_picked_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(it_mz, exp_picked_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
           {
             continue;
           }

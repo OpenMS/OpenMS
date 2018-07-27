@@ -103,7 +103,7 @@ namespace OpenMS
     {
       for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
-        if (it_mz->getIntensity() > intensity_cutoff_)
+        if (it_mz->getIntensity() < intensity_cutoff_)
         {
           blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] = 666;
         }
@@ -112,43 +112,13 @@ namespace OpenMS
     
   }
 
-  MSExperiment MultiplexFiltering::getWhiteMSExperiment_(White2Original& mapping)
-  {
-    MSExperiment exp_picked_white;
-    // loop over spectra
-    for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
-    {
-      MSSpectrum spectrum_picked_white;
-      spectrum_picked_white.setRT(it_rt->getRT());
-      
-      std::map<int, int> mapping_spectrum;
-      int count = 0;
-      // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
-      {
-        if (blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] == -1)
-        {
-          Peak1D peak;
-          peak.setMZ(it_mz->getMZ());
-          peak.setIntensity(it_mz->getIntensity());
-          spectrum_picked_white.push_back(peak);
-          
-          mapping_spectrum[count] = it_mz - it_rt->begin();
-          ++count;
-        }
-      }
-      exp_picked_white.addSpectrum(spectrum_picked_white);
-      mapping.push_back(mapping_spectrum);
-    }
-    exp_picked_white.updateRanges();
-    
-    return exp_picked_white;
-  }
-  
   void MultiplexFiltering::updateWhiteMSExperiment_()
   {
+    std::cout << "\n\nUpdating White Experiment.\n";
+    
+    // reset both the white MS experiment and the corresponding mapping to the complete i.e. origibal MS experiment
     exp_picked_white_.clear(true);
-    // Do we need to clear <exp_picked_mapping_> ??
+    exp_picked_mapping_.clear();
     
     // loop over spectra
     for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
@@ -161,8 +131,12 @@ namespace OpenMS
       // loop over m/z
       for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
+        //std::cout << "blacklist entry " << (it_rt - exp_picked_.begin()) << "  " << (it_mz - it_rt->begin()) << "  " << blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] << "\n";
+        
         if (blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] == -1)
         {
+          //std::cout << "non-black " << (it_rt - exp_picked_.begin()) << "  " << (it_mz - it_rt->begin()) << "\n";
+          
           Peak1D peak;
           peak.setMZ(it_mz->getMZ());
           peak.setIntensity(it_mz->getIntensity());
@@ -202,7 +176,7 @@ namespace OpenMS
     return false;
   }
   
-  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
+  bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
   {
     // check if peak position is blacklisted
     // i.e. -1 = white or 0 = mono-isotopic peak of the lightest (or only) peptide are ok.
@@ -256,10 +230,10 @@ namespace OpenMS
             // Note that as primary peaks, satellite peaks are also restricted by the blacklist.
             // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
             size_t rt_idx = it_rt - it_rt_begin;
-            size_t mz_idx = index_mapping.at(it_rt - it_rt_begin).at(i);
+            size_t mz_idx = exp_picked_mapping_.at(it_rt - it_rt_begin).at(i);
             if ((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(idx_mz_shift)))
             {
-              peak.addSatellite(it_rt - it_rt_begin, index_mapping.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
+              peak.addSatellite(it_rt - it_rt_begin, exp_picked_mapping_.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
               found = true;
             }
           }
