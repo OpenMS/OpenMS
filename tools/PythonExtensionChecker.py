@@ -594,7 +594,7 @@ class DoxygenCppFunction(object):
         if len(self.get_argsstring()) == 0:
             arguments = ""
 
-        # remove returned references and const values (Cython cannot deal with those at the moment) 
+        # remove returned references and const values (Cython cannot deal with those at the moment)
         return_type = "".join(c_return_type)
         return_type = return_type.replace("&", "")
         return_type = return_type.replace("const", "")
