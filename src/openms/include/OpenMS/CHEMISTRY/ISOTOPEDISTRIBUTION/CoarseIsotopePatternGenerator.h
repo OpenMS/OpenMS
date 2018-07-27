@@ -41,33 +41,48 @@
 
 namespace OpenMS
 {
-
   /**
-    *         @ingroup Chemistry
-    *         @brief Isotope pattern generator for coarse isotope distributions.
-    *         
-    *         This algorithm generates theoretical pattern distributions for empirical
-    *         formulas with resolution of 1Da.
-    *         It assumes that every isotope has atomic mass that is rounded
-    *         to the closest integer in Daltons.
-    *         For example for (13)Carbon it assumes that the mass of the isotope is 13Da
-    *         instead of 13.0033548378
+    * @ingroup Chemistry
+    * @brief Isotope pattern generator for coarse isotope distributions.
+    * 
+    * This algorithm generates theoretical pattern distributions for empirical
+    * formulas with resolution of 1Da. It assumes that every isotope has atomic
+    * mass that is rounded to the closest integer in Daltons, therefore it
+    * produces coarse distributions (it does not discriminate between 13C, N15
+    * and O18 peaks).  For example for (13)Carbon it assumes that the mass of
+    * the isotope is 13Da instead of 13.0033548378
     *
-    *         The output is a list of nominal isotope probabilities
-    *         with either accurate or rounded masses. The accurate masses assume the
-    *         nominal isotopes are mostly due to (13)Carbon.
-    *         To return accurate vs rounded masses, use setRoundMasses accordingly.
-    *         The default is to return accurate masses.
+    * The output is a list of pairs containing nominal isotope probabilities
+    * paired with a number that is either an accurate or rounded (integer)
+    * mass. The accurate masses assume the nominal isotopes are mostly due to
+    * (13)Carbon.  To return accurate vs rounded masses, use setRoundMasses
+    * accordingly.  The default is to return accurate masses (note that this
+    * will not influence the probabilities and still produce a coarse
+    * distributions spaced at ca 1Da). For example, using rounded mass, for a
+    * C100 molecule, you will get:
     *
-    *         The most important value which should be set is the max isotope value.
-    *         This value can be set using the setMaxIsotope method. It is an upper
-    *         bound for the number of isotopes which are calculated
-    *         If e.g., set to 3, only the first three isotopes, Monoisotopic mass, +1 and +2 are
-    *         calculated.
-    *         By default all possible isotopes are calculated, which leads to a large
-    *         number of values, if the mass value is large!
+    * 1200 : 0.341036528
+    * 1201 : 0.368855864
+    * 1202 : 0.197477505
+    * 1203 : 0.0697715357
     *
-    *         See also method run()
+    * while accurate mass will produce:
+    *
+    * 1200       : 0.341036528
+    * 1201.00335 : 0.368855864
+    * 1202.00671 : 0.197477505
+    * 1203.01006 : 0.0697715357
+    *
+    *
+    * The other important value which needs to be set is the max isotope value.
+    * This value can be set using the setMaxIsotope method. It is an upper
+    * bound for the number of isotopes which are calculated If e.g., set to 3,
+    * only the first three isotopes, Monoisotopic mass, +1 and +2 are
+    * calculated.
+    * By default all possible isotopes are calculated, which leads to a large
+    * number of values, if the mass value is large!
+    *
+    * See also method run()
     **/
 
   class OPENMS_DLLAPI CoarseIsotopePatternGenerator 
