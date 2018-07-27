@@ -91,7 +91,7 @@ using namespace OpenMS;
     <li>Generating theoretical spectra of cross-linked peptides and aligning the experimental spectra against those</li>
     <li>Scoring of cross-link spectrum matches</li>
     <li>Using PeptideIndexer to map the peptides to all possible source proteins</li>
-    <li>Writing out the results in mzid according to mzIdentML 1.2 specifications and/or in the xQuest output format</li>
+    <li>Writing out the results in idXML, mzid according to mzIdentML 1.2 specifications and/or in the xQuest output format</li>
   </ul>
 
   See below or have a look at the INI file (via "OpenPepXL -write_ini myini.ini") for available parameters and more functionality.
@@ -122,13 +122,12 @@ using namespace OpenMS;
   after the linking reaction (see section on output for clarification).
 
   <h3>Output: XL-MS Identifications with scores and linked positions in the proteins</h3>
-  There are three file formats for output of data possible. idXML is the internal format of OpenMS, but is not recommended for now,
-  since OpenMS does not yet contain any tools for post-processing of XL-MS ID data in idXML format. The second format is the output format of xQuest,
-  which is a popular XL-MS ID tool. This format is compatible with a number of post-processing and visulization tools,
+  There are three file formats for output of data possible. idXML is the internal format of OpenMS, and is recommended for post-processing using other TOPP tools like XFDR or TOPPView.
+  The second format xquest.xml is the output format of xQuest, which is a popular XL-MS ID tool. This format is compatible with a number of post-processing and visulization tools,
   like xProphet for FDR estimation (Leitner, A. et al., 2014, Nature protocols)
-  or XlinkAnalyzer for visualization and analysis using protein structures (Kosinski, J. et al., 2015, Journal of structural biology).
+  and through the xQuest Results Viewer also the XlinkAnalyzer for visualization and analysis using protein structures (Kosinski, J. et al., 2015, Journal of structural biology).
   The third format is mzIdentML according to the specifications for XL-MS ID data in version 1.2 (Vizcaíno, J. A. et al., 2017, Mol Cell Proteomics).
-  This is a standardized format and compatible with complete submissions to the PRIDE database, that is part of the ProteomeXchange consortium.
+  This is a standardized long term storage format and compatible with complete submissions to the PRIDE database, that is part of the ProteomeXchange consortium.
   The specification includes the XLMOD database of cross-linking reagents, and if the provided cross-link mass matches one from the
   database, its accession and name are used. If the name is provided with the -cross_linker:name parameter, it is used
   to solve ambiguities arising from different cross-linkers having the same mass after the linking reaction (e.g. DSS and BS3).
