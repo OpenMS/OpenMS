@@ -36,10 +36,11 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
+// #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/unordered_map.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>

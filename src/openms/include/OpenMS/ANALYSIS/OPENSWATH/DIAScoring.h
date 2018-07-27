@@ -34,18 +34,28 @@
 
 #pragma once
 
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <boost/math/special_functions/fpclassify.hpp> // for isnan
+#include <boost/shared_ptr.hpp>
+#include <map>
+
+namespace OpenSwath
+{
+  class LightTransition;
+  class LightTargetedExperiment;
+
+  class IDataFrameWriter;
+  class IMRMFeature;
+
+  struct OSSpectrum;
+  typedef boost::shared_ptr<OSSpectrum> SpectrumPtr;
+}
 
 namespace OpenMS
 {
   class TheoreticalSpectrumGenerator;
+  class AASequence;
 
   /**
     @brief Scoring of an spectrum at the peak apex of an chromatographic elution peak.

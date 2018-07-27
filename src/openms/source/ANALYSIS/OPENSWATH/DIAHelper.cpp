@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>

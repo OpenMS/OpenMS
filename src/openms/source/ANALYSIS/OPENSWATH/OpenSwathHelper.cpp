@@ -34,6 +34,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
 namespace OpenMS
 {
   void OpenSwathHelper::selectSwathTransitions(const OpenMS::TargetedExperiment& targeted_exp,

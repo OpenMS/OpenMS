@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 namespace OpenMS
 {
 

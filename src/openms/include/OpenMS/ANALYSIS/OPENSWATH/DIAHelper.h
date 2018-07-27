@@ -35,11 +35,13 @@
 #pragma once
 
 #include <vector>
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
   class TheoreticalSpectrumGenerator;
+  class AASequence;
+
   namespace DIAHelpers
   {
     /**

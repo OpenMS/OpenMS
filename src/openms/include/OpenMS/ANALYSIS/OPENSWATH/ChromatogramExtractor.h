@@ -41,6 +41,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenMS
 {

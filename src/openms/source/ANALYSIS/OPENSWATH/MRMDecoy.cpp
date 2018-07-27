@@ -33,7 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>

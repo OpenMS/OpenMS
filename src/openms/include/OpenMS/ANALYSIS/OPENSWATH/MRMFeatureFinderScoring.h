@@ -36,9 +36,6 @@
 
 #define USE_SP_INTERFACE
 
-// Actual scoring
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
-
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
@@ -46,14 +43,7 @@
 // Kernel classes
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MRMTransitionGroup.h>
-#include <OpenMS/KERNEL/MRMFeature.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -65,8 +55,19 @@
 
 bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right);
 
+namespace OpenSwath
+{
+  class SwathMap;
+}
+
 namespace OpenMS
 {
+
+  template <typename ChromatogramType, typename TransitionType>
+  class MRMTransitionGroup;
+  class MSChromatogram;
+  class FeatureMap;
+  class MRMFeature;
 
   /**
   @brief The MRMFeatureFinder finds and scores peaks of transitions that co-elute.
@@ -103,6 +104,7 @@ public:
     typedef OpenSwath::LightCompound PeptideType;
     typedef OpenSwath::LightProtein ProteinType;
     typedef OpenSwath::LightModification ModificationType;
+
     // a transition group holds the chromatographic data and peaks across
     // multiple chromatograms from the same compound
     typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;

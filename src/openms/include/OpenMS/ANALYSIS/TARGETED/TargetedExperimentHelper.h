@@ -41,7 +41,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/METADATA/CVTermListInterface.h>
@@ -51,6 +50,9 @@
 
 namespace OpenMS
 {
+
+  class AASequence;
+
   /**
     @brief This class stores helper structures that are used in multiple
     classes of the TargetedExperiment (e.g. ReactionMonitoringTransition and

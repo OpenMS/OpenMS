@@ -34,27 +34,26 @@
 
 #pragma once
 
-// Datastructures
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
-
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
-// Helpers
-#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <boost/cast.hpp>
+#include <vector>
 
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
+namespace OpenSwath
+{
+  class SwathMap;
+}
+
 namespace OpenMS
 {
-
   class MSDataCachedConsumer;
   class PlainMSDataWritingConsumer;
 
@@ -100,9 +99,8 @@ namespace OpenMS
   {
 
 public:
-    typedef PeakMap MapType;
-    typedef MapType::SpectrumType SpectrumType;
-    typedef MapType::ChromatogramType ChromatogramType;
+    typedef MSSpectrum SpectrumType;
+    typedef MSChromatogram ChromatogramType;
 
     FullSwathFileConsumer();
 
@@ -113,7 +111,7 @@ public:
      * lower and upper attributes will be used to infer the expected Swath maps.
      *
      */
-    FullSwathFileConsumer(std::vector<OpenSwath::SwathMap> swath_boundaries);
+    FullSwathFileConsumer(const std::vector<OpenSwath::SwathMap>& swath_boundaries);
 
     ~FullSwathFileConsumer() override {}
 
@@ -134,14 +132,14 @@ public:
     void retrieveSwathMaps(std::vector<OpenSwath::SwathMap>& maps);
 
     /// Consume a chromatogram -> should not happen when dealing with SWATH maps
-    void consumeChromatogram(MapType::ChromatogramType&) override;
+    void consumeChromatogram(ChromatogramType&) override;
 
     /**
      * @brief * Consume a spectrum which may belong either to an MS1 scan or
      * one of n MS2 (SWATH) scans
      *
      */
-    void consumeSpectrum(MapType::SpectrumType& s) override;
+    void consumeSpectrum(SpectrumType& s) override;
 
 protected:
 
@@ -152,7 +150,7 @@ protected:
      * (indicated by swath_nr).
      *
      */
-    virtual void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) = 0;
+    virtual void consumeSwathSpectrum_(SpectrumType& s, size_t swath_nr) = 0;
 
     /**
      * @brief Consume an MS1 spectrum
@@ -160,7 +158,7 @@ protected:
      * This function should handle an MS1 spectrum.
      *
      */
-    virtual void consumeMS1Spectrum_(MapType::SpectrumType& s) = 0;
+    virtual void consumeMS1Spectrum_(SpectrumType& s) = 0;
 
     /**
      * @brief Callback function after the reading is complete
@@ -202,23 +200,22 @@ protected:
   {
 
 public:
-    typedef PeakMap MapType;
-    typedef MapType::SpectrumType SpectrumType;
-    typedef MapType::ChromatogramType ChromatogramType;
+    typedef MSSpectrum SpectrumType;
+    typedef MSChromatogram ChromatogramType;
 
     RegularSwathFileConsumer();
 
-    RegularSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries);
+    RegularSwathFileConsumer(const std::vector<OpenSwath::SwathMap>& known_window_boundaries);
 
 protected:
 
     void addNewSwathMap_();
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override;
+    void consumeSwathSpectrum_(SpectrumType& s, size_t swath_nr) override;
 
     void addMS1Map_();
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s) override;
+    void consumeMS1Spectrum_(SpectrumType& s) override;
 
     void ensureMapsAreFilled_() override;
   };
@@ -237,13 +234,12 @@ protected:
   {
 
 public:
-    typedef PeakMap MapType;
-    typedef MapType::SpectrumType SpectrumType;
-    typedef MapType::ChromatogramType ChromatogramType;
+    typedef MSSpectrum SpectrumType;
+    typedef MSChromatogram ChromatogramType;
 
     CachedSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra);
 
-    CachedSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
+    CachedSwathFileConsumer(const std::vector<OpenSwath::SwathMap>& known_window_boundaries,
             String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra);
 
     ~CachedSwathFileConsumer() override;
@@ -251,11 +247,11 @@ public:
 protected:
     void addNewSwathMap_();
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override;
+    void consumeSwathSpectrum_(SpectrumType& s, size_t swath_nr) override;
 
     void addMS1Map_();
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s) override;
+    void consumeMS1Spectrum_(SpectrumType& s) override;
 
     void ensureMapsAreFilled_() override;
 
@@ -282,13 +278,12 @@ protected:
   {
 
 public:
-    typedef PeakMap MapType;
-    typedef MapType::SpectrumType SpectrumType;
-    typedef MapType::ChromatogramType ChromatogramType;
+    typedef MSSpectrum SpectrumType;
+    typedef MSChromatogram ChromatogramType;
 
     MzMLSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra);
 
-    MzMLSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
+    MzMLSwathFileConsumer(const std::vector<OpenSwath::SwathMap>& known_window_boundaries,
             String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra);
 
     ~MzMLSwathFileConsumer() override;
@@ -299,11 +294,11 @@ protected:
 
     void addNewSwathMap_();
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override;
+    void consumeSwathSpectrum_(SpectrumType& s, size_t swath_nr) override;
 
     void addMS1Map_();
 
-    void consumeMS1Spectrum_(MapType::SpectrumType& s) override;
+    void consumeMS1Spectrum_(SpectrumType& s) override;
 
     void ensureMapsAreFilled_() override;
 

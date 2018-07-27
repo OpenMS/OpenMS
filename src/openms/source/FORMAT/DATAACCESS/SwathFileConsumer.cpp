@@ -34,10 +34,18 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+
+// Helpers
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+
 // Consumers
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+
+#include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
 
 namespace OpenMS
 {
@@ -51,7 +59,7 @@ namespace OpenMS
     use_external_boundaries_ = !swath_map_boundaries_.empty();
   }
 
-  FullSwathFileConsumer::FullSwathFileConsumer(std::vector<OpenSwath::SwathMap> swath_boundaries) :
+  FullSwathFileConsumer::FullSwathFileConsumer(const std::vector<OpenSwath::SwathMap>& swath_boundaries) :
     swath_map_boundaries_(swath_boundaries),
     ms1_map_(), // initialize to null
     consuming_possible_(true),
@@ -105,12 +113,12 @@ namespace OpenMS
 
   }
 
-  void FullSwathFileConsumer::consumeChromatogram(MapType::ChromatogramType&)
+  void FullSwathFileConsumer::consumeChromatogram(ChromatogramType&)
   {
     std::cerr << "Read chromatogram while reading SWATH files, did not expect that!" << std::endl;
   }
 
-  void FullSwathFileConsumer::consumeSpectrum(MapType::SpectrumType& s)
+  void FullSwathFileConsumer::consumeSpectrum(SpectrumType& s)
   {
     if (!consuming_possible_)
     {
@@ -185,7 +193,7 @@ namespace OpenMS
 
   RegularSwathFileConsumer::RegularSwathFileConsumer() {}
 
-  RegularSwathFileConsumer::RegularSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries) :
+  RegularSwathFileConsumer::RegularSwathFileConsumer(const std::vector<OpenSwath::SwathMap>& known_window_boundaries) :
     FullSwathFileConsumer(known_window_boundaries) {}
 
   void RegularSwathFileConsumer::addNewSwathMap_()
@@ -194,7 +202,7 @@ namespace OpenMS
     swath_maps_.push_back(exp);
   }
 
-  void RegularSwathFileConsumer::consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) 
+  void RegularSwathFileConsumer::consumeSwathSpectrum_(SpectrumType& s, size_t swath_nr) 
   {
     while (swath_maps_.size() <= swath_nr)
     {
@@ -210,7 +218,7 @@ namespace OpenMS
     ms1_map_ = exp;
   }
 
-  void RegularSwathFileConsumer::consumeMS1Spectrum_(MapType::SpectrumType& s) 
+  void RegularSwathFileConsumer::consumeMS1Spectrum_(SpectrumType& s) 
   {
     if (!ms1_map_)
     {
@@ -233,7 +241,7 @@ namespace OpenMS
     nr_ms2_spectra_(nr_ms2_spectra)
   {}
 
-  CachedSwathFileConsumer::CachedSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
+  CachedSwathFileConsumer::CachedSwathFileConsumer(const std::vector<OpenSwath::SwathMap>& known_window_boundaries,
       String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
     FullSwathFileConsumer(known_window_boundaries),
     ms1_consumer_(nullptr),
@@ -272,7 +280,7 @@ namespace OpenMS
     swath_maps_.push_back(exp);
   }
 
-  void CachedSwathFileConsumer::consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
+  void CachedSwathFileConsumer::consumeSwathSpectrum_(SpectrumType& s, size_t swath_nr)
   {
     while (swath_maps_.size() <= swath_nr)
     {
@@ -292,7 +300,7 @@ namespace OpenMS
     ms1_map_ = exp;
   }
 
-  void CachedSwathFileConsumer::consumeMS1Spectrum_(MapType::SpectrumType& s)
+  void CachedSwathFileConsumer::consumeMS1Spectrum_(SpectrumType& s)
   {
     if (ms1_consumer_ == nullptr)
     {
@@ -359,7 +367,7 @@ namespace OpenMS
       nr_ms2_spectra_(nr_ms2_spectra)
   {}
 
-  MzMLSwathFileConsumer::MzMLSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
+  MzMLSwathFileConsumer::MzMLSwathFileConsumer(const std::vector<OpenSwath::SwathMap>& known_window_boundaries,
       String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
     FullSwathFileConsumer(known_window_boundaries),
     ms1_consumer_(nullptr),
@@ -399,7 +407,7 @@ namespace OpenMS
     swath_consumers_.push_back(consumer);
   }
 
-  void MzMLSwathFileConsumer::consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
+  void MzMLSwathFileConsumer::consumeSwathSpectrum_(SpectrumType& s, size_t swath_nr)
   {
     // only use swath_maps_ to count how many we have already added
     while (swath_consumers_.size() <= swath_nr)
@@ -420,7 +428,7 @@ namespace OpenMS
     // ms1_map_ = exp;
   }
 
-  void MzMLSwathFileConsumer::consumeMS1Spectrum_(MapType::SpectrumType& s)
+  void MzMLSwathFileConsumer::consumeMS1Spectrum_(SpectrumType& s)
   {
     if (ms1_consumer_ == nullptr)
     {

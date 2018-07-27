@@ -33,17 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
-
-#include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/QcMLFile.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>

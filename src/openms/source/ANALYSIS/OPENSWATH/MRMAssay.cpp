@@ -34,10 +34,11 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 
 namespace OpenMS
 {

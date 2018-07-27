@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
+#include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS

@@ -36,11 +36,12 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
 {
+
+  class ConsensusMap;
+  class MSExperiment;
 
   /**
    @brief Correlates individual masstraces found in mass spectrometric maps

@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>

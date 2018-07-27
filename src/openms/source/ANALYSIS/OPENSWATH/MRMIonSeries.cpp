@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMIonSeries.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <iostream>
 
 namespace OpenMS

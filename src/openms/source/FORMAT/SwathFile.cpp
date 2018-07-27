@@ -34,18 +34,22 @@
 
 #include <OpenMS/FORMAT/SwathFile.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
+
 #include <OpenMS/METADATA/ExperimentalSettings.h>
-
-
 
 namespace OpenMS
 {

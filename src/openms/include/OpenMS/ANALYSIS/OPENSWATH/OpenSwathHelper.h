@@ -35,13 +35,14 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
 namespace OpenMS
 {
+  class MSExperiment;
+  class TargetedExperiment;
+
   /**
     @brief A helper class that is used by several OpenSWATH tools
   */
