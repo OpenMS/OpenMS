@@ -60,29 +60,6 @@ namespace OpenMS
   peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity),
   averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averagine_type)
   {
-    // initialise experiment exp_picked_
-    // Any peaks below the intensity cutoff cannot be relevant and are therefore removed.
-    // loop over spectra
-    /*for (MSExperiment::ConstIterator it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
-    {
-      MSSpectrum spectrum;
-      spectrum.setRT(it_rt->getRT());
-      // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
-      {
-        if (it_mz->getIntensity() > intensity_cutoff_)
-        {
-          Peak1D peak;
-          peak.setMZ(it_mz->getMZ());
-          peak.setIntensity(it_mz->getIntensity());
-          spectrum.push_back(peak);
-        }
-      }
-      exp_picked_.addSpectrum(spectrum);
-    }
-    exp_picked_.updateRanges();*/
-    
-    
     // initialise blacklist <blacklist_>
     blacklist_.reserve(exp_picked_.getNrSpectra());
     // loop over spectra
@@ -114,7 +91,7 @@ namespace OpenMS
 
   void MultiplexFiltering::updateWhiteMSExperiment_()
   {
-    // reset both the white MS experiment and the corresponding mapping to the complete i.e. origibal MS experiment
+    // reset both the white MS experiment and the corresponding mapping to the complete i.e. original MS experiment
     exp_picked_white_.clear(true);
     exp_picked_mapping_.clear();
     
