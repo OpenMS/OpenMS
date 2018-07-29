@@ -251,51 +251,53 @@ namespace OpenMS
     }
 
     void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
-                              const Size n, SpectrumType& spectrum) const
-      {
+                                           const Size n,
+                                           SpectrumType& spectrum) const
+    {
 
-          //add meta data
-          UInt meta_float_array_index = 0;
-          UInt meta_int_array_index = 0;
-          UInt meta_string_array_index = 0;
-          for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+      // add meta data
+      UInt meta_float_array_index = 0;
+      UInt meta_int_array_index = 0;
+      UInt meta_string_array_index = 0;
+      for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+      {
+        if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
+        {
+          if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
           {
-            if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
+            if (n < input_data[i].size)
             {
-              if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
-              {
-                if (n < input_data[i].size)
-                {
-                  double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
-                  spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
-                }
-                ++meta_float_array_index;
-              }
-              else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-              {
-                if (n < input_data[i].size)
-                {
-                  Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
-                  spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
-                }
-                ++meta_int_array_index;
-              }
-              else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-              {
-                if (n < input_data[i].decoded_char.size())
-                {
-                  String value = input_data[i].decoded_char[n];
-                  spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
-                }
-                ++meta_string_array_index;
-              }
+              double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
+              spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
             }
+            ++meta_float_array_index;
           }
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
+          {
+            if (n < input_data[i].size)
+            {
+              Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
+              spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
+            }
+            ++meta_int_array_index;
+          }
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+          {
+            if (n < input_data[i].decoded_char.size())
+            {
+              String value = input_data[i].decoded_char[n];
+              spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
+            }
+            ++meta_string_array_index;
+          }
+        }
       }
+    }
 
     void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                  Size& default_arr_length, const PeakFileOptions& peak_file_options,
-                                  SpectrumType& spectrum)
+                                               Size& default_arr_length,
+                                               const PeakFileOptions& peak_file_options,
+                                               SpectrumType& spectrum)
     {
       typedef SpectrumType::PeakType PeakType;
 
@@ -462,8 +464,9 @@ namespace OpenMS
     }
 
     void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                        Size& default_arr_length, const PeakFileOptions& peak_file_options,
-                                        ChromatogramType& inp_chromatogram)
+                                                     Size& default_arr_length,
+                                                     const PeakFileOptions& peak_file_options,
+                                                     ChromatogramType& inp_chromatogram)
     {
       typedef ChromatogramType::PeakType ChromatogramPeakType;
 
@@ -3709,7 +3712,7 @@ namespace OpenMS
       writeHeader_(os, exp, dps, validator);
 
       //--------------------------------------------------------------------------------------------
-      //spectrum
+      // spectra
       //--------------------------------------------------------------------------------------------
       if (exp.size() != 0)
       {
@@ -3719,34 +3722,35 @@ namespace OpenMS
         // stored somewhere else).
         os << "\t\t<spectrumList count=\"" << exp.size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
 
-        //check native ids
+        // check native ids
         bool renew_native_ids = false;
-        for (Size s = 0; s < exp.size(); ++s)
+        for (Size s_idx = 0; s_idx < exp.size(); ++s_idx)
         {
-          if (!exp[s].getNativeID().has('='))
+          if (!exp[s_idx].getNativeID().has('='))
           {
             renew_native_ids = true;
             break;
           }
         }
-        //issue warning if something is wrong
+
+        // issue warning if something is wrong
         if (renew_native_ids)
         {
           warning(STORE, String("Invalid native IDs detected. Using spectrum identifier nativeID format (spectrum=xsd:nonNegativeInteger) for all spectra."));
         }
 
-        //write actual data
-        for (Size s = 0; s < exp.size(); ++s)
+        // write actual data
+        for (Size s_idx = 0; s_idx < exp.size(); ++s_idx)
         {
           logger_.setProgress(progress++);
-          const SpectrumType& spec = exp[s];
-          writeSpectrum_(os, spec, s, validator, renew_native_ids, dps);
+          const SpectrumType& spec = exp[s_idx];
+          writeSpectrum_(os, spec, s_idx, validator, renew_native_ids, dps);
         }
         os << "\t\t</spectrumList>\n";
       }
 
       //--------------------------------------------------------------------------------------------
-      //chromatograms
+      // chromatograms
       //--------------------------------------------------------------------------------------------
       if (!exp.getChromatograms().empty())
       {
@@ -3755,11 +3759,11 @@ namespace OpenMS
         // meta information needs to be stored here but the actual data is
         // stored somewhere else).
         os << "\t\t<chromatogramList count=\"" << exp.getChromatograms().size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
-        for (Size c = 0; c != exp.getChromatograms().size(); ++c)
+        for (Size c_idx = 0; c_idx != exp.getChromatograms().size(); ++c_idx)
         {
           logger_.setProgress(progress++);
-          const ChromatogramType& chromatogram = exp.getChromatograms()[c];
-          writeChromatogram_(os, chromatogram, c, validator);
+          const ChromatogramType& chromatogram = exp.getChromatograms()[c_idx];
+          writeChromatogram_(os, chromatogram, c_idx, validator);
         }
         os << "\t\t</chromatogramList>" << "\n";
       }
@@ -3768,8 +3772,10 @@ namespace OpenMS
       logger_.endProgress();
     }
 
-    void MzMLHandler::writeHeader_(std::ostream& os, const MapType& exp,
-                                            std::vector<std::vector< ConstDataProcessingPtr > >& dps, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeHeader_(std::ostream& os,
+                                   const MapType& exp,
+                                   std::vector<std::vector< ConstDataProcessingPtr > >& dps,
+                                   Internal::MzMLValidator& validator)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 
@@ -4700,9 +4706,11 @@ namespace OpenMS
     }
 
     void MzMLHandler::writeSpectrum_(std::ostream& os,
-                                              const SpectrumType& spec, Size s,
-                                              Internal::MzMLValidator& validator, bool renew_native_ids,
-                                              std::vector<std::vector< ConstDataProcessingPtr > >& dps)
+                                     const SpectrumType& spec,
+                                     Size s,
+                                     Internal::MzMLValidator& validator,
+                                     bool renew_native_ids,
+                                     std::vector<std::vector< ConstDataProcessingPtr > >& dps)
     {
       //native id
       String native_id = spec.getNativeID();
@@ -4858,17 +4866,21 @@ namespace OpenMS
       for (Size j = 0; j < spec.getAcquisitionInfo().size(); ++j)
       {
         const Acquisition& ac = spec.getAcquisitionInfo()[j];
-        os << "\t\t\t\t\t<scan ";
+        os << "\t\t\t\t\t<scan "; // TODO 
         if (ac.getIdentifier() != "")
+        {
           os << "externalSpectrumID=\"" << ac.getIdentifier() << "\"";
+        }
         os << ">\n";
         if (j == 0)
         {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
-          // if drift time was never set, dont report it
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() 
+             << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+          // if drift time was never set, don't report it
           if (spec.getDriftTime() >= 0.0)
           {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() 
+               << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
           }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
@@ -4955,14 +4967,17 @@ namespace OpenMS
           const SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
           writeBinaryFloatDataArray_(os, options_, array, s, m, true, validator);
         }
-        //write integer data array
+        // write integer data array
         for (Size m = 0; m < spec.getIntegerDataArrays().size(); ++m)
         {
           const SpectrumType::IntegerDataArray& array = spec.getIntegerDataArrays()[m];
           std::vector<Int64> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
+          {
             data64_to_encode[p] = array[p];
+          }
           Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+
           String data_processing_ref_string = "";
           if (array.getDataProcessing().size() != 0)
           {
@@ -4984,7 +4999,7 @@ namespace OpenMS
           os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
           os << "\t\t\t\t\t</binaryDataArray>\n";
         }
-        //write string data arrays
+        // write string data arrays
         for (Size m = 0; m < spec.getStringDataArrays().size(); ++m)
         {
           const SpectrumType::StringDataArray& array = spec.getStringDataArrays()[m];
@@ -5016,7 +5031,8 @@ namespace OpenMS
     void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
     {
       // Intensity is the same for chromatograms and spectra, the second
-      // dimension is either "time" or "mz" (both of these are controlled by getMz32Bit)
+      // dimension is either "time" or "mz" (both of these are controlled by
+      // getMz32Bit)
       bool is32Bit = ((array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
       if (!is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
       {
@@ -5241,7 +5257,9 @@ namespace OpenMS
                                                              String array_type);
 
     void MzMLHandler::writeChromatogram_(std::ostream& os,
-                                         const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
+                                         const ChromatogramType& chromatogram,
+                                         Size c,
+                                         Internal::MzMLValidator& validator)
     {
       long offset = os.tellp();
       chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
