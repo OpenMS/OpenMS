@@ -233,10 +233,53 @@ protected:
                                           Size& default_arr_length, const PeakFileOptions& peak_file_options,
                                           ChromatogramType& inp_chromatogram);
 
-      template <typename DataType>
-      void writeBinaryDataArray_(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type);
+      /**
+          @brief Write a single <binaryDataArray> element to the output
 
-      void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector< ConstDataProcessingPtr > >& dps, Internal::MzMLValidator& validator);
+          @param os The stream into which to write
+          @param options The PeakFileOptions which determines the compression type to use
+          @param data The data to write (32bit float or 64 bit double)
+          @param is32bit Whether data is 32bit
+          @param array_type Which type of data array is written (mz, time, intensity or float_data)
+          @param array_name Optional array name (for float data arrays)
+
+          @note The data argument may be modified by the function (see Base64 for reasons why)
+
+      */
+      template <typename DataType>
+      void writeBinaryDataArray_(std::ostream& os,
+                                 const PeakFileOptions& options,
+                                 std::vector<DataType>& data,
+                                 bool is32bit,
+                                 String array_type);
+
+      /**
+          @brief Write a single <binaryDataArray> element for a float data array to the output
+
+          This is only for non-standard data arrays which are treated slightly
+          differently by the standard.
+
+          @param os The stream into which to write
+          @param options The PeakFileOptions which determines the compression type to use
+          @param array The data to write
+          @param spec_chrom_idx The index of the current spectrum or chromatogram
+          @param array_id The index of the current float data array
+          @param isSpectrum Whether data is associated with a spectrum (if false, a chromatogram is assumed)
+          @param validator Validator object
+      */
+      void writeBinaryFloatDataArray_(std::ostream& os,
+                                      const PeakFileOptions& pf_options_,
+                                      const OpenMS::DataArrays::FloatDataArray& array,
+                                      const Size spec_chrom_idx,
+                                      const Size array_idx,
+                                      bool isSpectrum,
+                                      const Internal::MzMLValidator& validator);
+
+      /// Write out XML header including (everything up to spectrumList / chromatogramList
+      void writeHeader_(std::ostream& os,
+                        const MapType& exp,
+                        std::vector<std::vector< ConstDataProcessingPtr > >& dps,
+                        Internal::MzMLValidator& validator);
 
       /// Fills the current chromatogram with data points and meta data
       void fillChromatogramData_();
@@ -248,7 +291,7 @@ protected:
       void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, Internal::MzMLValidator& validator) const;
+      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, const Internal::MzMLValidator& validator) const;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;

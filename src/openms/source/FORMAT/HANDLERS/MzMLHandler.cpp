@@ -3258,7 +3258,7 @@ namespace OpenMS
       return cvTerm;
     }
 
-    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, Internal::MzMLValidator& validator) const
+    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, const Internal::MzMLValidator& validator) const
     {
       std::vector<String> cvParams;
       std::vector<String> userParams;
@@ -4949,35 +4949,11 @@ namespace OpenMS
         writeContainerData_<SpectrumType>(os, options_, spec, "intensity");
 
         String compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
-        //write float data array
+        // write float data array
         for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
         {
           const SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
-          std::vector<double> data64_to_encode(array.size());
-          for (Size p = 0; p < array.size(); ++p)
-            data64_to_encode[p] = array[p];
-          // TODO also encode float data arrays using numpress?
-          Base64::encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-          String data_processing_ref_string = "";
-          if (array.getDataProcessing().size() != 0)
-          {
-            data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
-          }
-          os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-          os << compression_term << "\n";
-          ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
-          if (bi_term.id != "")
-          {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\" />\n";
-          }
-          else
-          {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
-          }
-          writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
-          os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
-          os << "\t\t\t\t\t</binaryDataArray>\n";
+          writeBinaryFloatDataArray_(os, options_, array, s, m, true, validator);
         }
         //write integer data array
         for (Size m = 0; m < spec.getIntegerDataArrays().size(); ++m)
@@ -5085,7 +5061,11 @@ namespace OpenMS
     }
 
     template <typename DataType>
-    void MzMLHandler::writeBinaryDataArray_(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type)
+    void MzMLHandler::writeBinaryDataArray_(std::ostream& os,
+                                            const PeakFileOptions& pf_options_,
+                                            std::vector<DataType>& data_to_encode,
+                                            bool is32bit,
+                                            String array_type)
     {
       String encoded_string;
       bool no_numpress = true;
@@ -5158,12 +5138,107 @@ namespace OpenMS
       os << "\t\t\t\t\t</binaryDataArray>\n";
     }
 
-    // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
-    template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os, const PeakFileOptions& pf_options_, const SpectrumType& container, String array_type);
-    template void MzMLHandler::writeContainerData_<ChromatogramType>(std::ostream& os, const PeakFileOptions& pf_options_, const ChromatogramType& container, String array_type);
+    void MzMLHandler::writeBinaryFloatDataArray_(std::ostream& os,
+                                                 const PeakFileOptions& pf_options_,
+                                                 const OpenMS::DataArrays::FloatDataArray& array,
+                                                 const Size spec_chrom_idx,
+                                                 const Size array_idx,
+                                                 bool isSpectrum,
+                                                 const Internal::MzMLValidator& validator)
+    {
+      String encoded_string;
+      bool no_numpress = true;
+      std::vector<float> data_to_encode = array;
+      // bool is32bit = true;
 
-    template void MzMLHandler::writeBinaryDataArray_<float>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<float> data_to_encode, bool is32bit, String array_type);
-    template void MzMLHandler::writeBinaryDataArray_<double>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<double> data_to_encode, bool is32bit, String array_type);
+      // Compute the array-type and the compression CV term
+      String cv_term_type;
+      String compression_term;
+      String compression_term_no_np;
+      MSNumpressCoder::NumpressConfig np_config;
+      // if (array_type == "float_data")
+      {
+        // Try and identify whether we have a CV term for this particular array (otherwise write the array name itself)
+        ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName()); // name: binary data array
+        if (bi_term.id != "")
+        {
+          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + bi_term.id + "\" name=\"" + bi_term.name + "\" />\n";
+        }
+        else
+        {
+          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" + array.getName() + "\" />\n";
+        }
+
+        compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", true);
+        compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", false);
+        np_config = pf_options_.getNumpressConfigurationIntensity();
+      }
+
+      // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
+      if (np_config.np_compression != MSNumpressCoder::NONE)
+      {
+        MSNumpressCoder().encodeNP(data_to_encode, encoded_string, pf_options_.getCompression(), np_config);
+        if (!encoded_string.empty())
+        {
+          // numpress succeeded
+          no_numpress = false;
+          os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+          os << cv_term_type;
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+        }
+      }
+
+      String data_processing_ref_string = "";
+      if (array.getDataProcessing().size() != 0)
+      {
+        data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
+      }
+
+      // Regular DataArray without numpress (here: only 32 bit encoded)
+      if (no_numpress)
+      {
+        compression_term = compression_term_no_np; // select the no-numpress term
+        Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+        os << cv_term_type;
+        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+      }
+
+      os << compression_term << "\n";
+      if (isSpectrum)
+      {
+        writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
+      }
+      else
+      {
+        writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
+      }
+      os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
+      os << "\t\t\t\t\t</binaryDataArray>\n";
+    }
+
+    // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
+    template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os,
+                                                                 const PeakFileOptions& pf_options_,
+                                                                 const SpectrumType& container,
+                                                                 String array_type);
+
+    template void MzMLHandler::writeContainerData_<ChromatogramType>(std::ostream& os,
+                                                                     const PeakFileOptions& pf_options_,
+                                                                     const ChromatogramType& container,
+                                                                     String array_type);
+
+    template void MzMLHandler::writeBinaryDataArray_<float>(std::ostream& os,
+                                                            const PeakFileOptions& pf_options_,
+                                                            std::vector<float>& data_to_encode,
+                                                            bool is32bit,
+                                                            String array_type);
+
+    template void MzMLHandler::writeBinaryDataArray_<double>(std::ostream& os,
+                                                             const PeakFileOptions& pf_options_,
+                                                             std::vector<double>& data_to_encode,
+                                                             bool is32bit,
+                                                             String array_type);
 
     void MzMLHandler::writeChromatogram_(std::ostream& os,
                                          const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
@@ -5230,35 +5305,11 @@ namespace OpenMS
       writeContainerData_<ChromatogramType>(os, options_, chromatogram, "intensity");
 
       compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
-      //write float data array
+      // write float data array
       for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
       {
         const ChromatogramType::FloatDataArray& array = chromatogram.getFloatDataArrays()[m];
-        std::vector<double> data64_to_encode(array.size());
-        for (Size p = 0; p < array.size(); ++p)
-          data64_to_encode[p] = array[p];
-        // TODO also encode float data arrays using numpress?
-        Base64::encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-        String data_processing_ref_string = "";
-        if (array.getDataProcessing().size() != 0)
-        {
-          data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
-        }
-        os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-        os << compression_term << "\n";
-        ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
-        if (bi_term.id != "")
-        {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\" />\n";
-        }
-        else
-        {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
-        }
-        writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
-        os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
-        os << "\t\t\t\t\t</binaryDataArray>\n";
+        writeBinaryFloatDataArray_(os, options_, array, c, m, false, validator);
       }
       //write integer data array
       for (Size m = 0; m < chromatogram.getIntegerDataArrays().size(); ++m)
