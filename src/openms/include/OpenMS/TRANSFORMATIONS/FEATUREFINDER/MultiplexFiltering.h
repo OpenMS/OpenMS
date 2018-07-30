@@ -112,9 +112,10 @@ protected:
      * @brief construct an MS experiment from exp_picked_ containing
      * peaks which have not been previously blacklisted in blacklist_
      * 
-     * @param mapping    index mapping of 'white' peak positions to their position in the corresponding, original spectrum 
+     * In addition, construct an index mapping of 'white' peak positions
+     * to their position in the corresponding, original spectrum.
      */
-    MSExperiment getWhiteMSExperiment_(White2Original& mapping);
+    void updateWhiteMSExperiment_();
 
     /**
      * @brief check for significant peak
@@ -143,7 +144,7 @@ protected:
      *
      * @return boolean if this filter was passed i.e. there are <isotopes_per_peptide_min_> or more mass traces which form the pattern.
      */
-    bool filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const White2Original& index_mapping, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const;
+    bool filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const;
 
     /**
      * @brief blacklist this peak
@@ -203,6 +204,18 @@ protected:
      */
     std::vector<std::vector<int> > blacklist_;
     
+    /**
+     * @brief "white" centroided experimental data
+     *
+     * subset of all peaks of <exp_picked_> which are not blacklisted in <blacklist_>
+     */
+    MSExperiment exp_picked_white_;
+    
+    /**
+     * @brief mapping of peak indices from a 'white' experiment <exp_picked_white_> to its original experiment <exp_picked_>
+     */
+    White2Original exp_picked_mapping_;
+
     /**
      * @brief list of peak patterns
      */
