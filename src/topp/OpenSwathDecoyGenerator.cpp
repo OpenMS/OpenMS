@@ -142,7 +142,7 @@ protected:
     registerStringOption_("allowed_fragment_charges", "<type>", "1,2,3,4", "allowed fragment charge states", false, true);
     registerFlag_("enable_detection_specific_losses", "set this flag if specific neutral losses for detection fragment ions should be allowed", true);
     registerFlag_("enable_detection_unspecific_losses", "set this flag if unspecific neutral losses (H2O1, H3N1, C1H2N2, C1H2N1O1) for detection fragment ions should be allowed", true);
-    registerStringOption_("switchKR", "<true/false>", "false", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
+    registerStringOption_("switchKR", "<true/false>", "true", "Whether to switch terminal K and R (to achieve different precursor mass)", false);
     setValidStrings_("switchKR", ListUtils::create<String>(String("true,false")));
 
     registerFlag_("separate", "set this flag if decoys should not be appended to targets.", true);

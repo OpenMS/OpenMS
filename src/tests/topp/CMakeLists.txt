@@ -300,16 +300,24 @@ add_test("TOPP_FeatureFinderMultiplex_2_out1" ${DIFF} -whitelist "id=" "href=" -
 set_tests_properties("TOPP_FeatureFinderMultiplex_2_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_2")
 add_test("TOPP_FeatureFinderMultiplex_2_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_4.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_2_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_2")
+
 add_test("TOPP_FeatureFinderMultiplex_3" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_parameters.ini -out FeatureFinderMultiplex_5.tmp -out_multiplets FeatureFinderMultiplex_6.tmp)
 add_test("TOPP_FeatureFinderMultiplex_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_5.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_3_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_3")
 add_test("TOPP_FeatureFinderMultiplex_3_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_6.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_3_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_3")
-add_test("TOPP_FeatureFinderMultiplex_4" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_parameters.ini -out FeatureFinderMultiplex_7.tmp -out_multiplets FeatureFinderMultiplex_8.tmp)
-add_test("TOPP_FeatureFinderMultiplex_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_7.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_output.featureXML )
+
+add_test("TOPP_FeatureFinderMultiplex_4" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_parameters.ini -out FeatureFinderMultiplex_7.tmp -out_multiplets FeatureFinderMultiplex_8.tmp)
+add_test("TOPP_FeatureFinderMultiplex_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_7.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_4_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_4")
-add_test("TOPP_FeatureFinderMultiplex_4_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_8.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_output.consensusXML )
+add_test("TOPP_FeatureFinderMultiplex_4_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_8.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_4_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_4")
+
+add_test("TOPP_FeatureFinderMultiplex_5" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_parameters.ini -out FeatureFinderMultiplex_9.tmp -out_multiplets FeatureFinderMultiplex_10.tmp)
+add_test("TOPP_FeatureFinderMultiplex_5_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_9.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_5_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_5")
+add_test("TOPP_FeatureFinderMultiplex_5_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_10.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_5_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_5")
 
 #------------------------------------------------------------------------------
 # FileConverter tests
@@ -1086,15 +1094,15 @@ ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathAss
   set_tests_properties("TOPP_OpenSwathAssayGenerator_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_3")
 
   add_test("TOPP_OpenSwathDecoyGenerator_test_1"
-${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -out_type TraML -method pseudo-reverse -separate)
+${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -out_type TraML -method pseudo-reverse -separate -switchKR false)
   add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_1")
   add_test("TOPP_OpenSwathDecoyGenerator_test_2"
-${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -out_type TraML -method pseudo-reverse -product_mz_threshold 0.8)
+${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -out_type TraML -method pseudo-reverse -product_mz_threshold 0.8 -switchKR false)
   add_test("TOPP_OpenSwathDecoyGenerator_test_2_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_2.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_2")
   add_test("TOPP_OpenSwathDecoyGenerator_test_3"
-${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_3.TraML -out OpenSwathDecoyGenerator_3.TraML.tmp -out_type TraML -method pseudo-reverse -separate)
+${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_3.TraML -out OpenSwathDecoyGenerator_3.TraML.tmp -out_type TraML -method pseudo-reverse -separate -switchKR false)
   add_test("TOPP_OpenSwathDecoyGenerator_test_3_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_3.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_3.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_3")
   add_test("TOPP_OpenSwathDecoyGenerator_test_4"

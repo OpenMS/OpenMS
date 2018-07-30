@@ -535,7 +535,7 @@ protected:
 
     // remove all but top n scoring for localization (usually all but the first one)
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for 
 #endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
@@ -1244,6 +1244,7 @@ protected:
           // reannotate much more memory heavy AASequence object
           AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
           ph.setScore(ah.score);
+          ph.setMetaValue(String("RNPxl:total_loss_score"), ph.getScore()); // important for Percolator feature set
 
           // determine RNA modification from index in map
           std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
@@ -1308,6 +1309,32 @@ protected:
     search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment:mass_tolerance_unit") == "ppm" ? true : false;
     search_parameters.digestion_enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("peptide:enzyme"));
+
+    /* default features added in PercolatorAdapter:
+     * SpecId, ScanNr, ExpMass, CalcMass, mass, 
+     * peplen, charge#min..#max, enzN, enzC, enzInt, dm, absdm
+     */     
+    StringList feature_set;
+    feature_set
+       << "isotope_error"
+       << "RNPxl:total_loss_score"
+       << "RNPxl:immonium_score"
+       << "RNPxl:precursor_score"
+       << "RNPxl:a_ion_score"
+       << "RNPxl:marker_ions_score"
+       << "RNPxl:partial_loss_score"
+       << "RNPxl:MIC"
+       << "RNPxl:err"
+       << "RNPxl:Morph"
+       << "RNPxl:pl_MIC"
+       << "RNPxl:pl_err"
+       << "RNPxl:pl_Morph"
+       << "RNPxl:total_MIC"
+       << "RNPxl:RNA_MASS_z0";
+
+    search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
+    search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
+
     protein_ids[0].setSearchParameters(search_parameters);
   }
 
@@ -1629,7 +1656,7 @@ protected:
     Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(dynamic, 100)
 #endif
     for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
     {
@@ -1641,7 +1668,7 @@ protected:
 
       IF_MASTERTHREAD
       {
-        progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
+        progresslogger.setProgress((SignedSize)count_proteins);
       }
 
       vector<StringView> current_digest;
@@ -2157,38 +2184,12 @@ protected:
       }
     } 
 
-    // if we generate decoys, we can report a FDR on the peptide and cross-link level
-    if (generate_decoys)
+    if (generate_decoys)	
     {
-      // partition ids into cross-links and peptides
-      auto it = std::partition(peptide_ids.begin(), peptide_ids.end(), 
-       [](const PeptideIdentification& pid) 
-       {
-         auto const & hits = pid.getHits();
-         // predicate: check if best hit is a cross-link
-         if (!hits.empty() 
-              && hits.front().metaValueExists("RNPxl:RNA")
-              && !hits.front().getMetaValue("RNPxl:RNA").toString().empty())
-         { 
-           return true;
-         }
-         return false;
-       });
-
-      // [begin, it) contains cross-links, [it, end) normal peptides
-      vector<PeptideIdentification> pepids_xls, pepids_normal;
-      std::copy(std::begin(peptide_ids), it, std::back_inserter(pepids_xls));
-      std::copy(it, std::end(peptide_ids), std::back_inserter(pepids_normal));
-
-      // calculate FDR independently
-      FalseDiscoveryRate fdr;     
-      fdr.apply(pepids_xls);
-      fdr.apply(pepids_normal);
-
-      // reassemble in one vector
-      peptide_ids = pepids_xls;    
-      std::copy(std::begin(pepids_normal), std::end(pepids_normal), std::back_inserter(peptide_ids));
-    } 
+      // calculate FDR
+      FalseDiscoveryRate fdr;     	
+      fdr.apply(peptide_ids);	
+    }
 
     // write ProteinIdentifications and PeptideIdentifications to IdXML
     IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
