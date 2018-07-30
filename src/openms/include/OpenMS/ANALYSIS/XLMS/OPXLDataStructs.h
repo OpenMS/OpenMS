@@ -134,6 +134,7 @@ namespace OpenMS
         double intsum_alpha;
         double intsum_beta;
         double total_current;
+        double precursor_error_ppm;
 
         double match_odds;
         double match_odds_alpha;
