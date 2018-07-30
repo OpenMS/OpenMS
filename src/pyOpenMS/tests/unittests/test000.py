@@ -3060,7 +3060,7 @@ def testIntegerDataArray():
     assert da.size() == 3
 
     q = da.get_data()
-    q.append(4)
+    q = np.append(q, 4).astype(np.intc)
     da.set_data(q)
     assert da.size() == 4
 
@@ -3089,7 +3089,7 @@ def testFloatDataArray():
     assert da.size() == 3
 
     q = da.get_data()
-    q.append(4.0)
+    q = np.append(q, 4.0).astype(np.float32)
     da.set_data(q)
     assert da.size() == 4
 
@@ -4996,3 +4996,4 @@ def testString():
     pystr1 = pyopenms.String(u"bläh")
     pystr2 = pyopenms.String(u"bläh")
     assert(pystr1 == pystr2)
+
