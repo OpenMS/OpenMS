@@ -268,8 +268,9 @@ protected:
     registerInputFile_("fasta", "<file>", "", "Provide the fasta file as the argument to this flag, which will be used for protein grouping based on an in-silico digest (only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy-pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
-    registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
-    registerFlag_("train-best-positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
+    registerStringOption_("post-processing-tdc", "<value>", "true", "Use target-decoy competition to assign q-values and PEPs.", !is_required, is_advanced_option);
+    setValidStrings_("post-processing-tdc", ListUtils::create<String>("true,false"));
+     registerFlag_("train-best-positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
 
     //OSW/IPF parameters
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
@@ -968,7 +969,7 @@ protected:
       Int subset_max_train = getIntOption_("subset-max-train");
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
       if (getFlag_("quick-validation")) arguments << "-x";
-      if (getFlag_("post-processing-tdc")) arguments << "-Y";
+      if (getStringOption_("post-processing-tdc") == "true") arguments << "-Y";
       if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
       
       String weights_file = getStringOption_("weights");
@@ -1143,7 +1144,7 @@ protected:
         search_parameters.setMetaValue("Percolator:klammer", getFlag_("klammer"));
         search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
         search_parameters.setMetaValue("Percolator:decoy-pattern", getStringOption_("decoy-pattern"));
-        search_parameters.setMetaValue("Percolator:post-processing-tdc", getFlag_("post-processing-tdc"));
+        search_parameters.setMetaValue("Percolator:post-processing-tdc", getStringOption_("post-processing-tdc"));
         search_parameters.setMetaValue("Percolator:train-best-positive", getFlag_("train-best-positive"));
         
         it->setSearchParameters(search_parameters);
