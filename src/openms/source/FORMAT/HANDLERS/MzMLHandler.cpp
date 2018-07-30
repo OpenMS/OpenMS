@@ -156,7 +156,8 @@ namespace OpenMS
             try
             {
               populateSpectraWithData_(spectrum_data_[i].data,
-                                       spectrum_data_[i].default_array_length, options_,
+                                       spectrum_data_[i].default_array_length,
+                                       options_,
                                        spectrum_data_[i].spectrum);
               if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
               {
@@ -212,7 +213,8 @@ namespace OpenMS
           try
           {
             populateChromatogramsWithData_(chromatogram_data_[i].data,
-                                           chromatogram_data_[i].default_array_length, options_,
+                                           chromatogram_data_[i].default_array_length,
+                                           options_,
                                            chromatogram_data_[i].chromatogram);
             if (options_.getSortChromatogramsByRT() && !chromatogram_data_[i].chromatogram.isSorted())
             {
@@ -301,7 +303,7 @@ namespace OpenMS
     {
       typedef SpectrumType::PeakType PeakType;
 
-      //decode all base64 arrays
+      // decode all base64 arrays
       MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
 
       //look up the precision and the index of the intensity and m/z array
@@ -426,8 +428,8 @@ namespace OpenMS
            !peak_file_options.hasIntensityRange() 
          )
       {
-        std::vector< double >::iterator mz_it = input_data[mz_index].floats_64.begin();
-        std::vector< float >::iterator int_it = input_data[int_index].floats_32.begin();
+        std::vector< double >::const_iterator mz_it = input_data[mz_index].floats_64.begin();
+        std::vector< float >::const_iterator int_it = input_data[int_index].floats_32.begin();
         for (Size n = 0; n < default_arr_length; n++)
         {
           //add peak
@@ -3261,7 +3263,7 @@ namespace OpenMS
       return cvTerm;
     }
 
-    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, const Internal::MzMLValidator& validator) const
+    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator) const
     {
       std::vector<String> cvParams;
       std::vector<String> userParams;
@@ -3353,7 +3355,7 @@ namespace OpenMS
       return ControlledVocabulary::CVTerm();
     }
 
-    void MzMLHandler::writeSoftware_(std::ostream& os, const String& id, const Software& software, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator)
     {
       os << "\t\t<software id=\"" << id << "\" version=\"" << software.getVersion() << "\" >\n";
       ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531", software.getName());
@@ -3381,7 +3383,7 @@ namespace OpenMS
       os << "\t\t</software>\n";
     }
 
-    void MzMLHandler::writeSourceFile_(std::ostream& os, const String& id, const SourceFile& source_file, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeSourceFile_(std::ostream& os, const String& id, const SourceFile& source_file, const Internal::MzMLValidator& validator)
     {
       os << "\t\t\t<sourceFile id=\"" << id << "\" name=\"" << writeXMLEscape(source_file.getNameOfFile()) << "\" location=\"" << writeXMLEscape(source_file.getPathToFile()) << "\">\n";
       //checksum
@@ -3425,7 +3427,7 @@ namespace OpenMS
       os << "\t\t\t</sourceFile>\n";
     }
 
-    void MzMLHandler::writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator)
     {
       os << "\t\t<dataProcessing id=\"" << id << "\">\n";
 
@@ -3547,7 +3549,7 @@ namespace OpenMS
       os << "\t\t</dataProcessing>\n";
     }
 
-    void MzMLHandler::writePrecursor_(std::ostream& os, const Precursor& precursor, Internal::MzMLValidator& validator)
+    void MzMLHandler::writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator)
     {
       os << "\t\t\t\t\t<precursor>\n";
       //--------------------------------------------------------------------------------------------
@@ -3680,7 +3682,7 @@ namespace OpenMS
 
     }
 
-    void MzMLHandler::writeProduct_(std::ostream& os, const Product& product, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeProduct_(std::ostream& os, const Product& product, const Internal::MzMLValidator& validator)
     {
       os << "\t\t\t\t\t<product>\n";
       os << "\t\t\t\t\t\t<isolationWindow>\n";
@@ -3775,7 +3777,7 @@ namespace OpenMS
     void MzMLHandler::writeHeader_(std::ostream& os,
                                    const MapType& exp,
                                    std::vector<std::vector< ConstDataProcessingPtr > >& dps,
-                                   Internal::MzMLValidator& validator)
+                                   const Internal::MzMLValidator& validator)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 
@@ -4708,7 +4710,7 @@ namespace OpenMS
     void MzMLHandler::writeSpectrum_(std::ostream& os,
                                      const SpectrumType& spec,
                                      Size s,
-                                     Internal::MzMLValidator& validator,
+                                     const Internal::MzMLValidator& validator,
                                      bool renew_native_ids,
                                      std::vector<std::vector< ConstDataProcessingPtr > >& dps)
     {
@@ -5259,7 +5261,7 @@ namespace OpenMS
     void MzMLHandler::writeChromatogram_(std::ostream& os,
                                          const ChromatogramType& chromatogram,
                                          Size c,
-                                         Internal::MzMLValidator& validator)
+                                         const Internal::MzMLValidator& validator)
     {
       long offset = os.tellp();
       chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));

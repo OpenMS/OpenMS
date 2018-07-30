@@ -137,16 +137,16 @@ public:
        **/
       //@{
 
-      // Docu in base class
+      /// Docu in base class XMLHandler::endElement
       void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
-      // Docu in base class
+      /// Docu in base class XMLHandler::startElelement
       void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
-      // Docu in base class
+      /// Docu in base class XMLHandler::characters
       void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
-      // Docu in base class
+      /// Docu in base class XMLHandler::writeTo
       void writeTo(std::ostream& os) override;
 
       //@}
@@ -236,7 +236,8 @@ protected:
           Add the float, integer and string data arrays to a spectrum.
       */
       void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                const Size n, SpectrumType& spectrum) const;
+                                const Size n,
+                                SpectrumType& spectrum) const;
 
       /**
           @brief Fill a single spectrum with data from input
@@ -301,14 +302,14 @@ protected:
       void writeHeader_(std::ostream& os,
                         const MapType& exp,
                         std::vector<std::vector< ConstDataProcessingPtr > >& dps,
-                        Internal::MzMLValidator& validator);
+                        const Internal::MzMLValidator& validator);
 
 
       /// Write out a single spectrum
       void writeSpectrum_(std::ostream& os,
                           const SpectrumType& spec,
                           Size spec_idx,
-                          Internal::MzMLValidator& validator,
+                          const Internal::MzMLValidator& validator,
                           bool renew_native_ids,
                           std::vector<std::vector< ConstDataProcessingPtr > >& dps);
 
@@ -316,7 +317,7 @@ protected:
       void writeChromatogram_(std::ostream& os,
                               const ChromatogramType& chromatogram,
                               Size chrom_idx,
-                              Internal::MzMLValidator& validator);
+                              const Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
       void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
@@ -364,22 +365,22 @@ protected:
                                       const Internal::MzMLValidator& validator);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, const Internal::MzMLValidator& validator) const;
+      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator) const;
 
       /// Helper method that writes a software
-      void writeSoftware_(std::ostream& os, const String& id, const Software& software, Internal::MzMLValidator& validator);
+      void writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator);
 
       /// Helper method that writes a source file
-      void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, Internal::MzMLValidator& validator);
+      void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, const Internal::MzMLValidator& validator);
 
       /// Helper method that writes a data processing list
-      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, Internal::MzMLValidator& validator);
+      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
-      void writePrecursor_(std::ostream& os, const Precursor& precursor, Internal::MzMLValidator& validator);
+      void writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
-      void writeProduct_(std::ostream& os, const Product& product, Internal::MzMLValidator& validator);
+      void writeProduct_(std::ostream& os, const Product& product, const Internal::MzMLValidator& validator);
 
       /// Helper method to write an CV based on a meta value
       String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
