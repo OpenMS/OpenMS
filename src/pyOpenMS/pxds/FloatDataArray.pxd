@@ -27,8 +27,9 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         void clear() nogil except +
         void push_back(float) nogil except +
 
-        libcpp_vector[float].iterator begin() nogil except +  # wrap-ignore
-        libcpp_vector[float].iterator end()   nogil except +  # wrap-ignore
+        libcpp_vector[float].iterator begin() nogil # wrap-ignore
+        libcpp_vector[float].iterator end()   nogil # wrap-ignore
+        void assign(float*, float*) # wrap-ignore
 
         void getKeys(libcpp_vector[String] & keys) nogil except +
         void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
