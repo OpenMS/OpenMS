@@ -47,6 +47,25 @@
         xarr = np.asarray(fda_view) # numpy array refer to the underlying buffer without copy
         return xarr
 
+        ## # Alternatively, we could also use the assignment method:
+        ## cdef _FloatDataArray * fda_ = self.inst.get()
+        ## cdef libcpp_vector[float].iterator it = fda_.begin()
+        ## cdef unsigned int n = fda_.size()
+        ## cdef np.ndarray[np.float32_t, ndim=1] data
+        ## data = np.zeros( (n,), dtype=np.float32)
+        ## 
+        ## cdef int i = 0
+        ## while it != fda_.end():
+        ##     data[i] = deref(it)
+        ##     inc(it)
+        ##     i += 1
+        ## 
+        ## return data
+        ##
+
+        # We see an improvement of ca 50x using the memory view method (and a
+        # 2600x fold improvement compared to pure Python).
+
     def set_data(self, np.ndarray[float, ndim=1, mode="c"] data not None):
         """
         Sets the raw data for the float data array
@@ -71,4 +90,11 @@
         fda_.assign(array_start, array_start + N)
 
 
+        ## # Alternatively, we could also "push_back" each element:
+        ## fda_.reserve(N)
+        ## for i in range(N):
+        ##     fda_.push_back(data[i])
+        
+        # We see an improvement of ca 10x using the assign method (and an 600x
+        # improvement compared to pure Python).
 
