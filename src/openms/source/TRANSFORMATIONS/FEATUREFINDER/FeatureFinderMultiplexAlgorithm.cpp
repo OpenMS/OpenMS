@@ -73,7 +73,7 @@ namespace OpenMS
     defaults_.setValue("algorithm:isotopes_per_peptide", "3:6", "Range of isotopes per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
     defaults_.setValue("algorithm:rt_typical", 40.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
     defaults_.setMinFloat("algorithm:rt_typical", 0.0);
-    defaults_.setValue("algorithm:rt_band", 10.0, "RT band which is taken into considerations when filtering.TODO docu");
+    defaults_.setValue("algorithm:rt_band", 3.0, "The algorithm searches for characteristic isotopic peak patterns, spectrum by spectrum. In the some cases of low-intensity peptides, an important peak might be missing in one spectrum but present in one of the neighbouring ones. The algorithm takes a bundle of neighbouring spectra with width rt_band into account. For example with rt_band = 0, all characteristic isotopic peaks have to be present in one and the same spectrum. As rt_band increases, the sensitivity and false discovery rate of the algorithm increases.");
     defaults_.setMinFloat("algorithm:rt_band", 0.0);
     defaults_.setValue("algorithm:rt_min", 2.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
     defaults_.setMinFloat("algorithm:rt_min", 0.0);
