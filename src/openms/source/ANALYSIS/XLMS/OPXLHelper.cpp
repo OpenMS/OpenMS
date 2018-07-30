@@ -784,9 +784,13 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_pos2", DataValue("-"));
       }
 
+      double new_match_odds_weight = 0.2;
+      double new_rel_error_weight = -0.03;
+      double new_score = new_match_odds_weight * std::log(1e-7 + top_csms_spectrum[i].match_odds) + new_rel_error_weight * abs(rel_error);
+
       ph_alpha.setSequence(seq_alpha);
       ph_alpha.setCharge(precursor_charge);
-      ph_alpha.setScore(top_csms_spectrum[i].score);
+      ph_alpha.setScore(new_score);
       ph_alpha.setRank(DataValue(i+1));
 
       ph_alpha.setMetaValue("xl_chain", "MS:1002509");  // donor (longer, heavier, alphabetically earlier)
@@ -855,7 +859,7 @@ namespace OpenMS
       {
         ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
         ph_beta.setCharge(precursor_charge);
-        ph_beta.setScore(top_csms_spectrum[i].score);
+        ph_beta.setScore(new_score);
         ph_beta.setRank(DataValue(i+1));
         ph_alpha.setMetaValue("beta_sequence", top_csms_spectrum[i].cross_link.beta.toString());
         ph_beta.setMetaValue("beta_sequence", top_csms_spectrum[i].cross_link.beta.toString());

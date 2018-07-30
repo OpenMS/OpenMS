@@ -1068,9 +1068,7 @@ protected:
           double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
           csm.xquest_score = xquest_score;
 
-          double score = log_occu + (100 * wTIC);
-
-          csm.score = score;
+          csm.score = 0;
           csm.pre_score = pre_score;
           csm.percTIC = TIC;
           csm.wTIC = wTIC;
