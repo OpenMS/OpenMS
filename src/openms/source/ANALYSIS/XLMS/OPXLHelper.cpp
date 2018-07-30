@@ -998,4 +998,46 @@ namespace OpenMS
       }
     }
   }
+
+  vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name)
+  {
+    vector< OPXLDataStructs::CrossLinkSpectrumMatch > top_csms_spectrum;
+
+    // determine candidates
+    vector< OPXLDataStructs::XLPrecursor > candidates;
+
+    vector< double > spectrum_precursor_vector;
+    vector< double > allowed_error_vector;
+
+    for (int correction_mass : precursor_correction_steps)
+    {
+      double allowed_error = 0;
+
+      double corrected_precursor_mass = precursor_mass - (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
+
+      if (precursor_mass_tolerance_unit_ppm) // ppm
+      {
+        allowed_error = corrected_precursor_mass * precursor_mass_tolerance * 1e-6;
+      }
+      else // Dalton
+      {
+        allowed_error = precursor_mass_tolerance;
+      }
+
+      spectrum_precursor_vector.push_back(corrected_precursor_mass);
+      allowed_error_vector.push_back(allowed_error);
+
+    } // end correction mass loop
+
+    vector< int > precursor_correction_positions;
+    candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursor_vector, precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+    vector< int > precursor_corrections;
+    for (Size pc = 0; pc < precursor_correction_positions.size(); ++pc)
+    {
+      precursor_corrections.push_back(precursor_correction_steps[precursor_correction_positions[pc]]);
+    }
+    vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
+    return cross_link_candidates;
+  }
 }
