@@ -57,7 +57,7 @@ namespace OpenMS
        * @param cross_link_residue1 A list of residues, to which the first side of the linker can react
        * @param cross_link_residue2 A list of residues, to which the second side of the linker can react
        * @param spectrum_precursors A vector of all MS2 precursor masses of the searched spectra. Used to filter out candidates.
-       * @param precursor_correction_positions A vector of the position of the used precursor correction 
+       * @param precursor_correction_positions A vector of the position of the used precursor correction
        * @param precursor_mass_tolerance The precursor mass tolerance
        * @param precursor_mass_tolerance_unit_ppm The unit of the precursor mass tolerance ("Da" or "ppm")
        * @return A vector of XLPrecursors containing all possible candidate cross-links
@@ -151,6 +151,10 @@ namespace OpenMS
        * @param peptide_ids The vector of peptide_ids containing XL-MS search results, after mapping of peptides to proteins
        */
       static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids);
+
+      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name);
+
+      static double computePrecursorError(CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge);
 
     private:
 
