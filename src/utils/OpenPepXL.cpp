@@ -180,7 +180,10 @@ protected:
     setValidFormats_("decoy_database", ListUtils::create<String>("fasta"));
 
     registerStringOption_("decoy_string", "<string>", "decoy", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false, false);
-    registerFlag_("decoy_prefix", "Set flag, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.", false);
+    StringList bool_strings = ListUtils::create<String>("true,false");
+    registerStringOption_("decoy_prefix", "<true/false>", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.", false, true);
+    setValidStrings_("decoy_prefix", bool_strings);
+    // registerFlag_("decoy_prefix", "Set flag, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.", false);
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false, false);
@@ -239,7 +242,6 @@ protected:
     registerStringOption_("algorithm:deisotope", "<true/false/auto>", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", false, true);
     setValidStrings_("algorithm:deisotope", deisotope_strings);
 
-    StringList bool_strings = ListUtils::create<String>("true,false");
     registerTOPPSubsection_("ions", "Ion types to search for");
     registerStringOption_("ions:b_ions", "<true/false>", "true", "Search for peaks of b-ions.", false, true);
     setValidStrings_("ions:b_ions", bool_strings);
@@ -475,7 +477,8 @@ protected:
     const string out_xquest_specxml = getStringOption_("out_xquest_specxml");
     const string out_mzIdentML = getStringOption_("out_mzIdentML");
 
-    const bool decoy_prefix(getFlag_("decoy_prefix"));
+    // const bool decoy_prefix(getFlag_("decoy_prefix"));
+    const bool decoy_prefix = (getStringOption_("decoy_prefix") == "true");
     const string decoy_string(getStringOption_("decoy_string"));
 
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
@@ -1036,20 +1039,8 @@ protected:
           double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
           csm.xquest_score = xquest_score;
 
-          // Error calculation
-          double weight = cross_link_candidate.alpha.getMonoWeight();
-          if (cross_link_candidate.getType() == OPXLDataStructs::CROSS)
-          {
-            weight += cross_link_candidate.beta.getMonoWeight() + cross_link_candidate.cross_linker_mass;
-          }
-          else
-          {
-            weight += cross_link_candidate.cross_linker_mass;
-          }
-          double precursor_mass = (precursor_mz * static_cast<double>(precursor_charge)) - (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)
-                            - (static_cast<double>(cross_link_candidate.precursor_correction) * Constants::C13C12_MASSDIFF_U);
-          double error = precursor_mass - weight;
-          double rel_error = (error / precursor_mass) / 1e-6;
+          csm.precursor_correction = cross_link_candidate.precursor_correction;
+          double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
 
           double new_match_odds_weight = 0.2;
           double new_rel_error_weight = -0.03;
@@ -1089,8 +1080,6 @@ protected:
           csm.num_iso_peaks_mean_linear_beta = 0;
           csm.num_iso_peaks_mean_xlinks_alpha = 0;
           csm.num_iso_peaks_mean_xlinks_beta = 0;
-
-          csm.precursor_correction = cross_link_candidate.precursor_correction;
 
           // num_iso_peaks array from deisotoping
           if (deisotope)
