@@ -66,7 +66,10 @@ namespace OpenMS
         ~MSStatsFile();
 
         // store MSStats file
-        void store(const String& filename, ConsensusMap &consensus_map, const ExperimentalDesign& design); // I guess we need a Consensusmap and an experimental design file?
+        void store(const String& filename, ConsensusMap &consensus_map,
+                   const ExperimentalDesign& design,
+                   const StringList reannotate_filenames,
+                         bool is_isotope_label_type);
 
     protected:
 
@@ -141,18 +144,16 @@ namespace OpenMS
             String fraction_;
         };
 
-        static const String param_in;
-        static const String param_in_design;
-        static const String param_msstats_bioreplicate;
-        static const String param_msstats_condition;
-        static const String param_out;
-        static const String param_labeled_reference_peptides;
-        static const String param_retention_time_summarization_method;
+        String param_msstats_bioreplicate;
+        String param_msstats_condition;
+        String param_labeled_reference_peptides;
+        String param_retention_time_summarization_method;
+        StringList param_reannotate_filenames;
 
-        static const String na_string;
+        String na_string;
 
         // The meta value of the peptide identification which is going to be used for the experimental design link
-        static const String meta_value_exp_design_key;
+        String meta_value_exp_design_key;
 
         /*
          *  MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)

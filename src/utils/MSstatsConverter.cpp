@@ -78,112 +78,128 @@ public TOPPBase
 {
 public:
 
-  TOPPMSstatsConverter() :
-    TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
-{
-}
+    TOPPMSstatsConverter() :
+            TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
+    {
+
+    }
+
 
 protected:
 
-  // this function will be used to register the tool parameters
-  // it gets automatically called on tool execution
-  void registerOptionsAndFlags_() final override
-  {
-    // Input consensusXML
-    registerInputFile_(TOPPMSstatsConverter::param_in, "<in>", "", "Input consensusXML with peptide intensities", true, false);
-    setValidFormats_(TOPPMSstatsConverter::param_in, ListUtils::create<String>("consensusXML"), true);
-
-    registerInputFile_(TOPPMSstatsConverter::param_in_design, "<in_design>", "", "Experimental Design file", true, false);
-    setValidFormats_(TOPPMSstatsConverter::param_in_design, ListUtils::create<String>("tsv"), true);
-
-    registerStringOption_(TOPPMSstatsConverter::param_msstats_bioreplicate, "<msstats_bioreplicate>", "MSstats_BioReplicate", "Which column in the condition table should be used for MSstats 'BioReplicate'", false, false);
-    registerStringOption_(TOPPMSstatsConverter::param_msstats_condition, "<msstats_condition>", "MSstats_Condition", "Which column in the condition table should be used for MSstats 'Condition'", false, false);
-
-    // advanced option to overwrite MS file annotations in consensusXML
-    registerInputFileList_("reannotate_filenames", "<file(s)>", StringList(), "Overwrite MS file names in consensusXML", false, true);
-
-    // Isotope label type
-    registerFlag_(TOPPMSstatsConverter::param_labeled_reference_peptides, "If set, IsotopeLabelType is 'H', else 'L'");
-
-    // Specifies how peptide ions eluding at different retention times should be resolved
-    registerStringOption_(TOPPMSstatsConverter::param_retention_time_summarization_method, "<retention_time_summarization_method>", "", "How undistinguishable peptides at different retention times should be treated", true, false);
-    setValidStrings_(TOPPMSstatsConverter::param_retention_time_summarization_method, ListUtils::create<String>("manual,max,min,mean,sum"));
-
-    // Output CSV file
-    registerOutputFile_(TOPPMSstatsConverter::param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
-    setValidFormats_(TOPPMSstatsConverter::param_out, ListUtils::create<String>("csv"));
-  }
-
-  // the main_ function is called after all parameters are read
-  ExitCodes main_(int, const char **) final override
-  {
-    try
+    // this function will be used to register the tool parameters
+    // it gets automatically called on tool execution
+    void registerOptionsAndFlags_() final override
     {
-      // Input file, must be consensusXML
-      const String arg_in(getStringOption_(TOPPMSstatsConverter::param_in));
-      const FileTypes::Type in_type(FileHandler::getType(arg_in));
+      // Input consensusXML
+      registerInputFile_(param_in, "<in>", "", "Input consensusXML with peptide intensities",
+                         true, false);
+      setValidFormats_(param_in, ListUtils::create<String>("consensusXML"), true);
 
-      fatalErrorIf_(
-              in_type != FileTypes::CONSENSUSXML,
-              "Input type is not consensusXML!",
-              ILLEGAL_PARAMETERS);
+      registerInputFile_(param_in_design, "<in_design>", "", "Experimental Design file", true,
+                         false);
+      setValidFormats_(param_in_design, ListUtils::create<String>("tsv"), true);
 
-      // Tool arguments
-      const String arg_out = getStringOption_(TOPPMSstatsConverter::param_out);
+      registerStringOption_(param_msstats_bioreplicate, "<msstats_bioreplicate>",
+                            "MSstats_BioReplicate",
+                            "Which column in the condition table should be used for MSstats 'BioReplicate'", false,
+                            false);
+      registerStringOption_(param_msstats_condition, "<msstats_condition>", "MSstats_Condition",
+                            "Which column in the condition table should be used for MSstats 'Condition'", false, false);
 
-      // Experimental Design file
-      const String arg_in_design = getStringOption_(TOPPMSstatsConverter::param_in_design);
-      const ExperimentalDesign design = ExperimentalDesignFile::load(arg_in_design, false);
-      ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
+      // advanced option to overwrite MS file annotations in consensusXML
+      registerInputFileList_("reannotate_filenames", "<file(s)>", StringList(),
+                             "Overwrite MS file names in consensusXML", false, true);
 
-      ConsensusMap consensus_map;
-      ConsensusXMLFile().load(arg_in, consensus_map);
+      // reannotate_filenames
+      registerStringList_("<msstats_reannotate_filenames>", "MSstats reannotate_filenames",
+                          param_reannotate_filenames, "This is a description.", false, false);
 
-      MSStatsFile msStatsFile();
-      msStatsFile().store(arg_out, consensus_map, design);
+      // Isotope label type
+      registerFlag_(param_labeled_reference_peptides,
+                    "If set, IsotopeLabelType is 'H', else 'L'");
 
-      return EXECUTION_OK;
-    }
-    catch(const ExitCodes &exit_code)
-    {
-      return exit_code;
+      // Specifies how peptide ions eluding at different retention times should be resolved
+      registerStringOption_(param_retention_time_summarization_method,
+                            "<retention_time_summarization_method>", "",
+                            "How undistinguishable peptides at different retention times should be treated", true,
+                            false);
+      setValidStrings_(param_retention_time_summarization_method,
+                       ListUtils::create<String>("manual,max,min,mean,sum"));
+
+      // Output CSV file
+      registerOutputFile_(param_out, "<out>", "", "Input CSV file for MSstats.", true, false);
+      setValidFormats_(param_out, ListUtils::create<String>("csv"));
     }
 
-  }
+    // the main_ function is called after all parameters are read
+    ExitCodes main_(int, const char **) final override
+    {
+      try
+      {
+        // Input file, must be consensusXML
+        const String arg_in(getStringOption_(param_in));
+        const FileTypes::Type in_type(FileHandler::getType(arg_in));
+
+        fatalErrorIf_(
+                in_type != FileTypes::CONSENSUSXML,
+                "Input type is not consensusXML!",
+                ILLEGAL_PARAMETERS);
+        // Tool arguments
+        const String arg_out = getStringOption_(param_out);
+
+        // Experimental Design file
+        const String arg_in_design = getStringOption_(param_in_design);
+        const ExperimentalDesign design = ExperimentalDesignFile::load(arg_in_design, false);
+        ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
+
+        ConsensusMap consensus_map;
+        ConsensusXMLFile().load(arg_in, consensus_map);
+
+        MSStatsFile msStatsFile;
+
+        StringList reannotate_filenames = getStringList_("<msstats_reannotate_filenames>");
+        bool is_isotope_label_type = getFlag_(param_labeled_reference_peptides);
+        msStatsFile.store(arg_out, consensus_map, design, reannotate_filenames, is_isotope_label_type);
+
+        return EXECUTION_OK;
+      }
+      catch (const ExitCodes &exit_code)
+      {
+        return exit_code;
+      }
+
+    }
+
 
 private:
-  static const String param_in;
-  static const String param_in_design;
-  static const String param_msstats_bioreplicate;
-  static const String param_msstats_condition;
-  static const String param_out;
-  static const String param_labeled_reference_peptides;
-  static const String param_retention_time_summarization_method;
+    const String param_in;
+    const String param_in_design;
+    const String param_msstats_bioreplicate;
+    const String param_msstats_condition;
+    const String param_out;
+    const String param_labeled_reference_peptides;
+    const String param_retention_time_summarization_method;
+    const StringList param_reannotate_filenames;
 
 
-  static void fatalErrorIf_(const bool error_condition, const String &message, const int exit_code)
-  {
-    if (error_condition)
+    static void fatalErrorIf_(const bool error_condition, const String &message, const int exit_code)
     {
-      LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
-      throw exit_code;
+      if (error_condition)
+      {
+        LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
+        throw exit_code;
+      }
     }
-  }
-
-
-const String TOPPMSstatsConverter::param_in = "in";
-const String TOPPMSstatsConverter::param_in_design = "in_design";
-const String TOPPMSstatsConverter::param_msstats_bioreplicate = "msstats_bioreplicate";
-const String TOPPMSstatsConverter::param_msstats_condition = "msstats_condition";
-const String TOPPMSstatsConverter::param_out = "out";
-const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
-const String TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
+};
 
 
 // the actual main function needed to create an executable
-int main(int argc, const char ** argv)
-{
-  TOPPMSstatsConverter tool;
-  return tool.main(argc, argv);
-}
+    int main(int argc, const char **argv)
+    {
+      TOPPMSstatsConverter tool;
+      return tool.main(argc, argv);
+    }
+
+
 /// @endcond

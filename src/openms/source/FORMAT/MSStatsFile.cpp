@@ -35,15 +35,13 @@
 #include "OpenMS/FORMAT/MSStatsFile.h"
 
 OpenMS::MSStatsFile::MSStatsFile():
-        param_in("in"),
-        param_in_design("in_design"),
         param_msstats_bioreplicate("msstats_bioreplicate"),
         param_msstats_condition("msstats_condition"),
-        param_out("out"),
         na_string("NA"),
         param_labeled_reference_peptides("labeled_reference_peptides"),
         meta_value_exp_design_key("spectra_data"),
-        param_retention_time_summarization_method("retention_time_summarization_method")
+        param_retention_time_summarization_method("retention_time_summarization_method"),
+        param_reannotate_filenames (ListUtils::create<String>(""))
 {
 
 }
@@ -54,16 +52,16 @@ OpenMS::MSStatsFile::~MSStatsFile()
 }
 
 void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &consensus_map,
-                                const OpenMS::ExperimentalDesign& design)
+                                const OpenMS::ExperimentalDesign& design, const StringList reannotate_filenames,
+                                bool is_isotope_label_type)
 {
   // Tool arguments
-  const String arg_out = param_out;
+  const String arg_out = filename;
   const String arg_msstats_condition = param_msstats_condition;
   const String arg_msstats_bioreplicate = param_msstats_bioreplicate;
   const String arg_retention_time_summarization_method = param_retention_time_summarization_method;
 
   // Experimental Design file
-  const String arg_in_design = param_in_design;
   ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
 
   // Sample Section must contain the column that contains the condition used for MSstats
@@ -136,9 +134,7 @@ void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &co
   vector< vector< unsigned > > consensus_feature_labels;          // Labels of ConsensusFeature
 
   features.reserve(consensus_map.size());
-  ConsensusXMLFile().load(param_in, consensus_map);
 
-  StringList reannotate_filenames = getStringList_("reannotate_filenames"); // this is from TOPPBase <- inheritance issue
   if (reannotate_filenames.empty())
   {
     consensus_map.getPrimaryMSRunPath(spectra_paths);
@@ -223,7 +219,11 @@ void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &co
   std::vector< PeptideEvidence > placeholder_peptide_evidences = {new_pep_ev};
 
   // From the MSstats user guide: endogenous peptides (use "L") or labeled reference peptides (use "H").
-  const String isotope_label_type = getFlag_(param_labeled_reference_peptides) ? "H" : "L"; // this is from TOPPBase <- inheritance issue
+  String isotope_label_type = "L";
+  if (is_isotope_label_type)
+  {
+    isotope_label_type = "H";
+  }
   const String delim(",");
 
   // Keeps track of unique peptides (Size of value set is 1)
