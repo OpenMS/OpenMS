@@ -731,7 +731,7 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = */.svn/* \
+EXCLUDE_PATTERNS       = */.git/* \
                          *_moc* \
                          */UIC/* \
                          */contrib/* \
