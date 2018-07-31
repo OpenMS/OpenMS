@@ -41,12 +41,12 @@ namespace OpenMS
 
   void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum)
   {
-
     std::vector<double>::const_iterator mz_it = sptr->getMZArray()->data.begin();
     std::vector<double>::const_iterator int_it = sptr->getIntensityArray()->data.begin();
 
+    if (!spectrum.empty()) spectrum.clear(false);
+
     Peak1D p;
-    spectrum.clear(false);
     spectrum.reserve(sptr->getMZArray()->data.size());
     for (; mz_it != sptr->getMZArray()->data.end(); ++mz_it, ++int_it)
     {
@@ -91,8 +91,9 @@ namespace OpenMS
     std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
     std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
 
+    if (!chromatogram.empty()) chromatogram.clear(false);
+
     ChromatogramPeak peak;
-    chromatogram.clear(false);
     chromatogram.reserve(cptr->getTimeArray()->data.size());
     for (; rt_it != cptr->getTimeArray()->data.end(); ++rt_it, ++int_it)
     {
