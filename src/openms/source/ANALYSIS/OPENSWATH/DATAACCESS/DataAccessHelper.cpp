@@ -41,13 +41,15 @@ namespace OpenMS
 
   void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum)
   {
-    spectrum.reserve(sptr->getMZArray()->data.size());
 
     std::vector<double>::const_iterator mz_it = sptr->getMZArray()->data.begin();
     std::vector<double>::const_iterator int_it = sptr->getIntensityArray()->data.begin();
+
+    Peak1D p;
+    spectrum.clear(false);
+    spectrum.reserve(sptr->getMZArray()->data.size());
     for (; mz_it != sptr->getMZArray()->data.end(); ++mz_it, ++int_it)
     {
-      Peak1D p;
       p.setMZ(*mz_it);
       p.setIntensity(*int_it);
       spectrum.push_back(p);
@@ -56,8 +58,9 @@ namespace OpenMS
 
   OpenSwath::SpectrumPtr OpenSwathDataAccessHelper::convertToSpectrumPtr(const OpenMS::MSSpectrum & spectrum)
   {
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
+    OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
+    OpenSwath::BinaryDataArrayPtr intensity_array = sptr->getIntensityArray();
+    OpenSwath::BinaryDataArrayPtr mz_array = sptr->getMZArray();
     mz_array->data.reserve(spectrum.size());
     intensity_array->data.reserve(spectrum.size());
     for (MSSpectrum::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
@@ -65,17 +68,14 @@ namespace OpenMS
       mz_array->data.push_back(it->getMZ());
       intensity_array->data.push_back(it->getIntensity());
     }
-
-    OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
-    sptr->setMZArray(mz_array);
-    sptr->setIntensityArray(intensity_array);
     return sptr;
   }
 
   OpenSwath::ChromatogramPtr OpenSwathDataAccessHelper::convertToChromatogramPtr(const OpenMS::MSChromatogram & chromatogram)
   {
-    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
+    OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
+    OpenSwath::BinaryDataArrayPtr intensity_array = cptr->getIntensityArray();
+    OpenSwath::BinaryDataArrayPtr rt_array = cptr->getTimeArray();
     rt_array->data.reserve(chromatogram.size());
     intensity_array->data.reserve(chromatogram.size());
     for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
@@ -83,22 +83,19 @@ namespace OpenMS
       rt_array->data.push_back(it->getRT());
       intensity_array->data.push_back(it->getIntensity());
     }
-
-    OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
-    cptr->setTimeArray(rt_array);
-    cptr->setIntensityArray(intensity_array);
     return cptr;
   }
 
   void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram)
   {
-    chromatogram.reserve(cptr->getTimeArray()->data.size());
-
     std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
     std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
+
+    ChromatogramPeak peak;
+    chromatogram.clear(false);
+    chromatogram.reserve(cptr->getTimeArray()->data.size());
     for (; rt_it != cptr->getTimeArray()->data.end(); ++rt_it, ++int_it)
     {
-      ChromatogramPeak peak;
       peak.setRT(*rt_it);
       peak.setIntensity(*int_it);
       chromatogram.push_back(peak);
@@ -110,17 +107,18 @@ namespace OpenMS
                                                                     double rt_min,
                                                                     double rt_max)
   {
-    chromatogram.reserve(cptr->getTimeArray()->data.size());
-
     std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
     std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
+
+    ChromatogramPeak peak;
+    chromatogram.clear(false);
+    chromatogram.reserve(cptr->getTimeArray()->data.size());
     for (; rt_it != cptr->getTimeArray()->data.end(); ++rt_it, ++int_it)
     {
       if (*rt_it < rt_min || *rt_it > rt_max)
       {
         continue;
       }
-      ChromatogramPeak peak;
       peak.setRT(*rt_it);
       peak.setIntensity(*int_it);
       chromatogram.push_back(peak);
