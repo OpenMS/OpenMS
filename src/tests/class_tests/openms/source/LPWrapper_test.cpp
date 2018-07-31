@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,8 @@ START_TEST(LPWrapper, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-LPWrapper* ptr = 0;
-LPWrapper* null_ptr = 0;
+LPWrapper* ptr = nullptr;
+LPWrapper* null_ptr = nullptr;
 START_SECTION(LPWrapper())
 {
 	ptr = new LPWrapper();
@@ -478,7 +478,7 @@ END_SECTION
 START_SECTION(([LPWrapper::SolverParam] SolverParam()))
 {
   LPWrapper::SolverParam* sptr = new LPWrapper::SolverParam();
-  LPWrapper::SolverParam* snull_ptr = 0;
+  LPWrapper::SolverParam* snull_ptr = nullptr;
   TEST_NOT_EQUAL(sptr, snull_ptr)
   TEST_EQUAL(sptr->message_level,3)
   TEST_EQUAL(sptr->branching_tech,4)

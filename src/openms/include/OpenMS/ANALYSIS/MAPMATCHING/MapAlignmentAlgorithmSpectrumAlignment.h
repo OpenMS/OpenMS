@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Vipul Patel $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMSPECTRUMALIGNMENT_H
-#define OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMSPECTRUMALIGNMENT_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
@@ -61,7 +60,7 @@ public:
     MapAlignmentAlgorithmSpectrumAlignment();
 
     /// Destructor
-    virtual ~MapAlignmentAlgorithmSpectrumAlignment();
+    ~MapAlignmentAlgorithmSpectrumAlignment() override;
 
     /// Align peak maps
     virtual void align(std::vector<PeakMap >&, std::vector<TransformationDescription>&);
@@ -330,9 +329,8 @@ private:
     ///Container holding the score of each cell(matchmatrix,insertmatrix, traceback)
     std::vector<float> scoredistribution_; //save the cell i, j , matchscore, insertscore, traceback
     //docu in base class
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_MAPALIGNMENTALGORITHMSPECTRUMALIGNMENT_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FILTERING_CALIBRATION_MZTRAFOMODEL_H
-#define OPENMS_FILTERING_CALIBRATION_MZTRAFOMODEL_H
+#pragma once
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
@@ -68,14 +67,14 @@ namespace OpenMS
   {
   
   private:
-    std::vector<double> coeff_;  //< Model coefficients (for both linear and quadratic models), estimated from the data
-    bool use_ppm_; //< during training, model is build on absolute or relative(ppm) predictions. predict(), i.e. applying the model, requires this information too
-    double rt_; //< retention time associated to the model (i.e. where the calibrant data was taken from)
+    std::vector<double> coeff_;  ///< Model coefficients (for both linear and quadratic models), estimated from the data
+    bool use_ppm_; ///< during training, model is build on absolute or relative(ppm) predictions. predict(), i.e. applying the model, requires this information too
+    double rt_; ///< retention time associated to the model (i.e. where the calibrant data was taken from)
 
-    static Math::RANSACParam* ransac_params_; //< global pointer, init to NULL at startup; set class-global RANSAC params
-    static double limit_offset_; //< acceptable boundary for the estimated offset; if estimated offset is larger (absolute) the model does not validate (isValidModel())
-    static double limit_scale_; //< acceptable boundary for the estimated scale; if estimated scale is larger (absolute) the model does not validate (isValidModel())
-    static double limit_power_; //< acceptable boundary for the estimated power; if estimated power is larger (absolute) the model does not validate (isValidModel())
+    static Math::RANSACParam* ransac_params_; ///< global pointer, init to NULL at startup; set class-global RANSAC params
+    static double limit_offset_; ///< acceptable boundary for the estimated offset; if estimated offset is larger (absolute) the model does not validate (isValidModel())
+    static double limit_scale_; ///< acceptable boundary for the estimated scale; if estimated scale is larger (absolute) the model does not validate (isValidModel())
+    static double limit_power_; ///< acceptable boundary for the estimated power; if estimated power is larger (absolute) the model does not validate (isValidModel())
 
   public:
 
@@ -97,7 +96,7 @@ namespace OpenMS
     MZTrafoModel(bool ppm_model);
 
     enum MODELTYPE { LINEAR, LINEAR_WEIGHTED, QUADRATIC, QUADRATIC_WEIGHTED, SIZE_OF_MODELTYPE };
-    static const std::string names_of_modeltype[]; //< strings corresponding to enum MODELTYPE
+    static const std::string names_of_modeltype[]; ///< strings corresponding to enum MODELTYPE
     /**
       @brief Convert string to enum
 
@@ -304,4 +303,3 @@ namespace OpenMS
 
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_CALIBRATION_MZTRAFOMODEL_H

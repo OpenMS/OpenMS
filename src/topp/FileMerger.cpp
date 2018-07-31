@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,7 +111,7 @@ protected:
 
   double rt_gap_, rt_offset_; // parameters for RT concatenation
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,FASTA");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
@@ -164,7 +164,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
 
     //-------------------------------------------------------------
@@ -275,7 +275,7 @@ protected:
           adjustRetentionTimes_(map, trafo_out[i], i == 0);
         }
 
-        out += map;
+        out.appendRows(map);
       }
 
       //-------------------------------------------------------------

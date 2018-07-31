@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/METADATA/Digestion.h>" namespace "OpenMS":
         # bool operator==(SampleTreatment &rhs) nogil except +
         # SampleTreatment * clone() nogil except +
         String  getEnzyme() nogil except +
-        void setEnzyme(String &enzyme) nogil except +
+        void setEnzyme(const String& enzyme) nogil except +
         double getDigestionTime() nogil except +
         void setDigestionTime(double digestion_time) nogil except +
         double getTemperature() nogil except +

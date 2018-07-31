@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_ANALYSIS_TARGETED_PRECURSORIONSELECTIONPREPROCESSING_H
-#define OPENMS_ANALYSIS_TARGETED_PRECURSORIONSELECTIONPREPROCESSING_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
@@ -59,7 +58,7 @@ namespace OpenMS
 public:
     PrecursorIonSelectionPreprocessing();
     PrecursorIonSelectionPreprocessing(const PrecursorIonSelectionPreprocessing & source);
-    ~PrecursorIonSelectionPreprocessing();
+    ~PrecursorIonSelectionPreprocessing() override;
 
     PrecursorIonSelectionPreprocessing & operator=(const PrecursorIonSelectionPreprocessing & source);
 
@@ -146,7 +145,7 @@ protected:
     Int getScanNumber_(double rt);
     double getRTProbability_(double min_obs_rt, double max_obs_rt, double pred_rt);
     /// update members method from DefaultParamHandler to update the members
-    void updateMembers_();
+    void updateMembers_() override;
 
     /// all tryptic masses of the distinct peptides in the database
     std::vector<double> masses_;
@@ -173,4 +172,3 @@ protected:
   };
 }
 
-#endif //#ifndef OPENMS_ANALYSIS_ID_PRECURSORIONSELECTIONPREPROCESSING_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FEATUREXMLFILE_H
-#define OPENMS_FORMAT_FEATUREXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -79,7 +78,7 @@ public:
     ///Default constructor
     FeatureXMLFile();
     ///Destructor
-    ~FeatureXMLFile();
+    ~FeatureXMLFile() override;
     //@}
 
     /**
@@ -114,13 +113,13 @@ protected:
     void resetMembers_();
 
     // Docu in base class
-    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     // Docu in base class
-    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
     // Docu in base class
-    virtual void characters(const XMLCh* const chars, const XMLSize_t length);
+    void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
     /// Writes a feature to a stream
     void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level);
@@ -194,4 +193,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_FeatureXMLFile_H

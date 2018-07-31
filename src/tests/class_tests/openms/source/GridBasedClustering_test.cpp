@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ for (int i = 0; i < 1000; ++i)
     properties_B.push_back(i);    // Should be different within each cluster.
 }
 
-GridBasedClustering<MultiplexClustering::MultiplexDistance>* nullPointer = 0;
+GridBasedClustering<MultiplexClustering::MultiplexDistance>* nullPointer = nullptr;
 GridBasedClustering<MultiplexClustering::MultiplexDistance>* ptr;
 
 START_SECTION(GridBasedClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y))

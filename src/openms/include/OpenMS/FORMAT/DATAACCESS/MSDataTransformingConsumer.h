@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_MSDATATRANSFORMINGCONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_MSDATATRANSFORMINGCONSUMER_H
+#pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
@@ -80,14 +79,14 @@ namespace OpenMS
       }
 
       /// Default destructor
-      virtual ~MSDataTransformingConsumer() { }
+      ~MSDataTransformingConsumer() override { }
 
-      virtual void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */)
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override
       {
         // do nothing
       }
 
-      virtual void consumeSpectrum(SpectrumType & s)
+      void consumeSpectrum(SpectrumType & s) override
       {
         // apply the given function to it
         (*sprocessing_ptr_)(s);
@@ -98,7 +97,7 @@ namespace OpenMS
         sprocessing_ptr_ = sproptr;
       }
 
-      virtual void consumeChromatogram(ChromatogramType & c)
+      void consumeChromatogram(ChromatogramType & c) override
       {
         // apply the given function to it
         (*cprocessing_ptr_)(c);
@@ -109,7 +108,7 @@ namespace OpenMS
         cprocessing_ptr_ = cproptr;
       }
 
-      virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings&) {}
+      void setExperimentalSettings(const OpenMS::ExperimentalSettings&) override {}
 
     protected:
       void (*sprocessing_ptr_)(SpectrumType&);
@@ -118,4 +117,3 @@ namespace OpenMS
 
 } //end namespace OpenMS
 
-#endif // OPENMS_FORMAT_DATAACCESS_MSDATATRANSFORMINGCONSUMER_H

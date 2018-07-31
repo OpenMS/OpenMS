@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,9 +44,9 @@ using namespace std;
 
 typedef FeatureFinderAlgorithmIsotopeWavelet FFASS;
 
-FFASS* ptr = 0;
-FFASS* nullPointer = 0;
-FeatureFinderAlgorithm* ffA_nullPointer = 0;
+FFASS* ptr = nullptr;
+FFASS* nullPointer = nullptr;
+FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION((FeatureFinderAlgorithmIsotopeWavelet()))
 	ptr = new FFASS;

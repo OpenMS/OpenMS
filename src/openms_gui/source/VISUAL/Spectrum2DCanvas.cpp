@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,15 +51,15 @@
 #include <algorithm>
 
 //QT
-#include <QtGui/QMouseEvent>
-#include <QtGui/QPainter>
-#include <QtGui/QMenu>
-#include <QtGui/QBitmap>
-#include <QtGui/QPolygon>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QtWidgets/QMenu>
+#include <QBitmap>
+#include <QPolygon>
 #include <QtCore/QTime>
-#include <QtGui/QComboBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 //boost
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -147,7 +147,7 @@ namespace OpenMS
     else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
     {
       const LayerData & layer = getCurrentLayer();
-      const ExperimentSharedPtrType exp = layer.getPeakData();
+      const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
       // create iterator on chromatogram spectrum passed by PeakIndex
       vector<MSChromatogram >::const_iterator chrom_it = exp->getChromatograms().begin();
@@ -166,7 +166,7 @@ namespace OpenMS
     if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) // highlight: chromatogram
     {
       const LayerData & layer = getCurrentLayer();
-      const ExperimentSharedPtrType exp = layer.getPeakData();
+      const ConstExperimentSharedPtrType exp = layer.getPeakData();
 
       vector<MSChromatogram >::const_iterator iter = exp->getChromatograms().begin();
       iter += peak.spectrum;
@@ -1073,7 +1073,7 @@ namespace OpenMS
     getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
     if (intensity_mode_ == IM_LOG)
     {
-      getLayer_(layer).gradient.activatePrecalculationMode(0.0, std::log(overall_data_range_.maxPosition()[2] + 1), param_.getValue("interpolation_steps"));
+      getLayer_(layer).gradient.activatePrecalculationMode(0.0, std::log1p(overall_data_range_.maxPosition()[2]), param_.getValue("interpolation_steps"));
     }
     else
     {
@@ -1113,7 +1113,7 @@ namespace OpenMS
     }
 
     //try to find the right layer to project
-    const LayerData * layer = 0;
+    const LayerData * layer = nullptr;
     //first choice: current layer
     if (layer_count != 0 && getCurrentLayer().type == LayerData::DT_PEAK)
     {
@@ -1227,11 +1227,11 @@ namespace OpenMS
 
     current_layer_ = getLayerCount() - 1;
 
-    if (layers_.back().type == LayerData::DT_PEAK)   //peak data
+    if (layers_.back().type == LayerData::DT_PEAK)   // peak data
     {
       update_buffer_ = true;
-      //Abort if no data points are contained
-      if ((currentPeakData_()->size() == 0 || currentPeakData_()->getSize() == 0) && currentPeakData_()->getDataRange().isEmpty())
+      // Abort if no data points are contained (note that all data could be on disk)
+      if (getCurrentLayer_().getPeakData()->size() == 0)
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
@@ -1241,12 +1241,12 @@ namespace OpenMS
         QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no survey scans. Aborting!");
         return false;
       }
-      if ((currentPeakData_()->getSize() == 0) && (!currentPeakData_()->getDataRange().isEmpty()))
+      if ((getCurrentLayer_().getPeakData()->getSize() == 0) && (!getCurrentLayer_().getPeakData()->getDataRange().isEmpty()))
       {
         setLayerFlag(LayerData::P_PRECURSORS, true); // show precursors if no MS1 data is contained
       }
     }
-    else if (layers_.back().type == LayerData::DT_FEATURE)  //feature data
+    else if (layers_.back().type == LayerData::DT_FEATURE)  // feature data
     {
       getCurrentLayer_().getFeatureMap()->updateRanges();
       setLayerFlag(LayerData::F_HULL, true);
@@ -1263,7 +1263,7 @@ namespace OpenMS
         return false;
       }
     }
-    else if (layers_.back().type == LayerData::DT_CONSENSUS)  //consensus feature data
+    else if (layers_.back().type == LayerData::DT_CONSENSUS)  // consensus feature data
     {
       getCurrentLayer_().getConsensusMap()->updateRanges();
 
@@ -1277,21 +1277,18 @@ namespace OpenMS
         return false;
       }
     }
-    else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  //chromatogram data
+    else if (layers_.back().type == LayerData::DT_CHROMATOGRAM)  // chromatogram data
     {
-
-      //TODO CHROM
-      currentPeakData_()->sortChromatograms(true);
-      currentPeakData_()->updateRanges(1);
-
       update_buffer_ = true;
 
       // abort if no data points are contained
-      if (currentPeakData_()->getChromatograms().empty())
+      if (getCurrentLayer_().getPeakData()->getChromatograms().empty())
       {
         layers_.resize(getLayerCount() - 1);
         if (current_layer_ != 0)
+        {
           current_layer_ = current_layer_ - 1;
+        }
         QMessageBox::critical(this, "Error", "Cannot add a dataset that contains no chromatograms. Aborting!");
         return false;
       }
@@ -1743,8 +1740,8 @@ namespace OpenMS
     Int charge = 0;
     double quality = 0.0;
     Size size = 0;
-    const Feature* f = NULL;
-    const ConsensusFeature* cf = NULL;
+    const Feature* f = nullptr;
+    const ConsensusFeature* cf = nullptr;
     ConsensusFeature::HandleSetType sub_features;
 
     switch (getCurrentLayer().type)
@@ -1818,11 +1815,13 @@ namespace OpenMS
       lines.push_back("Charge: " + QString::number(charge));
       lines.push_back("Quality: " + QString::number(quality, 'f', 4));
       // peptide identifications
-      const PeptideIdentification* pis = NULL;
-      if ( f && f->getPeptideIdentifications().size() > 0 ) {
+      const PeptideIdentification* pis = nullptr;
+      if ( f && f->getPeptideIdentifications().size() > 0 )
+      {
         pis = &f->getPeptideIdentifications()[0];
       }
-      else if ( cf && cf->getPeptideIdentifications().size() > 0 ) {
+      else if ( cf && cf->getPeptideIdentifications().size() > 0 )
+      {
         pis = &cf->getPeptideIdentifications()[0];
       }
       if ( pis && pis->getHits().size() ) {
@@ -2187,8 +2186,8 @@ namespace OpenMS
 
     QMenu * context_menu = new QMenu(this);
 
-    QAction * a = 0;
-    QAction * result = 0;
+    QAction * a = nullptr;
+    QAction * result = nullptr;
 
     //Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + layer.name;
@@ -2497,8 +2496,8 @@ namespace OpenMS
         }
         */
 
-      QMenu * msn_chromatogram  = 0;
-      QMenu * msn_chromatogram_meta = 0;
+      QMenu * msn_chromatogram  = nullptr;
+      QMenu * msn_chromatogram_meta = nullptr;
 
       if (!map_precursor_to_chrom_idx.empty())
       {

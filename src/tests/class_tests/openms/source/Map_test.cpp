@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,8 @@ START_TEST(Map, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-Map<int, int>* map_ptr = 0;
-Map<int, int>* map_nullPointer = 0;
+Map<int, int>* map_ptr = nullptr;
+Map<int, int>* map_nullPointer = nullptr;
 START_SECTION((Map()))
 	map_ptr = new Map<int, int>;
   TEST_NOT_EQUAL(map_ptr, map_nullPointer)

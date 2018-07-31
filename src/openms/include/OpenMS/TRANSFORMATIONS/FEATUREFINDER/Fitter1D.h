@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FITTER1D_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -70,11 +69,11 @@ public:
     typedef Feature::CoordinateType CoordinateType;
     /// Quality of a feature
     typedef Feature::QualityType QualityType;
-    /// Raw data point type
+    /// Peak type data point type
     typedef Peak1D PeakType;
-    /// Raw data container type using for the temporary storage of the input data
+    /// Peak type data container type using for the temporary storage of the input data
     typedef std::vector<PeakType> RawDataArrayType;
-    /// Raw data iterator
+    /// Peak type data iterator
     typedef RawDataArrayType::iterator PeakIterator;
 
     /// Default constructor.
@@ -84,7 +83,7 @@ public:
     Fitter1D(const Fitter1D& source);
 
     /// destructor
-    virtual ~Fitter1D()
+    ~Fitter1D() override
     {
     }
 
@@ -106,10 +105,9 @@ protected:
     /// interpolation step size
     CoordinateType interpolation_step_;
 
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
   };
 
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FITTER1D_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,6 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -69,7 +68,7 @@ namespace OpenMS
     {
       return residue_names_.at(name);
     }
-    return NULL;
+    return nullptr;
   }
 
   const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
@@ -205,7 +204,7 @@ namespace OpenMS
       vector<String> split;
       param.begin().getName().split(':', split);
       String prefix = split[0] + split[1];
-      Residue* res_ptr = 0;
+      Residue* res_ptr = nullptr;
 
       Map<String, String> values;
 
@@ -418,7 +417,7 @@ namespace OpenMS
     // initialize lookup table to null pointer
     for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
     {
-      residue_by_one_letter_code_[i] = 0;
+      residue_by_one_letter_code_[i] = nullptr;
     }
 
     set<Residue*>::iterator it;

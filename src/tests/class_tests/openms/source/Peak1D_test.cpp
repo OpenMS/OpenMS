@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,8 +48,8 @@ START_TEST(Peak1D<D>, "$Id$")
 
 using namespace OpenMS;
 
-Peak1D* d10_ptr = 0;
-Peak1D* d10_nullPointer = 0;
+Peak1D* d10_ptr = nullptr;
+Peak1D* d10_nullPointer = nullptr;
 START_SECTION((Peak1D()))
 	d10_ptr = new Peak1D;
   TEST_NOT_EQUAL(d10_ptr, d10_nullPointer)

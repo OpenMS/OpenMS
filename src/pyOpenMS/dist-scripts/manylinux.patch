@@ -1,8 +1,6 @@
-diff --git a/src/pyOpenMS/pyopenms/__init__.py b/src/pyOpenMS/pyopenms/__init__.py
-index cd91582..259f2bb 100755
---- a/src/pyOpenMS/pyopenms/__init__.py
-+++ b/src/pyOpenMS/pyopenms/__init__.py
-@@ -8,16 +8,6 @@ import os
+--- src/pyOpenMS/pyopenms/__init__.py	2018-01-09 18:35:10.000000000 +0000
++++ __init__.py	2018-05-19 01:04:57.763748929 +0000
+@@ -8,16 +8,6 @@
  here = os.path.abspath(os.path.dirname(__file__))
  os.environ["OPENMS_DATA_PATH"] = os.path.join(here, "share/OpenMS")
  
@@ -17,5 +15,5 @@ index cd91582..259f2bb 100755
 -    ctypes.cdll.LoadLibrary(os.path.join(here, "libSuperHirn.so"))
 -
  try:
-     from .pyopenms import *
+     from .all_modules import *
      from .python_extras import *

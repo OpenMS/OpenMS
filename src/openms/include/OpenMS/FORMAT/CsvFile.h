@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CSVFILE_H
-#define OPENMS_FORMAT_CSVFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
@@ -56,7 +55,7 @@ public:
     CsvFile();
 
     /// destructor
-    virtual ~CsvFile();
+    ~CsvFile() override;
 
     /**
       @brief Constructor with filename
@@ -80,7 +79,28 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void fload(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
+    void load(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
+
+    /**
+      @brief Stores the buffer's content into a file.
+
+      @param filename The output filename.
+    */
+    void store(const String& filename);
+
+    /**
+      @brief Add a row to the buffer.
+
+      @param list StringList which will contain all items of the row to add
+    */
+    void addRow(const StringList& list);
+
+    /**
+      @brief Clears the buffer
+
+      Clears TextFile::buffer_
+    */
+    void clear();
 
     /**
       @brief writes all items from a row to list
@@ -109,4 +129,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_CSVFILE_H

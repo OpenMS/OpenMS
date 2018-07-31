@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ using namespace std;
 
 START_TEST(IsotopeWavelet, "$Id$")
 
-IsotopeWavelet* nullPointer = 0;
+IsotopeWavelet* nullPointer = nullptr;
 START_SECTION((static IsotopeWavelet* getInstance()))
   TEST_EQUAL(IsotopeWavelet::getInstance(), nullPointer)
 END_SECTION
@@ -98,7 +98,7 @@ START_SECTION((static UInt getNumPeakCutOff(const double mz)))
 END_SECTION
 
 
-IsotopeWavelet* iw = 0;
+IsotopeWavelet* iw = nullptr;
 START_SECTION((static IsotopeWavelet* init(const double max_m, const UInt max_charge)))
 	iw = IsotopeWavelet::init (4000, 4);
   TEST_NOT_EQUAL(iw, nullPointer)

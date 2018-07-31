@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,10 +37,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-
-#include <vector>
-#include <algorithm>
-#include <iostream>
 
 using namespace std;
 
@@ -199,7 +195,7 @@ namespace OpenMS
     return mz_max_;
   }
 
-  size_t SplineSpectrum::getSplineCount() const
+  size_t SplineSpectrum::size() const
   {
     return packages_.size();
   }
@@ -218,6 +214,10 @@ namespace OpenMS
     last_package_(0),
     mz_min_(mz_min),
     mz_max_(mz_max)
+  {
+  }
+
+  SplineSpectrum::Navigator::Navigator()
   {
   }
 

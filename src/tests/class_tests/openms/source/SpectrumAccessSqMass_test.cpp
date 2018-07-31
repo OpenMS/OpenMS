@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,8 +51,8 @@ START_TEST(SpectrumAccessSqMass, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-SpectrumAccessSqMass* ptr = 0;
-SpectrumAccessSqMass* nullPointer = 0;
+SpectrumAccessSqMass* ptr = nullptr;
+SpectrumAccessSqMass* nullPointer = nullptr;
 
 boost::shared_ptr<PeakMap > exp(new PeakMap);
 OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
@@ -67,7 +67,9 @@ START_SECTION(SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler))
 }
 END_SECTION
 
-START_SECTION(SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices))
+    
+
+START_SECTION(SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices))
 {
   OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
 
@@ -80,7 +82,7 @@ START_SECTION(SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, 
 }
 END_SECTION
 
-START_SECTION(SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> indices))
+START_SECTION(SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices))
 {
   OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
 
@@ -111,11 +113,17 @@ START_SECTION(SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> ind
     TEST_EQUAL(ptr->getNrSpectra(), 1)
   }
 
-  // this should not work, ptr has now only a single spectrum
-  std::vector<int> indices;
-  indices.push_back(1);
-  ptr = new SpectrumAccessSqMass(*ptr, indices);
+  // this should not work:
+  // selecting subset of data (only second spectrum) shouldn't work if there is only a single spectrum
+  {
+    std::vector<int> indices;
+    indices.push_back(1);
+    TEST_EXCEPTION(Exception::IllegalArgument, new SpectrumAccessSqMass(*ptr, indices))
 
+    std::vector<int> indices2;
+    indices2.push_back(50);
+    TEST_EXCEPTION(Exception::IllegalArgument, new SpectrumAccessSqMass(*ptr, indices))
+  }
 }
 END_SECTION
 

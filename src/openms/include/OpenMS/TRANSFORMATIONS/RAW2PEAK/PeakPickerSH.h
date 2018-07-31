@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Florian Zeller $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERSH_H
-#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERSH_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -53,7 +52,7 @@ namespace OpenMS
 public:
     PeakPickerSH();
 
-    virtual ~PeakPickerSH();
+    ~PeakPickerSH() override;
 
     /**
      @brief Picks peaks in one spectrum.
@@ -121,4 +120,3 @@ public:
   };
 }
 
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,8 +51,8 @@ using namespace std;
 
 typedef OpenMS::BaseFeature::QualityType QualityType;
 
-Feature* d_ptr = 0;
-Feature* nullPointer = 0;
+Feature* d_ptr = nullptr;
+Feature* nullPointer = nullptr;
 START_SECTION((Feature()))
 {
 	d_ptr = new Feature;

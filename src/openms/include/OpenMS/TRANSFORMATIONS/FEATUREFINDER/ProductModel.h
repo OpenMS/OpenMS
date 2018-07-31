@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PRODUCTMODEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_PRODUCTMODEL_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
@@ -77,7 +76,7 @@ public:
     /// Default constructor
     ProductModel() :
       BaseModel<D>(),
-      distributions_(D, 0)
+      distributions_(D, nullptr)
     {
       this->setName(this->getProductName());
 
@@ -97,7 +96,7 @@ public:
     /// copy constructor
     ProductModel(const ProductModel & source) :
       BaseModel<D>(source),
-      distributions_(D, 0),
+      distributions_(D, nullptr),
       scale_(source.scale_)
     {
       for (UInt dim = 0; dim < D; ++dim)
@@ -113,7 +112,7 @@ public:
     }
 
     /// destructor
-    virtual ~ProductModel()
+    ~ProductModel() override
     {
       for (Size dim = 0; dim < D; ++dim)
       {
@@ -139,7 +138,7 @@ public:
         }
         else
         {
-          distributions_[dim] = 0;
+          distributions_[dim] = nullptr;
         }
       }
       updateMembers_();
@@ -148,12 +147,12 @@ public:
     }
 
     /// intensity equals product of intensities in each dimension
-    IntensityType getIntensity(const PositionType & pos) const
+    IntensityType getIntensity(const PositionType & pos) const override
     {
       IntensityType intens(scale_);
       for (UInt dim = 0; dim < D; ++dim)
       {
-        if (distributions_[dim] == 0)
+        if (distributions_[dim] == nullptr)
         {
           throw Exception::BaseException(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("ProductModel: model for dimension ") + dim + " not set.", "");
         }
@@ -184,7 +183,7 @@ public:
     ProductModel & setModel(UInt dim, BaseModel<1> * dist)
     {
       OPENMS_PRECONDITION(dim < D, "ProductModel<D>:getModel(Position): index overflow!");
-      if (dist == 0 || dist == distributions_[dim])
+      if (dist == nullptr || dist == distributions_[dim])
       {
         return *this;
       }
@@ -223,7 +222,7 @@ public:
     }
 
     /// get reasonable set of samples from the model (i.e. for printing)
-    void getSamples(SamplesType & cont) const
+    void getSamples(SamplesType & cont) const override
     {
       cont.clear();
       typedef BaseModel<1>::SamplesType Samples1D;
@@ -260,7 +259,7 @@ public:
     }
 
 protected:
-    void updateMembers_()
+    void updateMembers_() override
     {
       BaseModel<D>::updateMembers_();
       scale_ = (double)(this->param_.getValue("intensity_scaling"));
@@ -286,4 +285,3 @@ protected:
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PRODUCTMODEL_H

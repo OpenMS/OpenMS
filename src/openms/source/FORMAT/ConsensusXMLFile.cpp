@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <fstream>
 
@@ -51,9 +48,9 @@ namespace OpenMS
     XMLHandler("", "1.7"),
     XMLFile("/SCHEMAS/ConsensusXML_1_7.xsd", "1.7"),
     ProgressLogger(),
-    consensus_map_(0),
+    consensus_map_(nullptr),
     act_cons_element_(),
-    last_meta_(0)
+    last_meta_(nullptr)
   {
   }
 
@@ -87,13 +84,13 @@ namespace OpenMS
         consensus_map_->push_back(act_cons_element_);
         act_cons_element_.getPeptideIdentifications().clear();
       }
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "IdentificationRun")
     {
       consensus_map_->getProteinIdentifications().push_back(prot_id_);
       prot_id_ = ProteinIdentification();
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "SearchParameters")
     {
@@ -158,24 +155,24 @@ namespace OpenMS
     {
       setProgress(++progress_);
       Size last_map = attributeAsInt_(attributes, "id");
-      last_meta_ = &consensus_map_->getFileDescriptions()[last_map];
-      consensus_map_->getFileDescriptions()[last_map].filename = attributeAsString_(attributes, "name");
+      last_meta_ = &consensus_map_->getColumnHeaders()[last_map];
+      consensus_map_->getColumnHeaders()[last_map].filename = attributeAsString_(attributes, "name");
       String unique_id;
       if (XMLHandler::optionalAttributeAsString_(unique_id, attributes, "unique_id"))
       {
         UniqueIdInterface tmp;
         tmp.setUniqueId(unique_id);
-        consensus_map_->getFileDescriptions()[last_map].unique_id = tmp.getUniqueId();
+        consensus_map_->getColumnHeaders()[last_map].unique_id = tmp.getUniqueId();
       }
       String label;
       if (XMLHandler::optionalAttributeAsString_(label, attributes, "label"))
       {
-        consensus_map_->getFileDescriptions()[last_map].label = label;
+        consensus_map_->getColumnHeaders()[last_map].label = label;
       }
       UInt size;
       if (XMLHandler::optionalAttributeAsUInt_(size, attributes, "size"))
       {
-        consensus_map_->getFileDescriptions()[last_map].size = size;
+        consensus_map_->getColumnHeaders()[last_map].size = size;
       }
     }
     else if (tag == "consensusElement")
@@ -302,7 +299,7 @@ namespace OpenMS
     }
     else if (tag == "userParam" || tag == "UserParam") // remain backwards compatible. Correct is "UserParam"
     {
-      if (last_meta_ == 0)
+      if (last_meta_ == nullptr)
       {
         fatalError(LOAD, String("Unexpected UserParam in tag '") + parent_tag + "'");
       }
@@ -402,13 +399,13 @@ namespace OpenMS
     {
       search_param_.fixed_modifications.push_back(attributeAsString_(attributes, "name"));
       //change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "VariableModification")
     {
       search_param_.variable_modifications.push_back(attributeAsString_(attributes, "name"));
       //change this line as soon as there is a MetaInfoInterface for modifications (Andreas)
-      last_meta_ = 0;
+      last_meta_ = nullptr;
     }
     else if (tag == "ProteinIdentification")
     {
@@ -509,7 +506,7 @@ namespace OpenMS
 
       //parse optional protein ids to determine accessions
       const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs").c_str());
-      if (refs != 0)
+      if (refs != nullptr)
       {
         String accession_string = sm_.convert(refs);
         accession_string.trim();
@@ -829,9 +826,9 @@ namespace OpenMS
     }
 
     //file descriptions
-    const ConsensusMap::FileDescriptions& description_vector = consensus_map.getFileDescriptions();
+    const ConsensusMap::ColumnHeaders& description_vector = consensus_map.getColumnHeaders();
     os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
-    for (ConsensusMap::FileDescriptions::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it)
+    for (ConsensusMap::ColumnHeaders::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it)
     {
       setProgress(++progress_);
       os << "\t\t<map id=\"" << it->first;
@@ -923,11 +920,11 @@ namespace OpenMS
     }
 
     //reset members
-    consensus_map_ = 0;
+    consensus_map_ = nullptr;
     act_cons_element_ = ConsensusFeature();
     pos_.clear();
     it_ = 0;
-    last_meta_ = 0;
+    last_meta_ = nullptr;
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();

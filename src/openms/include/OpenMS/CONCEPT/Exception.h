@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_EXCEPTION_H
-#define OPENMS_CONCEPT_EXCEPTION_H
+#pragma once
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -109,7 +108,7 @@ public:
       BaseException(const BaseException& exception) noexcept;
 
       /// Destructor
-      virtual ~BaseException() noexcept;
+      ~BaseException() noexcept override;
       //@}
 
       /**	@name	Accessors
@@ -120,7 +119,7 @@ public:
       const char* getName() const noexcept;
 
       /// Returns the error message of the exception
-      virtual const char* what() const noexcept;
+      const char* what() const noexcept override;
 
       /// Returns the line number where it occurred
       int getLine() const noexcept;
@@ -737,4 +736,3 @@ public:
 
 } // namespace OPENMS
 
-#endif // OPENMS_CONCEPT_EXCEPTION_H

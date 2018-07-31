@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYMEDB_H
-#define OPENMS_CHEMISTRY_DIGESTIONENZYMEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -56,7 +55,7 @@ namespace OpenMS
     @p DigestionEnzymeType should be a subclass of DigestionEnzyme.
     @p InstanceType should be a subclass of DigestionEnzymeDB ("Curiously Recurring Template Pattern", see https://stackoverflow.com/a/34519373).
   */
-  template<typename DigestionEnzymeType, typename InstanceType> class OPENMS_DLLAPI DigestionEnzymeDB
+  template<typename DigestionEnzymeType, typename InstanceType> class DigestionEnzymeDB
   {
   public:
 
@@ -70,8 +69,8 @@ namespace OpenMS
     /// this member function serves as a replacement of the constructor
     static InstanceType* getInstance()
     {
-      static InstanceType* db_ = 0;
-      if (db_ == 0)
+      static InstanceType* db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new InstanceType;
       }
@@ -269,4 +268,3 @@ namespace OpenMS
   };
 }
 
-#endif

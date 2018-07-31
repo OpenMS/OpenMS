@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,9 +52,9 @@ START_TEST(PoseClusteringShiftSuperimposer, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PoseClusteringShiftSuperimposer* ptr = 0;
-PoseClusteringShiftSuperimposer* nullPointer = 0;
-BaseSuperimposer* base_nullPointer = 0;
+PoseClusteringShiftSuperimposer* ptr = nullptr;
+PoseClusteringShiftSuperimposer* nullPointer = nullptr;
+BaseSuperimposer* base_nullPointer = nullptr;
 
 START_SECTION((PoseClusteringShiftSuperimposer()))
 	ptr = new PoseClusteringShiftSuperimposer();
@@ -66,7 +66,7 @@ START_SECTION((virtual ~PoseClusteringShiftSuperimposer()))
 END_SECTION
 
 START_SECTION((static BaseSuperimposer* create()))
-  BaseSuperimposer* base_ptr = 0;
+  BaseSuperimposer* base_ptr = nullptr;
 	base_ptr = PoseClusteringShiftSuperimposer::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer)
   delete (base_ptr);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
-#define OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -44,7 +43,7 @@
 #ifdef NDEBUG
 #define DEBUG_ONLY if (false)
 #else
-#define DEBUG_ONLY if (true)
+#define DEBUG_ONLY if (false)
 #endif
 
 // the SeqAn implementation comes first. To use the OpenMS interface, see below.
@@ -65,7 +64,7 @@ namespace seqan
   // we re-order the aminoacids such that ambiguous AA's are consecutive (which saves effort during their enumeration)
     'A', // 00 Ala Alanine
     'Y', // 23 Tyr Tyrosine               !    1(Y)
-    'C', // 02 Cys Cystine
+    'C', // 02 Cys Cysteine
     'D', // 03 Asp Aspartic Acid   // B
     'N', // 13 Asn Asparagine      // B   !    4(N)
     'F', // 05 Phe Phenylalanine       
@@ -83,7 +82,7 @@ namespace seqan
     'R', // 17 Arg Arginine
     'S', // 18 Ser Serine
     'T', // 19 Thr Threonine
-    'U', // 20 Selenocystein
+    'U', // 20 Selenocysteine
     'V', // 21 Val Valine
     'B', // 01 Aspartic Acid, Asparagine  $    22(B) // the AmbAA's need to be consecutive (B,J,Z,X)
     'J', // 09 Leucine, Isoleucine        $    23(J)
@@ -205,7 +204,7 @@ namespace seqan
   }
 
   typedef String<AAcid, Alloc<void> > AAString; // identical to seqan::Peptide, but without the misnomer (or how would you encode proteins? as seqan::Peptide?)
-  typedef Iterator<AAString, Rooted>::Type AAStringIterator;
+  typedef Iterator<const AAString, Rooted>::Type AAStringIterator;
 
   //////////////////////////////////////////////////////////////////////////////
 
@@ -225,16 +224,18 @@ namespace seqan
     TVert current_state;
     KeyWordLengthType max_depth_decrease; // maximum loss in depths of traversed nodes (both while reporting hits and changing its own state)
     KeyWordLengthType ambAA_seen;         // number of ambAA's which the spawn has seen
+    KeyWordLengthType mismatches_seen;    // number of mismatches the spawn has seen
+
+	  Spawn(TVert init_state, KeyWordLengthType current_depth, KeyWordLengthType aaa_seen, KeyWordLengthType mm_seen) :
+		  current_state(init_state),
+		  max_depth_decrease(current_depth),
+      ambAA_seen(aaa_seen),
+      mismatches_seen(mm_seen)
+	  {}	
 
     private:
-	    Spawn();
-
-    public:
-	    Spawn(TVert init_state, KeyWordLengthType current_depth, KeyWordLengthType aaa_seen) :
-		    current_state(init_state),
-		    max_depth_decrease(current_depth),
-        ambAA_seen(aaa_seen)
-	    {}	
+      Spawn();
+      Spawn& operator=(const Spawn&);
   };
 
   template <typename TNeedle>
@@ -242,20 +243,20 @@ namespace seqan
   {
 
     PatternAuxData()
-    : hits_endPositions(),
-      data_keywordIndex(0),
-      data_needleLength(0),
+    : spawns(),
       data_lastState(0), // a bit of cheating, but we know that root==0
-      spawns()
+      hits_endPositions(),
+      data_keywordIndex(0),
+      data_needleLength(0)
     {}
 
     void reset()
     {
+      spawns.clear();
+      data_lastState = 0; // a bit of cheating, but we know that root==0
       clear(hits_endPositions);
       data_keywordIndex = 0;
       data_needleLength = 0;
-      data_lastState = 0; // a bit of cheating, but we know that root==0
-      spawns.clear();
     }
 
     typedef typename Size<TNeedle>::Type TSize;
@@ -264,27 +265,32 @@ namespace seqan
     typedef Graph<Automaton<TAlphabet> > TGraph;
     typedef typename VertexDescriptor<TGraph>::Type TVert;
     typedef __uint8 KeyWordLengthType;
-
-    // "working" set; changes with every hit
-    String<TSize> hits_endPositions;	// All remaining keyword indices
-    TSize data_keywordIndex;			// Current keyword that produced a hit
-    TSize data_needleLength;			// Last length of needle to reposition finder
-    TVert data_lastState;   // Last state of master instance in the trie
     typedef typename std::list<Spawn<TNeedle> > Spawns;
     typedef typename std::list<Spawn<TNeedle> >::iterator SpawnIt;
     typedef typename std::list<Spawn<TNeedle> >::const_iterator SpawnCIt;
+
+    // "working" set; changes with every hit
     Spawns spawns;                      // spawn instances currently walking the tree
+    TVert data_lastState;   // Last state of master instance in the trie
+    // for hit reporting:
+    String<TSize> hits_endPositions;	// All remaining keyword indices
+    TSize data_keywordIndex;			// Current keyword that produced a hit
+    TSize data_needleLength;			// Last length of needle to reposition finder
   };
 
   template <typename TNeedle>
   class Pattern<TNeedle, FuzzyAC>
   {
-    //____________________________________________________________________________
   private:
     Pattern(Pattern const& other);
     Pattern const& operator=(Pattern const & other);
-    //____________________________________________________________________________
   public:
+    Pattern()
+      : nilVal(getNil<TVert>()),
+        max_ambAA(0),
+        max_mmAA(0)
+    {}
+
     //typedef typename Size<TNeedle>::Type TSize; // defaults to uint64, but uint32 is enough...
     typedef uint32_t TSize; // max. number of peptides allowed (4 billion; checked in init())
     typedef typename Value<TNeedle>::Type TKeyword;
@@ -294,25 +300,20 @@ namespace seqan
     typedef __uint8 KeyWordLengthType;
 
     // constant after C'tor; 
-    const TVert nilVal;                           // NULL pointer for trie; e.g. returned when no successor is found
+    const TVert nilVal; // NULL pointer for trie; e.g. returned when no successor is found
                                         
     // "constant" data, after construction of trie
-    KeyWordLengthType max_ambAA;            // default: 3
     Holder<TNeedle> data_host;                    // holds needles, i.e. Peptides
     TGraph data_graph;                            // regular trie data
-    String<String<TSize> > data_terminalStateMap; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
-    String<TVert> data_supplyMap;                 // trie suffix links
-    String<KeyWordLengthType> data_nodeDepths;    // depths of each graph node
+    String<String<TSize> > data_map_outputNodes; // regular trie data -- plus: this gets augmented with all suffix traversals which are output nodes
+    String<KeyWordLengthType> data_node_depth;    // depths of each graph node
+    KeyWordLengthType max_ambAA;            // ambiguity; default: 3
+    KeyWordLengthType max_mmAA;             // mismatches; default: 0
 
 #ifndef NDEBUG
-    String<TVert> parentMap;  //< allows to find parent of each node
+    String<TVert> parentMap;  ///< allows to find parent of each node
 #endif
 
-    //____________________________________________________________________________
-    Pattern() 
-      : nilVal(getNil<TVert>()),
-        max_ambAA(0)
-    {}
 
     /**
       @brief Pattern Ctor with vector of needles, i.e. keywords/peptides.
@@ -320,10 +321,11 @@ namespace seqan
       The vector @p ndl must not be empty!
 
     */
-    void init(TNeedle const& ndl, KeyWordLengthType max_AAA = 3)
+    void init(TNeedle const& ndl, KeyWordLengthType max_AAA = 3, KeyWordLengthType max_mm = 0)
     {
       SEQAN_CHECKPOINT
       max_ambAA = max_AAA;
+      max_mmAA = max_mm;
       if (std::numeric_limits<TSize>::max() < length(ndl)) // check 4 billion peptide limit; use length(ndl) directly, since TSize might be too small
       {
         throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, "Pattern<FuzzyAC>(PeptideSet)", std::string("Input contains more than 2^32 peptides. Cannot create trie.").c_str(), OpenMS::String(length(ndl)));
@@ -375,6 +377,34 @@ namespace seqan
   //////////////////////////////////////////////////////////////////////////////
   // Functions
   //////////////////////////////////////////////////////////////////////////////
+  /**
+  @brief given an ambAA @p c, return a range of AA's (including @p idxLast) which need to be spawned.
+
+  The range can be converted to AAcids via 'AAcid(T)'.
+  */
+  template<typename T>
+  inline void _getSpawnRange(const AAcid c, T& idxFirst, T& idxLast)
+  {
+    // jump table:                  // start of spawns    // end of spawns (including)
+    static const T jump[4][2] = { { ordValue(AAcid('D')), ordValue(AAcid('N')) },  // B = D,N
+                                  { ordValue(AAcid('I')), ordValue(AAcid('L')) },  // J = I,L
+                                  { ordValue(AAcid('E')), ordValue(AAcid('Q')) },  // Z = E,Q
+                                  { 0                   , 21 } };                  // X = A..V
+    static const T ord_b = ordValue(AAcid('B'));
+#ifndef NDEBUG
+    assert(ordValue(AAcid('N')) - ordValue(AAcid('D')) == 1); // must be neighbours
+    assert(ordValue(AAcid('Q')) - ordValue(AAcid('E')) == 1); // must be neighbours
+    assert(ordValue(AAcid('V')) == 21); // make sure the table is ordered as we expect
+                                        // row of jump table:
+    assert(ord_b == 22); // make sure the table is ordered as we expect
+    assert(ordValue(AAcid('J')) == 23); // make sure the table is ordered as we expect
+    assert(ordValue(AAcid('Z')) == 24); // make sure the table is ordered as we expect
+    assert(ordValue(AAcid('X')) == 25); // make sure the table is ordered as we expect
+#endif
+    idxFirst = jump[ordValue(c) - ord_b][0];
+    idxLast = jump[ordValue(c) - ord_b][1];
+  }
+
 
   template <typename TNeedle>
   inline void _createAcTrie(Pattern<TNeedle, FuzzyAC> & me)
@@ -389,11 +419,11 @@ namespace seqan
     TVert nilVal = getNil<TVert>();
 
     // Create regular trie
-    createTrie(me.data_graph, me.data_terminalStateMap, host(me));
+    createTrie(me.data_graph, me.data_map_outputNodes, host(me));
 
     // Create parent map
-    String<TVert> parentMap;  //< allows to find parent of each node
-    String<TAlphabet> parentCharMap;      //< allows to find character that led us to current node
+    String<TVert> parentMap;  ///< allows to find parent of each node
+    String<TAlphabet> parentCharMap;      ///< allows to find character that led us to current node
     resizeVertexMap(me.data_graph, parentMap);
     resizeVertexMap(me.data_graph, parentCharMap);
     // init all nodes to Nil
@@ -403,7 +433,7 @@ namespace seqan
     typedef typename Iterator<TGraph, EdgeIterator>::Type TEdgeIterator;
     TEdgeIterator itEd(me.data_graph);
     //int count_prop = 0;
-    for (;!atEnd(itEd);goNext(itEd)) {
+    for (; !atEnd(itEd); goNext(itEd)) {
       //             property,  vertex            , value
       assignProperty(parentMap, targetVertex(itEd), sourceVertex(itEd));
       assignProperty(parentCharMap, targetVertex(itEd), label(itEd));
@@ -411,94 +441,113 @@ namespace seqan
     }
     //std::cout << "\nassigned " << count_prop << " props to " << length(parentMap) << " values\n";
 #ifndef NDEBUG    
-    me.parentMap = parentMap;  //< allows to find parent of each node
+    me.parentMap = parentMap;  ///< allows to find parent of each node
 #endif
 
     // Build AC
     TVert root = getRoot(me.data_graph);
     // properties....
-    resizeVertexMap(me.data_graph, me.data_supplyMap);  // suffix links
-    assignProperty(me.data_supplyMap, root, nilVal);
-    resizeVertexMap(me.data_graph, me.data_nodeDepths);  // node depths
-    assignProperty(me.data_nodeDepths, root, 0);
+    String<TVert> data_map_failurelink;                 // trie suffix links (temporary only)
+    resizeVertexMap(me.data_graph, data_map_failurelink);  
+    assignProperty(data_map_failurelink, root, nilVal);
+
+    resizeVertexMap(me.data_graph, me.data_node_depth);  // node depths
+    assignProperty(me.data_node_depth, root, 0);
 
     // Bfs Traversal
     typedef typename Iterator<TGraph, BfsIterator>::Type TBfsIterator;
     TBfsIterator it(me.data_graph, root);
-    //std::map<int, int> connectivity;
+    typedef typename ValueSize<AAcid>::Type TSize;
+    TSize idxAAFirst, idxAALast; // range of unambiguous AAcids: AAcid(idx)
+    _getSpawnRange('X', idxAAFirst, idxAALast);
+    // create nextMove function for root (point to itself)
+    for (TSize idx = idxAAFirst; idx <= idxAALast; ++idx)
+    {
+      if (getSuccessor(me.data_graph, root, AAcid(idx)) == nilVal) addEdge(me.data_graph, root, root, AAcid(idx));
+    }
+
     goNext(it); // skip root
 
-    for (;!atEnd(it);goNext(it))
+    // connectivity statistics
+    //std::map<int, int> connectivity;
+
+    for (; !atEnd(it); goNext(it))
     {
       const typename GetValue<TBfsIterator>::Type itval = *it; // dereferencing *it will give an index into the property array!
 
-      //int edgecount = outDegree(me.data_graph, itval);
-      //++connectivity[edgecount];
+      //++connectivity[outDegree(me.data_graph, itval)];
 
+      // set depth of current node using: depths(parent) + 1
       TVert parent = getProperty(parentMap, itval);
-      assignProperty(me.data_nodeDepths, itval, getProperty(me.data_nodeDepths, parent) + 1);
+      assignProperty(me.data_node_depth, itval, getProperty(me.data_node_depth, parent) + 1);
 
+
+      ///
+      /// create failure function (suffix links) and output function
+      ///
+      // sigma: edge label
       TAlphabet sigma = getProperty(parentCharMap, itval);
-      TVert down = getProperty(me.data_supplyMap, parent);
+      // take suffix link of parent and try to go down with sigma
+      TVert down = getProperty(data_map_failurelink, parent);
       while ((down != nilVal) &&
         (getSuccessor(me.data_graph, down, sigma) == nilVal))
       {
-        down = getProperty(me.data_supplyMap, down);
+        down = getProperty(data_map_failurelink, down);
       }
       if (down != nilVal)
-      {
-        assignProperty(me.data_supplyMap, itval, getSuccessor(me.data_graph, down, sigma));
-        String<TPosition> endPositions = getProperty(me.data_terminalStateMap, getProperty(me.data_supplyMap, itval));
+      { // we found an edge to follow down
+        assignProperty(data_map_failurelink, itval, getSuccessor(me.data_graph, down, sigma));
+        // output function
+        String<TPosition> endPositions = getProperty(me.data_map_outputNodes, getProperty(data_map_failurelink, itval));
         if (!empty(endPositions))
         {
-          String<TPosition> endPositionsCurrent = getProperty(me.data_terminalStateMap, itval);
+          // get current end positions (full path) ...
+          String<TPosition> endPositionsCurrent = getProperty(me.data_map_outputNodes, itval);
           typedef typename Iterator<String<TPosition>, Rooted >::Type TStringIterator;
+          // .. and append all patterns which are a suffix
           TStringIterator sit = begin(endPositions);
           for (;!atEnd(sit); goNext(sit))
           {
             appendValue(endPositionsCurrent, *sit);
           }
-          assignProperty(me.data_terminalStateMap, itval, endPositionsCurrent);
+          assignProperty(me.data_map_outputNodes, itval, endPositionsCurrent);
         }
       }
-      else {
-        assignProperty(me.data_supplyMap, itval, root);
+      else { // no suffix exists: point suffix link of current node to root
+        assignProperty(data_map_failurelink, itval, root);
       }
-
+      
+      // create nextMove function
+      for (TSize idx = idxAAFirst; idx <= idxAALast; ++idx)
+      {
+        if (getSuccessor(me.data_graph, itval, AAcid(idx)) == nilVal)
+        { // no child:
+          const TVert& target = getSuccessor(me.data_graph, getProperty(data_map_failurelink, itval) , AAcid(idx));
+          addEdge(me.data_graph, itval, target, AAcid(idx));
+        }
+        
+      }
     }
 
     //sw.stop();
     //std::cout << OpenMS::String(" Trie build time: ") + sw.getClockTime() + " s (wall), " + sw.getCPUTime() + " s (CPU)).\n\n";
 
-    //for (std::map<int,int>::const_iterator it = connectivity.begin(); it != connectivity.end(); ++it)
-    //{
-    //  std::cout << "   conn: " << it->first << " : " << it->second << "x\n";
-    //}
+    /*for (std::map<int,int>::const_iterator it = connectivity.begin(); it != connectivity.end(); ++it)
+    {
+      std::cout << "   conn: " << it->first << " : " << it->second << "x\n";
+    }*/
 
   }
 
   template <typename TNeedle, typename TNeedle2>
-  void setHost(Pattern<TNeedle, FuzzyAC> & me, TNeedle2 const & needle) {
+  void setHost(Pattern<TNeedle, FuzzyAC> & me, TNeedle2 const & needle)
+  {
     SEQAN_CHECKPOINT;
     SEQAN_ASSERT_NOT(empty(needle));
     setValue(me.data_host, needle);
     clear(me.data_graph);
-    clear(me.data_supplyMap);
-    clear(me.data_terminalStateMap);
+    clear(me.data_map_outputNodes);
     _createAcTrie(me);
-
-    //fstream strm;
-    //strm.open(TEST_PATH "my_trie.dot", ios_base::out | ios_base::trunc);
-    //String<String<char> > nodeMap;
-    //_createTrieNodeAttributes(me.data_graph, me.data_terminalStateMap, nodeMap);
-    //String<String<char> > edgeMap;
-    //_createEdgeAttributes(me.data_graph,edgeMap);
-    //write(strm,me.data_graph,nodeMap,edgeMap,DotDrawing());
-    //strm.close();
-    // Supply links
-    //for(unsigned int i=0;i<length(me.data_supplyMap);++i) {
-    //	std::cout << i << "->" << getProperty(me.data_supplyMap,i) << ::std::endl;
-    //}
   }
   template <typename TNeedle, typename TNeedle2>
   inline void setHost(Pattern<TNeedle, FuzzyAC> & me, TNeedle2 & needle)
@@ -527,13 +576,13 @@ namespace seqan
   }
 
   inline bool isAmbiguous(AAcid c)
-  { // relies on the fact that ambiguous AA's are occuring in a block
+  { // relies on the fact that ambiguous AA's are occurring in a block
     static const typename ValueSize<AAcid>::Type vB = ordValue(AAcid('B')); // D,N
     static const typename ValueSize<AAcid>::Type vX = ordValue(AAcid('X')); // all
     return (vB <= ordValue(c) && ordValue(c) <= vX);
   }
 
-  inline bool isAmbiguous(AAString s)
+  inline bool isAmbiguous(const AAString& s)
   {
     for (AAStringIterator it = begin(s); it != end(s); ++it)
     {
@@ -542,60 +591,7 @@ namespace seqan
     return false;
   }
 
-  struct FixedAASpec {};
-
-  /**
-   @brief given an ambAA @p c, return a range of AA's (including @p idxLast) which need to be spawned.
-
-   The range can be converted to AAcids via 'AAcid(T)'.
-  */
-  template<typename T>
-  inline void _getSpawnRange(const AAcid c, T& idxFirst, T& idxLast)
-  {
-    // jump table:                  // start of spawns    // end of spawns (including)
-    static const T jump[4][2] = { { ordValue(AAcid('D')), ordValue(AAcid('N'))},  // B = D,N
-                                  { ordValue(AAcid('I')), ordValue(AAcid('L'))},  // J = I,L
-                                  { ordValue(AAcid('E')), ordValue(AAcid('Q'))},  // Z = E,Q
-                                  { 0                   , 21                  } };// X = A..V
-    static const T ord_b = ordValue(AAcid('B'));
-#ifndef NDEBUG
-    assert(ordValue(AAcid('N')) - ordValue(AAcid('D')) == 1); // must be neighbours
-    assert(ordValue(AAcid('Q')) - ordValue(AAcid('E')) == 1); // must be neighbours
-    assert(ordValue(AAcid('V')) == 21); // make sure the table is ordered as we expect
-    // row of jump table:
-    assert(ord_b                == 22); // make sure the table is ordered as we expect
-    assert(ordValue(AAcid('J')) == 23); // make sure the table is ordered as we expect
-    assert(ordValue(AAcid('Z')) == 24); // make sure the table is ordered as we expect
-    assert(ordValue(AAcid('X')) == 25); // make sure the table is ordered as we expect
-#endif
-    idxFirst = jump[ordValue(c) - ord_b][0];
-    idxLast = jump[ordValue(c) - ord_b][1];
-  }
-
-  // This will only be called by the master itself (before moving to root); so far, no AAA was consumed (by master)
-  template <typename TNeedle>
-  inline void _createPrimarySpawns(const Pattern<TNeedle, FuzzyAC>& me,
-                                   PatternAuxData<TNeedle>& dh,
-                                   const AAcid c) // ALWAYS ambiguous!!!!
-  {
-    assert(isAmbiguous(c));
-
-    DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
-    typedef typename Size<AAcid>::Type TSize;
-    typedef typename Pattern<TNeedle, FuzzyAC>::TVert TVert;
-    TSize idxFirst, idxLast;
-    _getSpawnRange(c, idxFirst, idxLast);
-    for (TSize idx = idxFirst; idx <= idxLast; ++idx)
-    {
-      TVert node_spawn = dh.data_lastState; 
-      if (_consumeChar(me, dh, node_spawn, AAcid(idx), Tag<FixedAASpec>())) // call this using master's _consumeChar(), since it might pass through root (which is allowed), but should not die.
-      { // spawn from current position; push front to flag as 'processed' for the current input char
-        // depths is 'current_depth - 1' (must be computed here!); ambAA-count: fixed to 1 (first AAA, since spawned from master)
-        dh.spawns.push_front(Spawn<TNeedle>(node_spawn, getProperty(me.data_nodeDepths, node_spawn) - 1, 1));
-        DEBUG_ONLY std::cout << "  Init Spawn from Master consuming '" << AAcid(idx) << "\n";
-      }
-    }
-  }
+  
 
   // called by spawns only
   // returns false if it reached the 'root', true otherwise
@@ -608,71 +604,26 @@ namespace seqan
     assert(isAmbiguous(c));
 
     DEBUG_ONLY std::cout << "\n\ntrying to spawn from spawn on AAA: " << c << " with path: " << getPath(me, spawn.current_state) << "\n";
-    typedef typename Size<AAcid>::Type TSize;
+    typedef typename ValueSize<AAcid>::Type TSize;
     TSize idxFirst, idxLast;
     _getSpawnRange(c, idxFirst, idxLast);
     for (TSize idx = idxFirst + 1; idx <= idxLast; ++idx) // first iteration is left for the parent
     {
       Spawn<TNeedle> spawn2 = spawn; // a potential spawn
       //std::cout << "spawn aa is " << AAcid(idx) << "\n";
-      if (_consumeChar(me, dh, spawn2, AAcid(idx), Tag<FixedAASpec>()))
+      if (_consumeChar(me, dh, spawn2, AAcid(idx)))
       {
         // Spawn2 inherits the depths from its parent
         dh.spawns.push_front(spawn2);
         DEBUG_ONLY std::cout << "  Spawn from Spawn '" << getPath(me, spawn2.current_state) << "' created at d: " << int(spawn2.max_depth_decrease) << " AA-seen: " << int(spawn2.ambAA_seen) << "\n";
       }
     }
-    bool r = _consumeChar(me, dh, spawn, AAcid(idxFirst), Tag<FixedAASpec>());
+    bool r = _consumeChar(me, dh, spawn, AAcid(idxFirst));
     if (r)
     {
       DEBUG_ONLY std::cout << "  Spawn from Spawn '" << getPath(me, spawn.current_state) << "' created at d: " << int(spawn.max_depth_decrease) << " AA-seen: " << int(spawn.ambAA_seen) << "\n";
     }
     return r;
-  }
-
-  /// ###  go down  ####
-  template<class TNeedle> inline bool goDown(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert& current, const AAcid c)
-  { 
-    typename Pattern<TNeedle, FuzzyAC>::TVert successor = getSuccessor(me.data_graph, current, c);
-    if (successor == me.nilVal) return false;
-    //DEBUG_ONLY std::cout << "master/init-spawn matched '" << c << "'\n";
-    current = successor;
-    return true;
-  }
-  template<class TNeedle> inline bool goDown(const Pattern<TNeedle, FuzzyAC>& me, Spawn<TNeedle>& spawn, const AAcid c)
-  {
-    typename Pattern<TNeedle, FuzzyAC>::TVert successor = getSuccessor(me.data_graph, spawn.current_state, c);
-    if (successor == me.nilVal) return false;
-    //DEBUG_ONLY std::cout << "spawn matched '" << c << "' AA-seen: " << int(spawn.ambAA_seen) << "\n";
-    spawn.current_state = successor;
-    return true;
-  }
-
-  /// ###  go up  ####
-  template<class TNeedle> inline bool goUp(const Pattern<TNeedle, FuzzyAC>& me, Spawn<TNeedle>& spawn)
-  {
-    //if (atRoot(me, spawn)) return false; // cannot happen -- spawn would have died before
-    const typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.data_supplyMap, spawn.current_state);
-    // check if spawn is allowed to loose that many chars in front
-    typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
-    const KeyWordLengthType depthDiff = getProperty(me.data_nodeDepths, spawn.current_state) - getProperty(me.data_nodeDepths, suffix_node);
-    if (depthDiff > spawn.max_depth_decrease)
-    {
-      //DEBUG_ONLY std::cout << "spawn died while going up (AAA out of scope)\n";
-      spawn.current_state = getRoot(me.data_graph); // reset to root -- indicating failure!
-      return false; // this spawn just threw away its reason of existance (i.e. the AAA). Die!
-    }
-    spawn.max_depth_decrease -= depthDiff;
-    spawn.current_state = suffix_node; // no need to check for nilVal, since we cannot reach root (depths runs out before!)
-    return true;
-  }
-  template<class TNeedle> inline bool goUp(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
-  {
-    if (atRoot(me, current_state)) return false;
-    // data_supplyMap points to root or another node. Only root itself points to me.nilVal
-    typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.data_supplyMap, current_state);
-    current_state = suffix_node;
-    return true;
   }
 
 #ifdef NDEBUG  
@@ -684,7 +635,7 @@ namespace seqan
   /// for debug only
   template<class TNeedle> inline std::string getPath(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert current_state)
   {
-    if (atRoot(me, current_state)) return "";
+    if (getRoot(me.data_graph) == current_state) return "";
 
     typename Pattern<TNeedle, FuzzyAC>::TVert suffix_node = getProperty(me.parentMap, current_state);
     typename Iterator<typename Pattern<TNeedle, FuzzyAC>::TGraph const, OutEdgeIterator>::Type it(me.data_graph, suffix_node);
@@ -694,79 +645,99 @@ namespace seqan
   }
 #endif
 
-  template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, FuzzyAC>& me, Spawn<TNeedle>& spawn) {return spawn.current_state == getRoot(me.data_graph);}
-  template<class TNeedle> inline bool atRoot(const Pattern<TNeedle, FuzzyAC>& me, typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
-  {
-    //DEBUG_ONLY std::cout << "master/test remains at root\n";
-    return current_state == getRoot(me.data_graph);
-  }
-
-  template<class TNeedle> inline void addHits(const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh, Spawn<TNeedle>& spawn)
+  template<class TNeedle> inline void addHits(const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh, const Spawn<TNeedle>& spawn)
   {
     typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
-    String<TSize> needle_hits = getProperty(me.data_terminalStateMap, spawn.current_state);
+    const String<TSize>& needle_hits = getProperty(me.data_map_outputNodes, spawn.current_state);
     //DEBUG_ONLY std::cout << "spawn at path: " << getPath(me, spawn.current_state) << "\n";
-    if (length(needle_hits) > 0)
+    if (length(needle_hits))
     {
-      int path_length = getProperty(me.data_nodeDepths, spawn.current_state); // == length of current path to spawn
+      int path_length = getProperty(me.data_node_depth, spawn.current_state); // == length of current path to spawn
       int unambiguous_suffix_length = path_length - spawn.max_depth_decrease; // == length of suffix peptide which does not contain AAA
       DEBUG_ONLY std::cout << "  spawn adding hits which are at least " << unambiguous_suffix_length << " chars long (thus contain the AAA).\n";
 
       // but only report those which contain the AAA
-      for (int i = 0; i < (int)length(needle_hits); ++i)
+      for (auto it = begin(needle_hits); it != end(needle_hits); ++it)
       {
-        int hit_length = (int)length(value(host(me), needle_hits[i]));
+        int hit_length = (int)length(value(host(me), *it));
         if (hit_length < unambiguous_suffix_length) break; // assumption: terminalStateMap is sorted by length of hits! ... uiuiui...
-        DEBUG_ONLY std::cout << "  add spawn hit: needle #" << needle_hits[i] << " as " << (value(host(me), needle_hits[i])) << "\n";
-        append(dh.hits_endPositions, needle_hits[i]); // append hits which still contain the AAA
+        DEBUG_ONLY std::cout << "  add spawn hit: needle #" << *it << " as " << (value(host(me), *it)) << "\n";
+        append(dh.hits_endPositions, *it); // append hits which still contain the AAA
       }
     }
   }
-  template<class TNeedle> inline void addHits(const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh, typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
+  template<class TNeedle> inline void addHits(const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh, const typename Pattern<TNeedle, FuzzyAC>::TVert& current_state)
   {
     typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
     //DEBUG_ONLY std::cout << "master at path: " << getPath(me, current_state) << "\n";
-    String<TSize> needle_hits = getProperty(me.data_terminalStateMap, current_state);
+    const String<TSize>& needle_hits = getProperty(me.data_map_outputNodes, current_state);
     if (length(needle_hits))
     {
       DEBUG_ONLY std::cout << "master's new hits: total " << length(needle_hits) << " hits\n";
-      append(dh.hits_endPositions, getProperty(me.data_terminalStateMap, current_state)); // indices into TNeedle!
+      append(dh.hits_endPositions, getProperty(me.data_map_outputNodes, current_state)); // indices into TNeedle!
     }
   }
 
 
   /**
-     @brief Universal fixed char consumer. Works for Master and Spawns.
+     @brief Universal UN-ambiguous char consumer. Works for Master and Spawns.
 
-     ... using template specializations on 'TWalker' for inner function calls.
+     Updates @p current by consuming the char.
      Adds hits to @p dh after settling.
 
      @return False if it reached the 'root', true otherwise
    */
-  template <typename TNeedle, typename TWalker>
+  template <typename TNeedle>
   inline bool _consumeChar(const Pattern<TNeedle, FuzzyAC>& me,
                            PatternAuxData<TNeedle>& dh,
-                           TWalker& walker, // a MasterVertex or Spawn
-                           const AAcid c,
-                           Tag<FixedAASpec> /*fixedAASpec*/)
+                           typename Pattern<TNeedle, FuzzyAC>::TVert& current,
+                           const AAcid c)
   {
     //DEBUG_ONLY std::cout << "consuming real char " << c << " ";
-
-    // if we cannot go down, but up is possible:
-    while ((!goDown(me, walker, c)) &&
-             goUp(me, walker)) // returns false when Spawn goes out of scope
-    { /* .. follow suffix links upwards */ }
-    if (atRoot(me, walker))
-    {
-      //DEBUG_ONLY std::cout << "fail\n";
+    current = getSuccessor(me.data_graph, current, c);
+    assert(current != me.nilVal);
+    if (current == getRoot(me.data_graph)) {
       return false;
     }
-    else // found a successor
-    {
-      //DEBUG_ONLY std::cout << "ok\n";
-      addHits(me, dh, walker);
-      return true;
+    addHits(me, dh, current);
+    return true;
+  }
+
+  /**
+    @brief Consume UN-ambiguous char, while checking prefix/root conditions
+    
+    Adds hits to @p dh and updates spawn.current_state and spawn.max_depth_decrease
+
+    Return false if new state is root, true otherwise.
+  */
+  template <typename TNeedle>
+  inline bool _consumeChar(const Pattern<TNeedle, FuzzyAC>& me,
+    PatternAuxData<TNeedle>& dh,
+    Spawn<TNeedle>& spawn,
+    const AAcid c)
+  {
+    //DEBUG_ONLY std::cout << "consuming real char " << c << " ";
+    typename Pattern<TNeedle, FuzzyAC>::TVert successor = getSuccessor(me.data_graph, spawn.current_state, c);
+    assert(successor != me.nilVal);
+    // check if prefix was lost
+    if (successor == getRoot(me.data_graph)) return false;
+
+    if (getProperty(me.data_node_depth, spawn.current_state) >= getProperty(me.data_node_depth, successor))
+    { // went at least one level up (and maybe one down again, hence equality)
+      typedef typename Pattern<TNeedle, FuzzyAC>::KeyWordLengthType KeyWordLengthType;
+      const KeyWordLengthType up_count = 1 + getProperty(me.data_node_depth, spawn.current_state) - getProperty(me.data_node_depth, successor);
+      // the +1 is not valid if we end up at root (where the spawn is dead anyway - see above)
+      if (up_count > spawn.max_depth_decrease)
+      {
+        //DEBUG_ONLY std::cout << "spawn died while going up (AAA out of scope)\n";
+        //spawn.current_state = getRoot(me.data_graph); // reset to root -- not required
+        return false; // this spawn just threw away its reason of existence (i.e. the AAA). Die!
+      }
+      spawn.max_depth_decrease -= up_count;
     }
+    spawn.current_state = successor;
+    addHits(me, dh, spawn); // use spawn version for length checking!
+    return true;
   }
 
   // 
@@ -778,29 +749,123 @@ namespace seqan
                            Spawn<TNeedle>& spawn,
                            const AAcid c)
   {
+    typedef typename ValueSize<AAcid>::Type TSize;
+    
+    bool try_ambAA = spawn.ambAA_seen < me.max_ambAA;
+
+    if (spawn.mismatches_seen < me.max_mmAA)
+    {  // try all AA's 
+      TSize idx_first(-1), idx_last(-1);
+      _getSpawnRange(AAcid('X'), idx_first, idx_last);
+      // .. except c or its ambiguities 
+      TSize idx_AAfirst(ordValue(c)), idx_AAlast(ordValue(c));
+      if (try_ambAA && isAmbiguous(c))
+      { // if ambAA below will cover it, we will NOT use mismatches (this would be a duplicate)
+        _getSpawnRange(c, idx_AAfirst, idx_AAlast);
+      }
+      for (; idx_first <= idx_last; ++idx_first)
+      {
+        if (idx_first == idx_AAfirst)
+        { // ignore this range
+          idx_first = idx_AAlast;
+          continue;
+        }
+        Spawn<TNeedle> spawn2 = spawn; // a potential spawn
+        //std::cout << "spawn mm is " << AAcid(idx_first) << "\n";
+        if (_consumeChar(me, dh, spawn2, AAcid(idx_first)))
+        { // Spawn2 inherits the depths from its parent
+          ++spawn2.mismatches_seen;
+          dh.spawns.push_front(spawn2);
+          DEBUG_ONLY std::cout << "  Spawn from Spawn '" << getPath(me, spawn2.current_state) << "' created at d: " << int(spawn2.max_depth_decrease) << " MM-seen: " << int(spawn2.mismatches_seen) << "\n";
+        }
+      }
+    }
     // see if the Spawn can take another ambAA...
     if (isAmbiguous(c))
     {
-      if (spawn.ambAA_seen >= me.max_ambAA) return false; // we are at max and cannot consume more ambAA's; do not even try to create sub-spawns
-      else ++spawn.ambAA_seen; // increase ambAA count -- also for sub-Spawns which will follow from here...
-      return _createSecondarySpawns(me, dh, spawn, c); // child spawns are preprended to spawn list; returns if main spawn survived
+      if (!try_ambAA) return false; // we are at max and cannot consume more ambAA's; do not even try to create sub-spawns
+      ++spawn.ambAA_seen; // increase ambAA count -- also for sub-Spawns which will follow from here...
+      DEBUG_ONLY std::cout << "\n\ntrying to spawn from spawn on AAA: " << c << " with path: " << getPath(me, spawn.current_state) << "\n";
+      TSize idxFirst, idxLast;
+      _getSpawnRange(c, idxFirst, idxLast);
+      for (; idxFirst < idxLast; ++idxFirst) // last iteration is left for the parent
+      {
+        Spawn<TNeedle> spawn2 = spawn; // a potential spawn
+        //std::cout << "spawn aa is " << AAcid(idx) << "\n";
+        if (_consumeChar(me, dh, spawn2, AAcid(idxFirst)))
+        {
+          // Spawn2 inherits the depths from its parent
+          dh.spawns.push_front(spawn2);
+          DEBUG_ONLY std::cout << "  Spawn from Spawn '" << getPath(me, spawn2.current_state) << "' created at d: " << int(spawn2.max_depth_decrease) << " AA-seen: " << int(spawn2.ambAA_seen) << "\n";
+        }
+      }
+      bool r = _consumeChar(me, dh, spawn, AAcid(idxLast));
+      if (r)
+      {
+        DEBUG_ONLY std::cout << "  Spawn from Spawn '" << getPath(me, spawn.current_state) << "' created at d: " << int(spawn.max_depth_decrease) << " AA-seen: " << int(spawn.ambAA_seen) << "\n";
+      }
+      return r;
     }
     // UNambiguous
-    return _consumeChar(me, dh, spawn, c, Tag<FixedAASpec>());
+    return _consumeChar(me, dh, spawn, c);
   }
 
   // This is called by the master thread only!
   // returns false if it reached the 'root', true otherwise
   template <typename TNeedle>
   inline void _masterConsumeChar(const Pattern<TNeedle, FuzzyAC>& me,
-                           PatternAuxData<TNeedle>& dh,
-                           const AAcid c)
+                                 PatternAuxData<TNeedle>& dh,
+                                 const AAcid c)
   {
+    typedef typename ValueSize<AAcid>::Type TSize;
+    typedef typename Pattern<TNeedle, FuzzyAC>::TVert TVert;
+
+    bool consider_ambAA = me.max_ambAA > 0;
+
+    if (me.max_mmAA > 0)
+    {  // try all AA's 
+      TSize idx_first(-1), idx_last(-1);
+      _getSpawnRange(AAcid('X'), idx_first, idx_last);
+      // .. except c or its ambiguities 
+      TSize idx_AAfirst(ordValue(c)), idx_AAlast(ordValue(c));
+      if (consider_ambAA && isAmbiguous(c))
+      {
+        _getSpawnRange(c, idx_AAfirst, idx_AAlast);
+      }
+      for (; idx_first <= idx_last; ++idx_first)
+      {
+        if (idx_first == idx_AAfirst)
+        { // ignore this range
+          idx_first = idx_AAlast;
+          continue;
+        }
+        TVert node_spawn = dh.data_lastState; // last state of master
+        if (_consumeChar(me, dh, node_spawn, AAcid(idx_first))) // call this using master's _consumeChar(), since it might pass through root (which is allowed), but should not die.
+        { // spawn from current position; push front to flag as 'processed' for the current input char
+          // depths is 'current_depth - 1' (must be computed here!); mmAA-count: fixed to 1 (since spawned from master)
+          dh.spawns.push_front(Spawn<TNeedle>(node_spawn, getProperty(me.data_node_depth, node_spawn) - 1, 0, 1));
+          DEBUG_ONLY std::cout << "  Init Spawn from Master consuming '" << AAcid(idx_first) << "\n";
+        }
+      }
+    }
     if (isAmbiguous(c))
     {
-      if (me.max_ambAA > 0)
+      if (consider_ambAA)
       {
-        _createPrimarySpawns(me, dh, c);
+        DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
+        
+        TSize idx_first, idx_last;
+        _getSpawnRange(c, idx_first, idx_last);
+        for (; idx_first <= idx_last; ++idx_first)
+        {
+          TVert node_spawn = dh.data_lastState; // last state of master
+          if (_consumeChar(me, dh, node_spawn, AAcid(idx_first))) // call this using master's _consumeChar(), since it might pass through root (which is allowed), but should not die.
+          { // spawn from current position; push front to flag as 'processed' for the current input char
+            // depths is 'current_depth - 1' (must be computed here!); ambAA-count: fixed to 1 (first AAA, since spawned from master)
+            dh.spawns.push_front(Spawn<TNeedle>(node_spawn, getProperty(me.data_node_depth, node_spawn) - 1, 1, 0));
+            DEBUG_ONLY std::cout << "  Init Spawn from Master consuming '" << AAcid(idx_first) << "\n";
+          }
+        }
       }
       else
       { // do not spawn anything
@@ -811,7 +876,7 @@ namespace seqan
     } // end: ambiguous
 
     // 'c' is UN-ambiguous
-    _consumeChar(me, dh, dh.data_lastState, c, Tag<FixedAASpec>()); // adds hits as well
+    _consumeChar(me, dh, dh.data_lastState, c); // adds hits as well
   }
 
 
@@ -857,9 +922,9 @@ namespace seqan
         }
       }
       // main thread
-      DEBUG_ONLY std::cout << " --> Main; d: " << int(getProperty(me.data_nodeDepths, dh.data_lastState)) << ")\n";
+      DEBUG_ONLY std::cout << " --> Main; d: " << int(getProperty(me.data_node_depth, dh.data_lastState)) << ")\n";
       _masterConsumeChar(me, dh, c); // might create new spawns
-      DEBUG_ONLY std::cout << "  <-- Main end; d: " << int(getProperty(me.data_nodeDepths, dh.data_lastState)) << ")\n";
+      DEBUG_ONLY std::cout << "  <-- Main end; d: " << int(getProperty(me.data_node_depth, dh.data_lastState)) << ")\n";
 
       // print current states
       DEBUG_ONLY std::cout << " --> POST: Main state: " << getPath(me, dh.data_lastState) << "\n";
@@ -918,13 +983,14 @@ namespace OpenMS
       Build the pattern only once and use it multiple times when running findNext().
 
       @param pep_db Set of peptides
-      @param aaa_max Maximum of allowed ambiguous characters in the matching protein sequence
+      @param aaa_max Maximum allowed ambiguous characters in the matching protein sequence
+      @param mm_max Maximum allowed mismatches in the matching protein sequence
       @param pattern The pattern to be created
       @throws Exception::InvalidValue if a peptide contains an unknown (U,J,...) or ambiguous character
     */
-    static void initPattern(const PeptideDB& pep_db, const int aaa_max, FuzzyACPattern& pattern)
+    static void initPattern(const PeptideDB& pep_db, const int aaa_max, const int mm_max, FuzzyACPattern& pattern)
     {
-      pattern.init(pep_db, KeyWordLengthType(aaa_max));
+      pattern.init(pep_db, KeyWordLengthType(aaa_max), KeyWordLengthType(mm_max));
     }
 
     /**
@@ -997,11 +1063,10 @@ namespace OpenMS
     typedef typename FuzzyACPattern::KeyWordLengthType KeyWordLengthType;
 
     // member
-    ::seqan::Finder<seqan::AAString> finder_; //< locate the next peptide hit in protein
-    ::seqan::AAString protein_;               //< the protein sequence - we need to store it since the finder only keeps a pointer to protein when constructed
-    ::seqan::PatternAuxData<PeptideDB> dh_;   //< auxilliary data to hold a state after searching
+    ::seqan::Finder<seqan::AAString> finder_; ///< locate the next peptide hit in protein
+    ::seqan::AAString protein_;               ///< the protein sequence - we need to store it since the finder only keeps a pointer to protein when constructed
+    ::seqan::PatternAuxData<PeptideDB> dh_;   ///< auxiliary data to hold a state after searching
   }; // class FuzzyAC
 
 } // namespace OpenMS
 
-#endif //#ifndef OPENMS_ANALYSIS_ID_AHOCORASICKAMBIGUOUS_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGSHIFTSUPERIMPOSER_H
-#define OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGSHIFTSUPERIMPOSER_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/BaseSuperimposer.h>
 
@@ -71,7 +70,7 @@ public:
     PoseClusteringShiftSuperimposer();
 
     /// Destructor
-    virtual ~PoseClusteringShiftSuperimposer()
+    ~PoseClusteringShiftSuperimposer() override
     {}
 
     /**
@@ -88,7 +87,7 @@ public:
 
       @exception IllegalArgument is thrown if the input maps are invalid.
     */
-    virtual void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation);
+    void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation) override;
 
     /// Returns an instance of this class
     static BaseSuperimposer * create()
@@ -105,4 +104,3 @@ public:
   };
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_POSECLUSTERINGSHIFTSUPERIMPOSER_H

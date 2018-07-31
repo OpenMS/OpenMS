@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,10 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSTRANSFORMING_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSTRANSFORMING_H
+#pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenMS
 {
@@ -52,23 +51,23 @@ public:
 
     explicit SpectrumAccessTransforming(OpenSwath::SpectrumAccessPtr sptr);
         
-    virtual ~SpectrumAccessTransforming() = 0;
+    ~SpectrumAccessTransforming() override = 0;
 
-    virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
+    boost::shared_ptr<ISpectrumAccess> lightClone() const override = 0;
 
-    virtual OpenSwath::SpectrumPtr getSpectrumById(int id);
+    OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
-    virtual OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
+    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
 
-    virtual std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const;
+    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const override;
 
-    virtual size_t getNrSpectra() const;
+    size_t getNrSpectra() const override;
 
-    virtual OpenSwath::ChromatogramPtr getChromatogramById(int id);
+    OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
 
-    virtual size_t getNrChromatograms() const;
+    size_t getNrChromatograms() const override;
 
-    virtual std::string getChromatogramNativeID(int id) const;
+    std::string getChromatogramNativeID(int id) const override;
 
 protected:
     OpenSwath::SpectrumAccessPtr sptr_;
@@ -77,5 +76,4 @@ protected:
 
 }
 
-#endif
 

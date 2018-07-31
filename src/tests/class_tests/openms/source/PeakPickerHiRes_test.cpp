@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,8 @@ START_TEST(PeakPickerHiRes, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PeakPickerHiRes* ptr = 0;
-PeakPickerHiRes* nullPointer = 0;
+PeakPickerHiRes* ptr = nullptr;
+PeakPickerHiRes* nullPointer = nullptr;
 START_SECTION((PeakPickerHiRes()))
   ptr = new PeakPickerHiRes();
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -85,7 +85,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn1_out.mzML
 //set data type (this is not stored correctly in mzData)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::PEAKS);
+  output[scan_idx].setType(SpectrumSettings::CENTROID);
 }
 
 // PeakPickerHiRes config
@@ -175,7 +175,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn4_out.mzML
 //set data type (this is not stored correctly in mzData)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::PEAKS);
+  output[scan_idx].setType(SpectrumSettings::CENTROID);
 }
 
 //set up PeakPicker
@@ -239,7 +239,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn1_out.mzML"),o
 //set data type (this is not stored correctly in mzML)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::PEAKS);
+  output[scan_idx].setType(SpectrumSettings::CENTROID);
 }
 
 // PeakPickerHiRes config
@@ -277,7 +277,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn4_out.mzML"),o
 //set data type (this is not stored correctly in mzML)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 {
-  output[scan_idx].setType(SpectrumSettings::PEAKS);
+  output[scan_idx].setType(SpectrumSettings::CENTROID);
 }
 
 //set up PeakPicker

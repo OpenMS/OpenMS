@@ -1,0 +1,11 @@
+sample_name,component_name,IS_component_name,actual_concentration,IS_actual_concentration,concentration_units,dilution_factor
+150516_CM1_Level1,23dpg.23dpg_1.Light,23dpg.23dpg_1.Heavy,0,1,uM,1
+150516_CM1_Level1,2mcit.2mcit_1.Light,2mcit.2mcit_1.Heavy,0,1,uM,1
+150516_CM1_Level1,2obut.2obut_1.Light,2obut.2obut_1.Heavy,0,1,uM,1
+150516_CM1_Level1,35cgmp.35cgmp_1.Light,35cgmp.35cgmp_1.Heavy,0,1,uM,1
+150516_CM1_Level1,5oxpro.5oxpro_1.Light,5oxpro.5oxpro_1.Heavy,0,1,uM,1
+150516_CM1_Level1,6pgc.6pgc_1.Light,6pgc.6pgc_1.Heavy,8,1,uM,1
+150516_CM1_Level1,accoa.accoa_1.Light,accoa.accoa_1.Heavy,0,1,uM,1
+150516_CM1_Level1,acon-C.acon-C_1.Light,acon-C.acon-C_1.Heavy,0,1,uM,1
+150516_CM1_Level1,actp.actp_1.Light,actp.actp_1.Heavy,0,1,uM,1
+150516_CM1_Level1,ade.ade_1.Light,ade.ade_1.Heavy,40,1,uM,1

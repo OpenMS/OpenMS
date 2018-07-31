@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,24 +35,15 @@
 #include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #ifdef _OPENMP
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <omp.h>
 #endif
 #endif
-
-#include <cmath>
-#include <vector>
-#include <algorithm>
 
 //#define DEBUG_PEAK_PICKING2 1
 
@@ -516,7 +507,7 @@ namespace OpenMS
     peak_left_index = distance(first, area.left);
     peak_right_index = distance(first, area.right);
 
-    // The minimal raw data points per peak should be 2
+    // The minimal profile data points per peak should be 2
     if ((distance(area.left, area.max) > 0) && (distance(area.max, area.right) > 0))
     {
 #ifdef DEBUG_PEAK_PICKING
@@ -857,7 +848,7 @@ namespace OpenMS
     // put peak into peak vector using default values for the widths and peak type
     peaks_DC.push_back(PeakShape(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK));
 
-    // adjust the positions and get their initial intensities from the raw data
+    // adjust the positions and get their initial intensities from the profile data
     for (Size i = 0; i < num_peaks; ++i)
     {
       peaks_DC[i].mz_position = area.left->getMZ() + dist / 2 + i * dist;
@@ -1103,7 +1094,7 @@ namespace OpenMS
     output.setMSLevel(input.getMSLevel());
     output.setName(input.getName());
     //make sure the data type is set correctly
-    output.setType(SpectrumSettings::PEAKS);
+    output.setType(SpectrumSettings::CENTROID);
 
     // nearly empty spectra shouldn't be picked
     if (input.size() < 2)
@@ -1139,7 +1130,7 @@ namespace OpenMS
     // vector of peak endpoint positions
     // std::vector<double> peak_endpoints;
 
-    // copy the raw data into a std::vector<Peak1D>
+    // copy the profile data into a std::vector<Peak1D>
     MSSpectrum raw_peak_array;
     // signal to noise estimator
     SignalToNoiseEstimatorMeanIterative<MSSpectrum> sne;
@@ -1257,8 +1248,7 @@ namespace OpenMS
 
       }               //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt, area, distance_from_scan_border, ms_level, direction))
       it_pick_begin = raw_peak_array.begin();
-    }
-    while (number_of_peaks != 0);
+    } while (number_of_peaks != 0);
 
     // start the nonlinear optimization for all peaks in split
 #ifdef DEBUG_PEAK_PICKING

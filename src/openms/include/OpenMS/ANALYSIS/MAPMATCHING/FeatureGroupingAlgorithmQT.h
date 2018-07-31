@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Steffen Sass, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMQT_H
-#define OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMQT_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
@@ -58,7 +57,7 @@ public:
     FeatureGroupingAlgorithmQT();
 
     /// Destructor
-    virtual ~FeatureGroupingAlgorithmQT();
+    ~FeatureGroupingAlgorithmQT() override;
 
     /**
         @brief Applies the algorithm to feature maps
@@ -67,7 +66,7 @@ public:
 
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    virtual void group(const std::vector<FeatureMap>& maps, ConsensusMap& out);
+    void group(const std::vector<FeatureMap>& maps, ConsensusMap& out) override;
 
     /**
         @brief Applies the algorithm to consensus maps
@@ -76,8 +75,8 @@ public:
 
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    virtual void group(const std::vector<ConsensusMap>& maps, 
-                       ConsensusMap& out);
+    void group(const std::vector<ConsensusMap>& maps, 
+                       ConsensusMap& out) override;
 
     /// Creates a new instance of this class (for Factory)
     static FeatureGroupingAlgorithm* create()
@@ -112,4 +111,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_FEATUREGROUPINGALGORITHMQT_H

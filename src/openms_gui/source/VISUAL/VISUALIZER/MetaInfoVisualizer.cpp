@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,12 +36,12 @@
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoVisualizer.h>
 
 //QT
-#include <QtGui/QGridLayout>
-#include <QtGui/QPushButton>
-#include <QtGui/QLineEdit>
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QButtonGroup>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QButtonGroup>
 
 //STL
 #include <iostream>
@@ -119,6 +119,7 @@ namespace OpenMS
         (*iter).second->hide();
         (*iter).second = 0;
         delete(*iter).second;
+        // cppcheck-suppress eraseDereference
         metalabels_.erase(iter);
       }
     }
@@ -133,6 +134,7 @@ namespace OpenMS
         (*iter2).second->hide();
         (*iter2).second = 0;
         delete(*iter2).second;
+        // cppcheck-suppress eraseDereference
         metainfoptr_.erase(iter2);
       }
 
@@ -226,7 +228,7 @@ namespace OpenMS
     {
       //check whether there is already an entry in GUI for added metainfo.
       //If index already exists, return and do nothing.
-      if (buttongroup_->button(newindex) != 0)
+      if (buttongroup_->button(newindex) != nullptr)
       {
         return;
       }

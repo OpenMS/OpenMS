@@ -28,26 +28,110 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="436.210339680337" RT="0" >
 			<PeptideHit score="0.806668" sequence="HEEIDTK" charge="2" aa_before="K X" aa_after="N X" protein_refs="PH_0 PH_1" >
+				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
+				<UserParam type="float" name="_ar_0_score" value="0.9208"/>
+				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.434"/>
+				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.005"/>
+				<UserParam type="float" name="_ar_0_subscore_nmc" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_ntt" value="2"/>
+				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
+				<UserParam type="float" name="_ar_1_score" value="0.806668"/>
+				<UserParam type="float" name="_ar_1_subscore_nrs" value="8.728"/>
+				<UserParam type="float" name="_ar_1_subscore_nsi" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsm" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsp" value="4.1724"/>
+				<UserParam type="float" name="_ar_1_subscore_nss" value="0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="360.700329914712" RT="0" >
 			<PeptideHit score="0" sequence="GLVC(Carbamidomethyl)GSK" charge="2" aa_before="A" aa_after="F" protein_refs="PH_2" >
+				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
+				<UserParam type="float" name="_ar_0_score" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_fval" value="-3.5466"/>
+				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="0.023"/>
+				<UserParam type="float" name="_ar_0_subscore_nmc" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_ntt" value="1"/>
+				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
+				<UserParam type="float" name="_ar_1_score" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nrs" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsi" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsm" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsp" value="6.9737"/>
+				<UserParam type="float" name="_ar_1_subscore_nss" value="0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="350.53048941992" RT="0" >
 			<PeptideHit score="0.0223989" sequence="LIWTM(Oxidation)IGIS" charge="3" aa_before="R" aa_after="F" protein_refs="PH_3" >
+				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
+				<UserParam type="float" name="_ar_0_score" value="0.217"/>
+				<UserParam type="float" name="_ar_0_subscore_fval" value="0.801"/>
+				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="0.006"/>
+				<UserParam type="float" name="_ar_0_subscore_nmc" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_ntt" value="1"/>
+				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
+				<UserParam type="float" name="_ar_1_score" value="0.0223989"/>
+				<UserParam type="float" name="_ar_1_subscore_nrs" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsi" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsm" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsp" value="4.0003"/>
+				<UserParam type="float" name="_ar_1_subscore_nss" value="0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="566.77033723893" RT="0" >
 			<PeptideHit score="0.0505509" sequence=".(Glu-&gt;pyro-Glu)EAGIVDELAYA" charge="2" aa_before="K" aa_after="V" protein_refs="PH_4" >
+				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
+				<UserParam type="float" name="_ar_0_score" value="0.07"/>
+				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3114"/>
+				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.02"/>
+				<UserParam type="float" name="_ar_0_subscore_nmc" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_ntt" value="1"/>
+				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
+				<UserParam type="float" name="_ar_1_score" value="0.0505509"/>
+				<UserParam type="float" name="_ar_1_subscore_nrs" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsi" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsm" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsp" value="20"/>
+				<UserParam type="float" name="_ar_1_subscore_nss" value="0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="608.957491373047" RT="0" >
 			<PeptideHit score="0.999999" sequence="SASAQHSQAQQQQQQK" charge="3" aa_before="M" aa_after="S" protein_refs="PH_5" >
+				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
+				<UserParam type="float" name="_ar_0_score" value="1"/>
+				<UserParam type="float" name="_ar_0_subscore_fval" value="4.795"/>
+				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.006"/>
+				<UserParam type="float" name="_ar_0_subscore_nmc" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_ntt" value="2"/>
+				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
+				<UserParam type="float" name="_ar_1_score" value="0.999999"/>
+				<UserParam type="float" name="_ar_1_subscore_nrs" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsi" value="0.999999"/>
+				<UserParam type="float" name="_ar_1_subscore_nsm" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsp" value="9.90429"/>
+				<UserParam type="float" name="_ar_1_subscore_nss" value="0.4998"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="InterProphet probability" higher_score_better="true" significance_threshold="0" MZ="681.29334749284" RT="0" >
 			<PeptideHit score="2.01282e-05" sequence=".(Pyro-carbamidomethyl)C(Carbamidomethyl)LPGPATASIYQT" charge="2" aa_before="K" aa_after="L" protein_refs="PH_6" >
+				<UserParam type="string" name="_ar_0_score_type" value="peptideprophet"/>
+				<UserParam type="float" name="_ar_0_score" value="0.0007"/>
+				<UserParam type="float" name="_ar_0_subscore_fval" value="-1.3658"/>
+				<UserParam type="float" name="_ar_0_subscore_isomassd" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_massd" value="-0.063"/>
+				<UserParam type="float" name="_ar_0_subscore_nmc" value="0"/>
+				<UserParam type="float" name="_ar_0_subscore_ntt" value="1"/>
+				<UserParam type="string" name="_ar_1_score_type" value="interprophet"/>
+				<UserParam type="float" name="_ar_1_score" value="2.01282e-05"/>
+				<UserParam type="float" name="_ar_1_subscore_nrs" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsi" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsm" value="0"/>
+				<UserParam type="float" name="_ar_1_subscore_nsp" value="2"/>
+				<UserParam type="float" name="_ar_1_subscore_nss" value="0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

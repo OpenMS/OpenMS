@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,23 +34,23 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-#include <QtGui/QLayout>
-#include <QtGui/QWidget>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QLabel>
-#include <QtGui/QTextEdit>
-#include <QtGui/QGridLayout>
-#include <QtGui/QPushButton>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QListWidget>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QListWidget>
 
 namespace OpenMS
 {
   BaseVisualizerGUI::BaseVisualizerGUI(bool editable, QWidget * parent) :
     QWidget(parent),
-    undo_button_(0),
-    mainlayout_(0),
+    undo_button_(nullptr),
+    mainlayout_(nullptr),
     row_(0),
     editable_(editable)
   {

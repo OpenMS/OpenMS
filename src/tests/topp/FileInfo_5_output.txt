@@ -1,25 +1,25 @@
 
 -- General information --
 
-File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_5_input.txt
+File name: /nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/FileInfo_5_input.mzDat
 File type: mzData
 
-Peak type (metadata): Unknown
-Peak type (estimated): Peak data
-
+MS levels: 1, 2
 Number of spectra: 10
 Number of peaks: 3149
+
+Number of spectra per MS level:
+  level 1: 4
+  level 2: 6
 
 Ranges:
   retention time: 20.87 .. 39.97
   mass-to-charge: 500.07 .. 1497.28
   intensity:      16.30 .. 38920.12
 
-MS levels: 1, 2
-Number of spectra per MS level:
-  level 1: 4
-  level 2: 6
-
+Peak type metadata (estimated)
+  level 1: Unknown (Centroid)
+  level 2: Unknown (Unknown)
 
 -- Meta information --
 
@@ -56,9 +56,9 @@ Intensities:
   num. of values: 3118
   mean:           869.843
   minimum:        16.2972
-  lower quartile: 209.7
+  lower quartile: 209.449
   median:         490.921
-  upper quartile: 1037.65
+  upper quartile: 1038.07
   maximum:        38920.1
   variance:       1.89153e+06
 

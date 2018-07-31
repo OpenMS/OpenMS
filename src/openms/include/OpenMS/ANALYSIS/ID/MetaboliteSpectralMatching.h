@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Erhan Kenar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H
-#define OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H
+#pragma once
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -157,7 +156,7 @@ namespace OpenMS
     MetaboliteSpectralMatching();
 
     /// Default destructor
-    virtual ~MetaboliteSpectralMatching();
+    ~MetaboliteSpectralMatching() override;
 
     /// hyperscore computation
     double computeHyperScore(MSSpectrum, MSSpectrum, const double&, const double&);
@@ -166,7 +165,7 @@ namespace OpenMS
     void run(PeakMap &, PeakMap &, MzTab &);
 
   protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
   private:
     /// private member functions
@@ -182,4 +181,3 @@ namespace OpenMS
 
 }
 
-#endif // OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H

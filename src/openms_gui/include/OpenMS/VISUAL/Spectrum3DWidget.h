@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM3DWIDGET_H
-#define OPENMS_VISUAL_SPECTRUM3DWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -58,10 +57,10 @@ namespace OpenMS
 
 public:
     ///Constructor
-    Spectrum3DWidget(const Param & preferences, QWidget * parent = 0);
+    Spectrum3DWidget(const Param & preferences, QWidget * parent = nullptr);
 
     /// Destructor
-    virtual ~Spectrum3DWidget();
+    ~Spectrum3DWidget() override;
 
     /// This method is overwritten to make the class specific members accessible
     inline Spectrum3DCanvas * canvas()
@@ -70,16 +69,16 @@ public:
     }
 
     // Docu in base class
-    virtual void recalculateAxes_();
+    void recalculateAxes_() override;
     // Docu in base class
-    virtual Math::Histogram<> createIntensityDistribution_() const;
+    Math::Histogram<> createIntensityDistribution_() const override;
     // Docu in base class
-    virtual Math::Histogram<> createMetaDistribution_(const String & name) const;
+    Math::Histogram<> createMetaDistribution_(const String & name) const override;
 
     //docu in base class
-    bool isLegendShown() const;
+    bool isLegendShown() const override;
     //docu in base class
-    virtual void showLegend(bool show);
+    void showLegend(bool show) override;
 
 signals:
     /// Requests to display all spectra in 2D plot
@@ -87,9 +86,8 @@ signals:
 
 public slots:
     // Docu in base class
-    virtual void showGoToDialog();
+    void showGoToDialog() override;
   };
 
 } //namespace
 
-#endif

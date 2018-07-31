@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ START_SECTION((static UInt64 getUniqueId()))
 {
   STATUS("OpenMS::UniqueIdGenerator::getUniqueId(): " << OpenMS::UniqueIdGenerator::getUniqueId());
   /* test for collisions, test will be different for every test execution */
-  OpenMS::UniqueIdGenerator::setSeed(std::time(0));
+  OpenMS::UniqueIdGenerator::setSeed(std::time(nullptr));
   std::vector<OpenMS::UInt64> ids;
   ids.reserve(nofIdsToGenerate);
   for (unsigned i=0; i<nofIdsToGenerate; ++i)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,28 +33,25 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
-#include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
-#include <QtCore/QFile>
-#include <QtCore/QDir>
-#include <QtCore/QProcess>
 
 #include <iostream>
 #include <cmath>
 #include <string>
 #include <set>
+//#include <typeinfo>
 
 #include <boost/algorithm/clamp.hpp>
-#include <typeinfo>
 
 using namespace OpenMS;
 using namespace std;
@@ -142,17 +139,27 @@ protected:
       {
         // peptide sequence
         StringList pep;
-        row[4].split(".", pep);
-        //TODO test pep size 3
-        peptide = pep[1];
-        preAA = pep[0]=="-"?'[':pep[0].c_str()[0];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
-        postAA = pep[2]=="-"?']':pep[2].c_str()[0]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+        std::size_t left_dot = row[4].find_first_of('.');
+        std::size_t right_dot = row[4].find_last_of('.');
+      
+        OPENMS_PRECONDITION(left_dot < right_dot, "Peptide sequence encoding must have dot notation (e.g., A.PEPTIDER.C).")
+ 
+        // retrieve pre and post AA, e.g., A and C in A.PEPTIDE.C
+        preAA = (row[4][left_dot - 1] == '-') ? '[' : row[4][left_dot - 1];  // const char PeptideEvidence::N_TERMINAL_AA = '[';
+        postAA = (row[4][right_dot + 1] == '-') ? ']' : row[4][right_dot + 1]; // const char PeptideEvidence::C_TERMINAL_AA = ']';
+
+        // retrieve sequence between dots, e.g., PEPTIDE
+        peptide = row[4].substr(left_dot + 1, (right_dot - 1) - (left_dot + 1) + 1);
+
         // SVM-score
         score = row[1].toDouble();
+
         // q-Value
         qvalue = row[2].toDouble();
+
         // PEP
         posterior_error_prob = row[3].toDouble();
+
         // scannr. as written in preparePIN
         PSMId = row[0];
         proteinIds = vector<String>(row.begin()+5,row.end());
@@ -202,23 +209,25 @@ protected:
     }
   };
   
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     static const bool is_required(true);
     static const bool is_advanced_option(true);
-    
+    static const bool force_openms_format(true);
+        
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", !is_required);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
     setValidFormats_("in_decoy", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in_osw", "<file>", "", "Input file in OSW format", !is_required);
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
-    registerOutputFile_("out", "<file>", "", "Output file in idXML format", !is_required);
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerOutputFile_("mzid_out", "<file>", "", "Output file in mzid format", !is_required);
-    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-    registerOutputFile_("osw_out", "<file>", "", "Output file in OSW format", !is_required);
-    setValidFormats_("osw_out", ListUtils::create<String>("OSW"));
+    registerOutputFile_("out", "<file>", "", "Output file");
+    setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
+    registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pin", ListUtils::create<String>("tab"), !force_openms_format);
+
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
+    setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
@@ -234,6 +243,8 @@ protected:
     registerFlag_("peptide-level-fdrs", "Calculate peptide-level FDRs instead of PSM-level FDRs.");
     registerFlag_("protein-level-fdrs", "Use the picked protein-level FDR to infer protein probabilities. Use the -fasta option and -decoy-pattern to set the Fasta file and decoy pattern.");
     registerStringOption_("osw_level", "<osw_level>", "ms2", "OSW: Either \"ms1\", \"ms2\" or \"transition\"; the data level selected for scoring.", !is_required);
+    registerStringOption_("score_type", "<type>", "q-value", "Type of the peptide main score", false);
+    setValidStrings_("score_type", ListUtils::create<String>("q-value,pep,svm"));
 
     //Advanced parameters
     registerFlag_("generic-feature-set", "Use only generic (i.e. not search engine specific) features. Generating search engine specific features for common search engines by PSMFeatureExtractor will typically boost the identification rate significantly.", is_advanced_option);
@@ -258,6 +269,7 @@ protected:
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy-pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
     registerFlag_("post-processing-tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
+    registerFlag_("train-best-positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
 
     //OSW/IPF parameters
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
@@ -399,14 +411,25 @@ protected:
       double exp_mass = it->getMZ();
       for (vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
       {
+        if (jt->getPeptideEvidences().empty())
+        {
+          LOG_WARN << "PSM (PeptideHit) without protein reference found. " 
+                   << "This may indicate incomplete mapping during PeptideIndexing (e.g., wrong enzyme settings)." 
+                   << "Will skip this PSM." << endl;
+          continue;
+        }
         PeptideHit hit(*jt); // make a copy of the hit to store temporary features
         hit.setMetaValue("SpecId", scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
-        if (!hit.metaValueExists("target_decoy") || hit.getMetaValue("target_decoy").toString().empty()) continue;
+        if (!hit.metaValueExists("target_decoy") 
+          || hit.getMetaValue("target_decoy").toString().empty()) 
+        {
+          continue;
+        }
         
         int label = 1;
-        if (String(hit.getMetaValue("target_decoy")).hasSubstring("decoy"))
+        if (hit.getMetaValue("target_decoy") == "decoy")
         {
           label = -1;
         }
@@ -417,8 +440,18 @@ protected:
         
         double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
         hit.setMetaValue("CalcMass", calc_mass);
-        
-        
+
+        if (hit.metaValueExists("IsotopeError"))  // MSGFPlus
+        {
+          float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+        else if (hit.metaValueExists("isotope_error")) // e.g. SimpleSearchEngine /RNPxlSearch
+        {
+          float isoErr = hit.getMetaValue("isotope_error").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+                
         hit.setMetaValue("ExpMass", exp_mass);
         hit.setMetaValue("mass", exp_mass);
         
@@ -432,10 +465,14 @@ protected:
         {
            hit.setMetaValue("charge" + String(i), charge == i);
         }
-        
-        bool enzN = isEnz_(hit.getPeptideEvidences().front().getAABefore(), unmodified_sequence.prefix(1)[0], enz);
+
+        // just first peptide evidence
+        char aa_before = hit.getPeptideEvidences().front().getAABefore();
+        char aa_after = hit.getPeptideEvidences().front().getAAAfter();
+
+        bool enzN = isEnz_(aa_before, unmodified_sequence.prefix(1)[0], enz);
         hit.setMetaValue("enzN", enzN);
-        bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], hit.getPeptideEvidences().front().getAAAfter(), enz);
+        bool enzC = isEnz_(unmodified_sequence.suffix(1)[0], aa_after, enz);
         hit.setMetaValue("enzC", enzC);
         int enzInt = countEnzymatic_(unmodified_sequence, enz);
         hit.setMetaValue("enzInt", enzInt);
@@ -448,14 +485,16 @@ protected:
         
         //peptide
         String sequence = "";
-        // just first peptide evidence
-        String aa_before(hit.getPeptideEvidences().front().getAABefore());
-        String aa_after(hit.getPeptideEvidences().front().getAAAfter());
-        aa_before = aa_before=="["?'-':aa_before;
-        aa_after = aa_after=="]"?'-':aa_after;
-        sequence += aa_before; 
-        sequence += "." + hit.getSequence().toString() + ".";
+
+        aa_before = aa_before == '[' ? '-' : aa_before;
+        aa_after = aa_after == ']' ? '-' : aa_after;
+
+        sequence += aa_before;
+        sequence += "."; 
+        sequence += hit.getSequence().toString();
+        sequence += "."; 
         sequence += aa_after;
+        
         hit.setMetaValue("Peptide", sequence);
         
         //proteinId1
@@ -493,6 +532,8 @@ protected:
       csv_file.getRow(i, row);
       PercolatorResult res(row);
       String spec_ref = res.PSMId + res.peptide;
+      writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
+
       // retain only the best result in the unlikely case that a PSMId+peptide combination occurs multiple times
       if (pep_map.find(spec_ref) == pep_map.end())
       {
@@ -565,7 +606,7 @@ protected:
               pht->setMetaValue("target_decoy", "target");
             }
           }
-          else if (pht->getMetaValue("target_decoy").toString().hasSubstring("decoy"))
+          else if (pht->getMetaValue("target_decoy").toString() == "decoy")
           {
             found_decoys = true;
           }
@@ -653,7 +694,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // general variables and data to perform PercolatorAdapter
@@ -670,6 +711,23 @@ protected:
     const String in_osw = getStringOption_("in_osw");
     const String osw_level = getStringOption_("osw_level");
 
+    FileHandler fh;
+
+    //output file names and types
+    String out = getStringOption_("out");
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Fatal error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
+
     const String percolator_executable(getStringOption_("percolator_executable"));
     writeDebug_(String("Path to the percolator: ") + percolator_executable, 2);
     if (percolator_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("percolator_executable"... ???
@@ -679,10 +737,6 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
     
-    const String mzid_out(getStringOption_("mzid_out"));
-    const String out(getStringOption_("out"));
-    const String osw_out(getStringOption_("osw_out"));
-
     if (in_list.empty() && in_osw.empty())
     {
       writeLog_("Fatal error: no input file given (parameter 'in' or 'in_osw')");
@@ -690,21 +744,28 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    if (mzid_out.empty() && out.empty() && osw_out.empty())
+    if (!in_list.empty() && !in_osw.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out' or 'osw_out')");
+      writeLog_("Fatal error: Provide either mzid/idXML or osw input files (parameter 'in' or 'in_osw')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!in_osw.empty() && osw_out.empty())
+    if (out.empty())
+    {
+      writeLog_("Fatal error: no output file given (parameter 'out')");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
+    if (!in_osw.empty() && out_type != FileTypes::OSW)
     {
       writeLog_("Fatal error: OSW input requires OSW output.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
-    if (!in_list.empty() && (out.empty() && mzid_out.empty()))
+    if (!in_list.empty() && out_type == FileTypes::OSW)
     {
       writeLog_("Fatal error: idXML/mzid input requires idXML/mzid output.");
       printUsage_();
@@ -725,13 +786,19 @@ protected:
     string enz_str = getStringOption_("enzyme");
     
     // create temp directory to store percolator in file pin.tab temporarily
-    String temp_directory_body = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
-    {
-      QDir d;
-      d.mkpath(temp_directory_body.toQString());
-    }
+    String temp_directory_body = makeAutoRemoveTempDirectory_();
+    
     String txt_designator = File::getUniqueName();
-    String pin_file(temp_directory_body + txt_designator + "_pin.tab");
+    String pin_file;
+    if (getStringOption_("out_pin").empty())
+    {
+      pin_file = temp_directory_body + txt_designator + "_pin.tab";
+    }
+    else
+    {
+      pin_file = getStringOption_("out_pin");
+    }
+    
     String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
     String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tab");
     String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tab");
@@ -740,21 +807,21 @@ protected:
     String pout_decoy_file_proteins(temp_directory_body + txt_designator + "_decoy_pout_proteins.tab");
 
     // prepare OSW I/O
-    if (!in_osw.empty() && !osw_out.empty() && in_osw != osw_out)
+    if (out_type == FileTypes::OSW && in_osw != out)
     {
       // Copy input OSW to output OSW, because we want to retain all information
-      remove(osw_out.c_str());
-      if (!osw_out.empty())
+      remove(out.c_str());
+      if (!out.empty())
       {
         std::ifstream  src(in_osw.c_str(), std::ios::binary);
-        std::ofstream  dst(osw_out.c_str(), std::ios::binary);
+        std::ofstream  dst(out.c_str(), std::ios::binary);
 
         dst << src.rdbuf();
       }
     }
 
     // idXML or mzid input
-    if (in_osw.empty())
+    if (out_type != FileTypes::OSW)
     {
       //TODO introduce min/max charge to parameters for now take available range
       int max_charge = 0;
@@ -902,6 +969,7 @@ protected:
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
       if (getFlag_("quick-validation")) arguments << "-x";
       if (getFlag_("post-processing-tdc")) arguments << "-Y";
+      if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
       
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init-weights");
@@ -931,24 +999,11 @@ protected:
     // run percolator
     //-------------------------------------------------------------
     // Percolator execution with the executable and the arguments StringList
-    int status = QProcess::execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
-    if (status != 0)
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
     {
-      writeLog_("Percolator problem. Aborting! Calling command was: '" + percolator_executable + " \"" + arguments.join("-").toStdString() + "\".");
-      // clean temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory_body);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory_body << "'" << endl;
-      }
-      else
-      {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <2 to remove them." << endl;
-      }
-      return EXTERNAL_PROGRAM_ERROR;
+      return exit_code;
     }
-    writeLog_("Executed percolator!");
-
 
     //-------------------------------------------------------------
     // reintegrate pout results
@@ -973,17 +1028,6 @@ protected:
       readProteinPoutAsMap_(pout_target_file_proteins, protein_map);
       readProteinPoutAsMap_(pout_decoy_file_proteins, protein_map);
     }
-    
-    // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
-    if (this->debug_level_ < 5)
-    {
-      File::removeDirRecursively(temp_directory_body);
-      LOG_WARN << "Removing temporary directory for Percolator in/output. Set debug level to >=5 to keep the temporary files." << endl;
-    }
-    else
-    {
-      LOG_WARN << "Keeping the temporary files at '" << temp_directory_body << "'. Set debug level to <5 to remove them." << endl;
-    }
 
     // idXML or mzid input
     if (in_osw.empty())
@@ -995,8 +1039,10 @@ protected:
       for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
       {
         it->setIdentifier(run_identifier);
-        it->setScoreType("q-value");
-        it->setHigherScoreBetter(false);
+
+        const String scoreType = getStringOption_("score_type");
+        it->setScoreType(scoreType);
+        it->setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = getScanIdentifier_(it, all_peptide_ids.begin());
         
@@ -1006,18 +1052,45 @@ protected:
           String peptide_sequence = hit->getSequence().toString();
           String psm_identifier = scan_identifier + peptide_sequence;
           
+          writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);        
+ 
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
           {
             hit->setMetaValue("MS:1001492", pr->second.score);  // svm score
             hit->setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
             hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
-            hit->setScore(pr->second.qvalue);
+
+            if (scoreType == "q-value")
+            {
+              hit->setScore(pr->second.qvalue);
+            }
+            else if (scoreType == "pep")
+            {
+              hit->setScore(pr->second.posterior_error_prob);
+            }
+            else if (scoreType == "svm")
+            {
+              hit->setScore(pr->second.score);
+            }
+
             ++cnt;
           }
           else
           {
-            hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
+            LOG_WARN << "Identifier " << psm_identifier << " not found in peptide map." << endl;
+            hit->setMetaValue("MS:1001492", 0.0);  // svm score
+            hit->setMetaValue("MS:1001491", 1.0);  // percolator q value
+            hit->setMetaValue("MS:1001493", 1.0);  // percolator pep
+
+            if (scoreType == "q-value" || scoreType == "pep")
+            {
+              hit->setScore(1.0); // set q-value or PEP to 1.0 if hit not found in results
+            }
+            else if (scoreType == "svm")
+            {
+              hit->setScore(0.0); // set SVM score to 0.0 if hit not found in results
+            }
           }
         }
       }
@@ -1076,16 +1149,17 @@ protected:
         search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
         search_parameters.setMetaValue("Percolator:decoy-pattern", getStringOption_("decoy-pattern"));
         search_parameters.setMetaValue("Percolator:post-processing-tdc", getFlag_("post-processing-tdc"));
+        search_parameters.setMetaValue("Percolator:train-best-positive", getFlag_("train-best-positive"));
         
         it->setSearchParameters(search_parameters);
       }
       
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      if (!mzid_out.empty())
+      if (out_type == FileTypes::MZIDENTML)
       {
-        MzIdentMLFile().store(mzid_out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+        MzIdentMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
       }
-      if (!out.empty())
+      if (out_type == FileTypes::IDXML)
       {
         IdXMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
       }
@@ -1095,11 +1169,12 @@ protected:
       std::map< std::string, std::vector<double> > features;
       for (auto const &feat : pep_map)
       {
+
         features[feat.second.PSMId].push_back(feat.second.score);
         features[feat.second.PSMId].push_back(feat.second.qvalue);
         features[feat.second.PSMId].push_back(feat.second.posterior_error_prob);
       }
-      OSWFile().write(osw_out, osw_level, features);
+      OSWFile().write(out, osw_level, features);
     }
 
     writeLog_("PercolatorAdapter finished successfully!");

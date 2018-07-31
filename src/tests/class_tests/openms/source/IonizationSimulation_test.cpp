@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,8 @@ TOPPBase::setMaxNumberOfThreads(1);
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IonizationSimulation* ptr = 0;
-IonizationSimulation* nullPointer = 0;
+IonizationSimulation* ptr = nullptr;
+IonizationSimulation* nullPointer = nullptr;
 const unsigned long rnd_gen_seed = 1;
 SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>
 
 #include <iomanip>
@@ -71,7 +69,7 @@ namespace OpenMS
   {
     data_ = rhs.data_;
     model_type_ = "none";
-    model_ = 0; // initialize this before the "delete" call in "fitModel"!
+    model_ = nullptr; // initialize this before the "delete" call in "fitModel"!
     Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
   }
@@ -97,7 +95,7 @@ namespace OpenMS
     if (model_type_ == "identity") return;
 
     delete model_;
-    model_ = 0; // avoid segmentation fault in case of exception
+    model_ = nullptr; // avoid segmentation fault in case of exception
     if ((model_type == "none") || (model_type == "identity"))
     {
       model_ = new TransformationModel();

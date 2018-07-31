@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
 #include <OpenMS/CONCEPT/Helpers.h>
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -49,11 +48,11 @@ namespace OpenMS
     precursor_mz_(0.0),
     library_intensity_(-101),
     decoy_type_(UNKNOWN),
-    precursor_cv_terms_(NULL),
-    prediction_(NULL)
+    precursor_cv_terms_(nullptr),
+    prediction_(nullptr)
   {
     // Default is: true, false, true
-    // NOTE: do not change that, the same default is implicitely assumed in TraMLHandler
+    // NOTE: do not change that, the same default is implicitly assumed in TraMLHandler
     transition_flags_[DETECTING_TRANSITION_LOC] = true;
     transition_flags_[IDENTIFYING_TRANSITION_LOC] = false;
     transition_flags_[QUANTIFYING_TRANSITION_LOC] = true;
@@ -67,19 +66,19 @@ namespace OpenMS
     precursor_mz_(rhs.precursor_mz_),
     library_intensity_(rhs.library_intensity_),
     decoy_type_(rhs.decoy_type_),
-    precursor_cv_terms_(NULL),
+    precursor_cv_terms_(nullptr),
     product_(rhs.product_),
     intermediate_products_(rhs.intermediate_products_),
     rts(rhs.rts),
-    prediction_(NULL),
+    prediction_(nullptr),
     transition_flags_(rhs.transition_flags_)
   {
     // We copy the internal object (not just the ptr)
-    if (rhs.precursor_cv_terms_ != NULL)
+    if (rhs.precursor_cv_terms_ != nullptr)
     {
       precursor_cv_terms_ = new CVTermList(*rhs.precursor_cv_terms_);
     }
-    if (rhs.prediction_ != NULL)
+    if (rhs.prediction_ != nullptr)
     {
       prediction_ = new Prediction(*rhs.prediction_);
     }
@@ -109,16 +108,16 @@ namespace OpenMS
 
       // We copy the internal object (not just the ptr)
       delete precursor_cv_terms_;
-      precursor_cv_terms_ = NULL;
-      if (rhs.precursor_cv_terms_ != NULL)
+      precursor_cv_terms_ = nullptr;
+      if (rhs.precursor_cv_terms_ != nullptr)
       {
         precursor_cv_terms_ = new CVTermList(*rhs.precursor_cv_terms_);
       }
 
       // We copy the internal object (not just the ptr)
       delete prediction_;
-      prediction_ = NULL;
-      if (rhs.prediction_ != NULL)
+      prediction_ = nullptr;
+      if (rhs.prediction_ != nullptr)
       {
         prediction_ = new Prediction(*rhs.prediction_);
       }
@@ -200,7 +199,7 @@ namespace OpenMS
 
   bool ReactionMonitoringTransition::hasPrecursorCVTerms() const
   {
-    return (precursor_cv_terms_ != NULL);
+    return (precursor_cv_terms_ != nullptr);
   }
 
   void ReactionMonitoringTransition::setPrecursorCVTermList(const CVTermList & list)
@@ -286,7 +285,7 @@ namespace OpenMS
 
   bool ReactionMonitoringTransition::hasPrediction() const
   {
-    return (prediction_ != NULL);
+    return (prediction_ != nullptr);
   }
 
   void ReactionMonitoringTransition::setPrediction(const Prediction & prediction)

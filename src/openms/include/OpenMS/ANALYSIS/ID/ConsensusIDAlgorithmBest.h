@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMBEST_H
-#define OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMBEST_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmIdentity.h>
 
@@ -61,10 +60,9 @@ namespace OpenMS
     ConsensusIDAlgorithmBest& operator=(const ConsensusIDAlgorithmBest&);
 
     /// Aggregate peptide scores into one final score (by taking the best score)
-    virtual double getAggregateScore_(std::vector<double>& scores,
-                                      bool higher_better);
+    double getAggregateScore_(std::vector<double>& scores,
+                                      bool higher_better) override;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMBEST_H

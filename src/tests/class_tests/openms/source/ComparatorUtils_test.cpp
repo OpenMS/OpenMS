@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,7 +66,7 @@ StrangeMixedLessOfIntAndString : std::binary_function < int, string, bool >
 	bool
 	operator () ( int const & i, string const & s ) const
 	{
-		return i < strtol ( s.c_str(), 0, 10 );
+		return i < strtol ( s.c_str(), nullptr, 10 );
 	}
 };
 

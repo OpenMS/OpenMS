@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@ using namespace std;
 namespace OpenMS
 {
   ModificationDefinition::ModificationDefinition() :
-    mod_(0),
+    mod_(nullptr),
     fixed_modification_(true),
     max_occurrences_(0)
   {
@@ -55,7 +55,7 @@ namespace OpenMS
   }
 
   ModificationDefinition::ModificationDefinition(const String& mod, bool fixed, UInt max_occur) :
-    mod_(0),
+    mod_(nullptr),
     fixed_modification_(fixed),
     max_occurrences_(max_occur)
   {
@@ -123,14 +123,14 @@ namespace OpenMS
     if (!mod_)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "No modification defined", 0);
+                                    "No modification defined", nullptr);
     }
     return *mod_;
   }
 
   String ModificationDefinition::getModificationName() const
   {
-    if (mod_ != 0)
+    if (mod_ != nullptr)
     {
       return mod_->getFullId();
     }

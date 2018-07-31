@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_MSQUANTIFICATIONS_H
-#define OPENMS_METADATA_MSQUANTIFICATIONS_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -189,7 +188,7 @@ public:
     MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
 
     /// Destructor
-    ~MSQuantifications();
+    ~MSQuantifications() override;
 
     /// Copy constructor
     MSQuantifications(const MSQuantifications & source);
@@ -247,4 +246,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_MSQUANTIFICATIONS_H

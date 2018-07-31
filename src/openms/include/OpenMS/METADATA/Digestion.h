@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_DIGESTION_H
-#define OPENMS_METADATA_DIGESTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/SampleTreatment.h>
@@ -56,7 +55,7 @@ public:
     /// copy constructor
     Digestion(const Digestion &);
     /// destructor
-    virtual ~Digestion();
+    ~Digestion() override;
 
     /// assignment operator
     Digestion & operator=(const Digestion &);
@@ -67,10 +66,10 @@ public:
     Although this operator takes a reference to a SampleTreatment as argument
     it tests for the equality of Tagging instances!
   */
-    virtual bool operator==(const SampleTreatment & rhs) const;
+    bool operator==(const SampleTreatment & rhs) const override;
 
     /// clone method. See SampleTreatment
-    virtual SampleTreatment * clone() const;
+    SampleTreatment * clone() const override;
 
     /// returns the enzyme name (default is "")
     const String & getEnzyme() const;
@@ -100,4 +99,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_DIGESTION_H

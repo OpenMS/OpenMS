@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_LEVMARQFITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LEVMARQFITTER1D_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
@@ -94,7 +93,7 @@ public:
     }
 
     /// destructor
-    virtual ~LevMarqFitter1D()
+    ~LevMarqFitter1D() override
     {
     }
 
@@ -121,36 +120,10 @@ protected:
 
         @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor)
-    {
-      //TODO: this function is copy&paste from TraceFitter.h. Make a generic wrapper for
-      //LM optimization
-      int data_count = functor.values();
-      int num_params = functor.inputs();
+    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor);
 
-      // LM always expects N>=p, cause Jacobian be rectangular M x N with M>=N
-      if (data_count < num_params) throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Skipping feature, we always expects N>=p");
-
-      Eigen::LevenbergMarquardt<GenericFunctor> lmSolver (functor);
-      lmSolver.parameters.maxfev = max_iteration_;
-      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
-
-      //the states are poorly documented. after checking the source, we believe that
-      //all states except NotStarted, Running and ImproperInputParameters are good
-      //termination states.
-      if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
-      {
-          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-FinalSet", "Could not fit the gaussian to the data: Error " + String(status));
-      }
-    }
-
-    void updateMembers_()
-    {
-      Fitter1D::updateMembers_();
-      max_iteration_ = this->param_.getValue("max_iteration");
-    }
+    void updateMembers_() override;
 
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_LEVMARQFITTER1D_H

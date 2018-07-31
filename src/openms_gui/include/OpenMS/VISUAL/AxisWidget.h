@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_AXISWIDGET_H
-#define OPENMS_VISUAL_AXISWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
-#include <QtGui/QWidget>
+#include <QtWidgets>
 class QPaintEvent;
 
 // OpenMS
@@ -73,10 +72,10 @@ public:
     typedef std::vector<std::vector<double> > GridVector;
 
     /// constructor
-    AxisWidget(AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = 0);
+    AxisWidget(AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = nullptr);
 
     /// destructor
-    virtual ~AxisWidget();
+    ~AxisWidget() override;
 
     /// sets the margin on the top/right side (default is 0)
     void setMargin(UInt size);
@@ -166,8 +165,7 @@ protected:
     bool allow_short_numbers_;
 
     /// Reimplemented Qt event (calls paint with "this")
-    void paintEvent(QPaintEvent *);
+    void paintEvent(QPaintEvent *) override;
   };
 } // namespace OpenMS
 
-#endif

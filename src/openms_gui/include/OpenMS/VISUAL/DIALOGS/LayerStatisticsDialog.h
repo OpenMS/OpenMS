@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,19 +32,23 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/LayerData.h>
 
-#include <QtGui/QPushButton>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QPushButton>
 
 #include <utility>
 #include <map>
+
+namespace Ui
+{
+  class LayerStatisticsDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -57,8 +61,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI LayerStatisticsDialog :
-    public QDialog,
-    public Ui::LayerStatisticsDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -66,6 +69,8 @@ public:
 
     /// Constructor
     LayerStatisticsDialog(SpectrumWidget * parent);
+
+    ~LayerStatisticsDialog();
 
 protected slots:
 
@@ -151,6 +156,8 @@ private:
     ///Not implemented
     LayerStatisticsDialog();
 
+    Ui::LayerStatisticsDialogTemplate* ui_;
+
   };
 
   template <typename MetaDataIterator>
@@ -204,4 +211,3 @@ private:
   }
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H

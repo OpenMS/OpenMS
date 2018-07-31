@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_MSSIM_H
-#define OPENMS_SIMULATION_MSSIM_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
@@ -79,7 +78,7 @@ public:
     MSSim();
 
     /// Destructor
-    virtual ~MSSim();
+    ~MSSim() override;
     //@}
 
     /**
@@ -148,7 +147,7 @@ protected:
     void createFeatureMap_(const SimTypes::SampleProteins& peptides, SimTypes::FeatureMapSim& features, Size map_index);
 
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
 
 private:
     /// Holds the simulated data
@@ -172,4 +171,3 @@ private:
 
 }
 
-#endif

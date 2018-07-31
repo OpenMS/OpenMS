@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,10 +76,10 @@ START_SECTION([EXTRA] typedefs )
 	BIFD::KeyType       * key;
 	BIFD::ContainerType * container;
 	BIFD::ContainerType::value_type * containerValue;
-	value = 0;
-	key = 0;
-	container = 0;
-	containerValue = 0;
+	value = nullptr;
+	key = nullptr;
+	container = nullptr;
+	containerValue = nullptr;
   // shut off warnings
   (void)value;
   (void)key;
@@ -91,8 +91,8 @@ END_SECTION
 
 typedef BilinearInterpolation < float, double > BIFD;
 
-BIFD * bifd_ptr = 0;
-BIFD * bifd_nullPointer = 0;
+BIFD * bifd_ptr = nullptr;
+BIFD * bifd_nullPointer = nullptr;
 
 START_SECTION(BilinearInterpolation())
 {

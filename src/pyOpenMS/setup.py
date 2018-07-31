@@ -16,8 +16,8 @@ if "--no-optimization" in sys.argv:
     sys.argv.remove("--no-optimization")
 
 # import config
-from env import  (OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
-                  QT_LIBRARY_DIR, MSVS_RTLIBS,
+from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+                  QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
                   QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
                   PY_NUM_MODULES, PY_NUM_THREADS)
@@ -33,6 +33,11 @@ import os
 import glob
 import shutil
 import time
+
+
+os.environ["CC"] = OPEN_MS_COMPILER
+# AFAIK distutils does not care about CXX (set it to be safe)
+os.environ["CXX"] = OPEN_MS_COMPILER
 
 j = os.path.join
 
@@ -71,7 +76,6 @@ ctime = os.stat("pyopenms").st_mtime
 ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
-
 version = OPEN_MS_VERSION
 
 with open("pyopenms/version.py", "w") as fp:
@@ -93,11 +97,11 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if IS_DEBUG:
-        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored4"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "Qt5Cored", "Qt5Networkd"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore4"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
 elif sys.platform.startswith("linux"):
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "QtCore"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "Qt5Core", "Qt5Network"]
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
 else:
@@ -108,10 +112,12 @@ else:
 
 library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "lib"),
+                j(OPEN_MS_BUILD_DIR, "lib", "Release"),
                 j(OPEN_MS_BUILD_DIR, "bin"),
                 j(OPEN_MS_BUILD_DIR, "bin", "Release"),
                 j(OPEN_MS_BUILD_DIR, "Release"),
-                QT_LIBRARY_DIR,
+                QT_INSTALL_BINS,
+                QT_INSTALL_LIBS,
                 ]
 
 # extend with contrib lib dirs
@@ -180,13 +186,13 @@ for module in mnames:
         libraries=libraries,
         include_dirs=include_dirs + autowrap_include_dirs,
         extra_compile_args=extra_compile_args,
-        extra_link_args=extra_link_args
+        extra_link_args=extra_link_args,
+		define_macros=[('BOOST_ALL_NO_LIB', None)] ## Deactivates boost autolink (esp. on win).
+		## Alternative is to specify the boost naming scheme (--layout param; easy if built from contrib)
+		## TODO just take over compile definitions from OpenMS (CMake)
     ))
 
 share_data = []
-if iswin:
-    share_data += MSVS_RTLIBS.split(";") + ["xerces-c_3_1.dll", "sqlite3.dll"]
-
 share_data.append("License.txt")
 
 # enforce 64bit-only build as OpenMS is not available in 32bit on osx
@@ -198,6 +204,9 @@ setup(
     name="pyopenms",
     packages=["pyopenms"],
     ext_package="pyopenms",
+	install_requires=[
+          'numpy',
+    ],
 
     version=version,
 

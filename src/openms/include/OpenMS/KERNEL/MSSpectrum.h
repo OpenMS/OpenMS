@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MSSPECTRUM_H
-#define OPENMS_KERNEL_MSSPECTRUM_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -118,6 +117,7 @@ public:
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
+    using ContainerType::emplace_back;
     using ContainerType::pop_back;
     using ContainerType::empty;
     using ContainerType::front;
@@ -145,7 +145,7 @@ public:
     MSSpectrum(const MSSpectrum& source);
 
     /// Destructor
-    ~MSSpectrum()
+    ~MSSpectrum() override
     {}
 
     /// Assignment operator
@@ -164,7 +164,7 @@ public:
     }
 
     // Docu in base class (RangeManager)
-    virtual void updateRanges();
+    void updateRanges() override;
 
     ///@name Accessors for meta information
     ///@{
@@ -249,49 +249,6 @@ public:
 
     /// Sets the integer meta data arrays
     void setIntegerDataArrays(const IntegerDataArrays& ida);
-
-    /// Returns a mutable reference to the first integer meta data array with the given name
-    inline IntegerDataArray& getIntegerDataArrayByName(String name)
-    {
-      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
-        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a mutable reference to the first string meta data array with the given name
-    inline StringDataArray& getStringDataArrayByName(String name)
-    {
-      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
-        [&name](const StringDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a mutable reference to the first float meta data array with the given name
-    inline FloatDataArray& getFloatDataArrayByName(String name)
-    {
-      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
-        [&name](const FloatDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first integer meta data array with the given name
-    inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
-    {
-      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
-        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first string meta data array with the given name
-    inline const StringDataArray& getStringDataArrayByName(String name) const
-    {
-      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
-        [&name](const StringDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first float meta data array with the given name
-    inline const FloatDataArray& getFloatDataArrayByName(String name) const
-    {
-      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
-        [&name](const FloatDataArray& da) { return da.getName() == name; } );
-    }
-
     //@}
 
     ///@name Sorting peaks
@@ -413,6 +370,78 @@ public:
     */
     ConstIterator MZEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for MZBegin()
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+    */
+    Iterator PosBegin(CoordinateType mz);
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for MZBegin()
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+    */
+    Iterator PosBegin(Iterator begin, CoordinateType mz, Iterator end);
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for MZBegin()
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+    */
+    ConstIterator PosBegin(CoordinateType mz) const;
+
+    /**
+      @brief Binary search for peak range begin
+
+      Alias for MZBegin()
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+    */
+    ConstIterator PosBegin(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for MZEnd()
+
+      @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+    */
+    Iterator PosEnd(CoordinateType mz);
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for MZEnd()
+
+      @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+    */
+    Iterator PosEnd(Iterator begin, CoordinateType mz, Iterator end);
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for MZEnd()
+
+      @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+    */
+    ConstIterator PosEnd(CoordinateType mz) const;
+
+    /**
+      @brief Binary search for peak range end (returns the past-the-end iterator)
+
+      Alias for MZEnd()
+
+      @note Make sure the spectrum is sorted with respect to m/z. Otherwise the result is undefined.
+    */
+    ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
+
     //@}
 
 
@@ -474,5 +503,3 @@ protected:
   }
 
 } // namespace OpenMS
-
-#endif // OPENMS_KERNEL_MSSPECTRUM_H

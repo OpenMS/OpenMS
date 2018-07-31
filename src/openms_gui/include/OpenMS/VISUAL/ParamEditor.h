@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,25 +32,27 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_PARAMEDITOR_H
-#define OPENMS_VISUAL_PARAMEDITOR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <OpenMS/VISUAL/UIC/ui_ParamEditor.h>
-#include <QtGui/QLineEdit>
-
-#include <QtGui/QItemDelegate>
-#include <QtGui/QTreeWidget>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QItemDelegate>
+#include <QtWidgets/QTreeWidget>
 
 class QModelIndex;
 class QStyleOptionViewItem;
 class QAbstractItemModel;
 class QStringList;
 class QString;
+
+namespace Ui
+{
+  class ParamEditorTemplate;
+}
 
 namespace OpenMS
 {
@@ -83,8 +85,8 @@ signals:
 
 
     protected:
-        virtual void   focusOutEvent ( QFocusEvent * e );
-        virtual void   focusInEvent ( QFocusEvent * e );
+        void   focusOutEvent ( QFocusEvent * e ) override;
+        void   focusInEvent ( QFocusEvent * e ) override;
     };
     /**
         @brief Internal delegate class for QTreeWidget
@@ -100,13 +102,13 @@ public:
       ///Constructor
       ParamEditorDelegate(QObject * parent);
       /// Returns the widget(combobox or QLineEdit) used to edit the item specified by index for editing. Prevents edit operations on nodes' values and types
-      QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+      QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
       /// Sets the data to be displayed and edited by the editor for the item specified by index.
-      void setEditorData(QWidget * editor, const QModelIndex & index) const;
+      void setEditorData(QWidget * editor, const QModelIndex & index) const override;
       /// Sets the data for the specified model and item index from that supplied by the editor. If data changed in a cell, that is if it is different from an initial value, then set its background color to yellow and emit the modified signal otherwise make it white
-      void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const;
+      void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
       /// Updates the editor for the item specified by index according to the style option given.
-      void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+      void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
 
       /// true if the underlying tree has an open QLineEdit which has uncommitted data
       bool hasUncommittedData() const;
@@ -146,7 +148,7 @@ public:
       ///Constructor
       ParamTree(QWidget * parent);
       /// Overloaded edit method to activate F2 use
-      bool edit(const QModelIndex & index, EditTrigger trigger, QEvent * event);
+      bool edit(const QModelIndex & index, EditTrigger trigger, QEvent * event) override;
 
 signals:
       ///Signal that is emitted when a new item is selected
@@ -154,11 +156,12 @@ signals:
 
 protected slots:
       /// Reimplemented virtual slot
-      void selectionChanged(const QItemSelection & selected, const QItemSelection &);
+      void selectionChanged(const QItemSelection & selected, const QItemSelection &) override;
     };
 
   }
 
+  
   /**
       @brief A GUI for editing or viewing a Param object
 
@@ -171,8 +174,7 @@ protected slots:
       @ingroup Visual
   */
   class OPENMS_GUI_DLLAPI ParamEditor :
-    public QWidget,
-    public Ui::ParamEditorTemplate
+    public QWidget
   {
     Q_OBJECT
 
@@ -186,7 +188,10 @@ public:
     };
 
     /// constructor
-    ParamEditor(QWidget * parent = 0);
+    ParamEditor(QWidget * parent = nullptr);
+    /// destructor
+    virtual ~ParamEditor();
+    
     /// load method for Param object
     void load(Param & param);
     /// store edited data in Param object
@@ -223,9 +228,11 @@ protected:
     bool modified_;
     /// Indicates if normal mode or advanced mode is activated
     bool advanced_mode_;
+
+private:
+    Ui::ParamEditorTemplate* ui_;
   };
 
 
 } // namespace OpenMS
 
-#endif // OPENMS_VISUAL_PARAMEDITOR_H

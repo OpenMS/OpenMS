@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,9 +50,9 @@ START_TEST(FeatureFinderAlgorithmMRM, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFinderAlgorithmMRM* ptr = 0;
-FeatureFinderAlgorithmMRM* nullPointer = 0;
-FeatureFinderAlgorithm* ffA_nullPointer = 0;
+FeatureFinderAlgorithmMRM* ptr = nullptr;
+FeatureFinderAlgorithmMRM* nullPointer = nullptr;
+FeatureFinderAlgorithm* ffA_nullPointer = nullptr;
 
 START_SECTION(FeatureFinderAlgorithmMRM())
 {
@@ -103,7 +103,7 @@ END_SECTION
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
 {
-  FeatureFinderAlgorithm* ptr2 = 0;
+  FeatureFinderAlgorithm* ptr2 = nullptr;
   ptr2 = FeatureFinderAlgorithmMRM::create();
   TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
 }

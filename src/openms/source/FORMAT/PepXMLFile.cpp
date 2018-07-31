@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,19 +38,8 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h> // for "primary_scan_regex"
-#include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <fstream>
-#include <iostream>
-#include <boost/regex.hpp>
 
 using namespace std;
 
@@ -60,9 +49,9 @@ namespace OpenMS
   PepXMLFile::PepXMLFile() :
     XMLHandler("", "1.12"),
     XMLFile("/SCHEMAS/pepXML_v114.xsd", "1.14"),
-    proteins_(NULL),
-    peptides_(NULL),
-    lookup_(NULL),
+    proteins_(nullptr),
+    peptides_(nullptr),
+    lookup_(nullptr),
     scan_map_(),
     analysis_summary_(false),
     keep_native_name_(false),
@@ -541,6 +530,15 @@ namespace OpenMS
             }
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("E-Value") << "\"" << "/>\n";
           }
+          else if (search_engine_name == "Comet")
+          {
+            f << "\t\t\t<search_score" << " name=\"xcorr\" value=\"" << h.getMetaValue("MS:1002252") << "\"" << "/>\n"; // name: Comet:xcorr
+            f << "\t\t\t<search_score" << " name=\"deltacn\" value=\"" << h.getMetaValue("MS:1002253") << "\"" << "/>\n"; // name: Comet:deltacn
+            f << "\t\t\t<search_score" << " name=\"deltacnstar\" value=\"" << h.getMetaValue("MS:1002254") << "\"" << "/>\n"; // name: Comet:deltacnstar
+            f << "\t\t\t<search_score" << " name=\"spscore\" value=\"" << h.getMetaValue("MS:1002255") << "\"" << "/>\n"; // name: Comet:spscore
+            f << "\t\t\t<search_score" << " name=\"sprank\" value=\"" << h.getMetaValue("MS:1002256") << "\"" << "/>\n"; // name: Comet:sprank
+            f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("MS:1002257") << "\"" << "/>\n"; // name: Comet:expect
+          }
           else if (search_engine_name == "MASCOT")
           {
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("EValue") << "\"" << "/>\n";
@@ -617,7 +615,7 @@ namespace OpenMS
 
     if (!rt_present) // get RT from experiment
     {
-      if (lookup_ == NULL || lookup_->empty())
+      if (lookup_ == nullptr || lookup_->empty())
       {
         // no lookup given, report non-fatal error
         error(LOAD, "Cannot get RT information - no spectra given");
@@ -710,9 +708,9 @@ namespace OpenMS
     exp_name_.clear();
     prot_id_.clear();
     date_.clear();
-    proteins_ = NULL;
-    peptides_ = NULL;
-    lookup_ = NULL;
+    proteins_ = nullptr;
+    peptides_ = nullptr;
+    lookup_ = nullptr;
     scan_map_.clear();
   }
 
@@ -894,6 +892,11 @@ namespace OpenMS
           {
             value = attributeAsDouble_(attributes, "value");
             peptide_hit_.setMetaValue("MS:1002256", value); // name: Comet:sprank
+          }
+          else if (name == "deltacnstar")
+          {
+            value = attributeAsDouble_(attributes, "value");
+            peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
           }
         }
       }
@@ -1353,7 +1356,6 @@ namespace OpenMS
     else if (element == "sample_enzyme") // parent: "msms_run_summary"
     { // special case: search parameter that occurs *before* "search_summary"!
       enzyme_ = attributeAsString_(attributes, "name");
-      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_.toLower()))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_));
@@ -1361,9 +1363,8 @@ namespace OpenMS
     }
     else if (element == "enzymatic_search_constraint") // parent: "search_summary"
     {
-      //<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
+      ///<enzymatic_search_constraint enzyme="nonspecific" max_num_internal_cleavages="1" min_number_termini="2"/>
       enzyme_ = attributeAsString_(attributes, "enzyme");
-      if (enzyme_ == "nonspecific") enzyme_ = "unspecific cleavage";
       if (ProteaseDB::getInstance()->hasEnzyme(enzyme_))
       {
         params_.digestion_enzyme = *(ProteaseDB::getInstance()->getEnzyme(enzyme_.toLower()));
@@ -1461,7 +1462,7 @@ namespace OpenMS
       {
         const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
 
-        if (residue == 0)
+        if (residue == nullptr)
         {
           double new_mass = it->massdiff.toDouble();
           if (it->aminoacid == "" && it->terminus =="n")

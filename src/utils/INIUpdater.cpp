@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <QFileInfo>
 #include <QFile>
 #include <QDir>
@@ -97,7 +97,7 @@ public:
 
 protected:
 
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "INI/TOPPAS files that need updating.");
     setValidFormats_("in", ListUtils::create<String>("ini,toppas"));
@@ -221,11 +221,12 @@ protected:
     int argc = 1;
     const char* c = "IniUpdater";
     const char** argv = &c;
+
     QApplication app(argc, const_cast<char**>(argv), false);
     String tmp_dir = File::getTempDirectory() + "/" + File::getUniqueName();
     QDir d;
     d.mkpath(tmp_dir.toQString());
-    TOPPASScene ts(0, tmp_dir.toQString(), false);
+    TOPPASScene ts(nullptr, tmp_dir.toQString(), false);
     paramFile.store(tmp_ini_file, p);
     ts.load(tmp_ini_file);
     ts.store(tmp_ini_file);
@@ -355,7 +356,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     StringList in  = getStringList_("in");
     StringList out = getStringList_("out");

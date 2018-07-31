@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2017-12-08T12:44:40">
+		<software name="FileFilter" version="2.3.0" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: in" value="MetaProSIP_1_input.featureXML"/>
+		<UserParam type="string" name="parameter: in_type" value=""/>
+		<UserParam type="string" name="parameter: out" value="MetaProSIP_1_input.featureXML"/>
+		<UserParam type="string" name="parameter: out_type" value=""/>
+		<UserParam type="string" name="parameter: rt" value=":"/>
+		<UserParam type="string" name="parameter: mz" value=":"/>
+		<UserParam type="string" name="parameter: int" value=":"/>
+		<UserParam type="string" name="parameter: sort" value="false"/>
+		<UserParam type="string" name="parameter: log" value=""/>
+		<UserParam type="int" name="parameter: debug" value="0"/>
+		<UserParam type="int" name="parameter: threads" value="1"/>
+		<UserParam type="string" name="parameter: no_progress" value="false"/>
+		<UserParam type="string" name="parameter: force" value="false"/>
+		<UserParam type="string" name="parameter: test" value="false"/>
+		<UserParam type="float" name="parameter: peak_options:sn" value="0"/>
+		<UserParam type="intList" name="parameter: peak_options:rm_pc_charge" value="[]"/>
+		<UserParam type="string" name="parameter: peak_options:pc_mz_range" value=":"/>
+		<UserParam type="floatList" name="parameter: peak_options:pc_mz_list" value="[]"/>
+		<UserParam type="intList" name="parameter: peak_options:level" value="[1, 2, 3]"/>
+		<UserParam type="string" name="parameter: peak_options:sort_peaks" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:no_chromatograms" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:remove_chromatograms" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:mz_precision" value="64"/>
+		<UserParam type="string" name="parameter: peak_options:int_precision" value="32"/>
+		<UserParam type="string" name="parameter: peak_options:indexed_file" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:zlib_compression" value="false"/>
+		<UserParam type="string" name="parameter: peak_options:numpress:masstime" value="none"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:masstime_error" value="0.0001"/>
+		<UserParam type="string" name="parameter: peak_options:numpress:intensity" value="none"/>
+		<UserParam type="float" name="parameter: peak_options:numpress:intensity_error" value="0.0001"/>
+		<UserParam type="string" name="parameter: spectra:remove_zoom" value="false"/>
+		<UserParam type="string" name="parameter: spectra:remove_mode" value=""/>
+		<UserParam type="string" name="parameter: spectra:remove_activation" value=""/>
+		<UserParam type="string" name="parameter: spectra:remove_collision_energy" value=":"/>
+		<UserParam type="string" name="parameter: spectra:remove_isolation_window_width" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_zoom" value="false"/>
+		<UserParam type="string" name="parameter: spectra:select_mode" value=""/>
+		<UserParam type="string" name="parameter: spectra:select_activation" value=""/>
+		<UserParam type="string" name="parameter: spectra:select_collision_energy" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_isolation_window_width" value=":"/>
+		<UserParam type="string" name="parameter: spectra:select_polarity" value=""/>
+		<UserParam type="string" name="parameter: feature:q" value=":"/>
+		<UserParam type="intList" name="parameter: consensus:map" value="[]"/>
+		<UserParam type="string" name="parameter: consensus:map_and" value="false"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:blacklist" value="true"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:file" value=""/>
+		<UserParam type="intList" name="parameter: consensus:blackorwhitelist:maps" value="[]"/>
+		<UserParam type="float" name="parameter: consensus:blackorwhitelist:rt" value="60"/>
+		<UserParam type="float" name="parameter: consensus:blackorwhitelist:mz" value="0.01"/>
+		<UserParam type="string" name="parameter: consensus:blackorwhitelist:use_ppm_tolerance" value="false"/>
+		<UserParam type="string" name="parameter: f_and_c:charge" value=":"/>
+		<UserParam type="string" name="parameter: f_and_c:size" value=":"/>
+		<UserParam type="stringList" name="parameter: f_and_c:remove_meta" value="[]"/>
+		<UserParam type="string" name="parameter: id:remove_clashes" value="false"/>
+		<UserParam type="string" name="parameter: id:keep_best_score_id" value="false"/>
+		<UserParam type="stringList" name="parameter: id:sequences_whitelist" value="[]"/>
+		<UserParam type="stringList" name="parameter: id:accessions_whitelist" value="[]"/>
+		<UserParam type="string" name="parameter: id:remove_annotated_features" value="false"/>
+		<UserParam type="string" name="parameter: id:remove_unannotated_features" value="true"/>
+		<UserParam type="string" name="parameter: id:remove_unassigned_ids" value="false"/>
+		<UserParam type="string" name="parameter: id:blacklist" value=""/>
+		<UserParam type="float" name="parameter: id:rt" value="0.1"/>
+		<UserParam type="float" name="parameter: id:mz" value="0.001"/>
+		<UserParam type="string" name="parameter: id:blacklist_imperfect" value="false"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:max_intensity" value="-1"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:auto_max_stdev_factor" value="3"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_max_percentile" value="95"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:auto_mode" value="0"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:win_len" value="200"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:bin_count" value="30"/>
+		<UserParam type="int" name="parameter: algorithm:SignalToNoise:min_required_elements" value="10"/>
+		<UserParam type="float" name="parameter: algorithm:SignalToNoise:noise_for_empty_window" value="1e+20"/>
+		<UserParam type="string" name="parameter: algorithm:SignalToNoise:write_log_messages" value="true"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-03-11T14:53:29" search_engine="OMSSA" search_engine_version="2.1.8">
+		<SearchParameters db="/raid/sachsenb/Jana/fasta/Zeitz_1and2_454AllContigs_HEX.fasta.psq" db_version="" taxonomy="0" mass_type="monoisotopic" charges="+2-+3" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="OMSSA" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="contig23640_802236" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<featureList count="1">
+		<feature id="f_988449706551050085">
+			<position dim="0">4831.43346884947</position>
+			<position dim="1">666.862287171363</position>
+			<intensity>3.25608e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.882314</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4803.8473" y="666.862043575291" />
+				<pt x="4805.8211" y="666.862135109963" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4803.8473" y="667.364150217852" />
+				<pt x="4805.8211" y="667.363529666672" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="4805.8211" y="667.865608520739" />
+				<pt x="4807.3928" y="667.864992849711" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="4810.5312" y="668.364801015548" />
+				<pt x="4812.1021" y="668.365292284748" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="OMSSA" higher_score_better="false" significance_threshold="0" MZ="666.861999511719" RT="4808.4946" >
+				<PeptideHit score="0.174659044235501" sequence="YGGAVDPTVLGGVK" charge="2" aa_before="K" aa_after="L" protein_refs="PH_0">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="int" name="label" value="453"/>
+			<UserParam type="float" name="score_fit" value="0.783165906030983"/>
+			<UserParam type="float" name="score_correlation" value="0.994014816652796"/>
+			<UserParam type="float" name="FWHM" value="23.5379981994629"/>
+			<UserParam type="int" name="spectrum_index" value="1569"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=6112"/>
+		</feature>
+	</featureList>
+</featureMap>

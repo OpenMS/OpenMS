@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,15 +32,16 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMSCACHED_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSOPENMSCACHED_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
+
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <fstream>
 
@@ -61,7 +62,8 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI SpectrumAccessOpenMSCached :
-    public OpenSwath::ISpectrumAccess
+    public OpenSwath::ISpectrumAccess,
+    public OpenMS::CachedmzML
   {
 
 public:
@@ -77,56 +79,37 @@ public:
       @throws Exception::FileNotFound is thrown if the file is not found
       @throws Exception::ParseError is thrown if the file cannot be parsed
     */
-    explicit SpectrumAccessOpenMSCached(String filename);
+    explicit SpectrumAccessOpenMSCached(const String& filename);
 
     /**
       @brief Destructor
     */
-    ~SpectrumAccessOpenMSCached();
+    ~SpectrumAccessOpenMSCached() override;
 
     /// Copy constructor
     SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs);
 
     /// Light clone operator (actual data will not get copied)
-    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const override;
 
-    OpenSwath::SpectrumPtr getSpectrumById(int id);
+    OpenSwath::SpectrumPtr getSpectrumById(int id) override;
 
-    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
+    OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const override;
 
-    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const;
+    std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const override;
 
-    size_t getNrSpectra() const;
+    size_t getNrSpectra() const override;
 
     SpectrumSettings getSpectraMetaInfo(int id) const;
 
-    OpenSwath::ChromatogramPtr getChromatogramById(int id);
+    OpenSwath::ChromatogramPtr getChromatogramById(int id) override;
 
-    size_t getNrChromatograms() const;
+    size_t getNrChromatograms() const override;
 
     ChromatogramSettings getChromatogramMetaInfo(int id) const;
 
-    std::string getChromatogramNativeID(int id) const;
-
-private:
-
-    /// Meta data
-    MSExperimentType meta_ms_experiment_;
-
-    /// Internal filestream 
-    std::ifstream ifs_;
-
-    /// Name of the mzML file
-    String filename_;
-
-    /// Name of the cached mzML file
-    String filename_cached_;
-
-    /// Indices
-    std::vector<std::streampos> spectra_index_;
-    std::vector<std::streampos> chrom_index_;
+    std::string getChromatogramNativeID(int id) const override;
   };
 
 } //end namespace
 
-#endif

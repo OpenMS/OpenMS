@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,37 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>
 
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
+
 namespace OpenMS
 {
+  MSDataStoringConsumer::MSDataStoringConsumer() {}
 
+  void MSDataStoringConsumer::setExperimentalSettings(const ExperimentalSettings & settings)
+  {
+    exp_ = settings; // only override the settings, keep the data
+  }
+
+  void MSDataStoringConsumer::setExpectedSize(Size s_size, Size c_size)
+  {
+    exp_.reserveSpaceSpectra(s_size);
+    exp_.reserveSpaceChromatograms(c_size);
+  }
+
+  void MSDataStoringConsumer::consumeSpectrum(SpectrumType & s)
+  {
+    exp_.addSpectrum(s);
+  }
+
+  void MSDataStoringConsumer::consumeChromatogram(ChromatogramType & c)
+  {
+    exp_.addChromatogram(c);
+  }
+
+  const PeakMap& MSDataStoringConsumer::getData() const
+  {
+    return exp_;
+  }
 } // namespace OpenMS

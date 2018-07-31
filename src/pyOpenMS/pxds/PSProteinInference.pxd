@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>" namespace "Op
         PSProteinInference(PSProteinInference) nogil except + #wrap-ignore
         Size findMinimalProteinList(libcpp_vector[ PeptideIdentification ] & peptide_ids) nogil except +
         void calculateProteinProbabilities(libcpp_vector[ PeptideIdentification ] & ids) nogil except +
-        double getProteinProbability(String & acc) nogil except +
-        bool isProteinInMinimalList(String & acc) nogil except +
+        double getProteinProbability(const String & acc) nogil except +
+        bool isProteinInMinimalList(const String & acc) nogil except +
         Int getNumberOfProtIds(double protein_id_threshold) nogil except +
         # TODO nested STL
         # Int getNumberOfProtIdsPeptideRule(Int min_peptides, libcpp_map[ String, libcpp_set[ String ] ] & prot_id_counter) nogil except +

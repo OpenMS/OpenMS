@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,7 @@ class TOPPOpenSwathRewriteToFeatureXML :
 
  protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("csv","<file>","","mProphet tsv output file: \"all_peakgroups.xls\"", false);
     setValidFormats_("csv", ListUtils::create<String>("csv"));
@@ -187,7 +187,7 @@ class TOPPOpenSwathRewriteToFeatureXML :
     feature_map = out_feature_map;
   }
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int , const char**) override
   {
 
   String feature_file = getStringOption_("featureXML");

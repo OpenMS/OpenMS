@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -43,7 +42,6 @@
 
 #include <OpenMS/FORMAT/CompressedInputSource.h>
 
-#include <xercesc/framework/XMLFormatter.hpp>
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufInputSource.hpp>
@@ -51,7 +49,6 @@
 
 #include <fstream>
 #include <iomanip> // setprecision etc.
-#include <iosfwd>
 
 #include <boost/shared_ptr.hpp>
 

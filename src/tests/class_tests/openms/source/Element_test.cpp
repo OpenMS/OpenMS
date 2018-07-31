@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,8 +39,10 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/Element.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+
 
 using namespace OpenMS;
 using namespace std;
@@ -51,8 +53,8 @@ START_TEST(Element, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-Element* e_ptr = 0;
-Element* e_nullPointer = 0;
+Element* e_ptr = nullptr;
+Element* e_nullPointer = nullptr;
 START_SECTION(Element())
 	e_ptr = new Element;
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
@@ -68,7 +70,7 @@ UInt atomic_number(43);
 double average_weight(0.12345);
 double mono_weight(0.123456789);
 
-e_ptr = 0;
+e_ptr = nullptr;
 START_SECTION((Element(const String& name, const String& symbol, UInt atomic_number, double average_weight, double mono_weight, const IsotopeDistribution& isotopes)))
 	e_ptr = new Element(name, symbol, atomic_number, average_weight, mono_weight, dist);	
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
@@ -154,6 +156,18 @@ START_SECTION(bool operator == (const Element& element) const)
 	e.setAverageWeight(0.54321);
 	TEST_EQUAL(e == *e_ptr, false)
 END_SECTION
+
+START_SECTION(bool operator < (const Element& element) const)
+	const Element * h = ElementDB::getInstance()->getElement("H");
+	const Element * c = ElementDB::getInstance()->getElement("Carbon");
+	const Element * o = ElementDB::getInstance()->getElement("O");
+	const Element * s = ElementDB::getInstance()->getElement("S");
+	TEST_EQUAL(*h < *c, true)
+	TEST_EQUAL(*c < *o, true)
+	TEST_EQUAL(*c < *c, false)
+	TEST_EQUAL(*s < *c, false)
+END_SECTION
+
 
 delete e_ptr;
 

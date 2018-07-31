@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_GZIPINPUTSTREAM_H
-#define OPENMS_FORMAT_GZIPINPUTSTREAM_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/FORMAT/GzipIfstream.h>
@@ -59,7 +58,7 @@ public:
     explicit GzipInputStream(const char* const file_name);
 
     ///Destructor
-    virtual ~GzipInputStream();
+    ~GzipInputStream() override;
 
     ///returns true if file is open
     bool getIsOpen() const;
@@ -69,7 +68,7 @@ public:
       *
       * @note Implementation of the xerces-c input stream interface
     */
-    virtual XMLFilePos curPos() const;
+    XMLFilePos curPos() const override;
 
     /**
       * @brief writes bytes into buffer from file
@@ -82,7 +81,7 @@ public:
       * @return returns the number of bytes which were actually read
       *
     */
-    virtual XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read);
+    XMLSize_t readBytes(XMLByte* const to_fill, const XMLSize_t max_to_read) override;
 
     /**
       * @brief returns 0
@@ -94,7 +93,7 @@ public:
       *
       *
     */
-    virtual const XMLCh* getContentType() const;
+    const XMLCh* getContentType() const override;
 
 
 private:
@@ -121,4 +120,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_GZIPInputStream_H

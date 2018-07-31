@@ -37,10 +37,9 @@ WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doxygen/doxygen-dot-error.log
 INPUT                  = @CF_OPENMS_SRC_PATH@/include/OpenMS/ \
                          @CF_OPENMS_SRC_PATH@/source/ \
                          @CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/ \
-                         @CF_OPENMS_SRC_PATH@/doc//TOPP_tutorial/ \
-                         @CF_OPENMS_SRC_PATH@/doc//doxygen/public/ \
-												 @CF_OPENMS_SRC_PATH@/doc//doxygen/internal/ \
-												 @CF_OPENMS_SRC_PATH@/doc//doxygen/install/
+                         @CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/ \
+                         @CF_OPENMS_SRC_PATH@/doc/doxygen/public/ \
+                         @CF_OPENMS_SRC_PATH@/doc/doxygen/install/
 
 FILE_PATTERNS          = *.cpp \
                          *.C \

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,9 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
-#include <cstdlib>
 #include <fstream>
-#include <algorithm>
 
 using namespace std;
 
@@ -616,9 +614,13 @@ namespace OpenMS
           {
             accession = line.substr(pos1, pos2 - pos1);
             if ((accession.size() == 6) && (String(swissprot_prefixes).find(accession[0], 0) != String::npos))
+            {
               accession_type = "SwissProt";
+            }
             else
+            {
               accession.clear();
+            }
           }
         }
         if (accession.empty())
@@ -628,12 +630,9 @@ namespace OpenMS
             accession = line.substr(3, snd - 4);
           else
           {
-            if (snd == String::npos)
-              snd = line.find(' ', 3);
-            if (snd != String::npos)
-              accession = line.substr(3, snd - 3);
-            else
-              accession = line.substr(3);
+            snd = line.find(' ', 3);
+            if (snd != String::npos) accession = line.substr(3, snd - 3);
+            else accession = line.substr(3);
           }
         }
       }

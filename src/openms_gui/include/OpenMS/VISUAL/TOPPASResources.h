@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASRESOURCES_H
-#define OPENMS_VISUAL_TOPPASRESOURCES_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -65,7 +64,7 @@ public:
     /// Copy constructor
     TOPPASResources(const TOPPASResources & rhs);
     /// Destructor
-    virtual ~TOPPASResources();
+    ~TOPPASResources() override;
     /// Assignment operator
     TOPPASResources & operator=(const TOPPASResources & rhs);
     /// Adds the (key,resource_list) pair to the dictionary
@@ -88,4 +87,3 @@ protected:
   };
 }
 
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,8 +51,8 @@ START_TEST(BiGaussFitter1D, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BiGaussFitter1D* ptr = 0;
-BiGaussFitter1D* nullPointer = 0;
+BiGaussFitter1D* ptr = nullptr;
+BiGaussFitter1D* nullPointer = nullptr;
 START_SECTION(BiGaussFitter1D())
 {
   ptr = new BiGaussFitter1D();

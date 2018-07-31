@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: David Wojnar, Timo Sachsenberg, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_ASCORE_H
-#define OPENMS_ANALYSIS_ID_ASCORE_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -77,7 +76,7 @@ namespace OpenMS
     AScore();
 
     ///Destructor
-    ~AScore();
+    ~AScore() override;
 
     /**
         @brief Computes the AScore and returns all computed phospho-sites. The saved sequences contain only phospho information. All other modifications are dropped due to simplicity.
@@ -190,18 +189,17 @@ namespace OpenMS
     std::multimap<double, Size> rankWeightedPermutationPeptideScores_(const std::vector<std::vector<double>>& peptide_site_scores) const;
 
     /// Reimplemented from @ref DefaultParamHandler
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     // variables:
-    double fragment_mass_tolerance_; //< Fragment mass tolerance for spectrum comparisons
-    bool fragment_tolerance_ppm_; //< Is fragment mass tolerance given in ppm (or Da)?
-    Size max_peptide_length_; //< Limit for peptide lengths that can be analyzed
-    Size max_permutations_; //< Limit for number of sequence permutations that can be handled
-    double unambiguous_score_; //< Score for unambiguous assignments (all sites phosphorylated)
+    double fragment_mass_tolerance_; ///< Fragment mass tolerance for spectrum comparisons
+    bool fragment_tolerance_ppm_; ///< Is fragment mass tolerance given in ppm (or Da)?
+    Size max_peptide_length_; ///< Limit for peptide lengths that can be analyzed
+    Size max_permutations_; ///< Limit for number of sequence permutations that can be handled
+    double unambiguous_score_; ///< Score for unambiguous assignments (all sites phosphorylated)
     
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_ASCORE_H
 

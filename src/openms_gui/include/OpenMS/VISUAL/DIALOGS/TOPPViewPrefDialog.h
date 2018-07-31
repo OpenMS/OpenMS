@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,16 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H
+#pragma once
 
-// OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPViewPrefDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPViewPrefDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -50,18 +53,19 @@ namespace OpenMS
         @ingroup TOPPView_elements
     */
     class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog,
-      public Ui::TOPPViewPrefDialogTemplate
+      public QDialog
     {
       Q_OBJECT
 
 public:
       TOPPViewPrefDialog(QWidget * parent);
+      ~TOPPViewPrefDialog();
 
 protected slots:
       void browseDefaultPath_();
       void browseTempPath_();
+private:
+      Ui::TOPPViewPrefDialogTemplate* ui_;
     };
   }
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPVIEWPREFDIALOG_H

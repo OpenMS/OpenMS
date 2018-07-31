@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Guillaume Belz $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_FIDHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_FIDHANDLER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <fstream>
@@ -63,7 +62,7 @@ public:
       explicit FidHandler(const String & filename);
 
       /// Destructor
-      virtual ~FidHandler();
+      ~FidHandler() override;
 
       /// Get index of current position (without position moving).
       Size getIndex();
@@ -82,4 +81,3 @@ private:
   }   // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_FIDHANDLER_H

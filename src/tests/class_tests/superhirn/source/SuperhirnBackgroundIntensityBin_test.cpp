@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,8 +50,8 @@ START_TEST(BackgroundIntensityBin, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundIntensityBin* ptr = 0;
-BackgroundIntensityBin* nullPtr = 0;
+BackgroundIntensityBin* ptr = nullptr;
+BackgroundIntensityBin* nullPtr = nullptr;
 START_SECTION((BackgroundIntensityBin(double, double)))
 	ptr = new BackgroundIntensityBin(300, 12);
 	TEST_NOT_EQUAL(ptr,nullPtr)
@@ -97,7 +97,7 @@ END_SECTION
 
 START_SECTION((std::map<double, double> * getIntensityHist()))
   ptr = new BackgroundIntensityBin(300, 12);
-  std::map<double, double>* intensityHistNullPtr = 0;
+  std::map<double, double>* intensityHistNullPtr = nullptr;
   TEST_NOT_EQUAL(ptr->getIntensityHist(), intensityHistNullPtr);
 END_SECTION
 

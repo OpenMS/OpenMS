@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,8 @@ START_TEST(StablePairFinder, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-StablePairFinder* ptr = 0;
-StablePairFinder* nullPointer = 0;
+StablePairFinder* ptr = nullptr;
+StablePairFinder* nullPointer = nullptr;
 START_SECTION((StablePairFinder()))
 	ptr = new StablePairFinder();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -63,9 +63,9 @@ START_SECTION((virtual ~StablePairFinder()))
 	delete ptr;
 END_SECTION
 
-BaseGroupFinder* base_nullPointer = 0;
+BaseGroupFinder* base_nullPointer = nullptr;
 START_SECTION((static BaseGroupFinder* create()))
-	BaseGroupFinder* base_ptr = 0;
+	BaseGroupFinder* base_ptr = nullptr;
 	base_ptr = StablePairFinder::create();
   TEST_NOT_EQUAL(base_ptr, base_nullPointer)
 END_SECTION

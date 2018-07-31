@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,8 +48,8 @@ START_TEST(GumbelDistributionFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-GumbelDistributionFitter* ptr = 0;
-GumbelDistributionFitter* nullPointer = 0;
+GumbelDistributionFitter* ptr = nullptr;
+GumbelDistributionFitter* nullPointer = nullptr;
 START_SECTION(GumbelDistributionFitter())
 {
 	ptr = new GumbelDistributionFitter();
@@ -156,7 +156,7 @@ END_SECTION
 START_SECTION((GumbelDistributionFitter& operator = (const GumbelDistributionFitter& rhs)))
 NOT_TESTABLE
 END_SECTION
-GumbelDistributionFitter::GumbelDistributionFitResult* p = 0;
+GumbelDistributionFitter::GumbelDistributionFitResult* p = nullptr;
 START_SECTION((GumbelDistributionFitter::GumbelDistributionFitResult()))
 p =  new GumbelDistributionFitter::GumbelDistributionFitResult;
 	TEST_NOT_EQUAL(ptr, nullPointer)

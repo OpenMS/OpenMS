@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,14 +34,7 @@
 
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 
-#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <OpenMS/CONCEPT/Constants.h>
-
-#include <cmath>
-#include <algorithm>
 
 #include <boost/bind.hpp>
 #include <boost/random/binomial_distribution.hpp>
@@ -148,10 +141,10 @@ namespace OpenMS
       experiment[i].getInstrumentSettings().getScanWindows().push_back(sw);
     }
 
-    ConsensusMap::FileDescription map_description;
+    ConsensusMap::ColumnHeader map_description;
     map_description.label = "Simulation (Charge Consensus)";
     map_description.size = features.size();
-    charge_consensus.getFileDescriptions()[0] = map_description;
+    charge_consensus.getColumnHeaders()[0] = map_description;
   }
 
   void IonizationSimulation::setDefaultParams_()

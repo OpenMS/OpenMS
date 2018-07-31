@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <math.h>
+#include <cmath>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
@@ -126,14 +126,14 @@ namespace OpenMS
     }
 
     addIntensity(peak->get_intensity());
-    peak = NULL;
+    peak = nullptr;
     return true;
   }
 
   void BackgroundIntensityBin::addMSPeak(MSPeak * peak)
   {
     addIntensity(peak->get_intensity());
-    peak = NULL;
+    peak = nullptr;
   }
 
   void BackgroundIntensityBin::addIntensity(double intens)

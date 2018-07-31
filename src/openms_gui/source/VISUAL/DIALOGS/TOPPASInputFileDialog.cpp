@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,12 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
+#include <ui_TOPPASInputFileDialog.h>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QFileDialog>
-#include <QtGui/QCompleter>
-#include <QtGui/QDirModel>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDirModel>
 #include <QtCore/QFileInfo>
 
 #include <iostream>
@@ -46,19 +47,25 @@
 namespace OpenMS
 {
   TOPPASInputFileDialog::TOPPASInputFileDialog(const QString & file_name)
+    : ui_(new Ui::TOPPASInputFileDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
 
-    line_edit->setText(file_name);
+    ui_->line_edit->setText(file_name);
     // disable completer for windows, causes crashes
 #ifndef OPENMS_WINDOWSPLATFORM
     QCompleter * completer = new QCompleter(this);
     completer->setModel(new QDirModel(completer));
-    line_edit->setCompleter(completer);
+    ui_->line_edit->setCompleter(completer);
 #endif
-    connect(browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
-    connect(ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(ui_->browse_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
+    connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
+    connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+  }
+
+  TOPPASInputFileDialog::~TOPPASInputFileDialog()
+  {
+    delete ui_;
   }
 
   void TOPPASInputFileDialog::showFileDialog()
@@ -66,22 +73,22 @@ namespace OpenMS
     QString file_name = QFileDialog::getOpenFileName(this, tr("Specify input file"), tr(""), tr(/*valid formats*/ ""));
     if (file_name != "")
     {
-      line_edit->setText(file_name);
+      ui_->line_edit->setText(file_name);
     }
   }
 
   QString TOPPASInputFileDialog::getFilename()
   {
-    return line_edit->text();
+    return ui_->line_edit->text();
   }
 
   void TOPPASInputFileDialog::checkValidity_()
   {
     // we ALLOW non-existing filenames (e.g. for FASTA files, which
     // are searched in other paths via OpenMS.ini:id_db_dir
-    if (!fileNameValid(line_edit->text()))
+    if (!fileNameValid(ui_->line_edit->text()))
     {
-      QMessageBox::warning(0, "Invalid file name", "Warning: filename does not exist!");
+      QMessageBox::warning(nullptr, "Invalid file name", "Warning: filename does not exist!");
     }
 
     accept();

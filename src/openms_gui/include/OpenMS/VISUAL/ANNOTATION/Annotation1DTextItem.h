@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATION1DTEXTITEM_H
-#define OPENMS_VISUAL_ANNOTATION_ANNOTATION1DTEXTITEM_H
+#pragma once
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 
@@ -54,16 +53,16 @@ public:
     Annotation1DTextItem(const Annotation1DTextItem & rhs);
 
     /// Destructor
-    virtual ~Annotation1DTextItem();
+    ~Annotation1DTextItem() override;
 
     // Docu in base class
-    virtual void ensureWithinDataRange(Spectrum1DCanvas * const canvas);
+    void ensureWithinDataRange(Spectrum1DCanvas * const canvas) override;
 
     // Docu in base class
-    virtual void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false);
+    void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
 
     // Docu in base class
-    virtual void move(const PointType & delta);
+    void move(const PointType & delta) override;
 
     /// Sets the position of the item (in MZ / intensity coordinates)
     void setPosition(const PointType & position);
@@ -86,4 +85,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

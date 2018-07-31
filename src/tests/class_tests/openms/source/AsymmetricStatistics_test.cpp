@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,8 +90,8 @@ START_TEST(AsymmetricStatistics, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-AsymmetricStatistics<double>* ptr = 0;
-AsymmetricStatistics<double>* nullPointer = 0;
+AsymmetricStatistics<double>* ptr = nullptr;
+AsymmetricStatistics<double>* nullPointer = nullptr;
 START_SECTION(AsymmetricStatistics())
 {
 	ptr = new AsymmetricStatistics<double>();

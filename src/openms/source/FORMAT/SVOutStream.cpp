@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,6 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <limits>
-#include <string>
-
 using namespace std;
 
 namespace OpenMS
@@ -48,7 +45,7 @@ namespace OpenMS
                            const String& replacement,
                            String::QuotingMethod quoting)
     :
-    ostream(NULL), ofs_(NULL), sep_(sep), replacement_(replacement), nan_("nan"),
+    ostream(nullptr), ofs_(nullptr), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
   {
     ofs_ = new std::ofstream;
@@ -69,7 +66,7 @@ namespace OpenMS
   SVOutStream::SVOutStream(ostream& out, const String& sep,
                            const String& replacement,
                            String::QuotingMethod quoting) :
-    ostream(out.rdbuf()), ofs_(NULL), sep_(sep), replacement_(replacement), nan_("nan"),
+    ostream(out.rdbuf()), ofs_(nullptr), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
   {
     // use high decimal precision (appropriate for double):

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,8 +58,8 @@ using namespace OpenMS;
 using namespace std;
 using namespace OpenMS::Math;
 
-ROCCurve* rcp = 0;
-ROCCurve* rcp_nullPointer = 0;
+ROCCurve* rcp = nullptr;
+ROCCurve* rcp_nullPointer = nullptr;
 
 START_SECTION((ROCCurve()))
   rcp = new ROCCurve();
@@ -67,7 +67,7 @@ START_SECTION((ROCCurve()))
 END_SECTION
 
 START_SECTION((void insertPair(double score, bool clas)))
-  srand((unsigned)time(NULL));
+  srand((unsigned)time(nullptr));
   for (Size i = 0; i < 1000; ++i)
   {
     double score = (double)rand()/RAND_MAX;

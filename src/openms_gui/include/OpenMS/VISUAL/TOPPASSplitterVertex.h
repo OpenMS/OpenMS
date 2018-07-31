@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H
-#define OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -63,30 +62,29 @@ public:
     /// Copy constructor
     TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs);
     /// Destructor
-    virtual ~TOPPASSplitterVertex();
+    ~TOPPASSplitterVertex() override;
     /// Assignment operator
     TOPPASSplitterVertex& operator=(const TOPPASSplitterVertex& rhs);
     /// returns "SplitterVertex"
-    virtual String getName() const;
+    String getName() const override;
     /// check if upstream nodes are finished and call downstream nodes
-    virtual void run();
+    void run() override;
     // documented in base class
-    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
-    virtual QRectF boundingRect() const;
+    QRectF boundingRect() const override;
     // documented in base class
-    virtual QPainterPath shape() const;
+    QPainterPath shape() const override;
     // documented in base class
-    virtual void markUnreachable();
+    void markUnreachable() override;
 
 protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
     //@}
 
   };
 }
 
-#endif // OPENMS_VISUAL_TOPPASSPLITTERVERTEX_H

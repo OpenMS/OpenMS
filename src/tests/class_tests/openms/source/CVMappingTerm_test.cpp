@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,8 @@ START_TEST(CVMappingTerm, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-CVMappingTerm* ptr = 0;
-CVMappingTerm* nullPointer = 0;
+CVMappingTerm* ptr = nullptr;
+CVMappingTerm* nullPointer = nullptr;
 START_SECTION(CVMappingTerm())
 {
 	ptr = new CVMappingTerm();

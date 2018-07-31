@@ -1,6 +1,5 @@
 
 import pyopenms
-import sys
 """
 Producing the test data for TOPP_FeatureLinkerUnlabeledQT_5 and TOPP_FeatureLinkerUnlabeledQT_6
 """
@@ -9,14 +8,14 @@ fmaps = [ pyopenms.FeatureMap() for i in range(3)]
 pepids = []
 pepseq = ["PEPTIDEA", "PEPTIDEK", "PEPTIDER"]
 for s in pepseq:
-    pepid = pyopenms.PeptideIdentification() 
-    hit = pyopenms.PeptideHit() 
+    pepid = pyopenms.PeptideIdentification()
+    hit = pyopenms.PeptideHit()
     hit.setSequence(pyopenms.AASequence.fromString(s, True))
     pepid.insertHit(hit)
     pepid.setIdentifier("Protein0")
     pepids.append(pepid)
 
-protid = pyopenms.ProteinIdentification() 
+protid = pyopenms.ProteinIdentification()
 protid.setIdentifier("Protein0")
 for i,fmap in enumerate(fmaps):
     fmap.setProteinIdentifications( [protid])

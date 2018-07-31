@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,13 +73,10 @@ namespace OpenMS
     }
 
     /// Get the retention time of an assay
-    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay,
-                           const String& cv_accession)
+    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay)
     {
-      OPENMS_PRECONDITION(assay.rts.size() > 0, "More than zero RTs needed")
-      OPENMS_PRECONDITION(assay.rts[0].getCVTerms()[cv_accession].size() >  0, "More than zero cv terms of retention time needed")
-      String value = assay.rts[0].getCVTerms()[cv_accession][0].getValue();
-      return value.toDouble();
+      OPENMS_PRECONDITION(assay.hasRetentionTime(), "More than zero RTs needed")
+      return assay.getRetentionTime();
     }
 
     /// Extract the @p n_transitions highest intensities from @p intensity_map,

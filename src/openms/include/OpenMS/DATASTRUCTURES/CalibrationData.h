@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_DATASTRUCTURES_CALIBRATIONDATA_H
-#define OPENMS_DATASTRUCTURES_CALIBRATIONDATA_H
+#pragma once
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/RichPeak2D.h>
@@ -201,11 +200,10 @@ namespace OpenMS
 
 
     private:
-      std::vector<RichPeak2D> data_; //< calibration points
-      bool use_ppm_; //< return ppm values as y-values for the model instead of absolute delta in [Th]
-      std::set<int> groups_; //< peak groups present in this data
+      std::vector<RichPeak2D> data_; ///< calibration points
+      bool use_ppm_; ///< return ppm values as y-values for the model instead of absolute delta in [Th]
+      std::set<int> groups_; ///< peak groups present in this data
     };
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_CALIBRATIONDATA_H

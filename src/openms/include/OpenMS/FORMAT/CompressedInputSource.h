@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_COMPRESSEDINPUTSOURCE_H
-#define OPENMS_FORMAT_COMPRESSEDINPUTSOURCE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -53,13 +52,13 @@ public:
     ///Constructor
     CompressedInputSource(const   XMLCh * const file_path, const String & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
     ///Constructor
-    virtual ~CompressedInputSource();
+    ~CompressedInputSource() override;
 
     /**
        @brief Depending on the header in the Constructor a Bzip2InputStream or a GzipInputStream object is returned
        @note InputSource interface implementation
     */
-    virtual xercesc::BinInputStream * makeStream() const;
+    xercesc::BinInputStream * makeStream() const override;
 
 private:
     String head_;
@@ -71,4 +70,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_COMPRESSEDINPUTSOURCE_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,18 +54,15 @@
 
 #include <iostream>
 
-#if  defined(__APPLE__)
-  #include <QCoreApplication.h> // needed to disable plugin loading on Mac OSX
-#endif
-
 #include <QDir>
 #include <QFile>
+#include <QProcess>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <ctime>
+#include <cstdio>
+#include <cstdlib>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -108,6 +105,8 @@ namespace OpenMS
     tool_name_(tool_name),
     tool_description_(tool_description),
     instance_number_(-1),
+    working_dir_(""),
+    working_dir_keep_debug_lvl_(-1),
     version_(""),
     verboseVersion_(""),
     official_(official),
@@ -130,12 +129,6 @@ namespace OpenMS
     {
       writeLog_(String("Warning: Message to maintainer - If '") + tool_name_ + "' is an official TOPP tool, add it to the tools list in ToolHandler. If it is not, set the 'official' flag of the TOPPBase constructor to false.");
     }
-
-#if  defined(__APPLE__)
-    // we do not want to load plugins as this leads to serious problems
-    // when shipping on mac os x
-    QCoreApplication::setLibraryPaths(QStringList());
-#endif
   }
 
   TOPPBase::~TOPPBase()
@@ -150,6 +143,11 @@ namespace OpenMS
       {
         File::remove(log_files[i]);
       }
+    }
+
+    if (!working_dir_.empty())
+    {
+      removeTempDirectory_(working_dir_, working_dir_keep_debug_lvl_);
     }
   }
 
@@ -398,7 +396,7 @@ namespace OpenMS
     char* disable_usage = getenv("OPENMS_DISABLE_UPDATE_CHECK");
  
     // only perform check if variable is not set or explicitly enabled by setting it to "OFF"  
-    if (!test_mode_ && (disable_usage == NULL || strcmp(disable_usage, "OFF") == 0))
+    if (!test_mode_ && (disable_usage == nullptr || strcmp(disable_usage, "OFF") == 0))
     {
       UpdateCheck::run(tool_name_, version_, debug_level_);
     }
@@ -580,7 +578,7 @@ namespace OpenMS
     UInt max_size = 0;
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if ((!it->advanced) || (it->advanced && verbose))
+      if (!it->advanced || verbose)
       {
         max_size = max((UInt)max_size, (UInt)(it->name.size() + it->argument.size() + it->required));
       }
@@ -594,10 +592,12 @@ namespace OpenMS
     // PRINT parameters && description, restrictions and default
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
-      if (!((!it->advanced) || (it->advanced && verbose)))
+      if (it->advanced && !verbose)
+      {
         continue;
+      }
 
-      //new subsection?
+      // new subsection?
       String subsection = getSubsection_(it->name);
       if (!subsection.empty() && current_TOPP_subsection != subsection)
       {
@@ -1599,6 +1599,16 @@ namespace OpenMS
     return temp_dir;
   }
 
+  String TOPPBase::makeAutoRemoveTempDirectory_(Int keep_debug)
+  {
+    if (working_dir_.empty())
+    {
+      working_dir_ = makeTempDirectory_();
+      working_dir_keep_debug_lvl_ = keep_debug;
+    }
+    return working_dir_;
+  }
+
   void TOPPBase::removeTempDirectory_(const String& temp_dir, Int keep_debug) const
   {
     if (temp_dir.empty()) return; // no temp. dir. created
@@ -1615,6 +1625,42 @@ namespace OpenMS
       }
       File::removeDirRecursively(temp_dir);
     }
+  }
+
+  TOPPBase::ExitCodes TOPPBase::runExternalProcess_(const QString& executable, const QStringList& arguments, const QString& workdir) const
+  {
+    QProcess qp;
+    if (!workdir.isEmpty())
+    {
+      qp.setWorkingDirectory(workdir);
+    }
+    qp.start(executable, arguments); // does automatic escaping etc... start
+    std::stringstream ss;
+    ss << "COMMAND: " << String(executable);
+    for (QStringList::const_iterator it = arguments.begin(); it != arguments.end(); ++it)
+    {
+        ss << " " << it->toStdString();
+    }
+    LOG_DEBUG << ss.str() << endl;
+    writeLog_("Executing: " + String(executable));
+    const bool success = qp.waitForFinished(-1); // wait till job is finished
+    
+
+    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    {
+      writeLog_("FATAL: External invocation of " + String(executable) + " failed. Standard output and error were:");
+      const QString external_sout(qp.readAllStandardOutput());
+      const QString external_serr(qp.readAllStandardError());
+      writeLog_(external_sout);
+      writeLog_(external_serr);
+      writeLog_(String(qp.exitCode()));
+      qp.close();
+      return EXTERNAL_PROGRAM_ERROR;
+    }
+
+    qp.close();
+    writeLog_("Executed " + String(executable) + " successfully!");
+    return EXECUTION_OK;
   }
 
   String TOPPBase::getParamAsString_(const String& key, const String& default_value) const
@@ -2241,9 +2287,9 @@ namespace OpenMS
     //remove absolute map paths
     if (test_mode_)
     {
-      for (Size d = 0; d < map.getFileDescriptions().size(); ++d)
+      for (Size d = 0; d < map.getColumnHeaders().size(); ++d)
       {
-        map.getFileDescriptions()[d].filename = File::basename(map.getFileDescriptions()[d].filename);
+        map.getColumnHeaders()[d].filename = File::basename(map.getColumnHeaders()[d].filename);
       }
     }
   }
@@ -2305,13 +2351,13 @@ namespace OpenMS
       QString html_doc = tool_description_.toQString();
       lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
       lines.insert(4, QString("<citations>"));
-      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\">");
+      lines.insert(5, QString("  <citation doi=\"") + QString::fromStdString(cite_openms_.doi) + "\" url=\"\" />");
       int l = 5;
       if (!citations_.empty())
       {
         for (Citation c : citations_) 
         {
-          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\">");
+          lines.insert(++l, QString("  <citation doi=\"") + QString::fromStdString(c.doi) + "\" url=\"\" />");
         }
       }
       lines.insert(++l, QString("</citations>"));

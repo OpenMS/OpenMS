@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASVERTEX_H
-#define OPENMS_VISUAL_TOPPASVERTEX_H
+#pragma once
 
 // ------------- DEBUGGING ----------------
 
@@ -75,13 +74,13 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
-#include <QtGui/QPainter>
-#include <QtGui/QPainterPath>
-#include <QtGui/QGraphicsSceneMouseEvent>
-#include <QtGui/QGraphicsSceneContextMenuEvent>
-#include <QtGui/QGraphicsItem>
+#include <QPainter>
+#include <QPainterPath>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
+#include <QtWidgets/QGraphicsSceneContextMenuEvent>
+#include <QtWidgets/QGraphicsItem>
 #include <QtCore/QProcess>
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 
 namespace OpenMS
 {
@@ -143,19 +142,19 @@ public:
 		@throw Exception::FileNotWritable() if too long (>=255 chars)
 		*/
 		void check_(const QString& filename);
-		QStringList filenames_;   //< filenames passed from upstream node in this round
+		QStringList filenames_;   ///< filenames passed from upstream node in this round
 	};
 	/// Info for one edge and round, to be passed to next node
     struct VertexRoundPackage
     {
       VertexRoundPackage() :
         filenames(),
-        edge(0)
+        edge(nullptr)
       {
       }
 
-	  TOPPASFilenames filenames; //< filenames passed from upstream node in this round
-      TOPPASEdge* edge;  //< edge that connects the upstream node to the current one
+	  TOPPASFilenames filenames; ///< filenames passed from upstream node in this round
+      TOPPASEdge* edge;  ///< edge that connects the upstream node to the current one
     };
 
 	
@@ -193,7 +192,7 @@ public:
     /// Copy constructor
     TOPPASVertex(const TOPPASVertex & rhs);
     /// Destructor
-    virtual ~TOPPASVertex();
+    ~TOPPASVertex() override;
     /// Assignment operator
     TOPPASVertex & operator=(const TOPPASVertex & rhs);
 
@@ -206,11 +205,11 @@ public:
     bool isUpstreamFinished() const;
 
     /// Returns the bounding rectangle of this item
-    virtual QRectF boundingRect() const = 0;
+    QRectF boundingRect() const override = 0;
     /// Returns a more precise shape
-    virtual QPainterPath shape() const = 0;
+    QPainterPath shape() const override = 0;
     /// Paints the item
-    virtual void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) = 0;
+    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override = 0;
     /// Returns begin() iterator of outgoing edges
     ConstEdgeIterator outEdgesBegin() const;
     /// Returns end() iterator of outgoing edges
@@ -357,11 +356,11 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent * e);
-    void mousePressEvent(QGraphicsSceneMouseEvent * e);
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent * e);
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent * e) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent * e) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent * e) override;
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
     //@}
 
     /// Moves the target pos of the edge which is just being created to @p pos
@@ -388,4 +387,3 @@ protected:
   };
 }
 
-#endif

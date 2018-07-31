@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMPEPIONS_H
-#define OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMPEPIONS_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.h>
 
@@ -67,13 +66,12 @@ namespace OpenMS
     ConsensusIDAlgorithmPEPIons& operator=(const ConsensusIDAlgorithmPEPIons&);
 
     /// Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// Sequence similarity based on matching ions
-    virtual double getSimilarity_(AASequence seq1, AASequence seq2);
+    double getSimilarity_(AASequence seq1, AASequence seq2) override;
 
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMPEPIONS_H

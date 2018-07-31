@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <PARAMETERS version="1.6.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_6_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NODE name="info" description="">
-    <ITEM name="version" value="2.3.0" type="string" description="" required="false" advanced="false" />
+    <ITEM name="version" value="2.4.0-alpha" type="string" description="" required="false" advanced="false" />
     <ITEM name="num_vertices" value="7" type="int" description="" required="false" advanced="false" />
     <ITEM name="num_edges" value="6" type="int" description="" required="false" advanced="false" />
     <ITEM name="description" value="&lt;![CDATA[&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt; &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt; p, li { white-space: pre-wrap; } &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt; &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;]]&gt;" type="string" description="" required="false" advanced="false" />
@@ -154,6 +154,7 @@
           <ITEM name="second_nearest_gap" value="2" type="double" description="Only link features whose distance to the second nearest neighbors (for both sides) is larger by &apos;second_nearest_gap&apos; than the distance between the matched pair itself." required="false" advanced="false" restrictions="1:" />
           <ITEM name="use_identifications" value="false" type="string" description="Never link features that are annotated with different peptides (features without ID&apos;s always match; only the best hit per peptide identification is considered)." required="false" advanced="false" restrictions="true,false" />
           <ITEM name="ignore_charge" value="false" type="string" description="false [default]: pairing requires equal charge state (or at least one unknown charge &apos;0&apos;); true: Pairing irrespective of charge state" required="false" advanced="false" restrictions="true,false" />
+          <ITEM name="ignore_adduct" value="true" type="string" description="true [default]: pairing requires equal adducts (or at least one without adduct annotation); true: Pairing irrespective of adducts" required="false" advanced="false" restrictions="true,false" />
           <NODE name="distance_RT" description="Distance component based on RT differences">
             <ITEM name="max_difference" value="100" type="double" description="Never pair features with a larger RT distance (in seconds)." required="false" advanced="false" restrictions="0:" />
             <ITEM name="exponent" value="1" type="double" description="Normalized RT differences ([0-1], relative to &apos;max_difference&apos;) are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)" required="false" advanced="true" restrictions="0:" />

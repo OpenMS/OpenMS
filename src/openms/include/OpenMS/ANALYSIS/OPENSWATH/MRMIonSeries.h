@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMIONSERIES_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMIONSERIES_H
+#pragma once
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -45,6 +44,7 @@
 
 namespace OpenMS
 {
+
   /**
     @brief Generate theoretical fragment ion series for use in MRMAssay and MRMDecoy
 
@@ -69,7 +69,7 @@ namespace OpenMS
   class OPENMS_DLLAPI MRMIonSeries
   {
 private:
-    TargetedExperiment::Interpretation annotationToCVTermList_(String annotation);
+    TargetedExperiment::Interpretation annotationToCVTermList_(const String& annotation);
 
     void annotationToCV_(ReactionMonitoringTransition& tr);
 
@@ -93,7 +93,7 @@ public:
       the queried fragment ion
 
     */
-    std::pair<String, double> getIon(IonSeries ionseries, String ionid);
+    std::pair<String, double> getIon(IonSeries& ionseries, const String& ionid);
 
     /**
       @brief Selects ion from IonSeries according to product m/z
@@ -105,7 +105,7 @@ public:
       the queried fragment ion
 
     */
-    std::pair<String, double> annotateIon(IonSeries ionseries, double ProductMZ, double mz_threshold);
+    std::pair<String, double> annotateIon(const IonSeries& ionseries, const double ProductMZ, const double mz_threshold);
 
     /**
       @brief Annotates transition with CV terms
@@ -114,7 +114,7 @@ public:
       @param annotation the fragment ion annotation.
 
     */
-    void annotateTransitionCV(ReactionMonitoringTransition& tr, String annotation);
+    void annotateTransitionCV(ReactionMonitoringTransition& tr, const String& annotation);
 
     /**
       @brief Annotates transition
@@ -132,7 +132,16 @@ public:
       @param round_decPow round precursor and product m/z values to decimal power (default: -4)
 
     */
-    void annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide peptide, const double precursor_mz_threshold, const double product_mz_threshold, bool enable_reannotation, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
+    void annotateTransition(ReactionMonitoringTransition& tr,
+                            const TargetedExperiment::Peptide& peptide,
+                            const double precursor_mz_threshold,
+                            const double product_mz_threshold,
+                            const bool enable_reannotation,
+                            const std::vector<String>& fragment_types,
+                            const std::vector<size_t>& fragment_charges,
+                            const bool enable_specific_losses,
+                            const bool enable_unspecific_losses,
+                            const int round_decPow = -4);
 
     /**
       @brief Computed theoretical fragment ion series
@@ -146,8 +155,13 @@ public:
       @param round_decPow round product m/z values to decimal power (default: -4)
       @value IonSeries the theoretical fragment ion series
     */
-    IonSeries getIonSeries(AASequence sequence, size_t precursor_charge, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow = -4);
+    IonSeries getIonSeries(const AASequence& sequence,
+                           size_t precursor_charge,
+                           const std::vector<String>& fragment_types,
+                           const std::vector<size_t>& fragment_charges,
+                           const bool enable_specific_losses,
+                           const bool enable_unspecific_losses,
+                           const int round_decPow = -4);
   };
 }
 
-#endif

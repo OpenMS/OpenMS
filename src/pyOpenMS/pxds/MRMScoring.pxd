@@ -8,7 +8,7 @@ from ISpectrumAccess cimport *
 # from Scoring cimport *
 from LightTargetedExperiment cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath":
+cdef extern from "<OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath":
     
     cdef cppclass MRMScoring "OpenSwath::MRMScoring":
         MRMScoring(MRMScoring) nogil except + #wrap-ignore

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <ostream>
 
 namespace OpenMS
 {
@@ -501,6 +500,50 @@ namespace OpenMS
     PeakType p;
     p.setPosition(mz);
     return lower_bound(ContainerType::begin(), ContainerType::end(), p, PeakType::PositionLess());
+  }
+
+  MSSpectrum::Iterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz)
+  {
+    return MZBegin(mz);
+  }
+
+  MSSpectrum::Iterator
+  MSSpectrum::PosBegin(MSSpectrum::Iterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::Iterator end)
+  {
+    return MZBegin(begin, mz, end);
+  }
+
+  MSSpectrum::Iterator MSSpectrum::PosEnd(MSSpectrum::CoordinateType mz)
+  {
+    return MZEnd(mz);
+  }
+
+  MSSpectrum::Iterator
+  MSSpectrum::PosEnd(MSSpectrum::Iterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::Iterator end)
+  {
+    return MZEnd(begin, mz, end);
+  }
+
+  MSSpectrum::ConstIterator MSSpectrum::PosBegin(MSSpectrum::CoordinateType mz) const
+  {
+    return MZBegin(mz);
+  }
+
+  MSSpectrum::ConstIterator
+  MSSpectrum::PosBegin(MSSpectrum::ConstIterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::ConstIterator end) const
+  {
+    return MZBegin(begin, mz, end);
+  }
+
+  MSSpectrum::ConstIterator MSSpectrum::PosEnd(MSSpectrum::CoordinateType mz) const
+  {
+    return MZEnd(mz);
+  }
+
+  MSSpectrum::ConstIterator
+  MSSpectrum::PosEnd(MSSpectrum::ConstIterator begin, MSSpectrum::CoordinateType mz, MSSpectrum::ConstIterator end) const
+  {
+    return MZEnd(begin, mz, end);
   }
 
   bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const {

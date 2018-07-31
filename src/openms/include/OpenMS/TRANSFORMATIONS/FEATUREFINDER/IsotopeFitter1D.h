@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFITTER1D_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFITTER1D_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 
@@ -56,7 +55,7 @@ public:
     IsotopeFitter1D(const IsotopeFitter1D & source);
 
     /// destructor
-    virtual ~IsotopeFitter1D();
+    ~IsotopeFitter1D() override;
 
     /// assignment operator
     virtual IsotopeFitter1D & operator=(const IsotopeFitter1D & source);
@@ -74,7 +73,7 @@ public:
     }
 
     /// return interpolation model
-    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model);
+    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model) override;
 
 protected:
 
@@ -85,8 +84,7 @@ protected:
     /// maximum isotopic rank to be considered
     Int max_isotope_;
 
-    void updateMembers_();
+    void updateMembers_() override;
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEFITTER1D_H

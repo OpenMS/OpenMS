@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@
 #include <string>
 #include <list>
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
@@ -93,16 +93,16 @@ namespace OpenMS
   {
     // empty the raw data:
     pMZ_LIST.clear();
-    if (data_ != NULL)
+    if (data_ != nullptr)
     {
       delete data_;
-      data_ = NULL;
+      data_ = nullptr;
     }
 
-    if (backgroundController != NULL)
+    if (backgroundController != nullptr)
     {
       delete backgroundController;
-      backgroundController = NULL;
+      backgroundController = nullptr;
     }
   }
 
@@ -362,7 +362,7 @@ namespace OpenMS
         }
       }
 
-      PEAK = NULL;
+      PEAK = nullptr;
       ++P;
     }
 
@@ -434,7 +434,7 @@ namespace OpenMS
     // increase the LC_elution_profile counter:
     increase_LC_elution_peak_counter();
 
-    PEAK = NULL;
+    PEAK = nullptr;
 
   }
 
@@ -569,7 +569,7 @@ namespace OpenMS
       }
     }
 
-    PEAK = NULL;
+    PEAK = nullptr;
   }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -802,8 +802,7 @@ namespace OpenMS
           break;
         }
 
-      }
-      while (down != get_MZ_LIST_start());
+      } while (down != get_MZ_LIST_start());
     }
 
     // go increasing order
@@ -952,7 +951,7 @@ namespace OpenMS
 
     // if higher isotope picked for MS/MS, then need to start searching
     // the monoisotopic mass at lower m/z value:
-    MSPeak * preCursorPeak = NULL;
+    MSPeak * preCursorPeak = nullptr;
     double saveIsotopeDistance = 6;
     double searchMzLowerBound = *precursorMZ - saveIsotopeDistance;
     main_iterator P = pMZ_LIST.lower_bound(searchMzLowerBound);
@@ -992,7 +991,7 @@ namespace OpenMS
       P++;
     }
 
-    if (preCursorPeak != NULL)
+    if (preCursorPeak != nullptr)
     {
       // store the MS/MS scan number and activate this peak as precursor peak:
       preCursorPeak->activateAsPrecursorPeak(MS2Scan);
@@ -1002,23 +1001,23 @@ namespace OpenMS
 
   }
 
-  int ProcessData::getNbMSTraces(){ return (int) pMZ_LIST.size(); }
+  int ProcessData::getNbMSTraces() { return (int) pMZ_LIST.size(); }
 
 
-  double ProcessData::getMinimalIntensityLevel(){return SuperHirnParameters::instance()->getIntensityThreshold(); }
+  double ProcessData::getMinimalIntensityLevel() { return SuperHirnParameters::instance()->getIntensityThreshold(); }
 
   // add the scan vs TR index to the data structure:
   // void add_scan_TR_index(std::map<int, float> IN){scan_TR_index = IN;};
 
   // get the processed data:
-  LCMSCData * ProcessData::getProcessedData(){return data_; }
+  LCMSCData * ProcessData::getProcessedData() { return data_; }
 
   // increase the LC_elution_profile counter:
-  void ProcessData::increase_LC_elution_peak_counter(){LC_elution_peak_counter++; }
-  unsigned int ProcessData::get_LC_elution_peak_counter(){return LC_elution_peak_counter; }
+  void ProcessData::increase_LC_elution_peak_counter() { LC_elution_peak_counter++; }
+  unsigned int ProcessData::get_LC_elution_peak_counter() { return LC_elution_peak_counter; }
 
   // get the maximal scan distance between two same monoisotopic masses
-  int ProcessData::getMaxScanDistance(){ return max_inter_scan_distance; }
-  void ProcessData::setMaxScanDistance(int in){ max_inter_scan_distance = in; }
+  int ProcessData::getMaxScanDistance() { return max_inter_scan_distance; }
+  void ProcessData::setMaxScanDistance(int in) { max_inter_scan_distance = in; }
 
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,11 +47,9 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/FastLowessSmoothing.h>
 
-#include <OpenMS/CONCEPT/Macros.h>
-
 #include <cmath>
 #include <algorithm>    // std::min, std::max
-#include <stdlib.h>
+#include <cstdlib>
 #include <vector>
 
 namespace c_lowess
@@ -561,8 +559,7 @@ public:
           // Find the next i for which we'll run a regression.
           update_indices(x, n, delta, i, last, ys);
 
-        }
-        while (last < n - 1);
+        } while (last < n - 1);
 
         // compute current residuals
         for (i = 0; i < n; i++)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,8 +55,8 @@ START_TEST(DPosition<D>, "$Id$")
 std::cout.precision(writtenDigits<>(double()));
 std::cerr.precision(writtenDigits<>(double()));
 
-DPosition<10>* d10_ptr = 0;
-DPosition<10>* d10_nullPointer = 0;
+DPosition<10>* d10_ptr = nullptr;
+DPosition<10>* d10_nullPointer = nullptr;
 
 START_SECTION((DPosition()))
 	d10_ptr = new DPosition<10>;

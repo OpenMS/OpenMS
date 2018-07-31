@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,8 @@ START_TEST(NonNegativeLeastSquaresSolver, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-NonNegativeLeastSquaresSolver* ptr = 0;
-NonNegativeLeastSquaresSolver* nullPointer = 0;
+NonNegativeLeastSquaresSolver* ptr = nullptr;
+NonNegativeLeastSquaresSolver* nullPointer = nullptr;
 START_SECTION(NonNegativeLeastSquaresSolver())
 {
 	ptr = new NonNegativeLeastSquaresSolver();

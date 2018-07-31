@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H
-#define OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -66,7 +65,7 @@ public:
     LowessSmoothing();
 
     /// Destructor
-    virtual ~LowessSmoothing();
+    ~LowessSmoothing() override;
 
     typedef std::vector<double> DoubleVector;
 
@@ -74,7 +73,7 @@ public:
     void smoothData(const DoubleVector &, const DoubleVector &, DoubleVector &);
 
 protected:
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
 private:
     double window_size_;
@@ -84,4 +83,3 @@ private:
 
 
 } // namespace OpenMS
-#endif // OPENMS_FILTERING_SMOOTHING_LOWESSSMOOTHING_H

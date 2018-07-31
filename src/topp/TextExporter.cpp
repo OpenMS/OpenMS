@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -470,7 +470,7 @@ public:
 
 protected:
 
-    void registerOptionsAndFlags_()
+    void registerOptionsAndFlags_() override
     {
       registerInputFile_("in", "<file>", "", "Input file ");
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
@@ -515,7 +515,7 @@ protected:
       registerFlag_("consensus:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
     }
 
-    ExitCodes main_(int, const char**)
+    ExitCodes main_(int, const char**) override
     {
       //-------------------------------------------------------------
       // parameter handling
@@ -874,9 +874,9 @@ protected:
             std::numeric_limits<FeatureHandle::IntensityType>::quiet_NaN());
           // feature_handle_NaN.setCharge(std::numeric_limits<Int>::max());
 
-          for (ConsensusMap::FileDescriptions::const_iterator fdit =
-                 consensus_map.getFileDescriptions().begin();
-               fdit != consensus_map.getFileDescriptions().end(); ++fdit)
+          for (ConsensusMap::ColumnHeaders::const_iterator fdit =
+                 consensus_map.getColumnHeaders().begin();
+               fdit != consensus_map.getColumnHeaders().end(); ++fdit)
           {
             map_id_to_map_num[fdit->first] = map_num_to_map_id.size();
             map_num_to_map_id.push_back(fdit->first);
@@ -1029,9 +1029,9 @@ protected:
           // by String, not UInt, for implicit sorting.
           std::set<String> all_file_desc_meta_keys;
           std::vector<UInt> tmp_meta_keys;
-          for (ConsensusMap::FileDescriptions::const_iterator fdit =
-                 consensus_map.getFileDescriptions().begin();
-               fdit != consensus_map.getFileDescriptions().end(); ++fdit)
+          for (ConsensusMap::ColumnHeaders::const_iterator fdit =
+                 consensus_map.getColumnHeaders().begin();
+               fdit != consensus_map.getColumnHeaders().end(); ++fdit)
           {
             map_id_to_map_num[fdit->first] = map_num_to_map_id.size();
             map_num_to_map_id.push_back(fdit->first);
@@ -1081,9 +1081,9 @@ protected:
           output.modifyStrings(true);
 
           // list of maps (intentionally at the beginning, contrary to order in consensusXML)
-          for (ConsensusMap::FileDescriptions::const_iterator fdit =
-                 consensus_map.getFileDescriptions().begin(); fdit !=
-               consensus_map.getFileDescriptions().end(); ++fdit)
+          for (ConsensusMap::ColumnHeaders::const_iterator fdit =
+                 consensus_map.getColumnHeaders().begin(); fdit !=
+               consensus_map.getColumnHeaders().end(); ++fdit)
           {
             output << "MAP" << fdit->first << fdit->second.filename
                    << fdit->second.label << fdit->second.size;

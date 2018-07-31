@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,8 +54,8 @@ using namespace std;
 TOLERANCE_ABSOLUTE(0.001)
 
 // default ctor
-Digestion* dv_ptr = 0;
-Digestion* dv_nullPointer = 0;
+Digestion* dv_ptr = nullptr;
+Digestion* dv_nullPointer = nullptr;
 START_SECTION((Digestion()))
 	dv_ptr = new Digestion;
   TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)

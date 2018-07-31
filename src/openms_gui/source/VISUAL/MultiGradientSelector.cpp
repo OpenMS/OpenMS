@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,14 +36,14 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 
 //qt includes
-#include <QtGui/QPainter>
-#include <QtGui/QColorDialog>
-#include <QtGui/QPixmap>
-#include <QtGui/QMouseEvent>
-#include <QtGui/QKeyEvent>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QContextMenuEvent>
-#include <QtGui/QMenu>
+#include <QPainter>
+#include <QtWidgets/QColorDialog>
+#include <QPixmap>
+#include <QMouseEvent>
+#include <QKeyEvent>
+#include <QPaintEvent>
+#include <QContextMenuEvent>
+#include <QtWidgets/QMenu>
 
 using namespace std;
 

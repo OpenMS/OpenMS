@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,8 +51,8 @@ START_TEST(DBoundingBox, "$Id$")
 typedef DBoundingBox<1> BB1;
 typedef DBoundingBox<2> BB2;
 
-BB1* ptr1 = 0;
-BB1* nullPointer1 = 0;
+BB1* ptr1 = nullptr;
+BB1* nullPointer1 = nullptr;
 START_SECTION(DBoundingBox())
 	ptr1 = new BB1;
   TEST_NOT_EQUAL(ptr1, nullPointer1)
@@ -62,8 +62,8 @@ START_SECTION(~DBoundingBox())
 	delete ptr1;
 END_SECTION
 
-BB2* ptr2 = 0;
-BB2* nullPointer2 = 0;
+BB2* ptr2 = nullptr;
+BB2* nullPointer2 = nullptr;
 START_SECTION([EXTRA] DBoundingBox())
 	ptr2 = new BB2;
   TEST_NOT_EQUAL(ptr2, nullPointer2)

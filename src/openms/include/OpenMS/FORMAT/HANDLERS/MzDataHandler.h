@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,15 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZDATAHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZDATAHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
-#include <OpenMS/FORMAT/Base64.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <sstream>
@@ -75,7 +73,7 @@ public:
       MzDataHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger);
 
       /// Destructor
-      virtual ~MzDataHandler()
+      ~MzDataHandler() override
       {
       }
 
@@ -83,16 +81,16 @@ public:
 
 
       // Docu in base class
-      virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+      void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname) override;
 
       // Docu in base class
-      virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+      void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes) override;
 
       // Docu in base class
-      virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+      void characters(const XMLCh * const chars, const XMLSize_t length) override;
 
       /// Writes the contents to a stream
-      void writeTo(std::ostream & os);
+      void writeTo(std::ostream & os) override;
 
       ///Sets the options
       void setOptions(const PeakFileOptions & options)
@@ -135,9 +133,6 @@ protected:
       std::vector<String> precisions_;
       std::vector<String> endians_;
       //@}
-
-      /// Decoder/Encoder for Base64-data in MzData
-      Base64 decoder_;
 
       /// Flag that indicates whether this spectrum should be skipped (due to options)
       bool skip_spectrum_;
@@ -221,4 +216,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif

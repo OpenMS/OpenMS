@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Xiao Liang, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_PROTEASEDB_H
-#define OPENMS_CHEMISTRY_PROTEASEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeDB.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
@@ -66,6 +65,9 @@ namespace OpenMS
     /// returns all the enzyme names available for Comet
     void getAllCometNames(std::vector<String>& all_names) const;
 
+    /// returns all the enzyme names available for Crux
+    void getAllCruxNames(std::vector<String>& all_names) const;
+
     /// returns all the enzyme names available for OMSSA
     void getAllOMSSANames(std::vector<String>& all_names) const;
 
@@ -74,4 +76,4 @@ namespace OpenMS
   };
 }
 
-#endif
+

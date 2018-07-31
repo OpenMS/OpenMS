@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_EGHFITTER1D_H
-#define OPENMS_SIMULATION_EGHFITTER1D_H
+#pragma once
 
 #define DEBUG_FEATUREFINDER
 
@@ -57,7 +56,7 @@ public:
     EGHFitter1D(const EGHFitter1D & source);
 
     /// destructor
-    virtual ~EGHFitter1D();
+    ~EGHFitter1D() override;
 
     /// assignment operator
     virtual EGHFitter1D & operator=(const EGHFitter1D & source);
@@ -75,7 +74,7 @@ public:
     }
 
     /// return interpolation model
-    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model);
+    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model) override;
 
 protected:
 
@@ -95,9 +94,9 @@ protected:
       EGHFitterFunctor(int dimensions, const EGHFitter1D::Data * data)
       : LevMarqFitter1D::GenericFunctor(dimensions, data->n), m_data(data) {}
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) override;
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) override;
 
       protected:
         const EGHFitter1D::Data * m_data;
@@ -115,9 +114,8 @@ protected:
     /// Parameter of egh - peak retention time
     CoordinateType retention_;
 
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
 }
 
-#endif // OPENMS_SIMULATION_EGHFITTER1D_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,8 @@ START_TEST(DPeak<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-DPeak<1>::Type* ptr1 = 0;
-DPeak<1>::Type* nullPointer1 = 0;
+DPeak<1>::Type* ptr1 = nullptr;
+DPeak<1>::Type* nullPointer1 = nullptr;
 START_SECTION(DPeak())
 {
 	ptr1 = new DPeak<1>::Type();
@@ -62,8 +62,8 @@ START_SECTION(~DPeak())
 }
 END_SECTION
 
-DPeak<2>::Type* ptr2 = 0;
-DPeak<2>::Type* nullPointer2 = 0;
+DPeak<2>::Type* ptr2 = nullptr;
+DPeak<2>::Type* nullPointer2 = nullptr;
 START_SECTION([EXTRA]DPeak())
 {
 	ptr2 = new DPeak<2>::Type();

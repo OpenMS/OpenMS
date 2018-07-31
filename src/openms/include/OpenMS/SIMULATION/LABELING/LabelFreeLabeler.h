@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Stephan Aiche$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SIMULATION_LABELING_LABELFREELABELER_H
-#define OPENMS_SIMULATION_LABELING_LABELFREELABELER_H
+#pragma once
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
@@ -52,7 +51,7 @@ public:
     LabelFreeLabeler();
 
     /// destructor
-    virtual ~LabelFreeLabeler();
+    ~LabelFreeLabeler() override;
 
     /// create new GaussModel object (needed by Factory)
     static BaseLabeler* create()
@@ -67,22 +66,21 @@ public:
     }
 
     // redeclaration of virtual methods
-    void preCheck(Param& param) const;
+    void preCheck(Param& param) const override;
 
-    void setUpHook(SimTypes::FeatureMapSimVector& /* channels */);
+    void setUpHook(SimTypes::FeatureMapSimVector& /* channels */) override;
 
-    void postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
+    void postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) override;
 
-    void postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */);
+    void postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */) override;
   };
 } // namespace OpenMS
 
-#endif //#ifndef OPENMS_SIMULATION_LABELING_LABELFREELABELER_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,7 +52,7 @@ for (double i = 0; i <=10; ++i)
     grid_spacing_y.push_back(i);
 }
 
-ClusteringGrid* nullPointer = 0;
+ClusteringGrid* nullPointer = nullptr;
 ClusteringGrid* ptr;
 
 START_SECTION(ClusteringGrid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y))

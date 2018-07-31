@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,15 +32,14 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASTREEVIEW_H
-#define OPENMS_VISUAL_TOPPASTREEVIEW_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QTreeWidget>
-#include <QtGui/QMouseEvent>
+#include <QtWidgets/QTreeWidget>
+#include <QMouseEvent>
 #include <QtCore/QPoint>
 
 namespace OpenMS
@@ -59,18 +58,18 @@ namespace OpenMS
 
 public:
     /// Constructor
-    TOPPASTreeView(QWidget * parent = 0);
+    TOPPASTreeView(QWidget * parent = nullptr);
     /// Destructor
-    ~TOPPASTreeView();
+    ~TOPPASTreeView() override;
 
 protected:
     ///@name Reimplemented Qt events
     //@{
-    void mousePressEvent(QMouseEvent * e);
-    void mouseMoveEvent(QMouseEvent * e);
-    void keyPressEvent(QKeyEvent * e);
-    void leaveEvent(QEvent * e);
-    void enterEvent(QEvent * e);
+    void mousePressEvent(QMouseEvent * e) override;
+    void mouseMoveEvent(QMouseEvent * e) override;
+    void keyPressEvent(QKeyEvent * e) override;
+    void leaveEvent(QEvent * e) override;
+    void enterEvent(QEvent * e) override;
     //@}
 
     /// The drag start position
@@ -78,4 +77,3 @@ protected:
   };
 
 }
-#endif // OPENMS_VISUAL_TOPPASTREEVIEW_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,6 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <map>
-#include <Eigen/Core>
 
 using Eigen::VectorXd;
 
@@ -221,7 +217,7 @@ namespace OpenMS
                         + signal2D[2 * current_scan].second + current_point)->getIntensity() << std::endl;
 #endif
 
-        size_t current_peak = 0;
+        // size_t current_peak = 0;
         peak_iter = iso_map_iter->second.peaks.begin();
         while (peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first != curr_scan_idx)
           ++peak_iter;
@@ -265,7 +261,7 @@ namespace OpenMS
 #endif
             computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
           }
-          ++current_peak;
+          // ++current_peak;
           ++peak_iter;
 
         }                        // end while
@@ -415,7 +411,7 @@ namespace OpenMS
 
 #endif
 
-        size_t current_peak = 0;
+        // size_t current_peak = 0;
         peak_iter = iso_map_iter->second.peaks.begin();
         while (peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first != curr_scan_idx)
           ++peak_iter;
@@ -498,7 +494,7 @@ namespace OpenMS
             J(counter_posf, total_nr_peaks + 3 * map_idx  + 1) = ddl_left * weight + ddl_left_old;
             J(counter_posf, total_nr_peaks + 3 * map_idx  + 2) = ddl_right * weight + ddl_right_old;
           }
-          ++current_peak;
+          // ++current_peak;
           ++peak_iter;
 
         }                        // end while

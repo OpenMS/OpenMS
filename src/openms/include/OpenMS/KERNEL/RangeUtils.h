@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_RANGEUTILS_H
-#define OPENMS_KERNEL_RANGEUTILS_H
+#pragma once
 
 #include <functional>
 #include <algorithm>
@@ -686,9 +685,10 @@ public:
       bool isIn = false;
       for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
       {
-        if (it->getIsolationWindowLowerOffset() == 0 || it->getIsolationWindowLowerOffset() == 0)
+        if (it->getIsolationWindowLowerOffset() == 0 || it->getIsolationWindowUpperOffset() == 0)
         {
-          LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! Filtering will probably be too strict (unless you hit the exact precursor m/z)!" << std::endl;
+          LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! " << 
+            "Filtering will probably be too strict (unless you hit the exact precursor m/z)!" << std::endl;
         }
         const double lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
         std::vector<double>::const_iterator it_mz = std::lower_bound(vec_mz_.begin(), vec_mz_.end(), lower_mz);
@@ -710,4 +710,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_RANGEUTILS_H

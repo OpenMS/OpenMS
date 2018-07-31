@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,27 +33,30 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ParamEditor.h>
+#include <ui_ParamEditor.h>
+
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/VISUAL/ListEditor.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <QtGui/QMessageBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QShortcut>
-#include <QtGui/QMenu>
-#include <QtGui/QItemSelection>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QShortcut>
+#include <QtWidgets/QMenu>
+#include <QItemSelection>
 #include <QtCore/QStringList>
-#include <QtGui/QLabel>
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QFileDialog>
 
 #include <stack>
 #include <limits>
 #include <sstream>
 
 using namespace std;
+
 
 /*
 
@@ -134,7 +137,7 @@ namespace OpenMS
         else if (dtype == "string list" || dtype == "int list" || dtype == "double list" || dtype == "input file list" || dtype == "output file list")   // for lists
         {
           QString str = "<" + index.sibling(index.row(), 0).data(Qt::DisplayRole).toString() + "> " + "(<" + dtype + ">)";
-          ListEditor * editor = new ListEditor(0, str);
+          ListEditor * editor = new ListEditor(nullptr, str);
           editor->setTypeName(index.sibling(index.row(), 0).data(Qt::DisplayRole).toString());
           editor->setModal(true);
           connect(editor, SIGNAL(accepted()), this, SLOT(commitAndCloseListEditor_()));
@@ -151,7 +154,7 @@ namespace OpenMS
           return editor;
         }
       }
-      return 0;
+      return nullptr;
     }
 
     void ParamEditorDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
@@ -286,7 +289,7 @@ namespace OpenMS
             new_value.toString().toLong(&ok);
             if (!ok)
             {
-              QMessageBox::warning(0, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
+              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to integer number!").arg(new_value.toString()));
               new_value = present_value;
             }
             //restrictions
@@ -309,7 +312,7 @@ namespace OpenMS
             new_value.toString().toDouble(&ok);
             if (!ok)
             {
-              QMessageBox::warning(0, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
+              QMessageBox::warning(nullptr, "Invalid value", QString("Cannot convert '%1' to floating point number!").arg(new_value.toString()));
               new_value = present_value;
             }
             //restrictions
@@ -328,7 +331,7 @@ namespace OpenMS
           }
           if (!restrictions_met)
           {
-            QMessageBox::warning(0, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
+            QMessageBox::warning(nullptr, "Invalid value", QString("Value restrictions not met: %1").arg(index.sibling(index.row(), 3).data(Qt::DisplayRole).toString()));
             new_value = present_value;
           }
         }
@@ -446,11 +449,12 @@ namespace OpenMS
 
   ParamEditor::ParamEditor(QWidget * parent) :
     QWidget(parent),
-    param_(0),
+    param_(nullptr),
     modified_(false),
-    advanced_mode_(false)
+    advanced_mode_(false),
+    ui_(new Ui::ParamEditorTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
     tree_ = new Internal::ParamTree(this);
     tree_->setMinimumSize(450, 200);
     tree_->setAllColumnsShowFocus(true);
@@ -461,13 +465,19 @@ namespace OpenMS
     dynamic_cast<QVBoxLayout *>(layout())->insertWidget(0, tree_, 1);
     tree_->setItemDelegate(new Internal::ParamEditorDelegate(tree_));       // the delegate from above is set
     connect(tree_->itemDelegate(), SIGNAL(modified(bool)), this, SLOT(setModified(bool)));
-    connect(advanced_, SIGNAL(toggled(bool)), this, SLOT(toggleAdvancedMode(bool)));
+    connect(ui_->advanced_, SIGNAL(toggled(bool)), this, SLOT(toggleAdvancedMode(bool)));
     connect(tree_, SIGNAL(selected(const QModelIndex &)), this, SLOT(showDocumentation(const QModelIndex &)));
+  }
+
+
+  ParamEditor::~ParamEditor()
+  {
+    delete ui_;
   }
 
   void ParamEditor::showDocumentation(const QModelIndex & index)
   {
-    doc_->setText(index.sibling(index.row(), 1).data(Qt::UserRole).toString());
+    ui_->doc_->setText(index.sibling(index.row(), 1).data(Qt::UserRole).toString());
   }
 
   void ParamEditor::load(Param & param)
@@ -477,7 +487,7 @@ namespace OpenMS
     tree_->clear();
 
     QTreeWidgetItem * parent = tree_->invisibleRootItem();
-    QTreeWidgetItem * item = NULL;
+    QTreeWidgetItem * item = nullptr;
 
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {
@@ -497,7 +507,7 @@ namespace OpenMS
           //role
           item->setData(0, Qt::UserRole, NODE);
           //flags
-          if (param_ != NULL)
+          if (param_ != nullptr)
           {
             item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
           }
@@ -510,7 +520,7 @@ namespace OpenMS
         else         //closed node
         {
           parent = parent->parent();
-          if (parent == NULL)
+          if (parent == nullptr)
             parent = tree_->invisibleRootItem();
         }
       }
@@ -713,7 +723,7 @@ namespace OpenMS
       //description
       item->setData(1, Qt::UserRole, it->description.toQString());
       //flags
-      if (param_ != NULL)
+      if (param_ != nullptr)
       {
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
       }
@@ -738,7 +748,7 @@ namespace OpenMS
 
     // store only if no line-edit is opened (in which case data is uncommitted and will not be saved)
     // this applies only to INIFileEditor, where pressing Ctrl-s results in saving the current (but outdated) param
-    if (param_ != NULL &&
+    if (param_ != nullptr &&
         !static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate())->hasUncommittedData())
     {
       //std::cerr << "and done!...\n";

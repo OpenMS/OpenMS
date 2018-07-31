@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace std;
@@ -251,10 +250,12 @@ namespace OpenMS
       if (!map.getProteinIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
-      } else if (!map.getUnassignedPeptideIdentifications().empty())
+      }
+      else if (!map.getUnassignedPeptideIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
-      } else
+      }
+      else
       {
         // No search run identifier given so we create a new one
         empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");
@@ -581,10 +582,12 @@ namespace OpenMS
       if (!map.getProteinIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getProteinIdentifications()[0].getIdentifier());
-      } else if (!map.getUnassignedPeptideIdentifications().empty())
+      }
+      else if (!map.getUnassignedPeptideIdentifications().empty())
       {
         empty_protein_id.setIdentifier(map.getUnassignedPeptideIdentifications()[0].getIdentifier());
-      } else
+      }
+      else
       {
         // add a new search identification run (mandatory)
         empty_protein_id.setIdentifier("UNKNOWN_SEARCH_RUN_IDENTIFIER");

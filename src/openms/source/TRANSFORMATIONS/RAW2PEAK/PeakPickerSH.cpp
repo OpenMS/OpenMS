@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerSH.h>
-
-#include <vector>
 
 namespace OpenMS
 {
@@ -71,7 +69,7 @@ namespace OpenMS
       output[scan_idx].setRT(input[scan_idx].getRT());
       output[scan_idx].setMSLevel(input[scan_idx].getMSLevel());
       output[scan_idx].setName(input[scan_idx].getName());
-      output[scan_idx].setType(SpectrumSettings::PEAKS);
+      output[scan_idx].setType(SpectrumSettings::CENTROID);
 
       if (input[scan_idx].getMSLevel() != 1)
       {

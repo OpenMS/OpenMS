@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,8 +66,8 @@ using namespace OpenMS;
 using namespace std;
 
 // default ctor
-DataValue* dv_ptr = 0;
-DataValue* dv_nullPointer = 0;
+DataValue* dv_ptr = nullptr;
+DataValue* dv_nullPointer = nullptr;
 START_SECTION((DataValue()))
 	dv_ptr = new DataValue;
   TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)
@@ -488,7 +488,7 @@ END_SECTION
 
 START_SECTION((const char* toChar() const))
 	DataValue a;
-  TEST_EQUAL(a.toChar() == NULL, true)
+  TEST_EQUAL(a.toChar() == nullptr, true)
   a = DataValue("hello");
   TEST_STRING_EQUAL(a.toChar(),"hello")
 	a = DataValue(5);

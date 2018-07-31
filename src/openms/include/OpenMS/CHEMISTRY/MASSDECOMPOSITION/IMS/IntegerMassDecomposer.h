@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_INTEGERMASSDECOMPOSER_H
-#define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_INTEGERMASSDECOMPOSER_H
+#pragma once
 
 #include <vector>
 #include <utility>
@@ -100,7 +99,7 @@ public:
         @param mass Mass to be decomposed.
         @return true if decomposition over a given mass exists, otherwise - false.
       */
-      virtual bool exist(value_type mass);
+      bool exist(value_type mass) override;
 
       /**
         Gets one possible decomposition for @c mass.
@@ -108,7 +107,7 @@ public:
         @param mass Mass to be decomposed.
         @return One possible decomposition for a given mass.
       */
-      virtual decomposition_type getDecomposition(value_type mass);
+      decomposition_type getDecomposition(value_type mass) override;
 
       /**
         Gets all possible decompositions for @c mass.
@@ -116,7 +115,7 @@ public:
         @param mass Mass to be decomposed.
         @return All possible decompositions for a given mass.
       */
-      virtual decompositions_type getAllDecompositions(value_type mass);
+      decompositions_type getAllDecompositions(value_type mass) override;
 
       /**
         Gets number of all possible decompositions for a given @c mass.
@@ -126,7 +125,7 @@ public:
         @param mass Mass to be decomposed
         @return number of decompositions for a given mass.
       */
-      virtual decomposition_value_type getNumberOfDecompositions(value_type mass);
+      decomposition_value_type getNumberOfDecompositions(value_type mass) override;
 
 private:
 
@@ -557,4 +556,3 @@ private:
   } // namespace ims
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_INTEGERMASSDECOMPOSER_H

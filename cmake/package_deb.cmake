@@ -1,4 +1,9 @@
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "OpenMS developers <open-ms-general@lists.sourceforge.net>")
+if (OPENMS_64BIT_ARCHITECTURE)
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Debian-Linux-x86_64")
+else()
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-Debian-Linux-x86")
+endif()
 set(CPACK_GENERATOR "DEB")
 
 ## CPack issues when building the package.
@@ -17,7 +22,7 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 set(CPACK_DEBIAN_PACKAGE_DEBUG ON)
 
 ## TODO also install headers? make a dev package configuration?
-set(CPACK_COMPONENTS_ALL applications library share ${THIRDPARTY_COMPONENT_GROUP})
+set(CPACK_COMPONENTS_ALL applications doc library share ${THIRDPARTY_COMPONENT_GROUP})
 
 ## TODO we only need to put dependencies on shared libs. But depends on what is found and what is statically linked on build machine.
 ## We should probably use a full system-shared-libs-only machine for building.

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_CVMAPPINGFILE_H
-#define OPENMS_FORMAT_CVMAPPINGFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
@@ -64,7 +63,7 @@ public:
     CVMappingFile();
 
     /// Destructor
-    virtual ~CVMappingFile();
+    ~CVMappingFile() override;
 
     /**
         @brief loads CvMappings from the given file
@@ -80,13 +79,13 @@ public:
 protected:
 
     // Docu in base class
-    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
     // Docu in base class
-    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
     // Docu in base class
-    void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
+    void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
 
 private:
 
@@ -110,4 +109,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_CVMAPPINGFILE_H

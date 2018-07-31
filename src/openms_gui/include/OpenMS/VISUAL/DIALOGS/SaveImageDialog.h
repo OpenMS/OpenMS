@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,16 +32,15 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SAVEIMAGEDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_SAVEIMAGEDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <QtGui/QDialog>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QCheckBox>
+#include <QtWidgets/QDialog>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QCheckBox>
 
 namespace OpenMS
 {
@@ -59,7 +58,7 @@ namespace OpenMS
 
 public:
     ///Constructor
-    SaveImageDialog(QWidget * parent = 0);
+    SaveImageDialog(QWidget * parent = nullptr);
     ///set size and size ratio
     void setSize(int x, int y);
     ///accessors for the width
@@ -93,4 +92,3 @@ private:
     void setSizeRatio_(float r);
   };
 }
-#endif

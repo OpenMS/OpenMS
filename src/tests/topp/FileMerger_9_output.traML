@@ -45,7 +45,7 @@
     <Software id="Skyline0.5" version="0.5">
       <cvParam cvRef="MS" accession="MS:1000922" name="Skyline"/>
     </Software>
-    <Software id="FileMerger" version="1.12.0">
+    <Software id="FileMerger" version="2.3.0">
     </Software>
   </SoftwareList>
   <ProteinList>
@@ -85,8 +85,7 @@
           <cvParam cvRef="MS" accession="MS:1000897" name="predicted retention time" value="44.07" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
         </RetentionTime>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="38.43" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-          <cvParam cvRef="MS" accession="MS:1000902" name="H-PINS retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1000902" name="H-PINS retention time normalization standard" value="38.43" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
         </RetentionTime>
       </RetentionTimeList>
       <Evidence>
@@ -119,8 +118,7 @@
       <cvParam cvRef="MS" accession="MS:1000868" name="SMILES string" value="[CH](=[O])[C](=[O])[O-]"/>
       <RetentionTimeList>
         <RetentionTime>
-          <cvParam cvRef="MS" accession="MS:1000896" name="normalized retention time" value="22.34" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-          <cvParam cvRef="MS" accession="MS:1000902" name="H-PINS retention time normalization standard"/>
+          <cvParam cvRef="MS" accession="MS:1000902" name="H-PINS retention time normalization standard" value="22.34" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
         </RetentionTime>
       </RetentionTimeList>
     </Compound>
@@ -168,11 +166,11 @@
           </Configuration>
         </ConfigurationList>
       </Product>
-      <RetentionTime softwareRef="Skyline0.5">
-        <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="40.02" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-        <cvParam cvRef="MS" accession="MS:1000916" name="retention time window lower offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-        <cvParam cvRef="MS" accession="MS:1000917" name="retention time window upper offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-      </RetentionTime>
+        <RetentionTime softwareRef="Skyline0.5">
+          <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="40.02" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000916" name="retention time window lower offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000917" name="retention time window upper offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+        </RetentionTime>
       <Prediction softwareRef="MaRiMba" contactRef="CS">
         <cvParam cvRef="MS" accession="MS:1000042" name="peak intensity" value="10000" unitCvRef="MS" unitAccession="MS:1000905" unitName="percent of base peak times 100"/>
         <cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap"/>
@@ -223,11 +221,11 @@
           </Configuration>
         </ConfigurationList>
       </Product>
-      <RetentionTime softwareRef="Skyline0.5">
-        <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="40.02" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-        <cvParam cvRef="MS" accession="MS:1000916" name="retention time window lower offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-        <cvParam cvRef="MS" accession="MS:1000917" name="retention time window upper offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
-      </RetentionTime>
+        <RetentionTime softwareRef="Skyline0.5">
+          <cvParam cvRef="MS" accession="MS:1000895" name="local retention time" value="40.02" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000916" name="retention time window lower offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+          <cvParam cvRef="MS" accession="MS:1000917" name="retention time window upper offset" value="3.0" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+        </RetentionTime>
     </Transition>
     <Transition id="tr1" peptideRef="tr_gr1">
       <Precursor>

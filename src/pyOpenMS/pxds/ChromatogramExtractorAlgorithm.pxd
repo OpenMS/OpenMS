@@ -17,36 +17,44 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
         #    ProgressLogger
 
         ChromatogramExtractorAlgorithm() nogil except +
-        ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm) nogil except + 
+        ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm) nogil except +
 
         # abstract base class ISpectrumAccess given as first input arg
         void extractChromatograms(
             shared_ptr[ SpectrumAccessOpenMS ] input,
-            libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
-            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
+            libcpp_vector[ shared_ptr[OSChromatogram] ] & output,
+            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates,
             double mz_extraction_window,
-            bool ppm, String filter) nogil except +
+            bool ppm,
+            double im_extraction_window,
+            String filter) nogil except +
 
         void extractChromatograms(
             shared_ptr[ SpectrumAccessOpenMSCached ] input,
-            libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
-            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
+            libcpp_vector[ shared_ptr[OSChromatogram] ] & output,
+            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates,
             double mz_extraction_window,
-            bool ppm, String filter) nogil except +
+            bool ppm,
+            double im_extraction_window,
+            String filter) nogil except +
 
         void extractChromatograms(
             shared_ptr[ SpectrumAccessOpenMSInMemory ] input,
-            libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
-            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
+            libcpp_vector[ shared_ptr[OSChromatogram] ] & output,
+            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates,
             double mz_extraction_window,
-            bool ppm, String filter) nogil except +
+            bool ppm,
+            double im_extraction_window,
+            String filter) nogil except +
 
         void extractChromatograms(
             shared_ptr[ SpectrumAccessQuadMZTransforming ] input,
-            libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
-            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
+            libcpp_vector[ shared_ptr[OSChromatogram] ] & output,
+            libcpp_vector[ ExtractionCoordinates ] extraction_coordinates,
             double mz_extraction_window,
-            bool ppm, String filter) nogil except +
+            bool ppm,
+            double im_extraction_window,
+            String filter) nogil except +
 
 
         # void extract_value_tophat # -> uses iterators
@@ -56,7 +64,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
     cdef cppclass ExtractionCoordinates:
 
         ExtractionCoordinates() nogil except +
-        ExtractionCoordinates(ExtractionCoordinates) nogil except + 
+        ExtractionCoordinates(ExtractionCoordinates) nogil except +
 
         double mz # mz around which should be extracted
         double mz_precursor # precursor m/z value (is currently ignored by the algorithm)

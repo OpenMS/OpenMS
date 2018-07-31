@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <QtCore/QDir>
 
 using namespace OpenMS;
@@ -102,7 +102,7 @@ public:
 
 protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "The workflow to be executed.");
     setValidFormats_("in", ListUtils::create<String>("toppas"));
@@ -112,7 +112,7 @@ protected:
     setMinInt_("num_jobs", 1);
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int argc, const char ** argv) override
   {
     QString toppas_file = getStringOption_("in").toQString();
     QString out_dir_name = getStringOption_("out_dir").toQString();
@@ -128,7 +128,7 @@ protected:
     qd.cd(new_tmp_dir);
     QString tmp_path = qd.absolutePath();
 
-    TOPPASScene ts(0, tmp_path, false);
+    TOPPASScene ts(nullptr, tmp_path, false);
     if (!a.connect(&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()))) return UNKNOWN_ERROR;
 
     if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()))) return UNKNOWN_ERROR;      // for some reason this slot does not get called, plus it would return "success", which we do not want

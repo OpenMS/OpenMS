@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow, Andreas Bertsch, Lars Nilse $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
-#define OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/COMPARISON/CLUSTERING/CompleteLinkage.h>
@@ -86,7 +85,7 @@ public:
         defaultsToParam_();
       }
 
-      void updateMembers_()
+      void updateMembers_() override
       {
         rt_max_ = (double) param_.getValue("rt_tolerance");
         mz_max_ = (double) param_.getValue("mz_tolerance");
@@ -141,7 +140,7 @@ public:
     SpectraMerger(const SpectraMerger& source);
 
     /// destructor
-    virtual ~SpectraMerger();
+    ~SpectraMerger() override;
     // @}
 
     // @name Operators
@@ -463,15 +462,15 @@ public:
       }
       else if (spectrum_type == "profile")
       {
-        type = SpectrumSettings::RAWDATA;
+        type = SpectrumSettings::PROFILE;
       }
       else if (spectrum_type == "centroid")
       {
-        type = SpectrumSettings::PEAKS;
+        type = SpectrumSettings::CENTROID;
       }
 
       // generate new spectra
-      if (type == SpectrumSettings::PEAKS)
+      if (type == SpectrumSettings::CENTROID)
       {
         averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
       }
@@ -519,7 +518,7 @@ protected:
       {
         throw Exception::IllegalSelfOperation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);  // sanity check
       }
-      // TODO : SpectrumAlignment does not implement is_relative_tolerance
+
       p.setValue("is_relative_tolerance", mz_binning_unit == "Da" ? "false" : "true");
       sas.setParameters(p);
       std::vector<std::pair<Size, Size> > alignment;
@@ -528,9 +527,8 @@ protected:
       Size count_peaks_overall(0);
 
       // each BLOCK
-      for (Map<Size, std::vector<Size> >::ConstIterator it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
+      for (auto it = spectra_to_merge.begin(); it != spectra_to_merge.end(); ++it)
       {
-
         ++cluster_sizes[it->second.size() + 1]; // for stats
 
         typename MapType::SpectrumType consensus_spec = exp[it->first];
@@ -552,7 +550,7 @@ protected:
         count_peaks_overall += consensus_spec.size();
 
         // block elements
-        for (std::vector<Size>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+        for (auto sit = it->second.begin(); sit != it->second.end(); ++sit)
         {
           consensus_spec.unify(exp[*sit]); // append meta info
           merged_indices.insert(*sit);
@@ -575,7 +573,7 @@ protected:
 
           // sanity check for number of peaks
           Size spec_a = consensus_spec.size(), spec_b = exp[*sit].size(), align_size = alignment.size();
-          for (typename MapType::SpectrumType::ConstIterator pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
+          for (auto pit = exp[*sit].begin(); pit != exp[*sit].end(); ++pit)
           {
             if (alignment.size() == 0 || alignment[align_index].second != spec_b_index)
               // ... add unaligned peak
@@ -585,15 +583,20 @@ protected:
             // or add aligned peak height to ALL corresponding existing peaks
             else
             {
-              Size counter = 0, copy_of_align_index = align_index;
+              Size counter(0);
+              Size copy_of_align_index(align_index);
 
-              while (alignment.size() > 0 && alignment[copy_of_align_index].second == spec_b_index)
+              while (alignment.size() > 0 && 
+                     copy_of_align_index < alignment.size() && 
+                     alignment[copy_of_align_index].second == spec_b_index)
               {
                 ++copy_of_align_index;
                 ++counter;
               } // Count the number of peaks in a which correspond to a single b peak.
 
-              while (alignment.size() > 0 && alignment[align_index].second == spec_b_index)
+              while (alignment.size() > 0 &&
+                     align_index < alignment.size() &&  
+                     alignment[align_index].second == spec_b_index)
               {
                 consensus_spec[alignment[align_index].first].setIntensity(consensus_spec[alignment[align_index].first].getIntensity() +
                     (pit->getIntensity() / (double)counter)); // add the intensity divided by the number of peaks
@@ -920,4 +923,3 @@ protected:
   };
 
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H

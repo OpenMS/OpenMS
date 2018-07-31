@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,18 +35,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/config.h>
 
 #include <QtCore/QString>
-#include <algorithm>
-#include <cctype>
 #include <fstream>
-#include <iostream>
-#include <limits>
 
 namespace OpenMS
 {
@@ -304,7 +296,7 @@ namespace OpenMS
         if (entries[i].name.hasPrefix(local_name))
           return this;
       }
-      return 0;
+      return nullptr;
     }
     else //several subnodes to browse through
     {
@@ -313,7 +305,7 @@ namespace OpenMS
       NodeIterator it = findNode(prefix);
       if (it == nodes.end()) //subnode not found
       {
-        return 0;
+        return nullptr;
       }
       //recursively call findNode for the rest of the path
       String new_name = local_name.substr(it->name.size() + 1);
@@ -325,12 +317,12 @@ namespace OpenMS
   Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& local_name)
   {
     ParamNode* parent = findParentOf(local_name);
-    if (parent == 0)
-      return 0;
+    if (parent == nullptr)
+      return nullptr;
 
     EntryIterator it = parent->findEntry(suffix(local_name));
     if (it == parent->entries.end())
-      return 0;
+      return nullptr;
 
     return &(*it);
   }
@@ -562,7 +554,7 @@ namespace OpenMS
     static String empty;
 
     ParamNode* node = root_.findParentOf(key);
-    if (node == 0)
+    if (node == nullptr)
     {
       return empty;
     }
@@ -664,7 +656,7 @@ namespace OpenMS
       keyname = key.chop(1);
 
       ParamNode* node_parent = root_.findParentOf(keyname);
-      if (node_parent != 0)
+      if (node_parent != nullptr)
       {
         Param::ParamNode::NodeIterator it = node_parent->findNode(node_parent->suffix(keyname));
         if (it != node_parent->nodes.end())
@@ -682,7 +674,7 @@ namespace OpenMS
     else
     {
       ParamNode* node = root_.findParentOf(keyname);
-      if (node != 0)
+      if (node != nullptr)
       {
         String entryname = node->suffix(keyname); // get everything beyond last ':'
         Param::ParamNode::EntryIterator it = node->findEntry(entryname);
@@ -704,7 +696,7 @@ namespace OpenMS
     if (prefix.hasSuffix(':')) //we have to delete one node only (and its subnodes)
     {
       ParamNode* node = root_.findParentOf(prefix.chop(1));
-      if (node != 0)
+      if (node != nullptr)
       {
         Param::ParamNode::NodeIterator it = node->findNode(node->suffix(prefix.chop(1)));
         if (it != node->nodes.end())
@@ -722,7 +714,7 @@ namespace OpenMS
     else //we have to delete all entries and nodes starting with the prefix
     {
       ParamNode* node = root_.findParentOf(prefix);
-      if (node != 0)
+      if (node != nullptr)
       {
         String suffix = node->suffix(prefix); // name behind last ":"
 
@@ -763,7 +755,7 @@ namespace OpenMS
     ParamNode out("ROOT", "");
 
     ParamNode* node = root_.findParentOf(prefix);
-    if (node == 0)
+    if (node == nullptr)
     {
       return Param();
     }
@@ -866,7 +858,7 @@ namespace OpenMS
       {
 
         ParamEntry* misc_entry = root_.findEntryRecursive(prefix2 + "misc");
-        if (misc_entry == 0)
+        if (misc_entry == nullptr)
         {
           StringList sl;
           sl.push_back(arg);
@@ -962,7 +954,7 @@ namespace OpenMS
       else if (arg_is_option)
       {
         ParamEntry* unknown_entry = root_.findEntryRecursive(unknown);
-        if (unknown_entry == 0)
+        if (unknown_entry == nullptr)
         {
           StringList sl;
           sl.push_back(arg);
@@ -979,7 +971,7 @@ namespace OpenMS
       else
       {
         ParamEntry* misc_entry = root_.findEntryRecursive(misc);
-        if (misc_entry == 0)
+        if (misc_entry == nullptr)
         {
           StringList sl;
           sl.push_back(arg);
@@ -1054,7 +1046,7 @@ namespace OpenMS
 
       //different types
       ParamEntry* default_value = defaults.root_.findEntryRecursive(prefix2 + it.getName());
-      if (default_value == 0)
+      if (default_value == nullptr)
         continue;
       if (default_value->value.valueType() != it->value.valueType())
       {
@@ -1330,7 +1322,7 @@ namespace OpenMS
   void Param::setSectionDescription(const String& key, const String& description)
   {
     ParamNode* node = root_.findParentOf(key);
-    if (node == NULL)
+    if (node == nullptr)
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }
@@ -1359,7 +1351,7 @@ namespace OpenMS
   }
 
   Param::ParamIterator::ParamIterator() :
-    root_(0),
+    root_(nullptr),
     current_(0),
     stack_(),
     trace_()
@@ -1375,7 +1367,7 @@ namespace OpenMS
     //Empty Param => begin == end iterator
     if (root_->entries.empty() && root_->nodes.empty())
     {
-      root_ = 0;
+      root_ = nullptr;
       return;
     }
 
@@ -1407,7 +1399,7 @@ namespace OpenMS
 
   Param::ParamIterator& Param::ParamIterator::operator++()
   {
-    if (root_ == 0)
+    if (root_ == nullptr)
       return *this;
 
     trace_.clear();
@@ -1448,7 +1440,7 @@ namespace OpenMS
           if (stack_.empty())
           {
             //cout << " - reached the end" << endl;
-            root_ = 0;
+            root_ = nullptr;
             return *this;
           }
           node = stack_.back();
@@ -1479,7 +1471,7 @@ namespace OpenMS
 
   bool Param::ParamIterator::operator==(const ParamIterator& rhs) const
   {
-    return (root_ == 0 && rhs.root_ == 0) || (stack_ == rhs.stack_ && current_ == rhs.current_);
+    return (root_ == nullptr && rhs.root_ == nullptr) || (stack_ == rhs.stack_ && current_ == rhs.current_);
   }
 
   bool Param::ParamIterator::operator!=(const ParamIterator& rhs) const
@@ -1563,7 +1555,7 @@ namespace OpenMS
   Param::ParamEntry& Param::getEntry_(const String& key) const
   {
     ParamEntry* entry = root_.findEntryRecursive(key);
-    if (entry == 0)
+    if (entry == nullptr)
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, key);
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,6 @@
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Helpers.h>
 
-#include <iostream>
-
 namespace OpenMS
 {
 
@@ -46,17 +44,17 @@ namespace OpenMS
 
   CVTermListInterface::CVTermListInterface() :
       MetaInfoInterface(),
-      cvt_ptr_(0)
+      cvt_ptr_(nullptr)
     {}
 
 
   CVTermListInterface::CVTermListInterface(const CVTermListInterface & rhs) :
     MetaInfoInterface(rhs),
-    cvt_ptr_(0)
+    cvt_ptr_(nullptr)
   {
     MetaInfoInterface::operator=(rhs);
 
-    if (rhs.cvt_ptr_ != NULL)
+    if (rhs.cvt_ptr_ != nullptr)
     {
       cvt_ptr_ = new CVTermList(*rhs.cvt_ptr_);
     }
@@ -75,8 +73,8 @@ namespace OpenMS
         MetaInfoInterface::operator=(rhs);
 
         delete cvt_ptr_;
-        cvt_ptr_ = NULL;
-        if (rhs.cvt_ptr_ != NULL)
+        cvt_ptr_ = nullptr;
+        if (rhs.cvt_ptr_ != nullptr)
         {
           cvt_ptr_ = new CVTermList(*rhs.cvt_ptr_);
         }
@@ -111,7 +109,7 @@ namespace OpenMS
 
   bool CVTermListInterface::empty() const
   {
-    return (cvt_ptr_ == NULL || cvt_ptr_->empty());
+    return (cvt_ptr_ == nullptr || cvt_ptr_->empty());
   }
 
   void CVTermListInterface::setCVTerms(const std::vector<CVTerm>& terms)

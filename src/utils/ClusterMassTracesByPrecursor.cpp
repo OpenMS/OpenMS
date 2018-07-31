@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,7 +97,7 @@ class TOPPCorrelateMasstraces
 
  protected:
 
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in_ms1","<file>","","MS1 mass traces");
     setValidFormats_("in_ms1",ListUtils::create<String>("consensusXML"));
@@ -122,7 +122,7 @@ class TOPPCorrelateMasstraces
 
  public:
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int , const char**) override
   {
     setLogType(log_type_); 
 

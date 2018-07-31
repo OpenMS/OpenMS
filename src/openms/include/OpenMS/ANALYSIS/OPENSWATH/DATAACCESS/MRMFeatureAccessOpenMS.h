@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,9 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_MRMFEATUREACCESSOPENMS_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_MRMFEATUREACCESSOPENMS_H
+#pragma once
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/MRMFeature.h>
@@ -63,15 +62,15 @@ public:
 
     explicit FeatureOpenMS(Feature& feature);
 
-    ~FeatureOpenMS();
+    ~FeatureOpenMS() override;
 
-    void getRT(std::vector<double>& rt);
+    void getRT(std::vector<double>& rt) const override;
 
-    void getIntensity(std::vector<double>& intens);
+    void getIntensity(std::vector<double>& intens) const override;
 
-    float getIntensity();
+    float getIntensity() const override;
 
-    double getRT();
+    double getRT() const override;
 
 private:
     Feature* feature_;
@@ -88,21 +87,21 @@ public:
 
     explicit MRMFeatureOpenMS(MRMFeature& mrmfeature);
 
-    ~MRMFeatureOpenMS();
+    ~MRMFeatureOpenMS() override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID);
+    boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) override;
 
-    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID);
+    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) override;
 
-    std::vector<std::string> getNativeIDs() const;
+    std::vector<std::string> getNativeIDs() const override;
 
-    std::vector<std::string> getPrecursorIDs() const;
+    std::vector<std::string> getPrecursorIDs() const override;
 
-    float getIntensity();
+    float getIntensity() const override;
 
-    double getRT();
+    double getRT() const override;
 
-    size_t size();
+    size_t size() const override;
 
 private:
     const MRMFeature& mrmfeature_;
@@ -125,16 +124,16 @@ public:
     {
     }
 
-    ~TransitionGroupOpenMS()
+    ~TransitionGroupOpenMS() override
     {
     }
 
-    std::size_t size()
+    std::size_t size() const override
     {
       return trgroup_.size();
     }
 
-    std::vector<std::string> getNativeIDs()
+    std::vector<std::string> getNativeIDs() const override
     {
       std::vector<std::string> result;
       for (std::size_t i = 0; i < this->size(); i++)
@@ -144,7 +143,7 @@ public:
       return result;
     }
 
-    void getLibraryIntensities(std::vector<double>& intensities)
+    void getLibraryIntensities(std::vector<double>& intensities) const override
     {
       trgroup_.getLibraryIntensity(intensities);
     }
@@ -184,7 +183,7 @@ public:
       sn_.init(chromatogram_);
     }
 
-    double getValueAtRT(double RT)
+    double getValueAtRT(double RT) override
     {
       if (chromatogram_.empty()) {return -1;}
 
@@ -225,5 +224,4 @@ private:
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_MRMFEATUREACCESSOPENMS_H
 

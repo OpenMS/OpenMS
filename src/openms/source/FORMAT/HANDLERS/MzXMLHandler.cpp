@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,12 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
+#include <OpenMS/FORMAT/Base64.h>
+
+#include <stack>
+
 namespace OpenMS
 {
   namespace Internal
@@ -53,51 +59,50 @@ namespace OpenMS
     //--------------------------------------------------------------------------------
 
     // this cannot be moved into a function as VS2008 does not allow more than 31 static members in a function .. don't ask...
-    const XMLCh * MzXMLHandler::s_value_ = 0;
-    const XMLCh * MzXMLHandler::s_count_ = 0;
-    const XMLCh * MzXMLHandler::s_type_ = 0;
-    const XMLCh * MzXMLHandler::s_name_ = 0;
-    const XMLCh * MzXMLHandler::s_version_ = 0;
-    const XMLCh * MzXMLHandler::s_filename_ = 0;
-    const XMLCh * MzXMLHandler::s_filetype_ = 0;
-    const XMLCh * MzXMLHandler::s_filesha1_ = 0;
-    const XMLCh * MzXMLHandler::s_completiontime_ = 0;
-    const XMLCh * MzXMLHandler::s_precision_ = 0;
-    const XMLCh * MzXMLHandler::s_byteorder_ = 0;
-    const XMLCh * MzXMLHandler::s_contentType_ = 0;
-    const XMLCh * MzXMLHandler::s_compressionType_ = 0;
-    const XMLCh * MzXMLHandler::s_precursorintensity_ = 0;
-    const XMLCh * MzXMLHandler::s_precursorcharge_ = 0;
-    const XMLCh * MzXMLHandler::s_windowwideness_ = 0;
-    const XMLCh * MzXMLHandler::s_mslevel_ = 0;
-    const XMLCh * MzXMLHandler::s_peakscount_ = 0;
-    const XMLCh * MzXMLHandler::s_polarity_ = 0;
-    const XMLCh * MzXMLHandler::s_scantype_ = 0;
-    const XMLCh * MzXMLHandler::s_filterline_ = 0;
-    const XMLCh * MzXMLHandler::s_retentiontime_ = 0;
-    const XMLCh * MzXMLHandler::s_startmz_ = 0;
-    const XMLCh * MzXMLHandler::s_endmz_ = 0;
-    const XMLCh * MzXMLHandler::s_first_ = 0;
-    const XMLCh * MzXMLHandler::s_last_ = 0;
-    const XMLCh * MzXMLHandler::s_phone_ = 0;
-    const XMLCh * MzXMLHandler::s_email_ = 0;
-    const XMLCh * MzXMLHandler::s_uri_ = 0;
-    const XMLCh * MzXMLHandler::s_num_ = 0;
-    const XMLCh * MzXMLHandler::s_intensitycutoff_ = 0;
-    const XMLCh * MzXMLHandler::s_centroided_ = 0;
-    const XMLCh * MzXMLHandler::s_deisotoped_ = 0;
-    const XMLCh * MzXMLHandler::s_chargedeconvoluted_ = 0;
+    const XMLCh * MzXMLHandler::s_value_ = nullptr;
+    const XMLCh * MzXMLHandler::s_count_ = nullptr;
+    const XMLCh * MzXMLHandler::s_type_ = nullptr;
+    const XMLCh * MzXMLHandler::s_name_ = nullptr;
+    const XMLCh * MzXMLHandler::s_version_ = nullptr;
+    const XMLCh * MzXMLHandler::s_filename_ = nullptr;
+    const XMLCh * MzXMLHandler::s_filetype_ = nullptr;
+    const XMLCh * MzXMLHandler::s_filesha1_ = nullptr;
+    const XMLCh * MzXMLHandler::s_completiontime_ = nullptr;
+    const XMLCh * MzXMLHandler::s_precision_ = nullptr;
+    const XMLCh * MzXMLHandler::s_byteorder_ = nullptr;
+    const XMLCh * MzXMLHandler::s_contentType_ = nullptr;
+    const XMLCh * MzXMLHandler::s_compressionType_ = nullptr;
+    const XMLCh * MzXMLHandler::s_precursorintensity_ = nullptr;
+    const XMLCh * MzXMLHandler::s_precursorcharge_ = nullptr;
+    const XMLCh * MzXMLHandler::s_windowwideness_ = nullptr;
+    const XMLCh * MzXMLHandler::s_mslevel_ = nullptr;
+    const XMLCh * MzXMLHandler::s_peakscount_ = nullptr;
+    const XMLCh * MzXMLHandler::s_polarity_ = nullptr;
+    const XMLCh * MzXMLHandler::s_scantype_ = nullptr;
+    const XMLCh * MzXMLHandler::s_filterline_ = nullptr;
+    const XMLCh * MzXMLHandler::s_retentiontime_ = nullptr;
+    const XMLCh * MzXMLHandler::s_startmz_ = nullptr;
+    const XMLCh * MzXMLHandler::s_endmz_ = nullptr;
+    const XMLCh * MzXMLHandler::s_first_ = nullptr;
+    const XMLCh * MzXMLHandler::s_last_ = nullptr;
+    const XMLCh * MzXMLHandler::s_phone_ = nullptr;
+    const XMLCh * MzXMLHandler::s_email_ = nullptr;
+    const XMLCh * MzXMLHandler::s_uri_ = nullptr;
+    const XMLCh * MzXMLHandler::s_num_ = nullptr;
+    const XMLCh * MzXMLHandler::s_intensitycutoff_ = nullptr;
+    const XMLCh * MzXMLHandler::s_centroided_ = nullptr;
+    const XMLCh * MzXMLHandler::s_deisotoped_ = nullptr;
+    const XMLCh * MzXMLHandler::s_chargedeconvoluted_ = nullptr;
 
     /// Constructor for a read-only handler
     MzXMLHandler::MzXMLHandler(MapType& exp, const String& filename, const String& version, ProgressLogger& logger) :
       XMLHandler(filename, version),
       exp_(&exp),
-      cexp_(0),
-      decoder_(),
+      cexp_(nullptr),
       nesting_level_(0),
       skip_spectrum_(false),
       spec_write_counter_(1),
-      consumer_(NULL),
+      consumer_(nullptr),
       scan_count_(0),
       logger_(logger)
     {
@@ -107,17 +112,28 @@ namespace OpenMS
     /// Constructor for a write-only handler
     MzXMLHandler::MzXMLHandler(const MapType& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp),
-      decoder_(),
       nesting_level_(0),
       skip_spectrum_(false),
       spec_write_counter_(1),
-      consumer_(NULL),
+      consumer_(nullptr),
       scan_count_(0),
       logger_(logger)
     {
       init_();
+    }
+
+    /// handler which support partial loading, implement this method
+    XMLHandler::LOADDETAIL MzXMLHandler::getLoadDetail() const
+    {
+      return load_detail_;
+    }
+
+    /// handler which support partial loading, implement this method
+    void MzXMLHandler::setLoadDetail(const XMLHandler::LOADDETAIL d)
+    {
+      load_detail_ = d;
     }
 
     void MzXMLHandler::startElement(const XMLCh* const /*uri*/,
@@ -126,7 +142,7 @@ namespace OpenMS
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-        static bool init_static_members(false);
+      static bool init_static_members(false);
       if (!init_static_members)
       {
         initStaticMembers_();
@@ -278,14 +294,14 @@ namespace OpenMS
         }
 
         logger_.setProgress(scan_count_);
+        ++scan_count_;
 
         if ((options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
           || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
-          || options_.getSizeOnly())
+          || load_detail_ == Internal::XMLHandler::LD_RAWCOUNTS)
         {
           // skip this tag
           skip_spectrum_ = true;
-          ++scan_count_;
           return;
         }
 
@@ -381,9 +397,7 @@ namespace OpenMS
           spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
           warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
         }
-
-        ++scan_count_;
-      }
+      } // END OF <scan>
       else if (tag == "operator")
       {
         exp_->getContacts().resize(1);
@@ -509,9 +523,9 @@ namespace OpenMS
     {
       OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-        //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
+      //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
-        static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
+      static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
       static const XMLCh* s_scan = xercesc::XMLString::transcode("scan");
 
       open_tags_.pop_back();
@@ -531,10 +545,10 @@ namespace OpenMS
         nesting_level_--;
         OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-          if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
-          {
+        if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
+        {
           populateSpectraWithData_();
-          }
+        }
       }
       //std::cout << " -- End -- " << "\n";
     }
@@ -1012,7 +1026,7 @@ namespace OpenMS
           s_peaks = "<peaks precision=\"32\" byteOrder=\"network\" contentType=\"m/z-int\" compressionType=\"none\" compressedLen=\"0\" ";
         }
         if (options_.getForceMQCompatability() && !s_peaks.has('\n'))
-        { // internal check against inadvertedly removing line breaks above!
+        { // internal check against inadvertently removing line breaks above!
           fatalError(STORE, "Internal error: <peaks> tag does not contain newlines as required by MaxQuant. Please report this as a bug.", __LINE__, 0);
         }
         os << String(ms_level + 2, '\t') << s_peaks;
@@ -1028,7 +1042,7 @@ namespace OpenMS
           }
 
           String encoded;
-          decoder_.encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
+          Base64::encode(tmp, Base64::BYTEORDER_BIGENDIAN, encoded);
           os << encoded << "</peaks>\n";
         }
         else
@@ -1170,11 +1184,11 @@ namespace OpenMS
         std::vector<double> data;
         if (spectrum_data.compressionType_ == "zlib")
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
+          Base64::decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
         }
         else
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+          Base64::decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
         }
         spectrum_data.char_rest_ = "";
         PeakType peak;
@@ -1196,11 +1210,11 @@ namespace OpenMS
         std::vector<float> data;
         if (spectrum_data.compressionType_ == "zlib")
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
+          Base64::decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
         }
         else
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+          Base64::decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
         }
         spectrum_data.char_rest_ = "";
         PeakType peak;
@@ -1257,7 +1271,7 @@ namespace OpenMS
       // Append all spectra
       for (Size i = 0; i < spectrum_data_.size(); i++)
       {
-        if (consumer_ != NULL)
+        if (consumer_ != nullptr)
         {
           consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
           if (options_.getAlwaysAppendData())

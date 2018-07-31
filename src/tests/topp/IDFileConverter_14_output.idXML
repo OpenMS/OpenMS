@@ -8,7 +8,7 @@
 		<VariableModification name="Deamidated (Q)" />
 		<VariableModification name="Oxidation (M)" />
 	</SearchParameters>
-	<IdentificationRun date="2016-12-20T16:43:55" search_engine="Percolator" search_engine_version="" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2017-11-28T11:35:17" search_engine="Percolator" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Augustus2_AUGUSTUS00000009543_5_25910749-25909503_1" score="0" sequence="" >
 			</ProteinHit>

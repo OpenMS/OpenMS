@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,13 +36,8 @@
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
 
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <vector>
-#include <set>
-#include <map> // for multimap<>
-#include <algorithm> // for min
 #include <numeric> // for make_pair
 
 using std::map;
@@ -64,7 +59,7 @@ namespace OpenMS
                        Int y_coord) :
     center_point_(center_point),
     neighbors_(),
-    tmp_neighbors_(NULL),
+    tmp_neighbors_(nullptr),
     max_distance_(max_distance),
     num_maps_(num_maps),
     quality_(0.0),
@@ -431,7 +426,7 @@ namespace OpenMS
 
     // delete memory again
     delete tmp_neighbors_;
-    tmp_neighbors_ = NULL;
+    tmp_neighbors_ = nullptr;
   }
 
   void QTCluster::initializeCluster()
@@ -443,12 +438,12 @@ namespace OpenMS
 
     finalized_ = false;
 
-    if (tmp_neighbors_ != NULL)
+    if (tmp_neighbors_ != nullptr)
     {
       // delete memory again (should never actually happen but lets make sure
       // we release the memory under all circumstances)
       delete tmp_neighbors_;
-      tmp_neighbors_ = NULL;
+      tmp_neighbors_ = nullptr;
     }
 
     // create empty map 
@@ -457,12 +452,12 @@ namespace OpenMS
 
   QTCluster::~QTCluster()
   {
-    if (tmp_neighbors_ != NULL)
+    if (tmp_neighbors_ != nullptr)
     {
       // delete memory again (should never actually happen but lets make sure
       // we release the memory under all circumstances)
       delete tmp_neighbors_;
-      tmp_neighbors_ = NULL;
+      tmp_neighbors_ = nullptr;
     }
   }
 

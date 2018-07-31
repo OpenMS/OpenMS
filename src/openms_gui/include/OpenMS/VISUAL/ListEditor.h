@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: David Wojnar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_LISTEDITOR_H
-#define OPENMS_VISUAL_LISTEDITOR_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -42,9 +41,9 @@
   #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #endif
 
-#include <QtGui/QDialog>
-#include <QtGui/QListWidget>
-#include <QtGui/QItemDelegate>
+#include <QDialog>
+#include <QListWidget>
+#include <QItemDelegate>
 
 class QPushButton;
 
@@ -76,7 +75,7 @@ public:
     };
 
     ///Constructor
-    ListEditor(QWidget * parent = 0, QString title = "");
+    ListEditor(QWidget * parent = nullptr, QString title = "");
     ///returns modified list
     StringList getList() const;
     ///sets list (and its type)that will be modified by user
@@ -117,7 +116,7 @@ private:
 public:
 
       //Default Constructor
-      ListTable(QWidget * parent = 0);
+      ListTable(QWidget * parent = nullptr);
 
       //returns a list_
       StringList getList();
@@ -150,13 +149,13 @@ public:
       ///Constructor
       ListEditorDelegate(QObject * parent);
       /// not reimplemented
-      QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+      QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
       /// Sets the data to be displayed and edited by the editor for the item specified by index.
-      void setEditorData(QWidget * editor, const QModelIndex & index) const;
+      void setEditorData(QWidget * editor, const QModelIndex & index) const override;
       /// Sets the data for the specified model and item index from that supplied by the editor. If data changed in a cell, that is if it is different from an initial value, then set its background color to yellow and emit the modified signal otherwise make it white
-      void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const;
+      void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override;
       /// Updates the editor for the item specified by index according to the style option given.
-      void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const;
+      void updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
 
       //sets Type of List
       void setType(const ListEditor::Type type);
@@ -183,4 +182,3 @@ private:
   }
 
 } // namespace OpenMS
-#endif //OPENMS_VISUAL_LISTEDITOR_H

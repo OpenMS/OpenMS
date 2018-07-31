@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_7478034797829266976" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="FileFilter" version="version_string" />
+		<processingAction name="Data filtering" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<IdentificationRun id="PI_0" date="2011-02-02T13:04:21" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="regulatedPeptides" db_version="regulatedPeptides_appended_20100831.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="sp|P02663|CASA2_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="sp|P02662|CASA1_BOVIN" score="520" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="sp|P02663|CASA2_BOVIN_rev" score="0" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2011-01-10T10:32:51" search_engine="Mascot" search_engine_version="2.2.04">
+		<SearchParameters db="sgd_orf_trans_all" db_version="sgd_orf_trans_all_20100105.fasta" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0.5" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<FixedModification name="Label:13C(6)15N(2) (K)" />
+			<FixedModification name="Label:13C(6)15N(4) (R)" />
+			<VariableModification name="Oxidation (M)" />
+		</SearchParameters>
+		<ProteinIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_3" accession="YDL217C" score="2922" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="YEL020W-A" score="1586" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="YBR091C" score="1214" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="YJL054W" score="877" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="YOR297C" score="369" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="YJL180C" score="36" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="YNL243W" score="32" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="YPR068C" score="30" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="YNL294C" score="20" sequence="">
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="YNR051C" score="16" sequence="">
+			</ProteinHit>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="317.699279785156" RT="2869.4172" >
+		<PeptideHit score="32.37" sequence="LNFLK" charge="2" aa_before="R" aa_after="K" protein_refs="PH_0">
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.00058"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="437.7255859375" RT="1741.1794" >
+		<PeptideHit score="15.74" sequence="NMAINPSK" charge="2" aa_before="K" aa_after="E" protein_refs="PH_0">
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.027"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="490.283447265625" RT="3723.2741" >
+		<PeptideHit score="10.49" sequence="FALPQYLK" charge="2" aa_before="K" aa_after="T" protein_refs="PH_0">
+			<UserParam type="float" name="homology_threshold" value="0"/>
+			<UserParam type="float" name="identity_threshold" value="13"/>
+			<UserParam type="float" name="EValue" value="0.089"/>
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
+	<featureList count="2">
+		<feature id="f_17460649691512291993">
+			<position dim="0">2640.88731524639</position>
+			<position dim="1">617.938345066486</position>
+			<intensity>2.11254e+06</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.720299</overallquality>
+			<charge>3</charge>
+			<convexhull nr="0">
+				<pt x="2629.1926" y="617.939482026928" />
+				<pt x="2630.517" y="617.93972833547" />
+				<pt x="2631.5063" y="617.939404723217" />
+				<pt x="2632.8624" y="617.939582682976" />
+				<pt x="2635.2307" y="617.939783174474" />
+				<pt x="2636.7027" y="617.939779910857" />
+				<pt x="2637.6961" y="617.939874896474" />
+				<pt x="2638.7487" y="617.940171770648" />
+				<pt x="2639.7603" y="617.940012611121" />
+				<pt x="2641.0958" y="617.939915312362" />
+				<pt x="2642.5452" y="617.939808577002" />
+				<pt x="2643.5735" y="617.939789526908" />
+				<pt x="2645.0292" y="617.939748885408" />
+				<pt x="2646.8799" y="617.939540498671" />
+				<pt x="2648.2057" y="617.939873979025" />
+				<pt x="2649.1871" y="617.94007671387" />
+				<pt x="2650.5451" y="617.939756917437" />
+				<pt x="2651.4973" y="617.939730711254" />
+				<pt x="2652.5755" y="617.939450962356" />
+				<pt x="2653.9329" y="617.939626093188" />
+				<pt x="2655.2354" y="617.939843642309" />
+				<pt x="2653.9329" y="617.939626093188" />
+				<pt x="2652.5755" y="617.939450962356" />
+				<pt x="2651.4973" y="617.939730711254" />
+				<pt x="2650.5451" y="617.939756917437" />
+				<pt x="2649.1871" y="617.94007671387" />
+				<pt x="2648.2057" y="617.939873979025" />
+				<pt x="2646.8799" y="617.939540498671" />
+				<pt x="2645.0292" y="617.939748885408" />
+				<pt x="2643.5735" y="617.939789526908" />
+				<pt x="2642.5452" y="617.939808577002" />
+				<pt x="2641.0958" y="617.939915312362" />
+				<pt x="2639.7603" y="617.940012611121" />
+				<pt x="2638.7487" y="617.940171770648" />
+				<pt x="2637.6961" y="617.939874896474" />
+				<pt x="2636.7027" y="617.939779910857" />
+				<pt x="2635.2307" y="617.939783174474" />
+				<pt x="2632.8624" y="617.939582682976" />
+				<pt x="2631.5063" y="617.939404723217" />
+				<pt x="2630.517" y="617.93972833547" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="2629.1926" y="618.27377262673" />
+				<pt x="2630.517" y="618.273732649965" />
+				<pt x="2631.5063" y="618.273691703549" />
+				<pt x="2632.8624" y="618.274092411398" />
+				<pt x="2635.2307" y="618.274002374836" />
+				<pt x="2636.7027" y="618.273883528118" />
+				<pt x="2637.6961" y="618.27419696974" />
+				<pt x="2638.7487" y="618.274281369013" />
+				<pt x="2639.7603" y="618.27423550236" />
+				<pt x="2641.0958" y="618.274183427857" />
+				<pt x="2642.5452" y="618.274034846968" />
+				<pt x="2643.5735" y="618.274080335043" />
+				<pt x="2645.0292" y="618.274053173806" />
+				<pt x="2646.8799" y="618.273804243738" />
+				<pt x="2648.2057" y="618.274147710948" />
+				<pt x="2649.1871" y="618.274632103018" />
+				<pt x="2650.5451" y="618.273838559272" />
+				<pt x="2651.4973" y="618.274173252161" />
+				<pt x="2652.5755" y="618.274334190776" />
+				<pt x="2653.9329" y="618.274191861225" />
+				<pt x="2655.2354" y="618.273925322815" />
+				<pt x="2653.9329" y="618.274191861225" />
+				<pt x="2652.5755" y="618.274334190776" />
+				<pt x="2651.4973" y="618.274173252161" />
+				<pt x="2650.5451" y="618.273838559272" />
+				<pt x="2649.1871" y="618.274632103018" />
+				<pt x="2648.2057" y="618.274147710948" />
+				<pt x="2646.8799" y="618.273804243738" />
+				<pt x="2645.0292" y="618.274053173806" />
+				<pt x="2643.5735" y="618.274080335043" />
+				<pt x="2642.5452" y="618.274034846968" />
+				<pt x="2641.0958" y="618.274183427857" />
+				<pt x="2639.7603" y="618.27423550236" />
+				<pt x="2638.7487" y="618.274281369013" />
+				<pt x="2637.6961" y="618.27419696974" />
+				<pt x="2636.7027" y="618.273883528118" />
+				<pt x="2635.2307" y="618.274002374836" />
+				<pt x="2632.8624" y="618.274092411398" />
+				<pt x="2631.5063" y="618.273691703549" />
+				<pt x="2630.517" y="618.273732649965" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="2630.517" y="618.610766394602" />
+				<pt x="2631.5063" y="618.609165985333" />
+				<pt x="2632.8624" y="618.607515846041" />
+				<pt x="2635.2307" y="618.607915971817" />
+				<pt x="2636.7027" y="618.607868663095" />
+				<pt x="2637.6961" y="618.608125628126" />
+				<pt x="2638.7487" y="618.608532172395" />
+				<pt x="2639.7603" y="618.608331590518" />
+				<pt x="2641.0958" y="618.608075068591" />
+				<pt x="2642.5452" y="618.608170504033" />
+				<pt x="2643.5735" y="618.608501999634" />
+				<pt x="2645.0292" y="618.608012974335" />
+				<pt x="2646.8799" y="618.607995174575" />
+				<pt x="2648.2057" y="618.608480611735" />
+				<pt x="2649.1871" y="618.608355982641" />
+				<pt x="2650.5451" y="618.608831170733" />
+				<pt x="2651.4973" y="618.607984890742" />
+				<pt x="2652.5755" y="618.608274340889" />
+				<pt x="2653.9329" y="618.608897446378" />
+				<pt x="2655.2354" y="618.607816825697" />
+				<pt x="2653.9329" y="618.608897446378" />
+				<pt x="2652.5755" y="618.608274340889" />
+				<pt x="2651.4973" y="618.607984890742" />
+				<pt x="2650.5451" y="618.608831170733" />
+				<pt x="2649.1871" y="618.608355982641" />
+				<pt x="2648.2057" y="618.608480611735" />
+				<pt x="2646.8799" y="618.607995174575" />
+				<pt x="2645.0292" y="618.608012974335" />
+				<pt x="2643.5735" y="618.608501999634" />
+				<pt x="2642.5452" y="618.608170504033" />
+				<pt x="2641.0958" y="618.608075068591" />
+				<pt x="2639.7603" y="618.608331590518" />
+				<pt x="2638.7487" y="618.608532172395" />
+				<pt x="2637.6961" y="618.608125628126" />
+				<pt x="2636.7027" y="618.607868663095" />
+				<pt x="2635.2307" y="618.607915971817" />
+				<pt x="2632.8624" y="618.607515846041" />
+				<pt x="2631.5063" y="618.609165985333" />
+			</convexhull>
+			<convexhull nr="3">
+				<pt x="2631.5063" y="618.943648018814" />
+				<pt x="2632.8624" y="618.942561052643" />
+				<pt x="2635.2307" y="618.943373318284" />
+				<pt x="2636.7027" y="618.94255551104" />
+				<pt x="2637.6961" y="618.941583570079" />
+				<pt x="2638.7487" y="618.941881054454" />
+				<pt x="2639.7603" y="618.943261645863" />
+				<pt x="2641.0958" y="618.942568149797" />
+				<pt x="2642.5452" y="618.941764062387" />
+				<pt x="2643.5735" y="618.942582981373" />
+				<pt x="2645.0292" y="618.941903302745" />
+				<pt x="2646.8799" y="618.941537585473" />
+				<pt x="2648.2057" y="618.942086402863" />
+				<pt x="2649.1871" y="618.943312289469" />
+				<pt x="2650.5451" y="618.942216537257" />
+				<pt x="2651.4973" y="618.942262925078" />
+				<pt x="2650.5451" y="618.942216537257" />
+				<pt x="2649.1871" y="618.943312289469" />
+				<pt x="2648.2057" y="618.942086402863" />
+				<pt x="2646.8799" y="618.941537585473" />
+				<pt x="2645.0292" y="618.941903302745" />
+				<pt x="2643.5735" y="618.942582981373" />
+				<pt x="2642.5452" y="618.941764062387" />
+				<pt x="2641.0958" y="618.942568149797" />
+				<pt x="2639.7603" y="618.943261645863" />
+				<pt x="2638.7487" y="618.941881054454" />
+				<pt x="2637.6961" y="618.941583570079" />
+				<pt x="2636.7027" y="618.94255551104" />
+				<pt x="2635.2307" y="618.943373318284" />
+				<pt x="2632.8624" y="618.942561052643" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="617.939697265625" RT="2633.874" >
+				<PeptideHit score="1.42" sequence="YSFSHDSC(Carbamidomethyl)M(Oxidation)PVPIC(Carbamidomethyl)K(Label:13C(6)15N(2))" charge="3">
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="13"/>
+					<UserParam type="float" name="EValue" value="0.72"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="int" name="label" value="2395"/>
+			<UserParam type="int" name="spectrum_index" value="2057"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=2640"/>
+		</feature>
+		<feature id="f_2448305435028036088">
+			<position dim="0">4274.85589562269</position>
+			<position dim="1">474.290427996916</position>
+			<intensity>122876</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0.853556</overallquality>
+			<charge>2</charge>
+			<convexhull nr="0">
+				<pt x="4265.6506" y="474.29043534369" />
+				<pt x="4266.9471" y="474.29031550213" />
+				<pt x="4268.2355" y="474.290459548509" />
+				<pt x="4269.171" y="474.290823527598" />
+				<pt x="4270.2258" y="474.291028136401" />
+				<pt x="4271.2185" y="474.290081199183" />
+				<pt x="4272.6386" y="474.290531208286" />
+				<pt x="4274.0332" y="474.290147095043" />
+				<pt x="4275.9386" y="474.290650148934" />
+				<pt x="4277.7903" y="474.290574636898" />
+				<pt x="4279.1603" y="474.29027224407" />
+				<pt x="4280.1202" y="474.290148451408" />
+				<pt x="4281.4771" y="474.289822150441" />
+				<pt x="4282.3935" y="474.29045194369" />
+				<pt x="4283.3959" y="474.290924276107" />
+				<pt x="4284.3972" y="474.290577672558" />
+				<pt x="4285.7656" y="474.289989764521" />
+				<pt x="4284.3972" y="474.290577672558" />
+				<pt x="4283.3959" y="474.290924276107" />
+				<pt x="4282.3935" y="474.29045194369" />
+				<pt x="4281.4771" y="474.289822150441" />
+				<pt x="4280.1202" y="474.290148451408" />
+				<pt x="4279.1603" y="474.29027224407" />
+				<pt x="4277.7903" y="474.290574636898" />
+				<pt x="4275.9386" y="474.290650148934" />
+				<pt x="4274.0332" y="474.290147095043" />
+				<pt x="4272.6386" y="474.290531208286" />
+				<pt x="4271.2185" y="474.290081199183" />
+				<pt x="4270.2258" y="474.291028136401" />
+				<pt x="4269.171" y="474.290823527598" />
+				<pt x="4268.2355" y="474.290459548509" />
+				<pt x="4266.9471" y="474.29031550213" />
+			</convexhull>
+			<convexhull nr="1">
+				<pt x="4271.2185" y="474.791755204598" />
+				<pt x="4274.0332" y="474.791915619941" />
+				<pt x="4275.9386" y="474.792392613009" />
+				<pt x="4277.7903" y="474.792394355704" />
+				<pt x="4279.1603" y="474.79243404241" />
+				<pt x="4280.1202" y="474.791233879927" />
+				<pt x="4281.4771" y="474.791926824973" />
+				<pt x="4282.3935" y="474.792154124919" />
+				<pt x="4284.3972" y="474.792336461439" />
+				<pt x="4282.3935" y="474.792154124919" />
+				<pt x="4281.4771" y="474.791926824973" />
+				<pt x="4280.1202" y="474.791233879927" />
+				<pt x="4279.1603" y="474.79243404241" />
+				<pt x="4277.7903" y="474.792394355704" />
+				<pt x="4275.9386" y="474.792392613009" />
+				<pt x="4274.0332" y="474.791915619941" />
+			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Mascot" higher_score_better="true" significance_threshold="17" MZ="474.290405273438" RT="4276.9455" >
+				<PeptideHit score="0.25" sequence="STLIPPPSK(Label:13C(6)15N(2))" charge="2">
+					<UserParam type="float" name="homology_threshold" value="0"/>
+					<UserParam type="float" name="identity_threshold" value="17"/>
+					<UserParam type="float" name="EValue" value="2.7"/>
+				</PeptideHit>
+			</PeptideIdentification>
+			<UserParam type="int" name="label" value="1501"/>
+			<UserParam type="int" name="spectrum_index" value="3333"/>
+			<UserParam type="string" name="spectrum_native_id" value="controllerType=0 controllerNumber=1 scan=5221"/>
+		</feature>
+	</featureList>
+</featureMap>

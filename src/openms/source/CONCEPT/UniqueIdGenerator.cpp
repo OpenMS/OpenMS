@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,15 +35,13 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <boost/date_time/posix_time/posix_time_types.hpp> //no i/o just types
-#include <limits>
-#include <iostream>
 
 namespace OpenMS
 {
   UInt64 UniqueIdGenerator::seed_ = 0;
-  UniqueIdGenerator* UniqueIdGenerator::instance_ = NULL;
-  boost::mt19937_64* UniqueIdGenerator::rng_ = NULL;
-  boost::uniform_int<UInt64>* UniqueIdGenerator::dist_ = NULL;
+  UniqueIdGenerator* UniqueIdGenerator::instance_ = nullptr;
+  boost::mt19937_64* UniqueIdGenerator::rng_ = nullptr;
+  boost::uniform_int<UInt64>* UniqueIdGenerator::dist_ = nullptr;
 
   UInt64 UniqueIdGenerator::getUniqueId()
   {

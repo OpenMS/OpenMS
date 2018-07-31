@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,12 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/CrossLinksDB.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <cstdlib>
 #include <iostream>
 
 using namespace std;
@@ -50,7 +47,7 @@ namespace OpenMS
     name_("unknown"),
     average_weight_(0.0f),
     mono_weight_(0.0f),
-    modification_(0),
+    modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -69,7 +66,7 @@ namespace OpenMS
     formula_(formula),
     average_weight_(0),
     mono_weight_(0),
-    modification_(0),
+    modification_(nullptr),
     loss_average_weight_(0.0f),
     loss_mono_weight_(0.0f),
     pka_(0.0),
@@ -576,7 +573,7 @@ namespace OpenMS
 
   const String& Residue::getModificationName() const
   {
-    if (modification_ == 0) return String::EMPTY;
+    if (modification_ == nullptr) return String::EMPTY;
     return modification_->getId();
   }
 
@@ -637,7 +634,7 @@ namespace OpenMS
 
   bool Residue::isModified() const
   {
-    return modification_ != 0;
+    return modification_ != nullptr;
   }
 
   bool Residue::hasNeutralLoss() const

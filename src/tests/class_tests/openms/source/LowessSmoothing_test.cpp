@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,8 +54,8 @@ START_TEST(LowessSmoothing, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-LowessSmoothing* ptr = 0;
-LowessSmoothing* null_ptr = 0;
+LowessSmoothing* ptr = nullptr;
+LowessSmoothing* null_ptr = nullptr;
 START_SECTION(LowessSmoothing())
 {
 	ptr = new LowessSmoothing();

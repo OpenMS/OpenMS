@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ class TestHandler
 {
   public:
   	
-		TestHandler(const String& name)
+		explicit TestHandler(const String& name)
 			: DefaultParamHandler(name)
 		{
 			defaults_.setValue("int",0,"intdesc");
@@ -83,7 +83,7 @@ class TestHandler
 			return *this;
 		}
 		
-		void updateMembers_()
+		void updateMembers_() override
 		{
 			string_var = (string)(param_.getValue("string"));
 		}
@@ -91,8 +91,8 @@ class TestHandler
 		String string_var;
 };
 
-DefaultParamHandler* ptr = 0;
-DefaultParamHandler* nullPointer = 0;
+DefaultParamHandler* ptr = nullptr;
+DefaultParamHandler* nullPointer = nullptr;
 START_SECTION((DefaultParamHandler(const String& name)))
 	ptr = new DefaultParamHandler("dummy");
 	TEST_NOT_EQUAL(ptr, nullPointer)

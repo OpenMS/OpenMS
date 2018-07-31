@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,6 @@
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
 #ifdef _OPENMP
-#include <omp.h>
 #endif
 
 #define BUFFER_LENGTH 32768
@@ -67,7 +66,7 @@ namespace OpenMS
 
     LogStreamBuf::LogStreamBuf(std::string log_level) :
       std::streambuf(),
-      pbuf_(0),
+      pbuf_(nullptr),
       level_(log_level),
       stream_list_(),
       incomplete_line_(),
@@ -90,7 +89,7 @@ namespace OpenMS
         if (incomplete_line_.size() > 0)
           distribute_(incomplete_line_);
         delete[] pbuf_;
-        pbuf_ = 0;
+        pbuf_ = nullptr;
       }
     }
 
@@ -121,7 +120,7 @@ namespace OpenMS
 
     void LogStream::setLevel(std::string level)
     {
-      if (rdbuf() == 0)
+      if (rdbuf() == nullptr)
       {
         return;
       }
@@ -132,7 +131,7 @@ namespace OpenMS
 
     std::string LogStream::getLevel()
     {
-      if (rdbuf() != 0)
+      if (rdbuf() != nullptr)
       {
         return rdbuf()->level_;
       }
@@ -313,10 +312,10 @@ namespace OpenMS
       std::list<StreamStruct>::iterator list_it = stream_list_.begin();
       for (; list_it != stream_list_.end(); ++list_it)
       {
-        *(list_it->stream) << expandPrefix_(list_it->prefix, time(0)).c_str()
+        *(list_it->stream) << expandPrefix_(list_it->prefix, time(nullptr)).c_str()
                            << outstring.c_str() << std::endl;
 
-        if (list_it->target != 0)
+        if (list_it->target != nullptr)
         {
           list_it->target->logNotify();
         }
@@ -401,7 +400,7 @@ namespace OpenMS
     }
 
     LogStreamNotifier::LogStreamNotifier() :
-      registered_at_(0)
+      registered_at_(nullptr)
     {
     }
 
@@ -416,11 +415,11 @@ namespace OpenMS
 
     void LogStreamNotifier::unregister()
     {
-      if (registered_at_ == 0)
+      if (registered_at_ == nullptr)
         return;
 
       registered_at_->remove(stream_);
-      registered_at_ = 0;
+      registered_at_ = nullptr;
     }
 
     void LogStreamNotifier::registerAt(LogStream & log)
@@ -437,7 +436,7 @@ namespace OpenMS
       std::ostream(buf),
       delete_buffer_(delete_buf)
     {
-      if (stream != 0)
+      if (stream != nullptr)
       {
         insert(*stream);
       }
@@ -450,7 +449,7 @@ namespace OpenMS
         // delete the streambuffer
         delete rdbuf();
         // set it to 0
-        std::ios(0);
+        std::ios(nullptr);
       }
     }
 
@@ -547,7 +546,7 @@ namespace OpenMS
     {
       LogStream * non_const_this = const_cast<LogStream *>(this);
 
-      return non_const_this->rdbuf() != 0;
+      return non_const_this->rdbuf() != nullptr;
     }
 
   }   // namespace Logger

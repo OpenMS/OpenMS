@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKED_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKED_H
+#pragma once
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -86,10 +85,10 @@ public:
     FeatureFinderAlgorithmPicked();
 
     // docu in base class
-    virtual void setSeeds(const FeatureMap& seeds);
+    void setSeeds(const FeatureMap& seeds) override;
 
     /// Main method for actual FeatureFinder
-    virtual void run();
+    void run() override;
 
     static FeatureFinderAlgorithm* create();
 
@@ -143,7 +142,7 @@ protected:
     std::vector<TheoreticalIsotopePattern> isotope_distributions_;
 
     // Docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /// Writes the abort reason to the log file and counts occurrences for each reason
     void abort_(const Seed& seed, const String& reason);
@@ -314,4 +313,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKED_H

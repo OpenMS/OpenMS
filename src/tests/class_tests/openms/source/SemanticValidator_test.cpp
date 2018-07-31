@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,8 +62,8 @@ cv.loadFromOBO("UO",File::find("/CV/unit.obo"));
 cv.loadFromOBO("brenda",File::find("/CV/brenda.obo"));
 cv.loadFromOBO("GO",File::find("/CV/goslim_goa.obo"));
 
-SemanticValidator* ptr = 0;
-SemanticValidator* nullPointer = 0;
+SemanticValidator* ptr = nullptr;
+SemanticValidator* nullPointer = nullptr;
 START_SECTION((SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv)))
 	ptr = new SemanticValidator(mapping,cv);
 	TEST_NOT_EQUAL(ptr, nullPointer)

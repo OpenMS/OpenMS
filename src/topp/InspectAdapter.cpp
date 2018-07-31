@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,7 +149,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
                                            "Note: In mode 'inspect_out' an Inspect results file is read.");
@@ -206,7 +206,7 @@ protected:
     registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
   }
 
-  ExitCodes main_(Int, const char**)
+  ExitCodes main_(Int, const char**) override
   {
     //-------------------------------------------------------------
     // (1) variables

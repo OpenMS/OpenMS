@@ -18,34 +18,45 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         # wrap-inherits:
         #   ExperimentalSettings
         #   RangeManager2
+        #
+        # wrap-doc:
+        #   In-Memory representation of a mass spectrometry experiment.
+        #   -----
+        #   Contains the data and metadata of an experiment performed with an MS (or
+        #   HPLC and MS). This representation of an MS experiment is organized as list
+        #   of spectra and chromatograms and provides an in-memory representation of
+        #   popular mass-spectrometric file formats such as mzXML or mzML. The
+        #   meta-data associated with an experiment is contained in
+        #   ExperimentalSettings (by inheritance) while the raw data (as well as
+        #   spectra and chromatogram level meta data) is stored in objects of type
+        #   MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
+        #   and getChromatogram functions.
+        #   -----
+        #   Spectra can be accessed by direct iteration or by getSpectrum(),
+        #   while chromatograms are accessed through getChromatogram().
+        #   See help(ExperimentalSettings) for information about meta-data.
 
         MSExperiment() nogil except +
         MSExperiment(MSExperiment &)  nogil except +
 
-        bool operator==(MSExperiment) nogil except +
-        void reset() nogil except +
-        bool clearMetaDataArrays() nogil except +
         ExperimentalSettings getExperimentalSettings() nogil except +
         
-        void getPrimaryMSRunPath(StringList& toFill) nogil except +
-
-        void swap(MSExperiment) nogil except +
-
-        # Spectra functions
-        void addSpectrum(MSSpectrum spec) nogil except +
-        MSSpectrum operator[](int)      nogil except + # wrap-upper-limit:size()
+        # COMMENT: Spectra functions
+        MSSpectrum operator[](int) nogil except + # wrap-upper-limit:size()
         MSSpectrum getSpectrum(Size id_) nogil except +
+        void addSpectrum(MSSpectrum spec) nogil except +
         void setSpectra(libcpp_vector[ MSSpectrum ] & spectra) nogil except +
         libcpp_vector[MSSpectrum] getSpectra() nogil except +
 
-        libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
-        libcpp_vector[MSSpectrum].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
-
-        # Chromatogram functions
+        # COMMENT: Chromatogram functions
         MSChromatogram getChromatogram(Size id_) nogil except +
         void addChromatogram(MSChromatogram chromatogram) nogil except +
         void setChromatograms(libcpp_vector[MSChromatogram] chromatograms) nogil except +
         libcpp_vector[MSChromatogram] getChromatograms() nogil except +
+
+        # COMMENT: Spectra iteration
+        libcpp_vector[MSSpectrum].iterator begin() nogil except +        # wrap-iter-begin:__iter__(MSSpectrum)
+        libcpp_vector[MSSpectrum].iterator end()    nogil except +       # wrap-iter-end:__iter__(MSSpectrum)
 
         MSChromatogram getTIC() nogil except +
         void clear(bool clear_meta_data) nogil except +
@@ -63,7 +74,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         # Size of experiment
         UInt64 getSize() nogil except +
-        int   size() nogil except +
+        int size() nogil except +
         void resize(Size s) nogil except +
         bool empty() nogil except +
         void reserve(Size s) nogil except +
@@ -78,6 +89,13 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
         bool isSorted(bool check_mz) nogil except +
         bool isSorted() nogil except +
+
+        void getPrimaryMSRunPath(StringList& toFill) nogil except +
+        void swap(MSExperiment) nogil except +
+
+        bool operator==(MSExperiment) nogil except +
+        void reset() nogil except +
+        bool clearMetaDataArrays() nogil except +
 
         # from MetaInfoInterface:
         void getKeys(libcpp_vector[String] & keys) nogil except +

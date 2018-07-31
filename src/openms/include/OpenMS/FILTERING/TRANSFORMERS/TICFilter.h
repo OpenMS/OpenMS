@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_FILTERING_TRANSFORMERS_TICFILTER_H
-#define OPENMS_FILTERING_TRANSFORMERS_TICFILTER_H
+#pragma once
 
 #include <OpenMS/FILTERING/TRANSFORMERS/FilterFunctor.h>
 
@@ -60,7 +59,7 @@ public:
     TICFilter(const TICFilter & source);
 
     /// destructor
-    virtual ~TICFilter();
+    ~TICFilter() override;
     // @}
 
     // @name Operators
@@ -99,4 +98,3 @@ public:
 
   };
 }
-#endif //OPENMS_FILTERING_TRANSFORMERS_TICFILTER_H

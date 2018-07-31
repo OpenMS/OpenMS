@@ -12,8 +12,7 @@
  *  http://www.eol.ucar.edu/homes/granger/bspline/doc/
  *
  *************************************************************************/
-#ifndef BSPLINEBASE_H_
-#define BSPLINEBASE_H_
+#pragma once
 
 #ifndef _BSPLINEBASE_IFACE_ID
 #define _BSPLINEBASE_IFACE_ID "$Id: BSpline.h 6353 2008-05-05 19:30:48Z martinc $"
@@ -337,4 +336,3 @@ protected:
 
 } // end namespace
 
-#endif /*BSPLINEBASE_H_*/

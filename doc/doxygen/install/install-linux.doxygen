@@ -39,20 +39,22 @@
 
   For those libraries/versions often not found in the distro repositories, we provide sources and build scripts.
   The Release tar.gz archive contains the libraries in the contrib/ folder,
-  if you build the development (git) version,
-  you'll have to check them out separately (see below in @ref  build_linux_contrib and in @ref build_linux_noroot).
+  if you build the development (git) version, you'll find an empty submodule in that folder that you have to update first with
+  \code
+    git submodule update --init contrib
+  \endcode
 
-  <b>Here is a list of required packages and libraries:</b>
+  <b>Despite that, in the following is a list of all required packages and libraries:</b>
 
   <ul>
     <li>
-      Essential are \b GCC (> 4.0) or other ANSI C++ compiler, \b CMake (> 2.8.3), \b Qt4 (> 4.6 , > 4.7 for the GUI), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
+      Essential are \b GCC (> 4.0) or other ANSI C++ compiler, \b CMake (> 2.8.3), \b Qt5, \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
-      For the complete feature set to be enabled, %OpenMS needs recent versions of \b Boost (>= 1.48), \b Eigen3, \b WildMagic5, \b libSVM (2.91 or higher but < 3.15), \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
+      For the complete feature set to be enabled, %OpenMS needs recent versions of \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b WildMagic5, \b libSVM (2.91 or higher but not 3.15), \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1). These can be obtained via your package manager (if possible) or build through our contrib build script.
     </li>
     <li>
-      Building the documentation from the development version requires doxygen (> 1.5.4) and pdflatex/texlive/texlive-full.
+      Building the documentation from the development version requires doxygen (recommended: >= 1.8.13, required: > 1.5.4, some might be buggy in between) and pdflatex/texlive/texlive-full.
     </li>
     <li>
       Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
@@ -63,71 +65,73 @@
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
   <tr>
-    <td><B>Fedora </B>
+    <td><B>Fedora/RHEL/CentOS</B>
     <a href="http://koji.fedoraproject.org/koji/packages">packages</a>
 	</td>
     <td><pre>
+    # In newer distros change yum to dnf
     sudo yum groupinstall 'Development Tools'
     sudo yum install git tar
+    # Especially on older CentOS versions <= 6 add the EPEL repo with additional updated packages
     sudo yum install epel-release
     # Update repo list for the thirdparty repository EPEL
     sudo yum repolist
     # Get installable contrib libraries
-    sudo yum install qt4 qt4-devel qt4-webkit-devel python-devel boost-devel \
+    sudo yum install qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg python-devel boost-devel \
         libsvm-devel glpk-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel
     </pre>
     </td>
   </tr>
   <tr>
-      <td><B>openSUSE <br/></B></td>
+      <td><B>openSUSE >= 13.2<br/></B></td>
       <td><pre>
       # register obs://build.opensuse.org/devel:libraries:c_c++
-      sudo zypper install cmake gcc-c++ autoconf libqt4-devel \
-        libQtWebKit-devel python-devel boost-devel  glpk-devel \
+      sudo zypper install cmake gcc-c++ autoconf libqt5-qtbase-devel \
+        libqt5-qtsvg-devel python-devel boost-devel  glpk-devel \
         libzip-devel zlib-devel libxerces-c-devel libbz2-devel \
         git patch automake libtool libsvm-devel
       </pre></td>
   </tr>
   <tr>
-    <td><B>Ubuntu/Debian <br/>(> 10.04 <= 15)</B></td>
+    <td><B>Ubuntu/Debian <br/>(16.04)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make git \
-      libqt4-core libqt4-dev libqt4-gui libqt4-opengl-dev automake libqtwebkit-dev
-    sudo apt-get install libboost-regex-dev libboost-iostreams-dev \
-      libboost-date-time-dev libboost-math-dev libsvm-dev \
-      libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libbz2-dev
+    # include the ubuntu universe repository and update
+    sudo apt-get install build-essential cmake autoconf patch libtool git automake
+    sudo apt-get install qtbase5-dev libqt5svg5-dev libboost-regex-dev libboost-iostreams-dev \
+      libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev\
+      libglpk-dev zlib1g-dev libxerces-c-dev seqan-dev libbz2-dev coinor-libcoinmp-dev
+      # Use from contrib: EIGEN; SQLITE; WILDMAGIC (since libwildmagic-dev is buggy)
     </pre></td>
   </tr>
   <tr>
-      <td><B>Ubuntu/Debian <br/>(>= 16.04 <= 16.10)</B></td>
+      <td><B>Ubuntu/Debian <br/>(>= 17.04)</B></td>
       <td><pre>
-    sudo apt-get install build-essential cmake autoconf patch libtool automake
-    sudo apt-get install qt4-default libqtwebkit-dev
-    sudo apt-get install libeigen3-dev libsqlite3-dev \
-      libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
-      libxerces-c-dev libglpk-dev libsvm-dev libbz2-dev
-    # use from contrib for compatibility: SEQAN ; COINOR; ZLIB ; WILDMAGIC
+    # include the ubuntu universe repository and update
+    sudo apt-get install build-essential cmake autoconf patch libtool git automake
+    sudo apt-get install qtbase5-dev libqt5svg5-dev
+    sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.62-dev \
+      libboost-regex1.62-dev libboost-iostreams1.62-dev libboost-date-time1.62-dev libboost-math1.62-dev \
+      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev seqan-dev coinor-libcoinmp-dev
+      # this should eliminate the need for building contrib libraries.
       </pre></td>
-    </tr>
+  </tr>
   </table>
 
   @section build_linux_contrib Building remaining dependencies
 
   You can check which dependencies you still need by attempting to configure %OpenMS (see the next section),
-  it will complain about anything unusual.
-  @note In most cases, the only dependencies left unresolved (e.g. inavailable through your distributions packaging system) at this point are SeqAn and WildMagic.
+  it will complain about anything unusual/missing.
+  @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are SeqAn, WildMagic and maybe CoinOR.
   Contact us if you still have trouble with the dependencies \b after these
   instructions.
 
-  The tar.gz of the Release contains the sources of all dependencies in the contrib/ folder.
-  For the development (git) version, this folder is not included,
-  and has to be checked out separately.
-  We generally recommend to keep the contrib separate from the %OpenMS source code.
-  Assuming you have extracted the the %OpenMS source code in a folder <tt>~/Development</tt> (i.e., <tt>~/Development/OpenMS</tt>) we suggest to also put the contrib there (i.e., <tt>~/Development/contrib</tt>).
+  The tar.gz of the Release contains the scripts for building all dependencies in the contrib/ folder.
+  For the development (git) version, this so called submodule folder will be empty and has to be checked out separately.
 
   \code
-  # Assuming you are in ~/Development
-  git clone  https://github.com/OpenMS/contrib.git
+  # Assuming you are in ~/Development/OpenMS
+  git submodule update --init contrib
+  cd ..
   mkdir contrib-build
   cd contrib-build
   \endcode
@@ -145,22 +149,22 @@
   From the <tt>./contrib-build/</tt> folder, execute the following command to show the
   available build types
      \code
-        cmake -DBUILD_TYPE=LIST ../contrib
+        cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
      \endcode
   and then build SeqAn (the other build scripts may or may not be needed to be
   executed depending on if your distribution does not provide a package for the dependency):
       \code
-          cmake -DBUILD_TYPE=SEQAN ../contrib
-          cmake -DBUILD_TYPE=WILDMAGIC ../contrib
-          cmake -DBUILD_TYPE=EIGEN ../contrib
+          cmake -DBUILD_TYPE=SEQAN ../OpenMS/contrib
+          cmake -DBUILD_TYPE=WILDMAGIC ../OpenMS/contrib
+          cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib
       \endcode
 
   To avoid problems while building the libraries contained in the contrib package,
-  the path to your contrib-build directory should not have any spaces in it. In case your distribution   
-  does not provide some of the packages (or in different versions than expected), it is sometimes easier 
+  the path to your contrib-build directory should not have any spaces in it. In case your distribution
+  does not provide some of the packages (or in different versions than expected), it is sometimes easier
   to build all dependencies manually which can solve issues with incompatible versions:
       \code
-          cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../contrib
+          cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
       \endcode
   @section build_linux_noroot Building without root privileges
 
@@ -172,24 +176,20 @@
   dependencies from source:
 
   \code
-  cmake -DBUILD_TYPE=LIST ../contrib
-  cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../contrib
+  cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
+  cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
   \endcode
 
   Alternatively, you can build one package after the other by providing
   <tt>-DBUILD_TYPE=...</tt> with the appropriate argument. In addition, you
   may have to compile Qt yourself which you can get from <a
   href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
-  (use a 4.x version), if it is not provided on your server or the version on
+  (use version >5.5), if it is not provided on your server or the version on
   your environment is too old. Then you can use the traditional
-  <tt>./configure --prefix=/path && gmake && gmake install</tt> sequence to compile
+  <tt>./configure --prefix=/path && make && make install</tt> sequence to compile
   and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming
   you don't have root privileges).
 
-  When configuring %OpenMS (see next section), consider setting <tt>WITH_GUI=Off</tt> and
-  <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
-  OpenGL and you may not have an X server.
-  If you want to use your own qt installation, be sure to set the <tt>QT_QMAKE_EXECUTABLE=/path/to/qmake</tt> flag when using cmake to configure %OpenMS.
 
   @section install_linux_openms Configuring and building OpenMS/TOPP
 
@@ -207,14 +207,13 @@
   mkdir OpenMS-build
   cd OpenMS-build
   \endcode
-  
-  In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
-  should substitute <tt>/PATH/TO/contrib/</tt> with the above path to the build
-  contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
-  contrib to avoid any potential issues. If you encounter problems with
-  previously installed system libraries, consider removing the
-  <tt>/usr;/usr/local</tt> part of the path:
 
+  In the %OpenMS build directory we execute %CMake to <i>configure</i> %OpenMS. You
+  should substitute <tt>/PATH/TO/contrib-build/</tt> with the above path to the built
+  contrib. Make sure you use the <i>absolute</i> (and not relative) path for the
+  contrib to avoid any potential issues.
+
+  @note Since static versions of the boost library are on some systems (e.g. Ubuntu) compiled with different settings you have to set BOOST_USE_STATIC to OFF or compile it with our contrib.
   \code
   cmake -DOPENMS_CONTRIB_LIBS="/PATH/TO/contrib-build" -DBOOST_USE_STATIC=OFF ../OpenMS
   \endcode
@@ -225,12 +224,32 @@
   \endcode
   to the CMake options.
 
+  When configuring %OpenMS, consider setting <tt>WITH_GUI=Off</tt> and
+  <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with
+  OpenGL and you may not have an X server.
+
+  \includedoc "../doxygen/install/common-cmake-parameters.doxygen"
+
+  A full list of the CMake variables is shown when you execute
+
+  \code
+  ccmake .
+  \endcode
+
+  This works only after having executed <tt>cmake</tt> once (see @ref install_linux_openms)
+
   In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this
   documentation, execute the following command:
 
   \code
   make
   \endcode
+
+  Advanced users can list the separate make targets by calling:
+  \code
+  make targets
+  \endcode
+
 
   @subsection linux_openms_environment Getting your environment ready to use OpenMS
 
@@ -265,11 +284,14 @@
   \endcode
 
     @note When you intend to use thirdparty search- or inference engines like XTandem or Fido, their binaries also
-    need to be in the <b><tt>PATH</tt></b>. Build them or download them from our
-    <a href="https://github.com/OpenMS/THIRDPARTY" target="_blank">thirdparty git repo</a> and adapt
-    the following for every thirdparty tool you want to use (shown for XTandem):
+    need to be in the <b><tt>PATH</tt></b>. Build them or check out prebuilt executables of the versions supported
+    at the time of the release with
     \code
-    export PATH=${YOUR_CLONED_THIRDPARTY_GIT_REPO}/${FOLDER_FOR_YOUR_OS_ARCH}/XTandem:${PATH}
+    git submodule update --init THIRDPARTY
+    \endcode
+    and adapt the following for every thirdparty tool you want to use (shown for XTandem):
+    \code
+    export PATH=~/Development/OpenMS/THIRDPARTY/${FOLDER_FOR_YOUR_OS_ARCH}/XTandem:${PATH}
     \endcode
     If you want to enable the corresponding tests in CMake, this has to happen <b>before</b> you configure and build the
     project.
@@ -289,103 +311,6 @@
   <br/>
   <br/>
 
-<hr/>
-  @section advanced_linux_openms Advanced Options
-
-  Advanced users can list the separate make targets by calling:
-  \code
-  make targets
-  \endcode
-
-  You can set more CMake variables adding <code>-DVARIABLE=VALUE</code> options in step @ref install_linux_openms.
-
-  The most important CMake variables are:
-
-  <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
-    <tr>
-      <td valign="top">\c CMAKE_INSTALL_PREFIX</td>
-      <td>the path where the bin/ and lib/ directories should be installed to
-          (when <pre>sudo make install</pre> is wished for a system-wide
-          install: e.g. -DCMAKE_INSTALL_PREFIX=/usr/local/)
-          <BR>
-          <b>Note:</b> Moving these directories after installing is not supported.
-
-	        <b>For development, install prefixes are not supported. In this case %OpenMS must
-	         be built in place!</b>
-     </td>
-    </tr>
-    <tr>
-      <td valign="top">\c OPENMS_CONTRIB_LIBS</td>
-      <td>Seperate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
-      CMAKE_PREFIX_PATH for searching, linking and adding include directories.</td>
-    </tr>
-    <tr>
-      <td valign="top">\c CMAKE_PREFIX_PATH</td>
-      <td>Additional search path for the contrib libraries.</td>
-    </tr>
-    <tr>
-      <td valign="top">\c QT_QMAKE_EXECUTABLE</td>
-      <td>Defines the Qt 'qmake' application. The corresponding Qt installation is used.</td>
-    </tr>
-    <tr>
-      <td valign="top">\c CMAKE_BUILD_TYPE</td>
-      <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and
-          precondition/postcondition checks enabled).
-          @n The default is 'Release'.</td>
-    </tr>
-    <tr>
-      <td valign="top">\c CMAKE_CXX_COMPILER</td>
-      <td>Defines the C++ compiler to use.</td>
-    </tr>
-    <tr>
-      <td valign="top">\c CMAKE_C_COMPILER</td>
-      <td>Defines the C compiler to use. This should match the C++ compiler.
-      Mixing compilers (e.g., <i>clang++</i> for C++ and <i>gcc</i> for C) can
-      lead to undefined behaviour as some internal settings (e.g., %OpenMP
-      support) are determined using the C compiler and are assumed to be the
-      same for the C++ compiler.</td>
-    </tr>
-    <tr>
-      <td valign="top">\c HAS_XSERVER</td>
-      <td>Defines if a running X Server is available when building %OpenMS.
-      As building parts of the documentation and running certain tests requires
-      a running X Server, this flag can be used to disable those parts of the
-      documentation and the tests that need an X Server. (Default: On)</td>
-    </tr>
-    <tr>
-      <td valign="top">\c WITH_GUI</td>
-      <td>Defines if the %OpenMS GUI tools (TOPPView, TOPPAS) should be built or
-      not. These components need Qt > 4.7 which may not be available on some
-      systems (specifically older CentOS / RHEL servers). If you plan to use
-      %OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
-    </tr>
-    <tr>
-      <td valign="top">\c ENABLE_TUTORIALS</td>
-      <td>Defines if %OpenMS should build and install the pdf tutorials.
-      (Default: On)</td>
-    </tr>
-    <tr>
-      <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
-      <td>The location where thirdparty search engines (X!Tandem, OMSSA, MyriMatch, MSGF+, Fido)
-      are located. This directory should have the same structure as the example
-      in the search engine repository at
-      https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
-      This directory is only needed to include thirdparty tools in the installer for %OpenMS.
-      For using/running thirdparty tools, see section @ref linux_openms_environment </td>
-    </tr>
-    <tr>
-      <td valign="top">\c PYOPENMS</td>
-      <td>Use ON to also build the Python bindings, see also @ref pyOpenMS.</td>
-    </tr>
-  </table>
-
-  A full list of the CMake variables is shown when you execute
-
-  \code
-  ccmake .
-  \endcode
-
-  This works only after having executed <tt>cmake</tt> once (see @ref install_linux_openms)
 
  <hr>
  @section install_linux_testing_openms Testing your OpenMS/TOPP installation

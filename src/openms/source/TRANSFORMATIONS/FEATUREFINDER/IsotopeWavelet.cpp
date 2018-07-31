@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,6 @@
 
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <cmath>
-#include <limits>
-#include <iostream>
 #include <boost/math/special_functions/gamma.hpp>
 
 #ifndef ONEOLOG2E
@@ -107,7 +103,7 @@ double dvec[] =
 namespace OpenMS
 {
   //internally used variables / defaults
-  IsotopeWavelet * IsotopeWavelet::me_ = NULL;
+  IsotopeWavelet * IsotopeWavelet::me_ = nullptr;
   UInt IsotopeWavelet::max_charge_ = 1;
   std::vector<double> IsotopeWavelet::gamma_table_;
   std::vector<double> IsotopeWavelet::gamma_table_new_;
@@ -116,13 +112,14 @@ namespace OpenMS
   double IsotopeWavelet::table_steps_ = 0.0001;
   double IsotopeWavelet::inv_table_steps_ = 1. / table_steps_;
   IsotopeDistribution IsotopeWavelet::averagine_;
+  CoarseIsotopePatternGenerator IsotopeWavelet::solver_;
   Size IsotopeWavelet::gamma_table_max_index_ = 0;
   Size IsotopeWavelet::exp_table_max_index_ = 0;
 
 
   IsotopeWavelet * IsotopeWavelet::init(const double max_m, const UInt max_charge)
   {
-    if (me_ == NULL)
+    if (me_ == nullptr)
     {
       me_ = new IsotopeWavelet(max_m, max_charge);
     }
@@ -148,7 +145,7 @@ namespace OpenMS
   void IsotopeWavelet::destroy()
   {
     delete (me_);
-    me_ = NULL;
+    me_ = nullptr;
     max_charge_ = 1;
     gamma_table_.clear();
     exp_table_.clear();
@@ -301,11 +298,11 @@ namespace OpenMS
   const IsotopeDistribution::ContainerType & IsotopeWavelet::getAveragine(const double mass, UInt * size)
   {
 
-    averagine_.estimateFromPeptideWeight(mass);
+    averagine_ = solver_.estimateFromPeptideWeight(mass);
     IsotopeDistribution::ContainerType help(averagine_.getContainer());
     IsotopeDistribution::ContainerType::iterator iter;
 
-    if (size != NULL)
+    if (size != nullptr)
     {
       *size = getNumPeakCutOff(mass);
     }
@@ -316,11 +313,11 @@ namespace OpenMS
   void IsotopeWavelet::computeIsotopeDistributionSize_(const double max_m)
   {
     double max_deconv_mz = max_m * max_charge_;
-    averagine_.setMaxIsotope(UInt(max_deconv_mz / 100. + 10.)); // expect less than 10 extra Da for heavy isotopes per 1000 Da mono mass.
+    solver_.setMaxIsotope(UInt(max_deconv_mz / 100. + 10.)); // less than 10 extra Da for heavy isotopes per 1000 Da mono mass.
     // averagine_.setMaxIsotope (INT_MAX); // old version INT_MAX is C not C++, should use #include <limits> anyway
-    averagine_.estimateFromPeptideWeight(max_deconv_mz);
+    averagine_ = solver_.estimateFromPeptideWeight(max_deconv_mz);
     Int max_isotope = getNumPeakCutOff(max_deconv_mz);
-    averagine_.setMaxIsotope(max_isotope - 1);
+    solver_.setMaxIsotope(max_isotope - 1);
   }
 
 } //namespace

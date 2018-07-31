@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATOR_H
-#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATOR_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -207,7 +206,7 @@ public:
 
 
     /// Destructor
-    virtual ~SvmTheoreticalSpectrumGenerator();
+    ~SvmTheoreticalSpectrumGenerator() override;
     //@}
 
 
@@ -265,7 +264,7 @@ protected:
     /// flag to indicate if the hydrophobicity, helicity, and basicity maps were already initialized
     static bool initializedMaps_;
 
-    void updateMembers_();
+    void updateMembers_() override;
   };
 
   void inline SvmTheoreticalSpectrumGenerator::scaleSingleFeature_(double & value, double lower, double upper, double feature_min, double feature_max)
@@ -299,4 +298,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // #ifdef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORTRAINER_H

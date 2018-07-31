@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,8 @@ START_TEST(QTCluster, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-QTCluster* qtc_ptr = 0;
-QTCluster* qtc_nullPointer = 0;
+QTCluster* qtc_ptr = nullptr;
+QTCluster* qtc_nullPointer = nullptr;
 
 BaseFeature bf;
 bf.setRT(1.1);

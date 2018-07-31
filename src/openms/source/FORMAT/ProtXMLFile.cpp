@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,11 +38,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
-#include <OpenMS/SYSTEM/File.h>
-
-#include <iostream>
-#include <fstream>
-#include <limits>
 
 using namespace std;
 
@@ -82,9 +77,9 @@ namespace OpenMS
   /// reset members
   void ProtXMLFile::resetMembers_()
   {
-    prot_id_ = 0;
-    pep_id_ = 0;
-    pep_hit_ = 0;
+    prot_id_ = nullptr;
+    pep_id_ = nullptr;
+    pep_hit_ = nullptr;
     protein_group_ = ProteinGroup();
   }
 

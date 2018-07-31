@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,9 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
-#define OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H
+#pragma once
 
+// #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>
@@ -70,11 +70,11 @@ namespace OpenMS
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
-public:
+  public:
     /// Construct the behaviour with its parent
-    TOPPViewIdentificationViewBehavior(TOPPViewBase * parent);
+    TOPPViewIdentificationViewBehavior(TOPPViewBase* parent);
 
-public slots:
+  public slots:
     /// Behavior for showSpectrumAs1D
     virtual void showSpectrumAs1D(int spectrum_index, int peptide_id_index, int peptide_hit_index);
 
@@ -98,40 +98,51 @@ public slots:
 
     void setVisibleArea1D(double l, double h);
 
-private:
+  private:
     /// Adds labels for the provided precursors to the 1D spectrum
-    void addPrecursorLabels1D_(const std::vector<Precursor> & pcs);
+    void addPrecursorLabels1D_(const std::vector<Precursor>& pcs);
 
     /// Removes the precursor labels for from the specified 1D spectrum
     void removeTemporaryAnnotations_(Size spectrum_index);
 
     /// Adds a theoretical spectrum as set from the preferences dialog for the peptide hit.
-    void addTheoreticalSpectrumLayer_(const PeptideHit & ph);
+    void addTheoreticalSpectrumLayer_(const PeptideHit& ph);
+
+    /// Add peak annotatios from id data structure
+    void addPeakAnnotationsFromID_(const PeptideHit& hit);
 
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
 
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
-    void addPeakAnnotations_(const std::vector<PeptideIdentification> & ph);
+    void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
 
-    /// Adds fragment annotations to peaks in 1D spectra
-    void addFragmentAnnotations_(const PeptideHit & ph);
+    /// Helper function for text formatting
+    String n_times(Size n, String input);
 
-  /// Helper function for text formatting
-  String n_times(Size n, String input);
+    /// Helper function that turns fragment annotations into coverage Strings for visualization with the sequence
+    void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
 
-  /// Helper function, that turns fragment annotations into coverage Strings for visuaization with the sequence
-  void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
+    /// Generates HTML for showing the sequence with annotations of matched fragments
+    template <typename SeqType>
+    String generateSequenceDiagram_(const SeqType& seq, const std::vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
-  /// Helper function, that collapses a vector of Strings into one String
-  String collapseStringVector(std::vector<String> strings);
+    /// Helper function for generateSequenceDiagram_() - overload for peptides
+    void generateSequenceRow_(const AASequence& seq, std::vector<String>& row);
 
-private:
-    TOPPViewBase * tv_;
+/*
+    /// Helper function for generateSequenceDiagram_() - overload for oligonucleotides
+    void generateSequenceRow_(const NASequence& seq, std::vector<String>& row);
+*/
+
+    /// Helper function, that collapses a vector of Strings into one String
+    String collapseStringVector(std::vector<String> strings);
+
+  private:
+    TOPPViewBase* tv_;
     /// Used to check which annotation handles have been added automatically by the identification view. Ownership
     /// of the AnnotationItems has the Annotation1DContainer
-    std::vector<Annotation1DItem *> temporary_annotations_;
+    std::vector<Annotation1DItem*> temporary_annotations_;
   };
 }
 
-#endif // OPENMS_VISUAL_TOPPVIEWIDENTIFICATIONVIEWBEHAVIOR_H

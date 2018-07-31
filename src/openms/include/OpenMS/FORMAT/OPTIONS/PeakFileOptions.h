@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H
-#define OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -146,10 +145,6 @@ public:
     //@}
 
     ///@name lazyload option
-    ///sets whether or not to load only the count
-    void setSizeOnly(bool only);
-    ///returns whether or not to load only meta data
-    bool getSizeOnly() const;
     ///sets whether or not to always append the data to the given map (even if a consumer is given)
     void setAlwaysAppendData(bool only);
     ///returns whether or not to always append the data to the given map (even if a consumer is given)
@@ -222,10 +217,13 @@ public:
     void setMaxDataPoolSize(Size size);
     //@}
 
+    /// do these options skip spectra or chromatograms due to RT or MSLevel filters?
+    bool hasFilters();
+    
 private:
     bool metadata_only_;
-    bool force_maxquant_compatibility_; //< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
-    bool force_tpp_compatibility_; //< for mzML-writing only: work around some bugs in TPP file parsers
+    bool force_maxquant_compatibility_; ///< for mzXML-writing only: set a fixed vendor (Thermo Scientific), mass analyzer (FTMS)
+    bool force_tpp_compatibility_; ///< for mzML-writing only: work around some bugs in TPP file parsers
     bool write_supplemental_data_;
     bool has_rt_range_;
     bool has_mz_range_;
@@ -237,7 +235,6 @@ private:
     DRange<1> intensity_range_;
     std::vector<Int> ms_levels_;
     bool zlib_compression_;
-    bool size_only_;
     bool always_append_data_;
     bool skip_xml_checks_;
     bool sort_spectra_by_mz_;
@@ -252,4 +249,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H

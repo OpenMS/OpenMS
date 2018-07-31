@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 
@@ -70,7 +69,7 @@ public:
     BinnedSharedPeakCount(const BinnedSharedPeakCount& source);
 
     /// destructor
-    virtual ~BinnedSharedPeakCount();
+    ~BinnedSharedPeakCount() override;
 
     /// assignment operator
     BinnedSharedPeakCount& operator=(const BinnedSharedPeakCount& source);
@@ -81,24 +80,20 @@ public:
       @param spec2 Second spectrum given as a binned representation
       @throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
     */
-    double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
+    double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const override;
 
     /// function call operator, calculates self similarity
-    double operator()(const BinnedSpectrum& spec) const;
+    double operator()(const BinnedSpectrum& spec) const override;
 
     ///
     static BinnedSpectrumCompareFunctor* create() { return new BinnedSharedPeakCount(); }
 
     /// get the identifier for this DefaultParamHandler
-    static const String getProductName()
-    {
-      return "BinnedSharedPeakCount";
-    }
+    static const String getProductName() { return "BinnedSharedPeakCount"; }
 
 protected:
-    void updateMembers_();
+    void updateMembers_() override;
     double precursor_mass_tolerance_;
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H

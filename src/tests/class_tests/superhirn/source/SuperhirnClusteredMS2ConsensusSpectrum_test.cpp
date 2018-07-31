@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,8 @@ START_TEST(ClusteredMS2ConsensusSpectrum, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ClusteredMS2ConsensusSpectrum* ptr = 0;
-ClusteredMS2ConsensusSpectrum* nullPtr = 0;
+ClusteredMS2ConsensusSpectrum* ptr = nullptr;
+ClusteredMS2ConsensusSpectrum* nullPtr = nullptr;
 
 START_SECTION((ClusteredMS2ConsensusSpectrum()))
 	ptr = new ClusteredMS2ConsensusSpectrum(0, 0, 0, 0);

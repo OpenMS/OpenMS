@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,12 +48,8 @@
 
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <QDir>
-#include <QFile>
 #include <QCoreApplication>
-#include <QtCore/QTimer>
 #include <QtCore/QDateTime>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -124,7 +120,7 @@ namespace OpenMS
         struct utimbuf new_times;
         stat(version_file_name.c_str(), &old_stat);
         new_times.actime = old_stat.st_atime; // keep accession time unchanged 
-        new_times.modtime = time(NULL);  // mod time to current time
+        new_times.modtime = time(nullptr);  // mod time to current time
         utime(version_file_name.c_str(), &new_times);          
 
         if (debug_level > 0)
@@ -135,7 +131,7 @@ namespace OpenMS
         }
       
         // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
-        char const * argv2[] = { "dummyname", NULL };
+        char const * argv2[] = { "dummyname", nullptr };
         int argc = 1;
         QCoreApplication event_loop(argc, const_cast<char**>(argv2));
         NetworkGetRequest* query = new NetworkGetRequest(&event_loop);

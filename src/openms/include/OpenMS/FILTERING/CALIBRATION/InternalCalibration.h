@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
-#define OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -73,9 +72,9 @@ namespace OpenMS
     /// helper class, describing a lock mass
     struct LockMass
     {
-      double mz; //< m/z of the lock mass (incl. adducts)
-      unsigned int ms_level;   //< MS level where it occurs
-      int charge;     //< charge of the ion (to find isotopes)
+      double mz; ///< m/z of the lock mass (incl. adducts)
+      unsigned int ms_level;   ///< MS level where it occurs
+      int charge;     ///< charge of the ion (to find isotopes)
 
       LockMass(double mz_, int lvl_, int charge_)
         : mz(mz_),
@@ -276,4 +275,3 @@ namespace OpenMS
   
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_CALIBRATION_INTERNALCALIBRATION_H

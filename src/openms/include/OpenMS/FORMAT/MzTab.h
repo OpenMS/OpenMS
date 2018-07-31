@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MZTAB_H
-#define OPENMS_FORMAT_MZTAB_H
+#pragma once
 
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -81,7 +80,7 @@ public:
     public MzTabNullAbleInterface
   {
 public:
-    virtual ~MzTabNullNaNAndInfAbleInterface();
+    ~MzTabNullNaNAndInfAbleInterface() override;
     virtual bool isNaN() const = 0;
     virtual void setNaN() = 0;
     virtual bool isInf() const = 0;
@@ -95,11 +94,11 @@ public:
 public:
     MzTabNullAbleBase();
 
-    virtual ~MzTabNullAbleBase();
+    ~MzTabNullAbleBase() override;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
 protected:
     bool null_;
@@ -112,19 +111,19 @@ protected:
 public:
     MzTabNullNaNAndInfAbleBase();
 
-    virtual ~MzTabNullNaNAndInfAbleBase();
+    ~MzTabNullNaNAndInfAbleBase() override;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
-    bool isNaN() const;
+    bool isNaN() const override;
 
-    void setNaN();
+    void setNaN() override;
 
-    bool isInf() const;
+    bool isInf() const override;
 
-    void setInf();
+    void setInf() override;
 
 protected:
     MzTabCellStateType state_;
@@ -138,15 +137,15 @@ public:
 
     explicit MzTabDouble(const double v);
 
-    virtual ~MzTabDouble();
+    ~MzTabDouble() override;
 
     void set(const double& value);
 
     double get() const;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
 protected:
     double value_;
@@ -158,15 +157,15 @@ protected:
 public:
     MzTabDoubleList();
 
-    virtual ~MzTabDoubleList();
+    ~MzTabDoubleList() override;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
     std::vector<MzTabDouble> get() const;
 
@@ -184,15 +183,15 @@ public:
 
     explicit MzTabInteger(const int v);
 
-    virtual ~MzTabInteger();
+    ~MzTabInteger() override;
 
     void set(const Int& value);
 
     Int get() const;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
 protected:
     Int value_;
@@ -204,13 +203,13 @@ protected:
 public:
     MzTabIntegerList();
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
     std::vector<MzTabInteger> get() const;
 
@@ -228,15 +227,15 @@ public:
 
     explicit MzTabBoolean(bool v);
 
-    virtual ~MzTabBoolean();
+    ~MzTabBoolean() override;
 
     void set(const bool& value);
 
     Int get() const;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
 protected:
     bool value_;
@@ -250,19 +249,19 @@ public:
 
     explicit MzTabString(const String& s);
 
-    virtual ~MzTabString();
+    ~MzTabString() override;
 
     void set(const String& value);
 
     String get() const;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
 protected:
     String value_;
@@ -274,11 +273,11 @@ protected:
 public:
     MzTabParameter();
 
-    virtual ~MzTabParameter();
+    ~MzTabParameter() override;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
     void setCVLabel(const String& CV_label);
 
@@ -296,9 +295,9 @@ public:
 
     String getValue() const;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
 protected:
     String CV_label_;
@@ -312,15 +311,15 @@ protected:
   {
 public:
 
-    virtual ~MzTabParameterList();
+    ~MzTabParameterList() override;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
     std::vector<MzTabParameter> get() const;
 
@@ -336,18 +335,18 @@ protected:
 public:
     MzTabStringList();
 
-    virtual ~MzTabStringList();
+    ~MzTabStringList() override;
 
     // needed for e.g. ambiguity_members and GO accessions as these use ',' as separator while the others use '|'
     void setSeparator(char sep);
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
     std::vector<MzTabString> get() const;
 
@@ -364,11 +363,11 @@ protected:
 public:
     MzTabModification();
 
-    virtual ~MzTabModification();
+    ~MzTabModification() override;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
     // set (potentially ambiguous) position(s) with associated parameter (might be null if not set)
     void setPositionsAndParameters(const std::vector<std::pair<Size, MzTabParameter> >& ppp);
@@ -379,9 +378,9 @@ public:
 
     MzTabString getModOrSubstIdentifier() const;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
 protected:
     std::vector<std::pair<Size, MzTabParameter> > pos_param_pairs_;
@@ -392,15 +391,15 @@ protected:
     public MzTabNullAbleBase
   {
 public:
-    virtual ~MzTabModificationList();
+    ~MzTabModificationList() override;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
     std::vector<MzTabModification> get() const;
 
@@ -417,11 +416,11 @@ protected:
 public:
     MzTabSpectraRef();
 
-    virtual ~MzTabSpectraRef();
+    ~MzTabSpectraRef() override;
 
-    bool isNull() const;
+    bool isNull() const override;
 
-    void setNull(bool b);
+    void setNull(bool b) override;
 
     void setMSFile(Size index);
 
@@ -433,9 +432,9 @@ public:
 
     void setSpecRefFile(const String& spec_ref);
 
-    String toCellString() const;
+    String toCellString() const override;
 
-    void fromCellString(const String& s);
+    void fromCellString(const String& s) override;
 
 protected:
     Size ms_run_; // number is specified in the meta data section.
@@ -760,4 +759,3 @@ protected:
 
 #pragma clang diagnostic pop
 
-#endif // OPENMS_FORMAT_MZTAB_H

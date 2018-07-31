@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -140,7 +140,7 @@ endmacro()
 macro(install_thirdparty_folder foldername)
   if(EXISTS ${SEARCH_ENGINES_DIRECTORY}/${foldername})
     install(DIRECTORY             ${SEARCH_ENGINES_DIRECTORY}/${foldername}
-            DESTINATION           ${INSTALL_BIN_DIR}/SEARCHENGINES
+            DESTINATION           ${INSTALL_SHARE_DIR}/THIRDPARTY
             COMPONENT             ${foldername}
             FILE_PERMISSIONS      OWNER_EXECUTE OWNER_WRITE OWNER_READ
                                   GROUP_READ GROUP_EXECUTE
@@ -154,3 +154,51 @@ macro(install_thirdparty_folder foldername)
     list(APPEND THIRDPARTY_COMPONENT_GROUP ${foldername})
   endif()
 endmacro()
+
+#------------------------------------------------------------------------------
+# Installs QT5 platform plugin. Prefix can be the usual CMAKE_INSTALL_PREFIX or
+# if you install to a bundle, the app folder
+macro(install_qt5_plugin _qt_plugin_name _qt_plugins_var _targetpath _component)
+  get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
+  if(EXISTS "${_qt_plugin_path}")
+    get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
+    get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
+    get_filename_component(_qt_plugin_type "${_qt_plugin_type}" NAME)
+    set(_qt_plugin_dest "${_targetpath}/${_qt_plugin_type}")
+    install(FILES "${_qt_plugin_path}"
+      DESTINATION "${_qt_plugin_dest}"
+      COMPONENT ${_component})
+    set(${_qt_plugins_var}
+      "${${_qt_plugins_var}};${_qt_plugin_dest}/${_qt_plugin_file}")
+  else()
+    message(FATAL_ERROR "QT plugin ${_qt_plugin_name} not found")
+  endif()
+endmacro()
+
+#------------------------------------------------------------------------------
+# Installs QT5 libraries to CMAKE_INSTALL_PREFIX based on given components
+macro(install_qt5_libs _qt_components _targetpath _install_component)
+  foreach (_qt_component ${_qt_components})
+    get_target_property(_qt_lib_path "Qt5::${_qt_component}" LOCATION)
+    if(_qt_lib_path MATCHES "^.*\\/.*${_qt_component}\\.framework\\/.*$")
+    ## we could use if Mac but this is more general
+      get_filename_component(_qt_lib_path "${_qt_lib_path}" PATH)
+      if(EXISTS "${_qt_lib_path}")
+      install(DIRECTORY "${_qt_lib_path}"
+        DESTINATION "${_targetpath}"
+        COMPONENT ${_install_component})
+      else()
+        message(FATAL_ERROR "QT5 lib ${_qt_component} not found at imported location ${_qt_lib_path} for install/package")
+      endif()
+    else()
+      if(EXISTS "${_qt_lib_path}")
+        install(FILES "${_qt_lib_path}"
+          DESTINATION "${_targetpath}"
+          COMPONENT ${_install_component})
+      else()
+        message(FATAL_ERROR "QT5 lib ${_qt_component} not found at imported location ${_qt_lib_path} for install/package")
+      endif()
+    endif()
+  endforeach(_qt_component)
+endmacro()
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_TARGETED_OFFLINEPRECURSORIONSELECTION_H
-#define OPENMS_ANALYSIS_TARGETED_OFFLINEPRECURSORIONSELECTION_H
+#pragma once
 
 
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -66,7 +65,7 @@ public:
     typedef PSLPFormulation::IndexTriple IndexTriple;
 
     OfflinePrecursorIonSelection();
-    virtual ~OfflinePrecursorIonSelection();
+    ~OfflinePrecursorIonSelection() override;
 
     /**
       @brief Makes the precursor selection for a given feature map, either feature or scan based.
@@ -134,5 +133,4 @@ private:
  
 }
 
-#endif //  OPENMS_ANALYSIS_ID_OFFLINEPRECURSORIONSELECTION_H
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ vec.push_back(seq2);
 vec.push_back(seq3);
 
 PeakIntensityPredictor* ptr;
-PeakIntensityPredictor* nullPointer = 0;
+PeakIntensityPredictor* nullPointer = nullptr;
 
 START_SECTION(PeakIntensityPredictor())
   ptr = new PeakIntensityPredictor();

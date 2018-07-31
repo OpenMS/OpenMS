@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -261,8 +261,8 @@ double expected_x0 = 680.1;
 TOLERANCE_RELATIVE(1.001)
 
 
-GTF* ptr = 0;
-GTF* nullPointer = 0;
+GTF* ptr = nullptr;
+GTF* nullPointer = nullptr;
 START_SECTION(GaussTraceFitter())
 {
 	ptr = new GTF();

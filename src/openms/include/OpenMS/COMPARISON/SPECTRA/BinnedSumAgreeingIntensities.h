@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSUMAGREEINGINTENSITIES_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSUMAGREEINGINTENSITIES_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 
@@ -44,11 +43,15 @@ namespace OpenMS
 {
 
   /**
-    @brief Compare functor scoring the sum of agreeing intensities for similarity measurement
+    @brief Sum of agreeing intensities for similarity measurement
 
     Transformation and other factors of the peptide mass spectrometry pairwise peak-list comparison process
     Witold E Wolski , Maciej Lalowski* , Peter Martus* , Ralf Herwig* , Patrick Giavalisco , Johan Gobom , Albert Sickmann , Hans Lehrach and Knut Reinert*
     BMC Bioinformatics 2005, 6:285 doi:10.1186/1471-2105-6-285
+
+    Bins whose intensity differences are larger than their average intensity receive a weight of zero.
+
+    Prefect agreement results in a similarity score of 1.0
 
     @htmlinclude OpenMS_BinnedSumAgreeingIntensities.parameters
 
@@ -70,7 +73,7 @@ public:
     BinnedSumAgreeingIntensities(const BinnedSumAgreeingIntensities& source);
 
     /// destructor
-    virtual ~BinnedSumAgreeingIntensities();
+    ~BinnedSumAgreeingIntensities() override;
 
     /// assignment operator
     BinnedSumAgreeingIntensities& operator=(const BinnedSumAgreeingIntensities& source);
@@ -81,10 +84,10 @@ public:
       @param spec2 Second spectrum given as a binned representation
       @throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
     */
-    double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
+    double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const override;
 
     /// function call operator, calculates self similarity
-    double operator()(const BinnedSpectrum& spec) const;
+    double operator()(const BinnedSpectrum& spec) const override;
 
     ///
     static BinnedSpectrumCompareFunctor* create() { return new BinnedSumAgreeingIntensities(); }
@@ -96,9 +99,8 @@ public:
     }
 
 protected:
-    void updateMembers_();
+    void updateMembers_() override;
     double precursor_mass_tolerance_;
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_BINNEDSUMAGREEINGINTENSITIES_H

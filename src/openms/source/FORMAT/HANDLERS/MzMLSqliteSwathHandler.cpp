@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <sqlite3.h>
 
 namespace OpenMS
@@ -57,7 +60,7 @@ namespace OpenMS
                     "WHERE MSLEVEL == 2 "\
                     ";";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step( stmt );
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
@@ -90,7 +93,7 @@ namespace OpenMS
                    "FROM SPECTRUM " \
                    "WHERE MSLEVEL == 1;";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type(stmt, 0) != SQLITE_NULL)
@@ -125,7 +128,7 @@ namespace OpenMS
       select_sql += String(center + 0.01); 
       select_sql += ";";
 
-      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, NULL);
+      sqlite3_prepare(db, select_sql.c_str(), -1, &stmt, nullptr);
       sqlite3_step(stmt);
 
       while (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)

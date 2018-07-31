@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ public:
   enum State {TP, FP, TN, FN, NE};
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
@@ -97,7 +97,7 @@ protected:
     setMaxFloat_("p_value_dim_2", 1);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
@@ -151,7 +151,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    if (strict) IDFilter::keepBestPeptideHits(identifications, strict);
+    // if (strict)
+    IDFilter::keepBestPeptideHits(identifications, strict);
 
     for (SignedSize j = fdrs.size() - 1; j >= 0; --j)
     {

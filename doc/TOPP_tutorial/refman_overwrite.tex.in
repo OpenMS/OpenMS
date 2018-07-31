@@ -37,12 +37,14 @@
 \setcounter{tocdepth}{1}
 \renewcommand{\footrulewidth}{0.4pt}
 \newcommand{\+}{\discretionary{\mbox{\scriptsize$\hookleftarrow$}}{}{}}
+\setlength\parindent{0pt}
+
 \begin{document}
 
 \begin{titlepage}
 \vspace*{7cm}
 \begin{center}
-{\Large TOPP and TOPPView Tutorial\\[1ex]\large Version: @CF_OPENMS_PACKAGE_VERSION@ }\\
+{\Large TOPP and TOPPView Tutorial\\[1ex]\large Version: @CF_OPENMS_PACKAGE_VERSION_FULLSTRING@ }\\
 \end{center}
 \end{titlepage}
 

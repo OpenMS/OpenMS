@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,8 @@ START_TEST(PercolatorOutfile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PercolatorOutfile* ptr = 0;
-PercolatorOutfile* null_pointer = 0;
+PercolatorOutfile* ptr = nullptr;
+PercolatorOutfile* null_pointer = nullptr;
 PercolatorOutfile file;
 
 START_SECTION(PercolatorOutfile())

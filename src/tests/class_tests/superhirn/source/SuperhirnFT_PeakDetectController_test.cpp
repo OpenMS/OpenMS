@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,8 +69,8 @@ START_TEST(FTPeakDetectController, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FTPeakDetectController* ptr = 0;
-FTPeakDetectController* nullPtr = 0;
+FTPeakDetectController* ptr = nullptr;
+FTPeakDetectController* nullPtr = nullptr;
 START_SECTION((FTPeakDetectController()))
 	ptr = new FTPeakDetectController();
 	TEST_NOT_EQUAL(ptr,nullPtr)

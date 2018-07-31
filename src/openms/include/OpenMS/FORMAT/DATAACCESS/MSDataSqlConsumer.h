@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_MSDATASQLCONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_MSDATASQLCONSUMER_H
+#pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
@@ -85,7 +84,7 @@ namespace OpenMS
   
         Flushes the data for good.
       */
-      ~MSDataSqlConsumer();
+      ~MSDataSqlConsumer() override;
 
       /**
         @brief Flushes the data for good.
@@ -98,16 +97,16 @@ namespace OpenMS
       /**
         @brief Write a spectrum to the output file
       */
-      void consumeSpectrum(SpectrumType & s);
+      void consumeSpectrum(SpectrumType & s) override;
 
       /**
         @brief Write a chromatogram to the output file
       */
-      void consumeChromatogram(ChromatogramType & c);
+      void consumeChromatogram(ChromatogramType & c) override;
 
-      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */);
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) override;
 
-      void setExperimentalSettings(const ExperimentalSettings& /* exp */);
+      void setExperimentalSettings(const ExperimentalSettings& /* exp */) override;
 
     protected:
 
@@ -124,5 +123,4 @@ namespace OpenMS
 
 } //end namespace OpenMS
 
-#endif // OPENMS_FORMAT_DATAACCESS_MSDATASQLCONSUMER_H
 

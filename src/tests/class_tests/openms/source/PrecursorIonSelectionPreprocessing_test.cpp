@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,8 +49,8 @@ START_TEST(PrecursorIonSelectionPreprocessing, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-PrecursorIonSelectionPreprocessing* ptr = 0;
-PrecursorIonSelectionPreprocessing* nullPointer = 0;
+PrecursorIonSelectionPreprocessing* ptr = nullptr;
+PrecursorIonSelectionPreprocessing* nullPointer = nullptr;
 START_SECTION(PrecursorIonSelectionPreprocessing())
 	ptr = new PrecursorIonSelectionPreprocessing();
 	TEST_NOT_EQUAL(ptr, nullPointer)

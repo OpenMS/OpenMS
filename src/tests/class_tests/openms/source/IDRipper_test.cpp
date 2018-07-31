@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,8 +61,8 @@ IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test.idXML"), protein_ident
 PeptideIdentification identification = identifications[0];
 ProteinIdentification protein_identification = protein_identifications[0];
 
-IDRipper* ptr = 0;
-IDRipper* null_ptr = 0;
+IDRipper* ptr = nullptr;
+IDRipper* null_ptr = nullptr;
 START_SECTION(IDRipper())
 {
   ptr = new IDRipper();

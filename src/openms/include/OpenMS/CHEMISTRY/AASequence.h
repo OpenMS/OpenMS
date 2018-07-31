@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_AASEQUENCE_H
-#define OPENMS_CHEMISTRY_AASEQUENCE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -406,12 +405,22 @@ protected:
         Uses round brackets when possible (id is known) or square brackets for
         unknown modifications where only the mass is known.
 
-        i.e.: n[43]PEPC(Carbamidomethyl)PEPM[147]PEPRc[16]
+        i.e.: .n[43]PEPC(Carbamidomethyl)PEPM[147]PEPR.[16]
     */
     String toString() const;
 
     /// returns the peptide as string without any modifications
     String toUnmodifiedString() const;
+
+    /**
+        @brief returns the peptide as string with UniMod-style modifications embedded in brackets
+
+        Uses round brackets when possible (id is known) or square brackets for
+        unknown modifications where only the mass is known.
+
+        i.e.: .n[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
+    */
+    String toUniModString() const;
 
     /**
         @brief create a TPP compatible string of the modified sequence using bracket notation.
@@ -593,8 +602,10 @@ protected:
 
       @return Position at which to continue parsing
     */
-    static String::ConstIterator parseModRoundBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas, bool dot_notation, bool dot_terminal);
+    static String::ConstIterator parseModRoundBrackets_(const String::ConstIterator str_it,
+                                                        const String& str,
+                                                        AASequence& aas,
+                                                        const ResidueModification::TermSpecificity& specificity);
 
     /** 
       @brief Parses modifications in square brackets (a mass)
@@ -609,9 +620,10 @@ protected:
 
       @return Position at which to continue parsing
     */
-    static String::ConstIterator parseModSquareBrackets_(
-      const String::ConstIterator str_it, const String& str, AASequence& aas, 
-      const ResidueModification::TermSpecificity& specificity);
+    static String::ConstIterator parseModSquareBrackets_(const String::ConstIterator str_it,
+                                                         const String& str,
+                                                         AASequence& aas,
+                                                         const ResidueModification::TermSpecificity& specificity);
 
     static void parseString_(const String& peptide, AASequence& aas,
                              bool permissive = true);
@@ -624,4 +636,3 @@ protected:
 } // namespace OpenMS
 
 
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,7 +118,7 @@ public:
     StablePairFinder();
 
     /// Destructor
-    virtual ~StablePairFinder()
+    ~StablePairFinder() override
     {
     }
 
@@ -142,7 +142,7 @@ public:
       @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
     void run(const std::vector<ConsensusMap>& input_maps,
-             ConsensusMap& result_map);
+             ConsensusMap& result_map) override;
 
 protected:
 
@@ -156,7 +156,7 @@ protected:
     //@}
 
     //docu in base class
-    virtual void updateMembers_();
+    void updateMembers_() override;
 
     /**
       @brief Checks if the peptide IDs of two features are compatible.

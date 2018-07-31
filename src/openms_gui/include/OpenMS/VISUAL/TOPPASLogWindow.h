@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,13 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASLOGWINDOW_H
-#define OPENMS_VISUAL_TOPPASLOGWINDOW_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
-#include <QtGui/QTextEdit>
+#include <QtWidgets/QTextEdit>
 class QContextMenuEvent;
 
 namespace OpenMS
@@ -56,9 +55,9 @@ namespace OpenMS
 
   public:
     /// Constructor
-    TOPPASLogWindow(QWidget * parent = 0);
+    TOPPASLogWindow(QWidget * parent = nullptr);
     /// Destructor
-    ~TOPPASLogWindow();
+    ~TOPPASLogWindow() override;
 
     /// read max_length
     int maxLength() const;
@@ -68,7 +67,7 @@ namespace OpenMS
   protected:
     ///@name Reimplemented Qt events
     //@{
-    void contextMenuEvent(QContextMenuEvent * e);
+    void contextMenuEvent(QContextMenuEvent * e) override;
     //@}
 
     /// Members:
@@ -80,4 +79,3 @@ namespace OpenMS
 
   };
 }
-#endif // OPENMS_VISUAL_TOPPASLOGWINDOW_H

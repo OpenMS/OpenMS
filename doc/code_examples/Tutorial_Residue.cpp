@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,23 +28,46 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+//! [Residue]
+
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <iostream>
 
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main()
 {
-  const ResidueDB * res_db = ResidueDB::getInstance();
+  // get ResidueDB singleton
+  ResidueDB const * res_db = ResidueDB::getInstance();
 
-  Residue lys = *res_db->getResidue("Lysine"); // .getResidue("K") would also be ok
+  // query Lysine
+  Residue const * lys = res_db->getResidue("Lysine");
 
-  cout << lys.getName() << " "
-       << lys.getThreeLetterCode() << " "
-       << lys.getOneLetterCode() << " "
-       << lys.getAverageWeight() << endl;
+  cout << lys->getName() << " "
+       << lys->getThreeLetterCode() << " "
+       << lys->getOneLetterCode() << " "
+       << lys->getFormula().toString() << " "
+       << lys->getAverageWeight() << " "
+       << lys->getMonoWeight() << endl;
+
+  // one letter code query of Arginine
+  Residue const * arg = res_db->getResidue('R');
+
+  cout << arg->getName() << " "
+       << arg->getFormula().toString() << " "
+       << arg->getMonoWeight() << endl;
+
+  // construct a AASequence object, query a residue 
+  // and output some of its properties
+  AASequence aas = AASequence::fromString("DEFIANGER");
+  cout << aas[3].getName() << " "
+       << aas[3].getFormula().toString() << " "
+       << aas[3].getMonoWeight() << endl; 
 
   return 0;
 } //end of main
+
+//! [Residue]

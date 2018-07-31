@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,13 +36,7 @@
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
-
-#include <fstream>
-#include <vector>
-#include <map>
-#include <cmath>
 
 // #define Debug_PoseClusteringShiftSuperimposer
 #ifdef Debug_PoseClusteringShiftSuperimposer
@@ -204,8 +198,7 @@ namespace OpenMS
           diff = -diff;
         if (max_shift > diff)
           max_shift = diff;
-      }
-      while (0);
+      } while (0);
 
       const Int shift_buckets_num_half = 4 + (Int) ceil((max_shift) / shift_bucket_size);
       const Int shift_buckets_num = 1 + 2 * shift_buckets_num_half;
@@ -235,8 +228,7 @@ namespace OpenMS
       setProgress(++actual_progress);
       // ... and finally ...
       total_intensity_ratio = total_int_model_map / total_int_scene_map;
-    }
-    while (0);   // (the extra syntax helps with code folding in eclipse!)
+    } while (0);   // (the extra syntax helps with code folding in eclipse!)
     setProgress((actual_progress = 20));
 
     /// The serial number is incremented for each invocation of this, to avoid overwriting of hash table dumps.
@@ -330,8 +322,7 @@ namespace OpenMS
 
         } // k
       } // i
-    }
-    while (0);   // end of hashing (the extra syntax helps with code folding in eclipse!)
+    } while (0);   // end of hashing (the extra syntax helps with code folding in eclipse!)
 
     setProgress((actual_progress = 30));
 
@@ -426,8 +417,7 @@ namespace OpenMS
             freq_cutoff_low = buffer[--index]; // note that we have index >= 1
           }
         }
-      }
-      while (0);
+      } while (0);
       setProgress(++actual_progress);
 
       // apply freq_cutoff, setting smaller values to zero
@@ -490,8 +480,7 @@ namespace OpenMS
       }
       setProgress(80);
 
-    }
-    while (0);
+    } while (0);
 
     //************************************************************************************
     // Estimate transform

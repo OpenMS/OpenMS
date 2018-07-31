@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_AVERAGELINKAGE_H
-#define OPENMS_COMPARISON_CLUSTERING_AVERAGELINKAGE_H
+#pragma once
 
 #include <vector>
 #include <set>
@@ -66,7 +65,7 @@ public:
     AverageLinkage(const AverageLinkage & source);
 
     /// destructor
-    virtual ~AverageLinkage();
+    ~AverageLinkage() override;
 
     /// assignment operator
     AverageLinkage & operator=(const AverageLinkage & source);
@@ -82,7 +81,7 @@ public:
         The clustering method is average linkage, where the updated distances after merging two clusters are each the average distances between the elements of their clusters. After @p threshold is exceeded, @p cluster_tree is filled with dummy clusteringsteps (children: (0,1), distance: -1) to the root.
         @see ClusterFunctor , BinaryTreeNode
     */
-    void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const;
+    void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const override;
 
     /// creates a new instance of a AverageLinkage object
     static ClusterFunctor * create();
@@ -93,4 +92,3 @@ public:
   };
 
 }
-#endif //OPENMS_COMPARISON_CLUSTERING_AVERAGELINKAGE_H

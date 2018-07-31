@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,16 +33,15 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_ELEMENTDB_H
-#define OPENMS_CHEMISTRY_ELEMENTDB_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
-  class Element;
 
   /** @ingroup Chemistry
 
@@ -77,8 +76,8 @@ public:
     /// returns a pointer to the singleton instance of the element db
     inline static const ElementDB * getInstance()
     {
-      static ElementDB * db_ = 0;
-      if (db_ == 0)
+      static ElementDB * db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new ElementDB;
       }
@@ -121,7 +120,7 @@ protected:
 
             @throw throws exception ParseError
      */
-    IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double> & distribution);
+    IsotopeDistribution parseIsotopeDistribution_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass);
 
     /*_ calculates the average weight based on isotope abundance and mass
      */
@@ -160,4 +159,3 @@ private:
   };
 
 } // namespace OpenMS
-#endif

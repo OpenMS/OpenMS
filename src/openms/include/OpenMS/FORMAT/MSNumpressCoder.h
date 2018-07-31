@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_MSNUMPRESSCODER_H
-#define OPENMS_FORMAT_MSNUMPRESSCODER_H
+#pragma once
 
-#include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <string>
+#include <vector>
 
 namespace OpenMS
 {
@@ -200,11 +201,8 @@ public:
 private:
 
     void decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig & config);
-
-    Base64 base64coder_;
   };
 
 } //namespace OpenMS
 
-#endif /* OPENMS_FORMAT_MSNUMPRESSCODER_H */
 

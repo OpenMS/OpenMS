@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,8 +58,8 @@ AASequence sequence = AASequence::fromString("ARRAY");
 std::string sequence2 = "  ARRAY  ";
 Int charge = 2;
 
-PeptideHit* ptr = 0;
-PeptideHit* nullPointer = 0;
+PeptideHit* ptr = nullptr;
+PeptideHit* nullPointer = nullptr;
 START_SECTION((PeptideHit()))
 	ptr = new PeptideHit();
 	TEST_NOT_EQUAL(ptr, nullPointer)

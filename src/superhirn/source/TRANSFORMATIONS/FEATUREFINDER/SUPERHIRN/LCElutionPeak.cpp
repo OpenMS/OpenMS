@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,8 +46,8 @@
 //  PEAK DETECTION OF FOURIER TRANSFORME MS INSTRUMENT DATA
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 #include <iostream>
 #include <map>
 
@@ -91,7 +91,7 @@ namespace OpenMS
     fRT = 0;
     fStartTR = 0;
     fEndTR = 0;
-    isotopePattern = NULL;
+    isotopePattern = nullptr;
 
   }
 
@@ -115,7 +115,7 @@ namespace OpenMS
     fRT = 0;
     fStartTR = 0;
     fEndTR = 0;
-    isotopePattern = NULL;
+    isotopePattern = nullptr;
   }
 
 //////////////////////////////////////////////////
@@ -125,10 +125,10 @@ namespace OpenMS
 
     intens_signals.clear();
     CHRG_MAP.clear();
-    if (isotopePattern != NULL)
+    if (isotopePattern != nullptr)
     {
       delete isotopePattern;
-      isotopePattern = NULL;
+      isotopePattern = nullptr;
     }
   }
 
@@ -326,8 +326,8 @@ namespace OpenMS
     double TOT_AREA = 0;
     double apexScan = 0;
     double apexTr = 0;
-    MSPeak * endPeak = NULL;
-    MSPeak * startPeak = NULL;
+    MSPeak * endPeak = nullptr;
+    MSPeak * startPeak = nullptr;
 
     // find the first peaks above the background intensity:
     SIGNAL_iterator P = get_signal_list_start();
@@ -364,7 +364,7 @@ namespace OpenMS
 
       if ((*P).second.get_intensity() >= fSNIntensityThreshold)
       {
-        if (startPeak != NULL)
+        if (startPeak != nullptr)
         {
           endPeak = &((*P).second);
         }
@@ -375,11 +375,11 @@ namespace OpenMS
       }
       else
       {
-        endPeak = NULL;
-        startPeak = NULL;
+        endPeak = nullptr;
+        startPeak = nullptr;
       }
 
-      if ((endPeak != NULL) && (startPeak != NULL))
+      if ((endPeak != nullptr) && (startPeak != nullptr))
       {
 
         // to compute some other parameters at the same time:

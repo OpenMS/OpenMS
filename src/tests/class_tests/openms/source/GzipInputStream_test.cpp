@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,8 +45,9 @@ using namespace OpenMS;
 
 START_TEST(GzipInputStream, "$Id$")
 
-GzipInputStream* ptr = 0;
-GzipInputStream* nullPointer = 0;
+xercesc::XMLPlatformUtils::Initialize();
+GzipInputStream* ptr = nullptr;
+GzipInputStream* nullPointer = nullptr;
 START_SECTION(GzipInputStream(const char *const file_name))
 	TEST_EXCEPTION(Exception::FileNotFound, GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("ThisFileDoesNotExist")))
 	ptr = new GzipInputStream(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
@@ -102,7 +103,7 @@ END_SECTION
 
 START_SECTION(virtual const XMLCh* getContentType() const )
 	GzipInputStream gzip2(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1.gz"));
-  XMLCh* xmlch_nullPointer = 0;
+  XMLCh* xmlch_nullPointer = nullptr;
   TEST_EQUAL(gzip2.getContentType(),xmlch_nullPointer)
 END_SECTION
 

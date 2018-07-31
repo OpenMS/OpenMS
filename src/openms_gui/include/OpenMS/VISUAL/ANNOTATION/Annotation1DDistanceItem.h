@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_ANNOTATION_ANNOTATION1DDISTANCEITEM_H
-#define OPENMS_VISUAL_ANNOTATION_ANNOTATION1DDISTANCEITEM_H
+#pragma once
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <vector>
@@ -53,13 +52,13 @@ public:
     /// Copy constructor
     Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs);
     /// Destructor
-    virtual ~Annotation1DDistanceItem();
+    ~Annotation1DDistanceItem() override;
     // Docu in base class
-    virtual void ensureWithinDataRange(Spectrum1DCanvas * const canvas);
+    void ensureWithinDataRange(Spectrum1DCanvas * const canvas) override;
     // Docu in base class
-    virtual void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false);
+    void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
     // Docu in base class
-    virtual void move(const PointType & delta);
+    void move(const PointType & delta) override;
     /// Sets the start point of the measured distance line
     void setStartPoint(const PointType & start);
     /// Sets the peak index of the end peak of the measurement
@@ -81,4 +80,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif

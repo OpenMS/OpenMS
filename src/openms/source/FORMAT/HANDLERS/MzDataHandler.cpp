@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzDataHandler.h>
 
+#include <OpenMS/FORMAT/Base64.h>
+
 namespace OpenMS
 {
 
@@ -43,10 +45,9 @@ namespace OpenMS
     MzDataHandler::MzDataHandler(MapType & exp, const String & filename, const String & version, ProgressLogger & logger) :
       XMLHandler(filename, version),
       exp_(&exp),
-      cexp_(0),
+      cexp_(nullptr),
       peak_count_(0),
       meta_id_descs_(),
-      decoder_(),
       skip_spectrum_(false),
       logger_(logger)
     {
@@ -55,11 +56,10 @@ namespace OpenMS
 
     MzDataHandler::MzDataHandler(const MapType & exp, const String & filename, const String & version, const ProgressLogger & logger) :
       XMLHandler(filename, version),
-      exp_(0),
+      exp_(nullptr),
       cexp_(&exp),
       peak_count_(0),
       meta_id_descs_(),
-      decoder_(),
       skip_spectrum_(false),
       logger_(logger)
     {
@@ -387,11 +387,11 @@ namespace OpenMS
         String tmp_type = attributeAsString_(attributes, s_spectrumtype);
         if (tmp_type == "discrete")
         {
-          spec_.setType(SpectrumSettings::PEAKS);
+          spec_.setType(SpectrumSettings::CENTROID);
         }
         else if (tmp_type == "continuous")
         {
-          spec_.setType(SpectrumSettings::RAWDATA);
+          spec_.setType(SpectrumSettings::PROFILE);
         }
         else
         {
@@ -508,12 +508,12 @@ namespace OpenMS
           if (endians_[i] == "big")
           {
             //std::cout << "nr. " << i << ": decoding as high-precision big endian" << std::endl;
-            decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded_double);
+            Base64::decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded_double);
           }
           else
           {
             //std::cout << "nr. " << i << ": decoding as high-precision little endian" << std::endl;
-            decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded_double);
+            Base64::decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded_double);
           }
           // push_back the decoded double data - and an empty one into
           // the dingle-precision vector, so that we don't mess up the index
@@ -526,12 +526,12 @@ namespace OpenMS
           if (endians_[i] == "big")
           {
             //std::cout << "nr. " << i << ": decoding as low-precision big endian" << std::endl;
-            decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded);
+            Base64::decode(data_to_decode_[i], Base64::BYTEORDER_BIGENDIAN, decoded);
           }
           else
           {
             //std::cout << "nr. " << i << ": decoding as low-precision little endian" << std::endl;
-            decoder_.decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded);
+            Base64::decode(data_to_decode_[i], Base64::BYTEORDER_LITTLEENDIAN, decoded);
           }
           //std::cout << "list size: " << decoded.size() << std::endl;
           decoded_list_.push_back(decoded);
@@ -827,11 +827,11 @@ namespace OpenMS
           if (!spec.getAcquisitionInfo().empty())
           {
             os << "\t\t\t\t\t<acqSpecification spectrumType=\"";
-            if (spec.getType() == SpectrumSettings::PEAKS)
+            if (spec.getType() == SpectrumSettings::CENTROID)
             {
               os << "discrete";
             }
-            else if (spec.getType() == SpectrumSettings::RAWDATA)
+            else if (spec.getType() == SpectrumSettings::PROFILE)
             {
               os << "continuous";
             }
@@ -1499,7 +1499,7 @@ namespace OpenMS
       }
 
       String str;
-      decoder_.encode(data_to_encode_, Base64::BYTEORDER_LITTLEENDIAN, str);
+      Base64::encode(data_to_encode_, Base64::BYTEORDER_LITTLEENDIAN, str);
       data_to_encode_.clear();
       os << "\t\t\t\t<data precision=\"32\" endian=\"little\" length=\""
          << size << "\">"

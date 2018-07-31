@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Info.h>
@@ -199,7 +199,7 @@ namespace OpenMS
       ++p;
     }
 
-    return NULL;
+    return nullptr;
   }
 
 //////////////////////////////////////////////////
@@ -215,11 +215,10 @@ namespace OpenMS
     while (p != feature_list.end())
     {
 
-      SHFeature * PEAK = NULL;
       // get the peak at a charge state:
-      PEAK = &(*p);
+      SHFeature * PEAK = &(*p);
 
-      if (PEAK != NULL)
+      if (PEAK != nullptr)
       {
         if (PEAK->get_nb_common_match() == count)
         {
@@ -439,7 +438,7 @@ namespace OpenMS
   void LCMS::set_spectrum_ID(int IN)
   {   spectrum_id = IN; }
 
-  // access the raw data names:
+  // access the profile data names:
   void LCMS::remove_raw_spec_name(int ID)
   {   raw_spec_names.erase(ID); }
   void LCMS::add_raw_spec_name(int ID, std::string name)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,9 @@
 // Hendrik Weisser
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -45,10 +48,8 @@
 #include <OpenMS/FORMAT/SequestOutfile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-#include <OpenMS/CHEMISTRY/SpectrumAnnotator.h>
+#include <OpenMS/FORMAT/XQuestResultXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 
@@ -100,6 +101,9 @@ In contrast, support for converting from idXML to pepXML is limited. The purpose
 information for the use of ProteinProphet.
 
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
+
+The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
+of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
 
 <B>Details on additional parameters:</B>
 
@@ -161,7 +165,7 @@ private:
       tgp.setValue("add_b_ions", "true");
       tgp.setValue("add_a_ions", "true");
       tgp.setValue("add_x_ions", "true");
-      tg.setParameters(tgp);    
+      tg.setParameters(tgp);
 
       SpectrumAlignment sa;
       Param sap = sa.getDefaults();
@@ -200,18 +204,18 @@ private:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
-                       "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
-                       "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms),\n"
+                       "- a single file in a multi-purpose XML format (.pepXML, .protXML, .idXML, .mzid),\n"
+                       "- a single file in a search engine-specific format (Mascot: .mascotXML, OMSSA: .omssaXML, X! Tandem: .xml, Percolator: .psms, xQuest: .xquest.xml),\n"
                        "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("idXML,mzid,pepXML,FASTA");
+    String formats("idXML,mzid,pepXML,FASTA,xquest.xml");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -232,7 +236,7 @@ protected:
     registerDoubleOption_("add_ionmatch_annotation", "<tolerance>", 0,"[+mz_file only] Will annotate the contained identifications with their matches in the given mz_file. Will take quite some while. Match tolerance is .4", false, true);
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // general variables and data
@@ -451,7 +455,7 @@ protected:
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
         protein_identifications.resize(1);
-        MascotXMLFile().load(in, protein_identifications[0], 
+        MascotXMLFile().load(in, protein_identifications[0],
                              peptide_identifications, lookup);
       }
 
@@ -542,6 +546,12 @@ protected:
           peptide_identifications.push_back(pepid);
         }
       }
+
+      else if (in_type == FileTypes::XQUESTXML)
+      {
+        XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
+      }
+
       else
       {
         writeLog_("Error: Unknown input file type given. Aborting!");
@@ -587,6 +597,11 @@ protected:
                             peptide_identifications);
     }
 
+    else if (out_type == FileTypes::XQUESTXML)
+    {
+      XQuestResultXMLFile().store(out, protein_identifications, peptide_identifications);
+    }
+
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
@@ -600,7 +615,7 @@ protected:
           std::set<String> prot = hit.extractProteinAccessionsSet();
           fasta << ">" << seq
                 << " " << ++count
-                << " " << hit.getSequence().toString() 
+                << " " << hit.getSequence().toString()
                 << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
                 << "\n";
           // FASTA files should have at most 60 characters of sequence info per line

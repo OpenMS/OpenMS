@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_ANALYSIS_DENOVO_COMPNOVOIONSCORINGCID_H
-#define OPENMS_ANALYSIS_DENOVO_COMPNOVOIONSCORINGCID_H
+#pragma once
 
 // OpenMS includes
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -78,7 +77,7 @@ public:
     CompNovoIonScoringCID(const CompNovoIonScoringCID & source);
 
     /// destructor
-    virtual ~CompNovoIonScoringCID();
+    ~CompNovoIonScoringCID() override;
     //@}
 
     ///
@@ -92,9 +91,8 @@ public:
 
 protected:
 
-    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec);
+    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec) override;
   };
 
 }
 
-#endif

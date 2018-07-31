@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,7 +62,7 @@ namespace OpenMS
     return isoforms;
   }
 
-  int MRMAssay::getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
+  int MRMAssay::getSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz)
   {
     int swath = -1;
 
@@ -85,7 +85,7 @@ namespace OpenMS
     }
   }
 
-  bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
+  bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> >& swathes, const double precursor_mz, const double product_mz)
   {
     int swath_idx = getSwath_(swathes, precursor_mz);
 
@@ -98,7 +98,10 @@ namespace OpenMS
       {
         return true;
       }
-      else { return false; }
+      else
+      { 
+        return false;
+      }
     }
   }
 
@@ -123,7 +126,7 @@ namespace OpenMS
     return peptide_sequence;
   }
 
-  std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(std::vector<size_t> n, size_t k)
+  std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(const std::vector<size_t>& n, size_t k)
   {
     std::vector<std::vector<size_t> > combinations;
 
@@ -141,24 +144,23 @@ namespace OpenMS
         }
       }
       combinations.push_back(combination);
-    }
-    while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
 
     return combinations;
   }
 
-  std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification)
+  std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequences_(const std::vector<OpenMS::AASequence>& sequences, const std::vector<std::vector<size_t> >& mods_combs, const OpenMS::String& modification)
   {
     std::vector<OpenMS::AASequence> modified_sequences;
     bool multi_mod_switch = false;
 
-    for (std::vector<OpenMS::AASequence>::iterator sq_it = sequences.begin(); sq_it != sequences.end(); ++sq_it)
+    for (std::vector<OpenMS::AASequence>::const_iterator sq_it = sequences.begin(); sq_it != sequences.end(); ++sq_it)
     {
-      for (std::vector<std::vector<size_t> >::iterator mc_it = mods_combs.begin(); mc_it != mods_combs.end(); ++mc_it)
+      for (std::vector<std::vector<size_t> >::const_iterator mc_it = mods_combs.begin(); mc_it != mods_combs.end(); ++mc_it)
       {
         multi_mod_switch = false;
         OpenMS::AASequence temp_sequence = *sq_it;
-        for (std::vector<size_t>::iterator pos_it = mc_it->begin(); pos_it != mc_it->end(); ++pos_it)
+        for (std::vector<size_t>::const_iterator pos_it = mc_it->begin(); pos_it != mc_it->end(); ++pos_it)
         {
           if (*pos_it == 0)
           {
@@ -187,7 +189,7 @@ namespace OpenMS
     return modified_sequences;
   }
 
-  std::vector<OpenMS::AASequence> MRMAssay::combineModifications_(OpenMS::AASequence sequence)
+  std::vector<OpenMS::AASequence> MRMAssay::combineModifications_(const OpenMS::AASequence& sequence)
   {
     std::map<OpenMS::String, size_t> mods;
     std::vector<OpenMS::AASequence> sequences;
@@ -246,7 +248,7 @@ namespace OpenMS
     return sequences;
   }
 
-  std::vector<OpenMS::AASequence> MRMAssay::combineDecoyModifications_(OpenMS::AASequence sequence, OpenMS::AASequence decoy_sequence)
+  std::vector<OpenMS::AASequence> MRMAssay::combineDecoyModifications_(const OpenMS::AASequence& sequence, const OpenMS::AASequence& decoy_sequence)
   {
     std::map<OpenMS::String, size_t> mods;
     std::vector<OpenMS::AASequence> decoy_sequences;
@@ -305,13 +307,13 @@ namespace OpenMS
     return decoy_sequences;
   }
 
-  void MRMAssay::generateTargetInSilicoMap_(OpenMS::TargetedExperiment& exp,
-                                            std::vector<String> fragment_types,
-                                            std::vector<size_t> fragment_charges,
+  void MRMAssay::generateTargetInSilicoMap_(const OpenMS::TargetedExperiment& exp,
+                                            const std::vector<String>& fragment_types,
+                                            const std::vector<size_t>& fragment_charges,
                                             bool enable_specific_losses,
                                             bool enable_unspecific_losses,
                                             bool enable_ms2_precursors,
-                                            std::vector<std::pair<double, double> > swathes,
+                                            const std::vector<std::pair<double, double> >& swathes,
                                             int round_decPow,
                                             size_t max_num_alternative_localizations,
                                             boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap,
@@ -374,14 +376,13 @@ namespace OpenMS
     endProgress();
   }
 
-  void MRMAssay::generateDecoySequences_(boost::unordered_map<size_t,
-                                         boost::unordered_map<String, std::set<std::string> > >& TargetSequenceMap,
+  void MRMAssay::generateDecoySequences_(const SequenceMapT& TargetSequenceMap,
                                          boost::unordered_map<String, String>& DecoySequenceMap, int shuffle_seed)
   {
     // Step 2a: Generate decoy sequences that share peptidoform properties with targets
     if (shuffle_seed == -1)
     {
-      shuffle_seed = time(0);
+      shuffle_seed = time(nullptr);
     }
 
     boost::mt19937 generator(shuffle_seed);
@@ -393,11 +394,11 @@ namespace OpenMS
     std::string decoy_peptide_string;
 
     // Iterate over swathes
-    for (boost::unordered_map<size_t, boost::unordered_map<String, std::set<std::string> > >::iterator sm_it = TargetSequenceMap.begin(); sm_it != TargetSequenceMap.end(); ++sm_it)
+    for (auto sm_it = TargetSequenceMap.begin(); sm_it != TargetSequenceMap.end(); ++sm_it)
     {
       setProgress(progress++);
       // Iterate over each unmodified peptide sequence 
-      for (boost::unordered_map<String, std::set<std::string> >::iterator ta_it = sm_it->second.begin(); ta_it != sm_it->second.end(); ++ta_it)
+      for (auto ta_it = sm_it->second.begin(); ta_it != sm_it->second.end(); ++ta_it)
       {
         // Get a random unmodified peptide sequence as base for later modification
         if (DecoySequenceMap[ta_it->first] == "")
@@ -438,14 +439,15 @@ namespace OpenMS
     endProgress();
   }
 
-  void MRMAssay::generateDecoyInSilicoMap_(OpenMS::TargetedExperiment& exp,
-                                           std::vector<String> fragment_types, std::vector<size_t> fragment_charges,
+  void MRMAssay::generateDecoyInSilicoMap_(const OpenMS::TargetedExperiment& exp,
+                                           const std::vector<String>& fragment_types,
+                                           const std::vector<size_t>& fragment_charges,
                                            bool enable_specific_losses,
                                            bool enable_unspecific_losses,
                                            bool enable_ms2_precursors,
-                                           std::vector<std::pair<double, double> > swathes,
+                                           const std::vector<std::pair<double, double> >& swathes,
                                            int round_decPow,
-                                           boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap,
+                                           TargetDecoyMapT& TargetDecoyMap,
                                            PeptideMapT& TargetPeptideMap,
                                            boost::unordered_map<String, String>& DecoySequenceMap,
                                            IonMapT & DecoyIonMap,
@@ -486,10 +488,10 @@ namespace OpenMS
 
       // Compute all alternative peptidoforms compatible with ModificationsDB
       // Infers residue specificity from target sequence but is applied to decoy sequence
-      std::vector<OpenMS::AASequence> alternative_decoy_peptide_sequences = combineDecoyModifications_(peptide_sequence, decoy_peptide_sequence);
+      const std::vector<OpenMS::AASequence> alternative_decoy_peptide_sequences = combineDecoyModifications_(peptide_sequence, decoy_peptide_sequence);
 
       // Iterate over all peptidoforms
-      for (std::vector<OpenMS::AASequence>::iterator alt_aa = alternative_decoy_peptide_sequences.begin(); alt_aa != alternative_decoy_peptide_sequences.end(); ++alt_aa)
+      for (auto alt_aa = alternative_decoy_peptide_sequences.begin(); alt_aa != alternative_decoy_peptide_sequences.end(); ++alt_aa)
       {
         // Generate theoretical ion series
         MRMIonSeries::IonSeries ionseries = mrmis.getIonSeries(*alt_aa, precursor_charge, // use same charge state as target
@@ -514,22 +516,23 @@ namespace OpenMS
     endProgress();
   }
 
- void MRMAssay::generateTargetAssays_(OpenMS::TargetedExperiment& exp,
-                                      TransitionVectorType& transitions, double mz_threshold,
-                                      std::vector<std::pair<double, double> > swathes,
+ void MRMAssay::generateTargetAssays_(const OpenMS::TargetedExperiment& exp,
+                                      TransitionVectorType& transitions,
+                                      double mz_threshold,
+                                      const std::vector<std::pair<double, double> >& swathes,
                                       int round_decPow,
                                       PeptideMapT& TargetPeptideMap,
                                       IonMapT & TargetIonMap)
   {
     MRMIonSeries mrmis;
 
-    // Step 3: Generate target UIS assays
+    // Step 3: Generate target identification transitions
     Size progress = 0;
-    startProgress(0, TargetPeptideMap.size(), "Generation of target UIS assays");
+    startProgress(0, TargetPeptideMap.size(), "Generation of target identification transitions");
 
     // Iterate over all target peptides
     int transition_index = 0;
-    for (typename PeptideMapT::iterator pep_it = TargetPeptideMap.begin(); pep_it != TargetPeptideMap.end(); ++pep_it)
+    for (typename PeptideMapT::const_iterator pep_it = TargetPeptideMap.begin(); pep_it != TargetPeptideMap.end(); ++pep_it)
     { 
       setProgress(progress++);
 
@@ -582,25 +585,25 @@ namespace OpenMS
     endProgress();
   }
 
- void MRMAssay::generateDecoyAssays_(OpenMS::TargetedExperiment& exp,
+ void MRMAssay::generateDecoyAssays_(const OpenMS::TargetedExperiment& exp,
                                      TransitionVectorType& transitions,
                                      double mz_threshold,
-                                     std::vector<std::pair<double, double> > swathes,
+                                     const std::vector<std::pair<double, double> >& swathes,
                                      int round_decPow,
-                                     PeptideMapT& DecoyPeptideMap,
+                                     const PeptideMapT& DecoyPeptideMap,
                                      boost::unordered_map<String, TargetedExperiment::Peptide>& TargetDecoyMap,
-                                     IonMapT DecoyIonMap,
-                                     IonMapT TargetIonMap)
+                                     const IonMapT& DecoyIonMap,
+                                     const IonMapT& TargetIonMap)
   {
     MRMIonSeries mrmis;
 
-    // Step 4: Generate decoys UIS assays
+    // Step 4: Generate decoy identification transitions
     Size progress = 0;
-    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy UIS assays");
+    startProgress(0, DecoyPeptideMap.size(), "Generation of decoy identification transitions");
 
     // Iterate over all decoy peptides
     int transition_index = 0;
-    for (typename PeptideMapT::iterator decoy_pep_it = DecoyPeptideMap.begin(); decoy_pep_it != DecoyPeptideMap.end(); ++decoy_pep_it)
+    for (typename PeptideMapT::const_iterator decoy_pep_it = DecoyPeptideMap.begin(); decoy_pep_it != DecoyPeptideMap.end(); ++decoy_pep_it)
     {
       setProgress(progress++);
       TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(decoy_pep_it->first);
@@ -624,7 +627,8 @@ namespace OpenMS
       for (std::vector<std::pair<std::string, double> >::iterator decoy_tr_it = decoy_tr_vec.begin(); decoy_tr_it != decoy_tr_vec_end; ++decoy_tr_it)
       {
         // Check mapping of transitions to other peptidoforms
-        std::vector<std::string> decoy_isoforms = getMatchingPeptidoforms_(decoy_tr_it->second, DecoyIonMap[target_precursor_swath][decoy_peptide_sequence.toUnmodifiedString()], mz_threshold);
+        std::vector<std::string> decoy_isoforms = getMatchingPeptidoforms_(
+            decoy_tr_it->second, DecoyIonMap.at(target_precursor_swath).at(decoy_peptide_sequence.toUnmodifiedString()), mz_threshold);
 
         // Check that transition maps to at least one peptidoform
         if (decoy_isoforms.size() > 0)
@@ -639,16 +643,23 @@ namespace OpenMS
           mrmis.annotateTransitionCV(trn, decoy_tr_it->first);
           trn.setIdentifyingTransition(true);
           trn.setQuantifyingTransition(false);
+
           // Set transition name containing mapping to peptidoforms with potential peptidoforms enumerated in brackets
-          trn.setName(String(transition_index) + "_" + String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
-          trn.setNativeID(String(transition_index) + "_" + String("UISDECOY") + "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" + String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" + String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
+          trn.setName(String(transition_index) + "_" + String("UISDECOY") +
+                "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" +
+                String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" +
+                String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
+          trn.setNativeID(String(transition_index) + "_" + String("UISDECOY") +
+              "_{" + ListUtils::concatenate(decoy_isoforms, "|") + "}_" +
+              String(trn.getPrecursorMZ()) + "_" + String(trn.getProductMZ()) + "_" +
+              String(decoy_peptide.getRetentionTime()) + "_" + decoy_tr_it->first);
           trn.setMetaValue("Peptidoforms", ListUtils::concatenate(decoy_isoforms, "|"));
 
           LOG_DEBUG << "[uis] Decoy transition " << trn.getNativeID() << std::endl;
 
-
           // Check if decoy transition is overlapping with target transition
-          std::vector<std::string> target_isoforms_overlap = getMatchingPeptidoforms_(decoy_tr_it->second, TargetIonMap[target_precursor_swath][target_peptide_sequence.toUnmodifiedString()], mz_threshold);
+          std::vector<std::string> target_isoforms_overlap = getMatchingPeptidoforms_(
+              decoy_tr_it->second, TargetIonMap.at(target_precursor_swath).at(target_peptide_sequence.toUnmodifiedString()), mz_threshold);
 
           if (target_isoforms_overlap.size() > 0)
           {
@@ -667,7 +678,14 @@ namespace OpenMS
     endProgress();
   }
 
-  void MRMAssay::reannotateTransitions(OpenMS::TargetedExperiment& exp, double precursor_mz_threshold, double product_mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_reannotation, bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow)
+  void MRMAssay::reannotateTransitions(OpenMS::TargetedExperiment& exp,
+                             double precursor_mz_threshold,
+                             double product_mz_threshold,
+                             const std::vector<String>& fragment_types,
+                             const std::vector<size_t>& fragment_charges,
+                             bool enable_specific_losses,
+                             bool enable_unspecific_losses,
+                             int round_decPow)
   {
     PeptideVectorType peptides;
     ProteinVectorType proteins;
@@ -675,72 +693,84 @@ namespace OpenMS
 
     OpenMS::MRMIonSeries mrmis;
 
+    // hash of the peptide reference containing all transitions
+    MRMAssay::PeptideTransitionMapType peptide_trans_map;
+    for (Size i = 0; i < exp.getTransitions().size(); i++)
+    {
+      peptide_trans_map[exp.getTransitions()[i].getPeptideRef()].push_back(&exp.getTransitions()[i]);
+    }
+
     Size progress = 0;
     startProgress(0, exp.getTransitions().size(), "Annotating transitions");
-    size_t j = 0; // transition index
-    for (size_t i = 0; i < exp.getTransitions().size(); ++i)
+    for (MRMAssay::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
+         pep_it != peptide_trans_map.end(); ++pep_it)
     {
-      setProgress(++progress);
-      ReactionMonitoringTransition tr = exp.getTransitions()[i];
+      String peptide_ref = pep_it->first;
 
-      TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
-      int precursor_charge = 1;
-      if (target_peptide.hasCharge()) 
-      {
-        precursor_charge = target_peptide.getChargeState();
-      }
+      TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
-      // Generate new ID (transition_group_id) for target peptide
-      target_peptide.id = String(target_peptide.protein_refs[0]) + String("_") + TargetedExperimentHelper::getAASequence(target_peptide).toString() + 
-          String("_") + String(precursor_charge) + "_" + target_peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString();
+      int precursor_charge = 1;
+      if (target_peptide.hasCharge()) {precursor_charge = target_peptide.getChargeState();}
 
-      // Annotate transition: Either set correct CV terms from annotation or
-      // (if enable_reannotation == true) do annotation using theoretical ion
-      // series
-      // Parameters set allowed fragment charges, tolerance, etc. All unannoted transitions are discarded
-      mrmis.annotateTransition(tr, target_peptide, precursor_mz_threshold,
-          product_mz_threshold, enable_reannotation, fragment_types,
-          fragment_charges, enable_specific_losses, enable_unspecific_losses,
-          round_decPow);
+      MRMIonSeries::IonSeries target_ionseries = mrmis.getIonSeries(
+                                                    target_peptide_sequence, precursor_charge, fragment_types,
+                                                    fragment_charges, enable_specific_losses,
+                                                    enable_unspecific_losses, round_decPow);
 
-      // Skip unannotated transitions from previous step
-      if (tr.getProduct().getInterpretationList()[0].iontype == TargetedExperiment::IonType::NonIdentified)
+      // Generate theoretical precursor m.z
+      double precursor_mz = target_peptide_sequence.getMonoWeight(Residue::Full, precursor_charge) / precursor_charge;
+      precursor_mz = Math::roundDecimal(precursor_mz, round_decPow);
+
+      for (Size i = 0; i < pep_it->second.size(); i++)
       {
-        LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
-          << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
-          << " " << tr.getMetaValue("annotation") << std::endl;
-        continue;
-      }
-      else
-      {
-        LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
-      }
+        setProgress(++progress);
+        ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
-      // Add reference to parent precursor
-      tr.setPeptideRef(target_peptide.id);
+        // Annotate transition from theoretical ion series
+        std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr.getProductMZ(), product_mz_threshold);
 
-      // Generate new ID (transition_name) for target transition
-      tr.setNativeID(String(j) + String("_") +  String(target_peptide.protein_refs[0]) + String("_") + target_peptide.sequence + String("_") + String(tr.getPrecursorMZ()) + "_" + String(tr.getProductMZ()));
-      j += 1; // increment transition index
+        // Ensure that precursor m/z is within threshold
+        if (std::fabs(tr.getPrecursorMZ() - precursor_mz) > precursor_mz_threshold)
+        {
+          targetion.first = "unannotated";
+        }
 
-      // Append transition
-      transitions.push_back(tr);
+        // Set precursor m/z to theoretical value
+        tr.setPrecursorMZ(precursor_mz);
 
-      // Append precursor / peptide
-      if (std::find(peptides.begin(), peptides.end(), target_peptide) == peptides.end())
-      {
-        peptides.push_back(target_peptide);
-        LOG_DEBUG << "[selected] " <<  target_peptide_sequence.toString() << std::endl;
+        // Set product m/z to theoretical value
+        tr.setProductMZ(targetion.second);
+
+        // Skip unannotated transitions from previous step
+        if (targetion.first == "unannotated")
+        {
+          LOG_DEBUG << "[unannotated] Skipping " << target_peptide_sequence.toString() 
+            << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() 
+            << " " << tr.getMetaValue("annotation") << std::endl;
+          continue;
+        }
+        else
+        {
+          LOG_DEBUG << "[selected] " << target_peptide_sequence.toString() << " PrecursorMZ: " << tr.getPrecursorMZ() << " ProductMZ: " << tr.getProductMZ() << " " << tr.getMetaValue("annotation") << std::endl;
+        }
+
+        // Set CV terms
+        mrmis.annotateTransitionCV(tr, targetion.first);
+
+        // Add reference to parent precursor
+        tr.setPeptideRef(target_peptide.id);
+
+        // Append transition
+        transitions.push_back(tr);
       }
     }
     endProgress();
 
     exp.setTransitions(transitions);
-    exp.setPeptides(peptides);
   }
 
-  void MRMAssay::restrictTransitions(OpenMS::TargetedExperiment& exp, double lower_mz_limit, double upper_mz_limit, std::vector<std::pair<double, double> > swathes)
+  void MRMAssay::restrictTransitions(OpenMS::TargetedExperiment& exp, double lower_mz_limit, double upper_mz_limit, const std::vector<std::pair<double, double> >& swathes)
   {
     OpenMS::MRMIonSeries mrmis;
     PeptideVectorType peptides;
@@ -911,16 +941,17 @@ namespace OpenMS
   }
 
   void MRMAssay::uisTransitions(OpenMS::TargetedExperiment& exp,
-                      std::vector<String> fragment_types,
-                      std::vector<size_t> fragment_charges,
+                      const std::vector<String>& fragment_types,
+                      const std::vector<size_t>& fragment_charges,
                       bool enable_specific_losses,
                       bool enable_unspecific_losses,
                       bool enable_ms2_precursors,
                       double mz_threshold,
-                      std::vector<std::pair<double, double> > swathes,
+                      const std::vector<std::pair<double, double> >& swathes,
                       int round_decPow,
                       size_t max_num_alternative_localizations,
-                      int shuffle_seed)
+                      int shuffle_seed,
+                      bool disable_decoy_transitions)
   {
     OpenMS::MRMIonSeries mrmis;
 
@@ -939,17 +970,20 @@ namespace OpenMS
     // Step 1: Generate target in silico peptide map containing theoretical transitions
     generateTargetInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, max_num_alternative_localizations, TargetSequenceMap, TargetIonMap, TargetPeptideMap);
 
-    // Step 2a: Generate decoy sequences that share peptidoform properties with targets
-    generateDecoySequences_(TargetSequenceMap, DecoySequenceMap, shuffle_seed);
-
-    // Step 2b: Generate decoy in silico peptide map containing theoretical transitions
-    generateDecoyInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, TargetDecoyMap, TargetPeptideMap, DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
-
-    // Step 3: Generate target UIS assays
+    // Step 2: Generate target identification transitions
     generateTargetAssays_(exp, transitions, mz_threshold, swathes, round_decPow, TargetPeptideMap, TargetIonMap);
 
-    // Step 4: Generate decoys UIS assays
-    generateDecoyAssays_(exp, transitions, mz_threshold, swathes, round_decPow, DecoyPeptideMap, TargetDecoyMap, DecoyIonMap, TargetIonMap);
+    if (!disable_decoy_transitions)
+    {
+      // Step 3a: Generate decoy sequences that share peptidoform properties with targets
+      generateDecoySequences_(TargetSequenceMap, DecoySequenceMap, shuffle_seed);
+
+      // Step 2b: Generate decoy in silico peptide map containing theoretical transitions
+      generateDecoyInSilicoMap_(exp, fragment_types, fragment_charges, enable_specific_losses, enable_unspecific_losses, enable_ms2_precursors, swathes, round_decPow, TargetDecoyMap, TargetPeptideMap, DecoySequenceMap, DecoyIonMap, DecoyPeptideMap);
+
+      // Step 4: Generate decoy identification transitions
+      generateDecoyAssays_(exp, transitions, mz_threshold, swathes, round_decPow, DecoyPeptideMap, TargetDecoyMap, DecoyIonMap, TargetIonMap);
+    }
 
     exp.setTransitions(transitions);
   }

@@ -75,7 +75,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void filterPeptidesByMZError(libcpp_vector[PeptideIdentification]& peptides, double mass_error, bool unit_ppm) nogil except +
 
-        void filterPeptidesByRTPredictPValue(libcpp_vector[PeptideIdentification]& peptides, String& metavalue_key, double threshold) nogil except +
+        void filterPeptidesByRTPredictPValue(libcpp_vector[PeptideIdentification]& peptides, const String& metavalue_key, double threshold) nogil except +
 
         void removePeptidesWithMatchingModifications(libcpp_vector[PeptideIdentification]& peptides, libcpp_set[String]& modifications) nogil except +
 

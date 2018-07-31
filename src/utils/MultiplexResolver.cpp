@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -116,7 +116,7 @@ private:
   // section "labels"
   map<String, double> label_mass_shift_;
   
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Peptide multiplets with assigned sequence information");
     setValidFormats_("in", ListUtils::create<String>("consensusXML"));
@@ -131,7 +131,7 @@ private:
   }
   
   // create parameters for sections (set default values and restrictions)
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     Param defaults;
 
@@ -452,7 +452,7 @@ private:
    */
   void constructNewConsensusMap_(const ConsensusMap& map_in, ConsensusMap& map_out, ConsensusMap& map_conflicts, MultiplexDeltaMassesGenerator generator)
   {
-    unsigned found_pattern_count = 0;
+    // unsigned found_pattern_count = 0;
     std::vector<MultiplexDeltaMasses> theoretical_masses = generator.getDeltaMassesList();
     unsigned multiplicity = theoretical_masses[0].getDeltaMasses().size();
     
@@ -484,8 +484,7 @@ private:
       if (index >= 0)
       {
         //LOG_DEBUG << "  (Ok)\n\n";
-        
-        ++found_pattern_count;
+        // ++found_pattern_count;
         
         ConsensusFeature consensus = completeConsensus_(*cit, theoretical_masses[index].getDeltaMasses(), delta_mass_matched, index_label_set);
         map_out.push_back(consensus);
@@ -502,7 +501,7 @@ private:
     // update map sizes
     for (unsigned map_index = 0; map_index < multiplicity; ++map_index)
     {
-      map_out.getFileDescriptions()[map_index].size = map_out.size();
+      map_out.getColumnHeaders()[map_index].size = map_out.size();
     }
     
     map_out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -521,7 +520,7 @@ public:
   {
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     /**
      * handle parameters

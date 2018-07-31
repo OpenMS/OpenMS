@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,17 +38,15 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
-#include <set>
 #include <iostream>
-
 using namespace std;
 
 namespace OpenMS
 {
   MassDecompositionAlgorithm::MassDecompositionAlgorithm() :
     DefaultParamHandler("MassDecompositionAlgorithm"),
-    alphabet_(0),
-    decomposer_(0)
+    alphabet_(nullptr),
+    decomposer_(nullptr)
   {
     defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", ListUtils::create<String>("advanced"));
     defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
@@ -186,11 +184,11 @@ namespace OpenMS
       }
     }
 
-    if (alphabet_ != 0)
+    if (alphabet_ != nullptr)
     {
       delete alphabet_;
     }
-    if (decomposer_ != 0)
+    if (decomposer_ != nullptr)
     {
       delete decomposer_;
     }

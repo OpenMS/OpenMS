@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -187,7 +187,7 @@ public:
     quant_method_names_[tmt11plex->getName()] = "TMT 11-plex";
   }
 
-  ~TOPPIsobaricAnalyzer()
+  ~TOPPIsobaricAnalyzer() override
   {
     // free allocated labelers
     for (std::map<String, IsobaricQuantitationMethod*>::iterator it = quant_methods_.begin();
@@ -199,7 +199,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     // initialize with the first available type
     registerStringOption_("type", "<mode>", quant_methods_.begin()->first, "Isobaric Quantitation method used in the experiment.", false);
@@ -227,7 +227,7 @@ protected:
     }
   }
 
-  Param getSubsectionDefaults_(const String& section) const
+  Param getSubsectionDefaults_(const String& section) const override
   {
     ItraqFourPlexQuantitationMethod temp_quant;
     if (section == "extraction")
@@ -254,7 +254,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -305,17 +305,12 @@ protected:
     addDataProcessing_(consensus_map_quant, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // add filename references
-    for (ConsensusMap::FileDescriptions::iterator it = consensus_map_quant.getFileDescriptions().begin();
-         it != consensus_map_quant.getFileDescriptions().end();
-         ++it)
+    for (auto & column : consensus_map_quant.getColumnHeaders())
     {
-      it->second.filename = in;
+      column.second.filename = in;
     }
 
     consensus_map_quant.ensureUniqueId();
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    consensus_map_quant.setPrimaryMSRunPath(ms_runs);
     ConsensusXMLFile().store(out, consensus_map_quant);
 
     return EXECUTION_OK;

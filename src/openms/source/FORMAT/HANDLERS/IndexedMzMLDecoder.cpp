@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,17 +36,14 @@
 
 #include <boost/regex.hpp>
 #include <boost/lexical_cast.hpp>
+
 #include <fstream>
-#include <string>
 #include <iostream>
-#include <new> // std::nothrow
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/dom/DOMNode.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
-#include <xercesc/util/XMLString.hpp>
 
 namespace OpenMS
 {
@@ -124,7 +121,7 @@ namespace OpenMS
     char* buffer = new(std::nothrow) char[readl + std::streampos(1)];
 
     // catch case where not enough memory is available
-    if (buffer == NULL)
+    if (buffer == nullptr)
     {
       // Warning: Index takes up more than 10 % of the whole file, please check your input file." << std::endl;
       std::cerr << "IndexedMzMLDecoder::parseOffsets Could not allocate enough memory to read in index of indexedMzML" << std::endl; 

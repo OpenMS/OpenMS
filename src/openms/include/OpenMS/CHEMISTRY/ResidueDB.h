@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RESIDUEDB_H
-#define OPENMS_CHEMISTRY_RESIDUEDB_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <boost/unordered_map.hpp>
@@ -72,8 +71,8 @@ public:
     /// this member function serves as a replacement of the constructor
     inline static ResidueDB* getInstance()
     {
-      static ResidueDB* db_ = 0;
-      if (db_ == 0)
+      static ResidueDB* db_ = nullptr;
+      if (db_ == nullptr)
       {
         db_ = new ResidueDB;
       }
@@ -230,4 +229,3 @@ protected:
     std::set<String> residue_sets_;
   };
 }
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM2DWIDGET_H
-#define OPENMS_VISUAL_SPECTRUM2DWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -70,9 +69,9 @@ public:
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
 
     /// Default constructor
-    Spectrum2DWidget(const Param & preferences, QWidget * parent = 0);
+    Spectrum2DWidget(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
-    virtual ~Spectrum2DWidget();
+    ~Spectrum2DWidget() override;
 
     /// This method is overwritten to make the class specific members accessible
     inline Spectrum2DCanvas * canvas()
@@ -91,13 +90,13 @@ public:
 
 public slots:
     // Docu in base class
-    virtual void recalculateAxes_();
+    void recalculateAxes_() override;
     /// Shows/hides the projections
     void toggleProjections();
     /// Updates and shows the projections
     void updateProjections();
     // Docu in base class
-    virtual void showGoToDialog();
+    void showGoToDialog() override;
 
 signals:
     /**
@@ -114,9 +113,9 @@ signals:
 
 protected:
     // Docu in base class
-    virtual Math::Histogram<> createIntensityDistribution_() const;
+    Math::Histogram<> createIntensityDistribution_() const override;
     // Docu in base class
-    virtual Math::Histogram<> createMetaDistribution_(const String & name) const;
+    Math::Histogram<> createMetaDistribution_(const String & name) const override;
 
     /// Vertical projection widget
     Spectrum1DWidget * projection_vert_;
@@ -147,4 +146,3 @@ private slots:
   };
 }
 
-#endif

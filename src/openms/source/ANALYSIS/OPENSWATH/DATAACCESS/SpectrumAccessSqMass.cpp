@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,17 +38,17 @@ namespace OpenMS
 {
 
     /// Constructor
-  SpectrumAccessSqMass::SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler) :
+  SpectrumAccessSqMass::SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler) :
       handler_(handler)
     {}
 
-    SpectrumAccessSqMass::SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices) :
+    SpectrumAccessSqMass::SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices) :
       handler_(handler),
       sidx_(indices)
     {}
 
 
-    SpectrumAccessSqMass::SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> indices) :
+    SpectrumAccessSqMass::SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices) :
       handler_(sp.handler_)
     {
       if (indices.empty())
@@ -64,6 +64,8 @@ namespace OpenMS
         // we only want to select a subset of the currently selected indices
         for (Size k = 0; k < indices.size(); k++)
         {
+          if (indices[k] >= (int)sp.sidx_.size()) throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+              String("Error creating SpectrumAccessSqMass with an index ") + indices[k] + " that exceeds the number of available data " + sp.sidx_.size());
           sidx_.push_back( sp.sidx_[ indices[k] ] );
         }
       }

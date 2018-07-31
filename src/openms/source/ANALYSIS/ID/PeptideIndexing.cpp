@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,24 +39,17 @@ using namespace OpenMS;
 using namespace std;
 
 
-namespace seqan
-{
-
-}
-
-
-
   PeptideIndexing::PeptideIndexing()
     : DefaultParamHandler("PeptideIndexing")
   {
 
-    defaults_.setValue("decoy_string", "DECOY_", "String that was appended (or prefixed - see 'decoy_string_position' flag below) to the accessions in the protein database to indicate decoy proteins.");
+    defaults_.setValue("decoy_string", "", "String that was appended (or prefixed - see 'decoy_string_position' flag below) to the accessions in the protein database to indicate decoy proteins. If empty (default), it's determined automatically (checking for common terms, both as prefix and suffix).");
 
-    defaults_.setValue("decoy_string_position", "prefix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?");
+    defaults_.setValue("decoy_string_position", "prefix", "Is the 'decoy_string' prepended (prefix) or appended (suffix) to the protein accession? (ignored if decoy_string is empty)");
     defaults_.setValidStrings("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
 
-    defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)");
-    defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn"));
+    defaults_.setValue("missing_decoy_action", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message), 'silent' (no action is taken, not even a warning)");
+    defaults_.setValidStrings("missing_decoy_action", ListUtils::create<String>("error,warn,silent"));
 
     defaults_.setValue("enzyme:name", "Trypsin", "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).");
 
@@ -65,9 +58,9 @@ namespace seqan
     defaults_.setValidStrings("enzyme:name", enzymes);
 
     defaults_.setValue("enzyme:specificity", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-                                                                                        "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
+                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
+                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
+                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here");
 
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
@@ -88,6 +81,12 @@ namespace seqan
     defaults_.setValue("aaa_max", 3, "Maximal number of ambiguous amino acids (AAAs) allowed when matching to a protein database with AAAs. AAAs are B, J, Z and X!");
     defaults_.setMinInt("aaa_max", 0);
     defaults_.setMaxInt("aaa_max", 10);
+    
+    defaults_.setValue("mismatches_max", 0, "Maximal number of mismatched (mm) amino acids allowed when matching to a protein database."
+                                            " The required runtime is exponential in the number of mm's; apply with care."
+                                            " MM's are allowed in addition to AAA's.");
+    defaults_.setMinInt("mismatches_max", 0);
+    defaults_.setMaxInt("mismatches_max", 10);
 
     defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable). Also occurences of 'J' will be treated as 'I' thus avoiding ambiguous matching.");
     defaults_.setValidStrings("IL_equivalent", ListUtils::create<String>("true,false"));
@@ -95,7 +94,7 @@ namespace seqan
     defaultsToParam_();
   }
 
-  PeptideIndexing::~PeptideIndexing()
+    PeptideIndexing::~PeptideIndexing()
   {
   }
 
@@ -114,7 +113,18 @@ namespace seqan
     allow_unmatched_ = param_.getValue("allow_unmatched").toBool();
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();
     aaa_max_ = static_cast<Int>(param_.getValue("aaa_max"));
+    mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
   }
+
+const String &PeptideIndexing::getDecoyString() const
+{
+  return decoy_string_;
+}
+
+bool PeptideIndexing::isPrefix() const
+{
+  return prefix_;
+}
 
 
 /// @endcond

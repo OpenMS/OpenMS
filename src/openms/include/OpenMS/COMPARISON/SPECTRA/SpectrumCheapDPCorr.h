@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H
-#define OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
@@ -72,7 +71,7 @@ public:
     SpectrumCheapDPCorr(const SpectrumCheapDPCorr & source);
 
     /// destructor
-    virtual ~SpectrumCheapDPCorr();
+    ~SpectrumCheapDPCorr() override;
     // @}
 
     // @name Operators
@@ -80,9 +79,9 @@ public:
     /// assignment operator
     SpectrumCheapDPCorr & operator=(const SpectrumCheapDPCorr & source);
 
-    double operator()(const PeakSpectrum & a, const PeakSpectrum & b) const;
+    double operator()(const PeakSpectrum & a, const PeakSpectrum & b) const override;
 
-    double operator()(const PeakSpectrum & a) const;
+    double operator()(const PeakSpectrum & a) const override;
     // @}
 
     // @name Accessors
@@ -130,4 +129,3 @@ private:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_SPECTRUMCHEAPDPCORR_H

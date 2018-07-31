@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,13 +42,13 @@ using namespace std;
 namespace OpenMS
 {
   GzipIfstream::GzipIfstream(const char * filename) :
-    gzfile_(NULL), n_buffer_(0), stream_at_end_(false)
+    gzfile_(nullptr), n_buffer_(0), stream_at_end_(false)
   {
     open(filename);
   }
 
   GzipIfstream::GzipIfstream() :
-    gzfile_(NULL), n_buffer_(0), gzerror_(0), stream_at_end_(true)
+    gzfile_(nullptr), n_buffer_(0), gzerror_(0), stream_at_end_(true)
   {
   }
 
@@ -59,7 +59,7 @@ namespace OpenMS
 
   size_t GzipIfstream::read(char * s, size_t n)
   {
-    if (gzfile_ != NULL)
+    if (gzfile_ != nullptr)
     {
       n_buffer_ = gzread(gzfile_, s, (unsigned int) n /* size of buf */);
       if (gzeof(gzfile_) == 1)
@@ -82,14 +82,14 @@ namespace OpenMS
 
   void GzipIfstream::open(const char * filename)
   {
-    if (gzfile_ != NULL)
+    if (gzfile_ != nullptr)
     {
       close();
     }
     gzfile_ = gzopen(filename, "rb"); // read binary: always open in binary mode because windows and mac open in text mode
 
     //aborting, ahhh!
-    if (gzfile_ == NULL)
+    if (gzfile_ == nullptr)
     {
       close();
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -139,11 +139,11 @@ namespace OpenMS
 
   void GzipIfstream::close()
   {
-    if (gzfile_ != NULL)
+    if (gzfile_ != nullptr)
     {
       gzclose(gzfile_);
     }
-    gzfile_ = NULL;
+    gzfile_ = nullptr;
     stream_at_end_ = true;
   }
 

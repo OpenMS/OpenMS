@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_TOPPASWIDGET_H
-#define OPENMS_VISUAL_TOPPASWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -42,7 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 
-#include <QtGui/QGraphicsView>
+#include <QtWidgets/QGraphicsView>
 
 namespace OpenMS
 {
@@ -67,16 +66,16 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASWidget(const Param & preferences, QWidget * parent = 0, const String & tmp_path = "");
+    TOPPASWidget(const Param & preferences, QWidget * parent = nullptr, const String & tmp_path = "");
 
     /// Destructor
-    virtual ~TOPPASWidget();
+    ~TOPPASWidget() override;
 
     /// setter from EnhancedTabBarWidgetInterface
-    virtual void setWindowId(Int id);
+    void setWindowId(Int id) override;
 
     /// getter from EnhancedTabBarWidgetInterface
-    virtual Int getWindowId();
+    Int getWindowId() override;
 
     /// Returns the scene
     TOPPASScene * getScene();
@@ -103,16 +102,16 @@ protected:
 
     ///@name reimplemented QT events
     //@{
-    void wheelEvent(QWheelEvent * event);
-    void keyPressEvent(QKeyEvent * e);
-    void keyReleaseEvent(QKeyEvent * e);
-    void leaveEvent(QEvent * e);
-    void enterEvent(QEvent * e);
-    void dragEnterEvent(QDragEnterEvent * event);
-    void dragMoveEvent(QDragMoveEvent * event);
-    void dropEvent(QDropEvent * event);
-    void resizeEvent(QResizeEvent * event);
-    void closeEvent(QCloseEvent * e);
+    void wheelEvent(QWheelEvent * event) override;
+    void keyPressEvent(QKeyEvent * e) override;
+    void keyReleaseEvent(QKeyEvent * e) override;
+    void leaveEvent(QEvent * e) override;
+    void enterEvent(QEvent * e) override;
+    void dragEnterEvent(QDragEnterEvent * event) override;
+    void dragMoveEvent(QDragMoveEvent * event) override;
+    void dropEvent(QDropEvent * event) override;
+    void resizeEvent(QResizeEvent * event) override;
+    void closeEvent(QCloseEvent * e) override;
     //@}
 
     /// Widget id used as identifier
@@ -120,4 +119,3 @@ protected:
   };
 }
 
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,11 +39,12 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/RWrapper.h>
 
 #include <QtCore/QStringList>
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace OpenMS
 {
@@ -291,7 +292,8 @@ namespace OpenMS
         applyTransformation(exp, target_mslvl, tms[0]);
         hasValidModels = true;
       }
-    } else
+    }
+    else
     { // one model per spectrum (not all might be needed, if certain MS levels are excluded from calibration)
       tms.reserve(exp.size());
       // go through spectra and calibrate
@@ -414,7 +416,7 @@ namespace OpenMS
     // plot the residual error (after calibration)
     // go through Calibration data points
     //
-    SVOutStream* sv = NULL;      
+    SVOutStream* sv = nullptr;      
     String out_table_residuals;
     if (!file_residuals.empty() || !file_residuals_plot.empty())
     {
@@ -425,7 +427,7 @@ namespace OpenMS
     std::vector<double> vec_ppm_before, vec_ppm_after;
     vec_ppm_before.reserve(cal_data_.size());
     vec_ppm_after.reserve(cal_data_.size());
-    if (sv != NULL) *sv << "# residual error after calibration" << nl
+    if (sv != nullptr) *sv << "# residual error after calibration" << nl
                         << "RT" << "intensity" << "mz ref" << "mz before" << "mz after" << "ppm before" << "ppm after" << nl;
     Size ii(0);
     for (CalibrationData::const_iterator itc = cal_data_.begin(); itc != cal_data_.end(); ++itc, ++ii)
@@ -441,7 +443,7 @@ namespace OpenMS
       double ppm_after = Math::getPPM(mz_corrected, mz_ref);
       vec_ppm_before.push_back(ppm_before);
       vec_ppm_after.push_back(ppm_after);
-      if (sv != NULL)
+      if (sv != nullptr)
       {
         *sv << rt 
             << itc->getIntensity()

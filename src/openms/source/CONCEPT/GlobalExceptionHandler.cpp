@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <cstdlib>  // for getenv in terminate()
@@ -94,7 +93,7 @@ namespace OpenMS
 #ifndef OPENMS_WINDOWSPLATFORM
       // if the environment variable declared in OPENMS_CORE_DUMP_ENVNAME
       // is set, provoke a core dump (this is helpful to get a stack traceback)
-      if (getenv(OPENMS_CORE_DUMP_ENVNAME) != 0)
+      if (getenv(OPENMS_CORE_DUMP_ENVNAME) != nullptr)
       {
 #ifdef OPENMS_HAS_KILL
         std::cout << "dumping core file.... (to avoid this, unset " << OPENMS_CORE_DUMP_ENVNAME

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Cornelia Friedle $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_SPECTRUM3DCANVAS_H
-#define OPENMS_VISUAL_SPECTRUM3DCANVAS_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
@@ -44,7 +43,7 @@
 
 
 class QPainter;
-class QGLWidget;
+class QOpenGLWidget;
 class QResizeEvent;
 
 namespace OpenMS
@@ -54,13 +53,13 @@ namespace OpenMS
   /**
     @brief Canvas for 3D-visualization of peak map data
 
-        The Spectrum3DCanvas uses the helper class Spectrum3DOpenGLCanvas for the actual 3D rendering.
-        Deriving Spectrum3DCanvas directly from QGLWidget is not possible due to the "Deadly Diamond" shape
-        of inheritance.
+    The Spectrum3DCanvas uses the helper class Spectrum3DOpenGLCanvas for the
+    actual 3D rendering.  Deriving Spectrum3DCanvas directly from QGLWidget is
+    not possible due to the "Deadly Diamond" shape of inheritance.
 
-        @image html Spectrum3DWidget.png
+    @image html Spectrum3DWidget.png
 
-        @htmlinclude OpenMS_Spectrum3DCanvas.parameters
+    @htmlinclude OpenMS_Spectrum3DCanvas.parameters
 
     @ingroup SpectrumWidgets
   */
@@ -74,9 +73,9 @@ namespace OpenMS
 public:
 
     /// Constructor
-    Spectrum3DCanvas(const Param & preferences, QWidget * parent = 0);
+    Spectrum3DCanvas(const Param & preferences, QWidget * parent = nullptr);
     /// Destructor
-    virtual  ~Spectrum3DCanvas();
+     ~Spectrum3DCanvas() override;
 
     ///Different shade modes
     enum ShadeModes
@@ -90,8 +89,8 @@ public:
 
     ///@name Reimplemented Qt events
     //@{
-    void resizeEvent(QResizeEvent * e);
-    void contextMenuEvent(QContextMenuEvent * e);
+    void resizeEvent(QResizeEvent * e) override;
+    void contextMenuEvent(QContextMenuEvent * e) override;
     //@}
     /// Returns if the legend is shown
     bool isLegendShown() const;
@@ -101,10 +100,10 @@ public:
     Spectrum3DOpenGLCanvas * openglcanvas_;
 
     // docu in base class
-    virtual void showCurrentLayerPreferences();
+    void showCurrentLayerPreferences() override;
 
     // Docu in base class
-    virtual void saveCurrentLayer(bool visible);
+    void saveCurrentLayer(bool visible) override;
 
 signals:
 
@@ -114,13 +113,13 @@ signals:
 public slots:
 
     // Docu in base class
-    void activateLayer(Size layer_index);
+    void activateLayer(Size layer_index) override;
     // Docu in base class
-    void removeLayer(Size layer_index);
+    void removeLayer(Size layer_index) override;
     // Docu in base class
-    virtual void updateLayer(Size i);
+    void updateLayer(Size i) override;
     // Docu in base class
-    virtual void intensityModeChange_();
+    void intensityModeChange_() override;
 
 protected slots:
 
@@ -130,10 +129,10 @@ protected slots:
 protected:
 
     // Docu in base class
-    bool finishAdding_();
+    bool finishAdding_() override;
 
     // Reimplementation in order to update the OpenGL widget
-    virtual void update_(const char * caller_name = 0);
+    void update_(const char * caller_name = nullptr) override;
 
     ///whether the legend is shown or not
     bool legend_shown_;
@@ -142,14 +141,13 @@ protected:
     MultiGradient linear_gradient_;
 
     //docu in base class
-    virtual void translateLeft_(Qt::KeyboardModifiers m);
+    void translateLeft_(Qt::KeyboardModifiers m) override;
     //docu in base class
-    virtual void translateRight_(Qt::KeyboardModifiers m);
+    void translateRight_(Qt::KeyboardModifiers m) override;
     //docu in base class
-    virtual void translateForward_();
+    void translateForward_() override;
     //docu in base class
-    virtual void translateBackward_();
+    void translateBackward_() override;
   };
 
 } //namespace
-#endif

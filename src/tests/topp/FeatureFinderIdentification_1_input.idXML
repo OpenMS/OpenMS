@@ -155,12 +155,6 @@
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="408.840087890625" RT="1880.01599121094" >
-			<PeptideHit score="0.0454545454545455" sequence="GM(Oxidation)LWAVFEQK" charge="3" aa_before="K" aa_after="A" protein_refs="PH_5" >
-				<UserParam type="float" name="OMSSA_score" value="0.0850109548251393"/>
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</PeptideHit>
-		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="487.732391357422" RT="1906.96594238281" >
 			<PeptideHit score="0.0454545454545455" sequence="DLGEEHFK" charge="2" aa_before="K" aa_after="G" protein_refs="PH_14" >
 				<UserParam type="float" name="OMSSA_score" value="0.0917668515948288"/>

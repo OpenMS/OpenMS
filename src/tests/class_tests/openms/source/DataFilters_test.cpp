@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ typedef BaseFeature::QualityType QualityType;
 
 ///constructor and destructor test
 DataFilters* ptr;
-DataFilters* nullPointer = 0;
+DataFilters* nullPointer = nullptr;
 START_SECTION((DataFilters()))
 	ptr = new DataFilters();
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -66,8 +66,8 @@ START_SECTION(([EXTRA]~DataFilters()))
 	delete ptr;	
 END_SECTION
 
-DataFilters::DataFilter* ptr2 = 0;
-DataFilters::DataFilter* nullPointer2 = 0;
+DataFilters::DataFilter* ptr2 = nullptr;
+DataFilters::DataFilter* nullPointer2 = nullptr;
 
 START_SECTION(([EXTRA]DataFilters::DataFilter()))
 	ptr2 = new DataFilters::DataFilter();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,6 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <QtCore/QString>
@@ -55,7 +53,8 @@ public:
     CMDProgressLoggerImpl() :
       stop_watch_(),
       begin_(0),
-      end_(0)
+      end_(0),
+      current_(0)
     {
     }
 
@@ -71,9 +70,10 @@ public:
       return "CMD";
     }
 
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const
+    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const override
     {
       begin_ = begin;
+      current_ = begin_;
       end_ = end;
       if (current_recursion_depth) cout << '\n';
       cout << string(2 * current_recursion_depth, ' ') << "Progress of '" << label << "':" << endl;
@@ -81,7 +81,7 @@ public:
       stop_watch_.start();
     }
 
-    void setProgress(const SignedSize value, const int current_recursion_depth) const
+    void setProgress(const SignedSize value, const int current_recursion_depth) const override
     {
       if (begin_ == end_)
       {
@@ -98,8 +98,12 @@ public:
         cout << flush;
       }
     }
+    SignedSize nextProgress() const override
+    {
+      return ++current_;
+    }
 
-    void endProgress(const int current_recursion_depth) const
+    void endProgress(const int current_recursion_depth) const override
     {
       stop_watch_.stop();
       if (current_recursion_depth)
@@ -113,6 +117,7 @@ private:
     mutable StopWatch stop_watch_;
     mutable SignedSize begin_;
     mutable SignedSize end_;
+    mutable SignedSize current_;
   };
 
   class NoProgressLoggerImpl :
@@ -131,15 +136,20 @@ public:
       return "NONE";
     }
 
-    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const
+    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const override
     {
     }
 
-    void setProgress(const SignedSize /* value */, const int /* current_recursion_depth */) const
+    void setProgress(const SignedSize /* value */, const int /* current_recursion_depth */) const override
     {
     }
 
-    void endProgress(const int /* current_recursion_depth */) const
+    SignedSize nextProgress() const override
+    {
+      return 0;
+    }
+    
+    void endProgress(const int /* current_recursion_depth */) const override
     {
     }
 
@@ -229,7 +239,7 @@ public:
   void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
   {
     OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
-    last_invoke_ = time(NULL);
+    last_invoke_ = time(nullptr);
     current_logger_->startProgress(begin, end, label, recursion_depth_);
     ++recursion_depth_;
   }
@@ -237,10 +247,19 @@ public:
   void ProgressLogger::setProgress(SignedSize value) const
   {
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(NULL)) return;
+    if (last_invoke_ == time(nullptr)) return;
 
-    last_invoke_ = time(NULL);
+    last_invoke_ = time(nullptr);
     current_logger_->setProgress(value, recursion_depth_);
+  }
+  void ProgressLogger::nextProgress() const
+  {
+    auto p = current_logger_->nextProgress();
+    // update only if at least 1 second has passed
+    if (last_invoke_ == time(nullptr)) return;
+
+    last_invoke_ = time(nullptr);
+    current_logger_->setProgress(p, recursion_depth_);
   }
 
   void ProgressLogger::endProgress() const
@@ -251,5 +270,6 @@ public:
     }
     current_logger_->endProgress(recursion_depth_);
   }
+
 
 } //namespace OpenMS

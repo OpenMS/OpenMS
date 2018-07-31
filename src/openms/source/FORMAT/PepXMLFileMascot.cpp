@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,6 @@
 #include <OpenMS/FORMAT/PepXMLFileMascot.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <iostream>
-#include <fstream>
-
 using namespace std;
 
 namespace OpenMS
@@ -46,7 +43,7 @@ namespace OpenMS
   PepXMLFileMascot::PepXMLFileMascot() :
     XMLHandler("", "1.8"),
     XMLFile("/SCHEMAS/PepXML_1_8.xsd", "1.8"),
-    peptides_(0)
+    peptides_(nullptr)
   {
 
   }
@@ -66,7 +63,7 @@ namespace OpenMS
     actual_title_ = "";
     actual_sequence_ = "";
     actual_modifications_ = vector<pair<String, UInt> >();
-    peptides_ = 0;
+    peptides_ = nullptr;
     variable_modifications_ = vector<pair<String, double> >();
     fixed_modifications_ = vector<String>();
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_STRINGUTILS_H
-#define OPENMS_DATASTRUCTURES_STRINGUTILS_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -439,7 +438,7 @@ public:
 
     static String random(UInt length)
     {
-      srand(time(0));
+      srand(time(nullptr));
       String tmp(length, '.');
       size_t random;
       for (Size i = 0; i < length; ++i)
@@ -781,31 +780,30 @@ public:
     return this_s;
   }
 
-  static String& removeWhitespaces(String & this_s)
+  static String& removeWhitespaces(String& this_s)
   {
-    bool contains_ws = false;
-    for (std::string::const_iterator it = this_s.begin(); it != this_s.end(); ++it)
+    std::string::const_iterator it = this_s.begin();
+    std::string::iterator dest = this_s.begin();
+    std::string::const_iterator it_end = this_s.end();
+    bool has_spaces(false);
+    while (it != it_end)
     {
-      char c = *it;
+      const char c = *it;
       if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
       {
-        contains_ws = true;
-        break;
+        ++it;
+        has_spaces = true;
+        continue; // no need to copy a whitespace
       }
+      // copy to the left, if we had a whitespace before
+      if (has_spaces) *dest = *it;
+      // advance both
+      ++dest;
+      ++it;
     }
 
-    if (contains_ws)
-    {
-      std::string tmp;
-      tmp.reserve(this_s.size());
-      for (std::string::const_iterator it = this_s.begin(); it != this_s.end(); ++it)
-      {
-        char c = *it;
-        if (c != ' ' && c != '\t' && c != '\n' && c != '\r')
-          tmp += c;
-      }
-      this_s.swap(tmp);
-    }
+    // shorten result
+    if (has_spaces) this_s.resize(dest - this_s.begin());
 
     return this_s;
   }
@@ -863,4 +861,3 @@ public:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_STRINGUTILS_H

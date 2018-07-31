@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_PEAKALIGNMENT_H
-#define OPENMS_COMPARISON_SPECTRA_PEAKALIGNMENT_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <vector>
@@ -63,7 +62,7 @@ public:
     PeakAlignment(const PeakAlignment & source);
 
     /// destructor
-    virtual ~PeakAlignment();
+    ~PeakAlignment() override;
 
     /// assignment operator
     PeakAlignment & operator=(const PeakAlignment & source);
@@ -73,10 +72,10 @@ public:
         @param spec1 First spectrum given in a binned representation
         @param spec2 Second spectrum given in a binned representation
     */
-    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
+    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const override;
 
     /// function call operator, calculates self similarity
-    double operator()(const PeakSpectrum & spec) const;
+    double operator()(const PeakSpectrum & spec) const override;
 
     ///
     static PeakSpectrumCompareFunctor * create() { return new PeakAlignment(); }
@@ -99,4 +98,3 @@ private:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_PEAKALIGNMENT_H

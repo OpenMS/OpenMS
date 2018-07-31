@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,15 +32,14 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_HISTOGRAMWIDGET_H
-#define OPENMS_VISUAL_HISTOGRAMWIDGET_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
-#include <QtGui/QWidget>
-#include <QtGui/QPixmap>
+#include <QtWidgets>
+#include <QPixmap>
 class QPaintEvent;
 class QResizeEvent;
 class QMouseEvent;
@@ -70,10 +69,10 @@ namespace OpenMS
 
 public:
     /// Constructor
-    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = 0);
+    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = nullptr);
 
     /// Destructor
-    virtual ~HistogramWidget();
+    ~HistogramWidget() override;
 
     /// Returns the value f the lower splitter
     double getLeftSplitter();
@@ -130,11 +129,11 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void paintEvent(QPaintEvent *);
-    void mousePressEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
-    void mouseMoveEvent(QMouseEvent *);
-    void resizeEvent(QResizeEvent *);
+    void paintEvent(QPaintEvent *) override;
+    void mousePressEvent(QMouseEvent *) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
+    void mouseMoveEvent(QMouseEvent *) override;
+    void resizeEvent(QResizeEvent *) override;
     //@}
 
 protected slots:
@@ -145,4 +144,3 @@ protected slots:
 } // namespace OpenMS
 
 
-#endif

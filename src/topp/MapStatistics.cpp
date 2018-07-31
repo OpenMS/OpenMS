@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -169,7 +169,7 @@ public:
 
 protected:
 
-  virtual void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
@@ -285,8 +285,8 @@ protected:
         {
           os << "\t\tprocessing action: " << DataProcessing::NamesOfProcessingAction[*paIt] << endl;
         }
+        i++;
       }
-      ++i;
     }
 
     //-------------------------------------------------------------
@@ -344,12 +344,12 @@ protected:
            << "  intensity:       " << String::number(cons.getMinInt(), 2) << " : " << String::number(cons.getMaxInt(), 2) << endl;
 
         // file descriptions
-        const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
+        const ConsensusMap::ColumnHeaders& descs = cons.getColumnHeaders();
         if (!descs.empty())
         {
           os << endl <<
           "File descriptions:" << endl;
-          for (ConsensusMap::FileDescriptions::const_iterator it = descs.begin(); it != descs.end(); ++it)
+          for (ConsensusMap::ColumnHeaders::const_iterator it = descs.begin(); it != descs.end(); ++it)
           {
             os << " - " << it->second.filename << endl
                << "   identifier: " << it->first << endl
@@ -503,7 +503,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char**)
+  ExitCodes main_(int, const char**) override
   {
     String out = getStringOption_("out");
 
