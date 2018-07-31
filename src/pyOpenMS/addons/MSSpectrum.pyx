@@ -94,6 +94,9 @@ import numpy as np
 
     def _set_peaks_orig(self, mzs, intensities):
 
+
+        cdef _MSSpectrum * spec_ = self.inst.get()
+
         spec_.clear(0) # empty vector , keep meta data
         spec_.reserve(<int>len(mzs)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
