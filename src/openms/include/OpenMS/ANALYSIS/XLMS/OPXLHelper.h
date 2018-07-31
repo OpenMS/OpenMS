@@ -154,7 +154,7 @@ namespace OpenMS
 
       static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name);
 
-      static double computePrecursorError(CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge);
+      static double computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge);
 
     private:
 

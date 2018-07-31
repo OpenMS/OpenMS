@@ -1039,7 +1039,7 @@ namespace OpenMS
     return cross_link_candidates;
   }
 
-  double OPXLHelper::computePrecursorError(CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge)
+  double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge)
   {
     // Error calculation
     double weight = csm.cross_link.alpha.getMonoWeight();
