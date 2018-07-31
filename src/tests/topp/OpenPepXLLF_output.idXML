@@ -4,7 +4,7 @@
 	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="3,4,5,6,7" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
 				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
-				<UserParam type="int" name="decoy_prefix" value="0"/>
+				<UserParam type="int" name="decoy_prefix" value="1"/>
 				<UserParam type="string" name="decoy_string" value="decoy"/>
 				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXLLF_output.spec.xml.tmp"/>
 				<UserParam type="int" name="precursor:min_charge" value="3"/>
@@ -19,7 +19,7 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="397"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-07-30T17:45:24" search_engine="OpenXQuest" search_engine_version="2.4.0-develop-2018-07-30" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-07-31T15:25:21" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-31" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
