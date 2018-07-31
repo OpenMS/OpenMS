@@ -1068,9 +1068,26 @@ protected:
           double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
           csm.xquest_score = xquest_score;
 
-          double score = log_occu + (100 * wTIC);
+          // Error calculation
+          double weight = cross_link_candidate.alpha.getMonoWeight();
+          if (cross_link_candidate.getType() == OPXLDataStructs::CROSS)
+          {
+            weight += cross_link_candidate.beta.getMonoWeight() + cross_link_candidate.cross_linker_mass;
+          }
+          else
+          {
+            weight += cross_link_candidate.cross_linker_mass;
+          }
+          double precursor_mass = (precursor_mz * static_cast<double>(precursor_charge)) - (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)
+                            - (static_cast<double>(cross_link_candidate.precursor_correction) * Constants::C13C12_MASSDIFF_U);
+          double error = precursor_mass - weight;
+          double rel_error = (error / precursor_mass) / 1e-6;
 
-          csm.score = score;
+          double new_match_odds_weight = 0.2;
+          double new_rel_error_weight = -0.03;
+          double new_score = new_match_odds_weight * std::log(1e-7 + match_odds) + new_rel_error_weight * abs(rel_error);
+
+          csm.score = new_score;
           csm.pre_score = pre_score;
           csm.percTIC = TIC;
           csm.wTIC = wTIC;
@@ -1079,6 +1096,7 @@ protected:
           csm.intsum_alpha = intsum_alpha;
           csm.intsum_beta = intsum_beta;
           csm.total_current = total_current;
+          csm.precursor_error_ppm = rel_error;
 
           csm.match_odds = match_odds;
           csm.match_odds_alpha = match_odds_alpha;
