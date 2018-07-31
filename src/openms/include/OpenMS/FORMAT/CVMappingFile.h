@@ -48,8 +48,10 @@ namespace OpenMS
   /**
     @brief Used to load CvMapping files
 
-        This file contains the mapping of CV terms to the schema, which
-        is used by PSI standard formats to semantically validate files.
+    This file contains the mapping of CV terms to the schema, which
+    is used by PSI standard formats to semantically validate files.
+
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
     @ingroup FileIO
   */

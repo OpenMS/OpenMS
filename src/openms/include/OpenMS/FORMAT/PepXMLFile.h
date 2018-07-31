@@ -54,6 +54,9 @@ namespace OpenMS
 
     This class is used to load and store documents that implement the schema of PepXML files.
 
+    A documented schema for this format comes with the TPP and can also be
+    found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
+
     @ingroup FileIO
   */
   class OPENMS_DLLAPI PepXMLFile :
