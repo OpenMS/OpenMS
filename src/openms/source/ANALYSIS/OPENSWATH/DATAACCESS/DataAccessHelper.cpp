@@ -38,6 +38,7 @@
 
 namespace OpenMS
 {
+
   void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum)
   {
     spectrum.reserve(sptr->getMZArray()->data.size());
@@ -57,6 +58,8 @@ namespace OpenMS
   {
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
+    mz_array->data.reserve(spectrum.size());
+    intensity_array->data.reserve(spectrum.size());
     for (MSSpectrum::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
     {
       mz_array->data.push_back(it->getMZ());
@@ -67,6 +70,24 @@ namespace OpenMS
     sptr->setMZArray(mz_array);
     sptr->setIntensityArray(intensity_array);
     return sptr;
+  }
+
+  OpenSwath::ChromatogramPtr OpenSwathDataAccessHelper::convertToChromatogramPtr(const OpenMS::MSChromatogram & chromatogram)
+  {
+    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
+    OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
+    rt_array->data.reserve(chromatogram.size());
+    intensity_array->data.reserve(chromatogram.size());
+    for (MSChromatogram::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
+    {
+      rt_array->data.push_back(it->getRT());
+      intensity_array->data.push_back(it->getIntensity());
+    }
+
+    OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
+    cptr->setTimeArray(rt_array);
+    cptr->setIntensityArray(intensity_array);
+    return cptr;
   }
 
   void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram)
@@ -84,8 +105,10 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram, const OpenSwath::ChromatogramPtr cptr,
-                                                                    double rt_min, double rt_max)
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram,
+                                                                    const OpenSwath::ChromatogramPtr cptr,
+                                                                    double rt_min,
+                                                                    double rt_max)
   {
     chromatogram.reserve(cptr->getTimeArray()->data.size());
 
@@ -303,6 +326,5 @@ namespace OpenMS
                                                 "UniMod:" + String(it->unimod_id), aa_sequence);
     }
   }
-
 
 }
