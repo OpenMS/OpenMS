@@ -434,6 +434,7 @@ protected:
     search_params.setMetaValue("cross_link:mass", cross_link_mass);
     search_params.setMetaValue("cross_link:mass_monolink", cross_link_mass_mono_link);
     search_params.setMetaValue("cross_link:name", cross_link_name);
+    search_params.setMetaValue("precursor:corrections", precursor_correction_steps);
 
     search_params.setMetaValue("modifications:variable_max_per_peptide", max_variable_mods_per_peptide);
     protein_ids[0].setSearchParameters(search_params);

@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_3853840612281896474"
-	creationDate="2018-07-31T15:25:23">
+	creationDate="2018-08-01T14:17:59">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-31" name="OpenXQuest" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-08-01" name="OpenXQuest" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1002673" cvRef="PSI-MS" name="OpenXQuest"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-31" name="TOPP software" id="SOF_12780138153465349201">
+	<AnalysisSoftware version="OpenMS TOPP v2.4.0-pr-OpenPepXL-OMS-2-4-2018-08-01" name="TOPP software" id="SOF_12780138153465349201">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -2373,7 +2373,7 @@
 	<PeptideEvidence id="PEV_9963301490430237719" peptide_ref="PEP_1030380145289255108" dBSequence_ref="PROT_13440783915218733453" post="A" pre="K" start="1824" end="1832" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-07-31T15:25:21">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-08-01T14:17:57">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -2400,6 +2400,7 @@
 			<userParam name="cross_link:mass" unitName="xsd:double" value="138.0680796"/>
 			<userParam name="cross_link:mass_monolink" unitName="xsd:string" value="[156.07864431, 155.094628715]"/>
 			<userParam name="cross_link:name" unitName="xsd:string" value="DSS"/>
+			<userParam name="precursor:corrections" unitName="xsd:string" value="[2, 1, 0]"/>
 			<userParam name="modifications:variable_max_per_peptide" unitName="xsd:integer" value="2"/>
 			<userParam name="charges" unitName="xsd:string" value="3,4,5,6,7"/>
 		</AdditionalSearchParams>
