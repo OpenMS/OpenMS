@@ -3212,6 +3212,73 @@ def testMSChromatogram():
 
     assert int(chrom.isSorted()) in  (0,1)
 
+    chrom.clear(False)
+    p = pyopenms.ChromatogramPeak()
+    p.setRT(1000.0)
+    p.setIntensity(200.0)
+    chrom.push_back(p)
+    p = pyopenms.ChromatogramPeak()
+    p.setRT(2000.0)
+    p.setIntensity(400.0)
+    chrom.push_back(p)
+
+    mz, ii = chrom.get_peaks()
+    assert chrom[0].getRT() == 1000.0
+    assert chrom[1].getRT() == 2000.0
+    assert chrom[0].getIntensity() == 200.0
+    assert chrom[1].getIntensity() == 400.0
+    assert mz[0] == 1000.0
+    assert mz[1] == 2000.0
+    assert ii[0] == 200.0
+    assert ii[1] == 400.0
+
+    chrom.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    chrom.set_peaks( [data_mz,data_i] )
+
+    mz, ii = chrom.get_peaks()
+    assert chrom[0].getRT() == 5.0
+    assert chrom[1].getRT() == 8.0
+    assert chrom[0].getIntensity() == 50.0
+    assert chrom[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
+
+    # Fast
+    chrom.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float64)
+    chrom.set_peaks( [data_mz,data_i] )
+
+    mz, ii = chrom.get_peaks()
+    assert chrom[0].getRT() == 5.0
+    assert chrom[1].getRT() == 8.0
+    assert chrom[0].getIntensity() == 50.0
+    assert chrom[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
+
+    # Slow
+    chrom.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float32)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    chrom.set_peaks( [data_mz,data_i] )
+
+    mz, ii = chrom.get_peaks()
+    assert chrom[0].getRT() == 5.0
+    assert chrom[1].getRT() == 8.0
+    assert chrom[0].getIntensity() == 50.0
+    assert chrom[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
+
 @report
 def testMRMFeature():
     """
