@@ -4,9 +4,9 @@
 	<SearchParameters id="SP_0" db="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="3,4,5,6,7" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="10" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="20" peak_mass_tolerance_ppm="true" >
 				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
+				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXLLF_output.spec.xml.tmp"/>
 				<UserParam type="int" name="decoy_prefix" value="1"/>
 				<UserParam type="string" name="decoy_string" value="decoy"/>
-				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXLLF_output.spec.xml.tmp"/>
 				<UserParam type="int" name="precursor:min_charge" value="3"/>
 				<UserParam type="int" name="precursor:max_charge" value="7"/>
 				<UserParam type="float" name="fragment:mass_tolerance_xlinks" value="20"/>
@@ -20,13 +20,13 @@
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="397"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-08-01T14:17:57" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-08-01" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-08-01T15:39:37" search_engine="OpenPepXL" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-08-01" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
-			<UserParam type="stringList" name="spectra_data" value="[file:///C:\MSData\LRRK2_DSG/GUA1354-S15-A-LRRK2_DSG_A4.raw]"/>
 			<UserParam type="string" name="SpectrumIdentificationProtocol" value="MS:1002494"/>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\MSData\LRRK2_DSG/GUA1354-S15-A-LRRK2_DSG_A4.raw]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="OpenXQuest:combined score" higher_score_better="true" significance_threshold="0" MZ="787.740356445313" RT="2175.3003" spectrum_reference="controllerType=0 controllerNumber=1 scan=2395" >
 			<PeptideHit score="0.0904040958662256" sequence="IVEGLK(Xlink:DSS)FPNEFDELEIQGK" charge="3" aa_before="R" aa_after="L" start="2072" end="2090" protein_refs="PH_0" >

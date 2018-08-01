@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_3853840612281896474"
-	creationDate="2018-08-01T14:17:59">
+	creationDate="2018-08-01T15:39:40">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,9 +12,9 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-08-01" name="OpenXQuest" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-08-01" name="OpenPepXL" id="SOF_5233264595117471314">
 		<SoftwareName>
-			<cvParam accession="MS:1002673" cvRef="PSI-MS" name="OpenXQuest"/>
+			<cvParam accession="MS:1001456" cvRef="PSI-MS" name="analysis software"/>
 		</SoftwareName>
 	</AnalysisSoftware>
 	<AnalysisSoftware version="OpenMS TOPP v2.4.0-pr-OpenPepXL-OMS-2-4-2018-08-01" name="TOPP software" id="SOF_12780138153465349201">
@@ -2373,7 +2373,7 @@
 	<PeptideEvidence id="PEV_9963301490430237719" peptide_ref="PEP_1030380145289255108" dBSequence_ref="PROT_13440783915218733453" post="A" pre="K" start="1824" end="1832" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-08-01T14:17:57">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-08-01T15:39:37">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -2388,9 +2388,9 @@
 			<cvParam accession="MS:1002494" cvRef="PSI-MS" name="cross-linking search"/>
 			<userParam name="input_mzML" unitName="xsd:string" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXLLF_input.mzML"/>
 			<userParam name="input_decoys" unitName="xsd:string" value=""/>
+			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXLLF_output.spec.xml.tmp"/>
 			<userParam name="decoy_prefix" unitName="xsd:integer" value="1"/>
 			<userParam name="decoy_string" unitName="xsd:string" value="decoy"/>
-			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXLLF_output.spec.xml.tmp"/>
 			<userParam name="precursor:min_charge" unitName="xsd:integer" value="3"/>
 			<userParam name="precursor:max_charge" unitName="xsd:integer" value="7"/>
 			<userParam name="fragment:mass_tolerance_xlinks" unitName="xsd:double" value="20"/>
