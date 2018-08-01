@@ -54,7 +54,7 @@ import numpy as np
 
         chrom_.clear(0) # empty vector , keep meta data
         chrom_.reserve(<int>len(data_rt)) # allocate space for incoming data
-        cdef _Peak1D p = _Peak1D()
+        cdef _ChromatogramPeak p = _ChromatogramPeak()
         cdef double rt
         cdef double intensity
         cdef int N
@@ -76,7 +76,7 @@ import numpy as np
 
         chrom_.clear(0) # empty vector , keep meta data
         chrom_.reserve(<int>len(data_rt)) # allocate space for incoming data
-        cdef _Peak1D p = _Peak1D()
+        cdef _ChromatogramPeak p = _ChromatogramPeak()
         cdef double rt
         cdef float intensity
         cdef int N
@@ -99,7 +99,7 @@ import numpy as np
 
         chrom_.clear(0) # empty vector , keep meta data
         chrom_.reserve(<int>len(rts)) # allocate space for incoming data
-        cdef _Peak1D p = _Peak1D()
+        cdef _ChromatogramPeak p = _ChromatogramPeak()
         cdef double rt
         cdef float intensity
         cdef int N
