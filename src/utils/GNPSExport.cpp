@@ -257,8 +257,8 @@ protected:
 					for(auto peptide : peptides) {
 						int map_index = peptide.second.first;
 						int spectra_index = peptide.second.second;
-						int highest_binned_intensity = peptide.first.first;
-						auto highest_peptide_identification = peptide.first.second;
+						// int highest_binned_intensity = peptide.first.first;
+						// auto highest_peptide_identification = peptide.first.second;
 
 						auto spectrum = ms_maps[map_index][spectra_index];
 
