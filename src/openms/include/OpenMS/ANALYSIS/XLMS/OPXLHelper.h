@@ -156,6 +156,8 @@ namespace OpenMS
 
       static double computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge);
 
+      static void isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta);
+
     private:
 
       // check whether the candidate pair is within the given tolerance to at least one precursor mass in the spectra data

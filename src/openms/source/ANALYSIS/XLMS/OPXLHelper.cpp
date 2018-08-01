@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 
 using namespace std;
@@ -1036,4 +1037,51 @@ namespace OpenMS
     double rel_error = (error / precursor_mass) / 1e-6;
     return rel_error;
   }
+
+  void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta)
+  {
+    csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
+
+    vector< double > iso_peaks_linear_alpha;
+    vector< double > iso_peaks_linear_beta;
+    vector< double > iso_peaks_xlinks_alpha;
+    vector< double > iso_peaks_xlinks_beta;
+
+    if (!matched_spec_linear_alpha.empty())
+    {
+      for (auto match : matched_spec_linear_alpha)
+      {
+        iso_peaks_linear_alpha.push_back(num_iso_peaks_array[match.second]);
+      }
+      csm.num_iso_peaks_mean_linear_alpha = Math::mean(iso_peaks_linear_alpha.begin(), iso_peaks_linear_alpha.end());
+    }
+
+    if (!matched_spec_linear_beta.empty())
+    {
+      for (auto match : matched_spec_linear_beta)
+      {
+        iso_peaks_linear_beta.push_back(num_iso_peaks_array[match.second]);
+      }
+      csm.num_iso_peaks_mean_linear_beta = Math::mean(iso_peaks_linear_beta.begin(), iso_peaks_linear_beta.end());
+    }
+
+    if (!matched_spec_xlinks_alpha.empty())
+    {
+      for (auto match : matched_spec_xlinks_alpha)
+      {
+        iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
+      }
+      csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
+    }
+
+    if (!matched_spec_xlinks_beta.empty())
+    {
+      for (auto match : matched_spec_xlinks_beta)
+      {
+        iso_peaks_xlinks_beta.push_back(num_iso_peaks_array[match.second]);
+      }
+      csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
+    }
+  }
+
 }
