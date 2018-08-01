@@ -4,6 +4,7 @@ set(directory include/OpenMS/ANALYSIS/XLMS)
 ### list all header files of the directory here
 set(sources_list_h
 OpenPepXLAlgorithm.h
+OpenPepXLLFAlgorithm.h
 OPXLDataStructs.h
 OPXLHelper.h
 OPXLSpectrumProcessingAlgorithms.h
