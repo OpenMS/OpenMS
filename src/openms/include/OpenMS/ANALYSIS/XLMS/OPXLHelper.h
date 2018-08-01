@@ -152,15 +152,45 @@ namespace OpenMS
        */
       static void addProteinPositionMetaValues(std::vector< PeptideIdentification > & peptide_ids);
 
+      /**
+       * @brief Searches for cross-link candidates for a MS/MS spectrum
+
+          This function uses enumerateCrossLinksAndMasses and buildCandidates to search for peptide pairs fitting to the given precursor mass_light
+          and all considered precursor corrections.
+
+       * @param precursor_correction_steps An IntList of integers as indices of isotopic peaks around the experimental precursor
+       * @param precursor_mass The decharged precursor mass
+       * @param precursor_mass_tolerance The precursor tolerance
+       * @param precursor_mass_tolerance_unit_ppm The unit of the precursor tolerance. "ppm" if true, "Da" if false
+       * @param filtered_peptide_masses A vector of AASeqWithMass containing the sorted (ascending) peptide database with precomputed peptide masses
+       * @param cross_link_mass The mass of the cross-linker (light mass, if labeled)
+       * @param cross_link_mass_mono_link A list of possible mono-link masses
+       * @param cross_link_residue1 A list of one-letter-code residues, that the first side of the cross-linker can attach to
+       * @param cross_link_residue2 A list of one-letter-code residues, that the second side of the cross-linker can attach to
+       * @param cross_link_name The name of the cross-linker, e.g. "DSS" or "BS3"
+       */
       static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name);
 
+      /**
+       * @brief Computes the mass error of a precursor mass to a hit
+
+       * @param csm The cross-link spectrum match containing the hit
+       * @param precursor_mz The precursor mz of the MS/MS spectrum
+       * @param precursor_charge The charge of the precursor
+       */
       static double computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge);
 
+      /**
+       * @brief Computes the mass error of a precursor mass to a hit
+
+       * @param csm The cross-link spectrum match containing the hit
+       * @param precursor_mz The precursor mz of the MS/MS spectrum
+       * @param precursor_charge The charge of the precursor
+       */
       static void isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta);
 
     private:
 
-      // check whether the candidate pair is within the given tolerance to at least one precursor mass in the spectra data
       // helper function for enumerateCrossLinksAndMasses
       static bool filter_and_add_candidate(std::vector<OPXLDataStructs::XLPrecursor>& mass_to_candidates, std::vector< double >& spectrum_precursors, std::vector< int >& precursor_correction_positions, bool precursor_mass_tolerance_unit_ppm, double precursor_mass_tolerance, OPXLDataStructs::XLPrecursor precursor);
 
