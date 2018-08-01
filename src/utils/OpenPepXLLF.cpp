@@ -171,7 +171,6 @@ protected:
     StringList bool_strings = ListUtils::create<String>("true,false");
     registerStringOption_("decoy_prefix", "<true/false>", "true", "Set to true, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.", false, true);
     setValidStrings_("decoy_prefix", bool_strings);
-    // registerFlag_("decoy_prefix", "Set flag, if the decoy_string is a prefix of accessions in the protein database. Otherwise it is a suffix.", false);
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false, false);
@@ -230,7 +229,6 @@ protected:
     registerStringOption_("algorithm:deisotope", "<true/false/auto>", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", false, true);
     setValidStrings_("algorithm:deisotope", deisotope_strings);
 
-    // StringList bool_strings = ListUtils::create<String>("true,false");
     registerTOPPSubsection_("ions", "Ion types to search for");
     registerStringOption_("ions:b_ions", "<true/false>", "true", "Search for peaks of b-ions.", false, true);
     setValidStrings_("ions:b_ions", bool_strings);
@@ -288,7 +286,6 @@ protected:
     const string out_xquest_specxml = getStringOption_("out_xquest_specxml");
     const string out_mzIdentML = getStringOption_("out_mzIdentML");
 
-    // const bool decoy_prefix(getFlag_("decoy_prefix"));
     const bool decoy_prefix = (getStringOption_("decoy_prefix") == "true");
     const string decoy_string(getStringOption_("decoy_string"));
 
