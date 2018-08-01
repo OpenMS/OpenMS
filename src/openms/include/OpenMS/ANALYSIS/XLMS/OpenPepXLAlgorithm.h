@@ -93,16 +93,8 @@ namespace OpenMS
   after the linking reaction (see section on output for clarification).
 
   <h3>Output: XL-MS Identifications with scores and linked positions in the proteins</h3>
-  There are three file formats for output of data possible. idXML is the internal format of OpenMS, and is recommended for post-processing using other TOPP tools like XFDR or TOPPView.
-  The second format xquest.xml is the output format of xQuest, which is a popular XL-MS ID tool. This format is compatible with a number of post-processing and visulization tools,
-  like xProphet for FDR estimation (Leitner, A. et al., 2014, Nature protocols)
-  and through the xQuest Results Viewer also the XlinkAnalyzer for visualization and analysis using protein structures (Kosinski, J. et al., 2015, Journal of structural biology).
-  The third format is mzIdentML according to the specifications for XL-MS ID data in version 1.2 (Vizcaíno, J. A. et al., 2017, Mol Cell Proteomics).
-  This is a standardized long term storage format and compatible with complete submissions to the PRIDE database, that is part of the ProteomeXchange consortium.
-  The specification includes the XLMOD database of cross-linking reagents, and if the provided cross-link mass matches one from the
-  database, its accession and name are used. If the name is provided with the -cross_linker:name parameter, it is used
-  to solve ambiguities arising from different cross-linkers having the same mass after the linking reaction (e.g. DSS and BS3).
-  It is also used as the name of the linker, if no matching masses are found in the database.
+  The input paramters protein_ids and peptide_ids are filled with XL-MS search parameters and IDs
+
 
   <CENTER>
     <table>
@@ -118,10 +110,6 @@ namespace OpenMS
     </table>
   </CENTER>
 
-  <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_OpenPepXL.cli
-  <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_OpenPepXL.html
 */
 
   class OPENMS_DLLAPI OpenPepXLAlgorithm :
@@ -188,7 +176,6 @@ private:
     Size peptide_min_size_;
     Size missed_cleavages_;
     String enzyme_name_;
-    Size min_peptide_length_;
 
     Int number_top_hits_;
     String deisotope_mode_;
