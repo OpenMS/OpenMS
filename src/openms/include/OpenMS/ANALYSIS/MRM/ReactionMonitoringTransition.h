@@ -106,7 +106,7 @@ public:
 
     const String & getCompoundRef() const;
 
-    /// sets the precursor mz (Q1 value) xx
+    /// sets the precursor mz (Q1 value)
     void setPrecursorMZ(double mz);
 
     /// get the precursor mz (Q1 value)
