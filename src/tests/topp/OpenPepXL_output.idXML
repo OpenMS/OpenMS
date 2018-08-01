@@ -5,9 +5,9 @@
 				<UserParam type="string" name="input_consensusXML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
 				<UserParam type="string" name="input_mzML" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 				<UserParam type="string" name="input_decoys" value=""/>
+				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXL_output.spec.xml.tmp"/>
 				<UserParam type="int" name="decoy_prefix" value="1"/>
 				<UserParam type="string" name="decoy_string" value="decoy"/>
-				<UserParam type="string" name="out_xquest_specxml" value="OpenPepXL_output.spec.xml.tmp"/>
 				<UserParam type="int" name="precursor:min_charge" value="3"/>
 				<UserParam type="int" name="precursor:max_charge" value="7"/>
 				<UserParam type="float" name="fragment:mass_tolerance_xlinks" value="0.3"/>
@@ -18,10 +18,11 @@
 				<UserParam type="float" name="cross_link:mass_isoshift" value="12.075321"/>
 				<UserParam type="floatList" name="cross_link:mass_monolink" value="[156.07864431, 155.094628715]"/>
 				<UserParam type="string" name="cross_link:name" value="DSS"/>
+				<UserParam type="intList" name="precursor:corrections" value="[2, 1, 0]"/>
 				<UserParam type="int" name="modifications:variable_max_per_peptide" value="2"/>
 				<UserParam type="int" name="MS:1001029" value="329"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-07-31T15:25:18" search_engine="OpenXQuest" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-31" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-08-01T12:41:04" search_engine="OpenPepXL" search_engine_version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-31" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Protein1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>

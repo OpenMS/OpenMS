@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_12751666269820925800"
-	creationDate="2018-07-31T15:25:19">
+	creationDate="2018-08-01T12:41:05">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,9 +12,9 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-31" name="OpenXQuest" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-31" name="OpenPepXL" id="SOF_5233264595117471314">
 		<SoftwareName>
-			<cvParam accession="MS:1002673" cvRef="PSI-MS" name="OpenXQuest"/>
+			<cvParam accession="MS:1001456" cvRef="PSI-MS" name="analysis software"/>
 		</SoftwareName>
 	</AnalysisSoftware>
 	<AnalysisSoftware version="OpenMS TOPP v2.4.0-pr-OpenPepXL-OMS-2-4-2018-07-31" name="TOPP software" id="SOF_17225632348092036173">
@@ -1067,7 +1067,7 @@
 	<PeptideEvidence id="PEV_9957466978292038540" peptide_ref="PEP_4995866191739044173" dBSequence_ref="PROT_474525871221756682" post="G" pre="K" start="116" end="129" isDecoy="0"/>
 </SequenceCollection>
 <AnalysisCollection>
-	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-07-31T15:25:18">
+	<SpectrumIdentification id="SI_" spectrumIdentificationProtocol_ref="SIP_17749660155506638460" spectrumIdentificationList_ref="SIL_4835329514588776807" activityDate="2018-08-01T12:41:04">
 		<InputSpectra spectraData_ref="SDAT_15004869347769368353"/>
 		<SearchDatabaseRef searchDatabase_ref="SDB_3332699010107892018"/>
 	</SpectrumIdentification>
@@ -1083,9 +1083,9 @@
 			<userParam name="input_consensusXML" unitName="xsd:string" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.consensusXML"/>
 			<userParam name="input_mzML" unitName="xsd:string" value="/home/eugen/Development/OpenMS/src/tests/topp/OpenPepXL_input.mzML"/>
 			<userParam name="input_decoys" unitName="xsd:string" value=""/>
+			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXL_output.spec.xml.tmp"/>
 			<userParam name="decoy_prefix" unitName="xsd:integer" value="1"/>
 			<userParam name="decoy_string" unitName="xsd:string" value="decoy"/>
-			<userParam name="out_xquest_specxml" unitName="xsd:string" value="OpenPepXL_output.spec.xml.tmp"/>
 			<userParam name="precursor:min_charge" unitName="xsd:integer" value="3"/>
 			<userParam name="precursor:max_charge" unitName="xsd:integer" value="7"/>
 			<userParam name="fragment:mass_tolerance_xlinks" unitName="xsd:double" value="0.3"/>
@@ -1096,6 +1096,7 @@
 			<userParam name="cross_link:mass_isoshift" unitName="xsd:double" value="12.075321"/>
 			<userParam name="cross_link:mass_monolink" unitName="xsd:string" value="[156.07864431, 155.094628715]"/>
 			<userParam name="cross_link:name" unitName="xsd:string" value="DSS"/>
+			<userParam name="precursor:corrections" unitName="xsd:string" value="[2, 1, 0]"/>
 			<userParam name="modifications:variable_max_per_peptide" unitName="xsd:integer" value="2"/>
 			<userParam name="charges" unitName="xsd:string" value="3,4,5,6,7"/>
 		</AdditionalSearchParams>
