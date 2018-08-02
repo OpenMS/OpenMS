@@ -27,6 +27,9 @@ Library:
 - Improved peak type estimation
 - Improved adduct grouping
 - New EMG fitter for peak intensity imputation
+- Targeted / untargeted spectra extraction and matching
+- Spectra matching against a spectra library, using contrast angle similary function
+- More precise peak integration (trapezoid, simpson)
 
 Tools:
 - SiriusAdapter now supports several input data
@@ -45,6 +48,7 @@ Major changes in functionality:
   - None   
 
 File formats:
+ - Importer for MSP files
   
 Scripts:
  - None
