@@ -183,7 +183,7 @@ protected:
 
     registerStringOption_("write_scan_index", "<toogle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
-    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", true);
+    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
@@ -208,15 +208,17 @@ protected:
     FileHandler fh;
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
-    // prepare data structures for lossy compression
-    MSNumpressCoder::NumpressConfig npconfig_mz;
-    MSNumpressCoder::NumpressConfig npconfig_int;
+    // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
+    MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
     npconfig_mz.estimate_fixed_point = true; // critical
     npconfig_int.estimate_fixed_point = true; // critical
+    npconfig_fda.estimate_fixed_point = true; // critical
     npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
     npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
+    npconfig_fda.numpressErrorTolerance = -1.0; // skip check, faster
     npconfig_mz.setCompression("linear");
     npconfig_int.setCompression("slof");
+    npconfig_fda.setCompression("slof");
     npconfig_mz.linear_fp_mass_acc = mass_acc; // set the desired mass accuracy
 
     if (in_type == FileTypes::UNKNOWN)

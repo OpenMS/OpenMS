@@ -544,10 +544,10 @@ add_test("TOPP_FileFilter_36_out" ${DIFF} -in1 FileFilter_36.tmp -in2 ${DATA_DIR
 set_tests_properties("TOPP_FileFilter_36_out" PROPERTIES DEPENDS "TOPP_FileFilter_36")
 
 # Purpose: test the -numpress options for mzML files
-add_test("TOPP_FileFilter_37" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_37.tmp -test -peak_options:numpress:intensity slof -peak_options:numpress:masstime linear -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_37" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_37.tmp -test -peak_options:numpress:intensity slof -peak_options:numpress:masstime linear -in_type mzML -peak_options:numpress:lossy_mass_accuracy 1e-4 -out_type mzML)
 add_test("TOPP_FileFilter_37_out" ${DIFF} -in1 FileFilter_37.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_37_output.mzML )
 set_tests_properties("TOPP_FileFilter_37_out" PROPERTIES DEPENDS "TOPP_FileFilter_37")
-add_test("TOPP_FileFilter_38" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_38.tmp -test -peak_options:numpress:intensity pic -peak_options:numpress:masstime linear -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_38" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_38.tmp -test -peak_options:numpress:intensity pic -peak_options:numpress:masstime linear -in_type mzML -peak_options:numpress:lossy_mass_accuracy 1e-4 -out_type mzML)
 add_test("TOPP_FileFilter_38_out" ${DIFF} -in1 FileFilter_38.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_38_output.mzML )
 set_tests_properties("TOPP_FileFilter_38_out" PROPERTIES DEPENDS "TOPP_FileFilter_38")
 add_test("TOPP_FileFilter_39" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_39_input_corrupt.mzML -out FileFilter_39.tmp -test)
@@ -588,6 +588,12 @@ set_tests_properties("TOPP_FileFilter_47_out" PROPERTIES DEPENDS "TOPP_FileFilte
 add_test("TOPP_FileFilter_48" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_47_input.mzML -spectra:blackorwhitelist:file ${DATA_DIR_TOPP}/FileFilter_47_input_select.mzML -spectra:blackorwhitelist:similarity_threshold 0.9 -spectra:blackorwhitelist:blacklist false -out FileFilter_48_1.tmp)
 add_test("TOPP_FileFilter_48_out" ${DIFF} -in1 FileFilter_48_1.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_48_output.mzML)
 set_tests_properties("TOPP_FileFilter_48_out" PROPERTIES DEPENDS "TOPP_FileFilter_48")
+
+# Test with ion mobility
+add_test("TOPP_FileFilter_49" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_49_input.mzML -peak_options:numpress:intensity pic -peak_options:numpress:masstime linear -peak_options:numpress:float_da slof -peak_options:zlib_compression true -out FileFilter_49_1.tmp)
+add_test("TOPP_FileFilter_49_out" ${DIFF} -in1 FileFilter_49_1.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_49_output.mzML)
+set_tests_properties("TOPP_FileFilter_49_out" PROPERTIES DEPENDS "TOPP_FileFilter_49")
+
 
 #------------------------------------------------------------------------------
 # FileInfo tests
