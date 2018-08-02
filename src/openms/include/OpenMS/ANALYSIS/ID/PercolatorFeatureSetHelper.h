@@ -157,6 +157,15 @@ namespace OpenMS
         static void addCONCATSEFeatures(std::vector<PeptideIdentification>& peptide_id_list, StringList& search_engines_used, StringList& feature_set);
 
         /**
+         * @brief addREPLICATEFeatures
+         * @param peptide_id_list PeptideIdentification vector to create Percolator features in
+         * @param feature_set register of added features
+         *
+         * Creates and adds Percolator features across replicates and registers them in feature_set
+         */
+        static void addREPLICATEFeatures(std::vector<PeptideIdentification>& peptide_id_list, StringList& feature_set);
+
+        /**
          * @brief checkExtraFeatures
          * @param psms the vector of PeptideHit to be checked
          * @param extra_features the list of requested extra features

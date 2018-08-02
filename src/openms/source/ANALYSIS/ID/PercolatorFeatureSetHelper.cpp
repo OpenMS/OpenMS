@@ -287,6 +287,85 @@ namespace OpenMS
       }
     }
 
+    void PercolatorFeatureSetHelper::addREPLICATEFeatures(vector<PeptideIdentification> &peptide_ids, StringList &feature_set)
+    {
+      feature_set.push_back("REP:isReplicateInclOwnRun"); // bool; identical unmodified peptide found in the same or other runs
+      feature_set.push_back("REP:numReplicatesInclOwnRun"); // number of identical unmodified peptides found in the same and other runs
+      feature_set.push_back("REP:isReplicateDiffModInclOwnRun"); // bool; same peptide with different modification found in the same or other runs
+      feature_set.push_back("REP:numReplicatesDiffModInclOwnRun"); // number of different peptide modifications found in the same and other runs
+
+      feature_set.push_back("REP:isReplicate"); // bool; identical unmodified peptide found in other runs
+      feature_set.push_back("REP:numReplicates"); // number of identical unmodified peptides found in other runs
+      feature_set.push_back("REP:isReplicateDiffMod"); // bool; same peptide with different modification found in other runs
+      feature_set.push_back("REP:numReplicatesDiffMod"); // number of different peptide modifications found in other runs
+
+      // for each peptide sequence (unmodified), collect all found hits
+      std::map<String,vector<PeptideHit>> matches;
+      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      {
+        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        {
+          String sequence = hit->getSequence().toUnmodifiedString();
+          matches[sequence].push_back(*hit);
+        }
+      }
+
+      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      {
+        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        {
+          AASequence sequence = hit->getSequence();
+          String unmodified_sequence = sequence.toUnmodifiedString();
+
+          if (matches[unmodified_sequence].size() > 1)
+          {
+            vector<PeptideHit> peptide_hits = matches[unmodified_sequence];
+            hit->setMetaValue("REP:isReplicateInclOwnRun", true);
+            hit->setMetaValue("REP:numReplicatesInclOwnRun", peptide_hits.size() - 1);
+
+            set<String> sequence_set;
+            for (vector<PeptideHit>::iterator match = peptide_hits.begin(); match != peptide_hits.end(); ++match)
+            {
+              sequence_set.insert(match->getSequence().toString());
+            }
+            hit->setMetaValue("REP:isReplicateDiffModInclOwnRun", sequence_set.size() > 1);
+            hit->setMetaValue("REP:numReplicatesDiffModInclOwnRun", sequence_set.size() - 1);
+
+            // peptide hits in other runs only
+            vector<PeptideHit> strict_peptide_hits;
+            for (vector<PeptideHit>::iterator match = peptide_hits.begin(); match != peptide_hits.end(); ++match)
+            {
+              if (hit->getMetaValue("TMP:sources") != match->getMetaValue("TMP:sources"))
+              {
+                strict_peptide_hits.push_back(*match);
+              }
+            }
+            hit->setMetaValue("REP:isReplicate", !strict_peptide_hits.empty());
+            hit->setMetaValue("REP:numReplicates", strict_peptide_hits.size());
+
+            set<String> strict_sequence_set;
+            for (vector<PeptideHit>::iterator match = strict_peptide_hits.begin(); match != strict_peptide_hits.end(); ++match)
+            {
+              strict_sequence_set.insert(match->getSequence().toString());
+            }
+            hit->setMetaValue("REP:isReplicateDiffMod", !strict_sequence_set.empty());
+            hit->setMetaValue("REP:numReplicatesDiffMod", strict_sequence_set.size());
+          }
+          else
+          {
+            hit->setMetaValue("REP:isReplicateInclOwnRun", false);
+            hit->setMetaValue("REP:numReplicatesInclOwnRun", 0);
+            hit->setMetaValue("REP:isReplicateDiffModInclOwnRun", false);
+            hit->setMetaValue("REP:numReplicatesDiffModInclOwnRun", 0);
+            hit->setMetaValue("REP:isReplicate", false);
+            hit->setMetaValue("REP:numReplicates", 0);
+            hit->setMetaValue("REP:isReplicateDiffMod", false);
+            hit->setMetaValue("REP:numReplicatesDiffMod", 0);
+          }
+        }
+      }
+    }
+
     void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
     {
       LOG_DEBUG << "creating spectrum map" << endl;
