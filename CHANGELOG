@@ -32,13 +32,14 @@ Tools:
 - SiriusAdapter now supports several input data
 - FileFilter now supports filtering spectra by similarity
 - PeptideIndexer now supports automatic detection of decoy suffix/prefix string and position
-- MaraClusterAdapter adds support for Maracluster
 - PeakPickerHiRes now supports automatic detection and picking of profile spectra
-- MSFraggerAdapter adds support for MSFragger
+- Support for MSFragger search engine through MSFraggerAdapter
+- Support for Crux search engine through CruxAdapter
+- Support for Maracluster through MaraClusterAdapter
 
 TOPPView:
 - Improved visualization of identification results and ion annotations
-
+- Support for visualization of Ion Mobility and DIA data
 
 Major changes in functionality:
   - None   
