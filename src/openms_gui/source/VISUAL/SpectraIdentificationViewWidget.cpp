@@ -893,7 +893,20 @@ namespace OpenMS
           QTableWidgetItem* ti = table_widget_->item(r, c);
           if (ti != nullptr)
           {
-            strList << table_widget_->item(r, c)->text();
+            // column 14 is the "Curated" column of checkboxes
+            if (c == 14)
+            {
+              QString sel("0");
+              if (ti->checkState() == 2) // if the box is checked
+              {
+                sel = "1";
+              }
+              strList << sel;
+            }
+            else
+            {
+              strList << table_widget_->item(r, c)->text();
+            }
           }
         }
         ts << strList.join("\t") + "\n";
