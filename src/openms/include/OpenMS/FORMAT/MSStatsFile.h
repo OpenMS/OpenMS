@@ -68,11 +68,11 @@ namespace OpenMS
         // store MSStats file
         void store(const String& filename, ConsensusMap &consensus_map,
                    const ExperimentalDesign& design,
-                   const StringList reannotate_filenames,
-                         bool is_isotope_label_type,
-                   String bioreplicate,
-                   String condition,
-                   String retention_time_summarization_method);
+                   const StringList& reannotate_filenames,
+                   const bool is_isotope_label_type,
+                   const String& bioreplicate,
+                   const String& condition,
+                   const String& retention_time_summarization_method);
 
 
     protected:
