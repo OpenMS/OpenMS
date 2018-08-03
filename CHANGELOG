@@ -67,19 +67,19 @@ Major changes in functionality:
 - None   
 
 File formats:
- - Importer for MSP files
+- Importer for MSP files
   
 Scripts:
-- toMZTab.sh -- Exports various XML formats to an mzTab file (TOPP)
+- None
  
 Databases:
- - None
+- None
 
 Third-party software:
-  - New: maracluster (0.05)
-  - Update: MS-GF+ to Release (2018.01.30)
-  - Update: Sirius 4 for Windows 64bit, Linux 64bit, and MacOS 64bit
-  - Update: Crux (crux-3.1.8b78546) on all 64bit platforms.
+- New: maracluster (0.05)
+- Update: MS-GF+ to Release (2018.01.30)
+- Update: Sirius 4 for Windows 64bit, Linux 64bit, and MacOS 64bit
+- Update: Crux (crux-3.1.8b78546) on all 64bit platforms.
 
 Changed tool parameters:
 
