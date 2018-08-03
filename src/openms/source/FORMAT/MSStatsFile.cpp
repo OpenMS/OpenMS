@@ -34,14 +34,7 @@
 
 #include "OpenMS/FORMAT/MSStatsFile.h"
 
-OpenMS::MSStatsFile::MSStatsFile():
-        param_msstats_bioreplicate("msstats_bioreplicate"),
-        param_msstats_condition("msstats_condition"),
-        na_string("NA"),
-        param_labeled_reference_peptides("labeled_reference_peptides"),
-        meta_value_exp_design_key("spectra_data"),
-        param_retention_time_summarization_method("retention_time_summarization_method"),
-        param_reannotate_filenames (ListUtils::create<String>(""))
+OpenMS::MSStatsFile::MSStatsFile()
 {
 
 }
@@ -53,25 +46,20 @@ OpenMS::MSStatsFile::~MSStatsFile()
 
 void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &consensus_map,
                                 const OpenMS::ExperimentalDesign& design, const StringList reannotate_filenames,
-                                bool is_isotope_label_type)
+                                bool is_isotope_label_type, String bioreplicate, String condition,
+                                String retention_time_summarization_method)
 {
-  // Tool arguments
-  const String arg_out = filename;
-  const String arg_msstats_condition = param_msstats_condition;
-  const String arg_msstats_bioreplicate = param_msstats_bioreplicate;
-  const String arg_retention_time_summarization_method = param_retention_time_summarization_method;
-
   // Experimental Design file
   ExperimentalDesign::SampleSection sampleSection = design.getSampleSection();
 
   // Sample Section must contain the column that contains the condition used for MSstats
-  if (!sampleSection.hasFactor(arg_msstats_condition))
+  if (!sampleSection.hasFactor(condition))
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section of experimental design does not contain MSstats_Condition");
   }
 
   // Sample Section must contain column for the Bioreplicate
-  if (!sampleSection.hasFactor(arg_msstats_bioreplicate))
+  if (!sampleSection.hasFactor(bioreplicate))
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Sample Section does not contain column for biological replicate");
   }
@@ -89,7 +77,7 @@ void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &co
   map< pair< String, unsigned >, unsigned> path_label_to_fractiongroup = design.getPathLabelToFractionGroupMapping(true);
 
   // The Retention Time is additionally written to the output as soon as the user wants to resolve multiple peptides manually
-  const bool rt_summarization_manual(arg_retention_time_summarization_method == "manual");
+  const bool rt_summarization_manual(retention_time_summarization_method == "manual");
 
   if (rt_summarization_manual)
   {
@@ -310,8 +298,8 @@ void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &co
                       fragment_ion,
                       frag_charge,
                       isotope_label_type,
-                      sampleSection.getFactorValue(sample, arg_msstats_condition),
-                      sampleSection.getFactorValue(sample, arg_msstats_bioreplicate),
+                      sampleSection.getFactorValue(sample, condition),
+                      sampleSection.getFactorValue(sample, bioreplicate),
                       String(run),
                       (has_fraction ? delim + String(fraction) : "")
               );
@@ -375,19 +363,19 @@ void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &co
         else
         {
           Intensity intensity(0);
-          if (arg_retention_time_summarization_method == "max")
+          if (retention_time_summarization_method == "max")
           {
             intensity = *(std::max_element(intensities.begin(), intensities.end()));
           }
-          else if (arg_retention_time_summarization_method == "min")
+          else if (retention_time_summarization_method == "min")
           {
             intensity = *(std::min_element(intensities.begin(), intensities.end()));
           }
-          else if (arg_retention_time_summarization_method == "mean")
+          else if (retention_time_summarization_method == "mean")
           {
             intensity = meanIntensity(intensities);
           }
-          else if (arg_retention_time_summarization_method == "sum")
+          else if (retention_time_summarization_method == "sum")
           {
             intensity = sumIntensity(intensities);
           }
@@ -399,8 +387,7 @@ void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &co
   }
 
   // Store the final assembled CSV file
-  csv_out.store(arg_out);
-
+  csv_out.store(filename);
 }
 
 

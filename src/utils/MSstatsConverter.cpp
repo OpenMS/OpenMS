@@ -108,12 +108,8 @@ protected:
                             "Which column in the condition table should be used for MSstats 'Condition'", false, false);
 
       // advanced option to overwrite MS file annotations in consensusXML
-      registerInputFileList_("reannotate_filenames", "<file(s)>", StringList(),
+      registerInputFileList_(param_reannotate_filenames, "<file(s)>", StringList(),
                              "Overwrite MS file names in consensusXML", false, true);
-
-      // reannotate_filenames
-      registerStringList_("<msstats_reannotate_filenames>", "MSstats reannotate_filenames",
-                          param_reannotate_filenames, "This is a description.", false, false);
 
       // Isotope label type
       registerFlag_(param_labeled_reference_peptides,
@@ -158,9 +154,15 @@ protected:
 
         MSStatsFile msStatsFile;
 
-        StringList reannotate_filenames = getStringList_("<msstats_reannotate_filenames>");
+        StringList reannotate_filenames = getStringList_(param_reannotate_filenames);
         bool is_isotope_label_type = getFlag_(param_labeled_reference_peptides);
-        msStatsFile.store(arg_out, consensus_map, design, reannotate_filenames, is_isotope_label_type);
+        String bioreplicate = getStringOption_(param_msstats_bioreplicate);
+        String condition = getStringOption_(param_msstats_condition);
+        String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
+
+        msStatsFile.store(arg_out, consensus_map, design,
+                          reannotate_filenames, is_isotope_label_type,
+                          bioreplicate, condition, retention_time_summarization_method);
 
         return EXECUTION_OK;
       }
@@ -171,17 +173,17 @@ protected:
 
     }
 
+    static const String param_in;
+    static const String param_in_design;
+    static const String param_msstats_bioreplicate;
+    static const String param_msstats_condition;
+    static const String param_out;
+    static const String param_labeled_reference_peptides;
+    static const String param_retention_time_summarization_method;
+    static const String param_reannotate_filenames;
+
 
 private:
-    const String param_in;
-    const String param_in_design;
-    const String param_msstats_bioreplicate;
-    const String param_msstats_condition;
-    const String param_out;
-    const String param_labeled_reference_peptides;
-    const String param_retention_time_summarization_method;
-    const StringList param_reannotate_filenames;
-
 
     static void fatalErrorIf_(const bool error_condition, const String &message, const int exit_code)
     {
@@ -193,6 +195,16 @@ private:
     }
 };
 
+const String TOPPMSstatsConverter::param_in = "in";
+const String TOPPMSstatsConverter::param_in_design = "in_design";
+const String TOPPMSstatsConverter::param_msstats_bioreplicate = "msstats_bioreplicate";
+const String TOPPMSstatsConverter::param_msstats_condition = "msstats_condition";
+const String TOPPMSstatsConverter::param_out = "out";
+const String TOPPMSstatsConverter::param_labeled_reference_peptides = "labeled_reference_peptides";
+const String TOPPMSstatsConverter::param_retention_time_summarization_method = "retention_time_summarization_method";
+const String TOPPMSstatsConverter::param_reannotate_filenames = "reannotate_filenames";
+
+
 
 // the actual main function needed to create an executable
     int main(int argc, const char **argv)
@@ -203,3 +215,10 @@ private:
 
 
 /// @endcond
+
+//für alle param_ wegmachen
+// Funktionsaufruf mit mehr paramter
+// ansonsten getter und setter
+
+
+//chromatographic alignment

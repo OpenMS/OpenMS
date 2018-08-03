@@ -69,7 +69,11 @@ namespace OpenMS
         void store(const String& filename, ConsensusMap &consensus_map,
                    const ExperimentalDesign& design,
                    const StringList reannotate_filenames,
-                         bool is_isotope_label_type);
+                         bool is_isotope_label_type,
+                   String bioreplicate,
+                   String condition,
+                   String retention_time_summarization_method);
+
 
     protected:
 
@@ -144,16 +148,10 @@ namespace OpenMS
             String fraction_;
         };
 
-        String param_msstats_bioreplicate;
-        String param_msstats_condition;
-        String param_labeled_reference_peptides;
-        String param_retention_time_summarization_method;
-        StringList param_reannotate_filenames;
 
-        String na_string;
-
+        const String na_string = "NA";
         // The meta value of the peptide identification which is going to be used for the experimental design link
-        String meta_value_exp_design_key;
+        const String meta_value_exp_design_key = "spectra_data";
 
         /*
          *  MSstats treats runs differently than OpenMS. In MSstats, runs are an enumeration of (SpectraFilePath, Fraction)
