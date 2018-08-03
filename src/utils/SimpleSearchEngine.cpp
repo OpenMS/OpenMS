@@ -65,6 +65,7 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <map>
+#include <unordered_set>
 #include <algorithm>
 
 #ifdef _OPENMP
@@ -453,7 +454,7 @@ class SimpleSearchEngine :
       Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 #endif
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
@@ -464,7 +465,7 @@ class SimpleSearchEngine :
 
         IF_MASTERTHREAD
         {
-          progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
+          progresslogger.setProgress(count_proteins);
         }
 
         vector<StringView> current_digest;
