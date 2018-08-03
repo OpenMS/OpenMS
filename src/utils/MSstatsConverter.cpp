@@ -152,13 +152,13 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile().load(arg_in, consensus_map);
 
-        MSStatsFile msStatsFile;
-
         StringList reannotate_filenames = getStringList_(param_reannotate_filenames);
         bool is_isotope_label_type = getFlag_(param_labeled_reference_peptides);
         String bioreplicate = getStringOption_(param_msstats_bioreplicate);
         String condition = getStringOption_(param_msstats_condition);
         String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
+
+        MSStatsFile msStatsFile;
 
         msStatsFile.store(arg_out, consensus_map, design,
                           reannotate_filenames, is_isotope_label_type,
