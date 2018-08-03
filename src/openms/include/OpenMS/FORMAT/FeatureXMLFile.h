@@ -54,7 +54,7 @@ namespace OpenMS
   /**
     @brief This class provides Input/Output functionality for feature maps
 
-    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
     @todo Take care that unique ids are assigned properly by TOPP tools before
     calling FeatureXMLFile::store().  There will be a message on LOG_INFO but

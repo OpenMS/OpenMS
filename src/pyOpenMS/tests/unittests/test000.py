@@ -7,6 +7,7 @@ import copy
 import os
 
 from pyopenms import String as s
+import numpy as np
 
 print(b"IMPORTED b", pyopenms.__file__)
 
@@ -356,7 +357,7 @@ def testCoarseIsotopePatternGenerator():
     iso = pyopenms.CoarseIsotopePatternGenerator(10)
     isod = iso.run(methanol)
     assert len(isod.getContainer()) == 10, len(isod.getContainer()) 
-    assert isod.getContainer()[0].getMZ() == 32.0, isod.getContainer()[0].getMZ()
+    assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
     assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
     
 @report
@@ -2965,8 +2966,9 @@ def testMSSpectrum():
     assert spec.getStringDataArrays()[0][0] == b"hello"
     assert spec.getStringDataArrays()[1][0] == b"other"
 
+
+    spec = pyopenms.MSSpectrum()
     assert len(spec.getIntegerDataArrays()) == 0
-    # int_da = [ [5, 6], [8] ]
     int_da = [ pyopenms.IntegerDataArray() ]
     int_da[0].push_back(5)
     int_da[0].push_back(6)
@@ -2977,17 +2979,37 @@ def testMSSpectrum():
     assert spec.getIntegerDataArrays()[0][0] == 5
     assert spec.getIntegerDataArrays()[1][0] == 8
 
+    spec = pyopenms.MSSpectrum()
+    data = np.array( [5, 8, 42] ).astype(np.intc)
+    int_da = [ pyopenms.IntegerDataArray() ]
+    int_da[0].set_data(data)
+    spec.setIntegerDataArrays( int_da )
+    assert len(spec.getIntegerDataArrays()) == 1
+    assert spec.getIntegerDataArrays()[0][0] == 5
+    assert spec.getIntegerDataArrays()[0][2] == 42
+    assert len(int_da[0].get_data() ) == 3
+
+    spec = pyopenms.MSSpectrum()
     assert len(spec.getFloatDataArrays()) == 0
-    # int_da = [ [5, 6], [8] ]
-    int_da = [ pyopenms.FloatDataArray() ]
-    int_da[0].push_back(5.0)
-    int_da[0].push_back(6.0)
-    int_da.append( pyopenms.FloatDataArray() )
-    int_da[1].push_back(8.0)
-    spec.setFloatDataArrays( int_da )
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].push_back(5.0)
+    f_da[0].push_back(6.0)
+    f_da.append( pyopenms.FloatDataArray() )
+    f_da[1].push_back(8.0)
+    spec.setFloatDataArrays( f_da )
     assert len(spec.getFloatDataArrays()) == 2.0
     assert spec.getFloatDataArrays()[0][0] == 5.0
-    assert spec.getIntegerDataArrays()[1][0] == 8
+    assert spec.getFloatDataArrays()[1][0] == 8.0
+
+    spec = pyopenms.MSSpectrum()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    spec.setFloatDataArrays( f_da )
+    assert len(spec.getFloatDataArrays()) == 1
+    assert spec.getFloatDataArrays()[0][0] == 5.0
+    assert spec.getFloatDataArrays()[0][2] == 42.0
+    assert len(f_da[0].get_data() ) == 3
 
 @report
 def testStringDataArray():
@@ -3037,6 +3059,11 @@ def testIntegerDataArray():
     da[2] = 3
     assert da.size() == 3
 
+    q = da.get_data()
+    q = np.append(q, 4).astype(np.intc)
+    da.set_data(q)
+    assert da.size() == 4
+
 @report
 def testFloatDataArray():
     """
@@ -3060,6 +3087,11 @@ def testFloatDataArray():
     da[1] = 2.0
     da[2] = 3.0
     assert da.size() == 3
+
+    q = da.get_data()
+    q = np.append(q, 4.0).astype(np.float32)
+    da.set_data(q)
+    assert da.size() == 4
 
 @report
 def testMSChromatogram():
@@ -4964,3 +4996,4 @@ def testString():
     pystr1 = pyopenms.String(u"bläh")
     pystr2 = pyopenms.String(u"bläh")
     assert(pystr1 == pystr2)
+

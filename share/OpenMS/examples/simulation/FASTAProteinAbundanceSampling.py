@@ -51,7 +51,7 @@ def nextEntry(fileobj):
 				for line in fileobj:	
 								if '>' == line[0]:	
 												yield entry	
-												entry.header = line	
+												entry.header = line
 												entry.sequence = ""
 								else:	
 												entry.sequence += line	

@@ -473,7 +473,6 @@ class SimpleSearchEngine :
         for (auto const & c : current_digest)
         { 
           const String current_peptide = c.getString();
-          cout << current_peptide << "\t" << current_peptide.find_first_of("XBZ") << endl;
           if (current_peptide.find_first_of("XBZ") != std::string::npos) { continue; }
 
           // if a peptide motif is provided skip all peptides without match

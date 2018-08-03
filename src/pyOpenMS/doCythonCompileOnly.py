@@ -39,7 +39,7 @@ $Authors: Hannes Roest $
 """
 This program can be used to only compile the pyopenms.pyx to a cpp file using
 Cython. This is an intermediate step in the pyOpenMS build process and it
-should only be used for debugging. 
+should only be used for debugging.
 
 It may be useful if something went wrong during the Cython compilation. One can
 then try to fix the pyopenms.pyx file, run this script and see whether Cython
