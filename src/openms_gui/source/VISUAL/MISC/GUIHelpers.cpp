@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <QDesktopServices>
 #include <QDir>

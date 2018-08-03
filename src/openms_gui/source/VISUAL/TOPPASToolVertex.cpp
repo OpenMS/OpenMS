@@ -42,6 +42,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <QtWidgets/QGraphicsScene>
 #include <QtWidgets/QMessageBox>
