@@ -215,10 +215,3 @@ const String TOPPMSstatsConverter::param_reannotate_filenames = "reannotate_file
 
 
 /// @endcond
-
-//für alle param_ wegmachen
-// Funktionsaufruf mit mehr paramter
-// ansonsten getter und setter
-
-
-//chromatographic alignment
