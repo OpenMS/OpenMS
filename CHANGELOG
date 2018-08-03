@@ -8,6 +8,56 @@ INIFileEditor - graphical parameter editor for INI files
 Parameters - list of algorithm or TOPP tool parameters that changed in this release
 
 ------------------------------------------------------------------------------------------
+----                                OpenMS 2.4                                        ----
+------------------------------------------------------------------------------------------
+OpenMS 2.4 introduces changes from 322 pull requests including new features and bug fixes.
+
+Notable changes since version 2.3 are:
+
+Dependencies:
+- Switch to Qt 5 (>= 5.5)
+
+Documentation:
+- New developer documentation to get started developing tools with OpenMS
+
+Library:
+- Improved mass calculations for isotope distributions 
+- Moved tool code from the tool to the library
+- BinnedSpectrum now also supports offsets
+- Improved peak type estimation
+- Improved adduct grouping
+- New EMG fitter for peak intensity imputation
+
+Tools:
+- SiriusAdapter now supports several input data
+- FileFilter now supports filtering spectra by similarity
+- PeptideIndexer now supports automatic detection of decoy suffix/prefix string and position
+- MaraClusterAdapter adds support for Maracluster
+- PeakPickerHiRes now supports automatic detection and picking of profile spectra
+- MSFraggerAdapter adds support for MSFragger
+
+TOPPView:
+- Improved visualization of identification results and ion annotations
+
+
+Major changes in functionality:
+  - None   
+
+File formats:
+  
+Scripts:
+ - None
+ 
+Databases:
+ - None
+
+Third-party software:
+  - New: maracluster (0.05)
+  - Update: MS-GF+ to Release (2018.01.30)
+  - Update: Sirius 4 for Windows 64bit, Linux 64bit, and MacOS 64bit
+  - Update: Crux (crux-3.1.8b78546) on all 64bit platforms. 
+
+------------------------------------------------------------------------------------------
 ----                                OpenMS 2.3                                        ----
 ------------------------------------------------------------------------------------------
 OpenMS 2.3 introduces a considerable number of new features and bug fixes.
