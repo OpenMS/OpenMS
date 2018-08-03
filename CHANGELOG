@@ -56,6 +56,8 @@ Changed Tools:
 - Support for MSFragger search engine through MSFraggerAdapter
 - Support for Crux search engine through CruxAdapter
 - Support for Maracluster through MaraClusterAdapter
+- OpenPepXL was improved in efficiency and usability
+- IDFileConverter now supports the Cross-Linking MS specific xquest.xml format
 
 TOPPView:
 - Improved visualization of identification results and ion annotations
