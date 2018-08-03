@@ -897,7 +897,7 @@ namespace OpenMS
             if (c == 14)
             {
               QString sel("0");
-              if (ti->checkState() == 2) // if the box is checked
+              if (ti->checkState() == Qt::Checked) // if the box is checked
               {
                 sel = "1";
               }
@@ -1039,7 +1039,7 @@ namespace OpenMS
 
     // extract position of the correct Spectrum, PeptideIdentification and PeptideHit from the table
     int r = item->row();
-    bool selected = item->checkState() == 2;
+    bool selected = item->checkState() == Qt::Checked;
     int spectrum_index = table_widget_->item(r, 1)->data(Qt::DisplayRole).toInt();
     int num_id = table_widget_->item(r, id_col)->text().toInt();
     int num_ph = table_widget_->item(r, ph_col)->text().toInt();
