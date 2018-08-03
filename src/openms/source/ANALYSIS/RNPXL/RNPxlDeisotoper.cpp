@@ -32,11 +32,13 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+
+#include <cmath>
 
 namespace OpenMS
 {

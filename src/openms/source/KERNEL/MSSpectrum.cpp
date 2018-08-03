@@ -34,6 +34,8 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
+#include <cmath>
+
 namespace OpenMS
 {
   MSSpectrum &MSSpectrum::select(const std::vector<Size> &indices)

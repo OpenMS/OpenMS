@@ -43,6 +43,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 namespace OpenMS
 {

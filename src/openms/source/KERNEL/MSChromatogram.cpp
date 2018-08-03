@@ -34,6 +34,8 @@
 
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
+#include <cmath>
+
 using namespace OpenMS;
 
 std::ostream& OpenMS::operator<<(std::ostream& os, const MSChromatogram& chrom)

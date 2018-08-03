@@ -37,6 +37,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <cmath>
+
 using std::vector;
 
 namespace OpenMS

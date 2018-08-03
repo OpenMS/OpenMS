@@ -41,6 +41,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <cmath>
 
 namespace OpenMS
 {
