@@ -268,4 +268,84 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
 
 END_SECTION
 
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name))
+
+  IntList precursor_correction_steps;
+  precursor_correction_steps.push_back(2);
+  precursor_correction_steps.push_back(1);
+
+  double precursor_mass = 10668.85060;
+  String cross_link_name = "MyLinker";
+  precursor_mass_tolerance = 10;
+
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps, precursor_mass, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, cross_link_name);
+
+  TEST_EQUAL(spectrum_candidates.size(), 1050)
+  TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
+  for (Size i = 0; i < spectrum_candidates.size(); i += 100)
+  {
+    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass - 1 * Constants::C13C12_MASSDIFF_U)
+  }
+
+END_SECTION
+
+START_SECTION(static double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge))
+
+  OPXLDataStructs::ProteinProteinCrossLink ppcl;
+  ppcl.alpha = peptides[0].peptide_seq;
+  ppcl.beta = peptides[1].peptide_seq;
+  ppcl.cross_linker_mass = 150.0;
+
+  OPXLDataStructs::CrossLinkSpectrumMatch csm;
+  csm.cross_link = ppcl;
+
+  double precursor_charge = 3;
+  double precursor_mz = (ppcl.alpha.getMonoWeight() + ppcl.beta.getMonoWeight() + ppcl.cross_linker_mass + precursor_charge * Constants::PROTON_MASS_U) / precursor_charge;
+
+  double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
+  TEST_REAL_SIMILAR(rel_error, 0)
+
+  precursor_mz += 0.05;
+  rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
+  TEST_REAL_SIMILAR(rel_error, 107.07241)
+
+END_SECTION
+
+START_SECTION(static void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta))
+
+  DataArrays::IntegerDataArray iso_peaks;
+  iso_peaks.push_back(3);
+  iso_peaks.push_back(5);
+  iso_peaks.push_back(2);
+  iso_peaks.push_back(1);
+  iso_peaks.push_back(1);
+  iso_peaks.push_back(3);
+  iso_peaks.push_back(1);
+  iso_peaks.push_back(3);
+  iso_peaks.push_back(2);
+
+  std::vector< std::pair< Size, Size > > matched_spec_linear_alpha;
+  matched_spec_linear_alpha.push_back(std::make_pair(1,1));
+  matched_spec_linear_alpha.push_back(std::make_pair(2,2));
+  matched_spec_linear_alpha.push_back(std::make_pair(4,3));
+  matched_spec_linear_alpha.push_back(std::make_pair(6,4));
+  matched_spec_linear_alpha.push_back(std::make_pair(7,5));
+  std::vector< std::pair< Size, Size > > matched_spec_linear_beta;
+  std::vector< std::pair< Size, Size > > matched_spec_xlinks_alpha;
+  std::vector< std::pair< Size, Size > > matched_spec_xlinks_beta;
+  matched_spec_xlinks_beta.push_back(std::make_pair(3,1));
+  matched_spec_xlinks_beta.push_back(std::make_pair(5,2));
+  matched_spec_xlinks_beta.push_back(std::make_pair(8,3));
+  matched_spec_xlinks_beta.push_back(std::make_pair(0,4));
+
+  OPXLDataStructs::CrossLinkSpectrumMatch csm;
+  OPXLHelper::isoPeakMeans(csm, iso_peaks, matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta);
+
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean, 2.3333)
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_linear_alpha, 2.4)
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_linear_beta, 0)
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_xlinks_alpha, 0)
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_xlinks_beta, 2.25)
+END_SECTION
+
 END_TEST
