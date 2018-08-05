@@ -289,24 +289,35 @@ namespace OpenMS
 
     void PercolatorFeatureSetHelper::addREPLICATEFeatures(vector<PeptideIdentification> &peptide_ids, StringList &feature_set)
     {
-      feature_set.push_back("REP:isReplicateInclOwnRun"); // bool; identical unmodified peptide found in the same or other runs
-      feature_set.push_back("REP:numReplicatesInclOwnRun"); // number of identical unmodified peptides found in the same and other runs
-      feature_set.push_back("REP:isReplicateDiffModInclOwnRun"); // bool; same peptide with different modification found in the same or other runs
-      feature_set.push_back("REP:numReplicatesDiffModInclOwnRun"); // number of different peptide modifications found in the same and other runs
+      // sum of scores of hits sharing the same peptide in other runs
+      feature_set.push_back("REP:siblingSearches");
+      // sum of scores of top hits sharing the same peptide in other runs
+      feature_set.push_back("REP:siblingSearchesTop");
 
-      feature_set.push_back("REP:isReplicate"); // bool; identical unmodified peptide found in other runs
-      feature_set.push_back("REP:numReplicates"); // number of identical unmodified peptides found in other runs
-      feature_set.push_back("REP:isReplicateDiffMod"); // bool; same peptide with different modification found in other runs
-      feature_set.push_back("REP:numReplicatesDiffMod"); // number of different peptide modifications found in other runs
+      // sum of scores of hits sharing the same precursor ion and peptide within a run (not strictly a "replicate runs" feature)
+      feature_set.push_back("REP:replicateSpectra");
+      // sum of scores of hits sharing the same precursor ion and peptide in other runs
+      feature_set.push_back("REP:siblingExperiments");
+
+      // sum of scores of hits sharing the same peptide with different modification in other runs
+      feature_set.push_back("REP:siblingModifications");
+      // sum of scores of top hits sharing the same peptide with different modification in other runs
+      feature_set.push_back("REP:siblingModificationsTop");
+
+      // sum of scores of hits sharing the same peptide with different charge in other runs
+      feature_set.push_back("REP:siblingIons");
+      // sum of scores of top hits sharing the same peptide with different charge in other runs
+      feature_set.push_back("REP:siblingIonsTop");
 
       // for each peptide sequence (unmodified), collect all found hits
-      std::map<String,vector<PeptideHit>> matches;
+      std::map<String,std::map<String,vector<PeptideHit>>> matches;
       for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
       {
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
           String sequence = hit->getSequence().toUnmodifiedString();
-          matches[sequence].push_back(*hit);
+          String sources = hit->getMetaValue("TMP:sources").toString();
+          matches[sequence][sources].push_back(*hit);
         }
       }
 
@@ -317,51 +328,113 @@ namespace OpenMS
           AASequence sequence = hit->getSequence();
           String unmodified_sequence = sequence.toUnmodifiedString();
 
-          if (matches[unmodified_sequence].size() > 1)
+          double sibling_searches = 0, sibling_searches_top = 0;
+          double sibling_modifications = 0, sibling_modifications_top = 0;
+          double sibling_ions = 0, sibling_ions_top = 0;
+
+          std::map<String,vector<PeptideHit>> match_group = matches[unmodified_sequence];
+          for (std::map<String, vector<PeptideHit>>::iterator item = match_group.begin(); item != match_group.end(); ++item)
           {
-            vector<PeptideHit> peptide_hits = matches[unmodified_sequence];
-            hit->setMetaValue("REP:isReplicateInclOwnRun", true);
-            hit->setMetaValue("REP:numReplicatesInclOwnRun", peptide_hits.size() - 1);
-
-            set<String> sequence_set;
-            for (vector<PeptideHit>::iterator match = peptide_hits.begin(); match != peptide_hits.end(); ++match)
+            String sources = item->first;
+            if (sources != hit->getMetaValue("TMP:sources").toString())
             {
-              sequence_set.insert(match->getSequence().toString());
-            }
-            hit->setMetaValue("REP:isReplicateDiffModInclOwnRun", sequence_set.size() > 1);
-            hit->setMetaValue("REP:numReplicatesDiffModInclOwnRun", sequence_set.size() - 1);
+              vector<PeptideHit> peptide_matches = item->second;
 
-            // peptide hits in other runs only
-            vector<PeptideHit> strict_peptide_hits;
-            for (vector<PeptideHit>::iterator match = peptide_hits.begin(); match != peptide_hits.end(); ++match)
-            {
-              if (hit->getMetaValue("TMP:sources") != match->getMetaValue("TMP:sources"))
+              // first hit is the one with the highest score
+              PeptideHit top_hit = peptide_matches.front();
+              bool is_e_value = it->getScoreType() == "SpecEValue" || it->getScoreType() == "expect" || it->getScoreType() == "EValue";
+              if (is_e_value) sibling_searches_top -= log(top_hit.getScore() + 0.0001);
+              else sibling_searches_top += top_hit.getScore();
+
+              bool top_mod_hit_found = false;
+              bool top_ion_hit_found = false;
+              for (vector<PeptideHit>::iterator ph = peptide_matches.begin(); ph != peptide_matches.end(); ++ph)
               {
-                strict_peptide_hits.push_back(*match);
+                double score = ph->getScore();
+                if (is_e_value) score = -log(score + 0.0001);
+
+                sibling_searches += score;
+
+                // different modification
+                if (ph->getSequence().toString() != sequence.toString())
+                {
+                  if (!top_mod_hit_found)
+                  {
+                    sibling_modifications_top += score;
+                    top_mod_hit_found = true;
+                  }
+                  sibling_modifications += score;
+                }
+
+                // different charge
+                if (ph->getCharge() != hit->getCharge())
+                {
+                  if (!top_ion_hit_found)
+                  {
+                    sibling_ions_top += score;
+                    top_ion_hit_found = true;
+                  }
+                  sibling_ions += score;
+                }
               }
             }
-            hit->setMetaValue("REP:isReplicate", !strict_peptide_hits.empty());
-            hit->setMetaValue("REP:numReplicates", strict_peptide_hits.size());
+          }
+          hit->setMetaValue("REP:siblingSearches", sibling_searches);
+          hit->setMetaValue("REP:siblingSearchesTop", sibling_searches_top);
+          hit->setMetaValue("REP:siblingModifications", sibling_modifications);
+          hit->setMetaValue("REP:siblingModificationsTop", sibling_modifications_top);
+          hit->setMetaValue("REP:siblingIons", sibling_ions);
+          hit->setMetaValue("REP:siblingIonsTop", sibling_ions_top);
+        }
+      }
 
-            set<String> strict_sequence_set;
-            for (vector<PeptideHit>::iterator match = strict_peptide_hits.begin(); match != strict_peptide_hits.end(); ++match)
-            {
-              strict_sequence_set.insert(match->getSequence().toString());
-            }
-            hit->setMetaValue("REP:isReplicateDiffMod", !strict_sequence_set.empty());
-            hit->setMetaValue("REP:numReplicatesDiffMod", strict_sequence_set.size());
-          }
-          else
+      int outer_index = 0;
+      for (vector<PeptideIdentification>::iterator outer = peptide_ids.begin(); outer != peptide_ids.end(); ++outer)
+      {
+        outer_index += 1;
+        double mz_tol = outer->getMZ() * 1e-5;  // 10ppm tolerance
+
+        for (vector<PeptideHit>::iterator outer_pep = outer->getHits().begin(); outer_pep != outer->getHits().end(); ++outer_pep)
+        {
+          double replicate_spectra = 0;
+          double sibling_experiments = 0;
+
+          int inner_index = 0;
+          for (vector<PeptideIdentification>::iterator inner = peptide_ids.begin(); inner != peptide_ids.end(); ++inner)
           {
-            hit->setMetaValue("REP:isReplicateInclOwnRun", false);
-            hit->setMetaValue("REP:numReplicatesInclOwnRun", 0);
-            hit->setMetaValue("REP:isReplicateDiffModInclOwnRun", false);
-            hit->setMetaValue("REP:numReplicatesDiffModInclOwnRun", 0);
-            hit->setMetaValue("REP:isReplicate", false);
-            hit->setMetaValue("REP:numReplicates", 0);
-            hit->setMetaValue("REP:isReplicateDiffMod", false);
-            hit->setMetaValue("REP:numReplicatesDiffMod", 0);
+            inner_index += 1;
+
+            bool is_e_value = inner->getScoreType() == "SpecEValue" || inner->getScoreType() == "expect" || inner->getScoreType() == "EValue";
+            bool mz_in_range = (inner->getMZ() >= outer->getMZ() - mz_tol) && (inner->getMZ() <= outer->getMZ() + mz_tol);
+            bool rt_in_range = (inner->getRT() >= outer->getRT() - 1200) && (inner->getRT() <= outer->getRT() + 1200);
+
+            // different identifications with similar m/z and RT
+            if (outer_index != inner_index && mz_in_range && rt_in_range)
+            {
+              for (vector<PeptideHit>::iterator inner_pep = inner->getHits().begin(); inner_pep != inner->getHits().end(); ++inner_pep)
+              {
+
+                // two peptide hits with identical charge and sequence
+                if (outer_pep->getCharge() == inner_pep->getCharge() &&
+                    outer_pep->getSequence().toUnmodifiedString() == inner_pep->getSequence().toUnmodifiedString())
+                {
+                  double score = inner_pep->getScore();
+                  if (is_e_value) score = -log(score + 0.0001);
+
+                  if (outer_pep->getMetaValue("TMP:sources").toString() == inner_pep->getMetaValue("TMP:sources").toString())  // PSMs from different runs
+                  {
+                    replicate_spectra += score;
+                  }
+                  else  // PSMs from the same run
+                  {
+                    sibling_experiments += score;
+                  }
+                }
+              }
+            }
           }
+          outer_pep->setMetaValue("REP:replicateSpectra", replicate_spectra);
+          outer_pep->setMetaValue("REP:siblingExperiments", sibling_experiments);
         }
       }
     }
