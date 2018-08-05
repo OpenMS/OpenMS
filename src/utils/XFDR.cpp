@@ -944,10 +944,9 @@ private:
     {
       return static_cast<double>(alpha.getMetaValue(error_rel));
     }
-    const String error_ppm = "OMS:precursor_mz_error_ppm";
-    if (alpha.metaValueExists(error_ppm))
+    if (alpha.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
     {
-      return static_cast<double>(alpha.getMetaValue("OMS:precursor_mz_error_ppm"));
+      return static_cast<double>(alpha.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
     }
     return 0;
   }

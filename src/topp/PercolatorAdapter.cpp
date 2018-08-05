@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <iostream>
 #include <cmath>
@@ -202,7 +203,8 @@ protected:
   {
     static const bool is_required(true);
     static const bool is_advanced_option(true);
-    
+    static const bool force_openms_format(true);
+        
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", !is_required);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerInputFileList_("in_decoy", "<files>", StringList(), "Input decoy file(s) in case of separate searches", !is_required);
@@ -211,6 +213,9 @@ protected:
     setValidFormats_("in_osw", ListUtils::create<String>("OSW"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
+    registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pin", ListUtils::create<String>("tab"), !force_openms_format);
+
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
     String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
@@ -416,8 +421,18 @@ protected:
         
         double calc_mass = hit.getSequence().getMonoWeight(Residue::Full, charge)/charge;
         hit.setMetaValue("CalcMass", calc_mass);
-        
-        
+
+        if (hit.metaValueExists("IsotopeError"))  // MSGFPlus
+        {
+          float isoErr = hit.getMetaValue("IsotopeError").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+        else if (hit.metaValueExists("isotope_error")) // e.g. SimpleSearchEngine /RNPxlSearch
+        {
+          float isoErr = hit.getMetaValue("isotope_error").toString().toFloat();
+          exp_mass = exp_mass - (isoErr * Constants::C13C12_MASSDIFF_U) / charge;
+        }
+                
         hit.setMetaValue("ExpMass", exp_mass);
         hit.setMetaValue("mass", exp_mass);
         
@@ -759,7 +774,16 @@ protected:
     String temp_directory_body = makeAutoRemoveTempDirectory_();
     
     String txt_designator = File::getUniqueName();
-    String pin_file(temp_directory_body + txt_designator + "_pin.tab");
+    String pin_file;
+    if (getStringOption_("out_pin").empty())
+    {
+      pin_file = temp_directory_body + txt_designator + "_pin.tab";
+    }
+    else
+    {
+      pin_file = getStringOption_("out_pin");
+    }
+    
     String pout_target_file(temp_directory_body + txt_designator + "_target_pout_psms.tab");
     String pout_decoy_file(temp_directory_body + txt_designator + "_decoy_pout_psms.tab");
     String pout_target_file_peptides(temp_directory_body + txt_designator + "_target_pout_peptides.tab");

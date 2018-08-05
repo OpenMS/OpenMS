@@ -1,4 +1,3 @@
-from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from Element cimport *
@@ -41,7 +40,8 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
 
         # returns the number of atoms
-        Size getNumberOf(Element * element) nogil except +
+        # doesnt work!
+        ## Size getNumberOf(Element * element) nogil except +
 
         # returns the atoms total
         Size getNumberOfAtoms() nogil except +
@@ -54,6 +54,10 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
 
         # returns the formula as a string (charges are not included)
         String toString() nogil except +
+
+        # returns the formula as a hash
+        libcpp_map[libcpp_string, int] toMap() nogil except + #wrap-as:getElementalComposition wrap-doc:Get elemental composition as a hash {'Symbol' -> NrAtoms}
+
 
         # returns true if the formula does not contain a element
         bool isEmpty() nogil except +

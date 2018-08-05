@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <fstream>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -785,7 +786,7 @@ namespace OpenMS
         String value = (String)attributeAsString_(attributes, "value");
 
         // TODO: check if we are parsing a peptide hit
-        if (name == "fragment_annotation")
+        if (name == Constants::FRAGMENT_ANNOTATION_USERPARAM)
         {
           std::vector<PeptideHit::PeakAnnotation> annotations;
           parseFragmentAnnotation_(value, annotations);

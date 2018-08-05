@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,27 @@ namespace OpenMS
           /**
           @brief Internal structure used in @ref SiriusAdapter that is used
            for the conversion of the Csi:FingerID output to an mzTab.
+
+           CsiAdapterHit:
+           inchikey2D (String)
+           inchi (String)
+           rank (int)  - Rank of the identification for a compound (spectrum) calculated by CSI:FingerID
+           molecular_formula (String) - sumformula
+           score (int) - Score of the identification for a compound (spectrum) calculated by CSI:FingerID
+           name (String)
+           smiles (String)
+           pubchemids (vector<String>) - Pubchemid as reference
+           links (vector<String>) - Links to the database
+
+           CsiAdapterIdentification:
+           scan_index (int) - Index of the spectrum used for identification
+           scan_number (int) - NativeId of the spectrum used for identification
+           feature_id (String) - FeatureId (if spectrum was assigned to a feature)
+           hits (vector<CsiAdapterHit>)
+
+           CsiAdapterRun:
+           identifications (vector<CSIAdapterIdentification>)
+
            @ingroup DATAACCESS
           */
 
@@ -62,8 +83,9 @@ namespace OpenMS
 
           struct CsiAdapterIdentification
           {
-            OpenMS::String scan_index;
-            OpenMS::String scan_number;
+            int scan_index;
+            int scan_number;
+            OpenMS::String feature_id;
             std::vector<CsiAdapterHit> hits;
           };
 
@@ -82,7 +104,10 @@ namespace OpenMS
           
           @return Result written to mzTab
           */
-          static void read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result);
+          static void read(const std::vector<String> & sirius_output_paths,
+                           const String & original_input_mzml,
+                           const Size & top_n_hits,
+                           MzTab & result);
 
       };
 }

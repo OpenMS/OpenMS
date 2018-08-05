@@ -11,17 +11,18 @@ from Precursor cimport *
 cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS":
 
     cdef cppclass ChromatogramSettings:
+        # wrap-doc:
+        #   Description of the chromatogram settings, provides meta-information
+        #   about a single chromatogram.
 
         ChromatogramSettings() nogil except +
         ChromatogramSettings(ChromatogramSettings) nogil except +
 
-        Product getProduct() nogil except +
-        void setProduct(Product p) nogil except +
+        Product getProduct() nogil except + # wrap-doc:Access to the product ion
+        void setProduct(Product p) nogil except + # wrap-doc:Set the product ion
 
-        # returns the native identifier for the spectrum, used by the acquisition software.
-        String getNativeID() nogil except +
-        # sets the native identifier for the spectrum, used by the acquisition software.
-        void setNativeID(String native_id) nogil except +
+        String getNativeID() nogil except + # wrap-doc:returns the native identifier for the spectrum, used by the acquisition software.
+        void setNativeID(String native_id) nogil except + # wrap-doc:sets the native identifier for the spectrum, used by the acquisition software.
 
         # returns the free-text comment
         String getComment() nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TargetedSpectraExtractor.h>
-
-#include <boost/unordered_map.hpp> 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -66,7 +64,7 @@ namespace OpenMS
   void TargetedSpectraExtractor::updateMembers_()
   {
     rt_window_ = (double)param_.getValue("rt_window");
-    min_score_ = (double)param_.getValue("min_score");
+    min_select_score_ = (double)param_.getValue("min_select_score");
     mz_tolerance_ = (double)param_.getValue("mz_tolerance");
     mz_unit_is_Da_ = param_.getValue("mz_unit_is_Da").toBool();
     use_gauss_ = param_.getValue("use_gauss").toBool();
@@ -76,6 +74,8 @@ namespace OpenMS
     tic_weight_ = (double)param_.getValue("tic_weight");
     fwhm_weight_ = (double)param_.getValue("fwhm_weight");
     snr_weight_ = (double)param_.getValue("snr_weight");
+    top_matches_to_report_ = (Size)param_.getValue("top_matches_to_report");
+    min_match_score_ = (double)param_.getValue("min_match_score");
   }
 
   void TargetedSpectraExtractor::getDefaultParameters(Param& params) const
@@ -93,14 +93,14 @@ namespace OpenMS
     );
 
     params.setValue(
-      "min_score",
+      "min_select_score",
       0.7,
       "Used in selectSpectra(), after the spectra have been assigned a score.\n"
       "Remained transitions will have at least one spectrum assigned.\n"
-      "Each spectrum needs to have a score >= min_score_ to be valid, "
+      "Each spectrum needs to have a score >= min_select_score_ to be valid, "
       "otherwise it gets filtered out."
     );
-    params.setMinFloat("min_score", 0.0);
+    params.setMinFloat("min_select_score", 0.0);
 
     params.setValue(
       "mz_tolerance",
@@ -120,7 +120,7 @@ namespace OpenMS
 
     params.setValue("peak_height_min", 0.0, "Used in pickSpectrum(), a peak's intensity needs to be >= peak_height_min_ for it to be picked.");
     params.setMinFloat("peak_height_min", 0.0);
-    params.setValue("peak_height_max", 4e6, "Used in pickSpectrum(), a peak's intensity needs to be <= peak_height_max_ for it to be picked.");
+    params.setValue("peak_height_max", std::numeric_limits<double>::max(), "Used in pickSpectrum(), a peak's intensity needs to be <= peak_height_max_ for it to be picked.");
     params.setMinFloat("peak_height_max", 0.0);
     params.setValue("fwhm_threshold", 0.0, "Used in pickSpectrum(), a peak's FWHM needs to be >= fwhm_threshold_ for it to be picked.");
     params.setMinFloat("fwhm_threshold", 0.0);
@@ -131,6 +131,22 @@ namespace OpenMS
     params.setMinFloat("fwhm_weight", 0.0);
     params.setValue("snr_weight", 1.0, "SNR weight when scoring spectra.");
     params.setMinFloat("snr_weight", 0.0);
+
+    params.setValue(
+      "top_matches_to_report",
+      5,
+      "The number of matches to output from `matchSpectrum()`. "
+      "These will be the matches of highest scores, sorted in descending order."
+    );
+    params.setMinInt("top_matches_to_report", 1);
+
+    params.setValue(
+      "min_match_score",
+      0.8,
+      "Minimum score for a match to be considered valid in `matchSpectrum()`."
+    );
+    params.setMinFloat("min_match_score", 0.0);
+    params.setMaxFloat("min_match_score", 1.0);
   }
 
   void TargetedSpectraExtractor::annotateSpectra(
@@ -382,7 +398,7 @@ namespace OpenMS
     std::unordered_map<std::string,UInt> transition_best_spec;
     for (UInt i = 0; i < scored_spectra.size(); ++i)
     {
-      if (scored_spectra[i].getFloatDataArrays()[1][0] < min_score_)
+      if (scored_spectra[i].getFloatDataArrays()[1][0] < min_select_score_)
       {
         continue;
       }
@@ -390,13 +406,13 @@ namespace OpenMS
       std::unordered_map<std::string,UInt>::const_iterator it = transition_best_spec.find(transition_name);
       if (it == transition_best_spec.cend())
       {
-        transition_best_spec.insert({transition_name, i});
+        transition_best_spec.emplace(transition_name, i);
       }
       else if (scored_spectra[it->second].getFloatDataArrays()[1][0] <
                scored_spectra[i].getFloatDataArrays()[1][0])
       {
         transition_best_spec.erase(transition_name);
-        transition_best_spec.insert({transition_name, i});
+        transition_best_spec.emplace(transition_name, i);
       }
     }
 
@@ -422,7 +438,7 @@ namespace OpenMS
   }
 
   void TargetedSpectraExtractor::extractSpectra(
-    const PeakMap& experiment,
+    const MSExperiment& experiment,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& extracted_spectra,
     FeatureMap& extracted_features,
@@ -464,7 +480,7 @@ namespace OpenMS
   }
 
   void TargetedSpectraExtractor::extractSpectra(
-    const PeakMap& experiment,
+    const MSExperiment& experiment,
     const TargetedExperiment& targeted_exp,
     std::vector<MSSpectrum>& extracted_spectra
   ) const
@@ -472,5 +488,40 @@ namespace OpenMS
     FeatureMap extracted_features;
     const bool compute_features { false };
     extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features, compute_features);
+  }
+
+  void TargetedSpectraExtractor::matchSpectrum(
+    const MSSpectrum& input_spectrum,
+    const Comparator& cmp,
+    std::vector<Match>& matches
+  )
+  {
+    // TODO: remove times debug info
+    // std::clock_t start;
+    // start = std::clock();
+    matches.clear();
+    std::vector<std::pair<Size,double>> scores;
+
+    cmp.generateScores(input_spectrum, scores, min_match_score_);
+
+    // Sort the vector of scores
+    std::sort(scores.begin(), scores.end(),
+      [](const std::pair<Size,double>& a, const std::pair<Size,double>& b)
+      {
+        return a.second > b.second;
+      });
+
+    // Set the number of best matches to return
+    const Size n = std::min(top_matches_to_report_, scores.size());
+
+    // Construct a vector of n `Match`es
+    for (Size i = 0; i < n; ++i)
+    {
+      const Size spec_idx { scores[i].first };
+      const double spec_score { scores[i].second };
+      matches.emplace_back(cmp.getLibrary()[spec_idx], spec_score);
+    }
+
+    // std::cout << "MATCH TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
 }

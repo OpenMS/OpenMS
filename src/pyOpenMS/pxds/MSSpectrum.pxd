@@ -16,9 +16,13 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #  SpectrumSettings
         #  MetaInfoInterface
         #  RangeManager1
-
-        # COMMENT: Note: access raw data through `get_peaks` function (or by iterating through peaks)
-        # COMMENT: Note: set raw data through `set_peaks` function
+        #
+        # wrap-doc:
+        #   The representation of a 1D spectrum.
+        #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #   Iterations yields access to underlying peak objects but is slower
+        #   Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
+        #   See help(SpectrumSettings) for information about meta-information
 
         MSSpectrum() nogil except +
         MSSpectrum(MSSpectrum &) nogil except +
@@ -37,8 +41,8 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         Peak1D operator[](int) nogil except + # wrap-upper-limit:size()
 
         void updateRanges() nogil except +
-        void clear(int) nogil except +
-        void push_back(Peak1D)  nogil except +
+        void clear(bool clear_meta_data) nogil except + #wrap-doc:Clears all data (and meta data if clear_meta_data is true)
+        void push_back(Peak1D)  nogil except + #wrap-doc:Append a peak
 
         bool isSorted() nogil except +
 

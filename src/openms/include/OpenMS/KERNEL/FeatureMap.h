@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -79,9 +79,9 @@ namespace OpenMS
   /**
     @brief A container for features.
 
-    A map is a container holding 2-dimensional features,
-    which in turn represent chemical entities (peptides, proteins, etc.) found
-    in a 2-dimensional experiment.
+    A feature map is a container holding features, which represent chemical
+    entities (peptides, proteins, small molecules etc.) found in an LC-MS/MS
+    experiment.
 
     Maps are implemented as vectors of features and have basically the same interface
     as an STL vector has (model of Random Access Container and Back Insertion Sequence).
