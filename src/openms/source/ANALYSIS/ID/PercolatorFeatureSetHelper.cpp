@@ -316,7 +316,7 @@ namespace OpenMS
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
           String sequence = hit->getSequence().toUnmodifiedString();
-          String sources = hit->getMetaValue("TMP:sources").toString();
+          String sources = hit->getMetaValue("TMP:sources");
           matches[sequence][sources].push_back(*hit);
         }
       }
@@ -336,7 +336,7 @@ namespace OpenMS
           for (std::map<String, vector<PeptideHit>>::iterator item = match_group.begin(); item != match_group.end(); ++item)
           {
             String sources = item->first;
-            if (sources != hit->getMetaValue("TMP:sources").toString())
+            if (sources != hit->getMetaValue("TMP:sources"))
             {
               vector<PeptideHit> peptide_matches = item->second;
 
@@ -421,7 +421,7 @@ namespace OpenMS
                   double score = inner_pep->getScore();
                   if (is_e_value) score = -log(score + 0.0001);
 
-                  if (outer_pep->getMetaValue("TMP:sources").toString() == inner_pep->getMetaValue("TMP:sources").toString())  // PSMs from different runs
+                  if (outer_pep->getMetaValue("TMP:sources") == inner_pep->getMetaValue("TMP:sources"))  // PSMs from different runs
                   {
                     replicate_spectra += score;
                   }

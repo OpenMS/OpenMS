@@ -200,6 +200,7 @@ protected:
     bool concatenate = getFlag_("concat");
     StringList search_engines_used;
     vector<Int> peptide_ids_range {0};
+    int file_count = 0;
     for (StringList::const_iterator fit = in_list.begin(); fit != in_list.end(); ++fit)
     {
       vector<PeptideIdentification> peptide_ids;
@@ -233,6 +234,9 @@ protected:
 
       if (replicates)
       {
+        // update file count (serves as identifier)
+        file_count += 1;
+
         // for each peptide hit, remember the file it originated from (will be removed after processing)
         StringList sources;
         protein_ids.front().getPrimaryMSRunPath(sources);
@@ -241,6 +245,15 @@ protected:
           for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
           {
             hit->setMetaValue("TMP:sources", sources);
+
+            if (sources.empty())
+            {
+              hit->setMetaValue("TMP:sources", "file_" + to_string(file_count));
+            }
+            else
+            {
+              hit->setMetaValue("TMP:sources", hit->getMetaValue("TMP:sources").toString());
+            }
           }
         }
 
