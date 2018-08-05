@@ -55,7 +55,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
-#include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 
 
@@ -115,7 +114,15 @@ protected:
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input files");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFileList_("ids", "<file list>", StringList(), "Unfiltered identifications. Must be provided in Same order as spectra files.");
+    registerInputFileList_("ids", "<file list>", StringList(), 
+      "Identifications filtered at PSM level (e.g., q-vaue < 0.01)."
+      "And annotated with PEP as main score.\n"
+      "We suggest using:\n"
+      "1. PercolatorAdapter tool (score_type = 'q-value', -post-processing-tdc)\n"
+      "2. FalseDiscoveryRate (FDR:PSM = 0.01)\n"
+      "3. IDScoreSwitcher (-old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score_type)\n"
+      "To obtain well calibrated PEPs and an inital reduction of PSMs\n"
+      "ID files must be provided in same order as spectra files.");
     setValidFormats_("ids", ListUtils::create<String>("idXML,mzId"));
 
     registerInputFile_("design", "<file>", "", "design file", false);
@@ -142,7 +149,6 @@ protected:
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
 //    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
     Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
-    Param pep_defaults = Math::PosteriorErrorProbabilityModel().getParameters();
     //Param pi_defaults = ProteinInferenceAlgorithmXX().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
 
@@ -154,7 +160,6 @@ protected:
     combined.insert("Linking:", fl_defaults);
     // combined.insert("Protein Inference:", pi_defaults);
     combined.insert("ProteinQuantification:", pq_defaults);
-    combined.insert("Posterior Error Probability:", pep_defaults);
 
     registerFullParam_(combined);
   }
@@ -447,55 +452,6 @@ protected:
           }
         }
         
-        //-------------------------------------------------------------
-        // Posterior Error Probability calculation
-        //-------------------------------------------------------------
-        Math::PosteriorErrorProbabilityModel PEP_model;
-        PEP_model.setParameters(pep_param);
-
-        map<String, vector<vector<double> > > all_scores = Math::PosteriorErrorProbabilityModel::extractAndTransformScores(
-          protein_ids, 
-          peptide_ids, 
-          false, 
-          true,   
-          true,  
-          0.05);
-                
-        for (auto & score : all_scores)  // for all search engine scores (should only be 1)
-        {
-          vector<String> engine_info;
-          score.first.split(',', engine_info);
-          String engine = engine_info[0];
-          Int charge = (engine_info.size() == 2) ? engine_info[1].toInt() : -1;
-
-          // fit to score vector
-          bool return_value = PEP_model.fit(score.second[0]);
-          if (!return_value) 
-          {
-            writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
-          }
-
-          bool unable_to_fit_data(true), data_might_not_be_well_fit(true);
-          Math::PosteriorErrorProbabilityModel::updateScores(
-            PEP_model,
-            engine,
-            charge,
-            true, // prob_correct 
-            false, // split_charge
-            protein_ids,
-            peptide_ids,
-            unable_to_fit_data,
-            data_might_not_be_well_fit);
-
-          if (unable_to_fit_data)
-          {
-            writeLog_(String("Unable to fit data for search engine: ") + engine);
-          }
-          else if (data_might_not_be_well_fit) 
-          {
-            writeLog_(String("Data might not be well fitted for search engine: ") + engine);
-          }
-        }        
 
         //////////////////////////////////////////
         // Chromatographic parameter estimation
