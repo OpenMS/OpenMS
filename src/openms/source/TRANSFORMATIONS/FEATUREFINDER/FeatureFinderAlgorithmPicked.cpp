@@ -200,7 +200,7 @@ namespace OpenMS
     }
 
     // initialize trace fitter parameters here to avoid
-    // bug https://sourceforge.net/apps/trac/open-ms/ticket/147
+    // https://github.com/OpenMS/OpenMS/issues/147
     Param trace_fitter_params;
     trace_fitter_params.setValue("max_iteration", max_iterations);
 

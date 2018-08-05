@@ -105,9 +105,10 @@ namespace OpenMS
     return indent + "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
   }
 
-  void MzMLHandlerHelper::writeFooter_(std::ostream& os, const PeakFileOptions& options_, 
-                                       std::vector< std::pair<std::string, long> > & spectra_offsets,
-                                       std::vector< std::pair<std::string, long> > & chromatograms_offsets)
+  void MzMLHandlerHelper::writeFooter_(std::ostream& os,
+                                       const PeakFileOptions& options_, 
+                                       const std::vector< std::pair<std::string, long> > & spectra_offsets,
+                                       const std::vector< std::pair<std::string, long> > & chromatograms_offsets)
   {
     os << "\t</run>\n";
     os << "</mzML>";
@@ -301,7 +302,10 @@ namespace OpenMS
   }
 
   bool MzMLHandlerHelper::handleBinaryDataArrayCVParam(std::vector<BinaryData>& data,
-    const String& accession, const String& value, const String& name, const String& unit_accession)
+                                                       const String& accession,
+                                                       const String& value,
+                                                       const String& name,
+                                                       const String& unit_accession)
   {
     //MS:1000518 ! binary data type
     if (accession == "MS:1000523") //64-bit float

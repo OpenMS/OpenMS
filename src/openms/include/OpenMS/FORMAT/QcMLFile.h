@@ -46,9 +46,11 @@
 namespace OpenMS
 {
   /**
-      @brief File adapter for QcML files
+      @brief File adapter for QcML files used to load and store QcML files
 
       This Class is supposed to internally collect the data for the qcML File
+
+      A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
       @ingroup FileIO
   */
@@ -58,6 +60,7 @@ namespace OpenMS
     public ProgressLogger
   {
 public:
+
     /// Representation of a quality parameter
     struct OPENMS_DLLAPI QualityParameter
     {
