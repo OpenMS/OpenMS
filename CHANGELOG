@@ -46,7 +46,7 @@ Deprecated and removed tools:
 - AdditiveSeries -- Computes an additive series to quantify a peptide in a set of samples (TOPP)
 - IDEvaluator -- Computes a 'q-value vs. #PSM' plot which is saved as an image to visualize the number identifications for a certain q-value (UTIL)
 - IDEvaluatorGUI -- Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value (UTIL)
-- RNPxl -- Tool for RNP cross linking experiment analysis (UTIL)
+- RNPxl -- Tool for RNP cross linking experiment analysis (UTIL) (superseded by RNPxlSearch)
   
 Changed Tools:
 - SiriusAdapter now supports several input data
