@@ -74,16 +74,15 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMSstatsConverter final :
-public TOPPBase
+  public TOPPBase
 {
 public:
 
-    TOPPMSstatsConverter() :
-            TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
-    {
+  TOPPMSstatsConverter() :
+          TOPPBase("MSstatsConverter", "Converter to input for MSstats", false)
+  {
 
-    }
-
+  }
 
 protected:
 
@@ -117,9 +116,9 @@ protected:
 
       // Specifies how peptide ions eluding at different retention times should be resolved
       registerStringOption_(param_retention_time_summarization_method,
-                            "<retention_time_summarization_method>", "",
-                            "How undistinguishable peptides at different retention times should be treated", true,
-                            false);
+                            "<retention_time_summarization_method>", "max",
+                            "How undistinguishable peptides at different retention times should be treated", false,
+                            true);
       setValidStrings_(param_retention_time_summarization_method,
                        ListUtils::create<String>("manual,max,min,mean,sum"));
 
@@ -207,11 +206,11 @@ const String TOPPMSstatsConverter::param_reannotate_filenames = "reannotate_file
 
 
 // the actual main function needed to create an executable
-    int main(int argc, const char **argv)
-    {
-      TOPPMSstatsConverter tool;
-      return tool.main(argc, argv);
-    }
+int main(int argc, const char **argv)
+{
+  TOPPMSstatsConverter tool;
+  return tool.main(argc, argv);
+}
 
 
 /// @endcond

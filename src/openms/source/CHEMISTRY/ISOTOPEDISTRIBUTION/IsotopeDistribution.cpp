@@ -108,6 +108,14 @@ namespace OpenMS
     return distribution_[0].getMZ();
   }
 
+  Peak1D IsotopeDistribution::getMostAbundant() const
+  {
+      if (distribution_.empty())
+      {
+          return Peak1D(0, 1);
+      }
+      return *std::max_element(begin(), end(), MassAbundance::IntensityLess());
+  }
 
   Size IsotopeDistribution::size() const
   {

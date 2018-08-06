@@ -339,8 +339,11 @@ void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &co
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide ion appears multiple times at the same retention time. This is not expected");
           }
-          retention_times.insert(p.second);
-          intensities.insert(p.first);
+          else
+          {
+            retention_times.insert(p.second);
+            intensities.insert(p.first);
+          }
         }
 
         tuple<String, String, String > tpl = make_tuple(
