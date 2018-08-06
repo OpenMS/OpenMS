@@ -32,19 +32,19 @@
 // $Authors: Timo Sachsenberg, Lukas Heumos $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/FORMAT/MSStatsFile.h"
+#include "OpenMS/FORMAT/MSstatsFile.h"
 
-OpenMS::MSStatsFile::MSStatsFile()
+OpenMS::MSstatsFile::MSstatsFile()
 {
 
 }
 
-OpenMS::MSStatsFile::~MSStatsFile()
+OpenMS::MSstatsFile::~MSstatsFile()
 {
 
 }
 
-void OpenMS::MSStatsFile::store(const OpenMS::String &filename, ConsensusMap &consensus_map,
+void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &consensus_map,
                                 const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
                                 const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
                                 const String& retention_time_summarization_method)

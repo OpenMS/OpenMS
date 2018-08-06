@@ -57,13 +57,13 @@ namespace OpenMS
     @brief File adapter for MzTab files
     @ingroup FileIO
   */
-    class OPENMS_DLLAPI MSStatsFile
+    class OPENMS_DLLAPI MSstatsFile
     {
     public:
         ///Default constructor
-        MSStatsFile();
+        MSstatsFile();
         ///Destructor
-        ~MSStatsFile();
+        ~MSstatsFile();
 
         // store MSStats file
         void store(const String& filename, ConsensusMap &consensus_map,
@@ -73,10 +73,6 @@ namespace OpenMS
                    const String& bioreplicate,
                    const String& condition,
                    const String& retention_time_summarization_method);
-
-
-    protected:
-
 
     private:
         class MSstatsLine
@@ -199,7 +195,4 @@ namespace OpenMS
           return sumIntensity(intensities) / intensities.size();
         }
     };
-
-
-
 } // namespace OpenMS

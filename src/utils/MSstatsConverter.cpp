@@ -45,7 +45,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <boost/regex.hpp>
-#include <OpenMS/FORMAT/MSStatsFile.h>
+#include <OpenMS/FORMAT/MSstatsFile.h>
 
 
 using namespace OpenMS;
@@ -157,7 +157,7 @@ protected:
         String condition = getStringOption_(param_msstats_condition);
         String retention_time_summarization_method = getStringOption_(param_retention_time_summarization_method);
 
-        MSStatsFile msStatsFile;
+        MSstatsFile msStatsFile;
 
         msStatsFile.store(arg_out, consensus_map, design,
                           reannotate_filenames, is_isotope_label_type,
