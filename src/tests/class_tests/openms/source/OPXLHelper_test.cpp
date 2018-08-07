@@ -292,12 +292,13 @@ END_SECTION
 START_SECTION(static double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge))
 
   OPXLDataStructs::ProteinProteinCrossLink ppcl;
-  ppcl.alpha = peptides[0].peptide_seq;
-  ppcl.beta = peptides[1].peptide_seq;
+  ppcl.alpha = AASequence::fromString("TESTPEPTIDE");
+  ppcl.beta = AASequence::fromString("TESTTESTESTE");
   ppcl.cross_linker_mass = 150.0;
 
   OPXLDataStructs::CrossLinkSpectrumMatch csm;
   csm.cross_link = ppcl;
+  csm.precursor_correction = 0;
 
   double precursor_charge = 3;
   double precursor_mz = (ppcl.alpha.getMonoWeight() + ppcl.beta.getMonoWeight() + ppcl.cross_linker_mass + precursor_charge * Constants::PROTON_MASS_U) / precursor_charge;
@@ -307,7 +308,7 @@ START_SECTION(static double OPXLHelper::computePrecursorError(OPXLDataStructs::C
 
   precursor_mz += 0.05;
   rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
-  TEST_REAL_SIMILAR(rel_error, 107.07241)
+  TEST_REAL_SIMILAR(rel_error, 56.21777)
 
 END_SECTION
 
