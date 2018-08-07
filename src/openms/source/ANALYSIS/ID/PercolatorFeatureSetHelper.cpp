@@ -289,25 +289,16 @@ namespace OpenMS
 
     void PercolatorFeatureSetHelper::addREPLICATEFeatures(vector<PeptideIdentification> &peptide_ids, StringList &feature_set)
     {
-      // sum of scores of hits sharing the same peptide in other runs
-      feature_set.push_back("REP:siblingSearches");
       // sum of scores of top hits sharing the same peptide in other runs
-      feature_set.push_back("REP:siblingSearchesTop");
-
+      feature_set.push_back("REP:siblingSearches");
       // sum of scores of hits sharing the same precursor ion and peptide within a run (not strictly a "replicate runs" feature)
       feature_set.push_back("REP:replicateSpectra");
       // sum of scores of hits sharing the same precursor ion and peptide in other runs
       feature_set.push_back("REP:siblingExperiments");
-
-      // sum of scores of hits sharing the same peptide with different modification in other runs
-      feature_set.push_back("REP:siblingModifications");
       // sum of scores of top hits sharing the same peptide with different modification in other runs
-      feature_set.push_back("REP:siblingModificationsTop");
-
-      // sum of scores of hits sharing the same peptide with different charge in other runs
-      feature_set.push_back("REP:siblingIons");
+      feature_set.push_back("REP:siblingModifications");
       // sum of scores of top hits sharing the same peptide with different charge in other runs
-      feature_set.push_back("REP:siblingIonsTop");
+      feature_set.push_back("REP:siblingIons");
 
       // for each peptide sequence (unmodified), collect all found hits
       std::map<String,std::map<String,vector<PeptideHit>>> matches;
@@ -328,9 +319,9 @@ namespace OpenMS
           AASequence sequence = hit->getSequence();
           String unmodified_sequence = sequence.toUnmodifiedString();
 
-          double sibling_searches = 0, sibling_searches_top = 0;
-          double sibling_modifications = 0, sibling_modifications_top = 0;
-          double sibling_ions = 0, sibling_ions_top = 0;
+          double sibling_searches = 0;
+          double sibling_modifications = 0;
+          double sibling_ions = 0;
 
           std::map<String,vector<PeptideHit>> match_group = matches[unmodified_sequence];
           for (std::map<String, vector<PeptideHit>>::iterator item = match_group.begin(); item != match_group.end(); ++item)
@@ -343,8 +334,8 @@ namespace OpenMS
               // first hit is the one with the highest score
               PeptideHit top_hit = peptide_matches.front();
               bool is_e_value = it->getScoreType() == "SpecEValue" || it->getScoreType() == "expect" || it->getScoreType() == "EValue";
-              if (is_e_value) sibling_searches_top -= log(top_hit.getScore() + 0.0001);
-              else sibling_searches_top += top_hit.getScore();
+              if (is_e_value) sibling_searches -= log(top_hit.getScore() + 0.0001);
+              else sibling_searches += top_hit.getScore();
 
               bool top_mod_hit_found = false;
               bool top_ion_hit_found = false;
@@ -353,17 +344,14 @@ namespace OpenMS
                 double score = ph->getScore();
                 if (is_e_value) score = -log(score + 0.0001);
 
-                sibling_searches += score;
-
                 // different modification
                 if (ph->getSequence().toString() != sequence.toString())
                 {
                   if (!top_mod_hit_found)
                   {
-                    sibling_modifications_top += score;
+                    sibling_modifications += score;
                     top_mod_hit_found = true;
                   }
-                  sibling_modifications += score;
                 }
 
                 // different charge
@@ -371,20 +359,16 @@ namespace OpenMS
                 {
                   if (!top_ion_hit_found)
                   {
-                    sibling_ions_top += score;
+                    sibling_ions += score;
                     top_ion_hit_found = true;
                   }
-                  sibling_ions += score;
                 }
               }
             }
           }
           hit->setMetaValue("REP:siblingSearches", sibling_searches);
-          hit->setMetaValue("REP:siblingSearchesTop", sibling_searches_top);
           hit->setMetaValue("REP:siblingModifications", sibling_modifications);
-          hit->setMetaValue("REP:siblingModificationsTop", sibling_modifications_top);
           hit->setMetaValue("REP:siblingIons", sibling_ions);
-          hit->setMetaValue("REP:siblingIonsTop", sibling_ions_top);
         }
       }
 
