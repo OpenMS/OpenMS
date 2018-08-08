@@ -80,7 +80,7 @@ Third-party software:
 - Update: MS-GF+ to Release (2018.01.30)
 - Update: Sirius 4 for Windows 64bit, Linux 64bit, and MacOS 64bit
 - Update: Crux (crux-3.1.8b78546) on all 64bit platforms.
- 
+
 Changed tool parameters:
 
 Tool name	Added/removed	Parameter name	Type	Default value	Restrictions	Supported formats
