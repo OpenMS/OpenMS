@@ -499,6 +499,7 @@ Major changes in functionality:
   - OpenSWATH:
     - RT normalization now allows more models
     - Add S/N ratio for each ion trace
+  - Support for C++11 (requires a compiler that supports C++11)
     
 Library:
   - TOPP tools report their peak memory usage when using -debug 1 (or higher)
