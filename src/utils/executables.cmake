@@ -17,7 +17,6 @@ ERPairFinder
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
-GNPSExport
 IDDecoyProbability
 IDExtractor
 IDMassAccuracy
