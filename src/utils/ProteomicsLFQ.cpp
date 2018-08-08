@@ -144,7 +144,6 @@ protected:
     /// TODO: think about export of quality control files (qcML?)
 
     Param pp_defaults = PeakPickerHiRes().getDefaults();
-    Param ffm_defaults = FeatureFindingMetabo().getDefaults();
     Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
 //    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
@@ -154,7 +153,6 @@ protected:
 
     Param combined;
     combined.insert("Centroiding:", pp_defaults);
-    combined.insert("Seeds:", ffm_defaults);
     combined.insert("PeptideQuantification:", ffi_defaults);
     combined.insert("Alignment:", ma_defaults);
     combined.insert("Linking:", fl_defaults);
