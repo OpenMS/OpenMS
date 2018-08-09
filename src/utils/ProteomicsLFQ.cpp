@@ -37,6 +37,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
+#include <OpenMS/FORMAT/MSstatsFile.h>
+
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
@@ -134,6 +136,9 @@ protected:
     registerOutputFile_("out", "<file>", "", "output mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
+    registerOutputFile_("out_msstats", "<file>", "", "output out_msstats file", false, false);
+    setValidFormats_("out_msstats", ListUtils::create<String>("csv"));
+
     registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
@@ -171,6 +176,7 @@ protected:
     // Read tool parameters
     StringList in = getStringList_("in");
     String out = getStringOption_("out");
+    String out_msstats = getStringOption_("out_msstats");
     StringList in_ids = getStringList_("ids");
     String design_file = getStringOption_("design");
     String in_db = getStringOption_("fasta");
@@ -985,6 +991,12 @@ protected:
       report_unmapped);
     MzTabFile().store(out, m);
 
+    if (!out_msstats.empty())
+    {
+      MSstatsFile msstats;
+      msstats.store(out_msstats, consensus, design, StringList(), false, "msstats_bioreplicate", "msstats_condition", "max");
+    }
+
     return EXECUTION_OK;
   }
 };
@@ -996,4 +1008,3 @@ int main(int argc, const char ** argv)
 }
 
 /// @endcond
-
