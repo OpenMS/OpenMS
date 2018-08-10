@@ -1,5 +1,5 @@
+from Types cimport *
 from smart_ptr cimport shared_ptr
-from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
 
@@ -7,6 +7,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
         OSBinaryDataArray() nogil except +
         OSBinaryDataArray(OSBinaryDataArray) nogil except +
         libcpp_vector[double] data
+        libcpp_string description
       
   ctypedef shared_ptr[OSBinaryDataArray] OSBinaryDataArrayPtr
 
@@ -16,6 +17,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
         OSSpectrum(OSSpectrum) nogil except +
         OSBinaryDataArrayPtr getMZArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
+        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() nogil except +
         void setMZArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 
@@ -28,6 +30,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
         OSChromatogram(OSChromatogram) nogil except +
         OSBinaryDataArrayPtr getTimeArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
+        # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() nogil except +
         void setTimeArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 

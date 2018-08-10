@@ -14,6 +14,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
         # overwrites the container which holds the distribution using @p distribution
         void set(libcpp_vector[ Peak1D ]& distribution) nogil except +
 
+        void insert(double mass, float intensity) nogil except +
+
         # returns the container which holds the distribution
         libcpp_vector[ Peak1D ]& getContainer() nogil except +
 
@@ -43,6 +45,22 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
         
         void merge(double, double) nogil except +
 
+        void resize(UInt size) nogil except +
+        void trimIntensities(double cutoff) nogil except +
+        void sortByIntensity() nogil except +
+        void sortByMass() nogil except +
+        bool isNormalized() nogil except +
+        double averageMass() nogil except +
+        bool isConvolutionUnit() nogil except +
+
+cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" namespace "OpenMS::IsotopeDistribution":
+    
+    cdef enum Sorted "OpenMS::IsotopeDistribution::Sorted":
+        # wrap-attach:
+        #    IsotopeDistribution
+        INTENSITY
+        MASS
+        UNDEFINED
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>" namespace "OpenMS":
 
@@ -53,6 +71,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
         CoarseIsotopePatternGenerator(Size max_isotope, bool round_masses) nogil except +
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
+
+        Size getMin() nogil except +
+        Size getMax() nogil except +
+        void clear() nogil except +
 
         # returns the current value of the flag to round masses to integer values (true) or return accurate masses (false)
         bool getRoundMasses() nogil except +

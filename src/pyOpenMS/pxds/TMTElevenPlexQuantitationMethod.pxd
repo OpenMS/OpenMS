@@ -8,3 +8,4 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/TMTElevenPlexQuantitationMethod.
         #  IsobaricQuantitationMethod
         TMTElevenPlexQuantitationMethod() nogil except +
         TMTElevenPlexQuantitationMethod(TMTElevenPlexQuantitationMethod) nogil except +
+
