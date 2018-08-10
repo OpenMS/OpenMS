@@ -38,9 +38,6 @@
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-//#include <numeric>
 
 namespace OpenMS
 {
@@ -54,9 +51,9 @@ namespace OpenMS
        */
       enum ProteinProteinCrossLinkType
       {
-        CROSS = 0,
-        MONO = 1,
-        LOOP = 2,
+        CROSS = 0, ///< Cross-link
+        MONO = 1, ///< Mono-link
+        LOOP = 2, ///< Loop-link
         NUMBER_OF_CROSS_LINK_TYPES
       };
 

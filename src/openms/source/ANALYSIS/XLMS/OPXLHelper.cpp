@@ -34,12 +34,12 @@
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 
-
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
 
 using namespace std;
 
@@ -222,21 +222,20 @@ namespace OpenMS
     return mass_to_candidates;
   }
 
-  vector<ResidueModification> OPXLHelper::getModificationsFromStringList(StringList modNames)
+  vector<ResidueModification> OPXLHelper::getModificationsFromStringList(const StringList& modNames)
   {
     vector<ResidueModification> modifications;
 
     // iterate over modification names and add to vector
-    for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
+    for (auto mod_it : modNames)
     {
-      String modification(*mod_it);
-      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
+      modifications.push_back(ModificationsDB::getInstance()->getModification(mod_it));
     }
 
     return modifications;
   }
 
-  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
+  std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(vector<FASTAFile::FASTAEntry> fasta_db, const EnzymaticDigestion& digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, const std::vector<ResidueModification>& fixed_modifications, const std::vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins, Size count_peptides, bool n_term_linker, bool c_term_linker)
   {
     multimap<StringView, AASequence> processed_peptides;
     vector<OPXLDataStructs::AASeqWithMass> peptide_masses;

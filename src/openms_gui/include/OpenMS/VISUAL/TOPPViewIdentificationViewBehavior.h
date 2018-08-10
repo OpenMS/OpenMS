@@ -34,7 +34,6 @@
 
 #pragma once
 
-// #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/LayerData.h>
 #include <vector>

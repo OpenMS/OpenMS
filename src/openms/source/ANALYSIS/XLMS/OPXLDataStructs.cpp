@@ -32,6 +32,8 @@
 // $Authors: Eugen Netz $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
+
 namespace OpenMS
 {
 

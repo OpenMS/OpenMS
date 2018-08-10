@@ -34,7 +34,6 @@
 
 #pragma once
 
-
 #include <OpenMS/ANALYSIS/ID/AhoCorasickAmbiguous.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>

@@ -36,13 +36,14 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <numeric>
 
 namespace OpenMS
 {
+  class EnzymaticDigestion;
+  class ResidueModification;
+
   /**
    * @brief The OPXLHelper class contains functions needed by OpenPepXL and OpenPepXLLF to reduce duplicated code
    */
@@ -61,14 +62,21 @@ namespace OpenMS
        * @param precursor_mass_tolerance_unit_ppm The unit of the precursor mass tolerance ("Da" or "ppm")
        * @return A vector of XLPrecursors containing all possible candidate cross-links
        */
-      static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm);
+      static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides,
+                                                                                    double cross_link_mass_light,
+                                                                                    const DoubleList& cross_link_mass_mono_link,
+                                                                                    const StringList& cross_link_residue1,
+                                                                                    const StringList& cross_link_residue2,
+                                                                                    std::vector< double >& spectrum_precursors,
+                                                                                    double precursor_mass_tolerance,
+                                                                                    bool precursor_mass_tolerance_unit_ppm);
 
       /**
        * @brief A helper function, that turns a StringList with modification names into a vector of ResidueModifications
        * @param modNames The list of modification names
        * @return A vector of modifications
        */
-      static std::vector<ResidueModification> getModificationsFromStringList(StringList modNames);
+      static std::vector<ResidueModification> getModificationsFromStringList(const StringList& modNames);
 
       /**
        * @brief Digests a database with the given EnzymaticDigestion settings and precomputes masses for all peptides
@@ -90,7 +98,18 @@ namespace OpenMS
        * @param c_term_linker True, if the cross-linker can react with the C-terminal of a protein
        * @return A vector of AASeqWithMass containing the peptides, their masses and information about terminal peptides
        */
-      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0, bool n_term_linker = false, bool c_term_linker = false);
+      static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db,
+                                                                        const EnzymaticDigestion& digestor,
+                                                                        Size min_peptide_length,
+                                                                        StringList cross_link_residue1,
+                                                                        StringList cross_link_residue2,
+                                                                        const std::vector<ResidueModification>& fixed_modifications,
+                                                                        const std::vector<ResidueModification>& variable_modifications,
+                                                                        Size max_variable_mods_per_peptide,
+                                                                        Size count_proteins = 0,
+                                                                        Size count_peptides = 0,
+                                                                        bool n_term_linker = false,
+                                                                        bool c_term_linker = false);
 
       /**
        * @brief Builds specific cross-link candidates with all possible combinations of linked positions from peptide pairs. Used to build candidates for the precursor mass window of a single MS2 spectrum.
@@ -107,7 +126,17 @@ namespace OpenMS
        * @param c_term_linker True, if the cross-linker can react with the C-terminal of a protein
        * @return A vector of ProteinProteinCrossLink candidates containing all necessary information to generate theoretical spectra
        */
-      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker);
+      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates,
+                                                                                    const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses,
+                                                                                    const StringList & cross_link_residue1,
+                                                                                    const StringList & cross_link_residue2,
+                                                                                    double cross_link_mass,
+                                                                                    const DoubleList & cross_link_mass_mono_link,
+                                                                                    double precursor_mass,
+                                                                                    double allowed_error,
+                                                                                    String cross_link_name,
+                                                                                    bool n_term_linker,
+                                                                                    bool c_term_linker);
 
       /**
        * @brief Fills up the given FragmentAnnotation vector with annotations from a theoretical spectrum
@@ -121,7 +150,10 @@ namespace OpenMS
        * @param theoretical_spectrum The theoretical spectrum with meta information
        * @param experiment_spectrum The experimental spectrum
        */
-      static void buildFragmentAnnotations(std::vector<PeptideHit::PeakAnnotation> & frag_annotations, const std::vector< std::pair< Size, Size > > & matching, const PeakSpectrum & theoretical_spectrum, const PeakSpectrum & experiment_spectrum);
+      static void buildFragmentAnnotations(std::vector<PeptideHit::PeakAnnotation> & frag_annotations,
+                                           const std::vector< std::pair< Size, Size > > & matching,
+                                           const PeakSpectrum & theoretical_spectrum,
+                                           const PeakSpectrum & experiment_spectrum);
 
       /**
        * @brief Builds PeptideIdentifications and PeptideHits
@@ -133,7 +165,13 @@ namespace OpenMS
        * @param scan_index The index of the current spectrum
        * @param scan_index_heavy The index of the heavy spectrum in a spectrum pair with labeled linkers
        */
-      static void buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids, const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms, Size all_top_csms_current_index, const PeakMap & spectra, Size scan_index, Size scan_index_heavy);
+      static void buildPeptideIDs(std::vector<PeptideIdentification> & peptide_ids,
+                                  const std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > & top_csms_spectrum,
+                                  std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > > & all_top_csms,
+                                  Size all_top_csms_current_index,
+                                  const PeakMap & spectra,
+                                  Size scan_index,
+                                  Size scan_index_heavy);
   };
 }
 
