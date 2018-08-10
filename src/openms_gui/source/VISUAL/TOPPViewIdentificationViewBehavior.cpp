@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ namespace OpenMS
       Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
 
       // add data and return if something went wrong
-      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) 
+      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename)
         || (Size)spectrum_index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
         return;
@@ -127,7 +127,7 @@ namespace OpenMS
           case 2:
           {
             // check if index in bounds and hits are present
-            if (peptide_id_index < static_cast<int>(pis.size()) 
+            if (peptide_id_index < static_cast<int>(pis.size())
               && peptide_hit_index < static_cast<int>(pis[peptide_id_index].getHits().size()))
             {
               // get hit
@@ -277,8 +277,8 @@ namespace OpenMS
     activate1DSpectrum(index, -1, -1);
   }
 
-  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index, 
-    int peptide_id_index, 
+  void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int spectrum_index,
+    int peptide_id_index,
     int peptide_hit_index)
   {
     Spectrum1DWidget* widget_1D = tv_->getActive1DWidget();
@@ -341,7 +341,7 @@ namespace OpenMS
                 String box_text;
                 String vert_bar = "&#124;";
 
-                if (ph.metaValueExists("xl_pos2")) // if this meta value exists, this should be the special case of a loop-link
+                if (ph.metaValueExists("xl_pos2") && pis[peptide_id_index].getHits().size() == 1 && ph.getMetaValue("xl_pos2") != "-") // if this meta value exists, this should be the special case of a loop-link
                 {
                   String hor_bar = "_";
                   PeptideHit ph_alpha = pis[peptide_id_index].getHits()[0];
@@ -364,7 +364,7 @@ namespace OpenMS
                   String seq_alpha = ph_alpha.getSequence().toUnmodifiedString();
                   String seq_beta = ph_beta.getSequence().toUnmodifiedString();
                   int xl_pos_alpha = String(ph_alpha.getMetaValue("xl_pos")).toInt();
-                  int xl_pos_beta = String(ph_beta.getMetaValue("xl_pos")).toInt();
+                  int xl_pos_beta = String(ph_alpha.getMetaValue("xl_pos2")).toInt();
 
 
                   // String formatting
@@ -380,7 +380,7 @@ namespace OpenMS
                   box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
                   // color: <font color=\"green\">&boxur;</font>
                 }
-                else // no xl_pos2 and no second PeptideHit, should be a mono-link
+                else // no value in xl_pos2 and no second PeptideHit, should be a mono-link
                 {
                   String seq_alpha = ph.getSequence().toUnmodifiedString();
                   int xl_pos_alpha = String(ph.getMetaValue("xl_pos")).toInt();
@@ -410,9 +410,9 @@ namespace OpenMS
                   static vector<String> top_ions = ListUtils::create<String>("a,b,c");
                   static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
                   String diagram = generateSequenceDiagram_(
-                    ph.getSequence(), 
+                    ph.getSequence(),
                     ph.getPeakAnnotations(),
-                    top_ions, 
+                    top_ions,
                     bottom_ions);
                   widget_1D->canvas()->setTextBox(diagram.toQString());
                 }
@@ -496,13 +496,18 @@ namespace OpenMS
 
         vector<String> loss_split;
         dol_split[1].split("-", loss_split);
+        // remove b / y ion type letter (must be at first position of second string after $-split)
         String pos_string = loss_split[0].suffix(loss_split[0].size()-1);
         int pos;
-        if (pos_string.hasSubstring("]"))
+        if (pos_string.hasSubstring("]")) // this means the loss_split with "-" did not split the string
         {
-          pos = pos_string.prefix(pos_string.size()-1).toInt()-1;
+          // remove the "]" and possible charges at its right side
+          vector<String> pos_split;
+          pos_string.split("]", pos_split);
+          pos_string = pos_split[0];
+          pos = pos_string.toInt()-1;
         }
-        else
+        else // loss was found and splitted, so the remaining string is just the position
         {
           pos = pos_string.toInt()-1;
         }
@@ -632,9 +637,9 @@ namespace OpenMS
 
   template <typename SeqType>
   String TOPPViewIdentificationViewBehavior::generateSequenceDiagram_(
-    const SeqType& seq, 
-    const vector<PeptideHit::PeakAnnotation>& annotations, 
-    const vector<String>& top_ions, 
+    const SeqType& seq,
+    const vector<PeptideHit::PeakAnnotation>& annotations,
+    const vector<String>& top_ions,
     const vector<String>& bottom_ions)
   {
     #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -648,7 +653,7 @@ namespace OpenMS
         cout << "Adding Peak Annotation to Diagram: " << label << endl;
       #endif
       // expected format: [ion][number][...]
-      if ((label.size() < 2) || !islower(label[0]) || !isdigit(label[1])) { continue; }      
+      if ((label.size() < 2) || !islower(label[0]) || !isdigit(label[1])) { continue; }
       // cut out the position number:
       Size split = label.find_first_not_of("0123456789", 2);
       String ion = label.prefix(1);
@@ -1065,7 +1070,7 @@ namespace OpenMS
 
     MSSpectrum& spectrum = (*current_layer.getPeakDataMuteable())[spectrum_index];
     int ms_level = spectrum.getMSLevel();
-    if (ms_level == 2)  
+    if (ms_level == 2)
     {
       // synchronize PeptideHits with the annotations in the spectrum
       current_layer.synchronizePeakAnnotations();
@@ -1076,13 +1081,13 @@ namespace OpenMS
       Annotations1DContainer& las = current_layer.getAnnotations(spectrum_index);
       auto new_end = remove_if(las.begin(), las.end(),
                               [](const Annotation1DItem* a)
-                              { 
+                              {
                                 #ifdef DEBUG_IDENTIFICATION_VIEW
                                 cout << a->getText().toStdString() << endl;
-                                #endif 
-                                return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr; 
+                                #endif
+                                return dynamic_cast<const Annotation1DPeakItem*>(a) != nullptr;
                               });
-                             
+
       las.erase(new_end, las.end());
 
       removeTheoreticalSpectrumLayer_();
@@ -1104,9 +1109,9 @@ namespace OpenMS
       hit.getPeakAnnotations();
 
     String seq = hit.getSequence().toString();
-    if (seq.empty()) 
+    if (seq.empty())
     { // no sequence information stored? use label
-      if (hit.metaValueExists("label")) seq = hit.getMetaValue("label"); 
+      if (hit.metaValueExists("label")) seq = hit.getMetaValue("label");
     }
 
     SpectrumCanvas* current_canvas = tv_->getActive1DWidget()->canvas();
@@ -1121,9 +1126,9 @@ namespace OpenMS
     {
       QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!"); // @TODO: improve error message
       return;
-    } 
+    }
 
-    // init all peak colors to black (=no annotation) 
+    // init all peak colors to black (=no annotation)
     current_layer.peak_colors_1d.assign(current_spectrum.size(), Qt::black);
 
     for (const auto& ann : annotations)
@@ -1158,7 +1163,7 @@ namespace OpenMS
       QColor peak_color(Qt::black);
 
       // XL-MS specific coloring of the labels, green for linear fragments and red for cross-linked fragments
-      if (label.hasSubstring("[alpha|") 
+      if (label.hasSubstring("[alpha|")
         || label.hasSubstring("[beta|"))
       {
         if (label.hasSubstring("|ci$"))
@@ -1172,7 +1177,7 @@ namespace OpenMS
           peak_color = Qt::red;
         }
       }
-      else 
+      else
       { // different colors for left/right fragments (e.g. b/y ions)
         color = (label.at(0) < 'n') ? Qt::darkRed : Qt::darkGreen;
         peak_color = (label.at(0) < 'n') ? Qt::red : Qt::green;
@@ -1182,8 +1187,8 @@ namespace OpenMS
         current_spectrum[peak_idx].getIntensity());
 
       Annotation1DItem* item = new Annotation1DPeakItem(
-        position, 
-        label.toQString(), 
+        position,
+        label.toQString(),
         color);
 
       // set peak color

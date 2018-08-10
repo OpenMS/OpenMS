@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -694,7 +694,7 @@ namespace OpenMS
         String emz(it->getMZ());
         const double rt = it->getRT();
         String ert = rt == rt ? String(rt) : "nan";
-         
+
         String sid = it->getMetaValue("spectrum_reference");
         if (sid.empty())
         {
@@ -775,7 +775,14 @@ namespace OpenMS
             pepi += "_" + jt->getMetaValue("xl_chain").toString();
             if (jt->getMetaValue("xl_type") != "mono-link")  //sequence may contain more than one linker anchors; also code position linked
             {
-              pepi += "_" + jt->getMetaValue("xl_pos").toString();
+              if (jt->getMetaValue("xl_chain") == "MS:1002509")
+              {
+                pepi += "_" + jt->getMetaValue("xl_pos").toString();
+              }
+              else
+              {
+                pepi += "_" + jt->getMetaValue("xl_pos2").toString();
+              }
             }
             pepi += ppxl_linkid;
             //TODO ppxl : should also code for which position is linked
@@ -825,7 +832,7 @@ namespace OpenMS
             String p;
             //~ TODO simplify mod cv param write
             // write peptide id with conversion to universal, "human-readable" bracket string notation
-            p += String("\t<Peptide id=\"") + pepid + String("\" name=\"") + 
+            p += String("\t<Peptide id=\"") + pepid + String("\" name=\"") +
                   jt->getSequence().toBracketString(false) + String("\">\n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence>\n");
             if (jt->getSequence().isModified() || jt->metaValueExists("xl_chain"))
             {
@@ -916,12 +923,12 @@ namespace OpenMS
                       if (mod->getDiffMonoMass() != 0.0)
                       {
                         double diffmass = mod->getDiffMonoMass();
-                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass);
                       }
                       else if (mod->getMonoMass() > 0.0)
                       {
                         double diffmass = mod->getMonoMass() - jt->getSequence()[i].getMonoWeight();
-                        p += "\" monoisotopicMassDelta=\"" + String(diffmass); 
+                        p += "\" monoisotopicMassDelta=\"" + String(diffmass);
                       }
                       p += "\">\n\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001460\" name=\"unknown modification\"/>";
                       p += "\n\t\t</Modification>\n";
@@ -1026,13 +1033,14 @@ namespace OpenMS
               }
               else // xl_chain = "MS:1002510", acceptor
               {
+                i = jt->getMetaValue("xl_pos2").toString().toInt();
                 if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "N_TERM")
                 {
                   p += "\t\t<Modification location=\"0";
                 }
                 else if (jt->metaValueExists("xl_term_spec") && jt->getMetaValue("xl_term_spec") == "C_TERM")
                 {
-                  p += "\t\t<Modification location=\"" + String(i + 2);
+                  p += "\t\t<Modification location=\"" + String(jt->getSequence().size() + 2);
                 }
                 else
                 {
@@ -1044,7 +1052,7 @@ namespace OpenMS
               p += "\t\t\t" + cv_.getTerm(jt->getMetaValue("xl_chain").toString()).toXMLString(cv_ns, DataValue(ppxl_linkid));
               p += "\n\t\t</Modification>\n";
             }
-            if (jt->metaValueExists("xl_pos2"))  // TODO ppxl metavalue subject to change (location and upgrade to cv)
+            if (jt->metaValueExists("xl_type") && jt->getMetaValue("xl_type") == "loop-link")  // TODO ppxl metavalue subject to change (location and upgrade to cv)
             {
               int i = jt->getMetaValue("xl_pos2").toString().toInt();
               p += "\t\t<Modification location=\"" + String(i + 1);
@@ -1273,10 +1281,16 @@ namespace OpenMS
 
           if (is_ppxl)
           {
-            sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, ppxl_linkid) + "\n"; // cross-linked spectrum identification item
+            // TODO this would be the correct way, but need to adjust parsing as well
+            if (copy_jt.metaValueExists("spec_heavy_MZ") || copy_jt.getMetaValue("xl_type") == "cross-link")
+            {
+              sii_tmp +=  "\t\t\t\t\t" + cv_.getTerm("MS:1002511").toXMLString(cv_ns, ppxl_linkid) + "\n"; // cross-linked spectrum identification item
+            }
+
             copy_jt.removeMetaValue("xl_rank");  // not so sure: it->getMetaValue("xl_rank")
             copy_jt.removeMetaValue("xl_type");
             copy_jt.removeMetaValue("xl_pos");
+            copy_jt.removeMetaValue("xl_pos2");
             copy_jt.removeMetaValue("xl_mod");
             copy_jt.removeMetaValue("xl_chain");
             copy_jt.removeMetaValue("xl_mass");
@@ -1668,8 +1682,12 @@ namespace OpenMS
         }
         else
         {
-          LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
-          LOG_WARN << kt->annotation << std::endl;
+          // since PeakAnnotations are very flexible and not all of them fit into the limited mzid fragment structure,
+          // this would happen quite often and flood the output, but we still need them for other output formats
+          // TODO find ways to represent additional fragment types or filter out known incompatible types
+
+          // LOG_WARN << "Well, fudge you very much, there is no matching annotation. ";
+          // LOG_WARN << kt->annotation << std::endl;
           continue;
         }
         String lt = "frag: " + iontype + " ion";
@@ -1700,6 +1718,11 @@ namespace OpenMS
         }
       }
 
+      // stop and return, if no mzid compatible fragments were found
+      if (annotation_map.empty())
+      {
+        return;
+      }
       //double map: charge + ion type; collect in StringList: index + annotations; write:
       s += String(indent, '\t') + "<Fragmentation>\n";
       for (std::map<UInt,std::map<String,std::vector<StringList> > >::iterator i=annotation_map.begin();

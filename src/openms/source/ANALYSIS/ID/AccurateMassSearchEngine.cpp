@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -688,13 +688,10 @@ namespace OpenMS
       std::vector<double> mti;
       if (isotope_export > 0)
       {
-        for (Size i = 0; i < isotope_export; ++i)
-        {
-          if (feature.metaValueExists("masstrace_intensity_" + String(i)))
+          if (feature.metaValueExists("masstrace_intensity"))
           {
-            mti.push_back( feature.getMetaValue("masstrace_intensity_" + String(i)));
+            mti = feature.getMetaValue("masstrace_intensity");
           }
-        }
         results_part[hit_idx].setMasstraceIntensities(mti);
       }
       
@@ -1171,24 +1168,27 @@ namespace OpenMS
           col2.second = sim_score;
           optionals.push_back(col2);
 
+          // TODO: What is happening here?
           // mass trace intensities (use NULL if not present)
           if (isotope_export > 0)
           {
-            for (Size int_idx = 0; int_idx < isotope_export; ++int_idx)
-            {
               MzTabString trace_int; // implicitly NULL
 
-              if ((*tab_it)[hit_idx].getMasstraceIntensities().size() > int_idx)
-              {
-                double mt_int = (double)(*tab_it)[hit_idx].getMasstraceIntensities()[int_idx];
-                trace_int.set(mt_int);
-              }
+              std::vector<double> mt_int = (*tab_it)[hit_idx].getMasstraceIntensities();
+              std::vector<std::string> mt_int_strlist;
+              std::transform(std::begin(mt_int),
+                             std::end(mt_int),
+                             std::back_inserter(mt_int_strlist),
+                             [](double d) { return std::to_string(d); }
+              );
+
+              String mt_int_str = ListUtils::concatenate(mt_int_strlist, ",");
 
               MzTabOptionalColumnEntry col_mt;
-              col_mt.first = String("opt_global_MTint_") + int_idx;
+              col_mt.first = String("opt_global_MTint");
               col_mt.second = trace_int;
               optionals.push_back(col_mt);
-            }    
+
           }
 
           // set neutral mass
@@ -1506,10 +1506,9 @@ namespace OpenMS
     
     // same for observed isotope distribution
     std::vector<double> observed_iso_dist;
-    for (Size int_idx = 0; int_idx < common_size; ++int_idx)
+    if (num_traces > 0)
     {
-      double mt_int = (double)feat.getMetaValue("masstrace_intensity_" + String(int_idx));
-      observed_iso_dist.push_back(mt_int);
+      observed_iso_dist = feat.getMetaValue("masstrace_intensity");
     }
 
     return computeCosineSim_(theoretical_iso_dist, observed_iso_dist);

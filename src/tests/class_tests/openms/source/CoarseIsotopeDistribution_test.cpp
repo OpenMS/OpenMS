@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,8 @@ START_SECTION(CoarseIsotopePatternGenerator())
 	CoarseIsotopePatternGenerator* ptr = nullptr;
 	ptr = new CoarseIsotopePatternGenerator();
 	Size max_isotope = ptr->getMaxIsotope();
-  TEST_EQUAL(max_isotope, 0)
+    TEST_EQUAL(max_isotope, 0)
+	TEST_EQUAL(ptr->getRoundMasses(), false)
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
@@ -79,7 +80,17 @@ END_SECTION
 START_SECTION(CoarseIsotopePatternGenerator(Size max_isotope))
 	CoarseIsotopePatternGenerator* ptr = new CoarseIsotopePatternGenerator(117);
 	Size max_isotope = ptr->getMaxIsotope();
-  TEST_EQUAL(max_isotope, 117)
+    TEST_EQUAL(max_isotope, 117)
+	TEST_EQUAL(ptr->getRoundMasses(), false)
+	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
+END_SECTION
+
+START_SECTION(CoarseIsotopePatternGenerator(Size max_isotope, bool calc_mass))
+	CoarseIsotopePatternGenerator* ptr = new CoarseIsotopePatternGenerator(117, true);
+	Size max_isotope = ptr->getMaxIsotope();
+	TEST_EQUAL(max_isotope, 117)
+	TEST_EQUAL(ptr->getRoundMasses(), true)
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	delete ptr;
 END_SECTION
@@ -92,6 +103,16 @@ START_SECTION(~CoarseIsotopePatternGenerator())
 	delete ptr;
 END_SECTION
 
+START_SECTION(void setRoundMasses(bool round_masses))
+    CoarseIsotopePatternGenerator solver2 = CoarseIsotopePatternGenerator();
+    TEST_EQUAL(solver2.getRoundMasses(), false)
+    solver2.setRoundMasses(true);
+    TEST_EQUAL(solver2.getRoundMasses(), true)
+END_SECTION
+
+START_SECTION(bool getRoundMasses() const)
+    NOT_TESTABLE
+END_SECTION
 
 START_SECTION(void setMaxIsotope(Size max_isotope))
   IsotopeDistribution iso = solver->estimateFromPeptideWeight(1234.2);
@@ -197,21 +218,37 @@ START_SECTION(IsotopeDistribution estimateFromWeightAndComp(double average_weigh
     iso = solver->estimateFromWeightAndComp(1000.0, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0.0);
     iso2 = solver->estimateFromPeptideWeight(1000.0);
     TEST_EQUAL(iso.begin()->getIntensity(),iso2.begin()->getIntensity());
+    TEST_EQUAL(iso.begin()->getMZ(),iso2.begin()->getMZ());
 END_SECTION
 
 
 START_SECTION(IsotopeDitribution CoarseIsotopePatternGenerator::estimateFromPeptideWeight(double average_weight))
 	// hard to test as this is an rough estimate
 	IsotopeDistribution iso;
-  solver->setMaxIsotope(3);
+    solver->setMaxIsotope(3);
 	iso = solver->estimateFromPeptideWeight(100.0);
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.949735)
+    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 100.170);
 
 	iso = solver->estimateFromPeptideWeight(1000.0);
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.586906)
+    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 999.714);
 
 	iso = solver->estimateFromPeptideWeight(10000.0);
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.046495)
+    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 9994.041);
+
+    solver->setRoundMasses(true);
+    iso = solver->estimateFromPeptideWeight(100.0);
+    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 100);
+
+    iso = solver->estimateFromPeptideWeight(1000.0);
+    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 1000);
+
+    iso = solver->estimateFromPeptideWeight(10000.0);
+    TEST_REAL_SIMILAR(iso.begin()->getMZ(), 9994);
+
+    solver->setRoundMasses(false);
 END_SECTION
 
 
@@ -220,7 +257,7 @@ START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFrag
 	IsotopeDistribution iso;
 	IsotopeDistribution iso2;
 	std::set<UInt> precursor_isotopes;
-  solver->setMaxIsotope(0);
+    solver->setMaxIsotope(0);
 	// We're isolating the M+2 precursor isotopes
 	precursor_isotopes.insert(2);
 	// These are regression tests, but the results also follow an expected pattern.
@@ -336,7 +373,7 @@ END_SECTION
 
 START_SECTION(IsotopeDistribution estimateForFragmentFromPeptideWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
-  solver->setMaxIsotope(0);
+    solver->setMaxIsotope(0);
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -351,6 +388,7 @@ START_SECTION(IsotopeDistribution estimateForFragmentFromPeptideWeight(double av
 	iso = solver->estimateForFragmentFromPeptideWeight(200.0, 100.0, precursor_isotopes);
 	iso.renormalize();
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.954654801320083)
+	TEST_REAL_SIMILAR(iso.begin()->getMZ(), 100.170);
 
 	// This peptide is large enough that the M0 and M+1 precursors are similar in abundance.
 	// However, since the fragment is only 1/20th the mass of the precursor, it's
@@ -359,6 +397,8 @@ START_SECTION(IsotopeDistribution estimateForFragmentFromPeptideWeight(double av
 	iso = solver->estimateForFragmentFromPeptideWeight(2000.0, 100.0, precursor_isotopes);
 	iso.renormalize();
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.975984866212216)
+    // The size of the precursor should have no effect on the mass of the fragment
+	TEST_REAL_SIMILAR(iso.begin()->getMZ(), 100.170);
 
 	// Same explanation as the previous example.
 	iso = solver->estimateForFragmentFromPeptideWeight(20000.0, 100.0, precursor_isotopes);
@@ -375,6 +415,7 @@ START_SECTION(IsotopeDistribution estimateForFragmentFromPeptideWeight(double av
 	iso = solver->estimateForFragmentFromPeptideWeight(2000.0, 1000.0, precursor_isotopes);
 	iso.renormalize();
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.741290977639283)
+	TEST_REAL_SIMILAR(iso.begin()->getMZ(), 999.714);
 
 	// Same explanation as the second example, except now the M+1 precursor is
 	// more abundant than the M0 precursor. But, the fragment is so small that
@@ -392,7 +433,6 @@ START_SECTION(IsotopeDistribution estimateForFragmentFromPeptideWeight(double av
 	// should be the same as if it was just a precursor that wasn't isolated.
 	iso = solver->estimateForFragmentFromPeptideWeight(200.0, 200.0, precursor_isotopes);
 	IsotopeDistribution iso_precursor;
-  solver->setMaxIsotope(2);
 	iso_precursor = solver->estimateFromPeptideWeight(200.0);
 	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
@@ -402,12 +442,20 @@ START_SECTION(IsotopeDistribution estimateForFragmentFromPeptideWeight(double av
 		TEST_REAL_SIMILAR(it2->getIntensity(), it2->getIntensity())
 	}
 
+	solver->setRoundMasses(true);
+
+    // Rounded masses
+    iso = solver->estimateForFragmentFromPeptideWeight(200.0, 100.0, precursor_isotopes);
+    TEST_EQUAL(iso.begin()->getMZ(), 100);
+
+	solver->setRoundMasses(false);
+
 END_SECTION
 
 
 START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromDNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
-  solver->setMaxIsotope(0);
+    solver->setMaxIsotope(0);
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -440,8 +488,8 @@ START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFrag
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.555730613643729)
 
 	iso = solver->estimateForFragmentFromDNAWeight(200.0, 200.0, precursor_isotopes);
-  IsotopeDistribution iso_precursor;
-  solver->setMaxIsotope(2);
+    IsotopeDistribution iso_precursor;
+    solver->setMaxIsotope(2);
 	iso_precursor = solver->estimateFromDNAWeight(200.0);
 	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
@@ -456,7 +504,7 @@ END_SECTION
 
 START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFragmentFromRNAWeight(double average_weight_precursor, double average_weight_fragment, const std::set<UInt>& precursor_isotopes))
 	IsotopeDistribution iso;
-  solver->setMaxIsotope(0);
+    solver->setMaxIsotope(0);
 	std::set<UInt> precursor_isotopes;
 	// We're isolating the M0 and M+1 precursor isotopes
 	precursor_isotopes.insert(0);
@@ -489,8 +537,8 @@ START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFrag
 	TEST_REAL_SIMILAR(iso.begin()->getIntensity(), 0.558201381343203)
 
 	iso = solver->estimateForFragmentFromRNAWeight(200.0, 200.0, precursor_isotopes);
-  IsotopeDistribution iso_precursor;
-  solver->setMaxIsotope(2);
+    IsotopeDistribution iso_precursor;
+    solver->setMaxIsotope(2);
 	iso_precursor = solver->estimateFromRNAWeight(200.0);
 	IsotopeDistribution::ConstIterator it1(iso.begin()), it2(iso_precursor.begin());
 
@@ -502,9 +550,13 @@ START_SECTION(IsotopeDistribution CoarseIsotopePatternGenerator::estimateForFrag
 
 END_SECTION
 
-START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopePatternGenerator & comp_fragment_isotope_distribution, const std::set<UInt>& precursor_isotopes))
-  IsotopeDistribution iso1(EmpiricalFormula("C1").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))); // fragment
-  IsotopeDistribution iso2(EmpiricalFormula("C2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))); // complementary fragment
+START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopePatternGenerator & comp_fragment_isotope_distribution, const std::set<UInt>& precursor_isotopes, const double fragment_mono_mass))
+  EmpiricalFormula ef_complementary_fragment = EmpiricalFormula("C2");
+  EmpiricalFormula ef_fragment = EmpiricalFormula("C1");
+  // The input to calcFragmentIsotopeDist should be isotope distributions
+  // where the solver used atomic numbers for the mass field
+  IsotopeDistribution iso1(ef_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true))); // fragment
+  IsotopeDistribution iso2(ef_complementary_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true))); // complementary fragment
 
   std::set<UInt> precursor_isotopes;
   precursor_isotopes.insert(0);
@@ -513,28 +565,31 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopePat
   precursor_isotopes.insert(2);
   IsotopeDistribution iso3;
   solver->setMaxIsotope(0);
-  iso3 = solver->calcFragmentIsotopeDist(iso1,iso2,precursor_isotopes);
+  iso3 = solver->calcFragmentIsotopeDist(iso1, iso2, precursor_isotopes, ef_fragment.getMonoWeight());
   iso3.renormalize();
 
-  IsotopeDistribution::ConstIterator it1(iso1.begin()), it2(iso3.begin());
+  // Need the distribution with accurate masses for the next comparison
+  // because that's what the solver used for the fragment distribution
+  IsotopeDistribution iso1_calc_mass(ef_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(11))); // fragment
+
+  IsotopeDistribution::ConstIterator it1(iso1_calc_mass.begin()), it2(iso3.begin());
   // By isolating all the precursor isotopes, the fragment isotopic distribution of a fragment molecule
   // should be the same as if it was the precursor. The probabilities can be slightly different due to
   // numerical issues.
-  for (; it1 != iso1.end(); ++it1, ++it2)
+  for (; it1 != iso1_calc_mass.end(); ++it1, ++it2)
   {
 	TEST_EQUAL(it1->getMZ(), it2->getMZ())
 	TEST_REAL_SIMILAR(it1->getIntensity(), it2->getIntensity())
   }
 
   precursor_isotopes.erase(precursor_isotopes.find(2));
-  IsotopeDistribution iso4;
   solver->setMaxIsotope(0);
-  iso4 = solver->calcFragmentIsotopeDist(iso1, iso2, precursor_isotopes);
+  IsotopeDistribution iso4 = solver->calcFragmentIsotopeDist(iso1, iso2, precursor_isotopes, ef_fragment.getMonoWeight());
   iso4.renormalize();
 
 
-  TEST_EQUAL(iso1.getContainer()[0].getMZ(), iso4.getContainer()[0].getMZ())
-  TEST_EQUAL(iso1.getContainer()[1].getMZ(), iso4.getContainer()[1].getMZ())
+  TEST_EQUAL(iso1_calc_mass.getContainer()[0].getMZ(), iso4.getContainer()[0].getMZ())
+  TEST_EQUAL(iso1_calc_mass.getContainer()[1].getMZ(), iso4.getContainer()[1].getMZ())
   // Now that we're not isolating every precursor isotope, the probabilities should NOT be similar.
   // Since there's no TEST_REAL_NOT_SIMILAR, we test their similarity to the values they should be
   TEST_REAL_SIMILAR(iso1.getContainer()[0].getIntensity(), 0.989300)
@@ -542,6 +597,21 @@ START_SECTION(IsotopeDistribution calcFragmentIsotopeDist(const CoarseIsotopePat
 
   TEST_REAL_SIMILAR(iso4.getContainer()[0].getIntensity(), 0.989524)
   TEST_REAL_SIMILAR(iso4.getContainer()[1].getIntensity(), 0.010479)
+
+  solver->setRoundMasses(true);
+  IsotopeDistribution iso5 = solver->calcFragmentIsotopeDist(iso1, iso2, precursor_isotopes, ef_fragment.getMonoWeight());
+  double result_mass[] = { 12.0, 13.0033548378 };
+  double result_rounded_mass[] = { 12, 13 };
+  Size i = 0;
+  // making sure that the masses are correct depending on whether we asked the IsotopeDistribution solver
+  // to return rounded masses
+  for (it1 = iso3.begin(), it2 = iso5.begin(); it1 != iso3.end(); ++it1, ++it2, ++i)
+  {
+    TEST_REAL_SIMILAR(it1->getMZ(), result_mass[i])
+    TEST_EQUAL(it2->getMZ(), result_rounded_mass[i])
+  }
+  solver->setRoundMasses(false);
+
 END_SECTION
 
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 
 namespace OpenMS
 {
+
   /**
     @brief This class stores a SRM/MRM transition
 
@@ -65,9 +66,9 @@ public:
 
     enum DecoyTransitionType
     {
-      UNKNOWN,
-      TARGET,
-      DECOY
+      UNKNOWN, ///< Unknown type
+      TARGET, ///< Target transition
+      DECOY ///< Decoy transition 
     };
 
     /** @name Constructors and destructors
@@ -144,10 +145,6 @@ public:
 
     const Product & getProduct() const;
 
-    void setRetentionTime(RetentionTime rt);
-
-    const RetentionTime & getRetentionTime() const;
-
     /// Returns true if a Prediction object exists (means it is safe to call getPrediction)
     bool hasPrediction() const;
 
@@ -161,16 +158,53 @@ public:
     */
     const Prediction & getPrediction() const;
 
+    /// Returns the type of transition (target or decoy)
     DecoyTransitionType getDecoyTransitionType() const;
 
+    /// Sets the type of transition (target or decoy)
     void setDecoyTransitionType(const DecoyTransitionType & d);
 
+    /// Returns the library intensity (ion count or normalized ion count from a spectral library)
     double getLibraryIntensity() const;
 
+    /// Sets the library intensity (ion count or normalized ion count from a spectral library)
     void setLibraryIntensity(double intensity);
 
-    /** @brief Detecting transitions
+    /** @name Retention time
      * 
+     * @brief Retention time set on transition level
+     *
+     * @note Retention time can be set on analyte level (peptide / compound
+     * level) or transition level -- usually the retention time set here on
+     * transition level is ignored, therefore only use this if you have a good
+     * reason.
+     *
+    */
+    //@{
+    /** @brief Sets the retention time on transition level
+     *
+     * Stores a retention time on the level of an individual transition
+     *
+     * @note This is very likely not what you want, to set the retention time
+     * of an analyte use TargetedExperimentHelper::PeptideCompound::getRetentionTime()
+    */
+    void setRetentionTime(RetentionTime rt);
+
+    /** @brief Gets the retention time on transition level
+     *
+     * Stores a retention time on the level of an individual transition
+     *
+     * @note This is very likely not what you want, to set the retention time
+     * of an analyte use TargetedExperimentHelper::PeptideCompound::getRetentionTime()
+    */
+    const RetentionTime & getRetentionTime() const;
+
+    //@}
+
+    /** @name Detecting transitions
+     * 
+     * @brief Transitions used for detection of analyte
+     *
      * Detecting transitions represent the set of transitions of an assay that
      * should be used to enable candidate peak group detection. Ideally they
      * were observed and validated in previous experiments and have an
@@ -181,24 +215,32 @@ public:
      * doi: 10.1038/nprot.2015.015. Epub 2015 Feb 12. PMID: 25675208 
      *
     */
+    //@{
     bool isDetectingTransition() const;
 
     void setDetectingTransition(bool val);
+    //@}
 
-    /** @brief Identifying transitions
+    /** @name Identifying transitions
      * 
+     * @brief Transitions used for differentiation between different analyte isomers
+     *
      * Identifying transitions represent the set of transitions of an assay
      * that should be used for the independent identification of a candidate
      * peak group. These transitions will be scored independently of the
      * detecting transitions.
      *
     */
+    //@{
     bool isIdentifyingTransition() const;
 
     void setIdentifyingTransition(bool val);
+    //@}
 
-    /** @brief Quantifying transitions
+    /** @name Quantifying transitions
      * 
+     * @brief Transitions used for quantification
+     *
      * Quantifying transitions represent the set of transitions of an assay
      * that should be used for the quantification of the peptide. This includes
      * exclusion of e.g. interfered transitions (example: light/heavy peptide
@@ -206,9 +248,11 @@ public:
      * quantification of the peptide.
      *
     */
+    //@{
     bool isQuantifyingTransition() const;
 
     void setQuantifyingTransition(bool val);
+    //@}
 
     //@}
 
@@ -243,18 +287,26 @@ protected:
 
     void updateMembers_();
 
+    /** @name Attributes
+    */
     //@{
-    /// Attributes:
 
-    String name_; // id, required attribute
+    String name_; ///< id, required attribute
 
     // attributes to a peptide / compound (optional)
-    String peptide_ref_;
-    String compound_ref_;
+    String peptide_ref_; ///< Reference to a specific peptide
+    String compound_ref_; ///< Reference to a specific compound
+
+    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the <Transition> tag)
+    double library_intensity_;
+
+    /// specific properties of a transition (e.g. specific CV terms)
+    DecoyTransitionType decoy_type_;
     //@}
 
+    /** @name Subelements
+    */
     //@{
-    /// Subelements:
 
     // Precursor
     // Product
@@ -265,12 +317,6 @@ protected:
 
     /// A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z)
     double precursor_mz_;
-
-    /// Intensity of the product (q3) ion (stored in CV Term 1001226 inside the <Transition> tag)
-    double library_intensity_;
-
-    /// specific properties of a transition (e.g. specific CV terms)
-    DecoyTransitionType decoy_type_;
 
     /// (Other) CV Terms of the Precursor (Q1) of the transition or target
     CVTermList* precursor_cv_terms_;
@@ -288,7 +334,7 @@ protected:
     Prediction* prediction_;
 
     /// A set of flags to store information about the transition at hand
-    // (currently: detecting, identifying and quantifying)
+    /// (currently: detecting, identifying and quantifying)
     std::bitset<3> transition_flags_;
     //@}
   };

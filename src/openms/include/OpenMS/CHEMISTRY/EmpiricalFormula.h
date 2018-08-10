@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,7 @@ namespace OpenMS
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;
+  class CoarseIsotopePatternGenerator;
   /**
     @ingroup Chemistry
 
@@ -173,15 +174,16 @@ public:
     IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;    
     
     /**
-      @brief returns the fragment iUsotope distribution of this given a precursor formula
+      @brief returns the fragment isotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
 
       The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
       @param precursor: the empirical formula of the precursor
       @param precursor_isotopes: the precursor isotopes that were isolated
+      @param method: the method that will be used for the calculation of the IsotopeDistribution
       @return the conditional IsotopeDistribution of the fragment
     */
-    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const;
+    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes, const CoarseIsotopePatternGenerator& method) const;
 
     /// returns the number of atoms for a certain @p element (can be negative)
     SignedSize getNumberOf(const Element* element) const;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,6 +101,9 @@ In contrast, support for converting from idXML to pepXML is limited. The purpose
 information for the use of ProteinProphet.
 
 Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
+
+The xquest.xml format is very specific to Protein-Protein Cross-Linking MS (XL-MS) applications and is only considered useful for compatibility
+of OpenPepXL / OpenPepXLLF with the xQuest / xProphet / xTract pipeline. It will only have useful output when converting from idXML or mzid containg XL-MS data.
 
 <B>Details on additional parameters:</B>
 
@@ -212,7 +215,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid,xquest.xml"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    String formats("idXML,mzid,pepXML,FASTA");
+    String formats("idXML,mzid,pepXML,FASTA,xquest.xml");
     setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
@@ -592,6 +595,11 @@ protected:
     {
       MzIdentMLFile().store(out, protein_identifications,
                             peptide_identifications);
+    }
+
+    else if (out_type == FileTypes::XQUESTXML)
+    {
+      XQuestResultXMLFile().store(out, protein_identifications, peptide_identifications);
     }
 
     else if (out_type == FileTypes::FASTA)

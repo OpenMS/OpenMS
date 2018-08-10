@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,35 +75,49 @@ namespace OpenMS
   {
     class IMSDataConsumer;
   }
+
   namespace Internal
   {
     class MzMLValidator;
-
-    /**
-        @brief XML handler for MzMLFile
-
-        MapType has to be an MSExperiment or have the same interface. In
-        read-mode, this class will parse an MzML XML file and append the input
-        spectra to the provided MapType object or (if provided separately
-        through setMSDataConsumer) to the provided IMSDataConsumer Interface.
-
-        @note Do not use this class. It is only needed in MzMLFile.
-
-        @note Only upon destruction of this class it can be guaranteed that all
-        data has been appended to the appropriate consumer of the data. Do not
-        try to access the data before that.
-
-        @todo replace hardcoded cv stuff with more flexible handling via obo r/w.
-    */
 
 	  typedef PeakMap MapType;
 	  typedef MSSpectrum SpectrumType;
 	  typedef MSChromatogram ChromatogramType;
 
+    /**@brief Handler for mzML file format
+     *
+     * This class handles parsing and writing of the mzML file format. It
+     * supports reading data directly into memory or parsing on-the-fly using a
+     * consumer (see @ref consumer_a "Setting a consumer").  In read-mode, this
+     * class will parse an MzML XML file and append the input spectra to the
+     * provided MSExperiment object or to the provided
+     * Interfaces::IMSDataConsumer (needs to be provided separately through
+     * setMSDataConsumer()).
+     *
+     * Functions constituting the XML reading/writing interface can be found
+     * under @ref xml_handling "XML Handling functions", helper functions
+     * specifically used for writing out to XML are organized under @ref
+     * helper_write "Writing functions" and helper functions used for reading
+     * in XML from disk are organized under @ref helper_read "Reading
+     * functions".
+     *
+     * See the MzMLHandlerHelper for additional helper functions that are
+     * independent of state.
+     *
+     * @note Do not use this class directly. It is only needed in MzMLFile.
+     *
+     * @note Only upon destruction of this class it can be guaranteed that all
+     * data has been appended to the appropriate consumer of the data. Do not
+     * try to access the data before that.
+     *
+     * @todo replace hardcoded cv stuff with more flexible handling via obo r/w.
+     *
+     **/
     class OPENMS_DLLAPI MzMLHandler :
       public XMLHandler
     {
 public:
+
       /**@name Constructors and destructor */
       //@{
 
@@ -117,19 +131,22 @@ public:
       ~MzMLHandler() override;
       //@}
 
-      /**@name XML Handling functions and output writing */
+      /**
+       * @anchor xml_handling
+       * @name XML Handling and data parsing
+       **/
       //@{
 
-      // Docu in base class
+      /// Docu in base class XMLHandler::endElement
       void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
 
-      // Docu in base class
+      /// Docu in base class XMLHandler::startElelement
       void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
 
-      // Docu in base class
+      /// Docu in base class XMLHandler::characters
       void characters(const XMLCh* const chars, const XMLSize_t length) override;
 
-      //Docu in base class
+      /// Docu in base class XMLHandler::writeTo
       void writeTo(std::ostream& os) override;
 
       //@}
@@ -156,8 +173,19 @@ public:
       /// Get the spectra and chromatogram counts of a file
       void getCounts(Size& spectra_counts, Size& chromatogram_counts);
 
+      /**@name IMSDataConsumer setter
+         @anchor consumer_a
+
+        The IMSDataConsumer object allows the user to specify a callback object
+        which can consume spectra and chromatograms on the fly. The consumer
+        does not have to wait until data is read fully into memory, but will
+        start receiving data as soon as it is available (read from disk).
+       */
+      //@{
+
       /// Set the IMSDataConsumer consumer which will consume the read data
       void setMSDataConsumer(Interfaces::IMSDataConsumer* consumer);
+      //@}
 
       /// handler which support partial loading, implement this method
       virtual LOADDETAIL getLoadDetail() const override;
@@ -166,6 +194,7 @@ public:
       virtual void setLoadDetail(const LOADDETAIL d) override;
 
 protected:
+
       /// delegated constructor for the two public versions
       MzMLHandler(const String& filename, const String& version, const ProgressLogger& logger);
 
@@ -180,14 +209,10 @@ protected:
 
       typedef MzMLHandlerHelper::BinaryData BinaryData;
 
-      void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s,
-                          Internal::MzMLValidator& validator, bool renew_native_ids,
-                          std::vector<std::vector< ConstDataProcessingPtr > >& dps);
-
-      void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
-
-      template <typename ContainerT>
-      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
+      /**@name Helper functions for storing data in memory
+       * @anchor helper_read
+       */
+      //@{
 
       /**
           @brief Populate all spectra on the stack with data from input
@@ -205,8 +230,14 @@ protected:
       */
       void populateChromatogramsWithData_();
 
-      void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
-                                const Size n, SpectrumType& spectrum) const;
+      /**
+          @brief Add extra data arrays to a spectrum
+
+          Add the float, integer and string data arrays to a spectrum.
+      */
+      void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data,
+                                const Size n,
+                                SpectrumType& spectrum) const;
 
       /**
           @brief Fill a single spectrum with data from input
@@ -214,12 +245,18 @@ protected:
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
 
-          Speed: this function takes about 50 % of total load time with a
+          @note This function takes about 50 % of total load time with a
           single thread and parallelizes linearly up to at least 10 threads.
+
+          @param input_data The input data with which to fill the spectra
+          @param length The input data length (number of data points)
+          @param peak_file_options Will be used if only part of the data should be copied (RT, mz or intensity range)
+          @param spectrum The output spectrum
 
       */
       void populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                    Size& default_arr_length, const PeakFileOptions& peak_file_options,
+                                    Size& length,
+                                    const PeakFileOptions& peak_file_options,
                                     SpectrumType& spectrum);
 
       /**
@@ -228,45 +265,122 @@ protected:
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
 
+          @param input_data The input data with which to fill the spectra
+          @param length The input data length (number of data points)
+          @param peak_file_options Will be used if only part of the data should be copied (RT, mz or intensity range)
+          @param chromatogram The output chromatogram
+
       */
       void populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                          Size& default_arr_length, const PeakFileOptions& peak_file_options,
+                                          Size& length,
+                                          const PeakFileOptions& peak_file_options,
                                           ChromatogramType& inp_chromatogram);
-
-      template <typename DataType>
-      void writeBinaryDataArray_(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type);
-
-      void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector< ConstDataProcessingPtr > >& dps, Internal::MzMLValidator& validator);
 
       /// Fills the current chromatogram with data points and meta data
       void fillChromatogramData_();
 
       /// Handles CV terms
-      void handleCVParam_(const String& parent_parent_tag, const String& parent_tag, /*  const String & cvref, */ const String& accession, const String& name, const String& value, const String& unit_accession = "");
+      void handleCVParam_(const String& parent_parent_tag,
+                          const String& parent_tag,
+                          /*  const String & cvref, */
+                          const String& accession,
+                          const String& name,
+                          const String& value,
+                          const String& unit_accession = "");
 
       /// Handles user terms
       void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
+      //@}
+
+      /**
+       * @anchor helper_write
+       * @name Helper functions for writing data
+       */
+      //@{
+
+      /// Write out XML header including (everything up to spectrumList / chromatogramList
+      void writeHeader_(std::ostream& os,
+                        const MapType& exp,
+                        std::vector<std::vector< ConstDataProcessingPtr > >& dps,
+                        const Internal::MzMLValidator& validator);
+
+
+      /// Write out a single spectrum
+      void writeSpectrum_(std::ostream& os,
+                          const SpectrumType& spec,
+                          Size spec_idx,
+                          const Internal::MzMLValidator& validator,
+                          bool renew_native_ids,
+                          std::vector<std::vector< ConstDataProcessingPtr > >& dps);
+
+      /// Write out a single chromatogram
+      void writeChromatogram_(std::ostream& os,
+                              const ChromatogramType& chromatogram,
+                              Size chrom_idx,
+                              const Internal::MzMLValidator& validator);
+
+      template <typename ContainerT>
+      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
+
+      /**
+          @brief Write a single <binaryDataArray> element to the output
+
+          @param os The stream into which to write
+          @param options The PeakFileOptions which determines the compression type to use
+          @param data The data to write (32bit float or 64 bit double)
+          @param is32bit Whether data is 32bit
+          @param array_type Which type of data array is written (mz, time, intensity or float_data)
+          @param array_name Optional array name (for float data arrays)
+
+          @note The data argument may be modified by the function (see Base64 for reasons why)
+
+      */
+      template <typename DataType>
+      void writeBinaryDataArray_(std::ostream& os,
+                                 const PeakFileOptions& options,
+                                 std::vector<DataType>& data,
+                                 bool is32bit,
+                                 String array_type);
+
+      /**
+          @brief Write a single <binaryDataArray> element for a float data array to the output
+
+          This is only for non-standard data arrays which are treated slightly
+          differently by the standard.
+
+          @param os The stream into which to write
+          @param options The PeakFileOptions which determines the compression type to use
+          @param array The data to write
+          @param spec_chrom_idx The index of the current spectrum or chromatogram
+          @param array_id The index of the current float data array
+          @param isSpectrum Whether data is associated with a spectrum (if false, a chromatogram is assumed)
+          @param validator Validator object
+      */
+      void writeBinaryFloatDataArray_(std::ostream& os,
+                                      const PeakFileOptions& pf_options_,
+                                      const OpenMS::DataArrays::FloatDataArray& array,
+                                      const Size spec_chrom_idx,
+                                      const Size array_idx,
+                                      bool isSpectrum,
+                                      const Internal::MzMLValidator& validator);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, Internal::MzMLValidator& validator) const;
-
-      /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
-      ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
+      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator) const;
 
       /// Helper method that writes a software
-      void writeSoftware_(std::ostream& os, const String& id, const Software& software, Internal::MzMLValidator& validator);
+      void writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator);
 
       /// Helper method that writes a source file
-      void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, Internal::MzMLValidator& validator);
+      void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, const Internal::MzMLValidator& validator);
 
       /// Helper method that writes a data processing list
-      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, Internal::MzMLValidator& validator);
+      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
-      void writePrecursor_(std::ostream& os, const Precursor& precursor, Internal::MzMLValidator& validator);
+      void writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
-      void writeProduct_(std::ostream& os, const Product& product, Internal::MzMLValidator& validator);
+      void writeProduct_(std::ostream& os, const Product& product, const Internal::MzMLValidator& validator);
 
       /// Helper method to write an CV based on a meta value
       String writeCV_(const ControlledVocabulary::CVTerm& c, const DataValue& metaValue) const;
@@ -274,11 +388,16 @@ protected:
       /// Helper method to validate if the given CV is allowed in the current location (path)
       bool validateCV_(const ControlledVocabulary::CVTerm& c, const String& path, const Internal::MzMLValidator& validator) const;
 
+      /// Helper method to look up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
+      ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
+
+      //@}
 
       // MEMBERS
 
       /// map pointer for reading
       MapType* exp_{ nullptr };
+
       /// map pointer for writing
       const MapType* cexp_{ nullptr };
 
@@ -319,6 +438,8 @@ protected:
       Map<String, std::vector< DataProcessingPtr > > processing_;
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
+      /// Count of selected ions
+      UInt selected_ion_count_{ 0 };
 
       /**
           @brief Data necessary to generate a single spectrum
@@ -356,10 +477,15 @@ protected:
       std::vector<ChromatogramData> chromatogram_data_;
 
       //@}
-      /**@name temporary data structures to hold written data */
+      /**@name temporary data structures to hold written data
+       *
+       * These data structures are used to store binary offsets required by the
+       * indexedMzML format, specifically the start of each <spectrum> and
+       * <chromatogram> tag is stored and will then be stored at the end of the file.
+       **/
       //@{
-      std::vector<std::pair<std::string, long> > spectra_offsets_;
-      std::vector<std::pair<std::string, long> > chromatograms_offsets_;
+      std::vector<std::pair<std::string, long> > spectra_offsets_; ///< Stores binary offsets for each <spectrum> tag
+      std::vector<std::pair<std::string, long> > chromatograms_offsets_; ///< Stores binary offsets for each <chromatogram> tag
       //@}
 
       /// Progress logger
@@ -368,18 +494,17 @@ protected:
       /// Consumer class to work on spectra
       Interfaces::IMSDataConsumer* consumer_{ nullptr };
 
-      /// Counting spectra and chromatograms
-      UInt scan_count_{ 0 };  //< number of scans which pass the options-filter
-      UInt chromatogram_count_{ 0 }; //< number of chromatograms which pass the options-filter
-      Int scan_count_total_{ -1 }; //< total number of scans in mzML file (according to 'count' attribute)
-      Int chrom_count_total_{ -1 }; //< total number of chromatograms in mzML file (according to 'count' attribute)
+      /**@name temporary data structures for counting spectra and chromatograms */
+      UInt scan_count_{ 0 };  ///< number of scans which pass the options-filter
+      UInt chromatogram_count_{ 0 }; ///< number of chromatograms which pass the options-filter
+      Int scan_count_total_{ -1 }; ///< total number of scans in mzML file (according to 'count' attribute)
+      Int chrom_count_total_{ -1 }; ///< total number of chromatograms in mzML file (according to 'count' attribute)
+      //@}
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
       CVMappings mapping_;
 
-      ///Count of selected ions
-      UInt selected_ion_count_{ 0 };
     };
 
     //--------------------------------------------------------------------------------

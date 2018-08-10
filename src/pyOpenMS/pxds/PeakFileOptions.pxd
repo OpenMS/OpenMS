@@ -67,3 +67,6 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         NumpressConfig getNumpressConfigurationIntensity() nogil except +
         void setNumpressConfigurationIntensity(NumpressConfig config) nogil except +
 
+        NumpressConfig getNumpressConfigurationFloatDataArray() nogil except +
+        void setNumpressConfigurationFloatDataArray(NumpressConfig config) nogil except +
+

@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@ $Authors: Hannes Roest $
 """
 This program can be used to only compile the pyopenms.pyx to a cpp file using
 Cython. This is an intermediate step in the pyOpenMS build process and it
-should only be used for debugging. 
+should only be used for debugging.
 
 It may be useful if something went wrong during the Cython compilation. One can
 then try to fix the pyopenms.pyx file, run this script and see whether Cython

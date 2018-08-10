@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,12 +51,6 @@ namespace OpenMS
 
   MzIdentMLFile::~MzIdentMLFile()
   {
-  }
-
-  void MzIdentMLFile::load(const String& filename, Identification& id)
-  {
-    Internal::MzIdentMLHandler handler(id, filename, schema_version_, *this);
-    parse_(filename, &handler);
   }
 
   void MzIdentMLFile::load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid)
