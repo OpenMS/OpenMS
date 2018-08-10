@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-// #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <map>
 #include <set>
@@ -43,8 +43,6 @@
 namespace OpenMS
 {
   class ExperimentalDesign;
-  // class StringList;
-  typedef std::vector<String> StringList;
  
   /**
   @brief Provides means to load an ExperimentalDesign from a TSV file.

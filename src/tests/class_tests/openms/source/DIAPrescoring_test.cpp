@@ -37,6 +37,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 
 using namespace std;
 using namespace OpenMS;

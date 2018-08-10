@@ -35,12 +35,14 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 
 using namespace std;

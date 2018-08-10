@@ -38,14 +38,16 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <algorithm>
 #include <cmath>
 #include <set>
 #include <fstream>
+
 namespace OpenMS
 {
+
+  class Feature;
 
   /**
     @brief This class implements the database preprocessing needing for precursor ion selection.

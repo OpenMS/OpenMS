@@ -39,10 +39,6 @@
 
 namespace OpenMS
 {
-  class MSSpectrum;
-  class MSChromatogram;
-  class MSExperiment;
-
   //@{
   /**
       @brief Spectrum consisting of raw data points or peaks.
@@ -51,8 +47,8 @@ namespace OpenMS
 
       @ingroup Kernel
   */
-
   typedef MSSpectrum PeakSpectrum;
+
   /**
       @brief Two-dimensional map of raw data points or peaks.
 
@@ -69,5 +65,4 @@ namespace OpenMS
   //@}
 
 }
-
 

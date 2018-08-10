@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <svm.h>
 
 #include <vector>
@@ -43,6 +42,8 @@
 
 namespace OpenMS
 {
+  class AASequence;
+
   /**
     @brief Serves for encoding sequences into feature vectors
 
@@ -156,11 +157,11 @@ public:
     void libSVMVectorsToString(svm_problem * vector, String & output);
 
     /**
-              @brief encodes an AASequence instance in oligo encoding
+      @brief encodes an AASequence instance in oligo encoding
 
-              This function is used to get the oligo encoding for AASequence
+      This function is used to get the oligo encoding for AASequence
       'sequence'. If a residue is modified, it gets an extra oligo function.
-          */
+     */
     void encodeOligo(const AASequence & sequence,
                      UInt k_mer_length,
                      const String & allowed_characters,

@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
+
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/Transitions.h>
 

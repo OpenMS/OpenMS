@@ -34,8 +34,13 @@
 //
 
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h> // for "StringList"
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace std;
 

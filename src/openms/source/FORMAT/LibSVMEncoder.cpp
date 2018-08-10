@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
+
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 

@@ -35,11 +35,11 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/PIP/LocalLinearMap.h>
 
 namespace OpenMS
 {
+  class AASequence;
 
   /**
       @brief Predict peak heights of peptides based on Local Linear %Map model

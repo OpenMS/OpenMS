@@ -34,7 +34,6 @@
 
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
-
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
 

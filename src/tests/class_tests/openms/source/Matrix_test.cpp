@@ -31,18 +31,15 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
-//
-
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
-// Includes go here....
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
-
 ///////////////////////////
+
+#include <sstream>
 
 START_TEST(Matrix, "$Id$");
 

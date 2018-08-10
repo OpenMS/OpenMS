@@ -37,9 +37,11 @@
 
 ///////////////////////////
 #include <OpenMS/METADATA/AbsoluteQuantitationStandards.h>
+///////////////////////////
+
 #include <OpenMS/FORMAT/AbsoluteQuantitationStandardsFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-///////////////////////////
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace OpenMS;
 using namespace std;

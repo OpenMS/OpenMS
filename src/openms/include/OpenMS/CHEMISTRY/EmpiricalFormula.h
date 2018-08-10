@@ -41,8 +41,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-
-
 namespace OpenMS
 {
   class String;

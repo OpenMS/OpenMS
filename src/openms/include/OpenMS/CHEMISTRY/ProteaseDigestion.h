@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
 #include <string>
@@ -43,6 +42,8 @@
 
 namespace OpenMS
 {
+  class AASequence;
+
   /**
      @brief Class for the enzymatic digestion of proteins
 

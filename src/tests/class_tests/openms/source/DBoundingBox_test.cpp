@@ -39,6 +39,8 @@
 
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
+#include <sstream>
+
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;

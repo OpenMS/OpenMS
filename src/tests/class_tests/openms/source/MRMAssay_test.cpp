@@ -31,13 +31,16 @@
 // $Maintainer: George Rosenberger $
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 ///////////////////////////
+
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 
 using namespace OpenMS;
 using namespace std;

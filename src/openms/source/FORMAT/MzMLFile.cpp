@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>

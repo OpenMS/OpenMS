@@ -44,11 +44,6 @@ class QString;
 namespace OpenMS
 {
 
-  // go to Types.h
-  typedef std::vector<String> StringList;
-  typedef std::vector<Int> IntList;
-  typedef std::vector<double> DoubleList;
-
   /**
     @brief Class to hold strings, numeric values, lists of strings and lists of numeric values.
 

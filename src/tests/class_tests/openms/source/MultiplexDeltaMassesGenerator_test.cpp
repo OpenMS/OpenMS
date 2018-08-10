@@ -37,6 +37,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 using namespace OpenMS;
 
 START_TEST(MultiplexDeltaMassesGenerator, "$Id$")

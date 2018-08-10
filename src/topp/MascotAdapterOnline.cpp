@@ -40,6 +40,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 

@@ -43,6 +43,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+
 ///////////////////////////
 
 START_TEST(MSExperiment, "$Id$");

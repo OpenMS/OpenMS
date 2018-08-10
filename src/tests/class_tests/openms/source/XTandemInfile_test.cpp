@@ -36,10 +36,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/XTandemInfile.h>
-
 ///////////////////////////
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 START_TEST(XTandemInfile, "$Id$")
 

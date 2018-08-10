@@ -34,15 +34,18 @@
 
 #pragma once
 
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <vector>
 #include <map>
 #include <set>
 
 namespace OpenMS
 {
+  class AASequence;
+  class ResidueModification;
+
   class OPENMS_DLLAPI ModifiedPeptideGenerator
   {
    /*
@@ -52,17 +55,32 @@ namespace OpenMS
   public
 :
     // Applies fixed modifications to a single peptide
-    static void applyFixedModifications(const std::vector<ResidueModification>::const_iterator& fixed_mods_begin, const std::vector<ResidueModification>::const_iterator& fixed_mods_end, AASequence& peptide);
+    static void applyFixedModifications(const std::vector<ResidueModification>::const_iterator& fixed_mods_begin,
+                                        const std::vector<ResidueModification>::const_iterator& fixed_mods_end, AASequence& peptide);
 
     // Applies variable modifications to a single peptide. If keep_original is set the original (e.g. unmodified version) is also returned
-    static void applyVariableModifications(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, Size max_variable_mods_per_peptide, std::vector<AASequence>& all_modified_peptides, bool keep_original=true);
+    static void applyVariableModifications(const std::vector<ResidueModification>::const_iterator& var_mods_begin,
+                                           const std::vector<ResidueModification>::const_iterator& var_mods_end,
+                                           const AASequence& peptide,
+                                           Size max_variable_mods_per_peptide,
+                                           std::vector<AASequence>& all_modified_peptides,
+                                           bool keep_original=true);
 
   protected:
     // Recursively generate all combinatoric placements at compatible sites
-    static void recurseAndGenerateVariableModifiedPeptides_(const std::vector<int>& subset_indices, const std::map<int, std::vector<ResidueModification> >& map_compatibility, int depth, const AASequence& current_peptide, std::vector<AASequence>& modified_peptides);
+    static void recurseAndGenerateVariableModifiedPeptides_(const std::vector<int>& subset_indices,
+                                                            const std::map<int,
+                                                            std::vector<ResidueModification> >& map_compatibility,
+                                                            int depth,
+                                                            const AASequence& current_peptide,
+                                                            std::vector<AASequence>& modified_peptides);
 
     // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification. Already modified residues are skipped
-    static void applyAtMostOneVariableModification_(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, const AASequence& peptide, std::vector<AASequence>& all_modified_peptides, bool keep_original=true);
+    static void applyAtMostOneVariableModification_(const std::vector<ResidueModification>::const_iterator& var_mods_begin,
+                                                    const std::vector<ResidueModification>::const_iterator& var_mods_end,
+                                                    const AASequence& peptide,
+                                                    std::vector<AASequence>& all_modified_peptides,
+                                                    bool keep_original=true);
 
   };
 }

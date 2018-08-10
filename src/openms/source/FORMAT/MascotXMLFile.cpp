@@ -34,6 +34,12 @@
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+
 using namespace xercesc;
 using namespace std;
 

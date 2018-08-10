@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+
 #include <iostream>
 
 using namespace std;

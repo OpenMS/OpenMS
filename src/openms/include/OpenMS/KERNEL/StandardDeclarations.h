@@ -46,3 +46,4 @@ namespace OpenMS
   class MSExperiment;
   class ExperimentalSettings;
 }
+

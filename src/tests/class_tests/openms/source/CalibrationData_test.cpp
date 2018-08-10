@@ -39,6 +39,8 @@
 ///////////////////////////
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 
 using namespace OpenMS;
 using namespace std;

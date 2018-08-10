@@ -34,11 +34,19 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <iosfwd>
+#include <map>
+#include <set>
+#include <algorithm>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CHEMISTRY/Residue.h>
 
 namespace OpenMS
 {
+
+  class AASequence;
+  class EmpiricalFormula;
 
   /**
   @brief Encapsulated weight queries to simplify mono vs average weight computation
@@ -51,7 +59,11 @@ namespace OpenMS
 
 public:
 
-    enum WEIGHTMODE {AVERAGE = 0, MONO, SIZE_OF_WEIGHTMODE};
+    enum WEIGHTMODE {
+      AVERAGE = 0, ///< Average weight
+      MONO, ///< Monoisotopic weight
+      SIZE_OF_WEIGHTMODE
+    };
 
     /**
     @brief constructor
@@ -124,7 +136,6 @@ public:
 private:
 
     WEIGHTMODE weight_mode_;         ///< one of WeightWrapper::WEIGHTMODE's values
-
 
   };
 }

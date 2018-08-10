@@ -35,14 +35,16 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
 #include <string>
 #include <vector>
 
 namespace OpenMS
 {
+  class DigestionEnzyme;
+
   /**
        @brief Class for the Log L model of enzymatic digestion of proteins
 
@@ -133,6 +135,7 @@ protected:
 
     /// Threshold to decide if position is cleaved or missed (only for the model)
     double log_model_threshold_;
+
     /// Holds the cleavage model
     Map<BindingSite_, CleavageModel_> model_data_;
   };

@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <iostream>
 
 using namespace OpenMS;

@@ -35,8 +35,6 @@
 #pragma once
 
 #include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>

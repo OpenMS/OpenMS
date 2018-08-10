@@ -37,6 +37,8 @@
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
 namespace OpenMS
 {
 

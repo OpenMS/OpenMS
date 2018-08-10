@@ -35,7 +35,6 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <iosfwd>

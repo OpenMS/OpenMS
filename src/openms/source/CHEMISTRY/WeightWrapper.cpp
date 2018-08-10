@@ -34,6 +34,9 @@
 
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
 namespace OpenMS
 {
 
@@ -59,7 +62,9 @@ namespace OpenMS
   void WeightWrapper::setWeightMode(const WEIGHTMODE mode)
   {
     if (mode >= WeightWrapper::SIZE_OF_WEIGHTMODE)
+    {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "setWeightMode() received illegal 'mode' value!");
+    }
     weight_mode_ = mode;
   }
 
@@ -71,25 +76,37 @@ namespace OpenMS
   double WeightWrapper::getWeight(const AASequence & aa) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
+    {
       return aa.getMonoWeight();
+    }
     else
+    {
       return aa.getAverageWeight();
+    }
   }
 
   double WeightWrapper::getWeight(const EmpiricalFormula & ef) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
+    {
       return ef.getMonoWeight();
+    }
     else
+    {
       return ef.getAverageWeight();
+    }
   }
 
   double WeightWrapper::getWeight(const Residue & r, Residue::ResidueType res_type) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
+    {
       return r.getMonoWeight(res_type);
+    }
     else
+    {
       return r.getAverageWeight(res_type);
+    }
   }
 
 }

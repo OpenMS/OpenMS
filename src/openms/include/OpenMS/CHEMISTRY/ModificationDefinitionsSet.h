@@ -35,25 +35,24 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CONCEPT/Types.h> // for "UInt"
+#include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h> // for "StringList"
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <set>
 
 namespace OpenMS
 {
+  class AASequence;
+  class PeptideIdentification;
+
   /** @ingroup Chemistry
 
-          @brief Representation of a set of modification definitions
+      @brief Representation of a set of modification definitions
 
-          This class enhances the modification definitions as defined in the
-          class ModificationDefinition into a set of definitions. This is also
-          e.g. used as input parameters  in search engines.
+      This class enhances the modification definitions as defined in the
+      class ModificationDefinition into a set of definitions. This is also
+      e.g. used as input parameters  in search engines.
   */
   class OPENMS_DLLAPI ModificationDefinitionsSet
   {

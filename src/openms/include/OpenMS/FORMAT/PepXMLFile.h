@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -45,7 +44,6 @@
 #include <vector>
 #include <map>
 #include <set>
-
 
 namespace OpenMS
 {

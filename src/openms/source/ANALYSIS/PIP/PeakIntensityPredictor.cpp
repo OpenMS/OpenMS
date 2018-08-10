@@ -35,11 +35,12 @@
 
 #include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <cmath>
 #include <string>
 
 using namespace std;
-
 
 namespace OpenMS
 {

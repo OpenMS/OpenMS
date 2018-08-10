@@ -36,6 +36,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
@@ -509,7 +511,7 @@ namespace OpenMS
     return label_short_long_[label];
   }
   
-  MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence)
+  MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(const AASequence& sequence)
   {
     String s(sequence.toString());
 

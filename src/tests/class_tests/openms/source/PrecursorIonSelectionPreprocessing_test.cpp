@@ -40,6 +40,8 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
+#include <OpenMS/KERNEL/Feature.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -38,7 +38,6 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -250,7 +249,8 @@ private:
     void createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound);
 
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                          int location, const ResidueModification& rmod);
+                          int location,
+                          const ResidueModification& rmod);
     //@}
 
     /** @brief Write a TargetedExperiment to a file

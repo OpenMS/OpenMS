@@ -39,6 +39,12 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+
 using namespace OpenMS;
 using namespace std;
 

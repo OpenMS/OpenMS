@@ -39,6 +39,9 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 ///////////////////////////
 
+
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 using namespace OpenMS;
 using namespace std;
 

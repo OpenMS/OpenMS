@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/FORMAT/XMLFile.h>
-#include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/FORMAT/XMLFile.h>
 
+#include <map>
 
 namespace OpenMS
 {
   class ProteinIdentification;
+  class PeptideIdentification;
+  class AASequence;
+  class SpectrumMetaDataLookup;
 
   /**
     @brief Used to load Mascot XML files

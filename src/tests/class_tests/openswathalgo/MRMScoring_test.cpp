@@ -34,6 +34,7 @@
 
 #include "OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h"
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include "OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"

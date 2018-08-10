@@ -36,6 +36,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 ///////////////////////////
 

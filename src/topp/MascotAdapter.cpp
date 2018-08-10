@@ -42,6 +42,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 
 #include <map>
 #include <iostream>

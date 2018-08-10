@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <boost/regex.hpp>
 
@@ -45,6 +45,8 @@
 
 namespace OpenMS
 {
+  class DigestionEnzyme;
+
   /**
      @brief Class for the enzymatic digestion of sequences
 

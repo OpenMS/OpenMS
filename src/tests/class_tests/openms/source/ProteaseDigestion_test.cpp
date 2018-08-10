@@ -36,9 +36,12 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+///////////////////////////
+
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <vector>
+
 using namespace OpenMS;
 using namespace std;
 

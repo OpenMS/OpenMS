@@ -42,6 +42,8 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
+#include <sstream>
+
 using namespace OpenMS;
 using namespace std;
 

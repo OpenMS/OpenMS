@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
@@ -46,6 +45,9 @@
 
 namespace OpenMS
 {
+
+  class AASequence;
+
   /**
    * @brief generates complete list of all possible mass shifts due to isotopic labelling
    * 
@@ -167,7 +169,7 @@ namespace OpenMS
      * For example, the sequence VLSEEEIDDNFK(Label:13C(6)15N(2))AQR(Label:13C(6)15N(4))
      * contains a set of two labels, Lys8 and Arg10.
      */
-    MultiplexDeltaMasses::LabelSet extractLabelSet(AASequence sequence);
+    MultiplexDeltaMasses::LabelSet extractLabelSet(const AASequence& sequence);
     
     private:
    

@@ -34,6 +34,7 @@
 
 #include "OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h"
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include "OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h"
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
 #include <boost/random.hpp>

@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/PepXMLFile.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>

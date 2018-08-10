@@ -31,11 +31,15 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+
+///////////////////////////
 #include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
+///////////////////////////
+
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 using namespace OpenMS;
 using namespace std;

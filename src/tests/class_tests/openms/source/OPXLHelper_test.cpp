@@ -39,6 +39,7 @@
 
 #include <OpenMS/ANALYSIS/XLMS/OPXLHelper.h>
 
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>

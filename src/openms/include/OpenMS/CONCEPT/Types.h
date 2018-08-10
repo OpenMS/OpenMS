@@ -39,6 +39,7 @@
 #include <ctime>
 #include <cstddef> // for size_t & ptrdiff_t
 #include <limits>
+#include <vector>
 
 // If possible use the ISO C99-compliant header stdint.h
 // to define the portable integer types.
@@ -48,6 +49,8 @@
 
 namespace OpenMS
 {
+  class String;
+
   /**
     @brief Signed integer type (32bit)
 
@@ -306,6 +309,27 @@ namespace OpenMS
     */
     extern OPENMS_DLLAPI const char* OpenMS_locale;
   }
+
+  /**
+    @brief Vector of signed integers.
+
+    @ingroup Concept
+  */
+  typedef std::vector<Int> IntList;
+
+  /**
+   @brief Vector of double precision real types.
+
+   @ingroup Concept
+   */
+  typedef std::vector<double> DoubleList;
+
+  /**
+   @brief Vector of String.
+
+   @ingroup Concept
+   */
+  typedef std::vector<String> StringList;
 
 } // namespace OpenMS
 

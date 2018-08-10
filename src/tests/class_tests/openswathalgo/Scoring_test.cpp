@@ -34,6 +34,7 @@
 
 #include "OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h"
 
+#include <OpenMS/CONCEPT/Exception.h>
 #include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
 
 #ifdef USE_BOOST_UNIT_TEST
