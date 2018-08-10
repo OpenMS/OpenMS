@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 #ifdef USE_BOOST_UNIT_TEST
 
 // include boost unit test framework

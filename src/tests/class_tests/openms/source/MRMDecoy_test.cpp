@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
