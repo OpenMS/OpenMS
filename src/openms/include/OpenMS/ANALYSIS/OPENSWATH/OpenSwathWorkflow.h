@@ -103,8 +103,32 @@ namespace OpenMS
 
 protected:
 
-    explicit OpenSwathWorkflowBase(bool use_ms1_traces) :
-      use_ms1_traces_(use_ms1_traces)
+    /** @brief Default constructor
+     *
+     *  Will not use any ms1 traces and use all threads in the outer loop.
+     *
+     **/
+    OpenSwathWorkflowBase() :
+      use_ms1_traces_(false),
+      threads_outer_loop_(-1)
+    {
+    }
+
+    /** @brief Constructor
+     *
+     *  @param use_ms1_traces Whether to use MS1 data
+     *  @param threads_outer_loop How many threads should be used for the outer
+     *  loop (-1 will use all threads in the outer loop)
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     *
+     **/
+    OpenSwathWorkflowBase(bool use_ms1_traces, int threads_outer_loop) :
+      use_ms1_traces_(use_ms1_traces),
+      threads_outer_loop_(threads_outer_loop)
     {
     }
 
@@ -157,6 +181,17 @@ protected:
     bool use_ms1_traces_;
 
 
+    /** @brief How many threads should be used for the outer loop
+     *
+     *  @note A value of -1 will use all threads in the outer loop
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     **/
+    int threads_outer_loop_;
+
   };
 
   /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on a set of known peptides
@@ -167,13 +202,13 @@ protected:
   {
   public:
 
-    explicit OpenSwathRetentionTimeNormalization() :
-      OpenSwathWorkflowBase(false)
+    OpenSwathRetentionTimeNormalization() :
+      OpenSwathWorkflowBase()
     {
     }
 
     explicit OpenSwathRetentionTimeNormalization(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces)
+      OpenSwathWorkflowBase(use_ms1_traces, -1)
     {
     }
 
@@ -248,14 +283,16 @@ protected:
                                     bool load_into_memory);
 
     static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
+
   };
 
   /**
    * @brief Class to execute an OpenSwath Workflow
    *
-   * The workflow will perform a complete OpenSWATH analysis. Optionally, an RT
-   * transformation (mapping peptides to normalized space) can be obtained
-   * beforehand using the OpenSwathRetentionTimeNormalization class.
+   * The workflow will perform a complete OpenSWATH analysis, see
+   * performExtraction(). Optionally, a calibration of m/s and retention time
+   * (mapping peptides to normalized space and correcting m/z error) can be
+   * performed beforehand using the OpenSwathRetentionTimeNormalization class.
    *
    */
   class OPENMS_DLLAPI OpenSwathWorkflow :
@@ -266,8 +303,20 @@ protected:
 
   public:
 
-    explicit OpenSwathWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces)
+    /** @brief Constructor
+     *
+     *  @param use_ms1_traces Whether to use MS1 data
+     *  @param threads_outer_loop How many threads should be used for the outer
+     *  loop (-1 will use all threads in the outer loop)
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     *
+     **/
+    OpenSwathWorkflow(bool use_ms1_traces, int threads_outer_loop) :
+      OpenSwathWorkflowBase(use_ms1_traces, threads_outer_loop)
     {
     }
 
@@ -275,35 +324,40 @@ protected:
      *
      * Executes the following operations on the given input:
      *
-     * 1. Selecting the appropriate transitions for each SWATH window (using OpenSwathHelper::selectSwathTransitions)
-     * 2. Extract the chromatograms from the SWATH maps (MS1 and MS2) using (ChromatogramExtractor)
-     * 3. Pick peaks in the chromatograms and perform peak scoring (inside scoreAllChromatograms function)
-     * 4. Write out chromatograms and found features
+     * -# Selecting the appropriate transitions for each SWATH window (using OpenSwathHelper::selectSwathTransitions)
+     * -# Extract the chromatograms from the SWATH maps (MS1 and MS2) using (ChromatogramExtractor)
+     * -# Pick peaks in the chromatograms and perform peak scoring (inside scoreAllChromatograms function)
+     * -# Write out chromatograms and found features
      *
      * @param swath_maps The raw data (swath maps)
-     * @param trafo Transformation description (translating this runs' RT to normalized RT space)
-     * @param cp Parameter set for the chromatogram extraction
+     * @param rt_trafo Retention time transformation description (translating this runs' RT to normalized RT space)
+     * @param chromatogram_extraction_params Parameter set for the chromatogram extraction
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param transition_exp The set of assays to be extracted and scored
-     * @param out_featureFile Output feature map to store identified features
-     * @param store_features Whether features should be appended to the output feature map
-     * @param tsv_writer TSV Writer object to store identified features in csv format
-     * @param osw_writer OSW Writer object to store identified features in SQLite format
-     * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
+     * @param assay_library The set of assays to be extracted and scored
+     * @param result_featureFile Output feature map to store identified features
+     * @param store_features_in_featureFile Whether features should be appended to the output feature map
+     * @param result_tsv TSV Writer object to store identified features in csv format
+     * @param result_osw OSW Writer object to store identified features in SQLite format
+     * @param result_chromatograms Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
      * @param load_into_memory Whether to cache the current SWATH map in memory
      *
+     * @note Speed and memory performance can be influenced by \p batchSize and
+     * \p load_into_memory where larger batch sizes increase memory and
+     * potentially decrease the utility of parallelization while loading data
+     * into memory will increase memory usage but decrease execution time.
+     *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                           const TransformationDescription trafo,
-                           const ChromExtractParams & cp,
+                           const TransformationDescription rt_trafo,
+                           const ChromExtractParams & chromatogram_extraction_params,
                            const Param & feature_finder_param,
-                           const OpenSwath::LightTargetedExperiment& transition_exp,
-                           FeatureMap& out_featureFile,
-                           bool store_features,
-                           OpenSwathTSVWriter & tsv_writer,
-                           OpenSwathOSWWriter & osw_writer,
-                           Interfaces::IMSDataConsumer * chromConsumer,
+                           const OpenSwath::LightTargetedExperiment& assay_library,
+                           FeatureMap& result_featureFile,
+                           bool store_features_in_featureFile,
+                           OpenSwathTSVWriter & result_tsv,
+                           OpenSwathOSWWriter & result_osw,
+                           Interfaces::IMSDataConsumer * result_chromatograms,
                            int batchSize,
                            bool load_into_memory);
 
@@ -396,9 +450,11 @@ protected:
   {
 
   public:
+
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces)
-    {}
+      OpenSwathWorkflow(use_ms1_traces, -1)
+    {
+    }
 
     /** @brief Execute the OpenSWATH workflow on a set of SONAR SwathMaps and transitions.
      *

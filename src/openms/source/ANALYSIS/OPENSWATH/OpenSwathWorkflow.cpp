@@ -38,8 +38,6 @@
 namespace OpenMS
 {
 
-  int OUTER_THREAD_NUM = -1; // use all threads for outer loop parallelization
-
   TransformationDescription OpenSwathRetentionTimeNormalization::performRTNormalization(
     const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenSwath::SwathMap > & swath_maps,
@@ -468,11 +466,11 @@ namespace OpenMS
     // better load balancing than static allocation.
 #ifdef _OPENMP
     int total_nr_threads = omp_get_max_threads(); // store total number of threads we are allowed to use
-    if (OUTER_THREAD_NUM > -1)
+    if (threads_outer_loop_ > -1)
     {
       omp_set_nested(1);
       omp_set_dynamic(0);
-      omp_set_num_threads(std::min(OUTER_THREAD_NUM, omp_get_max_threads()) ); // use at most OUTER_THREAD_NUM threads here
+      omp_set_num_threads(std::min(threads_outer_loop_, omp_get_max_threads()) ); // use at most threads_outer_loop_ threads here
     }
 #pragma omp parallel for schedule(dynamic,1)
 #endif
@@ -507,7 +505,7 @@ namespace OpenMS
 
           size_t nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
 #ifdef _OPENMP
-          // If we have a multiple of OUTER_THREAD_NUM here, then use nested
+          // If we have a multiple of threads_outer_loop_ here, then use nested
           // parallelization here. E.g. if we use 8 threads for the outer loop,
           // but we have a total of 24 cores available, each of the 8 threads
           // will then create a team of 3 threads to work on the batches
@@ -516,7 +514,7 @@ namespace OpenMS
           // We should avoid oversubscribing the CPUs, therefore we use integer division.
           // -- see https://docs.oracle.com/cd/E19059-01/stud.10/819-0501/2_nested.html
           int outer_thread_nr = omp_get_thread_num();
-          omp_set_num_threads(std::max(1, total_nr_threads / OUTER_THREAD_NUM) );
+          omp_set_num_threads(std::max(1, total_nr_threads / threads_outer_loop_) );
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
           for (size_t pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
@@ -526,7 +524,7 @@ namespace OpenMS
             // To ensure multi-threading safe access to the individual spectra, we
             // need to use a light clone of the spectrum access (if multiple threads
             // share a single filestream and call seek on it, chaos will ensue).
-            if (total_nr_threads / OUTER_THREAD_NUM > 1)
+            if (total_nr_threads / threads_outer_loop_ > 1)
             {
               current_swath_map_inner = current_swath_map->lightClone();
             }
