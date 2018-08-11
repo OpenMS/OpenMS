@@ -34,10 +34,17 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MRMFeatureQCFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
 ///////////////////////////
+
+#define TRANSITIONTSVREADER_TESTING 1 
 
 using namespace OpenMS;
 using namespace std;
@@ -49,6 +56,24 @@ START_TEST(MRMFeatureSelector, "$Id$")
 
 MRMFeatureSelector* ptr = 0;
 MRMFeatureSelector* null_ptr = 0;
+
+const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1.featureXML");
+const String target_list_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_BloodProject01_SWATH.csv");
+// const String components_path = OPENMS_GET_TEST_DATA_PATH("test_pyTOPP_MRMFeatureQCComponents.csv");
+// const String components_groups_path = OPENMS_GET_TEST_DATA_PATH("test_pyTOPP_MRMFeatureQCComponentGroups.csv");
+
+FeatureMap feature_map;
+FeatureXMLFile feature_file;
+feature_file.load(features_path, feature_map);
+
+TransitionTSVFile tsv_reader;
+TargetedExperiment targeted_exp;
+tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
+
+// MRMFeatureQCFile mrmfqcfile;
+// MRMFeatureQC mrmfqc;
+// mrmfqcfile.load(components_path, mrmfqc, false); // components file
+// mrmfqcfile.load(components_groups_path, mrmfqc, true); // component groups file
 
 START_SECTION(MRMFeatureSelector())
 {
@@ -132,6 +157,12 @@ START_SECTION(getOptimalThreshold())
   TEST_EQUAL(ptr->getOptimalThreshold(), 0.5)
   ptr->setOptimalThreshold(0.6);
   TEST_EQUAL(ptr->getOptimalThreshold(), 0.6)
+}
+END_SECTION
+
+START_SECTION(select_MRMFeature_qmip())
+{
+  ptr->select_MRMFeature_qmip(feature_map, targeted_exp);
 }
 END_SECTION
 

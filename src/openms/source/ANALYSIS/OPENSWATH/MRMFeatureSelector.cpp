@@ -32,10 +32,18 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
+#include <algorithm>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
 
 namespace OpenMS
 {
+  // bool comp(const std::pair<double, String>& a, const std::pair<double, String>& b) {
+  //   return a.first < b.first;
+  // }
+
+        
+
   MRMFeatureSelector::MRMFeatureSelector() :
     DefaultParamHandler("MRMFeatureSelector")
   {
@@ -45,7 +53,8 @@ namespace OpenMS
 
   MRMFeatureSelector::~MRMFeatureSelector() {}
 
-  void MRMFeatureSelector::optimize_Tr() {}
+  void MRMFeatureSelector::optimize_Tr() {
+  }
 
   void MRMFeatureSelector::optimize_score() {}
 
@@ -53,7 +62,74 @@ namespace OpenMS
     FeatureMap& features,
     TargetedExperiment& targeted_exp
   )
-  {}
+  {
+    std::cout << "=======START========" << std::endl;
+    std::vector<std::pair<double, String>> time_to_name;
+    std::map< String, std::vector<std::map<String, DataValue>> > feature_name_map;
+    size_t feature_count = 0;
+    for (FeatureMap::const_iterator it = features.begin(); it != features.end(); ++it) {
+      String component_group_name = it->getMetaValue("PeptideRef").toString();
+      double retention_time = it->getRT();
+      double assay_retention_time = it->getMetaValue("assay_rt");
+      UInt64 transition_id = it->getUniqueId();
+      std::vector<String> keys;
+      it->getKeys(keys);
+      std::map<String, DataValue> feature_properties {
+        {"retention_time", retention_time},
+        {"transition_id", transition_id},
+        {"component_group_name", component_group_name},
+        {"component_name", component_group_name},
+      };
+      for (Size i = 0; i < keys.size(); i++) {
+        feature_properties[keys[i]] = it->getMetaValue(keys[i]);
+      }
+      time_to_name.push_back(std::make_pair(assay_retention_time, component_group_name));
+      if (feature_name_map.find(component_group_name) == feature_name_map.end()) {
+        feature_name_map[component_group_name] = std::vector<std::map<String, DataValue>>();
+      }
+      feature_name_map[component_group_name].push_back(feature_properties);
+      ++feature_count;
+      if (!getSelectTransitionGroup()) {
+        for (std::vector<Feature>::const_iterator sub_it = it->getSubordinates().begin();
+            sub_it != it->getSubordinates().end(); ++sub_it) {
+          String component_name = sub_it->getMetaValue("native_id").toString();
+          time_to_name.push_back(std::make_pair(assay_retention_time, component_name));
+          std::map<String, DataValue> subfeature_properties;
+          subfeature_properties = feature_properties;
+          subfeature_properties["component_name"] = component_name;
+          std::vector<String> subkeys;
+          sub_it->getKeys(subkeys);
+          for (Size i = 0; i < subkeys.size(); i++) {
+            subfeature_properties[subkeys[i]] = sub_it->getMetaValue(subkeys[i]);
+          }
+          if (feature_name_map.find(component_name) == feature_name_map.end()) {
+            feature_name_map[component_name] = std::vector<std::map<String, DataValue>>();
+          }
+          feature_name_map[component_name].push_back(subfeature_properties);
+          ++feature_count;
+        }
+      }
+    }
+    std::cout << feature_count << " features detected" << std::endl;
+    sort(time_to_name.begin(), time_to_name.end());
+    double window_length = getSegmentWindowLength();
+    double step_length = getSegmentWindowLength();
+    if (window_length == -1 && step_length == -1) {
+      window_length = time_to_name.size();
+      step_length = time_to_name.size();
+    }
+    size_t n_segments = std::ceil(time_to_name.size() / step_length) ;
+    std::cout << n_segments << " SEGMENTS" << std::endl;
+    for (size_t i=0; i < n_segments; ++i) {
+      size_t start = step_length*i;
+      size_t end = std::min(start + window_length, (double)time_to_name.size());
+      std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
+      for (const std::pair<double, String>& j : time_slice) {
+        std::cout << j.first << " " << j.second << std::endl;
+      }
+      std::cout << i << " SEGMENT!!!" << std::endl;
+    }
+  }
 
   void MRMFeatureSelector::select_MRMFeature_score() {}
 
