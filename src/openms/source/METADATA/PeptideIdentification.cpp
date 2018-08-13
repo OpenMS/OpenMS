@@ -35,6 +35,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <boost/math/special_functions/fpclassify.hpp> // isnan
+#include <iterator>
 
 using namespace std;
 
