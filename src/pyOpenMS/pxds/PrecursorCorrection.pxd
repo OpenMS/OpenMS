@@ -37,14 +37,14 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
                                                               libcpp_vector[ double ] & mzs,
                                                               libcpp_vector[ double ] & rts) nogil except +
         
-        libcpp_set[ size_t ] corrrectToNearestFeature(FeatureMap & features,
-                                                      MSExperiment & exp,
-                                                      double rt_tolerance_s,
-                                                      double mz_tolerance,
-                                                      bool ppm,
-                                                      bool believe_charge,
-                                                      bool keep_original,
-                                                      bool all_matching_features,
-                                                      int max_trace,
-                                                      int debug_level) nogil except +
+        libcpp_set[ size_t ] correctToNearestFeature(FeatureMap & features,
+                                                     MSExperiment & exp,
+                                                     double rt_tolerance_s,
+                                                     double mz_tolerance,
+                                                     bool ppm,
+                                                     bool believe_charge,
+                                                     bool keep_original,
+                                                     bool all_matching_features,
+                                                     int max_trace,
+                                                     int debug_level) nogil except +
 
