@@ -44,6 +44,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -84,7 +85,6 @@ namespace OpenMS
   class OPENMS_DLLAPI ExperimentalDesign
   {
   public:
-
     /// MSFileSectionEntry links single quant. values back the MS file
     /// It supports:
     ///  - multiplexed/labeled data via specification of the quantified label

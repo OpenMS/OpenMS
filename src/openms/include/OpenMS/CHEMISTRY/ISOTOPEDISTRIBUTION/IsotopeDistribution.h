@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2016.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
         atomic masses.
         The CoarseIsotopePatternGenerator solver quantizes the atomic masses to integer 
         numbers that correspond to the atomic number. Then the calculation of the 
-        IsotopeDistribution produces only atomic numbers.
+        IsotopeDistribution can produce nominal isotopes with accurate or rounded masses
 
     */
   class Element; 
@@ -120,6 +120,9 @@ public:
 
     /// returns the minimal weight isotope which is stored in the distribution
     Peak1D::CoordinateType getMin() const;
+
+    /// returns the most abundant isotope which is stored in the distribution
+    Peak1D getMostAbundant() const;
 
     /// returns the size of the distribution which is the number of isotopes in the distribution
     Size size() const;
@@ -196,6 +199,9 @@ public:
 
     /// inequality operator, returns true if the @p isotope_distribution differs from this, false else
     bool operator!=(const IsotopeDistribution & isotope_distribution) const;
+
+    /// less operator
+    bool operator<(const IsotopeDistribution & isotope_distribution) const;
     //@}
 
     /// @name Iterators
@@ -239,9 +245,6 @@ protected:
 
     /// stores the isotope distribution
     ContainerType distribution_;
-
-    ///Holds the distribution sorted state
-    Sorted sort_type_;
   };
 
 

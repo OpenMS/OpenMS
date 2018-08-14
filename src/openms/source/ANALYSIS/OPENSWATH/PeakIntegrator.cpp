@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -124,17 +124,24 @@ namespace OpenMS
 
     params.setValue("baseline_type", BASELINE_TYPE_BASETOBASE, "The baseline type to use in estimateBackground() based on the peak boundaries. A rectangular baseline shape is computed based either on the minimal intensity of the peak boundaries, the maximum intensity or the average intensity (base_to_base).");
     params.setValidStrings("baseline_type", ListUtils::create<String>("base_to_base,vertical_division,vertical_division_min,vertical_division_max"));
+
+    params.setValue("fit_EMG", "false", "Fit the chromatogram/spectrum to the EMG peak model.");
+    params.setValidStrings("fit_EMG", ListUtils::create<String>("false,true"));
   }
 
   void PeakIntegrator::updateMembers_()
   {
     integration_type_ = (String)param_.getValue("integration_type");
     baseline_type_ = (String)param_.getValue("baseline_type");
+    fit_EMG_ = param_.getValue("fit_EMG").toBool();
   }
 
   template <typename PeakContainerT>
-  PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& p, const double left, const double right) const
+  PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& pc, double left, double right) const
   {
+    PeakContainerT emg_pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
+
     std::function<double(const double, const double)>
     compute_peak_area_trapezoid = [&p](const double left, const double right)
     {
@@ -252,10 +259,13 @@ namespace OpenMS
 
   template <typename PeakContainerT>
   PeakIntegrator::PeakBackground PeakIntegrator::estimateBackground_(
-    const PeakContainerT& p, const double left, const double right,
+    const PeakContainerT& pc, double left, double right,
     const double peak_apex_pos
   ) const
   {
+    PeakContainerT emg_pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
+
     const double int_l = p.PosBegin(left)->getIntensity();
     const double int_r = (p.PosEnd(right) - 1)->getIntensity();
     const double delta_int = int_r - int_l;
@@ -332,10 +342,13 @@ namespace OpenMS
 
   template <typename PeakContainerT>
   PeakIntegrator::PeakShapeMetrics PeakIntegrator::calculatePeakShapeMetrics_(
-    const PeakContainerT& p, const double left, const double right,
+    const PeakContainerT& pc, double left, double right,
     const double peak_height, const double peak_apex_pos
   ) const
   {
+    PeakContainerT emg_pc;
+    const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
+
     PeakShapeMetrics psm;
     psm.points_across_baseline = 0;
     psm.points_across_half_height = 0;
@@ -400,5 +413,23 @@ namespace OpenMS
       ) {}
     }
     return closest->getPos();
+  }
+
+  template <typename PeakContainerT>
+  const PeakContainerT& PeakIntegrator::EMGPreProcess_(
+    const PeakContainerT& pc,
+    PeakContainerT& emg_pc,
+    double& left,
+    double& right
+  ) const
+  {
+    if (fit_EMG_)
+    {
+      emg_.fitEMGPeakModel(pc, emg_pc, left, right);
+      left = emg_pc.front().getPos();
+      right = emg_pc.back().getPos();
+      return emg_pc;
+    }
+    return pc;
   }
 }

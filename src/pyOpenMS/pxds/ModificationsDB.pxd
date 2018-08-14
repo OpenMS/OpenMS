@@ -20,6 +20,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
                                  const String& residue,
                                  TermSpecificity term_spec) nogil except +
 
+        ResidueModification getModification(const String & mod_name) nogil except +
+
         ResidueModification getModification(const String & mod_name,
                                             const String & residue,
                                             TermSpecificity term_spec) nogil except +

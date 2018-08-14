@@ -14,8 +14,19 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
         MRMDecoy()                       nogil except +
         MRMDecoy(MRMDecoy)               nogil except + # wrap-ignore
 
-        void generateDecoys(TargetedExperiment& exp, TargetedExperiment& dec,
-                            String method, String decoy_tag, int max_attempts, double identity_threshold,
-                            double precursor_mz_shift, double product_mz_shift, double product_mz_threshold,
-                            libcpp_vector[String] fragment_types, libcpp_vector[size_t] fragment_charges,
-                            bool enable_specific_losses, bool enable_unspecific_losses, int round_decPow) nogil except +
+        void generateDecoys(TargetedExperiment& exp,
+                            TargetedExperiment& dec,
+                            String method,
+                            double aim_decoy_fraction,
+                            bool switchKR,
+                            String decoy_tag,
+                            int max_attempts,
+                            double identity_threshold,
+                            double precursor_mz_shift,
+                            double product_mz_shift,
+                            double product_mz_threshold,
+                            libcpp_vector[String] fragment_types,
+                            libcpp_vector[size_t] fragment_charges,
+                            bool enable_specific_losses,
+                            bool enable_unspecific_losses,
+                            int round_decPow) nogil except +

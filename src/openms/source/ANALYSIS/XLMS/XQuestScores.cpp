@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,17 +52,15 @@ namespace OpenMS
       return 0.0;
     }
 
-    // avoid 0 values in multiplication, adds a "dynamic range" among candidates with no matching common peaks to one of the peptides
+    // avoid 0 values in multiplication, adds a "dynamic range" among candidates with no matching linear peaks to one of the peptides
     float matched_alpha_float = matched_alpha;
     if (matched_alpha <= 0)
     {
-//      matched_alpha_float = std::numeric_limits<float>::min();
       matched_alpha_float = 0.1f;
     }
     float matched_beta_float = matched_beta;
     if (matched_beta <= 0)
     {
-//      matched_beta_float = std::numeric_limits<float>::min();
       matched_beta_float = 0.1f;
     }
 
@@ -84,8 +82,6 @@ namespace OpenMS
   double XQuestScores::matchOddsScore(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
   {
     using boost::math::binomial;
-
-    // Size matched_size = matched_spec.size();
     Size theo_size = theoretical_spec.size();
 
     if (matched_size < 1 || theo_size < 1)
@@ -122,9 +118,6 @@ namespace OpenMS
     // min double number to avoid 0 values, causing scores with the value "inf"
     match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
 
-    //     cout << "TEST a_priori_prob: " << a_priori_p << " | tolerance: " << tolerance_Th << " | theo_size: " << theo_size << " | matched_size: " << matched_size << " | cumul_binom: " << cumulativeBinomial_(theo_size, matched_size, a_priori_p)
-    //              << " | match_odds: " << match_odds << endl;
-
     // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
     {
@@ -151,14 +144,6 @@ namespace OpenMS
 
     if (fragment_mass_tolerance_unit_ppm)
     {
-      // log transform theoretical spectrum for more accurate a_priori_p estimation
-      //
-      // vector<double> log_theo_spec;
-      // for (auto peak : theoretical_spec)
-      // {
-      //   log_theo_spec.push_back(std::log(peak.getMZ()));
-      // }
-      // range = log_theo_spec.back() - log_theo_spec[0];
       range = std::log(theoretical_spec.back().getMZ()) - std::log(theoretical_spec[0].getMZ());
       used_tolerance = fragment_mass_tolerance / 1e6;
     }
@@ -214,7 +199,6 @@ namespace OpenMS
   {
     if (!type_is_cross_link)
     {
-      // TODO what to do for mono-links, does this work?
       beta_size = alpha_size;
     }
 
@@ -234,12 +218,12 @@ namespace OpenMS
     return wTIC;
   }
 
-  double XQuestScores::matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_common, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+  double XQuestScores::matchedCurrentChain(const std::vector< std::pair< Size, Size > >& matched_spec_linear, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks)
   {
     double intsum = 0;
-    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_common.size()); ++j)
+    for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_linear.size()); ++j)
     {
-      intsum += spectrum_common_peaks[matched_spec_common[j].second].getIntensity();
+      intsum += spectrum_linear_peaks[matched_spec_linear[j].second].getIntensity();
     }
     for (SignedSize j = 0; j < static_cast<SignedSize>(matched_spec_xlinks.size()); ++j)
     {
@@ -248,19 +232,19 @@ namespace OpenMS
     return intsum;
   }
 
-  double XQuestScores::totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_common_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_common_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_common_peaks, const PeakSpectrum& spectrum_xlink_peaks)
+  double XQuestScores::totalMatchedCurrent(const std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, const std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta, const PeakSpectrum& spectrum_linear_peaks, const PeakSpectrum& spectrum_xlink_peaks)
   {
     // make vectors of matched peak indices
-    double intsum = 0;
-    std::vector< Size > indices_common;
+    double intsum(0);
+    std::vector< Size > indices_linear;
     std::vector< Size > indices_xlinks;
-    for (Size j = 0; j < matched_spec_common_alpha.size(); ++j)
+    for (Size j = 0; j < matched_spec_linear_alpha.size(); ++j)
     {
-      indices_common.push_back(matched_spec_common_alpha[j].second);
+      indices_linear.push_back(matched_spec_linear_alpha[j].second);
     }
-    for (Size j = 0; j < matched_spec_common_beta.size(); ++j)
+    for (Size j = 0; j < matched_spec_linear_beta.size(); ++j)
     {
-      indices_common.push_back(matched_spec_common_beta[j].second);
+      indices_linear.push_back(matched_spec_linear_beta[j].second);
     }
     for (Size j = 0; j < matched_spec_xlinks_alpha.size(); ++j)
     {
@@ -272,17 +256,17 @@ namespace OpenMS
     }
 
     // make the indices in the vectors unique, to not sum up peak intensities multiple times
-    sort(indices_common.begin(), indices_common.end());
+    sort(indices_linear.begin(), indices_linear.end());
     sort(indices_xlinks.begin(), indices_xlinks.end());
-    std::vector< Size >::iterator last_unique_common = unique(indices_common.begin(), indices_common.end());
+    std::vector< Size >::iterator last_unique_linear = unique(indices_linear.begin(), indices_linear.end());
     std::vector< Size >::iterator last_unique_xlinks = unique(indices_xlinks.begin(), indices_xlinks.end());
-    indices_common.erase(last_unique_common, indices_common.end());
+    indices_linear.erase(last_unique_linear, indices_linear.end());
     indices_xlinks.erase(last_unique_xlinks, indices_xlinks.end());
 
     // sum over intensities under the unique indices
-    for (Size j = 0; j < indices_common.size(); ++j)
+    for (Size j = 0; j < indices_linear.size(); ++j)
     {
-      intsum += spectrum_common_peaks[indices_common[j]].getIntensity();
+      intsum += spectrum_linear_peaks[indices_linear[j]].getIntensity();
     }
     for (Size j = 0; j < indices_xlinks.size(); ++j)
     {
@@ -310,17 +294,11 @@ namespace OpenMS
     for (Size i = 0; i < spec1.size(); ++i)
     {
       Size pos = static_cast<Size>(ceil(spec1[i].getMZ() / tolerance));
-      // with this line, use real intensities
-//      ion_table1[pos] = spec1[i].getIntensity();
-      // with this line, use intensities normalized to 10
       ion_table1[pos] = 10.0;
     }
     for (Size i = 0; i < spec2.size(); ++i)
     {
       Size pos =static_cast<Size>(ceil(spec2[i].getMZ() / tolerance));
-      // with this line, use real intensities
-//      ion_table2[pos] = spec2[i].getIntensity();
-      // with this line, use intensities normalized to 10
       ion_table2[pos] = 10.0;
     }
 
@@ -356,6 +334,42 @@ namespace OpenMS
       }
     }
     return results;
+  }
+
+  double XQuestScores::xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance)
+  {
+    // return 0 = no correlation, when one of the spectra is empty
+    if (spec1.size() == 0 || spec2.size() == 0) {
+      return 0.0;
+    }
+
+    double maxionsize = std::max(spec1[spec1.size()-1].getMZ(), spec2[spec2.size()-1].getMZ());
+    Int table_size = ceil(maxionsize / tolerance)+1;
+    std::vector< double > ion_table1(table_size, 0);
+    std::vector< double > ion_table2(table_size, 0);
+
+    // Build tables of the same size, each bin has the size of the tolerance
+    for (Size i = 0; i < spec1.size(); ++i)
+    {
+      Size pos = static_cast<Size>(ceil(spec1[i].getMZ() / tolerance));
+      ion_table1[pos] = 1;
+    }
+    for (Size i = 0; i < spec2.size(); ++i)
+    {
+      Size pos =static_cast<Size>(ceil(spec2[i].getMZ() / tolerance));
+      ion_table2[pos] = 1;
+
+    }
+
+    double dot_product = 0.0;
+    for (Size i = 0; i < ion_table1.size(); ++i)
+    {
+      dot_product += ion_table1[i] * ion_table2[i];
+    }
+
+    // determine the smaller spectrum and normalize by the number of peaks in it
+    double peaks = std::min(spec1.size(), spec2.size());
+    return dot_product / peaks;
   }
 
 }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ START_SECTION((EmpiricalFormula(SignedSize number, const Element* element, Signe
   TEST_EQUAL(ef.getCharge(), 0)
 END_SECTION
 
-START_SECTION(const Element* getElement(UInt atomic_number) const)
+START_SECTION(const Element* getElement(UInt rounded_mass) const)
   const Element* e = db->getElement(6);
   TEST_EQUAL(e->getSymbol(), "C")
 END_SECTION
@@ -108,6 +108,15 @@ END_SECTION
 START_SECTION(SignedSize getNumberOfAtoms() const)
   Size num4 = e_ptr->getNumberOfAtoms();
   TEST_EQUAL(num4, 4);
+END_SECTION
+
+START_SECTION(EmpiricalFormula& operator < (const EmpiricalFormula& rhs))
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C6H2"), true)
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C5H3"), true)
+  TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5H2"), true)
+
+  TEST_EQUAL(EmpiricalFormula("C5H2") < EmpiricalFormula("C4H2"), false)
+  TEST_EQUAL(EmpiricalFormula("C5") < EmpiricalFormula("C5"), false)
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator = (const EmpiricalFormula& rhs))
@@ -305,6 +314,14 @@ START_SECTION(String toString() const)
   TEST_EQUAL(String(str).hasSubstring("C2"), true)
 END_SECTION
 
+    
+START_SECTION((std::map<std::string, int> toMap() const))
+  EmpiricalFormula ef("C2H5");
+  auto m = ef.toMap();
+  TEST_EQUAL(m["C"], 2)
+  TEST_EQUAL(m["H"], 5)
+END_SECTION
+
 START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream&, const EmpiricalFormula&)))
   stringstream ss;
   EmpiricalFormula ef("C2H5");
@@ -349,48 +366,94 @@ END_SECTION
 START_SECTION(IsotopeDistribution getIsotopeDistribution(UInt max_depth) const)
   EmpiricalFormula ef("C");
   IsotopeDistribution iso = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(20));
-  double result[] = { 0.9893, 0.0107};
+  double result_mass[] = { 12, 13.0033548378 };
+  double result_prob[] = { 0.9893, 0.0107 };
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->getIntensity(), result[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result_prob[i])
+    // accurate masses should have been calculated
+    TEST_REAL_SIMILAR(it->getMZ(), result_mass[i])
   }
+
+  IsotopeDistribution iso2 = ef.getIsotopeDistribution(CoarseIsotopePatternGenerator(20, true));
+  double result_rounded_mass[] = { 12, 13 };
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso2.begin(); it != iso2.end(); ++it, ++i)
+  {
+    // probabilities should not change due to mass vs atomic number calculations
+    TEST_REAL_SIMILAR(it->getIntensity(), result_prob[i])
+    // atomic numbers should have been calculated
+    TEST_REAL_SIMILAR(it->getMZ(), result_rounded_mass[i])
+  }
+
+  // Formula of Bovine Serum Albumin (BSA) that has been processed and is missing the first 24 AA
+  EmpiricalFormula ef2("C2934H4615N781O897S39");
+  IsotopeDistribution iso3 = ef2.getIsotopeDistribution(CoarseIsotopePatternGenerator(100));
+  // monoisotopic mass
+  TEST_REAL_SIMILAR(iso3.begin()->getMZ(), 66389.863)
+  // the average mass of the IsotopeDistribution is computed from its masses and probabilities
+  // and should be extremely close to the result from the EmpiricalFormula which uses the
+  // average weights of each atom.
+  TEST_REAL_SIMILAR(iso3.averageMass(), ef2.getAverageWeight())
+
+  Peak1D most_abundant = iso3.getMostAbundant();
+  // Partially a regression test. For such a large molecule, consecutive isotopes have very similar probabilities
+  // and a small change could change the result by 1Da (e.g. numerical error, elemental isotope probabilities)
+  TEST_REAL_SIMILAR(most_abundant.getMZ(), 66432.0037);
+  TEST_REAL_SIMILAR(most_abundant.getIntensity(), 0.057);
+
+  IsotopeDistribution iso4 = ef2.getIsotopeDistribution(CoarseIsotopePatternGenerator(100, true));
+  // rounded monoisotopic mass
+  TEST_EQUAL(iso4.begin()->getMZ(), 66390)
+  TEST_REAL_SIMILAR(iso4.averageMass(), ef2.getAverageWeight())
+
+  most_abundant = iso4.getMostAbundant();
+  TEST_EQUAL(most_abundant.getMZ(), 66432);
+  TEST_REAL_SIMILAR(most_abundant.getIntensity(), 0.057);
+
 END_SECTION
 
-START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const)
+START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes, const CoarseIsotopePatternGenerator& solver) const)
   EmpiricalFormula precursor("C2");
   EmpiricalFormula fragment("C");
   std::set<UInt> precursor_isotopes;
 
   precursor_isotopes.insert(0);
   // isolated precursor isotope is M0
-  IsotopeDistribution iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
-  double result[] = { 1.0 };
+  IsotopeDistribution iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
+  double result_prob[] = { 1.0 };
+  double result_mass[] = { 12.0 };
   Size i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->getIntensity(), result[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result_prob[i])
+    TEST_REAL_SIMILAR(it->getMZ(), result_mass[i])
   }
 
   precursor_isotopes.clear();
   precursor_isotopes.insert(1);
   // isolated precursor isotope is M+1
-  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
-  double result2[] = { 0.5, 0.5};
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
+  double result_prob2[] = { 0.5, 0.5 };
+  double result_mass2[] = { 12.0, 13.0033548378 };
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->getIntensity(), result2[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result_prob2[i])
+    TEST_REAL_SIMILAR(it->getMZ(), result_mass2[i])
   }
 
   precursor_isotopes.insert(0);
   // isolated precursor isotopes are M0 and M+1
-  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
-  double result3[] = { 0.98941, 0.01059};
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
+  double result_prob3[] = { 0.98941, 0.01059};
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
-    TEST_REAL_SIMILAR(it->getIntensity(), result3[i])
+    TEST_REAL_SIMILAR(it->getIntensity(), result_prob3[i])
+    // The masses shouldn't change
+    TEST_REAL_SIMILAR(it->getMZ(), result_mass2[i])
   }
 
   precursor_isotopes.insert(2);
@@ -398,7 +461,7 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   // This is the example found in the comments of the getConditionalFragmentIsotopeDist function.
   // Since we're isolating all the possible precursor isotopes, the fragment isotope distribution
   // should be equivalent to the natural isotope abundances.
-  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
   double result4[] = { 0.9893, 0.0107};
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
@@ -410,11 +473,20 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   // isolated precursor isotopes are M0, M+1, M+2, and M+3
   // It's impossible for precursor C2 to have 3 extra neutrons (assuming only natural stable isotopes)
   // Invalid precursor isotopes are ignored and should give the answer as if they were not there
-  iso = fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
   i = 0;
   for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
   {
     TEST_REAL_SIMILAR(it->getIntensity(), result4[i])
+  }
+
+  // Testing rounded masses
+  iso = fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator(0, true));
+  double result_rounded_masss[] = { 12, 13 };
+  i = 0;
+  for (IsotopeDistribution::ConstIterator it = iso.begin(); it != iso.end(); ++it, ++i)
+  {
+    TEST_REAL_SIMILAR(it->getMZ(), result_rounded_masss[i])
   }
 
   precursor = EmpiricalFormula("C10H10N10O10S2");
@@ -424,8 +496,8 @@ START_SECTION(IsotopeDistribution getConditionalFragmentIsotopeDist(const Empiri
   precursor_isotopes.clear();
   precursor_isotopes.insert(1);
   // isolated precursor isotope is M+1
-  IsotopeDistribution big_iso = big_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
-  IsotopeDistribution small_iso = small_fragment.getConditionalFragmentIsotopeDist(precursor,precursor_isotopes);
+  IsotopeDistribution big_iso = big_fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
+  IsotopeDistribution small_iso = small_fragment.getConditionalFragmentIsotopeDist(precursor, precursor_isotopes, CoarseIsotopePatternGenerator());
 
   // When we isolate only the M+1 precursor isotope, the big_fragment is more likely to exist as M+1 than M0.
   TEST_EQUAL(big_iso.getContainer()[0].getIntensity() < 0.2, true)

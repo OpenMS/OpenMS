@@ -12402,7 +12402,7 @@ is_a: MS:1000878 ! external reference identifier
 [Term]
 id: MS:1001922
 name: Digital Object Identifier (DOI)
-def: "DOI unique identifier of a publication." [PSI:PI, http://dx.doi.org]
+def: "DOI unique identifier of a publication." [PSI:PI, https://doi.org]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 synonym: "doi" EXACT []
 is_a: MS:1000878 ! external reference identifier
@@ -16156,7 +16156,7 @@ relationship: part_of MS:0000000 ! Proteomics Standards Initiative Mass Spectrom
 [Term]
 id: MS:1002480
 name: regular expression for a digital object identifier (DOI)
-def: "(10[.][0-9]\{4,\}(?:[.][0-9]+)*/(?:(?![\"&\'<>])[^ \t\\r\n\\v\\f])+)" [PSI:PI, http://dx.doi.org/]
+def: "(10[.][0-9]\{4,\}(?:[.][0-9]+)*/(?:(?![\"&\'<>])[^ \t\\r\n\\v\\f])+)" [PSI:PI, https://doi.org/]
 is_a: MS:1002479 ! regular expression
 
 [Term]

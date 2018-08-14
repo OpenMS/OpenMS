@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -108,6 +108,23 @@ START_SECTION(IsotopeDistribution& operator = (const CoarseIsotopePatternGenerat
 	TEST_EQUAL(copy.size(), iso->size())
 END_SECTION
 
+START_SECTION(IsotopeDistribution& operator < (const CoarseIsotopePatternGenerator& isotope_distribution))
+	IsotopeDistribution iso1, iso2;
+	TEST_EQUAL(iso1 < iso2, false)
+	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
+    iso4(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+	TEST_EQUAL(iso3 < iso4, true)
+
+	IsotopeDistribution iso5(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(1)));
+    IsotopeDistribution iso6(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(1000)));
+	TEST_EQUAL(iso5 < iso6, true)
+
+    IsotopeDistribution iso7(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
+    IsotopeDistribution iso8(EmpiricalFormula("C5").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+    // iso7 should be less because its second isotope's mass is 61 (atomic number), while for iso8 it is 61.003 (expected mass)
+    TEST_EQUAL(iso7 < iso8, true)
+END_SECTION
+
 
 START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) const)
 	IsotopeDistribution iso1, iso2;
@@ -115,6 +132,11 @@ START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) c
 	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
     iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
 	TEST_EQUAL(iso3 == iso4, true)
+
+    IsotopeDistribution iso5(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true))),
+    iso6(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+    // the masses should be different
+    TEST_EQUAL(iso5 == iso6, false)
 END_SECTION
 
 START_SECTION(void set(const ContainerType &distribution))
@@ -132,14 +154,33 @@ END_SECTION
 
 START_SECTION(Size getMax() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-	TEST_EQUAL(iso.getMax(), 6)
+	TEST_REAL_SIMILAR(iso.getMax(), 6.02907)
+	IsotopeDistribution iso2(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
+	TEST_EQUAL(iso2.getMax(), 6)
 END_SECTION
 
 START_SECTION(Size getMin() const)
 	IsotopeDistribution iso(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-	TEST_EQUAL(iso.getMin(), 2)
-	IsotopeDistribution iso2(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-	TEST_EQUAL(iso2.getMin(), 48)
+	TEST_REAL_SIMILAR(iso.getMin(), 2.01565)
+	IsotopeDistribution iso2(EmpiricalFormula("H2").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
+	TEST_EQUAL(iso2.getMin(), 2)
+	IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
+	TEST_REAL_SIMILAR(iso3.getMin(), 48)
+	IsotopeDistribution iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
+	TEST_EQUAL(iso4.getMin(), 48)
+END_SECTION
+
+START_SECTION(Size getMostAbundant() const)
+	IsotopeDistribution iso(EmpiricalFormula("C1").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
+    // The most abundant isotope is the monoisotope
+	TEST_EQUAL(iso.getMostAbundant().getMZ(), 12)
+	IsotopeDistribution iso2(EmpiricalFormula("C100").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true)));
+    // In this case, the most abundant isotope isn't the monoisotope
+	TEST_EQUAL(iso2.getMostAbundant().getMZ(), 1201)
+    // Empty distribution
+    iso2.clear();
+    TEST_EQUAL(iso2.getMostAbundant().getMZ(), 0);
+	TEST_EQUAL(iso2.getMostAbundant().getIntensity(), 1);
 END_SECTION
 
 START_SECTION(Size size() const)

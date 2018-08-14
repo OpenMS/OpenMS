@@ -179,6 +179,7 @@ set(format_executables_list
   MRMFeatureQCFile_test
   MS2File_test
   MSPFile_test
+  MSPGenericFile_test
   MascotGenericFile_test
   MascotInfile_test
   MascotRemoteQuery_test
@@ -483,6 +484,8 @@ set(analysis_executables_list
   PScore_test
   HyperScore_test
   MorpheusScore_test
+  OpenPepXLAlgorithm_test
+  OpenPepXLLFAlgorithm_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
@@ -626,6 +629,7 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumHelpers_test
     StatsHelpers_test
     CachedMzML_test
+    CachedMzMLHandler_test
   )
 endif(NOT DISABLE_OPENSWATH)
 

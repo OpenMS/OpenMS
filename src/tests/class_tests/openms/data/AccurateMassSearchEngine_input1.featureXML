@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<featureList count="10">
 		<feature id="f_6565892897288149707">
 			<position dim="0">281.25</position>
@@ -64,7 +64,7 @@
 			<UserParam type="string" name="label" value="T141"/>
 			<UserParam type="float" name="FWHM" value="6.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="36310.164094607"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[36310.164094607]"/>
 		</feature>
 		<feature id="f_12112469906802307848">
 			<position dim="0">308.25</position>
@@ -353,9 +353,7 @@
 			<UserParam type="string" name="label" value="T10_T33_T94"/>
 			<UserParam type="float" name="FWHM" value="8.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="30241147.8621068"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="3423697.17701255"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="237974.096094367"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[30241147.8621068,3423697.17701255,237974.096094367]"/>
 		</feature>
 		<feature id="f_5576845964105266947">
 			<position dim="0">316.5</position>
@@ -630,9 +628,7 @@
 			<UserParam type="string" name="label" value="T43_T106_T170"/>
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="2152674.81468212"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="199952.370346936"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="13890.8896083682"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[2152674.81468212,199952.370346936,13890.8896083682]"/>
 		</feature>
 		<feature id="f_2737147212367465006">
 			<position dim="0">284.75</position>
@@ -1021,9 +1017,7 @@
 			<UserParam type="string" name="label" value="T4_T13_T49"/>
 			<UserParam type="float" name="FWHM" value="10"/>
 			<UserParam type="int" name="num_of_masstraces" value="3"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="176241220.640656"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="19346302.6786891"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="1662352.7473399"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[176241220.640656,19346302.6786891,1662352.7473399]"/>
 		</feature>
 		<feature id="f_12964529961937795257">
 			<position dim="0">261.25</position>
@@ -1084,7 +1078,7 @@
 			<UserParam type="string" name="label" value="T160"/>
 			<UserParam type="float" name="FWHM" value="5.75"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="18965.9494716721"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[18965.9494716721]"/>
 		</feature>
 		<feature id="f_10893964381505000125">
 			<position dim="0">284.5</position>
@@ -1275,8 +1269,7 @@
 			<UserParam type="string" name="label" value="T41_T102"/>
 			<UserParam type="float" name="FWHM" value="8.25"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="1946719.9301806"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="152141.576471626"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[1946719.9301806,152141.576471626]"/>
 		</feature>
 		<feature id="f_13275112827998205361">
 			<position dim="0">318.75</position>
@@ -1431,8 +1424,7 @@
 			<UserParam type="string" name="label" value="T69_T134"/>
 			<UserParam type="float" name="FWHM" value="5.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="413215.012682643"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="45456.7213020705"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[413215.012682643,45456.7213020705]"/>
 		</feature>
 		<feature id="f_3062115439946092212">
 			<position dim="0">267.25</position>
@@ -2205,11 +2197,7 @@
 			<UserParam type="string" name="label" value="T3_T12_T48_T61_T101"/>
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="5"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="181771052.539316"/>
-			<UserParam type="float" name="masstrace_intensity_1" value="19995164.0161074"/>
-			<UserParam type="float" name="masstrace_intensity_2" value="1745862.2245618"/>
-			<UserParam type="float" name="masstrace_intensity_3" value="1032413.88262815"/>
-			<UserParam type="float" name="masstrace_intensity_4" value="230932.968791916"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[181771052.539316,19995164.0161074,1745862.2245618,1032413.88262815,230932.968791916]"/>
 		</feature>
 		<feature id="f_11350671704726741622">
 			<position dim="0">289.25</position>
@@ -2408,7 +2396,7 @@
 			<UserParam type="string" name="label" value="T59"/>
 			<UserParam type="float" name="FWHM" value="9.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="986488.096925674"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[986488.096925674]"/>
 		</feature>
 		<feature id="f_425533765783660679">
 			<position dim="0">258.75</position>
@@ -2471,7 +2459,7 @@
 			<UserParam type="string" name="label" value="T121"/>
 			<UserParam type="float" name="FWHM" value="3.5"/>
 			<UserParam type="int" name="num_of_masstraces" value="1"/>
-			<UserParam type="float" name="masstrace_intensity_0" value="35837.4671685804"/>
+			<UserParam type="floatList" name="masstrace_intensity" value="[35837.4671685804]"/>
 		</feature>
 	</featureList>
 </featureMap>

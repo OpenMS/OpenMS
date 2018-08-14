@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,14 +52,31 @@ namespace OpenMS
       - Pic (MS:1002313, MS-Numpress positive integer compression)
       - Slof (MS:1002314, MS-Numpress short logged float compression)
 
+    Note that the linear compression scheme only makes sense for monotonically
+    increasing data (such as retention time and m/z) that is often equally
+    spaced. Pic compression only makes sense for positive integers as all data
+    will be rounded to the nearest integer. Slof makes sense for all other data
+    (such as non-integer intensity values).
+
+    For more information on the compression schemata, see 
+    
+    Teleman J et al, "Numerical compression schemes for proteomics mass spectrometry data."
+    Mol Cell Proteomics. 2014 Jun;13(6):1537-42. doi: 10.1074/mcp.O114.037879.
+
   */
   class OPENMS_DLLAPI MSNumpressCoder
   {
 
 public:
 
-    enum NumpressCompression { NONE, LINEAR, PIC, SLOF, SIZE_OF_NUMPRESSCOMPRESSION };
     /// Names of compression schemes
+    enum NumpressCompression {
+      NONE, ///< No compression is applied
+      LINEAR, ///< Linear (MS:1002312, MS-Numpress linear prediction compression)
+      PIC, ///< Pic (MS:1002313, MS-Numpress positive integer compression)
+      SLOF, ///< Slof (MS:1002314, MS-Numpress short logged float compression)
+      SIZE_OF_NUMPRESSCOMPRESSION
+    };
     static const std::string NamesOfNumpressCompression[SIZE_OF_NUMPRESSCOMPRESSION];
 
     /**
@@ -69,17 +86,17 @@ public:
     */
     struct OPENMS_DLLAPI NumpressConfig 
     {
-      double numpressFixedPoint;  /// fixed point for numpress algorithms
-      double numpressErrorTolerance;  /// check error tolerance after encoding, guarantee abs(1.0-(encoded/decoded)) <= this, 0=do not guarantee anything
-      NumpressCompression np_compression; /// which compression schema to use
-      bool estimate_fixed_point; /// whether to estimate the fixed point or use the one proved with numpressFixedPoint
-      double linear_fp_mass_acc; /// desired mass accuracy for linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
+      double numpressFixedPoint;  ///< fixed point for numpress algorithms
+      double numpressErrorTolerance;  ///< check error tolerance after encoding, guarantee abs(1.0-(encoded/decoded)) <= this, 0=do not guarantee anything
+      NumpressCompression np_compression; ///< which compression schema to use
+      bool estimate_fixed_point; ///< whether to estimate the fixed point or use the one proved with numpressFixedPoint
+      double linear_fp_mass_acc; ///< desired mass accuracy for *linear* encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
 
       NumpressConfig () :
         numpressFixedPoint(0.0),
         numpressErrorTolerance(BinaryDataEncoder_default_numpressErrorTolerance),
         np_compression(NONE),
-        estimate_fixed_point(false),
+        estimate_fixed_point(true),
         linear_fp_mass_acc(-1)
       {
       }

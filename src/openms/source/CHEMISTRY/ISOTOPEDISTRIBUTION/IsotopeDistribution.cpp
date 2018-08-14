@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@
 #include <functional>
 #include <numeric>
 #include <fstream>
-
+#include <tuple>
 
 using namespace std;
 
@@ -108,6 +108,14 @@ namespace OpenMS
     return distribution_[0].getMZ();
   }
 
+  Peak1D IsotopeDistribution::getMostAbundant() const
+  {
+      if (distribution_.empty())
+      {
+          return Peak1D(0, 1);
+      }
+      return *std::max_element(begin(), end(), MassAbundance::IntensityLess());
+  }
 
   Size IsotopeDistribution::size() const
   {
@@ -165,6 +173,33 @@ namespace OpenMS
   {
     return distribution_ == isotope_distribution.distribution_;
   }
+
+  bool IsotopeDistribution::operator<(const IsotopeDistribution & rhs) const
+  {
+    if (distribution_.size() != rhs.distribution_.size()) 
+    { 
+      return distribution_.size() < rhs.distribution_.size(); 
+    }
+
+    // both vectors have same size
+    auto it = distribution_.begin();
+    auto rhs_it = rhs.distribution_.begin();
+    for (; it != distribution_.end(); ++it, ++rhs_it)
+    {
+      if (*it != *rhs_it) 
+      { 
+        const double mz = it->getMZ();
+        const double in = it->getIntensity();
+        const double rhs_mz = rhs_it->getMZ();
+        const double rhs_in = rhs_it->getIntensity();
+        
+        return tie(mz, in) < tie(rhs_mz, rhs_in);
+      }
+    }
+
+    return false;
+  }
+
 
   bool IsotopeDistribution::operator!=(const IsotopeDistribution & isotope_distribution) const
   {

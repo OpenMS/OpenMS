@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/FORMAT/CachedMzML.h>
+
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <fstream>
@@ -60,7 +62,8 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI SpectrumAccessOpenMSCached :
-    public OpenSwath::ISpectrumAccess
+    public OpenSwath::ISpectrumAccess,
+    public OpenMS::CachedmzML
   {
 
 public:
@@ -76,7 +79,7 @@ public:
       @throws Exception::FileNotFound is thrown if the file is not found
       @throws Exception::ParseError is thrown if the file cannot be parsed
     */
-    explicit SpectrumAccessOpenMSCached(String filename);
+    explicit SpectrumAccessOpenMSCached(const String& filename);
 
     /**
       @brief Destructor
@@ -106,24 +109,6 @@ public:
     ChromatogramSettings getChromatogramMetaInfo(int id) const;
 
     std::string getChromatogramNativeID(int id) const override;
-
-private:
-
-    /// Meta data
-    MSExperimentType meta_ms_experiment_;
-
-    /// Internal filestream 
-    std::ifstream ifs_;
-
-    /// Name of the mzML file
-    String filename_;
-
-    /// Name of the cached mzML file
-    String filename_cached_;
-
-    /// Indices
-    std::vector<std::streampos> spectra_index_;
-    std::vector<std::streampos> chrom_index_;
   };
 
 } //end namespace

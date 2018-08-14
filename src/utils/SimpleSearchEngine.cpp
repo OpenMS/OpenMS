@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -453,7 +453,7 @@ class SimpleSearchEngine :
       Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 #endif
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
@@ -464,7 +464,7 @@ class SimpleSearchEngine :
 
         IF_MASTERTHREAD
         {
-          progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
+          progresslogger.setProgress(count_proteins);
         }
 
         vector<StringView> current_digest;
@@ -472,10 +472,11 @@ class SimpleSearchEngine :
 
         for (auto const & c : current_digest)
         { 
-          if (c.getString().has('X')) { continue; }
+          const String current_peptide = c.getString();
+          if (current_peptide.find_first_of("XBZ") != std::string::npos) { continue; }
 
           // if a peptide motif is provided skip all peptides without match
-          if (!peptide_motif.empty() && !boost::regex_match(c.getString(), peptide_motif_regex)) { continue; }          
+          if (!peptide_motif.empty() && !boost::regex_match(current_peptide, peptide_motif_regex)) { continue; }          
         
           bool already_processed = false;
 #ifdef _OPENMP
@@ -511,7 +512,7 @@ class SimpleSearchEngine :
 #pragma omp critical (residuedb_access)
 #endif
           {
-            AASequence aas = AASequence::fromString(c.getString());
+            AASequence aas = AASequence::fromString(current_peptide);
             ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
             ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
           }

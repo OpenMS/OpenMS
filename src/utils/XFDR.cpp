@@ -944,10 +944,9 @@ private:
     {
       return static_cast<double>(alpha.getMetaValue(error_rel));
     }
-    const String error_ppm = "OMS:precursor_mz_error_ppm";
-    if (alpha.metaValueExists(error_ppm))
+    if (alpha.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
     {
-      return static_cast<double>(alpha.getMetaValue("OMS:precursor_mz_error_ppm"));
+      return static_cast<double>(alpha.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
     }
     return 0;
   }
@@ -956,8 +955,18 @@ private:
   static Size getMinIonsMatched(const PeptideIdentification &pep_id)
   {
     const PeptideHit &hit = pep_id.getHits()[0];
-    Size alpha_ions = Size(hit.getMetaValue("matched_common_alpha")) + Size(hit.getMetaValue("matched_xlink_alpha"));
-    Size beta_ions = Size(hit.getMetaValue("matched_common_beta")) + Size(hit.getMetaValue("matched_xlink_beta"));
+    Size alpha_ions(0);
+    Size beta_ions(0);
+    if (hit.metaValueExists("matched_common_alpha"))
+    {
+      alpha_ions = Size(hit.getMetaValue("matched_common_alpha")) + Size(hit.getMetaValue("matched_xlink_alpha"));
+      beta_ions = Size(hit.getMetaValue("matched_common_beta")) + Size(hit.getMetaValue("matched_xlink_beta"));
+    }
+    else if (hit.metaValueExists("matched_linear_alpha"))
+    {
+      alpha_ions = Size(hit.getMetaValue("matched_linear_alpha")) + Size(hit.getMetaValue("matched_xlink_alpha"));
+      beta_ions = Size(hit.getMetaValue("matched_linear_beta")) + Size(hit.getMetaValue("matched_xlink_beta"));
+    }
     return std::min(alpha_ions, beta_ions);
   }
 

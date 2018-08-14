@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -110,10 +110,19 @@ public:
 
       mz_threshold is used for the matching of theoretical ion series to the observed one
 
+      To generate decoys with different precursor mass, use the "switchKR" flag
+      which switches terminal K/R (switches K to R and R to K). This generates
+      different precursor m/z and ensures that the y ion series has a different
+      mass. For a description of the procedure, see (supplemental material)
+
+      Bruderer et al. Mol Cell Proteomics. 2017. 10.1074/mcp.RA117.000314.
+
     */
     void generateDecoys(const OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec,
                         const String& method,
+                        const double aim_decoy_fraction,
+                        const bool switchKR,
                         const String& decoy_tag,
                         const int max_attempts,
                         const double identity_threshold,
@@ -181,7 +190,7 @@ protected:
     /**
       @brief Check if a peptide has C or N terminal modifications
     */
-    bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide) const;
+    bool hasCNterminalMods_(const OpenMS::TargetedExperiment::Peptide& peptide, bool checkCterminalAA) const;
 
     /**
       @brief Find all K, R, P sites in a sequence to be set as fixed

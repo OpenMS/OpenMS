@@ -7,6 +7,7 @@ import copy
 import os
 
 from pyopenms import String as s
+import numpy as np
 
 print(b"IMPORTED b", pyopenms.__file__)
 
@@ -204,6 +205,26 @@ def testAASequence():
     assert aas.toString() == b"DFPIANGER"
     assert aas.toUnmodifiedString() == b"DFPIANGER"
 
+    seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER", True)
+    assert seq.toString() == b"PEPTIDESEKUEM(Oxidation)CER"
+    assert seq.toUnmodifiedString() == b"PEPTIDESEKUEMCER"
+    assert seq.toBracketString() == b"PEPTIDESEKUEM[147]CER"
+    assert seq.toBracketString(True, []) == b"PEPTIDESEKUEM[147]CER"
+    assert seq.toBracketString(False, []) == b"PEPTIDESEKUEM[147.0354000171]CER"
+    assert seq.toBracketString(False) == b"PEPTIDESEKUEM[147.0354000171]CER"
+    assert seq.toUniModString() == b"PEPTIDESEKUEM(UniMod:35)CER"
+    assert seq.isModified()
+    assert not seq.hasCTerminalModification()
+    assert not seq.hasNTerminalModification()
+    assert not seq.empty()
+
+    # has selenocysteine
+    assert seq.getResidue(1) is not None
+    assert seq.size() == 16
+    assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
+    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
+    # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
+
 @report
 def testElement():
     """
@@ -336,7 +357,7 @@ def testCoarseIsotopePatternGenerator():
     iso = pyopenms.CoarseIsotopePatternGenerator(10)
     isod = iso.run(methanol)
     assert len(isod.getContainer()) == 10, len(isod.getContainer()) 
-    assert isod.getContainer()[0].getMZ() == 32.0, isod.getContainer()[0].getMZ()
+    assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
     assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
     
 @report
@@ -370,6 +391,14 @@ def testEmpiricalFormula():
     ins.isEmpty()
     ins.isCharged()
     ins.hasElement( pyopenms.Element() )
+
+    ef = pyopenms.EmpiricalFormula(b"C2H5")
+    s = ef.toString()
+    assert s == b"C2H5"
+    m = ef.getElementalComposition()
+    assert m["C"] == 2
+    assert m["H"] == 5
+    assert ef.getNumberOfAtoms() == 7
 
 @report
 def testIdentificationHit():
@@ -2090,7 +2119,46 @@ def testFileHandler():
     fh.storeExperiment(b"test1.mzData", mse)
     fh.loadExperiment(b"test1.mzData", mse)
 
-    
+
+@report
+def testCachedMzML():
+    """
+    """
+    mse = pyopenms.MSExperiment()
+    s = pyopenms.MSSpectrum()
+    mse.addSpectrum(s)
+
+    # First load data and cache to disk
+    pyopenms.CachedmzML.store("myCache.mzML", mse)
+
+    # Now load data
+    cfile = pyopenms.CachedmzML()
+    pyopenms.CachedmzML.load("myCache.mzML", cfile)
+
+    meta_data = cfile.getMetaData()
+    assert cfile.getNrChromatograms() ==0
+    assert cfile.getNrSpectra() == 1
+
+@report
+def testIndexedMzMLFile():
+    """
+    """
+    mse = pyopenms.MSExperiment()
+    s = pyopenms.MSSpectrum()
+    mse.addSpectrum(s)
+
+    # First load data and cache to disk
+    pyopenms.MzMLFile().store("tfile_idx.mzML", mse)
+
+    # Now load data
+    ih = pyopenms.IndexedMzMLHandler("tfile_idx.mzML")
+
+    assert ih.getNrChromatograms() ==0
+    assert ih.getNrSpectra() == 1
+
+    s = ih.getMSSpectrumById(0)
+    s2 = ih.getSpectrumById(0)
+
 
 @report
 def testIDMapper():
@@ -2898,8 +2966,9 @@ def testMSSpectrum():
     assert spec.getStringDataArrays()[0][0] == b"hello"
     assert spec.getStringDataArrays()[1][0] == b"other"
 
+
+    spec = pyopenms.MSSpectrum()
     assert len(spec.getIntegerDataArrays()) == 0
-    # int_da = [ [5, 6], [8] ]
     int_da = [ pyopenms.IntegerDataArray() ]
     int_da[0].push_back(5)
     int_da[0].push_back(6)
@@ -2910,17 +2979,37 @@ def testMSSpectrum():
     assert spec.getIntegerDataArrays()[0][0] == 5
     assert spec.getIntegerDataArrays()[1][0] == 8
 
+    spec = pyopenms.MSSpectrum()
+    data = np.array( [5, 8, 42] ).astype(np.intc)
+    int_da = [ pyopenms.IntegerDataArray() ]
+    int_da[0].set_data(data)
+    spec.setIntegerDataArrays( int_da )
+    assert len(spec.getIntegerDataArrays()) == 1
+    assert spec.getIntegerDataArrays()[0][0] == 5
+    assert spec.getIntegerDataArrays()[0][2] == 42
+    assert len(int_da[0].get_data() ) == 3
+
+    spec = pyopenms.MSSpectrum()
     assert len(spec.getFloatDataArrays()) == 0
-    # int_da = [ [5, 6], [8] ]
-    int_da = [ pyopenms.FloatDataArray() ]
-    int_da[0].push_back(5.0)
-    int_da[0].push_back(6.0)
-    int_da.append( pyopenms.FloatDataArray() )
-    int_da[1].push_back(8.0)
-    spec.setFloatDataArrays( int_da )
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].push_back(5.0)
+    f_da[0].push_back(6.0)
+    f_da.append( pyopenms.FloatDataArray() )
+    f_da[1].push_back(8.0)
+    spec.setFloatDataArrays( f_da )
     assert len(spec.getFloatDataArrays()) == 2.0
     assert spec.getFloatDataArrays()[0][0] == 5.0
-    assert spec.getIntegerDataArrays()[1][0] == 8
+    assert spec.getFloatDataArrays()[1][0] == 8.0
+
+    spec = pyopenms.MSSpectrum()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    spec.setFloatDataArrays( f_da )
+    assert len(spec.getFloatDataArrays()) == 1
+    assert spec.getFloatDataArrays()[0][0] == 5.0
+    assert spec.getFloatDataArrays()[0][2] == 42.0
+    assert len(f_da[0].get_data() ) == 3
 
 @report
 def testStringDataArray():
@@ -2970,6 +3059,11 @@ def testIntegerDataArray():
     da[2] = 3
     assert da.size() == 3
 
+    q = da.get_data()
+    q = np.append(q, 4).astype(np.intc)
+    da.set_data(q)
+    assert da.size() == 4
+
 @report
 def testFloatDataArray():
     """
@@ -2993,6 +3087,11 @@ def testFloatDataArray():
     da[1] = 2.0
     da[2] = 3.0
     assert da.size() == 3
+
+    q = da.get_data()
+    q = np.append(q, 4.0).astype(np.float32)
+    da.set_data(q)
+    assert da.size() == 4
 
 @report
 def testMSChromatogram():
@@ -3294,6 +3393,8 @@ def testMxxxFile():
      MzQuantMLFile.store
     """
     mse = pyopenms.MSExperiment()
+    s = pyopenms.MSSpectrum()
+    mse.addSpectrum(s)
 
     fh = pyopenms.MzDataFile()
     _testProgressLogger(fh)
@@ -3307,6 +3408,14 @@ def testMxxxFile():
     fh.store(b"test.mzML", mse)
     fh.load(b"test.mzML", mse)
     fh.setOptions(fh.getOptions())
+
+    myStr = pyopenms.String()
+    fh.storeBuffer(myStr, mse)
+    assert len(str(myStr)) == 5269
+    mse2 = pyopenms.MSExperiment()
+    fh.loadBuffer(str(myStr), mse2)
+    assert mse2 == mse
+    assert mse2.size() == 1
 
     fh = pyopenms.MzXMLFile()
     _testProgressLogger(fh)
@@ -4887,3 +4996,4 @@ def testString():
     pystr1 = pyopenms.String(u"bläh")
     pystr2 = pyopenms.String(u"bläh")
     assert(pystr1 == pystr2)
+
