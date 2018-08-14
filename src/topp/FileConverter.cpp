@@ -367,6 +367,7 @@ protected:
         {
           consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
           consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+          consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
           consumer.getOptions().setCompression(true);
         }
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
@@ -434,6 +435,7 @@ protected:
       {
         f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
         f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
         f.getOptions().setCompression(true);
       }
 
