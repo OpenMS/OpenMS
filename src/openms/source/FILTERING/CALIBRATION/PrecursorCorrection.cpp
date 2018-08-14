@@ -199,11 +199,7 @@ using namespace std;
         MSSpectrum::ConstIterator left = rt_it->MZBegin(tolerance_window.first);
         MSSpectrum::ConstIterator right = rt_it->MZEnd(tolerance_window.second);
 
-        //MSSpectrum::ConstIterator left = rt_it->MZBegin(mz - mz_tolerance);
-        //MSSpectrum::ConstIterator right = rt_it->MZEnd(mz + mz_tolerance);
-
         // no MS1 precursor peak in +- tolerance window found
-        //if (left == right || left->getMZ() > mz + mz_tolerance)
         if  (left == right || left > right)
         {
           count_error_highest_intenstiy += 1;
