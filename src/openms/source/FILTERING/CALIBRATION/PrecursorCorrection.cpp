@@ -160,6 +160,7 @@ using namespace std;
     //Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
     set<Size> PrecursorCorrection::correctToHighestIntensityMS1Peak(MSExperiment & exp,
                                                                     double mz_tolerance,
+                                                                    bool ppm,
                                                                     vector<double> & delta_mzs,
                                                                     vector<double> & mzs,
                                                                     vector<double> & rts)
@@ -193,11 +194,17 @@ using namespace std;
           continue;
         }
 
-        MSSpectrum::ConstIterator left = rt_it->MZBegin(mz - mz_tolerance);
-        MSSpectrum::ConstIterator right = rt_it->MZEnd(mz + mz_tolerance);
+        // get tolerance window and left/right iterator
+        std::pair<double,double> tolerance_window = Math::getTolWindow(mz, mz_tolerance, ppm);
+        MSSpectrum::ConstIterator left = rt_it->MZBegin(tolerance_window.first);
+        MSSpectrum::ConstIterator right = rt_it->MZEnd(tolerance_window.second);
+
+        //MSSpectrum::ConstIterator left = rt_it->MZBegin(mz - mz_tolerance);
+        //MSSpectrum::ConstIterator right = rt_it->MZEnd(mz + mz_tolerance);
 
         // no MS1 precursor peak in +- tolerance window found
-        if (left == right || left->getMZ() > mz + mz_tolerance)
+        //if (left == right || left->getMZ() > mz + mz_tolerance)
+        if  (left == right || left > right)
         {
           count_error_highest_intenstiy += 1;
           continue;

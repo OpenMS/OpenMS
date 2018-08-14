@@ -13,10 +13,10 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
 
     cdef cppclass PrecursorCorrection:
 
-        void getPrecursor(MSExperiment & exp,
+        void getPrecursors(MSExperiment & exp,
                           libcpp_vector[ Precursor ] & precursors,
                           libcpp_vector[ double ] & precursors_rt,
-                          libcpp_vector[ Size ] & precursor_scan_index) nogil except +
+                          libcpp_vector[ size_t ] & precursor_scan_index) nogil except +
 
         void writeHist(String & out_csv,
                        libcpp_vector[ double ] & delta_mzs,
@@ -32,6 +32,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
 
         libcpp_set[ Size ] correctToHighestintensityMS1Peak(MSExperiment & exp,
                                                             double mz_tolerance,
+                                                            bool ppm,
                                                             libcpp_vector[ double ] & delta_mzs,
                                                             libcpp_vector[ double ] & mzs,
                                                             libcpp_vector[ double ] & rts) nogil except +

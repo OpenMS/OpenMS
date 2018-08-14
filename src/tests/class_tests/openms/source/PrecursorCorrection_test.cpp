@@ -248,7 +248,7 @@ START_SECTION((static std::set<Size> correctToNearestMS1Peak(MSExperiment &exp, 
 }
 END_SECTION
 
-START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment &exp, double mz_tolerance, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
+START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment &exp, double mz_tolerance, bool ppm, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
 {
   // test with 0.0001 Da (1)
   MSExperiment highest_exp_1 = exp;
@@ -259,7 +259,7 @@ START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperime
   // corrected precursor_1: 510.0000
   // corrected precursor_2: 610.0000
   // corrected precursor_3: none
-  PrecursorCorrection::correctToHighestIntensityMS1Peak(highest_exp_1, 0.0001, dmz_1, mz_1, rt_1);
+  PrecursorCorrection::correctToHighestIntensityMS1Peak(highest_exp_1, 0.0001, false, dmz_1, mz_1, rt_1);
 
   TEST_REAL_SIMILAR(dmz_1[0], 0.0001);
   TEST_REAL_SIMILAR(dmz_1[1], -0.0001);
@@ -273,11 +273,53 @@ START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperime
   // corrected precursor_1: 510.0000
   // corrected precursor_2: 609.9998
   // corrected precursor_3: 611.0031
-  PrecursorCorrection::correctToHighestIntensityMS1Peak(highest_exp_2, 0.0005, dmz_2, mz_2, rt_2);
+  PrecursorCorrection::correctToHighestIntensityMS1Peak(highest_exp_2, 0.0005, false, dmz_2, mz_2, rt_2);
 
   TEST_REAL_SIMILAR(dmz_2[0], 0.0001);
   TEST_REAL_SIMILAR(dmz_2[1], -0.0003);
   TEST_REAL_SIMILAR(dmz_2[2], -0.0004);
+}
+END_SECTION
+
+// check ppm
+START_SECTION((static std::set<Size> correctToHighestIntensityMS1Peak(MSExperiment &exp, double mz_tolerance, bool ppm, std::vector< double > &deltaMZs, std::vector< double > &mzs, std::vector< double > &rts)))
+{
+// test with 1 ppm (1)
+MSExperiment highest_exp_1 = exp;
+vector<double> dmz_1;
+vector<double> mz_1;
+vector<double> rt_1;
+
+// corrected precursor_1: 510.0000
+// corrected precursor_2: 609.9998 (1 ppm of 610.0001 = +/- 0.000610)
+// corrected precursor_3: none
+PrecursorCorrection::correctToHighestIntensityMS1Peak(highest_exp_1, 2, true, dmz_1, mz_1, rt_1);
+
+
+std::cout << dmz_1[0] << std::endl;
+std::cout << dmz_1[1] << std::endl;
+
+TEST_REAL_SIMILAR(dmz_1[0], 0.0001);
+TEST_REAL_SIMILAR(dmz_1[1], -0.0003);
+
+// test with 5 ppm Da
+MSExperiment highest_exp_2 = exp;
+vector<double> dmz_2;
+vector<double> mz_2;
+vector<double> rt_2;
+
+// corrected precursor_1: 510.0000
+// corrected precursor_2: 609.9998
+// corrected precursor_3: 611.0031
+PrecursorCorrection::correctToHighestIntensityMS1Peak(highest_exp_2, 5, true, dmz_2, mz_2, rt_2);
+
+std::cout << dmz_2[0] << std::endl;
+std::cout << dmz_2[1] << std::endl;
+std::cout << dmz_2[2] << std::endl;
+
+TEST_REAL_SIMILAR(dmz_2[0], 0.0001);
+TEST_REAL_SIMILAR(dmz_2[1], -0.0003);
+TEST_REAL_SIMILAR(dmz_2[2], -0.0004);
 }
 END_SECTION
 

@@ -131,6 +131,8 @@ class TOPPHiResPrecursorMassCorrector :
 
       registerTOPPSubsection_("highest_intensity_peak", "Use centroided MS1 peak with the highest intensity in a certrain mass range - for precursor mass correction");
       registerDoubleOption_("highest_intensity_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the highest intensity MS1 peak (Da). Suggested value 1/max. expected charge. (Disable method by setting value to 0.0)", false);
+      registerStringOption_("highest_intensity_peak:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
+      setValidStrings_("highest_intensity_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
       registerOutputFile_("out_csv", "<file>", "", "Optional CSV output file for results on 'nearest_peak' or 'highest_intensity_peak' algorithm (see corresponding subsection) containing columns: " + ListUtils::concatenate(ListUtils::create<String>(PrecursorCorrection::csv_header), ", ") + ".", false);
       setValidFormats_("out_csv", ListUtils::create<String>("csv"));
@@ -155,6 +157,7 @@ class TOPPHiResPrecursorMassCorrector :
       const bool nearest_peak_ppm = getStringOption_("nearest_peak:mz_tolerance_unit") == "ppm" ? true : false;
 
       const double highest_intensity_peak_mz_tolerance = getDoubleOption_("highest_intensity_peak:mz_tolerance");
+      const bool highest_intensity_peak_ppm = getStringOption_("highest_intensity_peak:mz_tolerance_unit") == "ppm" ? true : false;
 
       PeakMap exp;
       MzMLFile().load(in_mzml, exp);
@@ -184,7 +187,7 @@ class TOPPHiResPrecursorMassCorrector :
       set<Size> corrected_to_highest_intensity_peak;
       if (highest_intensity_peak_mz_tolerance > 0.0)
       {
-        corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(exp, highest_intensity_peak_mz_tolerance, deltaMZs, mzs, rts);
+        corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(exp, highest_intensity_peak_mz_tolerance, highest_intensity_peak_ppm, deltaMZs, mzs, rts);
       }
  
       // perform correction to closest feature (also corrects charge if not disabled)
