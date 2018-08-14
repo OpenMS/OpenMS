@@ -86,7 +86,7 @@ def testResidueTutorial():
 def testAASequenceTutorial():
 
     from pyopenms import *
-    seq = AASequence.fromString("DFPIANGER", True)
+    seq = AASequence.fromString("DFPIANGER")
     prefix = seq.getPrefix(4)
     suffix = seq.getSuffix(5)
     concat = seq + seq
@@ -116,7 +116,7 @@ def testAASequenceTutorial():
 
 
     from pyopenms import *
-    seq = AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER", True)
+    seq = AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
     print(seq.toString())
     print(seq.toUnmodifiedString())
     print(seq.toBracketString(True, []))
@@ -133,7 +133,7 @@ def testTheoreticalSpectrumGenTutorial():
     tsg = TheoreticalSpectrumGenerator()
     spec1 = MSSpectrum()
     spec2 = MSSpectrum()
-    peptide = AASequence.fromString("DFPIANGER", True)
+    peptide = AASequence.fromString("DFPIANGER")
     # standard behavior is adding b- and y-ions of charge 1
     p = Param()
     p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum")
@@ -157,7 +157,7 @@ def testDigestionTutorial():
     dig = ProteaseDigestion()
     dig.getEnzymeName() # Trypsin
     bsa = b'DEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA'
-    bsa = AASequence.fromString(bsa, True)
+    bsa = AASequence.fromString(bsa)
     result = []
     dig.digest(bsa, result)
     print(result[4])
