@@ -72,10 +72,6 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
 
         IsotopeDistribution run(EmpiricalFormula) nogil except +
 
-        Size getMin() nogil except +
-        Size getMax() nogil except +
-        void clear() nogil except +
-
         # returns the current value of the flag to round masses to integer values (true) or return accurate masses (false)
         bool getRoundMasses() nogil except +
 
