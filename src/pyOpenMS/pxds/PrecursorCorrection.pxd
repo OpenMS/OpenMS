@@ -30,7 +30,7 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>" namespac
                                                      libcpp_vector[ double ] & mzs,
                                                      libcpp_vector[ double ] & rts) nogil except +
 
-        libcpp_set[ size_t ] correctToHighestintensityMS1Peak(MSExperiment & exp,
+        libcpp_set[ size_t ] correctToHighestIntensityMS1Peak(MSExperiment & exp,
                                                               double mz_tolerance,
                                                               bool ppm,
                                                               libcpp_vector[ double ] & delta_mzs,
