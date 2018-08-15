@@ -503,7 +503,7 @@ namespace OpenMS
             batch_size = batchSize;
           }
 
-          size_t nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
+          SignedSize nr_batches = (transition_exp_used_all.getCompounds().size() / batch_size);
 #ifdef _OPENMP
           // If we have a multiple of threads_outer_loop_ here, then use nested
           // parallelization here. E.g. if we use 8 threads for the outer loop,
@@ -517,10 +517,11 @@ namespace OpenMS
           omp_set_num_threads(std::max(1, total_nr_threads / threads_outer_loop_) );
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-          for (size_t pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
+          for (SignedSize pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
           {
             OpenSwath::SpectrumAccessPtr current_swath_map_inner = current_swath_map;
 
+#ifdef _OPENMP
             // To ensure multi-threading safe access to the individual spectra, we
             // need to use a light clone of the spectrum access (if multiple threads
             // share a single filestream and call seek on it, chaos will ensue).
@@ -529,7 +530,6 @@ namespace OpenMS
               current_swath_map_inner = current_swath_map->lightClone();
             }
 
-#ifdef _OPENMP
 #pragma omp critical (osw_write_stdout)
 #endif
             {
