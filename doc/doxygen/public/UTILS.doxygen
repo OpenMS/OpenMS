@@ -126,6 +126,7 @@
   - @subpage TOPP_CorrelateMassTraces - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
   - @subpage UTILS_IDDecoyProbability - Estimate probability of peptide hits.
   - @subpage UTILS_RNADigestor - Digests an RNA sequence database in-silico.
+  - @subpage UTILS_RNAMassCalculator - Calculates masses and mass-to-charge ratios of RNA sequences.
 
 <!--
   - TODO we need descriptions for all of these

@@ -53,6 +53,7 @@ QCImporter
 QCMerger
 QCShrinker
 RNADigestor
+RNAMassCalculator
 RNPxlXICFilter
 RNPxlSearch
 RTEvaluation
