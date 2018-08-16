@@ -8,11 +8,23 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
         MSNumpressCoder() nogil except +
         MSNumpressCoder(MSNumpressCoder) nogil except +
 
-        void encodeNP(libcpp_vector[double] in_, String & result,
-                bool zlib_compression, NumpressConfig config) nogil except +
+        void encodeNP(libcpp_vector[double] in_,
+                      String & result,
+                      bool zlib_compression,
+                      NumpressConfig config) nogil except +
 
-        void decodeNP(const String& in_, libcpp_vector[double] & out,
-                bool zlib_compression, NumpressConfig config) nogil except +
+        void decodeNP(const String& in_,
+                     libcpp_vector[double] & out,
+                     bool zlib_compression,
+                     NumpressConfig config) nogil except +
+
+        void encodeNPRaw(libcpp_vector[ double ] in_,
+                         String & result, 
+                         NumpressConfig config) nogil except +
+
+        void decodeNPRaw(libcpp_string in_,
+                         libcpp_vector[ double ] & out,
+                         NumpressConfig config) nogil except +
 
 cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS::MSNumpressCoder":
 

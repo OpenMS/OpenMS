@@ -41,6 +41,8 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
 
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
 
+        void readFromOBOFile(const String & filename) nogil except +
+
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS::CrossLinksDB":
     
