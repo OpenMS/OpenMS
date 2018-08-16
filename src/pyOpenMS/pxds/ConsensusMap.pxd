@@ -120,3 +120,5 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         String getExperimentType() nogil except +
         void setExperimentType(String experiment_type) nogil except +
 
+        void sortPeptideIdentificationsByMapIndex() nogil except +
+
