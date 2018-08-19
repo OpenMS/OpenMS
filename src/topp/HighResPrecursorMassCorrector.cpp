@@ -130,7 +130,7 @@ class TOPPHiResPrecursorMassCorrector :
       setValidStrings_("nearest_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
       registerTOPPSubsection_("highest_intensity_peak", "Use centroided MS1 peak with the highest intensity in a certrain mass range - for precursor mass correction");
-      registerDoubleOption_("highest_intensity_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the highest intensity MS1 peak (Da). Suggested value 1/max. expected charge. (Disable method by setting value to 0.0)", false);
+      registerDoubleOption_("highest_intensity_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance to find the highest intensity MS1 peak. Suggested value 1/max. expected charge. (Disable method by setting value to 0.0)", false);
       registerStringOption_("highest_intensity_peak:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
       setValidStrings_("highest_intensity_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
