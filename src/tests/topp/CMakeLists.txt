@@ -420,6 +420,12 @@ set_tests_properties("TOPP_FileConverter_27_out" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_28" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_28_input.mzML -out FileConverter_28.tmp -out_type mzML  -convert_to_chromatograms)
 add_test("TOPP_FileConverter_28_out" ${DIFF} -in1 FileConverter_28.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_28_output.mzML -whitelist "location=" "<offset")
 set_tests_properties("TOPP_FileConverter_28_out" PROPERTIES DEPENDS "TOPP_FileConverter_28")
+# add test for lossy FDA compression
+add_test("TOPP_FileConverter_29" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -out FileConverter_29.tmp -out_type mzML -lossy_compression -lossy_mass_accuracy 1e-5 -process_lowmemory)
+add_test("TOPP_FileConverter_29_out" ${DIFF} -in1 FileConverter_29.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_29_output.mzML -whitelist "location=" "<offset")
+add_test("TOPP_FileConverter_29_back" ${TOPP_BIN_PATH}/FileConverter -test -in FileConverter_29.tmp -in_type mzML -out FileConverter_29.back.tmp -out_type mzML)
+set_tests_properties("TOPP_FileConverter_29_out" PROPERTIES DEPENDS "TOPP_FileConverter_29")
+set_tests_properties("TOPP_FileConverter_29_back" PROPERTIES DEPENDS "TOPP_FileConverter_29")
 
 #------------------------------------------------------------------------------
 # FileFilter tests
