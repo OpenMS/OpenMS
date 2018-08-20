@@ -106,23 +106,6 @@ using namespace std;
 
 /// @cond TOPPCLASSES
 
-
-/// struct to hold assay information of one row 
-struct AssayRow
-{
-  double precursor_mz;
-  double product_mz;
-  float library_int;
-  double normalized_rt;
-  String compound_name;
-  String smiles;
-  String sumformula;
-  String adduct;
-  String transition_group_id;
-  String transition_id;
-  bool decoy; 
-};
-
 class TOPPAssayGeneratorMetabo :
   public TOPPBase,
   private TransitionTSVFile
@@ -233,7 +216,7 @@ protected:
     OPENMS_PRECONDITION(tolerance_window.first < tolerance_window.second, "Left has to be smaller than right");
 
     MSSpectrum::ConstIterator left = spectrum1.MZBegin(tolerance_window.first);
-    MSSpectrum::ConstIterator right = spectrum1.MZBegin(tolerance_window.second);
+    MSSpectrum::ConstIterator right = spectrum1.MZEnd(tolerance_window.second);
 
     // no MS1 precursor peak in +- tolerance window found
     if (left == right)
@@ -301,7 +284,6 @@ protected:
     String out = getStringOption_("out");
     String method = getStringOption_("method");
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
-
 
     double sn = getDoubleOption_("signal_to_noise");
 
@@ -405,8 +387,6 @@ protected:
                                                                                                       precursor_mz_tol,
                                                                                                       precursor_rt_tol,
                                                                                                       ppm_prec);
-
-    std::vector<AssayRow> assaylib;
     TargetedExperiment t_exp;
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt;
@@ -576,13 +556,10 @@ protected:
       float threshold_transition = max_int * (transition_threshold / 100);
       float threshold_noise = min_int * 1.1;
 
-      AssayRow row;
-      int transition_counter = 0;
-
       // TODO: Other datastructure (min/max transitions) - min -> transitions with highest intensity?
       // TODO: Put stuff in vector first? then sort by intensity? maybe map Transition intensity: everything else
 
-      // TODO: test if output is correct and add adduct information.
+      // TODO: test if output is correct.
       // if multiple files are used other datastructure is needed
       // feature mz and rt and save transition with compound use TargetedExperiment
       // and precursor intensity information
@@ -590,10 +567,9 @@ protected:
       // and compare precursor intenstiy -> use the higher one for calculation of the
       // transition or use both ms2 consensus? (not sure if that is a good idea?
 
-
       ReactionMonitoringTransition rmt;
       rmt.clearMetaInfo();
-
+      int transition_counter = 0;
       // here ms2 spectra information is used
       for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
@@ -608,32 +584,33 @@ protected:
 
           TargetedExperiment::Compound cmp;
 
-          // TODO: use TE::Helper for the retention time of the feature;
-          //TargetedExperiment::Helper
-
-          //cmp.rts // nur in OpenSWATH genutzt
           rmt.setPrecursorMZ(highest_precursor_mz);
           rmt.setProductMZ(current_mz);
           rmt.setLibraryIntensity(rel_int);
 
+          vector<TargetedExperimentHelper::RetentionTime> v_cmp_rt;
           TargetedExperimentHelper::RetentionTime cmp_rt;
           cmp_rt.setRT(feature_rt);
+          v_cmp_rt.push_back(cmp_rt);
+          cmp.rts = v_cmp_rt;
 
           if (description == "UNKNOWN")
           {
-            rmt.setCompoundRef(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
             cmp.id = String(transition_group_counter) + "_" + String(transition_counter) + "_" + description;
-            rmt.setNativeID(String(transition_group_counter) + "_" + description);
+            cmp.setMetaValue("CompoundName", description);
+            rmt.setCompoundRef(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
+            rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
           }
           else
           {
             description = ListUtils::concatenate(v_description, ",");
-            rmt.setCompoundRef(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
             cmp.id = String(transition_group_counter) + "_" + String(transition_counter) + "_" + description;
+            cmp.setMetaValue("CompoundName", description);
+            rmt.setCompoundRef(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
             rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description);
           }
           // smiles to supported in AccurateMassSearch
-          row.smiles = "none";
+          cmp.smiles_string = "NA";
           if (sumformula == "UNKNOWN")
           {
             cmp.molecular_formula = sumformula;
@@ -654,12 +631,12 @@ protected:
           }
           v_cmp.push_back(cmp);
           v_rmt.push_back(rmt);
+
+          transition_counter += 1;
         }
-        transition_counter += 1;
       }
       transition_group_counter += 1;
     }
-    // TODO: add adduct information in TargetedExperiment::Compound
     t_exp.setCompounds(v_cmp);
     t_exp.setTransitions(v_rmt);
 
