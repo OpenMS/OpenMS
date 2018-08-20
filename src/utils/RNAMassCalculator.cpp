@@ -116,7 +116,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file with RNA sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
     setValidFormats_("in", vector<String>(1, "txt"));
 
-    registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of RNA sequences (mutually exclusive to 'in')", false, false);
+    registerStringList_("in_seq", "<sequences>", StringList(), "List of RNA sequences (mutually exclusive to 'in')", false, false);
 
     registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
     setValidFormats_("out", vector<String>(1, "txt"));
