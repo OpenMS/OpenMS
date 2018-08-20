@@ -42,6 +42,8 @@
 using namespace OpenMS;
 using namespace std;
 
+   const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
+
    void PrecursorCorrection::getPrecursors(const MSExperiment & exp,
                                            vector<Precursor> & precursors,
                                            vector<double> & precursors_rt,
@@ -71,7 +73,7 @@ using namespace std;
       csv_file << setprecision(9);
 
       // header
-      csv_file << ListUtils::concatenate(ListUtils::create<String>(csv_header), "\t") << "\n";
+      csv_file << ListUtils::concatenate(ListUtils::create<String>(PrecursorCorrection::csv_header), "\t") << "\n";
 
       // entries
       for (vector<double>::const_iterator it = delta_mzs.begin(); it != delta_mzs.end(); ++it)

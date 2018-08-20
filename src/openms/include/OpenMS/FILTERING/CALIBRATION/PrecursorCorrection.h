@@ -64,6 +64,7 @@ namespace OpenMS
 class OPENMS_DLLAPI PrecursorCorrection
 {
      public:
+
      static const std::string csv_header;
 
      /**
@@ -95,9 +96,9 @@ class OPENMS_DLLAPI PrecursorCorrection
      183.92	611.0035	    611.0033	  -0.0002
      */
      static void writeHist(const String& out_csv,
-                          const std::vector<double> & delta_mzs,
-                          const std::vector<double> & mzs,
-                          const std::vector<double> & rts);
+                           const std::vector<double> & delta_mzs,
+                           const std::vector<double> & mzs,
+                           const std::vector<double> & rts);
      /**
      @brief Selection of the peak in closest proximity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da).
 
@@ -210,8 +211,6 @@ class OPENMS_DLLAPI PrecursorCorrection
                               double mz_tolerance,
                               Size max_trace_number = 2,
                               int debug_level = 0);
+
 };
-
-const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
-
 }
