@@ -470,7 +470,7 @@ protected:
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 0, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 500-1000)", false, true);
+    registerIntOption_("batchSize", "<number>", 250, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
     setMinInt_("batchSize", 0);
 
     registerSubsection_("Scoring", "Scoring parameters section");
@@ -487,9 +487,10 @@ protected:
       // set sensible default parameters
       Param feature_finder_param = MRMFeatureFinderScoring().getDefaults();
       feature_finder_param.remove("rt_extraction_window");
+      feature_finder_param.setValue("stop_report_after_feature", 5);
       feature_finder_param.setValue("rt_normalization_factor", 100.0); // for iRT peptides between 0 and 100 (more or less)
 
-      feature_finder_param.setValue("TransitionGroupPicker:min_peak_width", 14.0);
+      feature_finder_param.setValue("TransitionGroupPicker:min_peak_width", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks", "true");
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
       feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", -1.5);
