@@ -426,6 +426,13 @@ add_test("TOPP_FileConverter_29_out" ${DIFF} -in1 FileConverter_29.tmp -in2 ${DA
 add_test("TOPP_FileConverter_29_back" ${TOPP_BIN_PATH}/FileConverter -test -in FileConverter_29.tmp -in_type mzML -out FileConverter_29.back.tmp -out_type mzML)
 set_tests_properties("TOPP_FileConverter_29_out" PROPERTIES DEPENDS "TOPP_FileConverter_29")
 set_tests_properties("TOPP_FileConverter_29_back" PROPERTIES DEPENDS "TOPP_FileConverter_29")
+# Test with ion mobility
+add_test("TOPP_FileConverter_30" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_30_input.mzML -change_im_format multiple -out_type mzML -out FileConverter_30.tmp)
+add_test("TOPP_FileConverter_30_out" ${DIFF} -in1 FileConverter_30.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_30_output.mzML -whitelist "location=" "<offset")
+set_tests_properties("TOPP_FileConverter_30_out" PROPERTIES DEPENDS "TOPP_FileConverter_30")
+add_test("TOPP_FileConverter_31" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_30_output.mzML -change_im_format single -out_type mzML -out FileConverter_31.tmp)
+add_test("TOPP_FileConverter_31_out" ${DIFF} -in1 FileConverter_31.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_31_output.mzML -whitelist "location=" "<offset")
+set_tests_properties("TOPP_FileConverter_31_out" PROPERTIES DEPENDS "TOPP_FileConverter_31")
 
 #------------------------------------------------------------------------------
 # FileFilter tests
