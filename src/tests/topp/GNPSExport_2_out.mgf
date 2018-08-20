@@ -1,7 +1,7 @@
 BEGIN IONS
 FEATURE_ID=1
 SCANS=7
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_2379720498161952815
 MSLEVEL=2
 CHARGE=1+
@@ -606,7 +606,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=2
 SCANS=9
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_15010202506325425267
 MSLEVEL=2
 CHARGE=2+
@@ -641,7 +641,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=3
 SCANS=76
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_11204509862247398935
 MSLEVEL=2
 CHARGE=1+
@@ -688,7 +688,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=4
 SCANS=78
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_17786299439418601719
 MSLEVEL=2
 CHARGE=1+
@@ -1153,7 +1153,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=5
 SCANS=81
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_3825178585851363959
 MSLEVEL=2
 CHARGE=1+
@@ -1310,7 +1310,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=6
 SCANS=88
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_2341239538360337163
 MSLEVEL=2
 CHARGE=1+
@@ -2020,7 +2020,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=7
 SCANS=89
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_1652333717135716838
 MSLEVEL=2
 CHARGE=1+
@@ -4361,7 +4361,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=8
 SCANS=90
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_4639609761221048146
 MSLEVEL=2
 CHARGE=1+
@@ -4631,7 +4631,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=9
 SCANS=92
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_3117464345635481534
 MSLEVEL=2
 CHARGE=1+
@@ -4797,7 +4797,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=10
 SCANS=93
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_7924271368153587474
 MSLEVEL=2
 CHARGE=1+
@@ -5061,7 +5061,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=11
 SCANS=96
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_1314679976258403391
 MSLEVEL=2
 CHARGE=1+
@@ -5502,7 +5502,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=12
 SCANS=97
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_4617775936700227193
 MSLEVEL=2
 CHARGE=1+
@@ -5852,7 +5852,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=13
 SCANS=98
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_4111556404358895345
 MSLEVEL=2
 CHARGE=1+
@@ -5886,7 +5886,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=14
 SCANS=99
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_13716231984494732082
 MSLEVEL=2
 CHARGE=1+
@@ -6044,7 +6044,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=15
 SCANS=100
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_11048917715584809464
 MSLEVEL=2
 CHARGE=1+
@@ -6271,7 +6271,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=16
 SCANS=102
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_8465452196579897584
 MSLEVEL=2
 CHARGE=1+
@@ -6332,7 +6332,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=17
 SCANS=109
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_15855615708244001641
 MSLEVEL=2
 CHARGE=1+
@@ -6598,7 +6598,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=18
 SCANS=111
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_13233111488682456711
 MSLEVEL=2
 CHARGE=1+
@@ -6846,7 +6846,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=19
 SCANS=114
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_15360428103432292080
 MSLEVEL=2
 CHARGE=1+
@@ -7000,7 +7000,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=20
 SCANS=115
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_7612374599238849676
 MSLEVEL=2
 CHARGE=1+
@@ -7044,7 +7044,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=21
 SCANS=117
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_10781014958455174730
 MSLEVEL=2
 CHARGE=1+
@@ -7286,7 +7286,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=22
 SCANS=121
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_2485700257243841702
 MSLEVEL=2
 CHARGE=1+
@@ -7305,7 +7305,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=23
 SCANS=122
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_17002765886562616244
 MSLEVEL=2
 CHARGE=1+
@@ -7330,7 +7330,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=24
 SCANS=128
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_5193887266661758214
 MSLEVEL=2
 CHARGE=1+
@@ -7384,7 +7384,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=25
 SCANS=133
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_5285602530757989426
 MSLEVEL=2
 CHARGE=1+
@@ -7418,7 +7418,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=26
 SCANS=135
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_6389195153691326412
 MSLEVEL=2
 CHARGE=1+
@@ -7484,7 +7484,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=27
 SCANS=142
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_6387381196686348579
 MSLEVEL=2
 CHARGE=1+
@@ -7557,7 +7557,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=28
 SCANS=144
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_9324429258748831688
 MSLEVEL=2
 CHARGE=1+
@@ -7606,7 +7606,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=29
 SCANS=150
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_14262036710597305993
 MSLEVEL=2
 CHARGE=1+
@@ -7720,7 +7720,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=30
 SCANS=151
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_4775450063959823260
 MSLEVEL=2
 CHARGE=1+
@@ -7810,7 +7810,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=31
 SCANS=158
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_8745942207452829516
 MSLEVEL=2
 CHARGE=1+
@@ -7869,7 +7869,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=32
 SCANS=166
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_5379907971641116063
 MSLEVEL=2
 CHARGE=1+
@@ -8188,7 +8188,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=33
 SCANS=179
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_18373458500249634440
 MSLEVEL=2
 CHARGE=1+
@@ -8310,7 +8310,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=34
 SCANS=187
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_17797672992462402071
 MSLEVEL=2
 CHARGE=1+
@@ -8453,7 +8453,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=35
 SCANS=189
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_14990435534506297428
 MSLEVEL=2
 CHARGE=1+
@@ -8573,7 +8573,7 @@ END IONS
 BEGIN IONS
 FEATURE_ID=36
 SCANS=191
-FILENAME=/Users/abipalli/openms-development/openms/src/tests/topp/GNPSExport_2_inp2.mzML 
+FILENAME=GNPSExport_2_inp2.mzML 
 CONSENSUSID=e_77474879792713662
 MSLEVEL=2
 CHARGE=1+

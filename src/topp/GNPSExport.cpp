@@ -62,8 +62,7 @@ private:
 protected:
 	// this function will be used to register the tool parameters
 	// it gets automatically called on tool execution
-	void registerOptionsAndFlags_()
-	{
+	void registerOptionsAndFlags_() {
 		registerInputFile_("in_cm", "<file>", "", "input file containing consensus elements with \'peptide\' annotations");
 		setValidFormats_("in_cm", ListUtils::create<String>("consensusXML"));
 
@@ -215,14 +214,17 @@ protected:
 				stringstream feature_stream;
 				feature_stream << setprecision(4) << fixed;
 
-				if(output_type == "full_spectra") {
+				if(output_type == "full_spectra") { // full spectra
 					for(auto peptide : peptides) {
 						feature_stream << "BEGIN IONS" << endl;
 
 						feature_stream << "FEATURE_ID=" << to_string(feature_count) << endl;
 						feature_stream << "SCANS=" << to_string(i) << endl;
 
-						feature_stream << "FILENAME=" << mzml_file_paths[peptide.second.first] << endl;
+						string filename = mzml_file_paths[peptide.second.first];
+						Size parse_index = filename.rfind("/") + 1;
+						filename = filename.substr(parse_index);
+						feature_stream << "FILENAME=" << filename << endl;
 						feature_stream << "CONSENSUSID=e_" << feature.getUniqueId() << endl;
 
 						feature_stream << "MSLEVEL=2" << endl;
@@ -245,9 +247,7 @@ protected:
 						feature_stream << "END IONS" << endl << endl;
 					}
 					feature_count++;
-				}
-				// merged_spectra
-				else {
+				} else { // merged spectra
 					// map mz to intensity
 					map<double,int> ms2_block;
 
@@ -302,7 +302,10 @@ protected:
 					feature_stream << "FILENAME=";
 					set<string> filenames;
 					for(auto peptide : peptides) {
-						filenames.insert(mzml_file_paths[peptide.second.first]);
+						string filename = mzml_file_paths[peptide.second.first];
+						Size parse_index = filename.rfind("/") + 1;
+						filename = filename.substr(parse_index);
+						filenames.insert(filename);
 					}
 					for(auto filename : filenames) {
 						feature_stream << filename << " ";
@@ -317,7 +320,7 @@ protected:
 					feature_stream << "RTINSECOND=" << peptides[0].first.second.getRT() << endl;
 
 					for(auto ms2_iter = ms2_block.rbegin(); ms2_iter != ms2_block.rend(); ++ms2_iter) {
-						feature_stream << ms2_iter->first << "\t" << ms2_iter->second << endl;
+						feature_stream << ms2_iter->first << "\t" << (int) ms2_iter->second << endl;
 					}
 					// for(auto exp_iter = exp.begin(); exp_iter != exp.end(); ++exp_iter) {
 					// 	auto curr_spectrum = *exp_iter;
