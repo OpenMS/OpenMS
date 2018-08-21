@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #define IMPLIES(a, b) !(a) || (b)
@@ -44,8 +46,7 @@ namespace OpenMS
   template <typename MapT, typename PepT>
   bool populateMS1Transition(MapT & pep2tr,
                              const PepT & pep,
-                             ChromatogramExtractor::ExtractionCoordinates & coord, 
-                             const int nr_isotopes = 1)
+                             ChromatogramExtractor::ExtractionCoordinates & coord)
   {
     // default values for RT window (negative range)
     coord.rt_end = -1;
@@ -55,7 +56,7 @@ namespace OpenMS
     if (pep2tr.count(pep.id) == 0)
     {
       LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
-      coord.id = pep.id;
+      coord.id = OpenSwathHelper::computePrecursorId(pep.id, 0);
       return false;
     }
 
@@ -64,7 +65,15 @@ namespace OpenMS
     // itself. So we have to get the first transition to look it up.
     auto transition = (*pep2tr[pep.id][0]);
     coord.mz = transition.getPrecursorMZ();
-    coord.id = pep.id;
+
+    // Set chromatogram reference id: even though we use the peptide id
+    // here, it is possible that these ids overlap with the transition
+    // ids, leading to bad downstream consequences (e.g. ambiguity which
+    // chromatograms are precursor and which ones are fragment
+    // chromatograms). This is especially problematic with pqp files
+    // where peptide precursors and transitions are simply numbered and
+    // are guaranteed to overlap.
+    coord.id = OpenSwathHelper::computePrecursorId(pep.id, 0);
     return true;
   }
 
@@ -121,7 +130,8 @@ namespace OpenMS
                                                   std::vector< ExtractionCoordinates > & coordinates,
                                                   const OpenSwath::LightTargetedExperiment & transition_exp_used,
                                                   const double rt_extraction_window,
-                                                  const bool ms1)
+                                                  const bool ms1,
+                                                  const int ms1_isotopes)
   {
     // hash of the peptide reference containing all transitions
     std::map<String, std::vector<const OpenSwath::LightTransition*> > pep2tr;
@@ -155,7 +165,7 @@ namespace OpenMS
       OpenSwath::LightCompound pep;
       OpenSwath::LightTransition transition;
 
-      if (ms1) 
+      if (ms1)
       {
         pep = transition_exp_used.getCompounds()[i];
         if (!populateMS1Transition(pep2tr, pep, coord))
@@ -181,6 +191,19 @@ namespace OpenMS
       }
       coord.ion_mobility = pep.getDriftTime();
       coordinates.push_back(coord);
+
+      if (ms1 && ms1_isotopes > 0)
+      {
+        for (int k = 1; k <= ms1_isotopes; k++)
+        {
+          OpenSwath::ChromatogramPtr s(new OpenSwath::Chromatogram);
+          output_chromatograms.push_back(s);
+          ChromatogramExtractor::ExtractionCoordinates coord_new = coord;
+          coord_new.id = OpenSwathHelper::computePrecursorId(pep.id, k);
+          coord_new.mz = coord.mz + k * Constants::C13C12_MASSDIFF_U;
+          coordinates.push_back(coord_new);
+        }
+      }
     }
 
     // sort result
@@ -191,7 +214,8 @@ namespace OpenMS
                                                   std::vector< ExtractionCoordinates > & coordinates,
                                                   const OpenMS::TargetedExperiment & transition_exp_used,
                                                   const double rt_extraction_window,
-                                                  const bool ms1)
+                                                  const bool ms1,
+                                                  const int ms1_isotopes)
   {
     // hash of the peptide reference containing all transitions
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
@@ -203,9 +227,9 @@ namespace OpenMS
       pep2tr[ref].push_back(&transition_exp_used.getTransitions()[i]);
     }
 
-    std::map<String, const TargetedExperimentHelper::PeptideCompound* > tr2pep;
-    for (const auto & p : transition_exp_used.getPeptides()) {tr2pep[p.id] = &p;}
-    for (const auto & c : transition_exp_used.getCompounds()) {tr2pep[c.id] = &c;}
+    // std::map<String, const TargetedExperimentHelper::PeptideCompound* > tr2pep;
+    // for (const auto & p : transition_exp_used.getPeptides()) {tr2pep[p.id] = &p;}
+    // for (const auto & c : transition_exp_used.getCompounds()) {tr2pep[c.id] = &c;}
 
     bool have_peptides = (!transition_exp_used.getPeptides().empty());
 
@@ -283,6 +307,20 @@ namespace OpenMS
       }
       coord.ion_mobility = pep->getDriftTime();
       coordinates.push_back(coord);
+
+      if (ms1 && ms1_isotopes > 0 && false)
+      {
+        for (int k = 1; k <= ms1_isotopes; k++)
+        {
+          OpenSwath::ChromatogramPtr s(new OpenSwath::Chromatogram);
+          output_chromatograms.push_back(s);
+          ChromatogramExtractor::ExtractionCoordinates coord_new = coord;
+          coord_new.id = OpenSwathHelper::computePrecursorId(pep->id, k);
+          coord_new.mz = coord.mz + k * Constants::C13C12_MASSDIFF_U;
+          coordinates.push_back(coord_new);
+        }
+      }
+
     }
 
     // sort result
