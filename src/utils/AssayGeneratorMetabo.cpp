@@ -156,6 +156,17 @@ protected:
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
   }
 
+  // datastructure used for preprocessing
+  struct potentialTransition
+      {
+        double precursor_mz;
+        double precursor_rt;
+        double precursor_int;
+        double transition_quality_score;
+        vector<TargetedExperiment::Compound> potential_cmp;
+        vector<ReactionMonitoringTransition> potential_rmt;
+      };
+
   // map with closest feature to index of ms2 spectra
   map<const BaseFeature*, std::vector<size_t>> mappingFeatureToMS2Index(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm)
   {
@@ -438,7 +449,6 @@ protected:
 
       }
 
-      // TODO: does it still apply with the vector?
       // check if known unknown should be used
       if (description == "UNKNOWN" && sumformula == "UNKNOWN" && adduct == "UNKNOWN" && !use_known_unknowns)
       {
@@ -637,9 +647,15 @@ protected:
       }
       transition_group_counter += 1;
     }
-    t_exp.setCompounds(v_cmp);
-    t_exp.setTransitions(v_rmt);
+    //t_exp.setCompounds(v_cmp);
+    //t_exp.setTransitions(v_rmt);
 
+    // fill t_exp at the end after filtering of potentialPrecursors -> depenend on how many files are read
+    // should work with multiple files
+
+
+
+    // writer
     OpenMS::TransitionTSVFile::convertTargetedExperimentToTSV(out.c_str(), t_exp);
     return EXECUTION_OK;
   }
