@@ -461,15 +461,13 @@ public:
 
         f.setMZ(chromatogram.getProduct().getMZ());
         mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());
-        if (chromatogram.metaValueExists("product_mz")) // legacy
+
+        if (chromatogram.metaValueExists("product_mz")) // legacy code (ensures that old tests still work)
         {
           f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
           f.setMZ(chromatogram.getMetaValue("product_mz"));
         }
-        else
-        {
-          LOG_WARN << "Please set meta value 'product_mz' on chromatogram to populate feature m/z value" << std::endl;
-        }
+
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
         f.setMetaValue("total_xic", transition_total_xic);
@@ -590,13 +588,13 @@ public:
         }
 
         f.setMZ(chromatogram.getPrecursor().getMZ());
-        mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());
-        if (chromatogram.metaValueExists("precursor_mz")) // legacy
+        if (k == 0) {mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());} // only use m/z if first (monoisotopic) isotope
+
+        if (chromatogram.metaValueExists("precursor_mz")) // legacy code (ensures that old tests still work)
         {
           f.setMZ(chromatogram.getMetaValue("precursor_mz"));
-          mrmFeature.setMZ(chromatogram.getMetaValue("precursor_mz"));
+          if (k == 0) {mrmFeature.setMZ(chromatogram.getMetaValue("precursor_mz"));} // only use m/z if first (monoisotopic) isotope
         }
-
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
         f.setIntensity(peak_integral);
