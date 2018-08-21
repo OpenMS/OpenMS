@@ -456,8 +456,6 @@ public:
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
         f.getConvexHulls().push_back(hull);
-        f.setMetaValue("native_id", chromatogram.getNativeID());
-        f.setMetaValue("peak_apex_int", peak_apex_int);
 
         f.setMZ(chromatogram.getProduct().getMZ());
         mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());
@@ -478,8 +476,7 @@ public:
           f.setMetaValue("total_mi", transition_total_mi);
         }
 
-        // TODO shouldn't this be quantifying transition?
-        if (transition_group.getTransitions()[k].isDetectingTransition())
+        if (transition_group.getTransitions()[k].isQuantifyingTransition())
         {
           total_intensity += peak_integral;
           total_peak_apices += peak_apex_int;
@@ -596,7 +593,6 @@ public:
           f.setMZ(chromatogram.getMetaValue("precursor_mz"));
           mrmFeature.setMZ(chromatogram.getMetaValue("precursor_mz"));
         }
-
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
         f.setIntensity(peak_integral);
