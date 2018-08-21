@@ -216,6 +216,8 @@ using namespace std;
         // get actual position of highest intensity peak
         double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();
 
+        double highest_peak_int = (*rt_it)[highest_peak_idx].getIntensity();
+
         // cout << mz << " -> " << nearest_peak_mz << endl;
         double delta_mz = highest_peak_mz - mz;
         delta_mzs.push_back(delta_mz);
@@ -224,6 +226,7 @@ using namespace std;
         // correct entries
         Precursor corrected_prec = precursors[i];
         corrected_prec.setMZ(highest_peak_mz);
+        corrected_prec.setIntensity(highest_peak_int);
         exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
         corrected_precursors.insert(precursor_spectrum_idx);
       }

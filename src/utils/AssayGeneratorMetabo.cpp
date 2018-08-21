@@ -49,6 +49,8 @@
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
+#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -157,7 +159,7 @@ protected:
   }
 
   // datastructure used for preprocessing
-  struct potentialTransition
+  struct PotentialTransitions
       {
         double precursor_mz;
         double precursor_rt;
@@ -214,74 +216,6 @@ protected:
       }
     }
     return feature_ms2_spectra_map;
-  }
-
-  // precursor correction (highest intensity)
-  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum& spectrum1, double tolerance, bool ppm)
-  {
-
-    // get tolerance window and left/right iterator
-    std::pair<double,double> tolerance_window = Math::getTolWindow(test_mz, tolerance, ppm);
-
-    // Here left has to be smaller than right
-    OPENMS_PRECONDITION(tolerance_window.first < tolerance_window.second, "Left has to be smaller than right");
-
-    MSSpectrum::ConstIterator left = spectrum1.MZBegin(tolerance_window.first);
-    MSSpectrum::ConstIterator right = spectrum1.MZEnd(tolerance_window.second);
-
-    // no MS1 precursor peak in +- tolerance window found
-    if (left == right)
-    {
-        return -1;
-    }
-
-    MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
-
-    return max_intensity_it - spectrum1.begin();
-  }
-
-  // annotate precursor intensity based on precursor spectrum and highest intensity peak in tolerance window
-  void annotatePrecursorIntensity(PeakMap& spectra, double tolerance, bool ppm)
-  {
-    for (PeakMap::Iterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
-    {
-      // process only MS2 spectra
-      if (s_it->getMSLevel() != 2)
-      {
-        continue;
-      }
-
-      MSSpectrum& spectrum = *s_it;
-      vector<Precursor>& precursor = spectrum.getPrecursors();
-
-      if (precursor.empty())
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Invalid MS2 spectrum without precursor");
-      }
-
-      double test_mz = precursor[0].getMZ();
-
-      // find corresponding precursor spectrum
-      PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum(s_it);
-
-      // no precursor spectrum found
-      if (s_it2 == spectra.end())
-      {
-        LOG_WARN << "No MS1 spectrum was found to the specific precursor" << std::endl;
-        continue;
-      }
-
-      const MSSpectrum& precursor_spectrum = *s_it2;
-      Int mono_index = getHighestIntensityPeakInMZRange(test_mz, precursor_spectrum, tolerance, ppm);
-      if (mono_index == -1)
-      {
-        LOG_WARN << "No precursor peak in MS1 spectrum found, please ensure that the tolerance is set correctly." << std::endl;
-        continue;
-      }
-      const Peak1D& max_mono_peak = precursor_spectrum[mono_index];
-      precursor[0].setMZ(max_mono_peak.getMZ());
-      precursor[0].setIntensity(max_mono_peak.getIntensity());
-    }
   }
 
   ExitCodes main_(int, const char **) override
@@ -374,8 +308,12 @@ protected:
       }
     }
 
-    // annotate precursor mz and intensity
-    annotatePrecursorIntensity(spectra, pre_recal_win, ppm_recal);
+    // annotate and recalibrate precursor mz and intensity
+    vector<double> delta_mzs;
+    vector<double> mzs;
+    vector<double> rts;
+    PrecursorCorrection::correctToHighestIntensityMS1Peak(spectra, pre_recal_win, ppm_recal, delta_mzs, mzs, rts);
+
 
     // filter feature by number of masstraces
     auto map_it = remove_if(feature_map.begin(), feature_map.end(),
@@ -398,15 +336,15 @@ protected:
                                                                                                       precursor_mz_tol,
                                                                                                       precursor_rt_tol,
                                                                                                       ppm_prec);
-    TargetedExperiment t_exp;
-    vector<TargetedExperiment::Compound> v_cmp;
-    vector<ReactionMonitoringTransition> v_rmt;
+    vector<PotentialTransitions> v_pts;
     int transition_group_counter = 0;
 
     for (std::map<const BaseFeature *, std::vector<size_t>>::iterator it = feature_ms2_spectra_map.begin();
          it != feature_ms2_spectra_map.end();
          ++it)
     {
+      vector<TargetedExperiment::Compound> v_cmp;
+      vector<ReactionMonitoringTransition> v_rmt;
 
       String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
       StringList v_description, v_sumformula, v_adduct;
@@ -440,13 +378,6 @@ protected:
           v_sumformula.push_back(sumformula);
           v_adduct.push_back(adduct);
         }
-
-        std::cout << "-----------" << std::endl;
-        for (auto d_it = v_description.begin(); d_it != v_description.end(); ++d_it)
-        {
-          std::cout << "des: " << *d_it << std::endl;
-        }
-
       }
 
       // check if known unknown should be used
@@ -581,6 +512,7 @@ protected:
       rmt.clearMetaInfo();
       int transition_counter = 0;
       // here ms2 spectra information is used
+      // TODO: filter for e.g. 4 highest transitions
       for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
       {
         float current_int = spec_it->getIntensity();
@@ -646,17 +578,35 @@ protected:
         }
       }
       transition_group_counter += 1;
+      PotentialTransitions pts;
+      pts.precursor_mz = highest_precursor_mz;
+      pts.precursor_rt = feature_rt;
+      pts.precursor_int = highest_precursor_int ;
+      //pts.transition_quality = ;
+      pts.potential_cmp = v_cmp;
+      pts.potential_rmt = v_rmt;
+      v_pts.push_back(pts);
     }
-    //t_exp.setCompounds(v_cmp);
-    //t_exp.setTransitions(v_rmt);
 
+    // TODO: add filter for mz in rt range?
     // fill t_exp at the end after filtering of potentialPrecursors -> depenend on how many files are read
     // should work with multiple files
 
 
+    // merge possible transitions after filtering
+    vector<TargetedExperiment::Compound> v_cmp_all;
+    vector<ReactionMonitoringTransition> v_rmt_all;
+    for (auto it = v_pts.begin(); it != v_pts.end(); ++it)
+    {
+      v_cmp_all.insert(v_cmp_all.end(), it->potential_cmp.begin(), it->potential_cmp.end());
+      v_rmt_all.insert(v_rmt_all.end(), it->potential_rmt.begin(), it->potential_rmt.end());
+    }
 
-    // writer
+    TargetedExperiment t_exp;
+    t_exp.setCompounds(v_cmp_all);
+    t_exp.setTransitions(v_rmt_all);
     OpenMS::TransitionTSVFile::convertTargetedExperimentToTSV(out.c_str(), t_exp);
+
     return EXECUTION_OK;
   }
 };
