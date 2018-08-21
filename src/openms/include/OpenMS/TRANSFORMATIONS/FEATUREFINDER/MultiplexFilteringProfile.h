@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
@@ -74,10 +75,10 @@ public:
      * @param exp_picked    experimental data in centroid mode
      * @param boundaries    peak boundaries for exp_picked
      * @param patterns    patterns of isotopic peaks to be searched for
-     * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
-     * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
-     * @param missing_peaks    flag for missing peaks
+     * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
+     * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
      * @param intensity_cutoff    intensity cutoff
+     * @param rt_band    RT range used for filtering
      * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
      * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
      * @param peptide_similarity    similarity score for two peptides in the same multiplet
@@ -88,7 +89,9 @@ public:
      * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
      * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
      */
-    MultiplexFilteringProfile(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries,
+                              const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band,
+                              double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
     /**
      * @brief filter for patterns
@@ -97,45 +100,36 @@ public:
      * @throw Exception::IllegalArgument if number of peaks and number of peak boundaries differ
      *
      * @see MultiplexIsotopicPeakPattern
-     * @see MultiplexFilterResult
+     * @see MultiplexFilteredMSExperiment
      */
-    std::vector<MultiplexFilterResult> filter();
+    std::vector<MultiplexFilteredMSExperiment> filter();
 
 private:
     /**
-     * @brief non-local intensity filter
+     * @brief averagine filter for profile mode
      *
-     * Checks if the intensities at the pattern positions are above the intensity cutoff.
-     * We check not only at m/z but at all pattern positions i.e. non-locally.
+     * @param pattern    m/z pattern to search for
+     * @param peak    peak to be filtered
+     * @param satellites    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
      *
-     * @param pattern    pattern of isotopic peaks to be searched for
-     * @param mz_shifts_actual    actual m/z shifts seen in the spectrum (will differ slightly from expected m/z shifts in pattern)
-     * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
-     * @param nav    navigator for moving on the spline-interpolated spectrum
-     * @param intensities_actual    output for the spline-interpolated intensities at the actual m/z shift positions
-     * @param peaks_found_in_all_peptides    number of isotopic peaks seen for each peptide (peaks)
-     * @param mz    reference m/z position of the pattern (mono-isotopic peak of the lightest peptide)
-     *
-     * @return number of isotopic peaks seen for each peptide (profile)
+     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
      */
-    int nonLocalIntensityFilter_(const MultiplexIsotopicPeakPattern& pattern, const std::vector<double>& mz_shifts_actual, const std::vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const;
+    bool filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const;
 
     /**
-     * @brief returns the index of a peak which is nearest m/z
-     * (for initialisation of peak registry)
+     * @brief peptide correlation filter for profile mode
      *
-     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-     * @param mz    m/z position of the peak
-     * @param scaling    rescaling of the peak boundaries
+     * @param pattern    m/z pattern to search for
+     * @param satellites    spline-interpolated satellites of the peak. If they pass, they will be added to the peak.
      *
-     * @return index of the peak in spectrum or -1 if no peak is present within this tolerance
+     * @return boolean if this filter was passed i.e. the correlation coefficient is greater than <averagine_similarity_>
      */
-    int findNearest_(int spectrum_index, double mz, double scaling) const;
-
+    bool filterPeptideCorrelation_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile) const;
+    
     /**
-     * @brief profile experimental data and peak boundaries
+     * @brief spline interpolated profile data and peak boundaries
      */
-    PeakMap exp_profile_;
+    std::vector<SplineSpectrum> exp_spline_profile_;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
 
   };

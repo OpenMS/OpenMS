@@ -3,7 +3,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,12 +115,17 @@ namespace OpenMS
           MSChromatogram c = chromatogram_map.getChromatograms()[i];
           Precursor precursor = c.getPrecursor();
           String pepref = targeted_exp.getTransitions()[j].getPeptideRef();
+          precursor.setMetaValue("peptide_sequence", pepref);
+          precursor.setMetaValue("description", targeted_exp.getTransitions()[j].getNativeID());
           for (Size pep_idx = 0; pep_idx < targeted_exp.getPeptides().size(); pep_idx++)
           {
             const OpenMS::TargetedExperiment::Peptide * pep = &targeted_exp.getPeptides()[pep_idx];
             if (pep->id == pepref)
             {
-              precursor.setMetaValue("peptide_sequence", pep->sequence);
+              if (!pep->sequence.empty())
+              {
+                precursor.setMetaValue("peptide_sequence", pep->sequence);
+              }
               break;
             }
           }

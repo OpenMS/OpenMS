@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,6 @@ from __future__ import print_function
 # Create simulated ion mobility scans for testing
 
 from pyopenms import *
-import numpy as np, matplotlib.pyplot as plt
 
 exp = MSExperiment()
 # print(dir(exp))
@@ -55,19 +54,44 @@ for rt_idx in range(NR_RT_SAMPLES):
     sp = MSSpectrum()
     sp.setRT(rt_idx)
     sp.setMSLevel(1)
+
+    base_int = 100 - abs(20 - rt_idx)*(100)/25.0  # shift the precursor slightly
+    base_int = max(5, base_int)
+
+    fda = pyopenms.FloatDataArray()
+    fda.setName("Ion Mobility")
+    fda.resize(100)
+
     for i in range(100):
         p = Peak1D()
         p.setMZ(100+i)
-        p.setIntensity(100+i)
+        p.setIntensity(base_int+i)
         sp.push_back(p)
+        fda[i] = 10
+
+    for i in range(10):
+        p = Peak1D()
+        p.setMZ(412.502)
+        p.setIntensity(base_int+ (i-5))
+        sp.push_back(p)
+        fda.push_back( 99 + (i-5) )
+
+    for i in range(10):
+        p = Peak1D()
+        p.setMZ(417.502)
+        p.setIntensity(base_int+ (i-5))
+        sp.push_back(p)
+        fda.push_back( 152 + (i-5) )
+
+    sp.setFloatDataArrays([fda])
     exp.addSpectrum(sp)
 
 # Create MS2 spectra
 for rt_idx in range(NR_RT_SAMPLES):
     # Base intensity is a single peak at 25 RT with 100 *i intensity spread across ion mobility scans
     # Second base intensity is a single peak at 10 RT with 100 *i intensity spread across ion mobility scans
-    base_int = 100 - abs(25 - rt_idx)*(100)/25.0 
-    base_int_second = 100 - abs(10 - rt_idx)*(100)/40.0 
+    base_int = 100 - abs(25 - rt_idx)*(100)/25.0
+    base_int_second = 100 - abs(10 - rt_idx)*(100)/40.0
     print("base int", base_int, abs(25 - rt_idx)*(100)/25.0  )
 
     allmz = []
@@ -75,7 +99,6 @@ for rt_idx in range(NR_RT_SAMPLES):
     allim = []
 
     for im_idx in range(NR_IM_BINS):
-        # print("======================================= ion mobility", im_idx)
         sp = MSSpectrum()
         p = pyopenms.Precursor()
         p.setIsolationWindowLowerOffset(12)
@@ -145,5 +168,5 @@ pf = f.getOptions()
 pf.setCompression(True)
 f.setOptions(pf)
 exp.sortSpectra()
-f.store('output.mzML', exp) 
+f.store('output.mzML', exp)
 

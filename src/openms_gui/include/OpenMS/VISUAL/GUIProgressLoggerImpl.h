@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,12 @@ public:
       @brief Implement ProgressLoggerImpl::setProgress().
     */
     void setProgress(const SignedSize value, const int /* current_recursion_depth */) const override;
-
+    
+    /**
+      @brief Implement ProgressLoggerImpl::nextProgress().
+    */
+    SignedSize nextProgress() const override;
+    
     /**
       @brief Implement ProgressLoggerImpl::endProgress().
     */
@@ -80,6 +85,7 @@ private:
     mutable QProgressDialog* dlg_;
     mutable SignedSize begin_;
     mutable SignedSize end_;
+    mutable SignedSize current_;
   };
 }
 

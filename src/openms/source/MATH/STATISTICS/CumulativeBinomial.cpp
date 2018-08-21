@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,8 +61,9 @@ namespace OpenMS
         }
         catch (std::overflow_error const& /*e*/)
         {
-          std::cout << "Warning: Binomial coefficient for match-odds score has overflowed! Setting value to the maximal double value." << std::endl;
-          std::cout << "binomial_coefficient was called with N = " << n << " and k = " << j << std::endl;
+          // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
+//          std::cout << "Warning: Binomial coefficient for match-odds score has overflowed! Setting value to the maximal double value." << std::endl;
+//          std::cout << "binomial_coefficient was called with N = " << n << " and k = " << j << std::endl;
           coeff = std::numeric_limits<double>::max();
         }
 

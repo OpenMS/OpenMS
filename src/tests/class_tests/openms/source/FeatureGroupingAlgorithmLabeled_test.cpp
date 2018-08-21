@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -151,10 +151,10 @@ START_SECTION((virtual void group(const std::vector< FeatureMap > &maps, Consens
 	//test exception (no file name set in out)
 	TEST_EXCEPTION(Exception::IllegalArgument, fga.group(in,out));
 
-	out.getFileDescriptions()[5].label = "light";
-	out.getFileDescriptions()[5].filename = "filename";
-	out.getFileDescriptions()[8] = out.getFileDescriptions()[5];
-	out.getFileDescriptions()[8].label = "heavy";
+	out.getColumnHeaders()[5].label = "light";
+	out.getColumnHeaders()[5].filename = "filename";
+	out.getColumnHeaders()[8] = out.getColumnHeaders()[5];
+	out.getColumnHeaders()[8].label = "heavy";
 	fga.group(in,out);
 
 	TEST_EQUAL(out.size(),1)

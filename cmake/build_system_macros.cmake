@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -49,21 +49,32 @@ macro(find_boost)
   set(Boost_COMPILER "")
 
   # help boost finding it's packages
-  set(Boost_ADDITIONAL_VERSIONS "1.48.0" "1.49.0" "1.50.0" "1.51.0" "1.52.0" "1.53.0" "1.54.0")
+  set(Boost_ADDITIONAL_VERSIONS
+    "1.69.1" "1.69.0" "1.69"
+    "1.68.1" "1.68.0" "1.68"
+    "1.67.1" "1.67.0" "1.67"
+    "1.66.1" "1.66.0" "1.66"
+    "1.65.1" "1.65.0" "1.65"
+    "1.64.1" "1.64.0" "1.64"
+    "1.63.1" "1.63.0" "1.63"
+    "1.62.1" "1.62.0" "1.62"
+    "1.61.1" "1.61.0" "1.61"
+    "1.60.1" "1.60.0" "1.60"
+    "1.59.1" "1.59.0" "1.59"
+    "1.58.1" "1.58.0" "1.58"
+    "1.57.1" "1.57.0" "1.57"
+    "1.56.1" "1.56.0" "1.56"
+    "1.55.1" "1.55.0" "1.55"
+    "1.54.1" "1.54.0" "1.54"
+    "1.53.1" "1.53.0" "1.53"
+    "1.52.1" "1.52.0" "1.52"
+    "1.51.1" "1.51.0" "1.51"
+    "1.50.1" "1.50.0" "1.50"
+    "1.49.1" "1.49.0" "1.49"
+    "1.48.1" "1.48.0" "1.48")
 
-  # 1st attempt does not explicitly requires boost to enable second check (see below)
   find_package(Boost 1.48.0 COMPONENTS ${ARGN})
 
-  set(BOOST_MOC_ARGS "")
-
-  if(Boost_FOUND)
-    # see: https://bugreports.qt-project.org/browse/QTBUG-22829
-    # Confirmed only on mac os x and leads to problems on win32 and lnx
-    # so we handle it for now only on mac os x and boost versions > 1.52
-    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" OR ${Boost_MINOR_VERSION} GREATER "52")
-      set(BOOST_MOC_ARGS "-DBOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION")
-    endif()
-  endif()
 endmacro(find_boost)
 
 #------------------------------------------------------------------------------

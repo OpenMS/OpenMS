@@ -26,6 +26,7 @@
 					<UserParam type="float" name="peak_apex_position" value="101"/>
 					<UserParam type="string" name="native_id" value="1"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="14151.5089874268"/>
 					<UserParam type="float" name="logSN" value="0.754007845849604"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -40,6 +41,7 @@
 					<UserParam type="float" name="peak_apex_position" value="101"/>
 					<UserParam type="string" name="native_id" value="2"/>
 					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="7075.75449371338"/>
 					<UserParam type="float" name="logSN" value="0.754007845849604"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -54,6 +56,7 @@
 					<UserParam type="float" name="peak_apex_position" value="101"/>
 					<UserParam type="string" name="native_id" value="3"/>
 					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4717.16970062256"/>
 					<UserParam type="float" name="logSN" value="0.754007825635777"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -72,10 +75,10 @@
 			</subordinate>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="25944.4331817627"/>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEA"/>
 			<UserParam type="float" name="leftWidth" value="11"/>
 			<UserParam type="float" name="rightWidth" value="191"/>
-			<UserParam type="float" name="total_xic" value="25944.4331817627"/>
 			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
@@ -134,6 +137,7 @@
 					<UserParam type="float" name="peak_apex_position" value="112"/>
 					<UserParam type="string" name="native_id" value="4"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="14100.3481216431"/>
 					<UserParam type="float" name="logSN" value="0.749945748776714"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -148,6 +152,7 @@
 					<UserParam type="float" name="peak_apex_position" value="112"/>
 					<UserParam type="string" name="native_id" value="5"/>
 					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="7050.17406082153"/>
 					<UserParam type="float" name="logSN" value="0.749945748776714"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -162,6 +167,7 @@
 					<UserParam type="float" name="peak_apex_position" value="112"/>
 					<UserParam type="string" name="native_id" value="6"/>
 					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4700.11607933044"/>
 					<UserParam type="float" name="logSN" value="0.749945728605632"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -180,10 +186,10 @@
 			</subordinate>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="25850.638261795"/>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEB"/>
 			<UserParam type="float" name="leftWidth" value="12"/>
 			<UserParam type="float" name="rightWidth" value="192"/>
-			<UserParam type="float" name="total_xic" value="25850.638261795"/>
 			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
@@ -242,6 +248,7 @@
 					<UserParam type="float" name="peak_apex_position" value="123"/>
 					<UserParam type="string" name="native_id" value="7"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="13938.7174682617"/>
 					<UserParam type="float" name="logSN" value="0.738242596855508"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -256,6 +263,7 @@
 					<UserParam type="float" name="peak_apex_position" value="123"/>
 					<UserParam type="string" name="native_id" value="8"/>
 					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="6969.35873413086"/>
 					<UserParam type="float" name="logSN" value="0.738242596855508"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -270,6 +278,7 @@
 					<UserParam type="float" name="peak_apex_position" value="123"/>
 					<UserParam type="string" name="native_id" value="9"/>
 					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4646.23919296265"/>
 					<UserParam type="float" name="logSN" value="0.738242576145299"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -288,10 +297,10 @@
 			</subordinate>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="25554.3153953552"/>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEC"/>
 			<UserParam type="float" name="leftWidth" value="33"/>
 			<UserParam type="float" name="rightWidth" value="193"/>
-			<UserParam type="float" name="total_xic" value="25554.3153953552"/>
 			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
@@ -350,6 +359,7 @@
 					<UserParam type="float" name="peak_apex_position" value="134"/>
 					<UserParam type="string" name="native_id" value="10"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="13644.073764801"/>
 					<UserParam type="float" name="logSN" value="0.831981918089203"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -364,6 +374,7 @@
 					<UserParam type="float" name="peak_apex_position" value="134"/>
 					<UserParam type="string" name="native_id" value="11"/>
 					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="6822.03688240051"/>
 					<UserParam type="float" name="logSN" value="0.831981918089203"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -378,6 +389,7 @@
 					<UserParam type="float" name="peak_apex_position" value="134"/>
 					<UserParam type="string" name="native_id" value="12"/>
 					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4548.02462768555"/>
 					<UserParam type="float" name="logSN" value="0.831981897274276"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -396,10 +408,10 @@
 			</subordinate>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="25014.1352748871"/>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDED"/>
 			<UserParam type="float" name="leftWidth" value="44"/>
 			<UserParam type="float" name="rightWidth" value="194"/>
-			<UserParam type="float" name="total_xic" value="25014.1352748871"/>
 			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
@@ -458,6 +470,7 @@
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="13"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="13185.1150016785"/>
 					<UserParam type="float" name="logSN" value="0.812720763688243"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -472,6 +485,7 @@
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="14"/>
 					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="6592.55750083923"/>
 					<UserParam type="float" name="logSN" value="0.812720763688243"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -486,6 +500,7 @@
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="15"/>
 					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4395.03837323189"/>
 					<UserParam type="float" name="logSN" value="0.812720742323742"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -504,10 +519,10 @@
 			</subordinate>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="24172.7108757496"/>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEE"/>
 			<UserParam type="float" name="leftWidth" value="55"/>
 			<UserParam type="float" name="rightWidth" value="195"/>
-			<UserParam type="float" name="total_xic" value="24172.7108757496"/>
 			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
@@ -566,6 +581,7 @@
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="16"/>
 					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="13185.1150016785"/>
 					<UserParam type="float" name="logSN" value="0.812720763688243"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -580,6 +596,7 @@
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="17"/>
 					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="6592.55750083923"/>
 					<UserParam type="float" name="logSN" value="0.812720763688243"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -594,6 +611,7 @@
 					<UserParam type="float" name="peak_apex_position" value="145"/>
 					<UserParam type="string" name="native_id" value="18"/>
 					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4395.03837323189"/>
 					<UserParam type="float" name="logSN" value="0.812720742323742"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
@@ -612,10 +630,10 @@
 			</subordinate>
 			<UserParam type="string" name="potentialOutlier" value="none"/>
 			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="24172.7108757496"/>
 			<UserParam type="string" name="PeptideRef" value="PEPTIDEF"/>
 			<UserParam type="float" name="leftWidth" value="55"/>
 			<UserParam type="float" name="rightWidth" value="195"/>
-			<UserParam type="float" name="total_xic" value="24172.7108757496"/>
 			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
 			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>

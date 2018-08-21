@@ -105,18 +105,21 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         void setFormula(EmpiricalFormula formula) nogil except +
 
         # returns the empirical formula of the residue
+        EmpiricalFormula getFormula() nogil except +
         EmpiricalFormula getFormula(ResidueType res_type) nogil except +
 
         # sets average weight of the residue (must be full, with N and C-terminus)
         void setAverageWeight(double weight) nogil except +
 
         # returns average weight of the residue
+        double getAverageWeight() nogil except +
         double getAverageWeight(ResidueType res_type) nogil except +
 
         # sets monoisotopic weight of the residue (must be full, with N and C-terminus)
         void setMonoWeight(double weight) nogil except +
 
         # returns monoisotopic weight of the residue
+        double getMonoWeight() nogil except +
         double getMonoWeight(ResidueType res_type) nogil except +
 
         const ResidueModification * getModification() nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <vector>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <boost/lambda/casts.hpp>
+#include <boost/lambda/lambda.hpp>
 
 namespace OpenSwath
 {
@@ -129,6 +131,13 @@ public:
 
     /// divide each element of x by the sum of the vector
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
+
+    // Compute rank of vector elements
+    OPENSWATHALGO_DLLAPI std::vector<unsigned int> computeRank(const std::vector<double>& w);
+
+    // Estimate rank-transformed mutual information between two vectors of data points
+    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2);
+
     //@}
 
   }

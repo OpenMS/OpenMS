@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -192,6 +192,10 @@ namespace OpenMS
   {
 #endif
 
+    // make sure OpenGL already properly initialized
+    QOpenGLContext *ctx = QOpenGLContext::currentContext();
+    if (!ctx || !ctx->isValid()) return;
+    
     if (update_buffer_)
     {
       update_buffer_ = false;
@@ -199,10 +203,10 @@ namespace OpenMS
       {
         openglwidget()->updateIntensityScale();
       }
-      // openglwidget()->initializeGL();
+      openglwidget()->initializeGL();
     }
     openglwidget()->resizeGL(width(), height());
-    // openglwidget()->paintGL();
+    openglwidget()->repaint();
   }
 
   void Spectrum3DCanvas::showCurrentLayerPreferences()

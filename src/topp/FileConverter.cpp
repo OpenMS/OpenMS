@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -183,7 +183,7 @@ protected:
 
     registerStringOption_("write_scan_index", "<toogle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
-    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size (attention: may cause small loss of precision; only for mzML data).", true);
+    registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
     registerDoubleOption_("lossy_mass_accuracy", "<error>", -1.0, "Desired (absolute) m/z accuracy for lossy compression (e.g. use 0.0001 for a mass accuracy of 0.2 ppm at 500 m/z, default uses -1.0 for maximal accuracy).", false, true);
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
@@ -208,15 +208,17 @@ protected:
     FileHandler fh;
     FileTypes::Type in_type = FileTypes::nameToType(getStringOption_("in_type"));
 
-    // prepare data structures for lossy compression
-    MSNumpressCoder::NumpressConfig npconfig_mz;
-    MSNumpressCoder::NumpressConfig npconfig_int;
+    // prepare data structures for lossy compression (note that we compress any float data arrays the same as intensity arrays)
+    MSNumpressCoder::NumpressConfig npconfig_mz, npconfig_int, npconfig_fda;
     npconfig_mz.estimate_fixed_point = true; // critical
     npconfig_int.estimate_fixed_point = true; // critical
+    npconfig_fda.estimate_fixed_point = true; // critical
     npconfig_mz.numpressErrorTolerance = -1.0; // skip check, faster
     npconfig_int.numpressErrorTolerance = -1.0; // skip check, faster
+    npconfig_fda.numpressErrorTolerance = -1.0; // skip check, faster
     npconfig_mz.setCompression("linear");
     npconfig_int.setCompression("slof");
+    npconfig_fda.setCompression("slof");
     npconfig_mz.linear_fp_mass_acc = mass_acc; // set the desired mass accuracy
 
     if (in_type == FileTypes::UNKNOWN)
@@ -303,7 +305,7 @@ protected:
           (out_type != FileTypes::CONSENSUSXML))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity_<X>' (X>=0) meta values.");
+        writeLog_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity' (X>=0) meta values.");
         exp.set2DData<true>(fm);
       }
     }
@@ -315,7 +317,7 @@ protected:
 
       MzMLFile f;
       f.setLogType(log_type_);
-      CachedmzML cacher;
+      Internal::CachedMzMLHandler cacher;
       cacher.setLogType(log_type_);
       PeakMap tmp_exp;
 
@@ -365,6 +367,7 @@ protected:
         {
           consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
           consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+          consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
           consumer.getOptions().setCompression(true);
         }
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
@@ -391,7 +394,7 @@ protected:
         String out_meta = extractCachedMetaFilename(out);
         if (out_meta.empty()) return ILLEGAL_PARAMETERS;
 
-        CachedmzML cacher;
+        Internal::CachedMzMLHandler cacher;
         cacher.setLogType(log_type_);
         PeakMap exp_meta;
 
@@ -432,6 +435,7 @@ protected:
       {
         f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
         f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
         f.getOptions().setCompression(true);
       }
 
@@ -594,13 +598,8 @@ protected:
       String out_meta = extractCachedMetaFilename(out);
       if (out_meta.empty()) return ILLEGAL_PARAMETERS;
 
-      CachedmzML cacher;
-      MzMLFile f;
-      cacher.setLogType(log_type_);
-      f.setLogType(log_type_);
-
-      cacher.writeMetadata(exp, out_meta);
-      cacher.writeMemdump(exp, out);
+      Internal::CachedMzMLHandler().writeMetadata(exp, out_meta);
+      Internal::CachedMzMLHandler().writeMemdump(exp, out);
     }
     else if (out_type == FileTypes::CSV)
     {

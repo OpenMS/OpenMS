@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 namespace OpenMS
@@ -115,14 +116,14 @@ namespace OpenMS
       form.append("S").append(String(S_num));
 
     EmpiricalFormula formula(form);
-    IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(max_isotope_);
+    IsotopeDistribution isotope_distribution = formula.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_isotope_));
     isotope_distribution.trimRight(trim_right_cutoff_);
     isotope_distribution.renormalize();
 
     // compute the average mass (-offset)
     for (IsotopeDistribution::iterator iter = isotope_distribution.begin(); iter != isotope_distribution.end(); ++iter)
     {
-      isotopes_exact.push_back(iter->second);
+      isotopes_exact.push_back(iter->getIntensity());
     }
 
     // "stretch" the averagine isotope distribution

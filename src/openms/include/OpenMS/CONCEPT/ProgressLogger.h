@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,6 +82,7 @@ public:
 public:
       virtual void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const = 0;
       virtual void setProgress(const SignedSize value, const int current_recursion_depth) const = 0;
+      virtual SignedSize nextProgress() const = 0; //< does not print/show anything; returns current progress
       virtual void endProgress(const int current_recursion_depth) const = 0;
 
       virtual ~ProgressLoggerImpl() {}
@@ -115,6 +116,9 @@ public:
 
     /// Ends the progress display
     void endProgress() const;
+
+    /// increment progress by 1 (according to range begin-end)
+    void nextProgress() const;
 
 protected:
     mutable LogType type_;

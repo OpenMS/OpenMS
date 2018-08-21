@@ -54,7 +54,7 @@
       For the complete feature set to be enabled, %OpenMS needs recent versions of \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b WildMagic5, \b libSVM (2.91 or higher but not 3.15), \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1). These can be obtained via your package manager (if possible) or build through our contrib build script.
     </li>
     <li>
-      Building the documentation from the development version requires doxygen (> 1.5.4, some might be buggy inbetween) and pdflatex/texlive/texlive-full.
+      Building the documentation from the development version requires doxygen (recommended: >= 1.8.13, required: > 1.5.4, some might be buggy in between) and pdflatex/texlive/texlive-full.
     </li>
     <li>
       Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
@@ -184,9 +184,9 @@
   <tt>-DBUILD_TYPE=...</tt> with the appropriate argument. In addition, you
   may have to compile Qt yourself which you can get from <a
   href="http://download.qt.io/official_releases/qt">http://download.qt.io/official_releases/qt</a>
-  (use a 5.x version), if it is not provided on your server or the version on
+  (use version >5.5), if it is not provided on your server or the version on
   your environment is too old. Then you can use the traditional
-  <tt>./configure --prefix=/path && gmake && gmake install</tt> sequence to compile
+  <tt>./configure --prefix=/path && make && make install</tt> sequence to compile
   and install Qt (note that you should set the <tt>--prefix=/path</tt> to a local directory assuming
   you don't have root privileges).
 

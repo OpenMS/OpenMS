@@ -16,4 +16,6 @@
 !define OPENMSDOCDIR "${PACKAGING_DIR}/@INSTALL_DOC_DIR@"
 # path to Thirdparty executables
 !define THIRDPARTYDIR "${PACKAGING_DIR}/@INSTALL_SHARE_DIR@/THIRDPARTY"
+# version string (does not need to be only numbers, in contrast to VERSION_LONG which has to have 4 number levels)
+!define VERSION "@OPENMS_PACKAGE_VERSION_FULLSTRING@"
 

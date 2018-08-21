@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -169,18 +169,32 @@ public:
 
     /// Actual painting takes place here
     void paint(QPainter * paint_device, QPaintEvent * e);
+
+    // Show/hide ion ladder on top right corner (Identification view)
+    void setIonLadderVisible(bool show);
+
+    // Returns true if ion ladder is visible
+    bool isIonLadderVisible() const;
+
 signals:
     /// Requests to display all spectra in 2D plot
     void showCurrentPeaksAs2D();
+
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
+
+    /// Requests to display all spectra in ion mobility plot
+    void showCurrentPeaksAsIonMobility();
+
+    /// Requests to display all spectra as DIA
+    void showCurrentPeaksAsDIA();
 
 public slots:
     // Docu in base class
     void activateLayer(Size layer_index) override;
     // Docu in base class
     void removeLayer(Size layer_index) override;
-    //docu in base class
+    // Docu in base class
     void updateLayer(Size i) override;
 
     /**
@@ -264,11 +278,12 @@ protected:
     std::vector<std::pair<double, double> > aligned_peaks_mz_delta_;
     /// Stores the peak indices of pairs of aligned peaks in both spectra
     std::vector<std::pair<Size, Size> > aligned_peaks_indices_;
-
     /// Stores the score of the last alignment
     double alignment_score_;
     /// is this widget showing data with swapped m/z and RT axis? (for drawCoordinates_ only)
     bool is_swapped_;
+    /// whether the ion ladder is displayed on the top right corner in ID view
+    bool ion_ladder_visible_;
 
     /// Find peak next to the given position
     PeakIndex findPeakAtPosition_(QPoint);

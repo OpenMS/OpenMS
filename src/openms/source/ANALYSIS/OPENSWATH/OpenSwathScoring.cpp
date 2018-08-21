@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
     int add_up_spectra, double spacing_for_spectra_resampling,
-    OpenSwath_Scores_Usage & su)
+    const OpenSwath_Scores_Usage & su)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
@@ -187,7 +187,7 @@ namespace OpenMS
 
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
-                                              std::vector<OpenSwath::SwathMap> swath_maps,
+                                              const std::vector<OpenSwath::SwathMap> swath_maps,
                                               OpenMS::DIAScoring & diascoring,
                                               OpenSwath_Scores & scores,
                                               double drift_lower, double drift_upper)
@@ -286,6 +286,21 @@ namespace OpenMS
         scores.log_sn_score = std::log(scores.sn_ratio);
       }
     }
+
+    // Mutual information scoring
+    if (su_.use_mi_score_)
+    {
+      mrmscore_.initializeMIMatrix(imrmfeature, native_ids);
+      scores.mi_score = mrmscore_.calcMIScore();
+      scores.weighted_mi_score = mrmscore_.calcMIScore_weighted(normalized_library_intensity);
+    }
+
+    // check that the MS1 feature is present and that the MS1 MI should be calculated
+    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_mi)
+    {
+      mrmscore_.initializeMS1MI(imrmfeature, native_ids, precursor_feature_id); // perform cross-correlation on monoisotopic precursor
+      scores.ms1_mi_score = mrmscore_.calcMS1MIScore();
+    }
   }
 
   void OpenSwathScoring::calculateChromatographicIdScores(
@@ -312,6 +327,13 @@ namespace OpenMS
     if (su_.use_sn_score_)
     {
       idscores.ind_log_sn_score = mrmscore_.calcIndSNScore(imrmfeature, signal_noise_estimators);
+    }
+
+    // Mutual information scoring
+    if (su_.use_mi_score_)
+    {
+      mrmscore_.initializeMIIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+      idscores.ind_mi_score = mrmscore_.calcIndMIIdScore();
     }
   }
 
@@ -350,7 +372,7 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-      std::vector<double>& normalized_library_intensity)
+                                                            std::vector<double>& normalized_library_intensity)
   {
     normalized_library_intensity.clear();
     for (Size i = 0; i < transitions.size(); i++)

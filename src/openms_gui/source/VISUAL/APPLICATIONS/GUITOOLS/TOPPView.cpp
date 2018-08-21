@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,12 +39,12 @@
   and several other file formats. It also supports viewing data from an %OpenMS database.
   The following figure shows two instances of TOPPView displaying a HPLC-MS map and a MS raw spectrum:
 
-    @image html TOPPView.png
+  @image html TOPPView.png
 
-    More information about TOPPView can be found in the @ref TOPP_tutorial.
+  More information about TOPPView can be found in the @ref TOPP_tutorial.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_TOPPView.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_TOPPView.cli
 */
 
 //QT
@@ -101,7 +101,7 @@ void print_usage()
        << " - '@r'  after a map file displays the dots in red." << endl
        << " - '@g'  after a map file displays the dots in green." << endl
        << " - '@m'  after a map file displays the dots in magenta." << endl
-       << " - Example: 'TOPPView 1.mzML + 2.mzML @bw + 3.mzML @bg'" << endl
+       << " - Example: '" << tool_name << " 1.mzML + 2.mzML @bw + 3.mzML @bg'" << endl
        << endl;
 }
 
@@ -145,10 +145,15 @@ int main(int argc, const char** argv)
     a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(loadFile(QString)));
     mw->show();
 
-    // Create the splashscreen that is displayed while the application loads
-    QSplashScreen* splash_screen = new QSplashScreen(QPixmap(":/TOPPView_Splashscreen.png"));
+    // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
+    QPixmap qpm(":/TOPPView_Splashscreen.png");
+    QPainter pt_ver(&qpm);
+    pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
+    pt_ver.setPen(QColor(44, 50, 152));
+    pt_ver.drawText(490, 94, VersionInfo::getVersion().toQString());
+    QSplashScreen* splash_screen = new QSplashScreen(qpm);
     splash_screen->show();
-    splash_screen->showMessage("Loading parameters");
+
     QApplication::processEvents();
     StopWatch stop_watch;
     stop_watch.start();
@@ -165,7 +170,7 @@ int main(int argc, const char** argv)
     }
 
     // We are about to show the application.
-    // Proper time to  remove the splashscreen, if at least 1.5 seconds have passed...
+    // Proper time to remove the splashscreen, if at least 1.5 seconds have passed...
     while (stop_watch.getClockTime() < 1.5) /*wait*/
     {
     }

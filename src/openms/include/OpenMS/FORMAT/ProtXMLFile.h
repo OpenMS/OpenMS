@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,17 +49,21 @@ namespace OpenMS
     This class is used to load (storing not supported, yet) documents that implement
     the schema of ProtXML files.
 
-        A documented schema for this format comes with the TPP.
+    A documented schema for this format comes with the TPP and can also be
+    found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
-        OpenMS can only read parts of the protein_summary subtree to extract protein-peptide associations. All other parts are silently ignored.
+    OpenMS can only read parts of the protein_summary subtree to extract
+    protein-peptide associations. All other parts are silently ignored.
 
-        For protein groups, only the "group leader" (which is annotated with a probability and coverage)
-        receives these attributes. All indistinguishable proteins of the same group only have
-        an accession and score of -1.
+    For protein groups, only the "group leader" (which is annotated with a
+    probability and coverage) receives these attributes. All indistinguishable
+    proteins of the same group only have an accession and score of -1.
 
-    @note This format will eventually be replaced by the HUPO-PSI (mzIdentML and mzQuantML) AnalysisXML formats!
+    @note This format will eventually be replaced by the HUPO-PSI (mzIdentML
+    and mzQuantML) formats.
 
     @todo Document which metavalues of Protein/PeptideHit are filled when reading ProtXML (Chris)
+    @todo Writing of protXML is currently not supported
 
     @ingroup FileIO
   */

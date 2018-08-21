@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -81,19 +81,19 @@ namespace OpenMS
     int getMassShiftIndex() const;
     
     /**
-     * @brief returns number of mass shifts
+     * @brief returns number of mass shifts i.e. the number of peptides in the multiplet
      */
     unsigned getMassShiftCount() const;
    
     /**
      * @brief returns mass shift at position i
      */
-    double getMassShiftAt(int i) const;
+    double getMassShiftAt(size_t i) const;
     
     /**
      * @brief returns m/z shift at position i
      */
-    double getMZShiftAt(int i) const;
+    double getMZShiftAt(size_t i) const;
     
     /**
      * @brief returns number of m/z shifts

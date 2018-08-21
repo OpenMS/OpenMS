@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,11 +48,13 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI SimpleOpenMSSpectraFactory
   {
-    public:
+  public:
+
     /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
     static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(boost::shared_ptr<OpenMS::PeakMap> exp);
 
-    private:
+  private:
+
     static bool isExperimentCached(boost::shared_ptr<OpenMS::PeakMap> exp);
   };
 }

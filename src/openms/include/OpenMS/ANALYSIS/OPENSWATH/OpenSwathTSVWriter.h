@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,13 +64,13 @@ namespace OpenMS
 
   public:
 
-    OpenSwathTSVWriter(String output_filename, 
-                       String input_filename = "inputfile",
+    OpenSwathTSVWriter(const String& output_filename, 
+                       const String& input_filename = "inputfile",
                        bool ms1_scores = false, 
                        bool sonar = false, 
                        bool uis_scores = false);
 
-    bool isActive();
+    bool isActive() const;
 
     /**
      * @brief Initializes file by writing TSV header
@@ -94,7 +94,7 @@ namespace OpenMS
      */
     String prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id);
+        const FeatureMap& output, const String id) const;
 
     /**
      * @brief Write data to disk

@@ -54,7 +54,7 @@
   documentation:
 
   <ul>
-   <li><a href="http://www.doxygen.org/index.html">Doxygen</a> (>= 1.7.1) is used to generate the %OpenMS documentation.</li>
+   <li><a href="http://www.doxygen.org/index.html">Doxygen</a> (recommended: >= 1.8.13, required: > 1.7.1, some might be buggy in between) is used to generate the %OpenMS documentation.</li>
    <li>pdflatex is required to generate the tutorial PDFs. The latest MacTeX release can be downloaded <a href="http://tug.org/mactex/">here</a></li>
   </ul>
 

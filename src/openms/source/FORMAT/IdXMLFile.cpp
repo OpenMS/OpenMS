@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <fstream>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -89,7 +90,7 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
-    
+
     endProgress();
   }
 
@@ -388,7 +389,7 @@ namespace OpenMS
       if (count_wrong_id && protein_ids.size() == 1) LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl;
       if (count_empty) LOG_WARN << "Omitted writing of " << count_empty << " peptide identifications due to empty hits." << std::endl;
     }
-    
+
     // empty protein ids  parameters
     if (protein_ids.empty())
     {
@@ -785,7 +786,7 @@ namespace OpenMS
         String value = (String)attributeAsString_(attributes, "value");
 
         // TODO: check if we are parsing a peptide hit
-        if (name == "fragment_annotation")
+        if (name == Constants::FRAGMENT_ANNOTATION_USERPARAM)
         {
           std::vector<PeptideHit::PeakAnnotation> annotations;
           parseFragmentAnnotation_(value, annotations);
@@ -1052,23 +1053,17 @@ namespace OpenMS
     return aa_string;
   }
 
-  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os,
                                             std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent)
   {
-    if (annotations.empty()) { return; } 
-
-    // sort by mz, charge, ...
-    stable_sort(annotations.begin(), annotations.end());
-
     String val;
-    for (auto& a : annotations)
+    PeptideHit::PeakAnnotation::writePeakAnnotationsString_(val, annotations);
+    if (!val.empty())
     {
-      val += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
-      if (&a != &annotations.back()) { val += "|"; }     
+      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
     }
-    os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
   }
- 
+
   void IdXMLFile::parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation> & annotations)
   {
     if (s.empty()) { return; }
@@ -1080,7 +1075,7 @@ namespace OpenMS
     {
       StringList fields;
       pa.split_quoted(',', fields);
-      if (fields.size() != 4) 
+      if (fields.size() != 4)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Invalid fragment annotation. Four comma-separated fields required. String is: '" + pa + "'");

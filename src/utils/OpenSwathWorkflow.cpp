@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -630,6 +630,10 @@ protected:
    * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
    * @param mz_correction_function If correction in m/z is desired, which function should be used
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+   * @param irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
+   *        the transformation parameters will be stored in this file)
+   * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
+   *        iRT chromatograms will be stored in this file)
    *
    *
    */
@@ -637,7 +641,8 @@ protected:
     std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
     const Param& feature_finder_param, const ChromExtractParams& cp_irt,
     const Param& irt_detection_param, const String & mz_correction_function,
-    Size debug_level, bool sonar, bool load_into_memory, const String& irt_trafo_out)
+    Size debug_level, bool sonar, bool load_into_memory, const String& irt_trafo_out,
+    const String& irt_mzml_out)
   {
     TransformationDescription trafo_rtnorm;
     
@@ -658,14 +663,16 @@ protected:
       // Loading iRT file
       std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
       TraMLFile traml;
-      OpenMS::TargetedExperiment irt_transitions;
-      traml.load(irt_tr_file, irt_transitions);
+      FileTypes::Type tr_type = FileHandler::getType(irt_tr_file);
+      Param tsv_reader_param = TransitionTSVFile().getDefaults();
+      OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
 
       // perform extraction
       OpenSwathRetentionTimeNormalization wf;
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, debug_level, sonar, load_into_memory);
+      feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, irt_mzml_out,
+      debug_level, sonar, load_into_memory);
 
       if (!irt_trafo_out.empty())
       {
@@ -673,6 +680,45 @@ protected:
       }
     }
     return trafo_rtnorm;
+  }
+
+
+  OpenSwath::LightTargetedExperiment loadTransitionList(const FileTypes::Type& tr_type,
+                                                        const String& tr_file,
+                                                        const Param& tsv_reader_param)
+  {
+    OpenSwath::LightTargetedExperiment transition_exp;
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    if (tr_type == FileTypes::TRAML)
+    {
+      progresslogger.startProgress(0, 1, "Load TraML file");
+      TargetedExperiment targeted_exp;
+      TraMLFile().load(tr_file, targeted_exp);
+      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
+      progresslogger.endProgress();
+    }
+    else if (tr_type == FileTypes::PQP)
+    {
+      progresslogger.startProgress(0, 1, "Load PQP file");
+      TransitionPQPFile().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
+      progresslogger.endProgress();
+    }
+    else if (tr_type == FileTypes::TSV)
+    {
+      progresslogger.startProgress(0, 1, "Load TSV file");
+      TransitionTSVFile tsv_reader;
+      tsv_reader.setParameters(tsv_reader_param);
+      tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
+      progresslogger.endProgress();
+    }
+    else
+    {
+      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
+      // return PARSE_ERROR;
+      throw 0;
+    }
+    return transition_exp;
   }
 
   ExitCodes main_(int, const char **) override
@@ -827,23 +873,12 @@ protected:
     ///////////////////////////////////
     // Load the transitions
     ///////////////////////////////////
-    OpenSwath::LightTargetedExperiment transition_exp;
-    ProgressLogger progresslogger;
-    progresslogger.setLogType(log_type_);
-    if (tr_type == FileTypes::TRAML)
-    {
-      progresslogger.startProgress(0, 1, "Load TraML file");
-      TargetedExperiment targeted_exp;
-      TraMLFile().load(tr_file, targeted_exp);
-      OpenSwathDataAccessHelper::convertTargetedExp(targeted_exp, transition_exp);
-      progresslogger.endProgress();
-    }
-    else if (tr_type == FileTypes::PQP)
-    {
-      progresslogger.startProgress(0, 1, "Load PQP file");
-      TransitionPQPFile().convertPQPToTargetedExperiment(tr_file.c_str(), transition_exp);
-      progresslogger.endProgress();
+    OpenSwath::LightTargetedExperiment transition_exp = loadTransitionList(tr_type, tr_file, tsv_reader_param);
+    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
+      transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
 
+    if (tr_type == FileTypes::PQP)
+    {
       remove(out_osw.c_str());
       if (!out_osw.empty())
       {
@@ -853,22 +888,6 @@ protected:
         dst << src.rdbuf();
       }
     }
-    else if (tr_type == FileTypes::TSV)
-    {
-      progresslogger.startProgress(0, 1, "Load TSV file");
-      TransitionTSVFile tsv_reader;
-      tsv_reader.setParameters(tsv_reader_param);
-      tsv_reader.convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
-      progresslogger.endProgress();
-    }
-    else
-    {
-      LOG_ERROR << "Provide valid TraML, TSV or PQP transition file." << std::endl;
-      return PARSE_ERROR;
-    }
-    LOG_INFO << "Loaded " << transition_exp.getProteins().size() << " proteins, " <<
-      transition_exp.getCompounds().size() << " compounds with " << transition_exp.getTransitions().size() << " transitions." << std::endl;
-
 
     ///////////////////////////////////
     // Load the SWATH files
@@ -942,10 +961,11 @@ protected:
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
     String irt_trafo_out = debug_params.getValue("irt_trafo");
+    String irt_mzml_out = debug_params.getValue("irt_mzml");
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in,
         irt_tr_file, swath_maps, min_rsq, min_coverage, feature_finder_param,
         cp_irt, irt_detection_param, mz_correction_function, debug_level,
-        sonar, load_into_memory, irt_trafo_out);
+        sonar, load_into_memory, irt_trafo_out, irt_mzml_out);
 
     ///////////////////////////////////
     // Set up chromatogram output

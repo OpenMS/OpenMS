@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,16 +49,17 @@ namespace OpenMS
 {
 
   void SwathMapMassCorrection::correctMZ(
-    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+    const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
     std::vector< OpenSwath::SwathMap > & swath_maps,
-    std::string corr_type,
-    double mz_extr_window,
-    bool ppm)
+    const std::string& corr_type,
+    const double mz_extr_window,
+    const bool ppm)
   {
     LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
     bool is_ppm = bool(corr_type == "quadratic_regression_delta_ppm" ||
-                       corr_type == "weighted_quadratic_regression_delta_ppm");
+                       corr_type == "weighted_quadratic_regression_delta_ppm" ||
+                       corr_type == "regression_delta_ppm");
 
     if (corr_type == "none")
     {
@@ -76,12 +77,11 @@ namespace OpenMS
     std::vector<double> exp_mz;
     std::vector<double> theo_mz;
     std::vector<double> delta_ppm;
-    for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-        trgroup_it != transition_group_map.end(); ++trgroup_it)
+    for (auto trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
 
       // we need at least one feature to find the best one
-      OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
+      auto transition_group = &trgroup_it->second;
       if (transition_group->getFeatures().size() == 0)
       {
         continue;
@@ -90,8 +90,7 @@ namespace OpenMS
       // Find the feature with the highest score
       double bestRT = -1;
       double highest_score = -1000;
-      for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-           mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
+      for (auto mrmfeature = transition_group->getFeatures().begin(); mrmfeature != transition_group->getFeatures().end(); ++mrmfeature)
       {
         if (mrmfeature->getOverallQuality() > highest_score)
         {
@@ -212,6 +211,16 @@ namespace OpenMS
       regression_params.push_back(qr.getA());
       regression_params.push_back(qr.getB());
       regression_params.push_back(qr.getC());
+    }
+    else if (corr_type == "regression_delta_ppm")
+    {
+      // Regression fit using ppm differences
+      double confidence_interval_P(0.0);
+      Math::LinearRegression lr;
+      lr.computeRegression(confidence_interval_P, exp_mz.begin(), exp_mz.end(), delta_ppm.begin());
+      regression_params.push_back(lr.getIntercept());
+      regression_params.push_back(lr.getSlope());
+      regression_params.push_back(0.0);
     }
     else if (corr_type == "weighted_quadratic_regression_delta_ppm")
     {

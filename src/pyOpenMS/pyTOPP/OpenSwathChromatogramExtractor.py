@@ -1,7 +1,5 @@
-import unittest
 import os,sys
 
-import pdb
 import pyopenms
 
 """
@@ -62,7 +60,7 @@ def main(options):
 def handle_args():
     import argparse
 
-    usage = "" 
+    usage = ""
     usage += "\nExtract chromatograms (XIC) from a MS2 map file."
 
     parser = argparse.ArgumentParser(description = usage )

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,14 +46,16 @@
 using namespace OpenMS;
 using namespace std;
 
-void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths, const String & original_input_mzml, const Size & top_n_hits, MzTab & result)
+void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_paths,
+                                  const String & original_input_mzml,
+                                  const Size & top_n_hits,
+                                  MzTab & result)
 {
 
   CsiFingerIdMzTabWriter::CsiAdapterRun csi_result;
 
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
-
     const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
 
     ifstream file(pathtocsicsv);
@@ -62,25 +64,36 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
     {
       CsvFile compounds(pathtocsicsv, '\t');
       const UInt rowcount = compounds.rowCount();
-    
+
       if (rowcount > 1)
       {
-        
+        // correction if the rowcount is smaller than the number of hits used as parameter
+        // rowcount-1 because the csv header will be skipped in the loop later on.
+        int header = 1;
+        const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
+
         // fill identification structure containing all candidate hits for a single spectrum
         CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
 
         // extract scan_index from path
         OpenMS::String str = File::path(pathtocsicsv);
-        std::string scan_index = SiriusMzTabWriter::extract_scan_index(str);
+        int scan_index = SiriusMzTabWriter::extract_scan_index(str);
     
         // extract scan_number from string
         boost::regex regexp("-(?<SCAN>\\d+)-");
         int scan_number = SpectrumLookup::extractScanNumber(str, regexp, false);
 
-        const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
-        for (Size j = 1; j < top_n_hits_cor; ++j)
+        // extract feature_id from string
+        boost::smatch match;
+        String feature_id;
+        boost::regex regexp_feature("_(?<SCAN>\\d+)-");
+        bool found = boost::regex_search(str, match, regexp_feature);
+        if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
+        String unassigned = "null";
+
+        // j = 1 because of .csv file format (header)
+        for (Size j = 1; j <= top_n_hits_cor; ++j)
         {
-          
           StringList sl;
           compounds.getRow(j, sl);
           CsiFingerIdMzTabWriter::CsiAdapterHit csi_hit;
@@ -99,6 +112,15 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
         csi_id.scan_index = scan_index;
         csi_id.scan_number = scan_number;
+        // check if results were assigned to a feature
+        if (feature_id != "id_0")
+        {
+          csi_id.feature_id = feature_id;
+        }
+        else
+        {
+          csi_id.feature_id = unassigned;
+        }
         csi_result.identifications.push_back(csi_id);
 
         // write metadata to mzTab file
@@ -125,7 +147,8 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             const CsiFingerIdMzTabWriter::CsiAdapterHit &hit = id.hits[j];
             MzTabSmallMoleculeSectionRow smsr;
 
-            map <Size, MzTabDouble> engine_score = {{1, MzTabDouble(hit.score)}};
+            map <Size, MzTabDouble> engine_score;
+            engine_score[1] = MzTabDouble(hit.score);
             smsr.best_search_engine_score = engine_score;
 
             smsr.chemical_formula = MzTabString(hit.molecular_formula);
@@ -156,9 +179,14 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             compoundScanNumber.first = "compoundScanNumber";
             compoundScanNumber.second = MzTabString(id.scan_number);
 
+            MzTabOptionalColumnEntry featureId;
+            featureId.first = "featureId";
+            featureId.second = MzTabString(id.feature_id);
+
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);
             smsr.opt_.push_back(compoundScanNumber);
+            smsr.opt_.push_back(featureId);
             smsd.push_back(smsr);
           } 
         }

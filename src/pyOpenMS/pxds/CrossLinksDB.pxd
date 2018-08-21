@@ -21,23 +21,23 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
                                  String mod_name, String residue,
                                  TermSpecificity term_spec) nogil except +
 
-        ResidueModification getModification(String & mod_name, String & residue, TermSpecificity term_spec) nogil except +
+        ResidueModification getModification(const String & mod_name, const String & residue, TermSpecificity term_spec) nogil except +
 
         bool has(String modification) nogil except +
 
         void addModification(ResidueModification * new_mod) nogil except +
 
-        Size findModificationIndex(String & mod_name) nogil except +
+        Size findModificationIndex(const String & mod_name) nogil except +
 
         void searchModificationsByDiffMonoMass(libcpp_vector[ String ] & mods, double mass, double max_error,
-                                               String & residue, TermSpecificity term_spec) nogil except +
+                                               const String & residue, TermSpecificity term_spec) nogil except +
 
         const ResidueModification* getBestModificationByMonoMass(double mass, double max_error,
-                                                           String residue,
-                                                           TermSpecificity term_spec) nogil except +
+                                                                 const String residue,
+                                                                 TermSpecificity term_spec) nogil except +
 
         const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
-                                                               String residue, TermSpecificity term_spec) nogil except +
+                                                                     const String residue, TermSpecificity term_spec) nogil except +
 
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
 

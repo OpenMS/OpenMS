@@ -15,6 +15,17 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
     # pythonic helper functions in ../addons/Param.pyx !!!!
 
     cdef cppclass Param:
+
+         # COMMENT: Helper functions for Python
+         asDict() # wrap-ignore
+         keys() # wrap-ignore
+         items() # wrap-ignore
+         values() # wrap-ignore
+         update(dict) # wrap-ignore
+         get(bytes key, default=None) # wrap-ignore
+         __getitem__(bytes key) # wrap-ignore
+         __setitem__(bytes key, value) # wrap-ignore
+
          Param() nogil except +
          Param(Param) nogil except +
          bool operator==(Param) nogil except +
@@ -24,7 +35,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void setValue(String key, DataValue val) nogil except +
          DataValue getValue(String key) nogil except +
          ParamEntry getEntry(String) nogil except +
-         int exists(String key) nogil except +
+         bool exists(String key) nogil except +
 
          void addTag(String key, String tag) nogil except +
          void addTags(String key, StringList tags) nogil except +

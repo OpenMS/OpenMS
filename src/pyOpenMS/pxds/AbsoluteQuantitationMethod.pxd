@@ -23,17 +23,17 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/AbsoluteQuantitationMethod.h>" n
         void checkLOD(double value) nogil except +
         void checkLOQ(double value) nogil except +
         
-        void setComponentName(String& component_name) nogil except +
-        void setISName(String& IS_name) nogil except +
-        void setFeatureName(String& feature_name) nogil except +
+        void setComponentName(const String& component_name) nogil except +
+        void setISName(const String& IS_name) nogil except +
+        void setFeatureName(const String& feature_name) nogil except +
         String getComponentName() nogil except +
         String getISName() nogil except +
         String getFeatureName() nogil except +
 
-        void setConcentrationUnits(String& concentration_units) nogil except +
+        void setConcentrationUnits(const String& concentration_units) nogil except +
         String getConcentrationUnits() nogil except +
 
-        void setTransformationModel(String& transformation_model) nogil except +
+        void setTransformationModel(const String& transformation_model) nogil except +
         void setTransformationModelParams(Param transformation_model_param) nogil except +
         String getTransformationModel() nogil except +
         Param getTransformationModelParams() nogil except +

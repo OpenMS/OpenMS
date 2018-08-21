@@ -18,6 +18,7 @@ CsvFile.cpp
 DTA2DFile.cpp
 DTAFile.cpp
 EDTAFile.cpp
+ExperimentalDesignFile.cpp
 FASTAFile.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
@@ -36,6 +37,7 @@ MRMFeatureQCFile.cpp
 MS2File.cpp
 MSNumpressCoder.cpp
 MSPFile.cpp
+MSPGenericFile.cpp
 MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp

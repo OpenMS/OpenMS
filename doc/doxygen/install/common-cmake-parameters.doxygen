@@ -5,7 +5,7 @@ The most important CMake variables are:
 <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
   <tr>
     <td valign="top">\c OPENMS_CONTRIB_LIBS</td>
-    <td>Seperate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
+    <td>Separate search path for the contrib libraries from github.com/OpenMS/contrib that is internally considered before
     CMAKE_PREFIX_PATH for searching, linking and adding include directories.</td>
   </tr>
   <tr>

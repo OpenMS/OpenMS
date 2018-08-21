@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,7 +83,10 @@ public:
     double getScore(const String & score_name);
 
     /// get a specified feature
-    Feature & getFeature(String key);
+    Feature & getFeature(const String& key);
+
+    /// get a specified feature (const)
+    const Feature & getFeature(const String& key) const;
 
     /// set all peakgroup scores
     void setScores(const PGScoresType & scores);
@@ -92,7 +95,7 @@ public:
     void addScore(const String & score_name, double score);
 
     /// Adds an feature from a single chromatogram into the feature.
-    void addFeature(Feature & feature, const String& key);
+    void addFeature(const Feature & feature, const String& key);
 
     /// get a list of features
     const std::vector<Feature> & getFeatures() const;
@@ -101,13 +104,16 @@ public:
     void getFeatureIDs(std::vector<String> & result) const;
 
     /// Adds a precursor feature from a single chromatogram into the feature.
-    void addPrecursorFeature(Feature & feature, const String& key);
+    void addPrecursorFeature(const Feature & feature, const String& key);
 
     /// get a list of IDs of available precursor features
     void getPrecursorFeatureIDs(std::vector<String> & result) const;
 
     /// get a specified precursor feature
     Feature & getPrecursorFeature(String key);
+
+    /// get a specified precursor feature (const)
+    const Feature & getPrecursorFeature(String key) const;
 
     //@}
 

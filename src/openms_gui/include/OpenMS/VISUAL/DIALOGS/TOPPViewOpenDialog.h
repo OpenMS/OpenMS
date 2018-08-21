@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,8 +72,10 @@ public:
     bool viewMapAs2D() const;
     /// Returns true, if 1D mode is to be used for maps
     bool viewMapAs1D() const;
-    /// Returns of the low intensity peaks should be hidden
+    /// Returns if the low intensity peaks should be hidden
     bool isCutoffEnabled() const;
+    /// Returns if the data is DIA / SWATH-MS data
+    bool isDataDIA() const;
     /// Returns true, if the data should be opened in a new window
     bool openAsNewWindow() const;
     ///Returns the index of the selected merge layer. If the option is not selected -1 is returned.
@@ -86,7 +88,7 @@ public:
     /// Disables opening location section and sets the selected option
     void disableLocation(bool window);
     /**
-        @brief Sets the possible merge layers (index and name) and activates the the option
+        @brief Sets the possible merge layers (index and name) and activates the option
 
         It is deactivated by default and can be deactivated manually by passing an empty list.
     */

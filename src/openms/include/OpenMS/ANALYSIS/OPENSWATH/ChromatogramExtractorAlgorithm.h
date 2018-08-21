@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -105,7 +105,7 @@ public:
         double mz_extraction_window,
         bool ppm,
         double im_extraction_window,
-        String filter);
+        const String& filter);
 
     /**
      * @brief Extract the next mz value and add the integrated intensity to integrated_intensity.
@@ -135,7 +135,10 @@ public:
                               std::vector<double>::const_iterator& mz_it,
                               const std::vector<double>::const_iterator& mz_end,
                               std::vector<double>::const_iterator& int_it,
-                              const double& mz, double& integrated_intensity, const double& mz_extraction_window, bool ppm);
+                              const double mz,
+                              double& integrated_intensity,
+                              const double mz_extraction_window,
+                              const bool ppm);
 
     /**
      * @brief Extract the next m/z value and add the integrated intensity to integrated_intensity.
@@ -170,14 +173,16 @@ public:
                               const std::vector<double>::const_iterator& mz_end,
                               std::vector<double>::const_iterator& int_it,
                               std::vector<double>::const_iterator& im_it,
-                              const double& mz,
-                              const double& im,
+                              const double mz,
+                              const double im,
                               double& integrated_intensity,
-                              const double& mz_extraction_window, const double& im_extraction_window, bool ppm);
+                              const double mz_extraction_window,
+                              const double im_extraction_window,
+                              const bool ppm);
 
 private:
 
-    int getFilterNr_(String filter);
+    int getFilterNr_(const String& filter);
 
   };
 

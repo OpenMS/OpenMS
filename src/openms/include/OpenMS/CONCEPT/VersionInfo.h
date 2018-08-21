@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
@@ -46,8 +47,11 @@ namespace OpenMS
       The OpenMS release version and revision data can be retrieved as a string
       or as integers.
 
-      Note that the term <i>"version"</i> refers to releases (such as 1.0, 1.1, 1.1.1,
-      1.2, ...),  whereas the term <i>"revision"</i> refers to a revision control system
+      Note that the term <i>"version"</i> refers to releases (such as 1.0,
+      1.1.1-alpha, 1.2, ...), which follows the https://semver.org/ definition
+      of version numbers using major, minor, patch and pre-release identifiers
+      (separated by a dash).
+      The term <i>"revision"</i> refers to a revision control system
       such as git and is mainly of interest for developers. The term <i>"branch"</i>
       refers to the git branch that this build of OpenMS is based on.
 
@@ -64,9 +68,10 @@ public:
       Int version_major;
       Int version_minor;
       Int version_patch;
+      String pre_release_identifier;
 
       VersionDetails() :
-        version_major(0), version_minor(0), version_patch(0)
+        version_major(0), version_minor(0), version_patch(0), pre_release_identifier("")
       {
       }
 
@@ -74,7 +79,8 @@ public:
       VersionDetails(const VersionDetails & other):
         version_major(other.version_major),
         version_minor(other.version_minor),
-        version_patch(other.version_patch)
+        version_patch(other.version_patch),
+        pre_release_identifier(other.pre_release_identifier)
       {
       }
 
@@ -105,7 +111,7 @@ public:
     /**
       @brief Return the revision number from revision control system, e.g. git.
 
-      On released versions of OpenMS (not from SVN), the result is "exported".
+      On released versions of OpenMS, the result is "exported".
       The result can be possibly be "" on some platforms, which means that
       revision info is unavailable.  You should check for both cases in your
       code.
@@ -118,7 +124,7 @@ public:
     /**
       @brief Return the branch name from revision control system, e.g. git.
 
-      On released versions of OpenMS (not from SVN), the result is "exported".
+      On released versions of OpenMS the result is "exported".
       The result can be possibly be "" on some platforms, which means that
       revision info is unavailable.  You should check for both cases in your
       code.

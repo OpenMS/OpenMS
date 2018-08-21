@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////Users/kenar/OpenMS-FF/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.7" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="10">
 		<map id="0" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_0-615401883.featureXML" unique_id="15393979342453943715" label="" size="78266">
 		</map>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,6 +90,28 @@ namespace OpenMS
   /**
     @brief Main window of TOPPView tool
 
+    Uses the default QMainWindow layout (see Qt documentation) with a central
+    widget in the middle (consistent of a EnhancedTabBar and an
+    EnhancedWorkspace) and multiple docked widgets around it (to the right and
+    below) and multiple tool bars. On top and bottom are a menu bar and a
+    status bar.
+
+    The main layout is using 
+    - Central Widget: 
+      - EnhancedTabBar: tab_bar_
+      - EnhancedWorkspace: ws_
+    - Docked to the right:
+      - layer_dock_widget_
+      - views_dockwidget_
+      - filter_dock_widget_
+    - Docked to the bottom:
+      - log_bar (only connected through slots)
+
+    The views_dockwidget_ internally holds a tab widget views_tabwidget_ which
+    holds the two different views on the data (spectra and identification view)
+    which are implemented using identificationview_behavior_ and
+    spectraview_behavior_.
+
     @improvement Use DataRepository singleton to share data between TOPPView and the canvas classes (Hiwi)
 
     @improvement For painting single mass traces with no width we currently paint each line twice (once going down, and then coming back up).
@@ -124,6 +146,8 @@ public:
     typedef LayerData::ExperimentType ExperimentType;
     //Main managed data type (experiment)
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
+    //Main on-disc managed data type (experiment)
+    typedef LayerData::ODExperimentSharedPtrType ODExperimentSharedPtrType;
     ///Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
@@ -154,6 +178,7 @@ public:
       @param consensus_map The consensus feature data (empty if not consensus feature data)
       @param peptides The peptide identifications (empty if not ID data)
       @param peak_map The peak data (empty if not peak data)
+      @param on_disc_peak_map The peak data managed on disc (empty if not peak data)
       @param data_type Type of the data
       @param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
       @param show_options If the options dialog should be shown (otherwise the defaults are used)
@@ -162,7 +187,19 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addData(FeatureMapSharedPtrType feature_map, ConsensusMapSharedPtrType consensus_map, std::vector<PeptideIdentification>& peptides, ExperimentSharedPtrType peak_map, LayerData::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename = "", const String& caption = "", UInt window_id = 0, Size spectrum_id = 0);
+    void addData(FeatureMapSharedPtrType feature_map,
+                 ConsensusMapSharedPtrType consensus_map,
+                 std::vector<PeptideIdentification>& peptides,
+                 ExperimentSharedPtrType peak_map,
+                 ODExperimentSharedPtrType on_disc_peak_map,
+                 LayerData::DataType data_type,
+                 bool show_as_1d,
+                 bool show_options,
+                 bool as_new_window = true,
+                 const String& filename = "",
+                 const String& caption = "",
+                 UInt window_id = 0,
+                 Size spectrum_id = 0);
 
     /// Opens all the files in the string list
     void loadFiles(const StringList& list, QSplashScreen* splash_screen);
@@ -247,6 +284,8 @@ public slots:
     void updateViewBar();
     /// changes the behavior according to the selected view in the spectra view bar and calls updateSpectraViewBar()
     void viewChanged(int);
+    /// adds empty ID structure to allow manual annotations
+    void viewTabwidgetDoubleClicked(int);
     /// adapts the filter bar to the active window
     void updateFilterBar();
     /// enabled/disabled menu entries depending on the current state
@@ -283,6 +322,10 @@ public slots:
     void showCurrentPeaksAs2D();
     /// Shows the current peak data of the active layer in 3D
     void showCurrentPeaksAs3D();
+    /// Shows the current peak data of the active layer as ion mobility
+    void showCurrentPeaksAsIonMobility();
+    /// Shows the current peak data of the active layer as DIA data
+    void showCurrentPeaksAsDIA();
     /// Shows the 'About' dialog
     void showAboutDialog();
     /// Saves the whole current layer data
@@ -423,15 +466,15 @@ protected:
     */
     //@{
     QToolBar* tool_bar_;
-    //common intensity modes
 
+    // common intensity modes
     QButtonGroup* intensity_button_group_;
-    //1D specific stuff
 
+    // 1D specific stuff
     QToolBar* tool_bar_1d_;
     QButtonGroup* draw_group_1d_;
 
-    //2D specific stuff
+    // 2D specific stuff
     QToolBar* tool_bar_2d_peak_;
     QToolBar* tool_bar_2d_feat_;
     QToolBar* tool_bar_2d_cons_;
@@ -538,6 +581,9 @@ protected:
 public:
     /// Returns true if @p contains at least one MS1 spectrum
     static bool containsMS1Scans(const ExperimentType& exp);
+
+    /// Returns true if @p contains ion mobility data
+    static bool containsIMData(const MSSpectrum& s);
 
     /// Estimates the noise by evaluating n_scans random scans of MS level 1. Assumes that 4/5 of intensities is noise.
     float estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans = 10);

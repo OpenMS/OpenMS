@@ -80,5 +80,5 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         # returns the smallest score used in the last fit
         double getSmallestScore() nogil except +
 
-        void tryGnuplot(String & gp_file) nogil except +
+        void tryGnuplot(const String & gp_file) nogil except +
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
@@ -81,7 +81,7 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(const PeakMap& exp_profile, const PeakMap& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum);
+        MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum);
         
         /**
          * @brief constructor
@@ -94,7 +94,7 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(const PeakMap& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum);
+        MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum);
         
         /**
          * @brief cluster filter results
@@ -104,7 +104,7 @@ namespace OpenMS
          * 
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
-        std::vector<std::map<int,GridBasedCluster> > cluster(const std::vector<MultiplexFilterResult>& filter_results);
+        std::vector<std::map<int,GridBasedCluster> > cluster(const std::vector<MultiplexFilteredMSExperiment>& filter_results);
         
         /**
          * @brief scaled Euclidean distance for clustering

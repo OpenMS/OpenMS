@@ -32,6 +32,7 @@ CsvFile.h
 DTA2DFile.h
 DTAFile.h
 EDTAFile.h
+ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
@@ -49,6 +50,7 @@ MRMFeatureQCFile.h
 MS2File.h
 MSNumpressCoder.h
 MSPFile.h
+MSPGenericFile.h
 MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h

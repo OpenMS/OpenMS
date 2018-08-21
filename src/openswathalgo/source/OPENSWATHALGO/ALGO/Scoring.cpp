@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,12 @@
 #include <cmath>
 
 #include <boost/numeric/conversion/cast.hpp>
+
+// Import dependencies from MIToolbox
+#include <ArrayOperations.c>
+#include <CalculateProbability.c>
+#include <Entropy.c>
+#include <MutualInformation.c>
 
 namespace OpenSwath
 {
@@ -248,6 +254,44 @@ namespace OpenSwath
           result.data.push_back(std::make_pair(delay, 0));
         }
       }
+      return result;
+    }
+
+    std::vector<unsigned int> computeRank(const std::vector<double>& v_temp)
+    {
+      std::vector<std::pair<float, unsigned int> > v_sort(v_temp.size());
+
+      for (unsigned int i = 0; i < v_sort.size(); ++i) {
+        v_sort[i] = std::make_pair(v_temp[i], i);
+      }
+
+      std::sort(v_sort.begin(), v_sort.end());
+
+      std::pair<double, unsigned int> rank;
+      std::vector<unsigned int> result(v_temp.size());
+
+      for (unsigned int i = 0; i < v_sort.size(); ++i) {
+        if (v_sort[i].first != rank.first) {
+          rank = std::make_pair(v_sort[i].first, i);
+        }
+        result[v_sort[i].second] = rank.second;
+      }
+      return result;
+    }
+
+    double rankedMutualInformation(std::vector<double>& data1, std::vector<double>& data2)
+    {
+      OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+
+      // rank the data
+      std::vector<unsigned int> int_data1 = computeRank(data1);
+      std::vector<unsigned int> int_data2 = computeRank(data2);
+
+      unsigned int* arr_int_data1 = &int_data1[0];
+      unsigned int* arr_int_data2 = &int_data2[0];
+
+      double result = calcMutualInformation(arr_int_data1, arr_int_data2, int_data1.size());
+
       return result;
     }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,13 +97,92 @@ namespace OpenMS
     double extra_rt_extract;
   };
 
+  class OPENMS_DLLAPI OpenSwathWorkflowBase :
+    public ProgressLogger
+  {
+
+protected:
+
+    explicit OpenSwathWorkflowBase(bool use_ms1_traces) :
+      use_ms1_traces_(use_ms1_traces)
+    {
+    }
+
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+      use_ms1_traces_(use_ms1_traces),
+      use_ms1_ion_mobility_(use_ms1_ion_mobility)
+    {
+    }
+
+    /** @brief Perform MS1 extraction and store result in ms1_chromatograms
+     *
+    */
+    void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
+                        std::vector< MSChromatogram >& ms1_chromatograms,
+                        Interfaces::IMSDataConsumer * chromConsumer,
+                        const ChromExtractParams & cp,
+                        const OpenSwath::LightTargetedExperiment& transition_exp,
+                        const TransformationDescription& trafo_inverse,
+                        bool load_into_memory,
+                        bool ms1only = false);
+
+    /** @brief Function to prepare extraction coordinates that also correctly handles RT transformations
+     *
+     * Creates a set of (empty) chromatograms and extraction coordinates with
+     * the correct ids, m/z and retention time start/end points to be extracted
+     * by the ChromatogramExtractor.
+     *
+     * Handles rt extraction windows by calculating the correct transformation
+     * for each coordinate.
+     *
+     * @param chrom_list Output of chromatograms (will be filled with empty chromatogram ptrs)
+     * @param coordinates Output of extraction coordinates (will be filled with matching extraction coordinates)
+     * @param transition_exp_used The transition experiment used to create the coordinates
+     * @param ms1 Whether to perform MS1 (precursor ion) or MS2 (fragment ion) extraction
+     * @param trafo_inverse Inverse transformation function
+     * @param cp Parameter set for the chromatogram extraction
+     *
+    */
+    void prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
+      std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
+      const OpenSwath::LightTargetedExperiment & transition_exp_used,
+      const bool ms1, const TransformationDescription trafo_inverse,
+      const ChromExtractParams & cp) const;
+
+
+    /**
+     * @brief Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
+     *
+     * @note This pointer is not threadsafe, please use the lightClone() function to create a copy for each thread
+     * @note This pointer may be NULL if use_ms1_traces_ is set to false
+     *
+     */
+    OpenSwath::SpectrumAccessPtr ms1_map_;
+
+    /// Whether to use the MS1 traces
+    bool use_ms1_traces_;
+
+    /// Whether to use ion mobility extraction on MS1 traces
+    bool use_ms1_ion_mobility_;
+  };
+
   /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on a set of known peptides
    *
   */
   class OPENMS_DLLAPI OpenSwathRetentionTimeNormalization :
-    public ProgressLogger
+    public OpenSwathWorkflowBase
   {
   public:
+
+    OpenSwathRetentionTimeNormalization() :
+      OpenSwathWorkflowBase(false)
+    {
+    }
+
+    explicit OpenSwathRetentionTimeNormalization(bool use_ms1_traces) :
+      OpenSwathWorkflowBase(use_ms1_traces)
+    {
+    }
 
     /** @brief Perform RT and m/z correction of the input data using RT-normalization peptides.
      *
@@ -121,9 +200,11 @@ namespace OpenMS
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      * @param mz_correction_function If correction in m/z is desired, which function should be used
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+     * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
+     *        iRT chromatograms will be stored in this file)
      *
     */
-    TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
+    TransformationDescription performRTNormalization(const OpenSwath::LightTargetedExperiment & irt_transitions,
       std::vector< OpenSwath::SwathMap > & swath_maps,
       double min_rsq,
       double min_coverage,
@@ -131,11 +212,12 @@ namespace OpenMS
       const ChromExtractParams & cp_irt,
       const Param & irt_detection_param,
       const String & mz_correction_function,
+      const String& irt_mzml_out,
       Size debug_level,
       bool sonar = false,
       bool load_into_memory = false);
 
-  private:
+  public:
 
     /** @brief Perform RT and m/z correction using the MRMFeatureFinderScoring
      *
@@ -152,7 +234,7 @@ namespace OpenMS
      * @note: This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
     */
-    TransformationDescription RTNormalization(const TargetedExperiment& transition_exp_,
+    TransformationDescription RTNormalization(const OpenSwath::LightTargetedExperiment& transition_exp_,
       const std::vector< OpenMS::MSChromatogram >& chromatograms,
       double min_rsq,
       double min_coverage,
@@ -165,9 +247,12 @@ namespace OpenMS
 
     /// Simple method to extract chromatograms (for the RT-normalization peptides)
     void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                    const OpenMS::TargetedExperiment & irt_transitions,
+                                    const OpenSwath::LightTargetedExperiment & irt_transitions,
                                     std::vector< OpenMS::MSChromatogram > & chromatograms,
-                                    const ChromExtractParams & cp, bool sonar, bool load_into_memory);
+                                    const TransformationDescription& trafo,
+                                    const ChromExtractParams & cp,
+                                    bool sonar,
+                                    bool load_into_memory);
 
     static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
   };
@@ -181,16 +266,20 @@ namespace OpenMS
    *
    */
   class OPENMS_DLLAPI OpenSwathWorkflow :
-    public ProgressLogger
+    public OpenSwathWorkflowBase
   {
     typedef OpenSwath::LightTransition TransitionType;
     typedef MRMTransitionGroup< MSChromatogram, TransitionType> MRMTransitionGroupType;
 
   public:
 
-    explicit OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility) :
-      use_ms1_traces_(use_ms1_traces),
-      use_ms1_ion_mobility_(use_ms1_ion_mobility)
+    explicit OpenSwathWorkflow(bool use_ms1_traces) :
+      OpenSwathWorkflowBase(use_ms1_traces)
+    {
+    }
+
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility)
     {
     }
 
@@ -241,18 +330,6 @@ namespace OpenMS
                                     FeatureMap& out_featureFile,
                                     bool store_features,
                                     Interfaces::IMSDataConsumer * chromConsumer);
-
-    /** @brief Perform MS1 extraction and store result in ms1_chromatograms
-     *
-    */
-    void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                        std::vector< MSChromatogram >& ms1_chromatograms,
-                        Interfaces::IMSDataConsumer * chromConsumer,
-                        const ChromExtractParams & cp,
-                        const OpenSwath::LightTargetedExperiment& transition_exp,
-                        const TransformationDescription& trafo_inverse,
-                        bool load_into_memory,
-                        bool ms1only = false);
 
     /** @brief Perform scoring on a set of chromatograms
      *
@@ -315,62 +392,6 @@ namespace OpenMS
       const std::vector<OpenSwath::LightTransition>& all_transitions,
       std::vector<OpenSwath::LightTransition>& output);
 
-    /** @brief Function to prepare extraction coordinates that also correctly handles RT transformations
-     *
-     * Creates a set of (empty) chromatograms and extraction coordinates with
-     * the correct ids, m/z and retention time start/end points to be extracted
-     * by the ChromatogramExtractor.
-     *
-     * Handles rt extraction windows by calculating the correct transformation
-     * for each coordinate.
-     *
-     * @param chrom_list Output of chromatograms (will be filled with empty chromatogram ptrs)
-     * @param coordinates Output of extraction coordinates (will be filled with matching extraction coordinates)
-     * @param transition_exp_used The transition experiment used to create the coordinates
-     * @param ms1 Whether to perform MS1 (precursor ion) or MS2 (fragment ion) extraction
-     * @param trafo_inverse Inverse transformation function
-     * @param cp Parameter set for the chromatogram extraction
-     *
-    */
-    void prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
-      std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
-      const OpenSwath::LightTargetedExperiment & transition_exp_used,
-      const bool ms1, const TransformationDescription trafo_inverse,
-      const ChromExtractParams & cp) const;
-
-    /** @brief Simple function to prepare extraction coordinates
-     *
-     * This will take the targeted experiment and prepare extraction
-     * coordinates (either MS1 or MS2) for extraction by the
-     * ChromatogramExtractor.
-     *
-     * @param output_chromatograms Output of chromatograms (will be filled with empty chromatogram ptrs)
-     * @param coordinates Output of extraction coordinates (will be filled with matching extraction coordinates)
-     * @param transition_exp_used The transition experiment used to create the coordinates
-     * @param rt_extraction_window Window for retention time extraction
-     * @param ms1 Whether extraction coordinates should be created for MS1 (if false, it will be for MS2)
-     *
-    */
-    void prepare_coordinates_sub(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-      std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
-      const OpenSwath::LightTargetedExperiment & transition_exp_used,
-      const double rt_extraction_window, const bool ms1) const;
-
-    /**
-     * @brief Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
-     *
-     * @note This pointer is not threadsafe, please use the lightClone() function to create a copy for each thread
-     * @note This pointer may be NULL if use_ms1_traces_ is set to false
-     *
-     */
-    OpenSwath::SpectrumAccessPtr ms1_map_;
-
-    /// Whether to use the MS1 traces
-    bool use_ms1_traces_;
-
-    /// Whether to use ion mobility extraction on MS1 traces
-    bool use_ms1_ion_mobility_;
-
   };
 
   /**
@@ -390,7 +411,8 @@ namespace OpenMS
 
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
       OpenSwathWorkflow(use_ms1_traces, false)
-    {}
+    {
+    }
 
     /** @brief Execute the OpenSWATH workflow on a set of SONAR SwathMaps and transitions.
      *

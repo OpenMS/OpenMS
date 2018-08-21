@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,6 +85,10 @@ public:
     void setCharge(const SignedSize& ch);
 
     std::vector<double> getAllIntensities(bool smoothed = false) const;
+
+    std::vector<double> getAllCentroidMZ() const;
+
+    std::vector<double> getAllCentroidRT() const;
 
     std::vector<double> getIsotopeDistances() const;
 
@@ -284,6 +288,8 @@ e conditions are fulfilled. Mainly the
     bool use_mz_scoring_C13_;
     bool report_convex_hulls_;
     bool report_chromatograms_;
+
+    bool remove_single_traces_;
   };
 
 }

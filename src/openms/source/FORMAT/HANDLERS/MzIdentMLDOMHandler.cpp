@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -920,6 +920,11 @@ namespace OpenMS
                   if ((std::string)XMLString::transcode(sub->getTagName()) == "cvParam")
                   {
                     mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
+                   if (mname == "unknown modification")
+                   {
+                     // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
+                     mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("value")));
+                   }
                   }
                   else if ((std::string)XMLString::transcode(sub->getTagName()) == "SpecificityRules")
                   {
@@ -936,7 +941,8 @@ namespace OpenMS
                 if (!mname.empty())
                 {
                   String mod;
-                  String r = (residues!=".")?residues:"";
+                  String r = (residues != ".") ? residues : "";
+
                   if (!specificity_rules.empty())
                   {
                     for (map<String, vector<CVTerm> >::const_iterator spci = specificity_rules.getCVTerms().begin(); spci != specificity_rules.getCVTerms().end(); ++spci)
@@ -1256,6 +1262,13 @@ namespace OpenMS
                   ++index_counter;
                 }
 
+                // fix for label-free mono-links
+                // those only have one SII and no "cross-link spectrum identification item" value
+                if (xl_val_set.empty())
+                {
+                  xl_val_set.insert("0");
+                  xl_val_map.insert(make_pair("0", 0));
+                }
                 for (set<String>::const_iterator set_it = xl_val_set.begin(); set_it != xl_val_set.end(); ++set_it)
                 {
                   parseSpectrumIdentificationItemSetXLMS(set_it, xl_val_map, element_res, spectrumID);
@@ -1754,8 +1767,6 @@ namespace OpenMS
         ph_alpha.setMetaValue("xl_term_spec", "ANYWHERE");
       }
 
-      phs.push_back(ph_alpha);
-
       if (xl_type == "cross-link")
       {
         PeptideHit ph_beta;
@@ -1767,7 +1778,7 @@ namespace OpenMS
         ph_beta.setRank(rank);
         ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
-
+        ph_beta.setMetaValue("xl_type", xl_type);
 
         if (labeled)
         {
@@ -1801,21 +1812,28 @@ namespace OpenMS
         // correction for terminal modifications
         if (beta_pos == -1)
         {
-          ph_beta.setMetaValue("xl_pos", ++beta_pos);
+          ph_beta.setMetaValue("xl_pos2", ++beta_pos);
           ph_beta.setMetaValue("xl_term_spec", "N_TERM");
         }
         else if (beta_pos == static_cast<SignedSize>(ph_beta.getSequence().size()))
         {
-          ph_beta.setMetaValue("xl_pos", --beta_pos);
+          ph_beta.setMetaValue("xl_pos2", --beta_pos);
           ph_beta.setMetaValue("xl_term_spec", "C_TERM");
         }
         else
         {
-          ph_beta.setMetaValue("xl_pos", beta_pos);
+          ph_beta.setMetaValue("xl_pos2", beta_pos);
           ph_beta.setMetaValue("xl_term_spec", "ANYWHERE");
         }
+        ph_alpha.setMetaValue("xl_pos2", ph_beta.getMetaValue("xl_pos2"));
+        ph_beta.setMetaValue("xl_pos", ph_alpha.getMetaValue("xl_pos"));
 
+        phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
+      }
+      else
+      {
+        phs.push_back(ph_alpha);
       }
 
       std::vector<String> unique_peptides;
@@ -2349,7 +2367,7 @@ namespace OpenMS
                 else
                 {
                   CVTerm cv = parseCvParam_(cvp);
-                  String cvname = cv.getName();
+                  const String cvname = cv.getName();
                   if (cvname.hasPrefix("Xlink") || cv.getAccession().hasPrefix("XLMOD"))
                   {
                     xlink_mod_found = true;
@@ -2362,7 +2380,7 @@ namespace OpenMS
                   {
                     if ( (cv.getCVIdentifierRef() != "UNIMOD") && (cv.getCVIdentifierRef() != "XLMOD") )
                     {
-                         //                 e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>
+                      // e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>
                       cvp = cvp->getNextElementSibling();
                       continue;
                     }
@@ -2370,7 +2388,20 @@ namespace OpenMS
                     {
                       try // does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
                       {
-                        aas.setNTerminalModification(cv.getName());
+                        if (cvname == "unknown modification")
+                        {
+                          const String & cvvalue = cv.getValue();
+                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
+                          {
+                            aas.setNTerminalModification(cv.getValue());
+                          }
+                        }
+                        else
+                        {
+                          aas.setNTerminalModification(cvname);
+                        }
+                        cvp = cvp->getNextElementSibling();
+                        continue;
                       }
                       catch (...)
                       {
@@ -2381,7 +2412,20 @@ namespace OpenMS
                     {
                       try // does not work for cross-links yet, but the information is finally stored as MetaValues of the PeptideHit
                       {
-                        aas.setCTerminalModification(cv.getName());
+                        if (cvname == "unknown modification")
+                        {
+                          const String & cvvalue = cv.getValue();
+                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
+                          {
+                            aas.setCTerminalModification(cvvalue);
+                          }
+                        }
+                        else
+                        {
+                          aas.setCTerminalModification(cvname);
+                        }
+                        cvp = cvp->getNextElementSibling();
+                        continue;
                       }
                       catch (...)
                       {
@@ -2392,7 +2436,20 @@ namespace OpenMS
                     {
                       try
                       {
-                        aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                        if (cvname == "unknown modification")
+                        {
+                          const String & cvvalue = cv.getValue();
+                          if (ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())
+                          {
+                            aas.setModification(index - 1, cvvalue); //TODO @mths,Timo : do this via UNIMOD accessions
+                          }
+                        }
+                        else
+                        {
+                          aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                        }
+                        cvp = cvp->getNextElementSibling();
+                        continue;
                       }
                       catch (Exception::BaseException& e)
                       {
@@ -2413,7 +2470,7 @@ namespace OpenMS
                 xl_donor_pos_map_.insert(make_pair(pep_id, index-1));
               }
             }
-            else //  general case
+            else // general case: no XL-MS result
             {
               DOMElement* cvp = element_sib->getFirstElementChild();
               while (cvp)
@@ -2421,129 +2478,177 @@ namespace OpenMS
                 CVTerm cv = parseCvParam_(cvp);
                 if (cv.getAccession() == "MS:1001460") // unknown modification
                 {
-                  // note, this is optional
-                  double mass_delta = 0;
-                  bool has_mass_delta = false;
-                  String mod;
-
-                  // try to parse information, give up if we cannot
-                  try
+                  const String & cvvalue = cv.getValue();
+                  if (cv.hasValue() && ModificationsDB::getInstance()->has(cvvalue) && !cvvalue.empty())  // why do we need to check for empty?
                   {
-                    mod = String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta"))));
-                    mass_delta = static_cast<double>(mod.toDouble());
-                    has_mass_delta = true;
-                  }
-                  catch (...)
-                  {
-                    LOG_WARN << "Found unreadable modification location." << endl;
-                  throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
-                }
-                  if (!has_mass_delta)
-                  {
-                    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
-                  }
-
-                  // Parse this and add a new modification of mass "monoisotopicMassDelta" to the AASequence
-                  // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
-
-                  // compare with String::ConstIterator AASequence::parseModSquareBrackets_
-                  ModificationsDB* mod_db = ModificationsDB::getInstance();
-                  if (index == 0)
-                  {
-                    // n-terminal
-                    String residue_name = ".[" + mod + "]";
-
-                    // Check if it already exists, if not create new modification, transfer
-                    // ownership to ModDB
-                    if (!mod_db->has(residue_name))
+                    // Case 1: unknown (to e.g., thid-party tool) modification known to OpenMS (see value)
+                    //  <Modification location="0" monoisotopicMassDelta="17.031558">
+                    //  <cvParam cvRef="PSI-MS" accession="MS:1001460" name="unknown modification" value="Methyl:2H(2)13C"/>
+                    const String & mname = cvvalue;
+                    if (index == 0)
                     {
-                      ResidueModification * new_mod = new ResidueModification();
-                      new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
-                      new_mod->setDiffMonoMass(mass_delta);
-                      new_mod->setTermSpecificity(ResidueModification::N_TERM);
-                      mod_db->addModification(new_mod);
+                      aas.setNTerminalModification(mname);
                     }
-                    aas.setNTerminalModification(residue_name);
-                  }
-                  else if (index == (int)aas.size() +1)
-                  {
-                    // c-terminal
-                    String residue_name = ".[" + mod + "]";
-
-                    // Check if it already exists, if not create new modification, transfer
-                    // ownership to ModDB
-                    if (!mod_db->has(residue_name))
+                    else if (index == (int)aas.size() + 1)
                     {
-                      ResidueModification * new_mod = new ResidueModification();
-                      new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
-                      new_mod->setDiffMonoMass(mass_delta);
-                      new_mod->setTermSpecificity(ResidueModification::C_TERM);
-                      mod_db->addModification(new_mod);
+                      aas.setCTerminalModification(mname);
                     }
-                    aas.setCTerminalModification(residue_name);
-                  }
-                  else if (index > 0 && index <= (int)aas.size() )
-                  {
-                    // internal modification
-                    const Residue& residue = aas[index-1];
-                    // String residue_name = residue.getOneLetterCode() + "[" + mod + "]";
-                    String residue_name = "[" + mod + "]";
-
-                    if (!mod_db->has(residue_name))
+                    else if (index > 0 && index <= (int)aas.size() )
                     {
-                      // create new modification
-                      ResidueModification * new_mod = new ResidueModification();
-                      new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                      aas.setModification(index - 1, mname);
+                    }
+                    cvp = cvp->getNextElementSibling();
+                    continue;
+                  }
+                  else
+                  {
+                    // Case 2: unknown modification (needs to be added to ModificationsDB)
+                    // note, this is optional
+                    double mass_delta = 0;
+                    bool has_mass_delta = false;
+                    String mod;
 
-                      // We cannot set origin if we want to use the same modification name
-                      // also at other AA (and since we have no information here, it is safer
-                      // to assume that this may happen).
-                      // new_mod->setOrigin(residue.getOneLetterCode()[0]);
-
-                      new_mod->setMonoMass(mass_delta + residue.getMonoWeight());
-                      new_mod->setAverageMass(mass_delta + residue.getAverageWeight());
-                      new_mod->setDiffMonoMass(mass_delta);
-
-                      mod_db->addModification(new_mod);
+                    // try to parse information, give up if we cannot
+                    try
+                    {
+                      mod = String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("monoisotopicMassDelta"))));
+                      mass_delta = static_cast<double>(mod.toDouble());
+                      has_mass_delta = true;
+                    }
+                    catch (...)
+                    {
+                      LOG_WARN << "Found unreadable modification location." << endl;
+                      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
+                    }
+                    if (!has_mass_delta)
+                    {
+                      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown modification");
                     }
 
-                    // now use the new modification
-                    Size mod_idx = mod_db->findModificationIndex(residue_name);
-                    const ResidueModification* res_mod = &mod_db->getModification(mod_idx);
+                    // Parse this and add a new modification of mass "monoisotopicMassDelta" to the AASequence
+                    // e.g. <cvParam cvRef="MS" accession="MS:1001460" name="unknown modification" value="N-Glycan"/>
 
-                    // Set a modification on the given AA
-                    // Note: this calls setModification_ on a new Residue which changes its
-                    // weight to the weight of the modification (set above)
-                    //
-                    aas.setModification(index-1, res_mod->getFullId());
+                    // compare with String::ConstIterator AASequence::parseModSquareBrackets_
+                    ModificationsDB* mod_db = ModificationsDB::getInstance();
+                    if (index == 0)
+                    {
+                      // n-terminal
+                      String residue_name = ".[+" + mod + "]";
+
+                      // Check if it already exists, if not create new modification, transfer
+                      // ownership to ModDB
+                      if (!mod_db->has(residue_name))
+                      {
+                        ResidueModification * new_mod = new ResidueModification();
+                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setDiffMonoMass(mass_delta);
+                        new_mod->setTermSpecificity(ResidueModification::N_TERM);
+                        mod_db->addModification(new_mod);
+                      }
+                      aas.setNTerminalModification(residue_name);
+                      cvp = cvp->getNextElementSibling();
+                      continue;
+                    }
+                    else if (index == (int)aas.size() +1)
+                    {
+                      // c-terminal
+                      String residue_name = ".[" + mod + "]";
+
+                      // Check if it already exists, if not create new modification, transfer
+                      // ownership to ModDB
+                      if (!mod_db->has(residue_name))
+                      {
+                        ResidueModification * new_mod = new ResidueModification();
+                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+                        new_mod->setDiffMonoMass(mass_delta);
+                        new_mod->setTermSpecificity(ResidueModification::C_TERM);
+                        mod_db->addModification(new_mod);
+                      }
+                      aas.setCTerminalModification(residue_name);
+                      cvp = cvp->getNextElementSibling();
+                      continue;
+                    }
+                    else if (index > 0 && index <= (int)aas.size() )
+                    {
+                      // internal modification
+                      const Residue& residue = aas[index-1];
+                      // String residue_name = residue.getOneLetterCode() + "[" + mod + "]";
+                      String residue_name = "[" + mod + "]";
+
+                      if (!mod_db->has(residue_name))
+                      {
+                        // create new modification
+                        ResidueModification * new_mod = new ResidueModification();
+                        new_mod->setFullId(residue_name); // setting FullId but not Id makes it a user-defined mod
+
+                        // We cannot set origin if we want to use the same modification name
+                        // also at other AA (and since we have no information here, it is safer
+                        // to assume that this may happen).
+                        // new_mod->setOrigin(residue.getOneLetterCode()[0]);
+
+                        new_mod->setMonoMass(mass_delta + residue.getMonoWeight());
+                        new_mod->setAverageMass(mass_delta + residue.getAverageWeight());
+                        new_mod->setDiffMonoMass(mass_delta);
+
+                        mod_db->addModification(new_mod);
+                      }
+
+                      // now use the new modification
+                      Size mod_idx = mod_db->findModificationIndex(residue_name);
+                      const ResidueModification* res_mod = &mod_db->getModification(mod_idx);
+
+                      // Set a modification on the given AA
+                      // Note: this calls setModification_ on a new Residue which changes its
+                      // weight to the weight of the modification (set above)
+                      //
+                      aas.setModification(index-1, res_mod->getFullId());
+                      cvp = cvp->getNextElementSibling();
+                      continue;
+                    }
                   }
-
                 }
                 if (cv.getCVIdentifierRef() != "UNIMOD")
                 {
-                  //                 e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>
+                  // e.g.  <cvParam accession="MS:1001524" name="fragment neutral loss" cvRef="PSI-MS" value="0" unitAccession="UO:0000221" unitName="dalton" unitCvRef="UO"/>
                   cvp = cvp->getNextElementSibling();
                   continue;
                 }
+
                 if (index == 0)
                 {
-                  aas.setNTerminalModification(cv.getName());
+                  if (cv.getName() == "unknown modification")
+                  {
+                    aas.setNTerminalModification(cv.getValue());
+                    cvp = cvp->getNextElementSibling();
+                    continue;
+                  }
+                  else
+                  {
+                    aas.setNTerminalModification(cv.getName());
+                    cvp = cvp->getNextElementSibling();
+                    continue;
+                  }
                 }
                 else if (index == static_cast<SignedSize>(aas.size() + 1))
                 {
                   aas.setCTerminalModification(cv.getName());
+                  cvp = cvp->getNextElementSibling();
+                  continue;
                 }
                 else
                 {
                   try
                   {
                      aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
+                     cvp = cvp->getNextElementSibling();
+                     continue;
                   }
                   catch (Exception::BaseException& e)
                   {
                     LOG_WARN << e.getName() << ": " << e.getMessage() << " Sequence: " << aas.toUnmodifiedString() << ", residue " << aas.getResidue(index - 1).getName() << "@" << String(index) << "\n";
                   }
                 }
+
                 cvp = cvp->getNextElementSibling();
               }
             }
