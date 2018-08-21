@@ -58,6 +58,13 @@ public:
       return transition_group_id + "_Precursor_i" + String(isotope);
     }
 
+    static String computeTransitionGroupId(const String& precursor_id)
+    {
+      std::vector<String> substrings;
+      precursor_id.split("_", substrings);
+      return substrings[0];
+    }
+
     /**
       @brief Select transitions between lower and upper and write them into the new TargetedExperiment
 
