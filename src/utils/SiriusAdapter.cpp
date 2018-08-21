@@ -151,7 +151,7 @@ protected:
     // internal sirius parameters
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
     setValidStrings_("profile", ListUtils::create<String>("qtof,orbitrap,fticr"));
-    registerIntOption_("candidates", "<num>", 5, "The number of candidates in the output.", false);
+    registerIntOption_("candidates", "<num>", 5, "The number of candidates in the SIRIUS output.", false);
     registerStringOption_("database", "<choice>", "all", "search formulas in given database", false);
     setValidStrings_("database", ListUtils::create<String>("all,chebi,custom,kegg,bio,natural products,pubmed,hmdb,biocyc,hsdb,knapsack,biological,zinc bio,gnps,pubchem,mesh,maconda"));
     registerIntOption_("noise", "<num>", 0, "median intensity of noise peaks", false);
@@ -161,12 +161,12 @@ protected:
     registerStringOption_("elements", "<choice>", "CHNOP[5]S[8]Cl[1]", "The allowed elements. Write CHNOPSCl to allow the elements C, H, N, O, P, S and Cl. Add numbers in brackets to restrict the maximal allowed occurrence of these elements: CHNOP[5]S[8]Cl[1].", false);
     registerIntOption_("compound_timeout", "<num>", 10, "Time out in seconds per compound. To disable the timeout set the value to 0", false);
     registerIntOption_("tree_timeout", "<num>", 0, "Time out in seconds per fragmentation tree computation.", false);
-    registerIntOption_("top_n_hits", "<num>", 10, "The top_n_hit for each compound written to the output", false);
+    registerIntOption_("top_n_hits", "<num>", 10, "The number of top hits for each compound written to the CSI:FingerID output", false);
 
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("ion_tree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
-    registerFlag_("most_intense_ms2", "Sirius uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", false);
+    registerFlag_("most_intense_ms2", "SIRIUS uses the fragmentation spectrum with the most intense precursor peak (for each spectrum)", false);
   }
 
   ExitCodes main_(int, const char **) override
@@ -179,8 +179,6 @@ protected:
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
     String featureinfo = getStringOption_("in_featureinfo");
-
-    std::cout << "option" << featureinfo.empty() << std::endl;
 
     // parameter for SiriusAdapter
     bool feature_only = getFlag_("feature_only");
@@ -199,7 +197,7 @@ protected:
     bool no_mt_info = getFlag_("no_masstrace_info_isotope_pattern");
 
     // needed for counting
-    int top_n_hits = getIntOption_("top_n_hits"); 
+    int top_n_hits = getIntOption_("top_n_hits");
 
     // parameter for Sirius
     QString executable = getStringOption_("executable").toQString();
@@ -209,7 +207,7 @@ protected:
     const QString isotope = getStringOption_("isotope").toQString();
     const QString noise = QString::number(getIntOption_("noise"));
     const QString ppm_max = QString::number(getIntOption_("ppm_max"));
-    const QString candidates = QString::number(getIntOption_("candidates"));
+    const Size candidates = getIntOption_("candidates");
     const QString compound_timeout = QString::number(getIntOption_("compound_timeout"));
     const QString tree_timeout = QString::number(getIntOption_("tree_timeout"));
 
@@ -308,7 +306,7 @@ protected:
                    << "-d" << database
                    << "-s" << isotope
                    << "--noise" << noise
-                   << "--candidates" << candidates
+                   << "--candidates" << QString::number(candidates)
                    << "--ppm-max" << ppm_max
                    << "--compound-timeout" << compound_timeout
                    << "--tree-timeout" << tree_timeout 
@@ -384,7 +382,7 @@ protected:
     // convert sirius_output to mztab and store file
     MzTab sirius_result;
     MzTabFile siriusfile;
-    SiriusMzTabWriter::read(subdirs, in, top_n_hits, sirius_result);
+    SiriusMzTabWriter::read(subdirs, in, candidates, sirius_result);
     siriusfile.store(out_sirius, sirius_result);
 
     // convert sirius_output to mztab and store file

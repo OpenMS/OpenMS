@@ -61,8 +61,9 @@ namespace OpenMS
         }
         catch (std::overflow_error const& /*e*/)
         {
-          std::cout << "Warning: Binomial coefficient for match-odds score has overflowed! Setting value to the maximal double value." << std::endl;
-          std::cout << "binomial_coefficient was called with N = " << n << " and k = " << j << std::endl;
+          // not sure if a warning is appropriate here, since if it happens, it will happen very often for the same spectrum and flood the stdout
+//          std::cout << "Warning: Binomial coefficient for match-odds score has overflowed! Setting value to the maximal double value." << std::endl;
+//          std::cout << "binomial_coefficient was called with N = " << n << " and k = " << j << std::endl;
           coeff = std::numeric_limits<double>::max();
         }
 

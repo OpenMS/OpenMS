@@ -358,6 +358,61 @@ public:
       std::vector<Match>& matches
     );
 
+    /**
+      @brief Compares a list of spectra against a spectral library and updates
+      the related features.
+
+      The metavalues added to each `Feature` within the `FeatureMap` are:
+      - spectral_library_name The name of the match's spectrum found in the library
+      - spectral_library_score The match score [0-1]
+      - spectral_library_comments The comments for the match's spectrum
+
+      If a match for a given input spectrum is not found, the metavalues will be
+      assigned a default value:
+      - spectral_library_name and spectral_library_comments: an empty string
+      - spectral_library_score: a value of 0.0
+
+      @note The input `spectra` (and related `features`) are assumed to be the
+      result of `extractSpectra()`, meaning they went (at least) through the process
+      of peak picking.
+
+      @param[in] spectra The input spectra
+      @param[in] cmp The `Comparator` object containing the spectral library
+      @param[in/out] features The `FeatureMap` to be updated with matching info
+    */
+    void targetedMatching(
+      const std::vector<MSSpectrum>& spectra,
+      const Comparator& cmp,
+      FeatureMap& features
+    );
+
+    /**
+      @brief Compares a list of spectra against a spectral library and creates
+      a `FeatureMap` with the relevant information.
+
+      The metavalues added to each `Feature` within the `FeatureMap` are:
+      - spectral_library_name The name of the match's spectrum found in the library
+      - spectral_library_score The match score [0-1]
+      - spectral_library_comments The comments for the match's spectrum
+
+      If a match for a given input spectrum is not found, the metavalues will be
+      assigned a default value:
+      - spectral_library_name and spectral_library_comments: an empty string
+      - spectral_library_score: a value of 0.0
+
+      @note The input `spectra` (and related `features`) are assumed to be unprocessed,
+      therefore undergoing a process of peak picking during execution of this method.
+
+      @param[in] spectra The input spectra
+      @param[in] cmp The `Comparator` object containing the spectral library
+      @param[out] features The `FeatureMap` to be filled with matching info
+    */
+    void untargetedMatching(
+      const std::vector<MSSpectrum>& spectra,
+      const Comparator& cmp,
+      FeatureMap& features
+    );
+
 protected:
     /// Overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
     void updateMembers_();

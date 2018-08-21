@@ -130,11 +130,27 @@ public:
 
     bool operator==(const PeptideHit::PeakAnnotation& other) const
     {
-      if (charge != other.charge || mz != other.mz || 
+      if (charge != other.charge || mz != other.mz ||
           intensity != other.intensity || annotation != other.annotation) return false;
       return true;
     }
-};
+
+    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
+    {
+      if (annotations.empty()) { return; }
+
+      // sort by mz, charge, ...
+      stable_sort(annotations.begin(), annotations.end());
+
+      String val;
+      for (auto& a : annotations)
+      {
+        annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
+        if (&a != &annotations.back()) { annotation_string += "|"; }
+      }
+    }
+
+  };
 
 public:
 
@@ -177,7 +193,7 @@ public:
     };
     //@}
 
-    
+
     /// Lesser predicate for (modified) sequence of hits
     class OPENMS_DLLAPI SequenceLessComparator
     {
@@ -201,7 +217,7 @@ public:
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
       {
-        return score_type == rhs.score_type 
+        return score_type == rhs.score_type
           && higher_is_better == rhs.higher_is_better
           && main_score == rhs.main_score
           && sub_scores == rhs.sub_scores;
@@ -325,4 +341,3 @@ protected:
   };
 
 } // namespace OpenMS
-

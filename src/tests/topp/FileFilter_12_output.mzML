@@ -348,20 +348,20 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="10" encodedLength="108" dataProcessingRef="dp_sp_1_bi_0">
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="10" encodedLength="56" dataProcessingRef="dp_sp_1_bi_0">
 						<cvParam cvRef="MS" accession="MS:1000517" name="signal to noise array" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="name" type="xsd:string" value="binaryDataArray_sn"/>
 						<userParam name="name2" type="xsd:string" value="binaryDataArray_sn2"/>
-						<binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="10" encodedLength="108" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="10" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="user-defined name" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="name" type="xsd:string" value="binaryDataArray_c"/>
-						<binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -436,9 +436,9 @@
 	<index name="spectrum">
 		<offset idRef="index=0">12649</offset>
 		<offset idRef="index=1">17509</offset>
-		<offset idRef="index=2">26187</offset>
+		<offset idRef="index=2">26081</offset>
 	</index>
 </indexList>
-<indexListOffset>30984</indexListOffset>
+<indexListOffset>30878</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

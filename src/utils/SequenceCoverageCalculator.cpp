@@ -149,6 +149,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
+
+    os << "proteinID\tcoverage (%)\tunique hits\n";
     for (Size j = 0; j < proteins.size(); ++j)
     {
       coverage.clear();
@@ -215,7 +217,7 @@ protected:
       // details for this protein
       if (counts[j] > 0)
       {
-        os << proteins[j].identifier << "(coverage%, #unique hits): " <<  statistics[j] * 100 << "%, " << counts[j] << "\n";
+        os << proteins[j].identifier << "\t" << statistics[j] * 100 << "\t" << counts[j] << "\n";
       }
 
 // os << statistics[j] << endl;

@@ -156,7 +156,8 @@ namespace OpenMS
             try
             {
               populateSpectraWithData_(spectrum_data_[i].data,
-                                       spectrum_data_[i].default_array_length, options_,
+                                       spectrum_data_[i].default_array_length,
+                                       options_,
                                        spectrum_data_[i].spectrum);
               if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
               {
@@ -212,7 +213,8 @@ namespace OpenMS
           try
           {
             populateChromatogramsWithData_(chromatogram_data_[i].data,
-                                           chromatogram_data_[i].default_array_length, options_,
+                                           chromatogram_data_[i].default_array_length,
+                                           options_,
                                            chromatogram_data_[i].chromatogram);
             if (options_.getSortChromatogramsByRT() && !chromatogram_data_[i].chromatogram.isSorted())
             {
@@ -251,55 +253,57 @@ namespace OpenMS
     }
 
     void MzMLHandler::addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
-                              const Size n, SpectrumType& spectrum) const
-      {
+                                           const Size n,
+                                           SpectrumType& spectrum) const
+    {
 
-          //add meta data
-          UInt meta_float_array_index = 0;
-          UInt meta_int_array_index = 0;
-          UInt meta_string_array_index = 0;
-          for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+      // add meta data
+      UInt meta_float_array_index = 0;
+      UInt meta_int_array_index = 0;
+      UInt meta_string_array_index = 0;
+      for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+      {
+        if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
+        {
+          if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
           {
-            if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
+            if (n < input_data[i].size)
             {
-              if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
-              {
-                if (n < input_data[i].size)
-                {
-                  double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
-                  spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
-                }
-                ++meta_float_array_index;
-              }
-              else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-              {
-                if (n < input_data[i].size)
-                {
-                  Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
-                  spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
-                }
-                ++meta_int_array_index;
-              }
-              else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-              {
-                if (n < input_data[i].decoded_char.size())
-                {
-                  String value = input_data[i].decoded_char[n];
-                  spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
-                }
-                ++meta_string_array_index;
-              }
+              double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
+              spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
             }
+            ++meta_float_array_index;
           }
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
+          {
+            if (n < input_data[i].size)
+            {
+              Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
+              spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
+            }
+            ++meta_int_array_index;
+          }
+          else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+          {
+            if (n < input_data[i].decoded_char.size())
+            {
+              String value = input_data[i].decoded_char[n];
+              spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
+            }
+            ++meta_string_array_index;
+          }
+        }
       }
+    }
 
     void MzMLHandler::populateSpectraWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                  Size& default_arr_length, const PeakFileOptions& peak_file_options,
-                                  SpectrumType& spectrum)
+                                               Size& default_arr_length,
+                                               const PeakFileOptions& peak_file_options,
+                                               SpectrumType& spectrum)
     {
       typedef SpectrumType::PeakType PeakType;
 
-      //decode all base64 arrays
+      // decode all base64 arrays
       MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
 
       //look up the precision and the index of the intensity and m/z array
@@ -424,8 +428,8 @@ namespace OpenMS
            !peak_file_options.hasIntensityRange() 
          )
       {
-        std::vector< double >::iterator mz_it = input_data[mz_index].floats_64.begin();
-        std::vector< float >::iterator int_it = input_data[int_index].floats_32.begin();
+        std::vector< double >::const_iterator mz_it = input_data[mz_index].floats_64.begin();
+        std::vector< float >::const_iterator int_it = input_data[int_index].floats_32.begin();
         for (Size n = 0; n < default_arr_length; n++)
         {
           //add peak
@@ -462,8 +466,9 @@ namespace OpenMS
     }
 
     void MzMLHandler::populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
-                                        Size& default_arr_length, const PeakFileOptions& peak_file_options,
-                                        ChromatogramType& inp_chromatogram)
+                                                     Size& default_arr_length,
+                                                     const PeakFileOptions& peak_file_options,
+                                                     ChromatogramType& inp_chromatogram)
     {
       typedef ChromatogramType::PeakType ChromatogramPeakType;
 
@@ -3258,7 +3263,7 @@ namespace OpenMS
       return cvTerm;
     }
 
-    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, String path, Internal::MzMLValidator& validator) const
+    void MzMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator) const
     {
       std::vector<String> cvParams;
       std::vector<String> userParams;
@@ -3350,7 +3355,7 @@ namespace OpenMS
       return ControlledVocabulary::CVTerm();
     }
 
-    void MzMLHandler::writeSoftware_(std::ostream& os, const String& id, const Software& software, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator)
     {
       os << "\t\t<software id=\"" << id << "\" version=\"" << software.getVersion() << "\" >\n";
       ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531", software.getName());
@@ -3378,7 +3383,7 @@ namespace OpenMS
       os << "\t\t</software>\n";
     }
 
-    void MzMLHandler::writeSourceFile_(std::ostream& os, const String& id, const SourceFile& source_file, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeSourceFile_(std::ostream& os, const String& id, const SourceFile& source_file, const Internal::MzMLValidator& validator)
     {
       os << "\t\t\t<sourceFile id=\"" << id << "\" name=\"" << writeXMLEscape(source_file.getNameOfFile()) << "\" location=\"" << writeXMLEscape(source_file.getPathToFile()) << "\">\n";
       //checksum
@@ -3422,7 +3427,7 @@ namespace OpenMS
       os << "\t\t\t</sourceFile>\n";
     }
 
-    void MzMLHandler::writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, const Internal::MzMLValidator& validator)
     {
       os << "\t\t<dataProcessing id=\"" << id << "\">\n";
 
@@ -3544,7 +3549,7 @@ namespace OpenMS
       os << "\t\t</dataProcessing>\n";
     }
 
-    void MzMLHandler::writePrecursor_(std::ostream& os, const Precursor& precursor, Internal::MzMLValidator& validator)
+    void MzMLHandler::writePrecursor_(std::ostream& os, const Precursor& precursor, const Internal::MzMLValidator& validator)
     {
       os << "\t\t\t\t\t<precursor>\n";
       //--------------------------------------------------------------------------------------------
@@ -3677,7 +3682,7 @@ namespace OpenMS
 
     }
 
-    void MzMLHandler::writeProduct_(std::ostream& os, const Product& product, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeProduct_(std::ostream& os, const Product& product, const Internal::MzMLValidator& validator)
     {
       os << "\t\t\t\t\t<product>\n";
       os << "\t\t\t\t\t\t<isolationWindow>\n";
@@ -3709,7 +3714,7 @@ namespace OpenMS
       writeHeader_(os, exp, dps, validator);
 
       //--------------------------------------------------------------------------------------------
-      //spectrum
+      // spectra
       //--------------------------------------------------------------------------------------------
       if (exp.size() != 0)
       {
@@ -3719,34 +3724,35 @@ namespace OpenMS
         // stored somewhere else).
         os << "\t\t<spectrumList count=\"" << exp.size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
 
-        //check native ids
+        // check native ids
         bool renew_native_ids = false;
-        for (Size s = 0; s < exp.size(); ++s)
+        for (Size s_idx = 0; s_idx < exp.size(); ++s_idx)
         {
-          if (!exp[s].getNativeID().has('='))
+          if (!exp[s_idx].getNativeID().has('='))
           {
             renew_native_ids = true;
             break;
           }
         }
-        //issue warning if something is wrong
+
+        // issue warning if something is wrong
         if (renew_native_ids)
         {
           warning(STORE, String("Invalid native IDs detected. Using spectrum identifier nativeID format (spectrum=xsd:nonNegativeInteger) for all spectra."));
         }
 
-        //write actual data
-        for (Size s = 0; s < exp.size(); ++s)
+        // write actual data
+        for (Size s_idx = 0; s_idx < exp.size(); ++s_idx)
         {
           logger_.setProgress(progress++);
-          const SpectrumType& spec = exp[s];
-          writeSpectrum_(os, spec, s, validator, renew_native_ids, dps);
+          const SpectrumType& spec = exp[s_idx];
+          writeSpectrum_(os, spec, s_idx, validator, renew_native_ids, dps);
         }
         os << "\t\t</spectrumList>\n";
       }
 
       //--------------------------------------------------------------------------------------------
-      //chromatograms
+      // chromatograms
       //--------------------------------------------------------------------------------------------
       if (!exp.getChromatograms().empty())
       {
@@ -3755,11 +3761,11 @@ namespace OpenMS
         // meta information needs to be stored here but the actual data is
         // stored somewhere else).
         os << "\t\t<chromatogramList count=\"" << exp.getChromatograms().size() << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
-        for (Size c = 0; c != exp.getChromatograms().size(); ++c)
+        for (Size c_idx = 0; c_idx != exp.getChromatograms().size(); ++c_idx)
         {
           logger_.setProgress(progress++);
-          const ChromatogramType& chromatogram = exp.getChromatograms()[c];
-          writeChromatogram_(os, chromatogram, c, validator);
+          const ChromatogramType& chromatogram = exp.getChromatograms()[c_idx];
+          writeChromatogram_(os, chromatogram, c_idx, validator);
         }
         os << "\t\t</chromatogramList>" << "\n";
       }
@@ -3768,8 +3774,10 @@ namespace OpenMS
       logger_.endProgress();
     }
 
-    void MzMLHandler::writeHeader_(std::ostream& os, const MapType& exp,
-                                            std::vector<std::vector< ConstDataProcessingPtr > >& dps, Internal::MzMLValidator& validator)
+    void MzMLHandler::writeHeader_(std::ostream& os,
+                                   const MapType& exp,
+                                   std::vector<std::vector< ConstDataProcessingPtr > >& dps,
+                                   const Internal::MzMLValidator& validator)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 
@@ -4700,9 +4708,11 @@ namespace OpenMS
     }
 
     void MzMLHandler::writeSpectrum_(std::ostream& os,
-                                              const SpectrumType& spec, Size s,
-                                              Internal::MzMLValidator& validator, bool renew_native_ids,
-                                              std::vector<std::vector< ConstDataProcessingPtr > >& dps)
+                                     const SpectrumType& spec,
+                                     Size s,
+                                     const Internal::MzMLValidator& validator,
+                                     bool renew_native_ids,
+                                     std::vector<std::vector< ConstDataProcessingPtr > >& dps)
     {
       //native id
       String native_id = spec.getNativeID();
@@ -4858,17 +4868,21 @@ namespace OpenMS
       for (Size j = 0; j < spec.getAcquisitionInfo().size(); ++j)
       {
         const Acquisition& ac = spec.getAcquisitionInfo()[j];
-        os << "\t\t\t\t\t<scan ";
+        os << "\t\t\t\t\t<scan "; // TODO 
         if (ac.getIdentifier() != "")
+        {
           os << "externalSpectrumID=\"" << ac.getIdentifier() << "\"";
+        }
         os << ">\n";
         if (j == 0)
         {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
-          // if drift time was never set, dont report it
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000016\" name=\"scan start time\" value=\"" << spec.getRT() 
+             << "\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"UO\" />\n";
+          // if drift time was never set, don't report it
           if (spec.getDriftTime() >= 0.0)
           {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
+            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1002476\" name=\"ion mobility drift time\" value=\"" << spec.getDriftTime() 
+               << "\" unitAccession=\"UO:0000028\" unitName=\"millisecond\" unitCvRef=\"UO\" />\n";
           }
         }
         writeUserParam_(os, ac, 6, "/mzML/run/spectrumList/spectrum/scanList/scan/cvParam/@accession", validator);
@@ -4949,44 +4963,23 @@ namespace OpenMS
         writeContainerData_<SpectrumType>(os, options_, spec, "intensity");
 
         String compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
-        //write float data array
+        // write float data array
         for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
         {
           const SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
-          std::vector<double> data64_to_encode(array.size());
-          for (Size p = 0; p < array.size(); ++p)
-            data64_to_encode[p] = array[p];
-          // TODO also encode float data arrays using numpress?
-          Base64::encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-          String data_processing_ref_string = "";
-          if (array.getDataProcessing().size() != 0)
-          {
-            data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + s + "_bi_" + m + "\"";
-          }
-          os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-          os << compression_term << "\n";
-          ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
-          if (bi_term.id != "")
-          {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\" />\n";
-          }
-          else
-          {
-            os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
-          }
-          writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
-          os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
-          os << "\t\t\t\t\t</binaryDataArray>\n";
+          writeBinaryFloatDataArray_(os, options_, array, s, m, true, validator);
         }
-        //write integer data array
+        // write integer data array
         for (Size m = 0; m < spec.getIntegerDataArrays().size(); ++m)
         {
           const SpectrumType::IntegerDataArray& array = spec.getIntegerDataArrays()[m];
           std::vector<Int64> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
+          {
             data64_to_encode[p] = array[p];
+          }
           Base64::encodeIntegers(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
+
           String data_processing_ref_string = "";
           if (array.getDataProcessing().size() != 0)
           {
@@ -5008,7 +5001,7 @@ namespace OpenMS
           os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
           os << "\t\t\t\t\t</binaryDataArray>\n";
         }
-        //write string data arrays
+        // write string data arrays
         for (Size m = 0; m < spec.getStringDataArrays().size(); ++m)
         {
           const SpectrumType::StringDataArray& array = spec.getStringDataArrays()[m];
@@ -5040,7 +5033,8 @@ namespace OpenMS
     void MzMLHandler::writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
     {
       // Intensity is the same for chromatograms and spectra, the second
-      // dimension is either "time" or "mz" (both of these are controlled by getMz32Bit)
+      // dimension is either "time" or "mz" (both of these are controlled by
+      // getMz32Bit)
       bool is32Bit = ((array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
       if (!is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
       {
@@ -5085,7 +5079,11 @@ namespace OpenMS
     }
 
     template <typename DataType>
-    void MzMLHandler::writeBinaryDataArray_(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<DataType> data_to_encode, bool is32bit, String array_type)
+    void MzMLHandler::writeBinaryDataArray_(std::ostream& os,
+                                            const PeakFileOptions& pf_options_,
+                                            std::vector<DataType>& data_to_encode,
+                                            bool is32bit,
+                                            String array_type)
     {
       String encoded_string;
       bool no_numpress = true;
@@ -5158,15 +5156,112 @@ namespace OpenMS
       os << "\t\t\t\t\t</binaryDataArray>\n";
     }
 
-    // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
-    template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os, const PeakFileOptions& pf_options_, const SpectrumType& container, String array_type);
-    template void MzMLHandler::writeContainerData_<ChromatogramType>(std::ostream& os, const PeakFileOptions& pf_options_, const ChromatogramType& container, String array_type);
+    void MzMLHandler::writeBinaryFloatDataArray_(std::ostream& os,
+                                                 const PeakFileOptions& pf_options_,
+                                                 const OpenMS::DataArrays::FloatDataArray& array,
+                                                 const Size spec_chrom_idx,
+                                                 const Size array_idx,
+                                                 bool isSpectrum,
+                                                 const Internal::MzMLValidator& validator)
+    {
+      String encoded_string;
+      bool no_numpress = true;
+      std::vector<float> data_to_encode = array;
+      // bool is32bit = true;
 
-    template void MzMLHandler::writeBinaryDataArray_<float>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<float> data_to_encode, bool is32bit, String array_type);
-    template void MzMLHandler::writeBinaryDataArray_<double>(std::ostream& os, const PeakFileOptions& pf_options_, std::vector<double> data_to_encode, bool is32bit, String array_type);
+      // Compute the array-type and the compression CV term
+      String cv_term_type;
+      String compression_term;
+      String compression_term_no_np;
+      MSNumpressCoder::NumpressConfig np_config;
+      // if (array_type == "float_data")
+      {
+        // Try and identify whether we have a CV term for this particular array (otherwise write the array name itself)
+        ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName()); // name: binary data array
+        if (bi_term.id != "")
+        {
+          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" + bi_term.id + "\" name=\"" + bi_term.name + "\" />\n";
+        }
+        else
+        {
+          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" + array.getName() + "\" />\n";
+        }
+
+        compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", true);
+        compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", false);
+        np_config = pf_options_.getNumpressConfigurationFloatDataArray();
+      }
+
+      String data_processing_ref_string = "";
+      if (array.getDataProcessing().size() != 0)
+      {
+        data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
+      }
+
+      // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
+      if (np_config.np_compression != MSNumpressCoder::NONE)
+      {
+        MSNumpressCoder().encodeNP(data_to_encode, encoded_string, pf_options_.getCompression(), np_config);
+        if (!encoded_string.empty())
+        {
+          // numpress succeeded
+          no_numpress = false;
+          os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+          os << cv_term_type;
+          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+        }
+      }
+
+      // Regular DataArray without numpress (here: only 32 bit encoded)
+      if (no_numpress)
+      {
+        compression_term = compression_term_no_np; // select the no-numpress term
+        Base64::encode(data_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, pf_options_.getCompression());
+        os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
+        os << cv_term_type;
+        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
+      }
+
+      os << compression_term << "\n";
+      if (isSpectrum)
+      {
+        writeUserParam_(os, array, 6, "/mzML/run/spectrumList/spectrum/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
+      }
+      else
+      {
+        writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
+      }
+      os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
+      os << "\t\t\t\t\t</binaryDataArray>\n";
+    }
+
+    // We only ever need 2 instances for the following functions: one for Spectra / Chromatograms and one for floats / doubles
+    template void MzMLHandler::writeContainerData_<SpectrumType>(std::ostream& os,
+                                                                 const PeakFileOptions& pf_options_,
+                                                                 const SpectrumType& container,
+                                                                 String array_type);
+
+    template void MzMLHandler::writeContainerData_<ChromatogramType>(std::ostream& os,
+                                                                     const PeakFileOptions& pf_options_,
+                                                                     const ChromatogramType& container,
+                                                                     String array_type);
+
+    template void MzMLHandler::writeBinaryDataArray_<float>(std::ostream& os,
+                                                            const PeakFileOptions& pf_options_,
+                                                            std::vector<float>& data_to_encode,
+                                                            bool is32bit,
+                                                            String array_type);
+
+    template void MzMLHandler::writeBinaryDataArray_<double>(std::ostream& os,
+                                                             const PeakFileOptions& pf_options_,
+                                                             std::vector<double>& data_to_encode,
+                                                             bool is32bit,
+                                                             String array_type);
 
     void MzMLHandler::writeChromatogram_(std::ostream& os,
-                                         const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
+                                         const ChromatogramType& chromatogram,
+                                         Size c,
+                                         const Internal::MzMLValidator& validator)
     {
       long offset = os.tellp();
       chromatograms_offsets_.push_back(make_pair(chromatogram.getNativeID(), offset + 3));
@@ -5230,35 +5325,11 @@ namespace OpenMS
       writeContainerData_<ChromatogramType>(os, options_, chromatogram, "intensity");
 
       compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), "\t\t\t\t\t\t", false);
-      //write float data array
+      // write float data array
       for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
       {
         const ChromatogramType::FloatDataArray& array = chromatogram.getFloatDataArrays()[m];
-        std::vector<double> data64_to_encode(array.size());
-        for (Size p = 0; p < array.size(); ++p)
-          data64_to_encode[p] = array[p];
-        // TODO also encode float data arrays using numpress?
-        Base64::encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
-        String data_processing_ref_string = "";
-        if (array.getDataProcessing().size() != 0)
-        {
-          data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + c + "_bi_" + m + "\"";
-        }
-        os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
-        os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
-        os << compression_term << "\n";
-        ControlledVocabulary::CVTerm bi_term = getChildWithName_("MS:1000513", array.getName());
-        if (bi_term.id != "")
-        {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << bi_term.id << "\" name=\"" << bi_term.name << "\" />\n";
-        }
-        else
-        {
-          os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000786\" name=\"non-standard data array\" value=\"" << array.getName() << "\" />\n";
-        }
-        writeUserParam_(os, array, 6, "/mzML/run/chromatogramList/chromatogram/binaryDataArrayList/binaryDataArray/cvParam/@accession", validator);
-        os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
-        os << "\t\t\t\t\t</binaryDataArray>\n";
+        writeBinaryFloatDataArray_(os, options_, array, c, m, false, validator);
       }
       //write integer data array
       for (Size m = 0; m < chromatogram.getIntegerDataArrays().size(); ++m)

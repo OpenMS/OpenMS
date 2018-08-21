@@ -503,4 +503,3 @@ protected:
   }
 
 } // namespace OpenMS
-
