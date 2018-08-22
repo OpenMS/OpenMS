@@ -2,33 +2,62 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+        stage('Build and Test') {
             parallel {
-                stage('Test On Windows') {
+                stage('Windows') {
                     agent {
                         label "win10"
                     }
-                    steps {
-                        echo 'build'
+                    stages {
+                       stage("win build") {
+                           steps {
+                               echo 'build'
+                               sh 'echo foo > wintest.txt'
+                           }
+                       }
+                       stage("win test") {
+                           steps {
+                               echo 'test'
+                               sh 'less wintest.txt'
+                           }
+                           post {
+                            always {
+                                stash includes: 'wintest.txt', name: 'testresult-win'
+                            }
+                           }
+                       }
                     }
                 }
-                stage('Test On Mac') {
+                stage('Mac') {
                     agent {
                         label "highsierra"
                     }
-                    steps {
-                        echo 'build'
+                    stages {
+                       stage("mac build") {
+                           steps {
+                               echo 'build'
+                               sh 'echo bar > test.txt'
+                           }
+                           post {
+                            always {
+                                stash includes: 'test.txt', name: 'testresult-mac'
+                            }
+                           }
+                       }
+                       stage("mac test") {
+                           steps {
+                               echo 'test'
+                               sh 'less test.txt'
+                           }
+                       }
                     }
                 }
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Testing..'
             }
         }
         stage('Deploy') {
             steps {
+                unstash 'testresult-win'
+                unstash 'testresult-mac'
                 echo 'Deploying....'
             }
         }
