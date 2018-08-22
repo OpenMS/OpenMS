@@ -99,7 +99,7 @@
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<chromatogramList count="18" defaultDataProcessingRef="dp_sp_0">
-			<chromatogram id="PEPTIDEA_Extra" index="0" defaultArrayLength="10">
+			<chromatogram id="PEPTIDEA_Extra_Precursor_i0" index="0" defaultArrayLength="10">
 				<cvParam cvRef="MS" accession="MS:1000628" name="basepeak chromatogram" />
 					<precursor>
 						<selectedIonList count="1">
@@ -110,7 +110,7 @@
 						</selectedIonList>
 						<activation>
 							<cvParam cvRef="MS" accession="MS:1000044" name="dissociation method" />
-							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEA"/>
+							<userParam name="peptide_sequence" type="xsd:string" value="PEPTIDEAAAA"/>
 						</activation>
 					</precursor>
 					<product>
@@ -804,27 +804,27 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="PEPTIDEA_Extra">6874</offset>
-		<offset idRef="PEPTIDEA_Precursor_i0">8822</offset>
-		<offset idRef="PEPTIDEA_Precursor_i1">10989</offset>
-		<offset idRef="PEPTIDEA_Precursor_i2">13174</offset>
-		<offset idRef="PEPTIDEB_Precursor_i0">15359</offset>
-		<offset idRef="PEPTIDEB_Precursor_i1">17526</offset>
-		<offset idRef="PEPTIDEB_Precursor_i2">19711</offset>
-		<offset idRef="PEPTIDEC_Precursor_i0">21896</offset>
-		<offset idRef="PEPTIDEC_Precursor_i1">24063</offset>
-		<offset idRef="PEPTIDEC_Precursor_i2">26248</offset>
-		<offset idRef="PEPTIDED_Precursor_i0">28433</offset>
-		<offset idRef="PEPTIDED_Precursor_i1">30601</offset>
-		<offset idRef="PEPTIDED_Precursor_i2">32787</offset>
-		<offset idRef="PEPTIDEF_Precursor_i0">34973</offset>
-		<offset idRef="PEPTIDEF_Precursor_i1">37199</offset>
-		<offset idRef="PEPTIDEF_Precursor_i2">39441</offset>
-		<offset idRef="PEPTIDEE_Precursor_i0">41627</offset>
-		<offset idRef="PEPTIDEE_Precursor_i1">43853</offset>
-		<offset idRef="PEPTIDEE_Precursor_i2">46095</offset>
+		<offset idRef="PEPTIDEA_Extra_Precursor_i0">6874</offset>
+		<offset idRef="PEPTIDEA_Precursor_i0">8838</offset>
+		<offset idRef="PEPTIDEA_Precursor_i1">11005</offset>
+		<offset idRef="PEPTIDEA_Precursor_i2">13190</offset>
+		<offset idRef="PEPTIDEB_Precursor_i0">15375</offset>
+		<offset idRef="PEPTIDEB_Precursor_i1">17542</offset>
+		<offset idRef="PEPTIDEB_Precursor_i2">19727</offset>
+		<offset idRef="PEPTIDEC_Precursor_i0">21912</offset>
+		<offset idRef="PEPTIDEC_Precursor_i1">24079</offset>
+		<offset idRef="PEPTIDEC_Precursor_i2">26264</offset>
+		<offset idRef="PEPTIDED_Precursor_i0">28449</offset>
+		<offset idRef="PEPTIDED_Precursor_i1">30617</offset>
+		<offset idRef="PEPTIDED_Precursor_i2">32803</offset>
+		<offset idRef="PEPTIDEF_Precursor_i0">34989</offset>
+		<offset idRef="PEPTIDEF_Precursor_i1">37215</offset>
+		<offset idRef="PEPTIDEF_Precursor_i2">39457</offset>
+		<offset idRef="PEPTIDEE_Precursor_i0">41643</offset>
+		<offset idRef="PEPTIDEE_Precursor_i1">43869</offset>
+		<offset idRef="PEPTIDEE_Precursor_i2">46111</offset>
 	</index>
 </indexList>
-<indexListOffset>48315</indexListOffset>
+<indexListOffset>48331</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
