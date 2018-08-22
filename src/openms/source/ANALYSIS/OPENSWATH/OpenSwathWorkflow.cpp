@@ -134,6 +134,7 @@ namespace OpenMS
     feature_finder_param.setValue("Scores:use_rt_score", "false");
     feature_finder_param.setValue("Scores:use_elution_model_score", "false");
     feature_finder_param.setValue("rt_extraction_window", -1.0);
+    feature_finder_param.setValue("stop_report_after_feature", 1);
     feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 1.0); // set to 1.0 in all cases
     feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
     if (estimateBestPeptides)
@@ -166,13 +167,13 @@ namespace OpenMS
     LOG_DEBUG << "Extracted best features: " << best_features.size() << std::endl;
 
     // Create pairs vector and store peaks
-    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType trgrmap_allpeaks; // store all peaks above cutoff
+    std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
     for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
     {
       pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       if (transition_group_map.find(it->first) != transition_group_map.end())
       {
-        trgrmap_allpeaks[ it->first ]  = transition_group_map[ it->first];
+        trgrmap_allpeaks[ it->first ] = &transition_group_map[ it->first];
       }
     }
 
@@ -231,12 +232,11 @@ namespace OpenMS
 
     // Only use the "correct" peaks for m/z correction (e.g. remove those not
     // part of the linear regression)
-    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType trgrmap_final;
-    for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator it = trgrmap_allpeaks.begin();
-        it != trgrmap_allpeaks.end(); ++it)
+    std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
+    for (const auto& it : trgrmap_allpeaks)
     {
-      if (it->second.getFeatures().empty() ) {continue;}
-      const MRMFeature& feat = it->second.getBestFeature();
+      if (it.second->getFeatures().empty() ) {continue;}
+      const MRMFeature& feat = it.second->getBestFeature();
 
       // Check if the current feature is in the list of pairs used for the
       // linear RT regression (using other features may result in wrong
@@ -246,7 +246,7 @@ namespace OpenMS
       {
         if (fabs(feat.getRT() - pairs_corrected[pit].first ) < 1e-2)
         {
-          trgrmap_final[ it->first ] = it->second;
+          trgrmap_final[ it.first ] = it.second;
           break;
         }
       }
@@ -409,6 +409,7 @@ namespace OpenMS
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const TransformationDescription trafo,
     const ChromExtractParams & cp,
+    const ChromExtractParams & cp_ms1,
     const Param & feature_finder_param,
     const OpenSwath::LightTargetedExperiment& transition_exp,
     FeatureMap& out_featureFile,
@@ -434,7 +435,7 @@ namespace OpenMS
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
-    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp,
+    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
                    transition_exp, trafo_inverse, load_into_memory, ms1_only);
 
     if (ms1_only && !use_ms1_traces_)
@@ -939,6 +940,7 @@ namespace OpenMS
            const std::vector< OpenSwath::SwathMap > & swath_maps,
            const TransformationDescription trafo,
            const ChromExtractParams & cp,
+           const ChromExtractParams & cp_ms1,
            const Param & feature_finder_param,
            const OpenSwath::LightTargetedExperiment& transition_exp,
            FeatureMap& out_featureFile,
@@ -964,7 +966,7 @@ namespace OpenMS
 
       // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
       std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
-      MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp,
+      MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
                      transition_exp, trafo_inverse, load_into_memory);
 
       ///////////////////////////////////////////////////////////////////////////
