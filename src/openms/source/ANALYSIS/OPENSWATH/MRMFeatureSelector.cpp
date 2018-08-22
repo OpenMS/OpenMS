@@ -50,9 +50,9 @@ namespace OpenMS
 
   MRMFeatureSelector::~MRMFeatureSelector() {}
 
-  Int MRMFeatureSelector::_addVariable (LPWrapper& problem, String& name) {
+  Int MRMFeatureSelector::_addVariable(LPWrapper& problem, String& name, double lb=0., double ub=1.) {
     Int index = problem.addColumn();
-    problem.setColumnBounds(index, 0., 1., LPWrapper::DOUBLE_BOUNDED);
+    problem.setColumnBounds(index, lb, ub, LPWrapper::DOUBLE_BOUNDED);
     problem.setColumnName(index, name);
     problem.setColumnType(index, LPWrapper::CONTINUOUS);
     problem.setObjective(index, 1.);
@@ -73,12 +73,13 @@ namespace OpenMS
     std::unordered_set<std::string> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
+    std::vector<Int> constraints;
     for (size_t cnt1=0; cnt1 < time_to_name.size(); ++cnt1) {
       std::vector<Feature> feature_row1 = feature_name_map[time_to_name[cnt1].second];
       for (size_t i=0; i < feature_row1.size(); ++i) {
         String name1 = time_to_name[cnt1].second + "_" + (String)feature_row1[i].getUniqueId();
         if (variables.find(name1) == variables.end()) {
-            _addVariable(problem, name1);
+            constraints.push_back(_addVariable(problem, name1));
             variables.insert(name1);
         }
         // TODO: nearest neighbours, not all the components
@@ -92,7 +93,9 @@ namespace OpenMS
                 variables.insert(name2);
             }
             String var_qp_name = time_to_name[cnt1].second + "_" + (String)i + "-" + time_to_name[cnt2].second + "_" + (String)j;
+            String var_abs_name = var_qp_name + "-ABS";
             Int index_var_qp = _addVariable(problem, var_qp_name);
+            Int index_var_abs = _addVariable(problem, var_abs_name, -1000., 1000.);
             Int index1 = problem.getColumnIndex(name1);
             Int index2 = problem.getColumnIndex(name2);
             Int indices1[] = {index1, index_var_qp};
@@ -103,9 +106,21 @@ namespace OpenMS
             Int indices3[] = {index1, index2, index_var_qp};
             double values3[] = {1., 1., -1};
             _addConstraint(problem, 3, indices3, values3, var_qp_name + "-QP3", 0., 1., LPWrapper::UPPER_BOUND_ONLY);
+            Int indices_abs[] = {index_var_abs, index_var_qp};
+            double values_abs_plus[] = {-1., 666.}; // TODO: locality weight score
+            _addConstraint(problem, 2, indices_abs, values_abs_plus, var_qp_name + "-obj+", -1., 0., LPWrapper::UPPER_BOUND_ONLY);
+            double values_abs_minus[] = {-1., -666.}; // TODO: locality weight score
+            _addConstraint(problem, 2, indices_abs, values_abs_minus, var_qp_name + "-obj-", -1., 0., LPWrapper::UPPER_BOUND_ONLY);
           }
         }
       }
+      std::vector<double> constraints_values(constraints.size(), 1.);
+      _addConstraint(problem, constraints.size(), &constraints[0], &constraints_values[0], time_to_name[cnt1].second + "_constraint", 1., 1., LPWrapper::DOUBLE_BOUNDED);
+    }
+    LPWrapper::SolverParam param;
+    problem.solve(param);
+    for (Int c = 0; c < problem.getNumberOfColumns(); ++c) {
+      std::cout << problem.getColumnName(c) << " " << problem.getColumnValue(c) << std::endl;
     }
     std::cout << "=======END OPTIMIZE TR========" << std::endl;
   }

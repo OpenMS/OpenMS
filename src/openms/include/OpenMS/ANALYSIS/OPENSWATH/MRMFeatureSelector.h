@@ -99,7 +99,7 @@ private:
     bool   select_highest_count_;
     String variable_type_;
     double optimal_threshold_;
-    Int _addVariable(LPWrapper& problem, String& name);
+    Int _addVariable(LPWrapper& problem, String& name, double lb, double ub);
     void _addConstraint(LPWrapper& problem, size_t size, Int *indices_array, double *values_array, String name, double lb, double ub, LPWrapper::Type param);
   };
 }
