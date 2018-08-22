@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
 namespace OpenMS
 {
@@ -50,7 +51,11 @@ public:
     MRMFeatureSelector();
     virtual ~MRMFeatureSelector();
 
-    void optimize_Tr();
+    void optimize_Tr(
+      std::vector<std::pair<double, String>> time_to_name, 
+      std::map< String, std::vector<Feature> > feature_name_map
+      // std::map< String, std::vector<std::map<String, DataValue>> > feature_name_map
+    );
     void optimize_score();
     void select_MRMFeature_qmip(FeatureMap& features, TargetedExperiment& targeted_exp);
     void select_MRMFeature_score();
@@ -94,6 +99,8 @@ private:
     bool   select_highest_count_;
     String variable_type_;
     double optimal_threshold_;
+    Int _addVariable(LPWrapper& problem, String& name);
+    void _addConstraint(LPWrapper& problem, size_t size, Int *indices_array, double *values_array, String name, double lb, double ub, LPWrapper::Type param);
   };
 }
 
