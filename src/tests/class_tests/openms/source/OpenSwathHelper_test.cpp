@@ -68,6 +68,20 @@ START_SECTION(~OpenSwathHelper())
 }
 END_SECTION
 
+START_SECTION(static String computePrecursorId(const String& transition_group_id, int isotope))
+{
+  TEST_EQUAL(OpenSwathHelper::computePrecursorId("tr_gr2", 0), "tr_gr2_Precursor_i0")
+  TEST_EQUAL(OpenSwathHelper::computePrecursorId("tr_gr2__test", 0), "tr_gr2__test_Precursor_i0")
+}
+END_SECTION
+
+START_SECTION(static String computeTransitionGroupId(const String& precursor_id))
+{
+  TEST_EQUAL(OpenSwathHelper::computeTransitionGroupId("tr_gr2_Precursor_i0"), "tr_gr2")
+  TEST_EQUAL(OpenSwathHelper::computeTransitionGroupId("tr_gr2__test_Precursor_i0"), "tr_gr2__test")
+}
+END_SECTION
+
 START_SECTION(static void selectSwathTransitions(const OpenMS::TargetedExperiment &targeted_exp, OpenMS::TargetedExperiment &transition_exp_used, double min_upper_edge_dist, double lower, double upper))
 {
   TargetedExperiment exp1;
