@@ -33,22 +33,21 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
+#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
-#include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 
 using namespace OpenMS;
@@ -133,7 +132,10 @@ protected:
     registerStringOption_("method", "<choice>", "highest_intensity", "",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
-    registerDoubleOption_("signal_to_noise", "<s/n ratio>", 0, "Write peaks with S/N > signal_to_noise values only", false);
+    registerDoubleOption_("signal_to_noise", "<s/n ratio>", 0.0, "Write peaks with S/N > signal_to_noise values only", false);
+    // TODO: add description
+    registerDoubleOption_("signal_to_noise:win_len", "<num>", 200, "", false);
+    registerIntOption_("signal_to_noise:min_required_elements", "<num>", 10, "", false);
 
     registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
     registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
@@ -273,21 +275,22 @@ protected:
         }
       }
 
-      // TODO: check if signal to noise filter works
-      // TODO: signal to noise not working correctly (further parameter needed - win_len, min_required_elements)
       // calculate S/N values and delete data points below S/N threshold
-      if (sn > 0)
+      if (sn > 0.0)
       {
+
         SignalToNoiseEstimatorMedian<PeakMap::SpectrumType> snm;
-        Param const &dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
+        Param dc_param;
+        dc_param.insert("", SignalToNoiseEstimatorMedian<MSSpectrum>().getDefaults());
+        dc_param.setValue("win_len", getDoubleOption_("signal_to_noise:win_len"));
+        dc_param.setValue("min_required_elements", getIntOption_("signal_to_noise:min_required_elements"));
         snm.setParameters(dc_param);
         for (PeakMap::Iterator it = spectra.begin(); it != spectra.end(); ++it)
         {
           snm.init(it->begin(), it->end());
           for (PeakMap::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
           {
-            if (snm.getSignalToNoise(spec) < sn)
-              spec->setIntensity(0);
+            if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
           }
           it->erase(remove_if(it->begin(),
                               it->end(),
@@ -593,6 +596,7 @@ protected:
     } //end iteration over all files
 
     // filter found transitions
+    // TODO: sort v_pts by precursor_mz
 
     // TODO: add filter for mz in rt range?
     // TODO: think about how to filter e.g. precursor intensity
