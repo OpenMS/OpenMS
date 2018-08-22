@@ -253,7 +253,8 @@ namespace OpenMS
         populateMS2Transition(transition, coord);
       }
 
-      if (rt_extraction_window >= 0)
+      if (rt_extraction_window < 0) {} // construct for NAN (see below)
+      else
       {
         if (!pep->hasRetentionTime())
         {
