@@ -795,7 +795,7 @@ namespace OpenMS
       // Set the MS1 chromatograms for the different isotopes, if available
       // (note that for 3 isotopes, we include the monoisotopic peak plus three
       // isotopic traces)
-      for (Size iso = 0; iso <= nr_ms1_isotopes; iso++)
+      for (int iso = 0; iso <= nr_ms1_isotopes; iso++)
       {
         String prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
         if (!ms1_chromatograms.empty() && ms1_chromatogram_map.find(prec_id) != ms1_chromatogram_map.end())
