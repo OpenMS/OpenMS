@@ -332,6 +332,14 @@ public:
         double local_right = best_right;
         if (!use_consensus_)
         {
+          // We cannot have any non-detecting transitions (otherwise we have
+          // too few left / right edges) as we skipped those when doing peak
+          // picking and smoothing.
+          if (!transition_group.getTransitions()[k].isDetectingTransition())
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "When using non-censensus peak picker, all transitions need to be detecting transitions.");
+          }
           local_left = left_edges[k];
           local_right = right_edges[k];
         }
@@ -456,8 +464,6 @@ public:
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
         f.getConvexHulls().push_back(hull);
-        f.setMetaValue("native_id", chromatogram.getNativeID());
-        f.setMetaValue("peak_apex_int", peak_apex_int);
 
         f.setMZ(chromatogram.getProduct().getMZ());
         mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());
@@ -476,8 +482,7 @@ public:
           f.setMetaValue("total_mi", transition_total_mi);
         }
 
-        // TODO shouldn't this be quantifying transition?
-        if (transition_group.getTransitions()[k].isDetectingTransition())
+        if (transition_group.getTransitions()[k].isQuantifyingTransition())
         {
           total_intensity += peak_integral;
           total_peak_apices += peak_apex_int;
@@ -514,6 +519,9 @@ public:
       for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
       {
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
+
+        // Identify precursor index
+        // note: this is only valid if all transitions are detecting transitions
         Size prec_idx = transition_group.getChromatograms().size() + k;
 
         double local_left = best_left;
