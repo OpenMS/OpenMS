@@ -3,14 +3,22 @@ pipeline {
 
     stages {
         stage('Build') {
-            parallel macos: {
-                node('highsierra') {
-                    echo 'build'
+            parallel {
+                stage('Test On Windows') {
+                    agent {
+                        label "win10"
+                    }
+                    steps {
+                        echo 'build'
+                    }
                 }
-            },
-            windows: {
-                node('win10') {
-                    echo 'build'
+                stage('Test On Mac') {
+                    agent {
+                        label "highsierra"
+                    }
+                    steps {
+                        echo 'build'
+                    }
                 }
             }
         }
