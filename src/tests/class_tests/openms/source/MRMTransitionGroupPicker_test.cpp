@@ -283,9 +283,10 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 
     TEST_EQUAL(transition_group.getFeatures().size(), 1)
     MRMFeature mrmfeature = transition_group.getFeatures()[0];
-    TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
-    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("leftWidth"), 1481.84);
-    TEST_REAL_SIMILAR( mrmfeature.getMetaValue("rightWidth"), 1501.23);
+    TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060)
+    TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 567375)
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("leftWidth"), 1481.84)
+    TEST_REAL_SIMILAR(mrmfeature.getMetaValue("rightWidth"), 1501.23)
 
     // test the number of hull points (should be equal)
     TEST_EQUAL( mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints().size(), 7);
@@ -393,6 +394,59 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
     TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getMetaValue("peak_apex_position"), 14);
     TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getMetaValue("peak_apex_position"), 16); // consensus = 7
     TEST_REAL_SIMILAR(mrmfeature.getFeature("3").getMetaValue("peak_apex_position"), 7);
+  }
+
+  { // transition group 1 -- only quantifying
+    MRMTransitionGroupPicker trgroup_picker;
+    Param picker_param = trgroup_picker.getDefaults();
+    picker_param.setValue("PeakPickerMRM:method", "legacy"); // old parameters
+    picker_param.setValue("PeakPickerMRM:peak_width", 40.0); // old parameters
+    trgroup_picker.setParameters(picker_param);
+
+    {
+      MRMTransitionGroupType transition_group;
+      setup_transition_group(transition_group);
+      trgroup_picker.pickTransitionGroup(transition_group);
+
+      TEST_EQUAL(transition_group.getFeatures().size(), 1)
+      MRMFeature mrmfeature = transition_group.getFeatures()[0];
+      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 567375)
+      TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
+    }
+
+    {
+      MRMTransitionGroupType transition_group;
+      setup_transition_group(transition_group);
+      transition_group.getTransitionsMuteable()[0].setQuantifyingTransition(false);
+      trgroup_picker.pickTransitionGroup(transition_group);
+
+      TEST_EQUAL(transition_group.getFeatures().size(), 1)
+      MRMFeature mrmfeature = transition_group.getFeatures()[0];
+      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 507385)
+      TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
+    }
+
+    {
+      MRMTransitionGroupType transition_group;
+      setup_transition_group(transition_group);
+      transition_group.getTransitionsMuteable()[1].setQuantifyingTransition(false);
+      trgroup_picker.pickTransitionGroup(transition_group);
+
+      TEST_EQUAL(transition_group.getFeatures().size(), 1)
+      MRMFeature mrmfeature = transition_group.getFeatures()[0];
+      TEST_REAL_SIMILAR(mrmfeature.getIntensity(), 59989.8)
+      TEST_REAL_SIMILAR(mrmfeature.getRT(), 1492.83060);
+    }
+
+    {
+      MRMTransitionGroupType transition_group;
+      setup_transition_group(transition_group);
+      transition_group.getTransitionsMuteable()[0].setQuantifyingTransition(false);
+      transition_group.getTransitionsMuteable()[1].setQuantifyingTransition(false);
+      trgroup_picker.pickTransitionGroup(transition_group);
+
+      TEST_EQUAL(transition_group.getFeatures().size(), 0) // no results, since zero intensity transitions get removed
+    }
   }
 }
 END_SECTION
