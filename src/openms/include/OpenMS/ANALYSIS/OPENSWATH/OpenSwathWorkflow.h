@@ -110,6 +110,7 @@ protected:
      **/
     OpenSwathWorkflowBase() :
       use_ms1_traces_(false),
+      use_ms1_ion_mobility_(false),
       threads_outer_loop_(-1)
     {
     }
@@ -126,8 +127,9 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflowBase(bool use_ms1_traces, int threads_outer_loop) :
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
+      use_ms1_ion_mobility_(use_ms1_ion_mobility),
       threads_outer_loop_(threads_outer_loop)
     {
     }
@@ -136,7 +138,7 @@ protected:
      *
     */
     void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                        std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
+                        std::vector< MSChromatogram >& ms1_chromatograms,
                         Interfaces::IMSDataConsumer * chromConsumer,
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp,
@@ -180,6 +182,8 @@ protected:
     /// Whether to use the MS1 traces
     bool use_ms1_traces_;
 
+    /// Whether to use ion mobility extraction on MS1 traces
+    bool use_ms1_ion_mobility_;
 
     /** @brief How many threads should be used for the outer loop
      *
@@ -192,7 +196,7 @@ protected:
      **/
     int threads_outer_loop_;
 
-  };
+};
 
   /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on a set of known peptides
    *
@@ -208,7 +212,7 @@ protected:
     }
 
     explicit OpenSwathRetentionTimeNormalization(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces, -1)
+      OpenSwathWorkflowBase(use_ms1_traces, false, -1)
     {
     }
 
@@ -315,8 +319,8 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflow(bool use_ms1_traces, int threads_outer_loop) :
-      OpenSwathWorkflowBase(use_ms1_traces, threads_outer_loop)
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
+      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, threads_outer_loop)
     {
     }
 
@@ -393,8 +397,8 @@ protected:
      *
     */
     void scoreAllChromatograms(
-        const OpenSwath::SpectrumAccessPtr input,
-        const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
+        const std::vector< OpenMS::MSChromatogram > & chrom_input,
+        const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
         const std::vector< OpenSwath::SwathMap >& swath_maps,
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
@@ -454,7 +458,7 @@ protected:
   public:
 
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces, -1)
+      OpenSwathWorkflow(use_ms1_traces, false, -1)
     {
     }
 

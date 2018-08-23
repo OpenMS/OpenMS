@@ -320,7 +320,7 @@ namespace OpenMS
           extractor.extractChromatograms(current_swath_map, tmp_out, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.im_extraction_window, cp.extraction_function);
           extractor.return_chromatogram(tmp_out, coordinates,
-              transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
+              transition_exp_used, SpectrumSettings(), tmp_chromatograms, false, cp.im_extraction_window);
 
 #ifdef _OPENMP
 #pragma omp critical (osw_write_chroms)
@@ -434,8 +434,13 @@ namespace OpenMS
     this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
-    std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
-    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
+    std::vector< MSChromatogram > ms1_chromatograms;
+    ChromExtractParams ms1_cp(cp_ms1);
+    if (!use_ms1_ion_mobility_)
+    {
+      ms1_cp.im_extraction_window = -1;
+    }
+    MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
                    transition_exp, trafo_inverse, load_into_memory, ms1_only);
 
     if (ms1_only && !use_ms1_traces_)
@@ -449,10 +454,9 @@ namespace OpenMS
     {
       FeatureMap featureFile;
       boost::shared_ptr<MSExperiment> empty_exp = boost::shared_ptr<MSExperiment>(new MSExperiment);
-      OpenSwath::SpectrumAccessPtr dummy = boost::shared_ptr<SpectrumAccessOpenMS>( new SpectrumAccessOpenMS(empty_exp) );
 
       OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
-      scoreAllChromatograms(dummy, ms1_chromatograms, swath_maps, transition_exp_used, 
+      scoreAllChromatograms(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used, 
                             feature_finder_param, trafo,
                             cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, true);
 
@@ -551,7 +555,6 @@ namespace OpenMS
 
             // Step 2.1: extract these transitions
             ChromatogramExtractor extractor;
-            boost::shared_ptr<PeakMap > chrom_exp(new PeakMap);
             std::vector< OpenSwath::ChromatogramPtr > chrom_list;
             std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
 
@@ -561,19 +564,16 @@ namespace OpenMS
                 cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
-            std::vector< OpenMS::MSChromatogram > chromatograms;
-            extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(), chromatograms, false);
-            chrom_exp->setChromatograms(chromatograms);
-            OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(chrom_exp));
+            PeakMap chrom_exp;
+            extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(), 
+                                          chrom_exp.getChromatograms(), false, cp.im_extraction_window);
 
 
             // Step 3: score these extracted transitions
             FeatureMap featureFile;
-            std::vector< OpenSwath::SwathMap > dummy_maps;
-            OpenSwath::SwathMap dummy_map (swath_maps[i]);
-            dummy_map.sptr = current_swath_map_inner;
-            dummy_maps.push_back(dummy_map);
-            scoreAllChromatograms(chromatogram_ptr, ms1_chromatograms, dummy_maps, transition_exp_used,
+            std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
+            tmp.back().sptr = current_swath_map_inner;
+            scoreAllChromatograms(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
                 feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer);
 
             // Step 4: write all chromatograms and features out into an output object / file
@@ -583,7 +583,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_out)
 #endif
             {
-              writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), featureFile, out_featureFile, store_features, chromConsumer);
             }
           }
 
@@ -641,13 +641,13 @@ namespace OpenMS
   }
 
   void OpenSwathWorkflowBase::MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                         std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
-                                         Interfaces::IMSDataConsumer * chromConsumer,
-                                         const ChromExtractParams & cp,
-                                         const OpenSwath::LightTargetedExperiment& transition_exp,
-                                         const TransformationDescription& trafo_inverse,
-                                         bool load_into_memory, 
-                                         bool ms1_only)
+                                             std::vector< MSChromatogram >& ms1_chromatograms,
+                                             Interfaces::IMSDataConsumer* chromConsumer,
+                                             const ChromExtractParams& cp,
+                                             const OpenSwath::LightTargetedExperiment& transition_exp,
+                                             const TransformationDescription& trafo_inverse,
+                                             bool load_into_memory, 
+                                             bool ms1_only)
   {
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
     {
@@ -674,12 +674,12 @@ namespace OpenMS
         extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
             cp.ppm, cp.im_extraction_window, cp.extraction_function);
 
-        std::vector< OpenMS::MSChromatogram > chromatograms;
-        extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(), chromatograms, true);
+        extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
+            SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
 
         for (Size j = 0; j < coordinates.size(); j++)
         {
-          if (chromatograms[j].empty())
+          if (ms1_chromatograms[j].empty())
           {
             continue; // skip empty chromatograms
           }
@@ -691,10 +691,10 @@ namespace OpenMS
           // chromatograms). This is especially problematic with pqp files
           // where peptide precursors and transitions are simply numbered and
           // are guaranteed to overlap.
-          chromatograms[j].setNativeID( chromatograms[j].getNativeID() +  "_Precursor_i0");
-          // write MS1 chromatograms to disk
-          ms1_chromatograms[coordinates[j].id] = chrom_list[j];
+          String prec_id = OpenSwathHelper::computePrecursorId(ms1_chromatograms[j].getNativeID(), 0);
+          ms1_chromatograms[j].setNativeID(prec_id);
 
+          // write MS1 chromatograms to disk
           // only write precursor chromatograms that have a corresponding swath windows
           for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
           {
@@ -704,7 +704,7 @@ namespace OpenMS
                 )
             {
               // write MS1 chromatograms to disk
-              chromConsumer->consumeChromatogram( chromatograms[j] );
+              chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
             }
           }
 
@@ -715,8 +715,8 @@ namespace OpenMS
   }
 
   void OpenSwathWorkflow::scoreAllChromatograms(
-    const OpenSwath::SpectrumAccessPtr input,
-    const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
+    const std::vector< OpenMS::MSChromatogram > & chrom_input,
+    const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
     const std::vector< OpenSwath::SwathMap >& swath_maps,
     OpenSwath::LightTargetedExperiment& transition_exp,
     const Param& feature_finder_param,
@@ -731,6 +731,7 @@ namespace OpenMS
     trafo_inv.invert();
 
     MRMFeatureFinderScoring featureFinder;
+    MRMTransitionGroupPicker trgroup_picker;
 
     // To ensure multi-threading safe access to the individual spectra, we
     // need to use a light clone of the spectrum access (if multiple threads
@@ -741,25 +742,29 @@ namespace OpenMS
       featureFinder.setMS1Map( threadsafe_ms1 );
     }
 
-    MRMTransitionGroupPicker trgroup_picker;
-
-    Param trgroup_picker_param = feature_finder_param.copy("TransitionGroupPicker:", true);
-
     // If use_total_mi_score is defined, we need to instruct MRMTransitionGroupPicker to compute the score
+    Param trgroup_picker_param = feature_finder_param.copy("TransitionGroupPicker:", true);
     if ((bool)feature_finder_param.getValue("Scores:use_total_mi_score").toBool())
     {
       trgroup_picker_param.setValue("compute_total_mi", "true");
     }
-
     trgroup_picker.setParameters(trgroup_picker_param);
+
     featureFinder.setParameters(feature_finder_param);
     featureFinder.prepareProteinPeptideMaps_(transition_exp);
 
+    // Map ms1 chromatogram id to sequence number
+    std::map<String, int> ms1_chromatogram_map;
+    for (Size i = 0; i < ms1_chromatograms.size(); i++)
+    {
+      ms1_chromatogram_map[ms1_chromatograms[i].getNativeID()] = boost::numeric_cast<int>(i);
+    }
+
     // Map chromatogram id to sequence number
     std::map<String, int> chromatogram_map;
-    for (Size i = 0; i < input->getNrChromatograms(); i++)
+    for (Size i = 0; i < chrom_input.size(); i++)
     {
-      chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
+      chromatogram_map[chrom_input[i].getNativeID()] = boost::numeric_cast<int>(i);
     }
     // Map peptide id to sequence number
     std::map<String, int> assay_peptide_map;
@@ -791,7 +796,6 @@ namespace OpenMS
       MRMTransitionGroupType transition_group;
       transition_group.setTransitionGroupID(id);
       double expected_rt = transition_exp.getCompounds()[ assay_peptide_map[id] ].rt;
-      double precursor_mz = -1;
 
       // Go through all transitions, for each transition get chromatogram and
       // the chromatogram and the assay to the MRMTransitionGroup
@@ -799,7 +803,6 @@ namespace OpenMS
       for (Size i = 0; i < assay_it->second.size(); i++)
       {
         const TransitionType* transition = assay_it->second[i];
-        precursor_mz = transition->getPrecursorMZ();
 
         if (transition->isDetectingTransition())
         {
@@ -816,24 +819,18 @@ namespace OpenMS
               "Error, did not find chromatogram for transition " + transition->getNativeID() );
         }
 
-        precursor_mz = transition->getPrecursorMZ();
-
         // Convert chromatogram to MSChromatogram and filter
-        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
-        MSChromatogram chromatogram;
-        chromatogram.setMetaValue("product_mz", transition->getProductMZ());
-        chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
+        auto chromatogram = chrom_input[ chromatogram_map[transition->getNativeID()] ];
         chromatogram.setNativeID(transition->getNativeID());
         if (rt_extraction_window > 0)
         {
           double de_normalized_experimental_rt = trafo_inv.apply(expected_rt);
           double rt_max = de_normalized_experimental_rt + rt_extraction_window;
           double rt_min = de_normalized_experimental_rt - rt_extraction_window;
-          OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(chromatogram, cptr, rt_min, rt_max);
-        }
-        else
-        {
-          OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr, chromatogram);
+          auto new_end = std::remove_if(chromatogram.begin(), chromatogram.end(),
+                                        [rt_min, rt_max](const ChromatogramPeak& chr)
+                                        { return chr.getRT() > rt_max  || chr.getRT() < rt_min; });
+          chromatogram.erase(new_end, chromatogram.end());
         }
 
         // Now add the transition and the chromatogram to the MRMTransitionGroup
@@ -845,16 +842,10 @@ namespace OpenMS
       if (tsv_writer.isActive() || osw_writer.isActive()) { output.clear(); }
 
       // Set the MS1 chromatogram if available (this assumes a single precursor chromatogram per transition group)
-      if (!ms1_chromatograms.empty() && 
-          ms1_chromatograms.find(transition_group.getTransitionGroupID()) != ms1_chromatograms.end())
+      String prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0);
+      if (!ms1_chromatograms.empty() && ms1_chromatogram_map.find(prec_id) != ms1_chromatogram_map.end())
       {
-        MSChromatogram chromatogram;
-        std::map< std::string, OpenSwath::ChromatogramPtr >::const_iterator cptr =
-                    ms1_chromatograms.find(transition_group.getTransitionGroupID());
-        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(cptr->second, chromatogram);
-
-        chromatogram.setMetaValue("precursor_mz", precursor_mz);
-        chromatogram.setNativeID(transition_group.getTransitionGroupID() + "_Precursor_i0");
+        MSChromatogram chromatogram = ms1_chromatograms[ ms1_chromatogram_map[prec_id] ];
         transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
       }
 
@@ -1006,7 +997,7 @@ namespace OpenMS
       }
 
       // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
-      std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
+      std::vector< MSChromatogram > ms1_chromatograms;
       MS1Extraction_(swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
                      transition_exp, trafo_inverse, load_into_memory);
 
@@ -1119,16 +1110,14 @@ namespace OpenMS
             performSonarExtraction_(used_maps, coordinates, chrom_list, cp);
 
             // Step 2.3: convert chromatograms back to OpenMS::MSChromatogram and write to output
-            std::vector< OpenMS::MSChromatogram > chromatograms;
-            ChromatogramExtractor().return_chromatogram(chrom_list, coordinates, transition_exp_used, SpectrumSettings(), chromatograms, false);
-            boost::shared_ptr<PeakMap > chrom_exp(new PeakMap);
-            chrom_exp->setChromatograms(chromatograms);
-            OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(chrom_exp));
+            PeakMap chrom_exp;
+            ChromatogramExtractor().return_chromatogram(chrom_list, coordinates, transition_exp_used, SpectrumSettings(),
+                                                        chrom_exp.getChromatograms(), false, cp.im_extraction_window);
 
             // Step 3: score these extracted transitions
             FeatureMap featureFile;
-            scoreAllChromatograms(chromatogram_ptr, ms1_chromatograms, used_maps, transition_exp_used,
-                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer);
+            scoreAllChromatograms(chrom_exp.getChromatograms(), ms1_chromatograms, used_maps, transition_exp_used,
+                 feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
@@ -1137,7 +1126,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_out)
 #endif
             {
-              writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), featureFile, out_featureFile, store_features, chromConsumer);
             }
           }
         }

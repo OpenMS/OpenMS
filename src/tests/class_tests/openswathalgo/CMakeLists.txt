@@ -44,6 +44,7 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 set(openswath_algo_tests
   MRMScoring_test
   Scoring_test
+  Datastructures_test
   TestConvert
   DiaHelpers_test
 )
