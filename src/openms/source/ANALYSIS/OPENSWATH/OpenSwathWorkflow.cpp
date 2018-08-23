@@ -597,6 +597,13 @@ namespace OpenMS
 
     }
     this->endProgress();
+    
+#ifdef _OPENMP
+    if (threads_outer_loop_ > -1)
+    {
+      omp_set_num_threads(total_nr_threads); // set number of available threads back to initial value
+    }
+#endif    
   }
 
   void OpenSwathWorkflow::writeOutFeaturesAndChroms_(
