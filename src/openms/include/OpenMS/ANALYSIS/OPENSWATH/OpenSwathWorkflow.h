@@ -108,11 +108,17 @@ protected:
     {
     }
 
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+      use_ms1_traces_(use_ms1_traces),
+      use_ms1_ion_mobility_(use_ms1_ion_mobility)
+    {
+    }
+
     /** @brief Perform MS1 extraction and store result in ms1_chromatograms
      *
     */
     void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                        std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
+                        std::vector< MSChromatogram >& ms1_chromatograms,
                         Interfaces::IMSDataConsumer * chromConsumer,
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp,
@@ -156,7 +162,8 @@ protected:
     /// Whether to use the MS1 traces
     bool use_ms1_traces_;
 
-
+    /// Whether to use ion mobility extraction on MS1 traces
+    bool use_ms1_ion_mobility_;
   };
 
   /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on a set of known peptides
@@ -167,7 +174,7 @@ protected:
   {
   public:
 
-    explicit OpenSwathRetentionTimeNormalization() :
+    OpenSwathRetentionTimeNormalization() :
       OpenSwathWorkflowBase(false)
     {
     }
@@ -271,6 +278,11 @@ protected:
     {
     }
 
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility)
+    {
+    }
+
     /** @brief Execute the OpenSWATH workflow on a set of SwathMaps and transitions.
      *
      * Executes the following operations on the given input:
@@ -338,8 +350,8 @@ protected:
      *
     */
     void scoreAllChromatograms(
-        const OpenSwath::SpectrumAccessPtr input,
-        const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
+        const std::vector< OpenMS::MSChromatogram > & chrom_input,
+        const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
         const std::vector< OpenSwath::SwathMap >& swath_maps,
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
@@ -397,9 +409,11 @@ protected:
   {
 
   public:
+
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces)
-    {}
+      OpenSwathWorkflow(use_ms1_traces, false)
+    {
+    }
 
     /** @brief Execute the OpenSWATH workflow on a set of SONAR SwathMaps and transitions.
      *
