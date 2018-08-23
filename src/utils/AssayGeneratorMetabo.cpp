@@ -129,13 +129,12 @@ protected:
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-    registerStringOption_("method", "<choice>", "highest_intensity", "",false);
+    registerStringOption_("method", "<choice>", "highest_intensity", "Method used for assay library construction",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
     registerDoubleOption_("signal_to_noise", "<s/n ratio>", 0.0, "Write peaks with S/N > signal_to_noise values only", false);
-    // TODO: add description
-    registerDoubleOption_("signal_to_noise:win_len", "<num>", 200, "", false);
-    registerIntOption_("signal_to_noise:min_required_elements", "<num>", 10, "", false);
+    registerDoubleOption_("sn_win_len", "<num>", 200, "Window length in Thomson - for each datapoint in the given scan, we collect a range of data points around it", true);
+    registerIntOption_("sn_min_required_elements", "<num>", 10, "Minimum number of elements required in a window (otherwise it is considered sparse)", true);
 
     registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
     registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
@@ -232,6 +231,8 @@ protected:
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
 
     double sn = getDoubleOption_("signal_to_noise");
+    double sn_win_len = getDoubleOption_("sn_win_len");
+    int sn_min_required_elements = getIntOption_("sn_min_required_elements");
 
     double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
     String unit_prec = getStringOption_("precursor_mz_tolerance_unit");
@@ -282,8 +283,8 @@ protected:
         SignalToNoiseEstimatorMedian<PeakMap::SpectrumType> snm;
         Param dc_param;
         dc_param.insert("", SignalToNoiseEstimatorMedian<MSSpectrum>().getDefaults());
-        dc_param.setValue("win_len", getDoubleOption_("signal_to_noise:win_len"));
-        dc_param.setValue("min_required_elements", getIntOption_("signal_to_noise:min_required_elements"));
+        dc_param.setValue("win_len", sn_win_len);
+        dc_param.setValue("min_required_elements", sn_min_required_elements);
         snm.setParameters(dc_param);
         for (PeakMap::Iterator it = spectra.begin(); it != spectra.end(); ++it)
         {
@@ -465,6 +466,7 @@ protected:
           exp.sortSpectra();
           SpectraMerger merger;
           Param p;
+          p.insert("", SpectraMerger().getDefaults());
           p.setValue("precursor_method:mz_tolerance", precursor_mz_distance);
           p.setValue("precursor_method:rt_tolerance", precursor_rt_tol * 2);
           merger.setParameters(p);
@@ -509,7 +511,6 @@ protected:
         float threshold_transition = max_int * (transition_threshold / 100);
         float threshold_noise = min_int * 1.1;
 
-        // TODO: add adducts to TransitionExperiment
         // TODO: add method remove precursor peak
         // TODO: add method to only use monoisotopic traces
         // TODO: add min and max transitions -> transitions with highest intensity?
@@ -570,12 +571,12 @@ protected:
             }
             if (adduct == "UNKNOWN")
             {
-              cmp.setMetaValue("adducts", adduct);
+              cmp.setMetaValue("Adducts", adduct);
             }
             else
             {
               adduct = ListUtils::concatenate(v_adduct, ",");
-              cmp.setMetaValue("adducts", adduct);
+              cmp.setMetaValue("Adducts", adduct);
             }
             v_cmp.push_back(cmp);
             v_rmt.push_back(rmt);
