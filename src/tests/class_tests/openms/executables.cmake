@@ -317,6 +317,7 @@ set(filtering_executables_list
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
+  PrecursorCorrection_test
   SplinePackage_test
   SplineSpectrum_test
   SavitzkyGolayFilter_test

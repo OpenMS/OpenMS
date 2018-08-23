@@ -290,7 +290,7 @@ protected:
    * @brief Class to execute an OpenSwath Workflow
    *
    * The workflow will perform a complete OpenSWATH analysis, see
-   * performExtraction(). Optionally, a calibration of m/s and retention time
+   * performExtraction(). Optionally, a calibration of m/z and retention time
    * (mapping peptides to normalized space and correcting m/z error) can be
    * performed beforehand using the OpenSwathRetentionTimeNormalization class.
    *
@@ -332,6 +332,7 @@ protected:
      * @param swath_maps The raw data (swath maps)
      * @param rt_trafo Retention time transformation description (translating this runs' RT to normalized RT space)
      * @param chromatogram_extraction_params Parameter set for the chromatogram extraction
+     * @param ms1_chromatogram_extraction_params Parameter set for the chromatogram extraction of the MS1 data
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
      * @param assay_library The set of assays to be extracted and scored
      * @param result_featureFile Output feature map to store identified features
@@ -349,8 +350,9 @@ protected:
      *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                           const TransformationDescription rt_trafo,
+                           const TransformationDescription trafo,
                            const ChromExtractParams & chromatogram_extraction_params,
+                           const ChromExtractParams & ms1_chromatogram_extraction_params,
                            const Param & feature_finder_param,
                            const OpenSwath::LightTargetedExperiment& assay_library,
                            FeatureMap& result_featureFile,
@@ -485,6 +487,7 @@ protected:
     void performExtractionSonar(const std::vector< OpenSwath::SwathMap > & swath_maps,
                                 const TransformationDescription trafo,
                                 const ChromExtractParams & cp,
+                                const ChromExtractParams & cp_ms1,
                                 const Param & feature_finder_param,
                                 const OpenSwath::LightTargetedExperiment& transition_exp,
                                 FeatureMap& out_featureFile,

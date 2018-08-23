@@ -71,7 +71,7 @@ public:
      *
      *
      */
-    static void correctMZ(const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+    static void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
                           std::vector< OpenSwath::SwathMap > & swath_maps,
                           const std::string& corr_type,
                           const double mz_extr_window = 0.05,
