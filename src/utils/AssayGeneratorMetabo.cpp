@@ -133,8 +133,8 @@ protected:
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
     registerDoubleOption_("signal_to_noise", "<s/n ratio>", 0.0, "Write peaks with S/N > signal_to_noise values only", false);
-    registerDoubleOption_("sn_win_len", "<num>", 200, "Window length in Thomson - for each datapoint in the given scan, we collect a range of data points around it", true);
-    registerIntOption_("sn_min_required_elements", "<num>", 10, "Minimum number of elements required in a window (otherwise it is considered sparse)", true);
+    registerDoubleOption_("sn_win_len", "<num>", 200, "Window length in Thomson - for each datapoint in the given scan, we collect a range of data points around it", false, true);
+    registerIntOption_("sn_min_required_elements", "<num>", 10, "Minimum number of elements required in a window (otherwise it is considered sparse)", false, true);
 
     registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
     registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
@@ -216,6 +216,11 @@ protected:
       }
     }
     return feature_ms2_spectra_map;
+  }
+
+  static bool compare_instensity(Peak1D a, Peak1D b)
+  {
+      return (a.getIntensity() < b.getIntensity());
   }
 
   ExitCodes main_(int, const char **) override
@@ -348,6 +353,7 @@ protected:
                                                                                                         precursor_mz_tol,
                                                                                                         precursor_rt_tol,
                                                                                                         ppm_prec);
+
       int transition_group_counter = 0;
       int file_counter = i;
 
@@ -485,20 +491,13 @@ protected:
         // calculate max intensity peak and threshold
         float max_int = 0.0;
         float min_int = numeric_limits<float>::max();
-        for (MSSpectrum::const_iterator spec_it = transition_spectrum.begin();
-             spec_it != transition_spectrum.end();
-             ++spec_it)
-        {
-          //find the max intensity peak
-          if (spec_it->getIntensity() > max_int)
-          {
-            max_int = spec_it->getIntensity();
-          }
-          if (spec_it->getIntensity() < min_int)
-          {
-            min_int = spec_it->getIntensity();
-          }
-        }
+
+        // sort intensity in MS2 spectrum to extract transitions
+        transition_spectrum.sortByIntensity(true);
+
+        // find max and min intensity peak
+        max_int = std::max_element(transition_spectrum.begin(),transition_spectrum.end(), compare_instensity)->getIntensity();
+        min_int = std::min_element(transition_spectrum.begin(),transition_spectrum.end(), compare_instensity)->getIntensity();
 
         // no peaks or all peaks have same intensity (single peak / noise)
         if (min_int >= max_int)
@@ -512,14 +511,19 @@ protected:
         float threshold_noise = min_int * 1.1;
 
         // TODO: add method remove precursor peak
-        // TODO: add method to only use monoisotopic traces
-        // TODO: add min and max transitions -> transitions with highest intensity?
+        // TODO: add method to only use monoisotopic traces (monoisotopic fragments)
+
+        // TODO: add min and max transitions -> transitions with highest intensity
+        // has to be sure that filteres for monoisotopic and precursor beforehand
+        // sort transition highest intensity? - Done first four as max transitions
+
+        // TODO: min transition -> how many transitions are need for an entry in the assay lib
+        // TODO: max transitions -> quantiy with maximum transition 4
 
         ReactionMonitoringTransition rmt;
         rmt.clearMetaInfo();
         int transition_counter = 0;
         // here ms2 spectra information is used
-        // TODO: filter for e.g. 4 highest transitions
         for (auto spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
         {
           float current_int = spec_it->getIntensity();
