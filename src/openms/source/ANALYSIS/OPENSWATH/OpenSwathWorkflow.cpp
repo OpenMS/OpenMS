@@ -34,11 +34,11 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathWorkflow.h>
 
-// OpenSwathRetentionTimeNormalization
+// OpenSwathCalibrationWorkflow
 namespace OpenMS
 {
 
-  TransformationDescription OpenSwathRetentionTimeNormalization::performRTNormalization(
+  TransformationDescription OpenSwathCalibrationWorkflow::performRTNormalization(
     const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     double min_rsq,
@@ -55,7 +55,7 @@ namespace OpenMS
     LOG_DEBUG << "performRTNormalization method starting" << std::endl;
     std::vector< OpenMS::MSChromatogram > irt_chromatograms;
     TransformationDescription trafo; // dummy
-    simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, sonar, load_into_memory);
+    this->simpleExtractChromatograms_(swath_maps, irt_transitions, irt_chromatograms, trafo, cp_irt, sonar, load_into_memory);
 
     // debug output of the iRT chromatograms
     if (irt_mzml_out.empty() && debug_level > 1)
@@ -82,13 +82,13 @@ namespace OpenMS
     LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
 
     // perform RT and m/z correction on the data
-    TransformationDescription tr = RTNormalization(irt_transitions,
+    TransformationDescription tr = doDataNormalization_(irt_transitions,
         irt_chromatograms, min_rsq, min_coverage, feature_finder_param,
         irt_detection_param, swath_maps, mz_correction_function, cp_irt.mz_extraction_window, cp_irt.ppm);
     return tr;
   }
 
-  TransformationDescription OpenSwathRetentionTimeNormalization::RTNormalization(
+  TransformationDescription OpenSwathCalibrationWorkflow::doDataNormalization_(
     const OpenSwath::LightTargetedExperiment& targeted_exp,
     const std::vector< OpenMS::MSChromatogram >& chromatograms,
     double min_rsq,
@@ -100,7 +100,7 @@ namespace OpenMS
     double mz_extraction_window,
     bool ppm)
   {
-    LOG_DEBUG << "Start of RTNormalization method" << std::endl;
+    LOG_DEBUG << "Start of doDataNormalization_ method" << std::endl;
     this->startProgress(0, 1, "Retention time normalization");
 
     bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
@@ -120,7 +120,7 @@ namespace OpenMS
       PeptideRTMap[targeted_exp.getCompounds()[i].id] = targeted_exp.getCompounds()[i].rt;
     }
 
-    // 3. Extract the RT pairs from the input data
+    // 3. Pick input chromatograms to identify RT pairs from the input data
     OpenSwath::LightTargetedExperiment transition_exp_used = targeted_exp;
 
     // Change the feature finding parameters:
@@ -157,8 +157,9 @@ namespace OpenMS
     featureFinder.setStrictFlag(false); // TODO remove this, it should be strict (e.g. all transitions need to be present for RT norm)
     featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, empty_trafo, empty_swath_maps, transition_group_map);
 
-    // find most likely correct feature for each group and add it to the
+    // 4. Find most likely correct feature for each compound and add it to the
     // "pairs" vector by computing pairs of iRT and real RT.
+    //
     // Note that the quality threshold will only be applied if
     // estimateBestPeptides is true
     std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
@@ -177,7 +178,7 @@ namespace OpenMS
       }
     }
 
-    // 4. Perform the outlier detection
+    // 5. Perform the outlier detection
     std::vector<std::pair<double, double> > pairs_corrected;
     String outlier_method = irt_detection_param.getValue("outlierMethod");
     if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
@@ -209,7 +210,7 @@ namespace OpenMS
     }
     LOG_DEBUG << "Performed outlier detection, left with features: " << pairs_corrected.size() << std::endl;
 
-    // 5. Check whether the found peptides fulfill the binned coverage criteria
+    // 6. Check whether the found peptides fulfill the binned coverage criteria
     // set by the user.
     if (estimateBestPeptides)
     {
@@ -230,7 +231,7 @@ namespace OpenMS
         "There are less than 2 iRT normalization peptides, not enough for an RT correction.");
     }
 
-    // Only use the "correct" peaks for m/z correction (e.g. remove those not
+    // 7. Select the "correct" peaks for m/z correction (e.g. remove those not
     // part of the linear regression)
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_final; // store all peaks above cutoff
     for (const auto& it : trgrmap_allpeaks)
@@ -252,11 +253,11 @@ namespace OpenMS
       }
     }
 
-    // 6. Correct m/z deviations using SwathMapMassCorrection
+    // 8. Correct m/z deviations using SwathMapMassCorrection
     SwathMapMassCorrection::correctMZ(trgrmap_final, swath_maps,
         mz_correction_function, mz_extraction_window, ppm);
 
-    // 7. store transformation, using the selected model
+    // 9. store transformation, using the selected model
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
     Param model_params;
@@ -271,13 +272,13 @@ namespace OpenMS
     {
       LOG_DEBUG << pairs_corrected[i].first << " " <<  pairs_corrected[i].second << std::endl;
     }
-    LOG_DEBUG << "End of RTNormalization method" << std::endl;
+    LOG_DEBUG << "End of doDataNormalization_ method" << std::endl;
 
     this->endProgress();
     return trafo_out;
   }
 
-  void OpenSwathRetentionTimeNormalization::simpleExtractChromatograms(
+  void OpenSwathCalibrationWorkflow::simpleExtractChromatograms_(
     const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment& irt_transitions,
     std::vector< OpenMS::MSChromatogram > & chromatograms,
@@ -388,7 +389,7 @@ namespace OpenMS
     this->endProgress();
   }
 
-  void OpenSwathRetentionTimeNormalization::addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom)
+  void OpenSwathCalibrationWorkflow::addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom)
   {
     if (base_chrom.empty())
     {
@@ -452,7 +453,7 @@ namespace OpenMS
       OpenSwath::SpectrumAccessPtr dummy = boost::shared_ptr<SpectrumAccessOpenMS>( new SpectrumAccessOpenMS(empty_exp) );
 
       OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
-      scoreAllChromatograms(dummy, ms1_chromatograms, swath_maps, transition_exp_used, 
+      scoreAllChromatograms_(dummy, ms1_chromatograms, swath_maps, transition_exp_used, 
                             feature_finder_param, trafo,
                             cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, true);
 
@@ -523,6 +524,7 @@ namespace OpenMS
             std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
 
             // Step 2.2: prepare the extraction coordinates and extract chromatograms
+            // chrom_list contains one entry for each fragment ion (transition) in transition_exp_used
             prepareExtractionCoordinates_(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
             extractor.extractChromatograms(current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
                 cp.ppm, cp.im_extraction_window, cp.extraction_function);
@@ -539,7 +541,7 @@ namespace OpenMS
             OpenSwath::SwathMap dummy_map (swath_maps[i]);
             dummy_map.sptr = current_swath_map;
             dummy_maps.push_back(dummy_map);
-            scoreAllChromatograms(chromatogram_ptr, ms1_chromatograms, dummy_maps, transition_exp_used,
+            scoreAllChromatograms_(chromatogram_ptr, ms1_chromatograms, dummy_maps, transition_exp_used,
                 feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer);
 
             // Step 4: write all chromatograms and features out into an output object / file
@@ -673,8 +675,8 @@ namespace OpenMS
 
   }
 
-  void OpenSwathWorkflow::scoreAllChromatograms(
-    const OpenSwath::SpectrumAccessPtr input,
+  void OpenSwathWorkflow::scoreAllChromatograms_(
+    const OpenSwath::SpectrumAccessPtr ms2_chromatograms,
     const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
     const std::vector< OpenSwath::SwathMap >& swath_maps,
     OpenSwath::LightTargetedExperiment& transition_exp,
@@ -716,9 +718,9 @@ namespace OpenMS
 
     // Map chromatogram id to sequence number
     std::map<String, int> chromatogram_map;
-    for (Size i = 0; i < input->getNrChromatograms(); i++)
+    for (Size i = 0; i < ms2_chromatograms->getNrChromatograms(); i++)
     {
-      chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
+      chromatogram_map[ms2_chromatograms->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
     }
     // Map peptide id to sequence number
     std::map<String, int> assay_peptide_map;
@@ -742,7 +744,10 @@ namespace OpenMS
     }
 
     std::vector<String> to_tsv_output, to_osw_output;
+    ///////////////////////////////////
+    // Start of main function
     // Iterating over all the assays
+    ///////////////////////////////////
     for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
     {
       // Create new MRMTransitionGroup
@@ -752,8 +757,8 @@ namespace OpenMS
       double expected_rt = transition_exp.getCompounds()[ assay_peptide_map[id] ].rt;
       double precursor_mz = -1;
 
-      // Go through all transitions, for each transition get chromatogram and
-      // the chromatogram and the assay to the MRMTransitionGroup
+      // 1. Go through all transitions, for each transition get chromatogram
+      // and the chromatogram and the assay to the MRMTransitionGroup
       int detection_assay_it = -1; // store index for the last detection transition
       for (Size i = 0; i < assay_it->second.size(); i++)
       {
@@ -778,7 +783,7 @@ namespace OpenMS
         precursor_mz = transition->getPrecursorMZ();
 
         // Convert chromatogram to MSChromatogram and filter
-        OpenSwath::ChromatogramPtr cptr = input->getChromatogramById(chromatogram_map[transition->getNativeID()]);
+        OpenSwath::ChromatogramPtr cptr = ms2_chromatograms->getChromatogramById(chromatogram_map[transition->getNativeID()]);
         MSChromatogram chromatogram;
         chromatogram.setMetaValue("product_mz", transition->getProductMZ());
         chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
@@ -803,7 +808,8 @@ namespace OpenMS
       // currently .tsv, .osw and .featureXML are mutually exclusive
       if (tsv_writer.isActive() || osw_writer.isActive()) { output.clear(); }
 
-      // Set the MS1 chromatogram if available (this assumes a single precursor chromatogram per transition group)
+      // 2. Set the MS1 chromatogram if available (this assumes a single
+      // precursor chromatogram per transition group)
       if (!ms1_chromatograms.empty() && 
           ms1_chromatograms.find(transition_group.getTransitionGroupID()) != ms1_chromatograms.end())
       {
@@ -817,7 +823,7 @@ namespace OpenMS
         transition_group.addPrecursorChromatogram(chromatogram, chromatogram.getNativeID());
       }
 
-      // Process the MRMTransitionGroup: find peakgroups and score them
+      // 3. / 4. Process the MRMTransitionGroup: find peakgroups and score them
       trgroup_picker.pickTransitionGroup(transition_group);
       featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
 
@@ -828,7 +834,7 @@ namespace OpenMS
               "Error, did not find any detection transition for feature " + id );
       }
 
-      // Add to the output tsv if given
+      // 5. Add to the output tsv if given
       if (tsv_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
@@ -836,7 +842,7 @@ namespace OpenMS
         to_tsv_output.push_back(tsv_writer.prepareLine(pep, transition, output, id));
       }
 
-      // Add to the output osw if given
+      // 6. Add to the output osw if given
       if (osw_writer.isActive() && output.size() > 0) // implies that detection_assay_it was set
       {
         const OpenSwath::LightCompound pep = transition_exp.getCompounds()[ assay_peptide_map[id] ];
@@ -929,7 +935,6 @@ namespace OpenMS
       }
     }
   }
-
 }
 
 // OpenSwathWorkflowSonar
@@ -970,7 +975,7 @@ namespace OpenMS
                      transition_exp, trafo_inverse, load_into_memory);
 
       ///////////////////////////////////////////////////////////////////////////
-      // Compute SONAR window sizes and upper/lower limit
+      // (ii) Compute SONAR window sizes and upper/lower limit
       double sonar_winsize, sonar_start, sonar_end;
       int sonar_total_win;
       computeSonarWindows_(swath_maps, sonar_winsize, sonar_start, sonar_end, sonar_total_win);
@@ -1002,12 +1007,15 @@ namespace OpenMS
         if (transition_exp_used_all.getTransitions().size() > 0) // skip if no transitions found
         {
 
+
+          ////////////////////////////////// 
+          // Identify which SONAR windows to use for current set of transitions
+          ////////////////////////////////// 
           std::vector< OpenSwath::SwathMap > used_maps;
           for (size_t i = 0; i < swath_maps.size(); ++i)
           {
             if (swath_maps[i].ms1) {continue;} // skip MS1
-            /// check if the currwin_start or currwin_end is contained in the swath map
-            //
+              
             // TODO: what if the swath map is smaller than the current window ??
             if (  (currwin_start >= swath_maps[i].lower && currwin_start <= swath_maps[i].upper  ) ||
                   (currwin_end >= swath_maps[i].lower && currwin_end <= swath_maps[i].upper  ) )
@@ -1020,15 +1028,18 @@ namespace OpenMS
             }
           }
 
+          ////////////////////////////////// 
+          // Threadsafe loading of identified maps
+          ////////////////////////////////// 
           for (Size i = 0; i < used_maps.size(); i++)
           {
 #ifdef _OPENMP
 #pragma omp critical (loadMemory)
 #endif
             {
-              // Loading the maps is not threadsafe iff they overlap (e.g.
+              // Loading the maps is not threadsafe if they overlap (e.g.
               // multiple threads could access the same maps) which often
-              // happens in SONAR. Thus we eitehr create a threadsafe light
+              // happens in SONAR. Thus we either create a threadsafe light
               // clone or load them into memory if requested.
               if (load_into_memory)
               {
@@ -1086,7 +1097,7 @@ namespace OpenMS
 
             // Step 3: score these extracted transitions
             FeatureMap featureFile;
-            scoreAllChromatograms(chromatogram_ptr, ms1_chromatograms, used_maps, transition_exp_used,
+            scoreAllChromatograms_(chromatogram_ptr, ms1_chromatograms, used_maps, transition_exp_used,
                 feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer);
 
             // Step 4: write all chromatograms and features out into an output object / file
@@ -1215,7 +1226,7 @@ namespace OpenMS
 
 #ifdef OPENSWATH_WORKFLOW_DEBUG
             // debug output ...
-            std::cout << " done with extraction of all coordiantes!!!" << std::endl;
+            std::cout << " done with extraction of all coordinates!!!" << std::endl;
             for (size_t c_idx = 0; c_idx < coordinates.size(); c_idx++)
             {
               {
@@ -1255,8 +1266,6 @@ namespace OpenMS
 
       return base_chrom;
     }
-
-
 
 }
 

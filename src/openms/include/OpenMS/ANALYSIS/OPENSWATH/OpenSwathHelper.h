@@ -113,8 +113,8 @@ public:
     /**
       @brief Check the map and select transition in one function
 
-      Performs sanity check for input experiment and selects appropriate
-      transitions for the provided SWATH MS2 map.
+      Computes lower and upper offset for the SWATH map and performs some
+      sanity checks (see checkSwathMap()). Then selects transitions.
 
       @param[in] exp Input SWATH map to check
       @param[in] targeted_exp Transition list for selection
@@ -150,12 +150,22 @@ public:
     }
 
     /**
-      @brief Estimate the retention time span of a targeted experiment (returns min/max values as a pair)
+      @brief Computes the min and max retention time value
+      
+      Estimate the retention time span of a targeted experiment by returning
+      the min/max values in retention time as a pair.
+
+      @return A std::pair that contains (min,max)
+
     */
     static std::pair<double,double> estimateRTRange(const OpenSwath::LightTargetedExperiment & exp);
 
     /**
-      @brief Simple method to extract the best Feature for each transition group (e.g. for RT alignment)
+      @brief Returns the feature with the highest score for each transition group.
+      
+      Simple method to extract the best feature for each transition group (e.g.
+      for RT alignment). A quality cutoff can be used to skip some low-quality
+      features altogether.
 
       @param[in] transition_group_map Input data containing the picked and scored map
       @param useQualCutoff Whether to apply a quality cutoff to the data
