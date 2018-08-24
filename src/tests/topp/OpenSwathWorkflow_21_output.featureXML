@@ -23,7 +23,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="100"/>
 					<UserParam type="float" name="peak_apex_position" value="10"/>
 					<UserParam type="string" name="native_id" value="0"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -40,7 +39,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="200"/>
 					<UserParam type="float" name="peak_apex_position" value="10"/>
 					<UserParam type="string" name="native_id" value="1"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -57,7 +55,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="300"/>
 					<UserParam type="float" name="peak_apex_position" value="10"/>
 					<UserParam type="string" name="native_id" value="2"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -74,7 +71,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="400"/>
 					<UserParam type="float" name="peak_apex_position" value="10"/>
 					<UserParam type="string" name="native_id" value="3"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -134,8 +130,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.715877561547815"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.17358295033757"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.715877558347593"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.17358295505317"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="1"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -161,7 +157,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="360"/>
 					<UserParam type="float" name="peak_apex_position" value="209"/>
 					<UserParam type="string" name="native_id" value="8"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -178,7 +173,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="460"/>
 					<UserParam type="float" name="peak_apex_position" value="209"/>
 					<UserParam type="string" name="native_id" value="9"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -195,7 +189,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="560"/>
 					<UserParam type="float" name="peak_apex_position" value="209"/>
 					<UserParam type="string" name="native_id" value="10"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -212,7 +205,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="570"/>
 					<UserParam type="float" name="peak_apex_position" value="209"/>
 					<UserParam type="string" name="native_id" value="11"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -272,8 +264,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.557865935807307"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.41802169694216"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.557865943788663"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.41802169004683"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.987609074767838"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -299,7 +291,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="350"/>
 					<UserParam type="float" name="peak_apex_position" value="25"/>
 					<UserParam type="string" name="native_id" value="12"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -316,7 +307,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="450"/>
 					<UserParam type="float" name="peak_apex_position" value="25"/>
 					<UserParam type="string" name="native_id" value="13"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -333,7 +323,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="550"/>
 					<UserParam type="float" name="peak_apex_position" value="25"/>
 					<UserParam type="string" name="native_id" value="14"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -350,7 +339,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="650"/>
 					<UserParam type="float" name="peak_apex_position" value="25"/>
 					<UserParam type="string" name="native_id" value="15"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -410,8 +398,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.545182172419932"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.42769165412754"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.545182171099807"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.42769165549019"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="1"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -437,7 +425,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="380"/>
 					<UserParam type="float" name="peak_apex_position" value="92"/>
 					<UserParam type="string" name="native_id" value="20"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -454,7 +441,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="480"/>
 					<UserParam type="float" name="peak_apex_position" value="92"/>
 					<UserParam type="string" name="native_id" value="21"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -471,7 +457,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="580"/>
 					<UserParam type="float" name="peak_apex_position" value="92"/>
 					<UserParam type="string" name="native_id" value="22"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -488,7 +473,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="680"/>
 					<UserParam type="float" name="peak_apex_position" value="92"/>
 					<UserParam type="string" name="native_id" value="23"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -548,8 +532,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.529965666802237"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.44608114720055"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.529965667986803"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.44608114634859"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="1"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -575,7 +559,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="110"/>
 					<UserParam type="float" name="peak_apex_position" value="32.3333333333333"/>
 					<UserParam type="string" name="native_id" value="4"/>
 					<UserParam type="float" name="peak_apex_int" value="288.800003051758"/>
@@ -592,7 +575,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="210"/>
 					<UserParam type="float" name="peak_apex_position" value="32.3333333333333"/>
 					<UserParam type="string" name="native_id" value="5"/>
 					<UserParam type="float" name="peak_apex_int" value="577.600006103516"/>
@@ -609,7 +591,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="310"/>
 					<UserParam type="float" name="peak_apex_position" value="32.3333333333333"/>
 					<UserParam type="string" name="native_id" value="6"/>
 					<UserParam type="float" name="peak_apex_int" value="866.399993896484"/>
@@ -626,7 +607,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="410"/>
 					<UserParam type="float" name="peak_apex_position" value="32.3333333333333"/>
 					<UserParam type="string" name="native_id" value="7"/>
 					<UserParam type="float" name="peak_apex_int" value="1155.20001220703"/>
@@ -686,8 +666,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.708594163340651"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.18657650648963"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.708594167613254"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.1865765046829"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.997438469857891"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -713,7 +693,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="370"/>
 					<UserParam type="float" name="peak_apex_position" value="210.333333333333"/>
 					<UserParam type="string" name="native_id" value="40"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -730,7 +709,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="470"/>
 					<UserParam type="float" name="peak_apex_position" value="210.333333333333"/>
 					<UserParam type="string" name="native_id" value="41"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -747,7 +725,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="570"/>
 					<UserParam type="float" name="peak_apex_position" value="210.333333333333"/>
 					<UserParam type="string" name="native_id" value="42"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -764,7 +741,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="670"/>
 					<UserParam type="float" name="peak_apex_position" value="210.333333333333"/>
 					<UserParam type="string" name="native_id" value="43"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -824,8 +800,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.534997696188575"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.44017537816544"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.534997702796795"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.44017537150232"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.99994418876482"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -851,7 +827,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="380"/>
 					<UserParam type="float" name="peak_apex_position" value="130.333333333333"/>
 					<UserParam type="string" name="native_id" value="44"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -868,7 +843,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="480"/>
 					<UserParam type="float" name="peak_apex_position" value="130.333333333333"/>
 					<UserParam type="string" name="native_id" value="45"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -885,7 +859,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="580"/>
 					<UserParam type="float" name="peak_apex_position" value="130.333333333333"/>
 					<UserParam type="string" name="native_id" value="46"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -902,7 +875,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="680"/>
 					<UserParam type="float" name="peak_apex_position" value="130.333333333333"/>
 					<UserParam type="string" name="native_id" value="47"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -962,8 +934,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.784431514138448"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.60002379638188"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.784431517366567"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.600023791666275"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.500360527283803"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="19"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -989,7 +961,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="381"/>
 					<UserParam type="float" name="peak_apex_position" value="30.3333333333333"/>
 					<UserParam type="string" name="native_id" value="48"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -1006,7 +977,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="481"/>
 					<UserParam type="float" name="peak_apex_position" value="30.3333333333333"/>
 					<UserParam type="string" name="native_id" value="49"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -1023,7 +993,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="581"/>
 					<UserParam type="float" name="peak_apex_position" value="30.3333333333333"/>
 					<UserParam type="string" name="native_id" value="50"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -1040,7 +1009,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="681"/>
 					<UserParam type="float" name="peak_apex_position" value="30.3333333333333"/>
 					<UserParam type="string" name="native_id" value="51"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -1100,8 +1068,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.869676124889442"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.53518253763885"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.869676120220499"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.535182547753324"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.52333078879471"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="108"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -1127,7 +1095,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="382"/>
 					<UserParam type="float" name="peak_apex_position" value="80.3333333333333"/>
 					<UserParam type="string" name="native_id" value="52"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -1144,7 +1111,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="482"/>
 					<UserParam type="float" name="peak_apex_position" value="80.3333333333333"/>
 					<UserParam type="string" name="native_id" value="53"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -1161,7 +1127,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="582"/>
 					<UserParam type="float" name="peak_apex_position" value="80.3333333333333"/>
 					<UserParam type="string" name="native_id" value="54"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -1178,7 +1143,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="682"/>
 					<UserParam type="float" name="peak_apex_position" value="80.3333333333333"/>
 					<UserParam type="string" name="native_id" value="55"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -1265,7 +1229,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="383"/>
 					<UserParam type="float" name="peak_apex_position" value="120.333333333333"/>
 					<UserParam type="string" name="native_id" value="56"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -1282,7 +1245,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="483"/>
 					<UserParam type="float" name="peak_apex_position" value="120.333333333333"/>
 					<UserParam type="string" name="native_id" value="57"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -1299,7 +1261,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="583"/>
 					<UserParam type="float" name="peak_apex_position" value="120.333333333333"/>
 					<UserParam type="string" name="native_id" value="58"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -1316,7 +1277,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="683"/>
 					<UserParam type="float" name="peak_apex_position" value="120.333333333333"/>
 					<UserParam type="string" name="native_id" value="59"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -1376,8 +1336,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.777238950847121"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.685497994261506"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.77723895110507"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.685497994402351"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999926906595723"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -1403,7 +1363,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="384"/>
 					<UserParam type="float" name="peak_apex_position" value="160.333333333333"/>
 					<UserParam type="string" name="native_id" value="60"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -1420,7 +1379,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="484"/>
 					<UserParam type="float" name="peak_apex_position" value="160.333333333333"/>
 					<UserParam type="string" name="native_id" value="61"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -1437,7 +1395,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="584"/>
 					<UserParam type="float" name="peak_apex_position" value="160.333333333333"/>
 					<UserParam type="string" name="native_id" value="62"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -1454,7 +1411,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="684"/>
 					<UserParam type="float" name="peak_apex_position" value="160.333333333333"/>
 					<UserParam type="string" name="native_id" value="63"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -1514,8 +1470,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.64376254145173"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.901952675468247"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.643762540319329"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.901952673853322"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999921168658817"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -1541,7 +1497,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="385"/>
 					<UserParam type="float" name="peak_apex_position" value="190.333333333333"/>
 					<UserParam type="string" name="native_id" value="64"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -1558,7 +1513,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="485"/>
 					<UserParam type="float" name="peak_apex_position" value="190.333333333333"/>
 					<UserParam type="string" name="native_id" value="65"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -1575,7 +1529,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="585"/>
 					<UserParam type="float" name="peak_apex_position" value="190.333333333333"/>
 					<UserParam type="string" name="native_id" value="66"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -1592,7 +1545,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="685"/>
 					<UserParam type="float" name="peak_apex_position" value="190.333333333333"/>
 					<UserParam type="string" name="native_id" value="67"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -1652,8 +1604,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.372852088178361"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.44897137193116"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.37285208901175"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.44897137190239"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.99993011494498"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -1679,7 +1631,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="100"/>
 					<UserParam type="float" name="peak_apex_position" value="12.3333333333333"/>
 					<UserParam type="string" name="native_id" value="24"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -1696,7 +1647,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="200"/>
 					<UserParam type="float" name="peak_apex_position" value="12.3333333333333"/>
 					<UserParam type="string" name="native_id" value="25"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -1713,7 +1663,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="300"/>
 					<UserParam type="float" name="peak_apex_position" value="12.3333333333333"/>
 					<UserParam type="string" name="native_id" value="26"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -1730,7 +1679,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="400"/>
 					<UserParam type="float" name="peak_apex_position" value="12.3333333333333"/>
 					<UserParam type="string" name="native_id" value="27"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -1790,8 +1738,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.715877561547815"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.17358295033757"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.715877558347593"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.17358295505317"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999982182120508"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -1817,7 +1765,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="110"/>
 					<UserParam type="float" name="peak_apex_position" value="32.3333333333333"/>
 					<UserParam type="string" name="native_id" value="28"/>
 					<UserParam type="float" name="peak_apex_int" value="288.800003051758"/>
@@ -1834,7 +1781,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="210"/>
 					<UserParam type="float" name="peak_apex_position" value="32.3333333333333"/>
 					<UserParam type="string" name="native_id" value="29"/>
 					<UserParam type="float" name="peak_apex_int" value="577.600006103516"/>
@@ -1851,7 +1797,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="310"/>
 					<UserParam type="float" name="peak_apex_position" value="32.3333333333333"/>
 					<UserParam type="string" name="native_id" value="30"/>
 					<UserParam type="float" name="peak_apex_int" value="866.399993896484"/>
@@ -1868,7 +1813,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="410"/>
 					<UserParam type="float" name="peak_apex_position" value="32.3333333333333"/>
 					<UserParam type="string" name="native_id" value="31"/>
 					<UserParam type="float" name="peak_apex_int" value="1155.20001220703"/>
@@ -1928,8 +1872,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.708594163340651"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.18657650648963"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.708594167613254"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.1865765046829"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.997438469857891"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -1955,7 +1899,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="350"/>
 					<UserParam type="float" name="peak_apex_position" value="27.3333333333333"/>
 					<UserParam type="string" name="native_id" value="32"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -1972,7 +1915,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="450"/>
 					<UserParam type="float" name="peak_apex_position" value="27.3333333333333"/>
 					<UserParam type="string" name="native_id" value="33"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -1989,7 +1931,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="550"/>
 					<UserParam type="float" name="peak_apex_position" value="27.3333333333333"/>
 					<UserParam type="string" name="native_id" value="34"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -2006,7 +1947,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="650"/>
 					<UserParam type="float" name="peak_apex_position" value="27.3333333333333"/>
 					<UserParam type="string" name="native_id" value="35"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -2066,8 +2006,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.545182172419932"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.42769165412754"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.545182171099807"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.42769165549019"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999969052060974"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -2093,7 +2033,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="360"/>
 					<UserParam type="float" name="peak_apex_position" value="15.3333333333333"/>
 					<UserParam type="string" name="native_id" value="36"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -2110,7 +2049,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="460"/>
 					<UserParam type="float" name="peak_apex_position" value="15.3333333333333"/>
 					<UserParam type="string" name="native_id" value="37"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -2127,7 +2065,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="560"/>
 					<UserParam type="float" name="peak_apex_position" value="15.3333333333333"/>
 					<UserParam type="string" name="native_id" value="38"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -2144,7 +2081,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="570"/>
 					<UserParam type="float" name="peak_apex_position" value="15.3333333333333"/>
 					<UserParam type="string" name="native_id" value="39"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -2204,8 +2140,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.557865935807307"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.41802169694216"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.557865943788663"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.41802169004683"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999953385556155"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -2231,7 +2167,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="100"/>
 					<UserParam type="float" name="peak_apex_position" value="15.6666666666667"/>
 					<UserParam type="string" name="native_id" value="68"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -2248,7 +2183,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="200"/>
 					<UserParam type="float" name="peak_apex_position" value="15.6666666666667"/>
 					<UserParam type="string" name="native_id" value="69"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -2265,7 +2199,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="300"/>
 					<UserParam type="float" name="peak_apex_position" value="15.6666666666667"/>
 					<UserParam type="string" name="native_id" value="70"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -2282,7 +2215,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="400"/>
 					<UserParam type="float" name="peak_apex_position" value="15.6666666666667"/>
 					<UserParam type="string" name="native_id" value="71"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -2342,8 +2274,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.715877561547815"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.17358295033757"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.715877558347593"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.17358295505317"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999918687461663"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -2369,7 +2301,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="350"/>
 					<UserParam type="float" name="peak_apex_position" value="131.666666666667"/>
 					<UserParam type="string" name="native_id" value="76"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -2386,7 +2317,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="450"/>
 					<UserParam type="float" name="peak_apex_position" value="131.666666666667"/>
 					<UserParam type="string" name="native_id" value="77"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -2403,7 +2333,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="550"/>
 					<UserParam type="float" name="peak_apex_position" value="131.666666666667"/>
 					<UserParam type="string" name="native_id" value="78"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -2420,7 +2349,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="650"/>
 					<UserParam type="float" name="peak_apex_position" value="131.666666666667"/>
 					<UserParam type="string" name="native_id" value="79"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -2480,8 +2408,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.545182172419932"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.42769165412754"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.545182171099807"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.42769165549019"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999710867762302"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -2507,7 +2435,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="360"/>
 					<UserParam type="float" name="peak_apex_position" value="120.666666666667"/>
 					<UserParam type="string" name="native_id" value="80"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -2524,7 +2451,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="460"/>
 					<UserParam type="float" name="peak_apex_position" value="120.666666666667"/>
 					<UserParam type="string" name="native_id" value="81"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -2541,7 +2467,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="560"/>
 					<UserParam type="float" name="peak_apex_position" value="120.666666666667"/>
 					<UserParam type="string" name="native_id" value="82"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -2558,7 +2483,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="570"/>
 					<UserParam type="float" name="peak_apex_position" value="120.666666666667"/>
 					<UserParam type="string" name="native_id" value="83"/>
 					<UserParam type="float" name="peak_apex_int" value="459.400001525879"/>
@@ -2618,8 +2542,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.556660601835621"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.41802169694216"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.556660610337777"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.41802169004683"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.907924471366176"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="9"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -2645,7 +2569,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="380"/>
 					<UserParam type="float" name="peak_apex_position" value="90.6666666666667"/>
 					<UserParam type="string" name="native_id" value="88"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -2662,7 +2585,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="480"/>
 					<UserParam type="float" name="peak_apex_position" value="90.6666666666667"/>
 					<UserParam type="string" name="native_id" value="89"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -2679,7 +2601,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="580"/>
 					<UserParam type="float" name="peak_apex_position" value="90.6666666666667"/>
 					<UserParam type="string" name="native_id" value="90"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -2696,7 +2617,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="680"/>
 					<UserParam type="float" name="peak_apex_position" value="90.6666666666667"/>
 					<UserParam type="string" name="native_id" value="91"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -2756,8 +2676,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.953242156514771"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.262789641873323"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.95324215814607"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.262789637264662"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999692280992194"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -2783,7 +2703,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="381"/>
 					<UserParam type="float" name="peak_apex_position" value="30.6666666666667"/>
 					<UserParam type="string" name="native_id" value="92"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -2800,7 +2719,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="481"/>
 					<UserParam type="float" name="peak_apex_position" value="30.6666666666667"/>
 					<UserParam type="string" name="native_id" value="93"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -2817,7 +2735,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="581"/>
 					<UserParam type="float" name="peak_apex_position" value="30.6666666666667"/>
 					<UserParam type="string" name="native_id" value="94"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -2834,7 +2751,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="681"/>
 					<UserParam type="float" name="peak_apex_position" value="30.6666666666667"/>
 					<UserParam type="string" name="native_id" value="95"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -2894,8 +2810,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.794326123786196"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.639907535838109"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.794326121364454"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.639907544926305"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999866796872162"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -2921,7 +2837,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="382"/>
 					<UserParam type="float" name="peak_apex_position" value="99.6666666666667"/>
 					<UserParam type="string" name="native_id" value="96"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -2938,7 +2853,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="482"/>
 					<UserParam type="float" name="peak_apex_position" value="99.6666666666667"/>
 					<UserParam type="string" name="native_id" value="97"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -2955,7 +2869,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="582"/>
 					<UserParam type="float" name="peak_apex_position" value="99.6666666666667"/>
 					<UserParam type="string" name="native_id" value="98"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -2972,7 +2885,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="682"/>
 					<UserParam type="float" name="peak_apex_position" value="99.6666666666667"/>
 					<UserParam type="string" name="native_id" value="99"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -3059,7 +2971,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="383"/>
 					<UserParam type="float" name="peak_apex_position" value="100.666666666667"/>
 					<UserParam type="string" name="native_id" value="100"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -3076,7 +2987,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="483"/>
 					<UserParam type="float" name="peak_apex_position" value="100.666666666667"/>
 					<UserParam type="string" name="native_id" value="101"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -3093,7 +3003,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="583"/>
 					<UserParam type="float" name="peak_apex_position" value="100.666666666667"/>
 					<UserParam type="string" name="native_id" value="102"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -3110,7 +3019,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="683"/>
 					<UserParam type="float" name="peak_apex_position" value="100.666666666667"/>
 					<UserParam type="string" name="native_id" value="103"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -3170,8 +3078,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.648915248939295"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.891462503754058"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.64891524931904"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.891462503894903"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999713684963277"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -3197,7 +3105,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="384"/>
 					<UserParam type="float" name="peak_apex_position" value="170.666666666667"/>
 					<UserParam type="string" name="native_id" value="104"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -3214,7 +3121,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="484"/>
 					<UserParam type="float" name="peak_apex_position" value="170.666666666667"/>
 					<UserParam type="string" name="native_id" value="105"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -3231,7 +3137,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="584"/>
 					<UserParam type="float" name="peak_apex_position" value="170.666666666667"/>
 					<UserParam type="string" name="native_id" value="106"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -3248,7 +3153,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="684"/>
 					<UserParam type="float" name="peak_apex_position" value="170.666666666667"/>
 					<UserParam type="string" name="native_id" value="107"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -3308,8 +3212,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.688907526270051"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.850086839177028"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.688907524730203"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.85008684265204"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.998859515196877"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>
@@ -3335,7 +3239,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="385"/>
 					<UserParam type="float" name="peak_apex_position" value="176.666666666667"/>
 					<UserParam type="string" name="native_id" value="108"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
@@ -3352,7 +3255,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="485"/>
 					<UserParam type="float" name="peak_apex_position" value="176.666666666667"/>
 					<UserParam type="string" name="native_id" value="109"/>
 					<UserParam type="float" name="peak_apex_int" value="200"/>
@@ -3369,7 +3271,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="585"/>
 					<UserParam type="float" name="peak_apex_position" value="176.666666666667"/>
 					<UserParam type="string" name="native_id" value="110"/>
 					<UserParam type="float" name="peak_apex_int" value="300"/>
@@ -3386,7 +3287,6 @@
 					<quality dim="1">0</quality>
 					<overallquality>0</overallquality>
 					<charge>0</charge>
-					<UserParam type="float" name="MZ" value="685"/>
 					<UserParam type="float" name="peak_apex_position" value="176.666666666667"/>
 					<UserParam type="string" name="native_id" value="111"/>
 					<UserParam type="float" name="peak_apex_int" value="400"/>
@@ -3446,8 +3346,8 @@
 			<UserParam type="float" name="var_massdev_score_weighted" value="0"/>
 			<UserParam type="float" name="var_bseries_score" value="0"/>
 			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.357127530556829"/>
-			<UserParam type="float" name="var_manhatt_score" value="1.44897137193116"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.357127531355071"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.44897137190239"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.99824278225459"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0"/>

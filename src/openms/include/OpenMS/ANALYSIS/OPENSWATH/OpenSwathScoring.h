@@ -596,7 +596,8 @@ var_yseries_score   -0.0327896378737766
         OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
         const CompoundType& compound,
-        OpenSwath_Scores & scores);
+        OpenSwath_Scores & scores, 
+        double im_start, double im_end);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -614,7 +615,8 @@ var_yseries_score   -0.0327896378737766
                                      double precursor_mz, 
                                      double rt, 
                                      const CompoundType& compound, 
-                                     OpenSwath_Scores & scores);
+                                     OpenSwath_Scores & scores,
+                                     double drift_lower, double drift_upper);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
      *
@@ -631,7 +633,8 @@ var_yseries_score   -0.0327896378737766
         const TransitionType & transition,
         const std::vector<OpenSwath::SwathMap> swath_maps,
         OpenMS::DIAScoring & diascoring,
-        OpenSwath_Scores & scores);
+        OpenSwath_Scores & scores,
+        double drift_lower, double drift_upper);
 
     /** @brief Computing the normalized library intensities from the transition objects
      *
@@ -644,11 +647,12 @@ var_yseries_score   -0.0327896378737766
     void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
                                             std::vector<double>& normalized_library_intensity);
 
-    /** @brief Returns an averaged spectrum
+    /** @brief Prepares a spectrum for DIA analysis
      *
-     * This function will sum up (add) the intensities of multiple spectra
-     * around the given retention time and return an "averaged" spectrum which
-     * may contain less noise.
+     * This function will sum up (add) the intensities of multiple spectra from
+     * multiple swath maps (assuming these are SONAR maps of shifted precursor
+     * isolation windows) around the given retention time and return an
+     * "averaged" spectrum which may contain less noise.
      *
      * @param[in] swath_map The map containing the spectra
      * @param[in] RT The target retention time
@@ -657,15 +661,18 @@ var_yseries_score   -0.0327896378737766
      * @return Added up spectrum
      *
     */
-    OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
-        double RT, int nr_spectra_to_add);
+    OpenSwath::SpectrumPtr fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
+                                              double RT, int nr_spectra_to_add, const double, const double);
+    OpenSwath::SpectrumPtr fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
+                                              double RT, int nr_spectra_to_add, const double, const double);
+
+  protected:
 
     /** @brief Returns an averaged spectrum
      *
-     * This function will sum up (add) the intensities of multiple spectra from
-     * multiple swath maps (assuming these are SONAR maps of shifted precursor
-     * isolation windows) around the given retention time and return an
-     * "averaged" spectrum which may contain less noise.
+     * This function will sum up (add) the intensities of multiple spectra
+     * around the given retention time and return an "averaged" spectrum which
+     * may contain less noise.
      *
      * @param[in] swath_maps The maps containing the spectra
      * @param[in] RT The target retention time
@@ -673,8 +680,9 @@ var_yseries_score   -0.0327896378737766
      *
      * @return Added up spectrum
     */
-    OpenSwath::SpectrumPtr getAddedSpectra_(std::vector<OpenSwath::SwathMap> swath_maps,
-                                            double RT, int nr_spectra_to_add);
+    OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
+        double RT, int nr_spectra_to_add, const double, const double);
+
 
   };
 }
