@@ -449,7 +449,7 @@ protected:
      * @param ms1only If true, will only score on MS1 level and ignore MS2 level
      *
     */
-    void scoreAllChromatograms(
+    void scoreAllChromatograms_(
         const std::vector< OpenMS::MSChromatogram > & ms2_chromatograms,
         const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
         const std::vector< OpenSwath::SwathMap >& swath_maps,
