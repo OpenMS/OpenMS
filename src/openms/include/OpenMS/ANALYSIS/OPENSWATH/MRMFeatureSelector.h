@@ -51,15 +51,15 @@ public:
     MRMFeatureSelector();
     virtual ~MRMFeatureSelector();
 
-    void optimize_Tr(
+    std::vector<String> optimize_Tr(
       std::vector<std::pair<double, String>> time_to_name, 
-      std::map< String, std::vector<Feature> > feature_name_map
-      // std::map< String, std::vector<std::map<String, DataValue>> > feature_name_map
+      std::map< String, std::vector<Feature> > feature_name_map,
+      std::map< String, double > score_map
     );
     void optimize_score();
-    void select_MRMFeature_qmip(FeatureMap& features, TargetedExperiment& targeted_exp);
+    FeatureMap select_MRMFeature_qmip(FeatureMap& features);
     void select_MRMFeature_score();
-    double make_score(Feature& feature, String& metaValue, double& weight /* maybe others */ );
+    double make_score(Feature& feature);
 
     void setNNThreshold(const double& nn_threshold);
     double getNNThreshold() const;

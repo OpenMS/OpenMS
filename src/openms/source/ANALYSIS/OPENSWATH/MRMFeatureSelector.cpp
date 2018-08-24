@@ -65,9 +65,10 @@ namespace OpenMS
     problem.addRow(indices, values, name, lb, ub, param);
   }
 
-  void MRMFeatureSelector::optimize_Tr(
+  std::vector<String> MRMFeatureSelector::optimize_Tr(
       std::vector<std::pair<double, String>> time_to_name, 
-      std::map< String, std::vector<Feature> > feature_name_map
+      std::map< String, std::vector<Feature> > feature_name_map,
+      std::map< String, double > score_map
   ) {
     std::cout << "=======START OPTIMIZE TR========" << std::endl;
     std::unordered_set<std::string> variables;
@@ -107,9 +108,13 @@ namespace OpenMS
             double values3[] = {1., 1., -1};
             _addConstraint(problem, 3, indices3, values3, var_qp_name + "-QP3", 0., 1., LPWrapper::UPPER_BOUND_ONLY);
             Int indices_abs[] = {index_var_abs, index_var_qp};
-            double values_abs_plus[] = {-1., 666.}; // TODO: locality weight score
+            double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
+            double tr_delta = feature_row1[i].getRT() - feature_row2[j].getRT();
+            double score = score_map[time_to_name[cnt1].second] * score_map[time_to_name[cnt2].second] * (tr_delta - tr_delta_expected);
+            std::cout << "score " << score << std::endl;
+            double values_abs_plus[] = {-1., score};
             _addConstraint(problem, 2, indices_abs, values_abs_plus, var_qp_name + "-obj+", -1., 0., LPWrapper::UPPER_BOUND_ONLY);
-            double values_abs_minus[] = {-1., -666.}; // TODO: locality weight score
+            double values_abs_minus[] = {-1., -score};
             _addConstraint(problem, 2, indices_abs, values_abs_minus, var_qp_name + "-obj-", -1., 0., LPWrapper::UPPER_BOUND_ONLY);
           }
         }
@@ -119,24 +124,28 @@ namespace OpenMS
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
+    std::vector<String> result;
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c) {
-      std::cout << problem.getColumnName(c) << " " << problem.getColumnValue(c) << std::endl;
+      if (problem.getColumnValue(c) > getOptimalThreshold()) {
+        result.push_back(problem.getColumnName(c));
+      }
     }
+    std::cout << problem.getObjectiveValue() << std::endl;
     std::cout << "=======END OPTIMIZE TR========" << std::endl;
+    return result;
   }
 
   void MRMFeatureSelector::optimize_score() {}
 
-  void MRMFeatureSelector::select_MRMFeature_qmip(
-    FeatureMap& features,
-    TargetedExperiment& targeted_exp
+  FeatureMap MRMFeatureSelector::select_MRMFeature_qmip(
+    FeatureMap& features
   )
   {
     std::cout << "=======START========" << std::endl;
     std::unordered_set<std::string> names;
     std::vector<std::pair<double, String>> time_to_name;
-    // std::map< String, std::vector<std::map<String, DataValue>> > feature_name_map;
     std::map< String, std::vector<Feature> > feature_name_map;
+    std::map< String, double > score_map;
     size_t feature_count = 0;
     for (FeatureMap::iterator it = features.begin(); it != features.end(); ++it) {
       String component_group_name = it->getMetaValue("PeptideRef").toString();
@@ -144,6 +153,7 @@ namespace OpenMS
       if (names.find(component_group_name) != names.end()) {
         continue;
       }
+      score_map[component_group_name] = make_score(*it);
       names.insert(component_group_name);
       time_to_name.push_back(std::make_pair(assay_retention_time, component_group_name));
       if (feature_name_map.find(component_group_name) == feature_name_map.end()) {
@@ -159,6 +169,7 @@ namespace OpenMS
             continue;
           }
           names.insert(component_name);
+          score_map[component_name] = score_map[component_group_name];
           time_to_name.push_back(std::make_pair(assay_retention_time, component_name));
           if (feature_name_map.find(component_name) == feature_name_map.end()) {
             feature_name_map[component_name] = std::vector<Feature>();
@@ -178,23 +189,48 @@ namespace OpenMS
     }
     size_t n_segments = std::ceil(time_to_name.size() / step_length) ;
     std::cout << n_segments << " SEGMENTS" << std::endl;
+    std::vector<String> result_names;
     for (size_t i=0; i < n_segments; ++i) {
       size_t start = step_length*i;
       size_t end = std::min(start + window_length, (double)time_to_name.size());
       std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
-      optimize_Tr(time_slice, feature_name_map);
+      std::vector<String> result = optimize_Tr(time_slice, feature_name_map, score_map);
+      result_names.insert(result_names.end(), result.begin(), result.end());
     }
-
+    std::unordered_set<std::string> result_names_set(result_names.begin(), result_names.end());
+    FeatureMap features_filtered;
+    for (FeatureMap::iterator it = features.begin(); it != features.end(); ++it) {
+      String feature_name = it->getMetaValue("PeptideRef").toString() + "_" + it->getUniqueId();
+      std::vector<Feature> subordinates_filtered;
+      if (result_names_set.find(feature_name) != result_names_set.end()) {
+        subordinates_filtered.push_back(*it);
+      }
+      if (!getSelectTransitionGroup()) {
+        for (std::vector<Feature>::const_iterator sub_it = it->getSubordinates().begin();
+            sub_it != it->getSubordinates().end(); ++sub_it) {
+          String subfeature_name = sub_it->getMetaValue("native_id").toString() + "_" + sub_it->getUniqueId();
+          if (result_names_set.find(subfeature_name) != result_names_set.end()) {
+            subordinates_filtered.push_back(*sub_it);
+          }
+        }
+      }
+      if (!subordinates_filtered.empty()) {
+        Feature feature_filtered(*it);
+        feature_filtered.setSubordinates(subordinates_filtered);
+        features_filtered.push_back(feature_filtered);
+      }
+    }
+    return features_filtered;
   }
 
   void MRMFeatureSelector::select_MRMFeature_score() {}
 
   double MRMFeatureSelector::make_score(
-    Feature& feature,
-    String& metaValue,
-    double& weight // maybe others
+    Feature& feature
   )
-  {}
+  {
+    return pow(std::log((double)feature.getMetaValue("sn_ratio")), -1)*pow(std::log((double)feature.getMetaValue("peak_apices_sum")), -1);
+  }
 
   void MRMFeatureSelector::setNNThreshold(const double& nn_threshold)
   {

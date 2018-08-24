@@ -66,9 +66,9 @@ FeatureMap feature_map;
 FeatureXMLFile feature_file;
 feature_file.load(features_path, feature_map);
 
-TransitionTSVFile tsv_reader;
-TargetedExperiment targeted_exp;
-tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
+// TransitionTSVFile tsv_reader;
+// TargetedExperiment targeted_exp;
+// tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
 
 // MRMFeatureQCFile mrmfqcfile;
 // MRMFeatureQC mrmfqc;
@@ -162,7 +162,7 @@ END_SECTION
 
 START_SECTION(select_MRMFeature_qmip())
 {
-  ptr->select_MRMFeature_qmip(feature_map, targeted_exp);
+  ptr->select_MRMFeature_qmip(feature_map);
 }
 END_SECTION
 
