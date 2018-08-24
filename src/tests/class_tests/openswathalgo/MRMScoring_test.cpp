@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(initializeMS1XCorr)
+BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorContrastMatrix)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -231,14 +231,18 @@ BOOST_AUTO_TEST_CASE(initializeMS1XCorr)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
 
-  //initialize the XCorr vector
-  mrmscore.initializeMS1XCorr(imrmfeature, native_ids, "ms1trace");
+  std::vector<std::string> precursor_ids;
+  precursor_ids.push_back("ms1trace");
 
-  TEST_EQUAL(mrmscore.getXCorrMatrix().size(), 0)
+  //initialize the XCorr vector
+  mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+
+  TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().size(), 1)
+  TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix()[0].size(), 2)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(initializeXCorrIdMatrix)
+BOOST_AUTO_TEST_CASE(initializeXCorrContrastMatrix)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -247,15 +251,15 @@ BOOST_AUTO_TEST_CASE(initializeXCorrIdMatrix)
   fill_mock_objects(imrmfeature, native_ids);
 
   //initialize the XCorr Matrix
-  mrmscore.initializeXCorrIdMatrix(imrmfeature, native_ids, native_ids);
+  mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
 
-  TEST_EQUAL(mrmscore.getXCorrMatrix().size(), 2)
-  TEST_EQUAL(mrmscore.getXCorrMatrix()[0].size(), 2)
-  TEST_EQUAL(mrmscore.getXCorrMatrix()[0][0].data.size(), 23)
+  TEST_EQUAL(mrmscore.getXCorrContrastMatrix().size(), 2)
+  TEST_EQUAL(mrmscore.getXCorrContrastMatrix()[0].size(), 2)
+  TEST_EQUAL(mrmscore.getXCorrContrastMatrix()[0][0].data.size(), 23)
 
   // test auto-correlation = xcorrmatrix_0_0
   const OpenSwath::Scoring::XCorrArrayType auto_correlation =
-      mrmscore.getXCorrMatrix()[0][0];
+      mrmscore.getXCorrContrastMatrix()[0][0];
   TEST_REAL_SIMILAR(auto_correlation.data[11].second, 1)                     // find(0)->second,
   TEST_REAL_SIMILAR(auto_correlation.data[12].second, -0.227352707759245)    // find(1)->second, 
   TEST_REAL_SIMILAR(auto_correlation.data[10].second,  -0.227352707759245)   // find(-1)->second,
@@ -264,7 +268,7 @@ BOOST_AUTO_TEST_CASE(initializeXCorrIdMatrix)
 
   // // test cross-correlation = xcorrmatrix_0_1
   const OpenSwath::Scoring::XCorrArrayType cross_correlation =
-      mrmscore.getXCorrMatrix()[0][1];
+      mrmscore.getXCorrContrastMatrix()[0][1];
   TEST_REAL_SIMILAR(cross_correlation.data[13].second, -0.31165141)   // find(2)->second, 
   TEST_REAL_SIMILAR(cross_correlation.data[12].second, -0.35036919)   // find(1)->second, 
   TEST_REAL_SIMILAR(cross_correlation.data[11].second, 0.03129565)    // find(0)->second, 
@@ -286,18 +290,18 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcIndXcorrIdCoelutionScore)
+BOOST_AUTO_TEST_CASE(test_calcSeparateXcorrContrastCoelutionScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
-  mrmscore.initializeXCorrIdMatrix(imrmfeature, native_ids, native_ids);
-  TEST_EQUAL(mrmscore.calcIndXcorrIdCoelutionScore(), "1.5;1.5")
+  mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
+  TEST_EQUAL(mrmscore.calcSeparateXcorrContrastCoelutionScore(), "1.5;1.5")
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore_weighted)
+BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionWeightedScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -309,33 +313,33 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore_weighted)
 
   // xcorr_deltas = [0, 3, 0] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore_weighted(weights), 1.5)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionWeightedScore(weights), 1.5)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score)
+BOOST_AUTO_TEST_CASE(test_calcXcorrShapeScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score(), (1.0 + 0.3969832 + 1.0)/3.0) // mean + std deviation
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeScore(), (1.0 + 0.3969832 + 1.0)/3.0) // mean + std deviation
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcIndXcorrIdShape_score)
+BOOST_AUTO_TEST_CASE(test_calcSeparateXcorrContrastShapeScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
-  mrmscore.initializeXCorrIdMatrix(imrmfeature, native_ids, native_ids);
-  TEST_EQUAL(mrmscore.calcIndXcorrIdShape_score(), "0.698492;0.698492")
+  mrmscore.initializeXCorrContrastMatrix(imrmfeature, native_ids, native_ids);
+  TEST_EQUAL(mrmscore.calcSeparateXcorrContrastShapeScore(), "0.698492;0.698492")
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score_weighted)
+BOOST_AUTO_TEST_CASE(test_calcXcorrShapeWeightedScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -347,11 +351,11 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score_weighted)
 
   // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score_weighted(weights), 0.6984916)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrShapeWeightedScore(weights), 0.6984916)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(calcMS1XcorrCoelutionScore)
+BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastCoelutionScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -359,14 +363,17 @@ BOOST_AUTO_TEST_CASE(calcMS1XcorrCoelutionScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
 
-  //initialize the XCorr vector
-  mrmscore.initializeMS1XCorr(imrmfeature, native_ids, "ms1trace");
+  std::vector<std::string> precursor_ids;
+  precursor_ids.push_back("ms1trace");
 
-  TEST_REAL_SIMILAR(mrmscore.calcMS1XcorrCoelutionScore(), 1 + std::sqrt(2.0) ) // mean + std deviation
+  //initialize the XCorr vector
+  mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastCoelutionScore(), 1 + std::sqrt(2.0) ) // mean + std deviation
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(calcMS1XcorrShape_score)
+BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastShapeScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -374,10 +381,13 @@ BOOST_AUTO_TEST_CASE(calcMS1XcorrShape_score)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
 
-  //initialize the XCorr vector
-  mrmscore.initializeMS1XCorr(imrmfeature, native_ids, "ms1trace");
+  std::vector<std::string> precursor_ids;
+  precursor_ids.push_back("ms1trace");
 
-  TEST_REAL_SIMILAR(mrmscore.calcMS1XcorrShape_score(), (0.4657062259416978 + 0.61670976986284221 ) / 2.0 ) // mean + std deviation
+  //initialize the XCorr vector
+  mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastShapeScore(), (0.4657062259416978 + 0.61670976986284221 ) / 2.0 ) // mean + std deviation
 }
 END_SECTION
 
@@ -500,7 +510,7 @@ BOOST_AUTO_TEST_CASE(test_SN_score)
   imrmfeature.m_features = features;
 
   TEST_REAL_SIMILAR(mrmscore.calcSNScore(&imrmfeature, sn_estimators), 1000.0)
-  TEST_EQUAL(mrmscore.calcIndSNScore(&imrmfeature, sn_estimators), "6.21461;7.31322")
+  TEST_EQUAL(mrmscore.calcSeparateSNScore(&imrmfeature, sn_estimators), "6.21461;7.31322")
 }
 END_SECTION
 
@@ -519,7 +529,7 @@ x = [15.8951349258423 41.5446395874023 76.0746307373047 109.069435119629 111.903
 m1 = [mi(x_ranking,y_ranking) mi(y_ranking,y_ranking) mi(x_ranking,x_ranking)]
 mean(m1)
 
-% test_calcIndMIIdScore
+% test_calcSeparateMIContrastScore
 m2 = zeros(2,2)
 m2(1,1) = mi(x_ranking,y_ranking)
 m2(2,1) = mi(y_ranking,y_ranking)
@@ -527,11 +537,11 @@ m2(1,2) = mi(x_ranking,x_ranking)
 m2(2,2) = mi(y_ranking,x_ranking)
 mean(m2)
 
-% test_calcMIScore_weighted
+% test_calcMIWeightedScore
 m3 = [mi(x_ranking,y_ranking)*0.5*0.5 mi(y_ranking,y_ranking)*0.5*0.5*2 mi(x_ranking,x_ranking)*0.5*0.5]
 sum(m3)
 
-% test_calcMS1MIScore
+% test_calcMIPrecursorContrastScore
 ms1 = [0.0 110.0 200.0 270.0 320.0 350.0 360.0 350.0 320.0 270.0 200.0]'
 [~, ~, ms1_ranking] = unique(ms1);
 
@@ -559,7 +569,7 @@ mean(m4)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(initializeMS1MI)
+BOOST_AUTO_TEST_CASE(initializeMIPrecursorContrastMatrix)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -567,14 +577,17 @@ BOOST_AUTO_TEST_CASE(initializeMS1MI)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
 
+  std::vector<std::string> precursor_ids;
+  precursor_ids.push_back("ms1trace");
+
   //initialize the XCorr vector
-  mrmscore.initializeMS1MI(imrmfeature, native_ids, "ms1trace");
+  mrmscore.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
 
   TEST_EQUAL(mrmscore.getMIMatrix().size(), 0)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(initializeMIIdMatrix)
+BOOST_AUTO_TEST_CASE(initializeMIContrastMatrix)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -583,12 +596,12 @@ BOOST_AUTO_TEST_CASE(initializeMIIdMatrix)
   fill_mock_objects(imrmfeature, native_ids);
 
   //initialize the XCorr Matrix
-  mrmscore.initializeMIIdMatrix(imrmfeature, native_ids, native_ids);
+  mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
 
-  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[0][0], 3.2776)
-  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[0][1], 3.2776)
-  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[1][1], 3.4594)
-  TEST_REAL_SIMILAR(mrmscore.getMIMatrix()[1][0], 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[0][0], 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[0][1], 3.2776)
+  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[1][1], 3.4594)
+  TEST_REAL_SIMILAR(mrmscore.getMIContrastMatrix()[1][0], 3.2776)
 }
 END_SECTION
 
@@ -603,18 +616,18 @@ BOOST_AUTO_TEST_CASE(test_calcMIScore)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcIndMIIdScore)
+BOOST_AUTO_TEST_CASE(test_calcSeparateMIContrastScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
-  mrmscore.initializeMIIdMatrix(imrmfeature, native_ids, native_ids);
-  TEST_EQUAL(mrmscore.calcIndMIIdScore(), "3.27761;3.36852")
+  mrmscore.initializeMIContrastMatrix(imrmfeature, native_ids, native_ids);
+  TEST_EQUAL(mrmscore.calcSeparateMIContrastScore(), "3.27761;3.36852")
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcMIScore_weighted)
+BOOST_AUTO_TEST_CASE(test_calcMIWeightedScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -626,11 +639,11 @@ BOOST_AUTO_TEST_CASE(test_calcMIScore_weighted)
 
   // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)
-  TEST_REAL_SIMILAR(mrmscore.calcMIScore_weighted(weights), 3.3231)
+  TEST_REAL_SIMILAR(mrmscore.calcMIWeightedScore(weights), 3.3231)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(test_calcMS1MIScore)
+BOOST_AUTO_TEST_CASE(test_calcMIPrecursorContrastScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
@@ -638,10 +651,13 @@ BOOST_AUTO_TEST_CASE(test_calcMS1MIScore)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
 
-  //initialize the XCorr vector
-  mrmscore.initializeMS1MI(imrmfeature, native_ids, "ms1trace");
+  std::vector<std::string> precursor_ids;
+  precursor_ids.push_back("ms1trace");
 
-  TEST_REAL_SIMILAR(mrmscore.calcMS1MIScore(), 2.64125 )
+  //initialize the XCorr vector
+  mrmscore.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+
+  TEST_REAL_SIMILAR(mrmscore.calcMIPrecursorContrastScore(), 2.64125 )
 }
 END_SECTION
 
