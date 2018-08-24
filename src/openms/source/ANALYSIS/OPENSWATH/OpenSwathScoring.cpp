@@ -234,7 +234,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateChromatographicScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<std::string>& native_ids,
-        const std::string& precursor_feature_id,
+        const std::vector<std::string>& precursor_ids,
         const std::vector<double>& normalized_library_intensity,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
         OpenSwath_Scores & scores)
@@ -260,11 +260,9 @@ namespace OpenMS
     }
 
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
-    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
+    if (imrmfeature->getPrecursorIDs().size() == precursor_ids.size() && su_.use_ms1_correlation)
     {
-      std::vector<std::string> native_ids_precursor;
-      native_ids_precursor.push_back(precursor_feature_id);
-      mrmscore_.initializeXCorrContrastMatrix(imrmfeature, native_ids_precursor, native_ids); // perform cross-correlation on monoisotopic precursor
+      mrmscore_.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
       scores.xcorr_ms1_coelution_score = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
       scores.xcorr_ms1_shape_score = mrmscore_.calcXcorrPrecursorContrastShapeScore();
     }
@@ -300,9 +298,7 @@ namespace OpenMS
     // check that the MS1 feature is present and that the MS1 MI should be calculated
     if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_mi)
     {
-      std::vector<std::string> native_ids_precursor;
-      native_ids_precursor.push_back(precursor_feature_id);
-      mrmscore_.initializeMIPrecursorContrastMatrix(imrmfeature, native_ids_precursor, native_ids); // perform cross-correlation on monoisotopic precursor
+      mrmscore_.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
       scores.ms1_mi_score = mrmscore_.calcMIPrecursorContrastScore();
     }
   }

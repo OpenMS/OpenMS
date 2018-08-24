@@ -517,6 +517,7 @@ var_yseries_score   -0.0327896378737766
      *
      * @param imrmfeature The feature to be scored
      * @param native_ids The list of native ids (giving a canonical ordering of the transitions)
+     * @param precursor_ids The list of precursor ids
      * @param normalized_library_intensity The weights to be used for each transition (e.g. normalized library intensities)
      * @param signal_noise_estimators The signal-to-noise estimators for each transition
      * @param scores The object to store the result
@@ -525,7 +526,7 @@ var_yseries_score   -0.0327896378737766
     void calculateChromatographicScores(
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<std::string>& native_ids,
-          const std::string& precursor_chrom_id,
+          const std::vector<std::string>& precursor_ids,
           const std::vector<double>& normalized_library_intensity,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
           OpenSwath_Scores & scores);

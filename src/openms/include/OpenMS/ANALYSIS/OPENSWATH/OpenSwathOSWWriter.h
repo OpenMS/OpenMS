@@ -270,24 +270,6 @@ namespace OpenMS
                                         << sub_it->getMetaValue("peak_apex_int") << ", " 
                                         << total_mi << "); ";
           }
-          else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
-          {
-            std::string var_ms1_mi_score = "NULL"; // var_ms1_mi_score is not guaranteed to be set
-            if (!feature_it->getMetaValue("var_ms1_mi_score").isEmpty())
-            {
-              var_ms1_mi_score = feature_it->getMetaValue("var_ms1_mi_score").toString();
-            }
-            sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
-                            << feature_id << ", " 
-                            << sub_it->getIntensity() << ", " 
-                            << sub_it->getMetaValue("peak_apex_int") << ", " 
-                            << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
-                            << var_ms1_mi_score << ", " 
-                            << feature_it->getMetaValue("var_ms1_isotope_correlation") << ", " 
-                            << feature_it->getMetaValue("var_ms1_isotope_overlap") << ", " 
-                            << feature_it->getMetaValue("var_ms1_xcorr_coelution") << ", " 
-                            << feature_it->getMetaValue("var_ms1_xcorr_shape") << "); ";
-          }
         }
 
         sql_feature << "INSERT INTO FEATURE (ID, RUN_ID, PRECURSOR_ID, EXP_RT, NORM_RT, DELTA_RT, LEFT_WIDTH, RIGHT_WIDTH) VALUES (" 
@@ -385,6 +367,25 @@ namespace OpenMS
                         << var_sonar_log_diff << ", " 
                         << var_sonar_log_trend << ", " 
                         << var_sonar_rsq << "); ";
+
+        if (use_ms1_traces_)
+        {
+          std::string var_ms1_mi_score = "NULL"; // var_ms1_mi_score is not guaranteed to be set
+          if (!feature_it->getMetaValue("var_ms1_mi_score").isEmpty())
+          {
+            var_ms1_mi_score = feature_it->getMetaValue("var_ms1_mi_score").toString();
+          }
+          sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE) VALUES (" 
+                          << feature_id << ", " 
+                          << feature_it->getMetaValue("ms1_area_intensity") << ", " 
+                          << feature_it->getMetaValue("ms1_apex_intensity") << ", " 
+                          << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
+                          << var_ms1_mi_score << ", " 
+                          << feature_it->getMetaValue("var_ms1_isotope_correlation") << ", " 
+                          << feature_it->getMetaValue("var_ms1_isotope_overlap") << ", " 
+                          << feature_it->getMetaValue("var_ms1_xcorr_coelution") << ", " 
+                          << feature_it->getMetaValue("var_ms1_xcorr_shape") << "); ";
+        }
 
         if (enable_uis_scoring_)
         {

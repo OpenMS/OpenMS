@@ -652,23 +652,27 @@ namespace OpenMS
         transition_group_detection.getLibraryIntensity(normalized_library_intensity);
         OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
         std::vector<std::string> native_ids_detection;
-        std::string precursor_id;
+        std::vector<std::string> precursor_ids;
         for (Size i = 0; i < transition_group_detection.size(); i++)
         {
           native_ids_detection.push_back(transition_group_detection.getTransitions()[i].getNativeID());
         }
         for (Size i = 0; i < transition_group_detection.getPrecursorChromatograms().size(); i++)
         {
-          // try to identify the correct precursor native id
           String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
+          // append all precursor ids for scoring
+          precursor_ids.push_back(precursor_chrom_id);
+
+          // try to identify the monoisotopic peak
           if (OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0) == precursor_chrom_id)
           {
-            precursor_id = precursor_chrom_id;
+            mrmfeature->setMetaValue("ms1_area_intensity", mrmfeature->getPrecursorFeature(precursor_chrom_id).getIntensity());
+            mrmfeature->setMetaValue("ms1_apex_intensity", mrmfeature->getPrecursorFeature(precursor_chrom_id).getMetaValue("peak_apex_int"));
           }
         }
 
         OpenSwath_Scores scores;
-        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_id, normalized_library_intensity,
+        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
                                               signal_noise_estimators, scores);
 
         double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
