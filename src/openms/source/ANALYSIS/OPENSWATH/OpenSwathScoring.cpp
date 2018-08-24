@@ -260,7 +260,7 @@ namespace OpenMS
     }
 
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
-    if (imrmfeature->getPrecursorIDs().size() == precursor_ids.size() && su_.use_ms1_correlation)
+    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
     {
       // we need at least two precursor isotopes
       if (precursor_ids.size() > 1)
