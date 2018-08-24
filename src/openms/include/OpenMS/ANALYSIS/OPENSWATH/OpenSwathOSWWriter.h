@@ -179,6 +179,12 @@ namespace OpenMS
         "VAR_SONAR_LOG_TREND REAL NULL," \
         "VAR_SONAR_RSQ REAL NULL); " \
 
+        "CREATE TABLE FEATURE_PRECURSOR(" \
+        "FEATURE_ID INT NOT NULL," \
+        "ISOTOPE INT NOT NULL," \
+        "AREA_INTENSITY REAL NOT NULL," \
+        "APEX_INTENSITY REAL NOT NULL);" \
+
         "CREATE TABLE FEATURE_TRANSITION(" \
         "FEATURE_ID INT NOT NULL," \
         "TRANSITION_ID INT NOT NULL," \
@@ -246,7 +252,7 @@ namespace OpenMS
         const OpenSwath::LightTransition* /* transition */,
         FeatureMap& output, String id) const
     {
-      std::stringstream sql, sql_feature, sql_feature_ms1, sql_feature_ms2, sql_feature_ms2_transition, sql_feature_uis_transition;
+      std::stringstream sql, sql_feature, sql_feature_ms1, sql_feature_ms1_precursor, sql_feature_ms2, sql_feature_ms2_transition, sql_feature_uis_transition;
 
       for (FeatureMap::iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
       {
@@ -269,6 +275,16 @@ namespace OpenMS
                                         << sub_it->getMetaValue("total_xic") << ", " 
                                         << sub_it->getMetaValue("peak_apex_int") << ", " 
                                         << total_mi << "); ";
+          }
+          else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
+          {
+            std::vector<String> precursor_id;
+            OpenMS::String(sub_it->getMetaValue("native_id")).split('Precursor_i', precursor_id);
+            sql_feature_ms1_precursor  << "INSERT INTO FEATURE_PRECURSOR (FEATURE_ID, ISOTOPE, AREA_INTENSITY, APEX_INTENSITY) VALUES (" 
+                                        << feature_id << ", " 
+                                        << precursor_id[1] << ", " 
+                                        << sub_it->getIntensity() << ", " 
+                                        << sub_it->getMetaValue("peak_apex_int") << "); ";
           }
         }
 
@@ -537,11 +553,11 @@ namespace OpenMS
 
       if (enable_uis_scoring_)
       {
-        sql << sql_feature.str() << sql_feature_ms1.str() << sql_feature_ms2.str() << sql_feature_uis_transition.str();
+        sql << sql_feature.str() << sql_feature_ms1.str() << sql_feature_ms1_precursor.str() << sql_feature_ms2.str() << sql_feature_uis_transition.str();
       }
       else
       {
-        sql << sql_feature.str() << sql_feature_ms1.str() << sql_feature_ms2.str() << sql_feature_ms2_transition.str();
+        sql << sql_feature.str() << sql_feature_ms1.str() << sql_feature_ms1_precursor.str() << sql_feature_ms2.str() << sql_feature_ms2_transition.str();
       }
 
       return(sql.str());

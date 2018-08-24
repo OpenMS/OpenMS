@@ -68,12 +68,9 @@ void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hu
   // Ensure a unique id is present
   curr_feature.ensureUniqueId();
 
-  // Sum up intensities of the MS2 features
-  if (curr_feature.getMZ() > quantification_cutoff_ && ms_level == "MS2")
-  {
-    total_intensity += curr_feature.getIntensity();
-    total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
-  }
+  // Sum up intensities of the features
+  total_intensity += curr_feature.getIntensity();
+  total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
 
   curr_feature.setMetaValue("FeatureLevel", ms_level);
 }
@@ -662,13 +659,6 @@ namespace OpenMS
           String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
           // append all precursor ids for scoring
           precursor_ids.push_back(precursor_chrom_id);
-
-          // try to identify the monoisotopic peak
-          if (OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0) == precursor_chrom_id)
-          {
-            mrmfeature->setMetaValue("ms1_area_intensity", mrmfeature->getPrecursorFeature(precursor_chrom_id).getIntensity());
-            mrmfeature->setMetaValue("ms1_apex_intensity", mrmfeature->getPrecursorFeature(precursor_chrom_id).getMetaValue("peak_apex_int"));
-          }
         }
 
         OpenSwath_Scores scores;
@@ -953,6 +943,8 @@ namespace OpenMS
       // features and then append all precursor subordinate features)
       std::vector<Feature> allFeatures = mrmfeature->getFeatures();
       double total_intensity = 0, total_peak_apices = 0;
+      double ms1_total_intensity = 0, ms1_total_peak_apices = 0;
+
       for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
       {
         processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
@@ -967,11 +959,11 @@ namespace OpenMS
         {
           curr_feature.setCharge(pep->getChargeState());
         }
-        processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS1");
+        processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, ms1_total_intensity, ms1_total_peak_apices, "MS1");
         if (ms1only)
         {
-          total_intensity += curr_feature.getIntensity();
-          total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
+          total_intensity += ms1_total_intensity;
+          total_peak_apices += ms1_total_peak_apices;
         }
         allFeatures.push_back(curr_feature);
       }
@@ -980,6 +972,8 @@ namespace OpenMS
       // overwrite the reported intensities with those above the m/z cutoff
       mrmfeature->setIntensity(total_intensity);
       mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);
+      mrmfeature->setMetaValue("ms1_area_intensity", ms1_total_intensity);
+      mrmfeature->setMetaValue("ms1_apex_intensity", ms1_total_peak_apices);
       feature_list.push_back((*mrmfeature));
 
       delete imrmfeature;
