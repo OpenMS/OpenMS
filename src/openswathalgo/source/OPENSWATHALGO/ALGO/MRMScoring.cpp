@@ -105,6 +105,29 @@ namespace OpenSwath
     }
   }
 
+  void MRMScoring::initializeXCorrPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids)
+  {
+    std::vector<double> intensityi, intensityj;
+    xcorr_precursor_matrix_.resize(precursor_ids.size());
+    for (std::size_t i = 0; i < precursor_ids.size(); i++)
+    {
+      String precursor_id = precursor_ids[i];
+      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_id);
+      xcorr_precursor_matrix_[i].resize(precursor_ids.size());
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      for (std::size_t j = i; j < precursor_ids.size(); j++)
+      {
+        String precursor_id2 = precursor_ids[j];
+        FeatureType fj = mrmfeature->getPrecursorFeature(precursor_id2);
+        intensityj.clear();
+        fj->getIntensity(intensityj);
+        // compute normalized cross correlation
+        xcorr_precursor_matrix_[i][j] = Scoring::normalizedCrossCorrelation(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
+      }
+    }
+  }
+
   void MRMScoring::initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
   {
     std::vector<double> intensityi, intensityj;
@@ -259,6 +282,32 @@ namespace OpenSwath
     return ss.str();
   }
 
+  double MRMScoring::calcXcorrPrecursorCoelutionScore()
+  {
+    OPENSWATH_PRECONDITION(xcorr_precursor_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+
+    std::vector<int> deltas;
+    for (std::size_t i = 0; i < xcorr_precursor_matrix_.size(); i++)
+    {
+      for (std::size_t  j = i; j < xcorr_precursor_matrix_.size(); j++)
+      {
+        // first is the X value (RT), should be an int
+        deltas.push_back(std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_matrix_[i][j])->first));
+#ifdef MRMSCORING_TESTING
+        std::cout << "&&_xcoel append " << std::abs(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_matrix_[i][j])->first) << std::endl;
+#endif
+      }
+    }
+
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(deltas.begin(), deltas.end(), msc);
+    double deltas_mean = msc.mean();
+    double deltas_stdv = msc.sample_stddev();
+
+    double xcorr_coelution_score = deltas_mean + deltas_stdv;
+    return xcorr_coelution_score;
+  }
+
   double MRMScoring::calcXcorrPrecursorContrastCoelutionScore()
   {
     OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.size() > 0 && xcorr_precursor_contrast_matrix_[0].size() > 1, "Expect cross-correlation matrix of at least 2x1");
@@ -386,6 +435,24 @@ namespace OpenSwath
     }
 
     return ss.str();
+  }
+
+  double MRMScoring::calcXcorrPrecursorShapeScore()
+  {
+    OPENSWATH_PRECONDITION(xcorr_precursor_matrix_.size() > 1, "Expect cross-correlation matrix of at least 2x2");
+
+    std::vector<double> intensities;
+    for (std::size_t i = 0; i < xcorr_precursor_matrix_.size(); i++)
+    {
+      for (std::size_t j = i; j < xcorr_precursor_matrix_.size(); j++)
+      {
+        // second is the Y value (intensity)
+        intensities.push_back(Scoring::xcorrArrayGetMaxPeak(xcorr_precursor_matrix_[i][j])->second);
+      }
+    }
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(intensities.begin(), intensities.end(), msc);
+    return msc.mean();
   }
 
   double MRMScoring::calcXcorrPrecursorContrastShapeScore()
@@ -576,6 +643,29 @@ namespace OpenSwath
     }
   }
 
+  void MRMScoring::initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> precursor_ids)
+  {
+    std::vector<double> intensityi, intensityj;
+    mi_matrix_.resize(precursor_ids.size());
+    for (std::size_t i = 0; i < precursor_ids.size(); i++)
+    {
+      String precursor_id = precursor_ids[i];
+      FeatureType fi = mrmfeature->getPrecursorFeature(precursor_id);
+      mi_matrix_[i].resize(precursor_ids.size());
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      for (std::size_t j = i; j < precursor_ids.size(); j++)
+      {
+        String precursor_id2 = precursor_ids[j];
+        FeatureType fj = mrmfeature->getPrecursorFeature(precursor_id2);
+        intensityj.clear();
+        fj->getIntensity(intensityj);
+        // compute ranked mutual information
+        mi_matrix_[i][j] = Scoring::rankedMutualInformation(intensityi, intensityj);
+      }
+    }
+  }
+
   void MRMScoring::initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids)
   {
     std::vector<double> intensityi, intensityj;
@@ -643,6 +733,23 @@ namespace OpenSwath
       }
     }
     return std::accumulate(mi_scores.begin(), mi_scores.end(), 0.0);
+  }
+
+  double MRMScoring::calcMIPrecursorScore()
+  {
+    OPENSWATH_PRECONDITION(mi_precursor_matrix_.size() > 1, "Expect mutual information matrix of at least 2x2");
+
+    std::vector<double> mi_scores;
+    for (std::size_t i = 0; i < mi_precursor_matrix_.size(); i++)
+    {
+      for (std::size_t j = i; j < mi_precursor_matrix_.size(); j++)
+      {
+        mi_scores.push_back(mi_precursor_matrix_[i][j]);
+      }
+    }
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(mi_scores.begin(), mi_scores.end(), msc);
+    return msc.mean();
   }
 
   double MRMScoring::calcMIPrecursorContrastScore()

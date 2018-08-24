@@ -262,9 +262,16 @@ namespace OpenMS
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
     if (imrmfeature->getPrecursorIDs().size() == precursor_ids.size() && su_.use_ms1_correlation)
     {
+      // we need at least two precursor isotopes
+      if (precursor_ids.size() > 1)
+      {
+        mrmscore_.initializeXCorrPrecursorMatrix(imrmfeature, precursor_ids);
+        scores.ms1_xcorr_coelution_score = mrmscore_.calcXcorrPrecursorCoelutionScore();
+        scores.ms1_xcorr_shape_score = mrmscore_.calcXcorrPrecursorShapeScore();
+      }
       mrmscore_.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
-      scores.xcorr_ms1_coelution_score = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
-      scores.xcorr_ms1_shape_score = mrmscore_.calcXcorrPrecursorContrastShapeScore();
+      scores.ms1_xcorr_coelution_contrast_score = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
+      scores.ms1_xcorr_shape_contrast_score = mrmscore_.calcXcorrPrecursorContrastShapeScore();
     }
 
     if (su_.use_nr_peaks_score_)
@@ -298,8 +305,14 @@ namespace OpenMS
     // check that the MS1 feature is present and that the MS1 MI should be calculated
     if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_mi)
     {
-      mrmscore_.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
-      scores.ms1_mi_score = mrmscore_.calcMIPrecursorContrastScore();
+      // we need at least two precursor isotopes
+      if (precursor_ids.size() > 1)
+      {
+        mrmscore_.initializeMIPrecursorMatrix(imrmfeature, precursor_ids);
+        scores.ms1_mi_score = mrmscore_.calcMIPrecursorScore();
+      }
+      mrmscore_.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+      scores.ms1_mi_contrast_score = mrmscore_.calcMIPrecursorContrastScore();
     }
   }
 

@@ -115,6 +115,9 @@ public:
     /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
     void initializeXCorrContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2);
 
+    /// Initialize the scoring object and building the cross-correlation matrix
+    void initializeXCorrPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids);
+
     /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes vs transitions
     void initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
 
@@ -131,6 +134,9 @@ public:
     std::string calcSeparateXcorrContrastCoelutionScore();
 
     /// calculate the precursor cross-correlation contrast score
+    double calcXcorrPrecursorCoelutionScore();
+
+    /// calculate the precursor cross-correlation contrast score against the transitions
     double calcXcorrPrecursorContrastCoelutionScore();
 
     /// calculate the cross-correlation shape score
@@ -146,6 +152,9 @@ public:
     std::string calcSeparateXcorrContrastShapeScore();
 
     /// calculate the precursor cross-correlation shape score
+    double calcXcorrPrecursorShapeScore();
+
+    /// calculate the precursor cross-correlation shape score against the transitions
     double calcXcorrPrecursorContrastShapeScore();
 
     /// calculate the library correlation score
@@ -184,11 +193,15 @@ public:
     /// Initialize the scoring object and building the MI matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
     void initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_set1, std::vector<String> native_ids_set2);
 
+    /// Initialize the scoring object and building the MI matrix
+    void initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> precursor_ids);
+
     /// Initialize the mutual information vector with the MS1 trace
     void initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
 
     double calcMIScore();
     double calcMIWeightedScore(const std::vector<double>& normalized_library_intensity);
+    double calcMIPrecursorScore();
     double calcMIPrecursorContrastScore();
     std::string calcSeparateMIContrastScore();
 
@@ -205,6 +218,9 @@ private:
     XCorrMatrixType xcorr_contrast_matrix_;
     //@}
 
+    /// the precomputed cross correlation matrix of the MS1 trace
+    XCorrMatrixType xcorr_precursor_matrix_;
+
     /// the precomputed cross correlation with the MS1 trace
     XCorrMatrixType xcorr_precursor_contrast_matrix_;
     //@}
@@ -215,7 +231,10 @@ private:
     /// the precomputed contrast mutual information matrix
     std::vector< std::vector<double> > mi_contrast_matrix_;
 
-    /// the precomputed mutual information with the MS1 trace
+    /// the precomputed mutual information matrix of the MS1 trace
+    std::vector< std::vector<double> > mi_precursor_matrix_;
+
+    /// the precomputed contrast mutual information matrix with the MS1 trace
     std::vector< std::vector<double> > mi_precursor_contrast_matrix_;
     //@}
 

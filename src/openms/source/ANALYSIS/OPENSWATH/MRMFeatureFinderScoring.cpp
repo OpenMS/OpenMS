@@ -657,8 +657,12 @@ namespace OpenMS
         for (Size i = 0; i < transition_group_detection.getPrecursorChromatograms().size(); i++)
         {
           String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
-          // append all precursor ids for scoring
-          precursor_ids.push_back(precursor_chrom_id);
+
+          // append precursor monoisotopic peak and additional isotopes with a signal for scoring
+          if (OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0) == precursor_chrom_id || mrmfeature->getPrecursorFeature(precursor_chrom_id).getIntensity() > 0)
+          {
+            precursor_ids.push_back(precursor_chrom_id);
+          }
         }
 
         OpenSwath_Scores scores;
@@ -862,12 +866,15 @@ namespace OpenMS
           mrmfeature->addScore("var_manhatt_score", scores.manhatt_score_dia);
           if (su_.use_ms1_correlation)
           {
-            mrmfeature->addScore("var_ms1_xcorr_shape", scores.xcorr_ms1_shape_score);
-            mrmfeature->addScore("var_ms1_xcorr_coelution", scores.xcorr_ms1_coelution_score);
+            mrmfeature->addScore("var_ms1_xcorr_shape", scores.ms1_xcorr_shape_score);
+            mrmfeature->addScore("var_ms1_xcorr_coelution", scores.ms1_xcorr_coelution_score);
+            mrmfeature->addScore("var_ms1_xcorr_shape_contrast", scores.ms1_xcorr_shape_contrast_score);
+            mrmfeature->addScore("var_ms1_xcorr_coelution_contrast", scores.ms1_xcorr_coelution_contrast_score);
           }
           if (su_.use_ms1_mi)
           {
             mrmfeature->addScore("var_ms1_mi_score", scores.ms1_mi_score);
+            mrmfeature->addScore("var_ms1_mi_contrast_score", scores.ms1_mi_contrast_score);
           }
           if (su_.use_ms1_fullscan)
           {
