@@ -308,17 +308,6 @@ protected:
 						}
 					}
 
-					// SpectraMerger merger;
-					// Param p;
-					// p.setValue("precursor_method:mz_tolerance", prec_mz_tol);
-					// p.setValue("precursor_method:rt_tolerance", prec_rt_tol*2);
-					// merger.setParameters(p);
-					// merger.mergeSpectraPrecursors(exp);
-
-					// sort(ms2_block.begin(), ms2_block.end(), [](const pair<double,int> &a, const pair<double,int> &b) {
-					// 	return a.first > b.first;
-					// });
-
 
 					feature_stream << "BEGIN IONS" << endl;
 
@@ -347,13 +336,7 @@ protected:
 
 					for(auto ms2_iter = ms2_block.rbegin(); ms2_iter != ms2_block.rend(); ++ms2_iter) {
 						feature_stream << ms2_iter->first << "\t" << (int) ms2_iter->second << endl;
-					}
-					// for(auto exp_iter = exp.begin(); exp_iter != exp.end(); ++exp_iter) {
-					// 	auto curr_spectrum = *exp_iter;
-					// 	curr_spectrum.sortByIntensity(true);
-					// 	feature_stream << curr_spectrum[0].getMZ() << "\t" << curr_spectrum[0].getIntensity() << endl;
-					// }
-
+					}					
 					feature_stream << "END IONS" << endl << endl;
 				}
 
