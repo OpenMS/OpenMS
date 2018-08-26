@@ -32,6 +32,32 @@
 // $Authors: Abinesh Sarvepalli $
 // --------------------------------------------------------------------------
 
+//----------------------------------------------------------
+// Doxygen docu
+//----------------------------------------------------------
+/**
+  @page UTILS_GNPSExport GNPSExport
+  @brief Export MS/MS data in .MGF format for GNPS (http://gnps.ucsd.edu).
+GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organisation and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation (http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006089), and the Dereplicator-based annotation (https://www.nature.com/articles/nchembio.2219). The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
+
+This tool was developed for the OpenMS-GNPS workflow. It can be accessed on GNPS (https://gnps.ucsd.edu/ProteoSAFe/static/gnps-experimental.jsp). The steps used by that workflow are as following:
+  1. Input mzML files
+  2. Run the FeatureFinderMetabo tool
+  3. Run the IDMapper tool
+  4. Run the MapAlignerPoseClustering tool
+  5. Run the FeautureLinkerUnlabeledKD tool
+  6. Run the FileConverter tool (output FeatureXML format)
+  7. Run the MetaboliteAdductDecharger
+  8. Run the GNPSExport to export an .MGF
+  9. Upload the .MGF file on http://gnps.ucsd.edu and follow the instructions here:
+https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_SiriusAdapter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_SiriusAdapter.html
+ */
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
