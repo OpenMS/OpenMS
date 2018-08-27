@@ -337,7 +337,7 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
         {
           if (retention_times.find(p.second) != retention_times.end())
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Peptide ion appears multiple times at the same retention time. This is not expected");
+            LOG_WARN <<  "Peptide ion appears multiple times at the same retention time. This is not expected" << endl;
           }
           else
           {

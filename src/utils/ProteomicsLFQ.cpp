@@ -703,10 +703,14 @@ protected:
       //-------------------------------------------------------------
       // ConsensusMap normalization
       //-------------------------------------------------------------
+
+
+      /*
       ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, 
         ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
         "", 
         "");
+      */
 
       // append consensus map calculated for this fraction number
 
@@ -994,7 +998,8 @@ protected:
     if (!out_msstats.empty())
     {
       MSstatsFile msstats;
-      msstats.store(out_msstats, consensus, design, StringList(), false, "msstats_bioreplicate", "msstats_condition", "max");
+      // TODO: add a helper method to quickly check if experimental design file contain the right columns (and put this at start of tool)
+      msstats.store(out_msstats, consensus, design, StringList(), false, "MSstats_BioReplicate", "MSstats_Condition", "max");
     }
 
     return EXECUTION_OK;
