@@ -103,14 +103,34 @@ namespace OpenMS
 
 protected:
 
-    explicit OpenSwathWorkflowBase(bool use_ms1_traces) :
-      use_ms1_traces_(use_ms1_traces)
+    /** @brief Default constructor
+     *
+     *  Will not use any ms1 traces and use all threads in the outer loop.
+     *
+     **/
+    OpenSwathWorkflowBase() :
+      use_ms1_traces_(false),
+      use_ms1_ion_mobility_(false),
+      threads_outer_loop_(-1)
     {
     }
 
-    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+    /** @brief Constructor
+     *
+     *  @param use_ms1_traces Whether to use MS1 data
+     *  @param threads_outer_loop How many threads should be used for the outer
+     *  loop (-1 will use all threads in the outer loop)
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     *
+     **/
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
-      use_ms1_ion_mobility_(use_ms1_ion_mobility)
+      use_ms1_ion_mobility_(use_ms1_ion_mobility),
+      threads_outer_loop_(threads_outer_loop)
     {
     }
 
@@ -177,7 +197,19 @@ protected:
 
     /// Whether to use ion mobility extraction on MS1 traces
     bool use_ms1_ion_mobility_;
-  };
+
+    /** @brief How many threads should be used for the outer loop
+     *
+     *  @note A value of -1 will use all threads in the outer loop
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     **/
+    int threads_outer_loop_;
+
+};
 
   /**
    * @brief Execute all steps for retention time and m/z calibration of SWATH-MS data
@@ -200,13 +232,13 @@ protected:
   {
   public:
 
-    OpenSwathCalibrationWorkflow () :
-      OpenSwathWorkflowBase(false)
+    OpenSwathCalibrationWorkflow() :
+      OpenSwathWorkflowBase()
     {
     }
 
-    explicit OpenSwathCalibrationWorkflow (bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces)
+    explicit OpenSwathCalibrationWorkflow(bool use_ms1_traces) :
+      OpenSwathWorkflowBase(use_ms1_traces, false, -1)
     {
     }
 
@@ -318,14 +350,16 @@ protected:
      *
     */
     static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
+
   };
 
   /**
    * @brief Execute all steps in an OpenSwath analysis
    *
-   * The workflow will perform a complete OpenSWATH analysis. Optionally, an RT
-   * transformation (mapping peptides to normalized space) can be obtained
-   * beforehand using the OpenSwathCalibrationWorkflow class.
+   * The workflow will perform a complete OpenSWATH analysis. Optionally, 
+   * a calibration of m/z and retention time (mapping peptides to normalized 
+   * space and correcting m/z error) can be performed beforehand using the 
+   * OpenSwathCalibrationWorkflow class.
    *
    * The overall execution flow in this class is as follows (see performExtraction() function)
    *
@@ -351,13 +385,20 @@ protected:
 
   public:
 
-    explicit OpenSwathWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces)
-    {
-    }
-
-    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility) :
-      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility)
+    /** @brief Constructor
+     *
+     *  @param use_ms1_traces Whether to use MS1 data
+     *  @param threads_outer_loop How many threads should be used for the outer
+     *  loop (-1 will use all threads in the outer loop)
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     *
+     **/
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
+      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, threads_outer_loop)
     {
     }
 
@@ -366,31 +407,37 @@ protected:
      * See OpenSwathWorkflow class for a detailed description of this function.
      *
      * @param swath_maps The raw data (swath maps)
-     * @param trafo Transformation description (translating this runs' RT to normalized RT space)
-     * @param cp Parameter set for the chromatogram extraction
+     * @param rt_trafo Retention time transformation description (translating this runs' RT to normalized RT space)
+     * @param chromatogram_extraction_params Parameter set for the chromatogram extraction
+     * @param ms1_chromatogram_extraction_params Parameter set for the chromatogram extraction of the MS1 data
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param transition_exp The set of assays to be extracted and scored
-     * @param out_featureFile Output feature map to store identified features
-     * @param store_features Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
-     * @param tsv_writer TSV Writer object to store identified features in csv format (set store_features to false if using this option)
-     * @param osw_writer OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
-     * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
+     * @param assay_library The set of assays to be extracted and scored
+     * @param result_featureFile Output feature map to store identified features
+     * @param store_features_in_featureFile Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
+     * @param result_tsv TSV Writer object to store identified features in csv format (set store_features to false if using this option)
+     * @param result_osw OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
+     * @param result_chromatograms Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
      * @param int ms1_isotopes Number of MS1 isotopes to extract (zero means only monoisotopic peak)
      * @param load_into_memory Whether to cache the current SWATH map in memory
      *
+     * @note Speed and memory performance can be influenced by \p batchSize and
+     * \p load_into_memory where larger batch sizes increase memory and
+     * potentially decrease the utility of parallelization while loading data
+     * into memory will increase memory usage but decrease execution time.
+     *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
                            const TransformationDescription trafo,
-                           const ChromExtractParams & cp,
-                           const ChromExtractParams & cp_ms1,
+                           const ChromExtractParams & chromatogram_extraction_params,
+                           const ChromExtractParams & ms1_chromatogram_extraction_params,
                            const Param & feature_finder_param,
-                           const OpenSwath::LightTargetedExperiment& transition_exp,
-                           FeatureMap& out_featureFile,
-                           bool store_features,
-                           OpenSwathTSVWriter & tsv_writer,
-                           OpenSwathOSWWriter & osw_writer,
-                           Interfaces::IMSDataConsumer * chromConsumer,
+                           const OpenSwath::LightTargetedExperiment& assay_library,
+                           FeatureMap& result_featureFile,
+                           bool store_features_in_featureFile,
+                           OpenSwathTSVWriter & result_tsv,
+                           OpenSwathOSWWriter & result_osw,
+                           Interfaces::IMSDataConsumer * result_chromatograms,
                            int batchSize,
                            int ms1_isotopes,
                            bool load_into_memory);
@@ -534,7 +581,7 @@ protected:
   public:
 
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces, false)
+      OpenSwathWorkflow(use_ms1_traces, false, -1)
     {
     }
 
