@@ -245,12 +245,10 @@ protected:
 						feature_stream << "BEGIN IONS" << endl;
 
 						feature_stream << "FEATURE_ID=" << to_string(feature_count) << endl;
-						feature_stream << "SCANS=" << to_string(i) << endl;
 
 						string filename = mzml_file_paths[peptide.second.first];
 						Size parse_index = filename.rfind("/") + 1;
 						filename = filename.substr(parse_index);
-						feature_stream << "FILENAME=" << filename << endl;
 						feature_stream << "CONSENSUSID=e_" << feature.getUniqueId() << endl;
 
 						feature_stream << "MSLEVEL=2" << endl;
@@ -267,7 +265,7 @@ protected:
 						// ms2_scan.sortByIntensity(true);
 
 						for(Size l = 0; l < ms2_scan.size(); l++) {
-							feature_stream << ms2_scan[l].getMZ() << "\t" << to_string(ms2_scan[l].getIntensity()) << endl;
+							feature_stream << ms2_scan[l].getMZ() << "\t" << (int) ms2_scan[l].getIntensity() << endl;
 						}
 
 						feature_stream << "END IONS" << endl << endl;
@@ -312,20 +310,6 @@ protected:
 					feature_stream << "BEGIN IONS" << endl;
 
 					feature_stream << "FEATURE_ID=" << feature_count++ << endl;
-					feature_stream << "SCANS=" << (i+1) << endl;
-
-					feature_stream << "FILENAME=";
-					set<string> filenames;
-					for(auto peptide : peptides) {
-						string filename = mzml_file_paths[peptide.second.first];
-						Size parse_index = filename.rfind("/") + 1;
-						filename = filename.substr(parse_index);
-						filenames.insert(filename);
-					}
-					for(auto filename : filenames) {
-						feature_stream << filename << " ";
-					}
-					feature_stream << endl;
 					feature_stream << "CONSENSUSID=e_" << feature.getUniqueId() << endl;
 
 					feature_stream << "MSLEVEL=2" << endl;
@@ -336,7 +320,7 @@ protected:
 
 					for(auto ms2_iter = ms2_block.rbegin(); ms2_iter != ms2_block.rend(); ++ms2_iter) {
 						feature_stream << ms2_iter->first << "\t" << (int) ms2_iter->second << endl;
-					}					
+					}
 					feature_stream << "END IONS" << endl << endl;
 				}
 
