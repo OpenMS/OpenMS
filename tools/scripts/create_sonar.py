@@ -115,8 +115,8 @@ for rt_idx in range(NR_RT_SAMPLES):
                 sp.push_back(p)
 
         exp.addSpectrum(sp)
-    pass
-    #break
+    # For debug:
+    # break
 
 
 f = MzMLFile()

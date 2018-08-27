@@ -64,7 +64,7 @@ namespace OpenMS
         atomic masses.
         The CoarseIsotopePatternGenerator solver quantizes the atomic masses to integer 
         numbers that correspond to the atomic number. Then the calculation of the 
-        IsotopeDistribution produces only atomic numbers.
+        IsotopeDistribution can produce nominal isotopes with accurate or rounded masses
 
     */
   class Element; 
@@ -120,6 +120,9 @@ public:
 
     /// returns the minimal weight isotope which is stored in the distribution
     Peak1D::CoordinateType getMin() const;
+
+    /// returns the most abundant isotope which is stored in the distribution
+    Peak1D getMostAbundant() const;
 
     /// returns the size of the distribution which is the number of isotopes in the distribution
     Size size() const;

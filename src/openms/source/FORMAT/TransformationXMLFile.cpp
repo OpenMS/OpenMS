@@ -85,7 +85,7 @@ namespace OpenMS
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     //add XSLT file if it can be found
-    os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/"
+    os << "<TrafoXML version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/"
        << schema_location_.suffix('/') << "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // open tag

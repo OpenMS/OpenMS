@@ -342,7 +342,7 @@ namespace OpenMS
                 String box_text;
                 String vert_bar = "&#124;";
 
-                if (ph.metaValueExists("xl_pos2")) // if this meta value exists, this should be the special case of a loop-link
+                if (ph.metaValueExists("xl_pos2") && pis[peptide_id_index].getHits().size() == 1 && ph.getMetaValue("xl_pos2") != "-") // if this meta value exists, this should be the special case of a loop-link
                 {
                   String hor_bar = "_";
                   PeptideHit ph_alpha = pis[peptide_id_index].getHits()[0];
@@ -365,7 +365,7 @@ namespace OpenMS
                   String seq_alpha = ph_alpha.getSequence().toUnmodifiedString();
                   String seq_beta = ph_beta.getSequence().toUnmodifiedString();
                   int xl_pos_alpha = String(ph_alpha.getMetaValue("xl_pos")).toInt();
-                  int xl_pos_beta = String(ph_beta.getMetaValue("xl_pos")).toInt();
+                  int xl_pos_beta = String(ph_alpha.getMetaValue("xl_pos2")).toInt();
 
 
                   // String formatting
@@ -381,7 +381,7 @@ namespace OpenMS
                   box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
                   // color: <font color=\"green\">&boxur;</font>
                 }
-                else // no xl_pos2 and no second PeptideHit, should be a mono-link
+                else // no value in xl_pos2 and no second PeptideHit, should be a mono-link
                 {
                   String seq_alpha = ph.getSequence().toUnmodifiedString();
                   int xl_pos_alpha = String(ph.getMetaValue("xl_pos")).toInt();
@@ -403,9 +403,9 @@ namespace OpenMS
                 if (seq.empty()) seq = ph.getMetaValue("label"); // e.g. for RNA sequences
                 widget_1D->canvas()->setTextBox(seq.toQString());
               }
-              else if (widget_1D->canvas()->isIonLadderVisible())
+              else if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
               {
-                if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+                if (widget_1D->canvas()->isIonLadderVisible())
                 {
                   // @TODO: read ion list from the input file (meta value)
                   static vector<String> top_ions = ListUtils::create<String>("a,b,c");
@@ -495,13 +495,18 @@ namespace OpenMS
 
         vector<String> loss_split;
         dol_split[1].split("-", loss_split);
+        // remove b / y ion type letter (must be at first position of second string after $-split)
         String pos_string = loss_split[0].suffix(loss_split[0].size()-1);
         int pos;
-        if (pos_string.hasSubstring("]"))
+        if (pos_string.hasSubstring("]")) // this means the loss_split with "-" did not split the string
         {
-          pos = pos_string.prefix(pos_string.size()-1).toInt()-1;
+          // remove the "]" and possible charges at its right side
+          vector<String> pos_split;
+          pos_string.split("]", pos_split);
+          pos_string = pos_split[0];
+          pos = pos_string.toInt()-1;
         }
-        else
+        else // loss was found and splitted, so the remaining string is just the position
         {
           pos = pos_string.toInt()-1;
         }

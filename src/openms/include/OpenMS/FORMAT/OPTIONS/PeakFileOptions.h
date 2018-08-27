@@ -200,6 +200,10 @@ public:
     MSNumpressCoder::NumpressConfig getNumpressConfigurationIntensity() const;
     /// Get numpress configuration options for intensity dimension
     void setNumpressConfigurationIntensity(MSNumpressCoder::NumpressConfig config);
+    /// Set numpress configuration options for float data arrays
+    MSNumpressCoder::NumpressConfig getNumpressConfigurationFloatDataArray() const;
+    /// Get numpress configuration options for float data arrays
+    void setNumpressConfigurationFloatDataArray(MSNumpressCoder::NumpressConfig config);
 
     /**
         @name Data pool size options
@@ -243,6 +247,7 @@ private:
     bool write_index_;
     MSNumpressCoder::NumpressConfig np_config_mz_;
     MSNumpressCoder::NumpressConfig np_config_int_;
+    MSNumpressCoder::NumpressConfig np_config_fda_;
     Size maximal_data_pool_size_;
 
   };

@@ -318,6 +318,7 @@ set(filtering_executables_list
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
+  PrecursorCorrection_test
   SplinePackage_test
   SplineSpectrum_test
   SavitzkyGolayFilter_test
@@ -488,6 +489,8 @@ set(analysis_executables_list
   PScore_test
   HyperScore_test
   MorpheusScore_test
+  OpenPepXLAlgorithm_test
+  OpenPepXLLFAlgorithm_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test

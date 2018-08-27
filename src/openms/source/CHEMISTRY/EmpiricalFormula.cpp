@@ -194,7 +194,7 @@ namespace OpenMS
   }
 
 
-  IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
+  IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes, const CoarseIsotopePatternGenerator& solver) const
   {
     // A fragment's isotopes can only be as high as the largest isolated precursor isotope.
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
@@ -205,9 +205,7 @@ namespace OpenMS
     IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
     IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
 
-    IsotopeDistribution result;
-    CoarseIsotopePatternGenerator solver;
-    result = solver.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
+    IsotopeDistribution result = solver.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes, getMonoWeight());
 
     // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)
     result.renormalize();

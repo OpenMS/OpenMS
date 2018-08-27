@@ -258,23 +258,23 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>tStrRuExHEYa9GpFeHixRTLCokUHcBJF</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="64" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="6" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAoHZlzUAAAAAgPIbDQAAAAECDXq1AAAAAAA8vtkAAAABARli0QAAAAOAATqJA</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="64" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>tStrRuExHEYa9GpFeHixRTLCokUHcBJF</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="6" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAAH5Kh0AAAAAAiE6HQAAAAKDBUodAAAAAQBR4h0AAAACAvXqHQAAAAEDagodA</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="64" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>8FM6REB0OkQNljpEosA7ROzVO0TSFjxE</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="6" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAwCNLh0AAAACA9k6HQAAAAADxUodAAAAAoFN4h0AAAAAA9XqHQAAAAICYg4dA</binary>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>Hlk6RLR3OkSIlzpEncI7RKjXO0TEHDxE</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -286,6 +286,6 @@
 		<offset idRef="scan=21913">17654</offset>
 	</index>
 </indexList>
-<indexListOffset>20549</indexListOffset>
+<indexListOffset>20453</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
