@@ -107,6 +107,8 @@ using namespace OpenMS;
     <li>Reporting the peak groups and the chromatograms</li>
   </ul>
 
+  The overall execution flow for this tool is described in the TOPPOpenSwathWorkflow documentation.
+
   See below or have a look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") for available parameters and more functionality.
 
   <h3>Input: SWATH maps and transition list </h3>
@@ -371,6 +373,10 @@ using namespace OpenMS;
   </table>
 </CENTER>
 
+  <h3>Execution flow:</h3>
+
+  The overall execution flow for this tool is described in the TOPPOpenSwathWorkflow documentation.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_OpenSwathWorkflow.cli
   <B>INI file documentation of this tool:</B>
@@ -378,8 +384,22 @@ using namespace OpenMS;
 
 */
 
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
+/** @brief Extended documentation on OpenSwath
+
+  The overall execution flow for this tool is as follows:
+
+    - Parameter validation
+    - Transition loading: loads input transitions into OpenSwath::LightTargetedExperiment
+    - SWATH file loading:
+      - Load SWATH files (see loadSwathFiles())
+      - Annotate SWATH-files with user-defined windows (see OpenMS::SwathWindowLoader::annotateSwathMapsFromFile() )
+      - Sanity check: there should be no overlap between the windows:
+    - Perform RT and m/z calibration (see performCalibration() and OpenMS::OpenSwathRetentionTimeNormalization)
+    - Set up chromatogram file output
+    - Set up peakgroup file output
+    - Extract and score (see OpenMS::OpenSwathWorkflow or OpenMS::OpenSwathWorkflowSonar)
+
+*/
 class TOPPOpenSwathWorkflow
   : public TOPPOpenSwathBase 
 {
@@ -780,10 +800,11 @@ protected:
     TransformationDescription trafo_rtnorm;
     if (nonlinear_irt_tr_file.empty())
     {
-      trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file, swath_maps,
-                                   min_rsq, min_coverage, feature_finder_param,
-                                   cp_irt, irt_detection_param, mz_correction_function, debug_level,
-                                   sonar, load_into_memory, irt_trafo_out, irt_mzml_out);
+      trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
+                                        min_rsq, min_coverage, feature_finder_param,
+                                        cp_irt, irt_detection_param, mz_correction_function,
+                                        debug_level, sonar, load_into_memory,
+                                        irt_trafo_out, irt_mzml_out);
     }
     else
     {
@@ -793,10 +814,11 @@ protected:
 
       Param linear_irt = irt_detection_param;
       linear_irt.setValue("alignmentMethod", "linear");
-      trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file, swath_maps,
-                                   min_rsq, min_coverage, feature_finder_param,
-                                   cp_irt, linear_irt, "none", debug_level,
-                                   sonar, load_into_memory, irt_trafo_out, irt_mzml_out);
+      trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
+                                        min_rsq, min_coverage, feature_finder_param,
+                                        cp_irt, linear_irt, "none",
+                                        debug_level, sonar, load_into_memory,
+                                        irt_trafo_out, irt_mzml_out);
 
       cp_irt.rt_extraction_window = 900; // extract some substantial part of the RT range (should be covered by linear correction)
       cp_irt.rt_extraction_window = 600; // extract some substantial part of the RT range (should be covered by linear correction)
@@ -808,12 +830,12 @@ protected:
       transition_exp_nl = loadTransitionList(FileHandler::getType(nonlinear_irt_tr_file), nonlinear_irt_tr_file, tsv_reader_param);
 
       std::vector< OpenMS::MSChromatogram > chromatograms;
-      OpenSwathRetentionTimeNormalization wf;
+      OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
-      wf.simpleExtractChromatograms(swath_maps, transition_exp_nl, chromatograms,
+      wf.simpleExtractChromatograms_(swath_maps, transition_exp_nl, chromatograms,
                                     trafo_rtnorm, cp_irt, sonar, load_into_memory);
 
-      trafo_rtnorm = wf.RTNormalization(transition_exp_nl, chromatograms, min_rsq,
+      trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, min_rsq,
                                         min_coverage, feature_finder_param, irt_detection_param,
                                         swath_maps, mz_correction_function,
                                         cp_irt.mz_extraction_window, cp_irt.ppm);
@@ -828,13 +850,15 @@ protected:
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom);
 
     ///////////////////////////////////
-    // Extract and score
+    // Set up peakgroup file output
     ///////////////////////////////////
     FeatureMap out_featureFile;
-
     OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
     OpenSwathOSWWriter oswwriter(out_osw, file_list[0], use_ms1_traces, sonar, enable_uis_scoring); // only active if filename not empty
 
+    ///////////////////////////////////
+    // Extract and score
+    ///////////////////////////////////
     if (sonar)
     {
       OpenSwathWorkflowSonar wf(use_ms1_traces);
