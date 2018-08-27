@@ -2197,7 +2197,6 @@ protected:
     // save report
     if (!out_csv.empty())
     {
-      csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
       TextFile csv_file;
       csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
       for (Size i = 0; i != csv_rows.size(); ++i)
