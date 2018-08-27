@@ -127,6 +127,7 @@ using namespace std;
   @htmlinclude TOPP_FileConverter.html
 */
 
+
 String extractCachedMetaFilename(const String& in)
 {
   // Special handling of cached mzML as input types: 
@@ -143,6 +144,142 @@ String extractCachedMetaFilename(const String& in)
   return in_meta;
 }
 
+namespace OpenMS {
+enum IMType
+{
+  IM_NONE, ///< no ion mobility
+  IM_STACKED, ///< ion mobility frame is stacked in a single spectrum
+  IM_MULTIPLE_SPECTRA ///< ion mobility is recorded as multiple spectra per frame
+};
+
+IMType determineIMType(const MSExperiment& exp)
+{
+  for (Size k = 0; k < exp.size(); k++)
+  {
+    if (!exp[k].getFloatDataArrays().empty() && exp[k].getFloatDataArrays()[0].getName() == "Ion Mobility")
+    {
+      return IMType::IM_STACKED;
+    }
+    else if (exp[k].getDriftTime() >= 0.0) 
+    {
+      return IMType::IM_MULTIPLE_SPECTRA;
+    }
+  }
+  return IMType::IM_NONE;
+}
+
+/// Process a stack of drift time spectra
+void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSSpectrum>& result)
+{
+  OPENMS_PRECONDITION(!stack.empty(), "Stack cannot be empty")
+
+
+  // either no drift time or different RT!
+  if (stack[0].getDriftTime() >= 0.0)
+  {
+    // copy meta data without the raw data and without the IM array
+    MSSpectrum new_spec = stack[0]; // there is always one spectrum on the stack
+    new_spec.clear(false);
+    std::vector<OpenMS::DataArrays::FloatDataArray> empty;
+    new_spec.setFloatDataArrays(empty);
+    new_spec.setDriftTime(-1); // drift time is now encoded in the FloatDataArray
+
+    OpenMS::DataArrays::FloatDataArray fda;
+    fda.setName("Ion Mobility");
+    for (auto s : stack)
+    {
+      new_spec.insert(new_spec.end(), s.begin(), s.end());
+      fda.insert(fda.end(), s.size(), s.getDriftTime());
+    }
+    new_spec.setFloatDataArrays({fda});
+    result.push_back(new_spec);
+  }
+  else
+  {
+    // no drift time for these spectra, simply append to the result
+    result.insert(result.end(), stack.begin(), stack.end());
+  }
+
+}
+
+/**
+  @brief Expands a single MSSpectrum (single frame) into individual ion mobility spectrum
+
+  @param tmps The input spectrum (a single spectrum per frame)
+  @param result The output spectra with multiple spectra per frame
+*/
+void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
+{
+  // copy meta data without the raw data and without the IM array
+  MSSpectrum settings = tmps;
+  settings.clear(false);
+  std::vector<OpenMS::DataArrays::FloatDataArray> empty;
+  settings.setFloatDataArrays(empty);
+
+  double IM_BINNING = 1e5;
+
+  // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
+  std::map< int, MSSpectrum > im_map;
+  auto im_arr = tmps.getFloatDataArrays()[0];
+  for (Size k = 0;  k < tmps.size(); k++)
+  {
+    double im = im_arr[ k ];
+    if (im_map.find( int(im*IM_BINNING) ) == im_map.end() )
+    {
+      // use meta data from combined spectrum, set new name and current drift time
+      MSSpectrum news = settings;
+      news.setDriftTime(im);
+      news.setName(tmps.getName() + "_combined"); // we will not recover original scan ids
+      im_map[ int(im*IM_BINNING) ] = news;
+    }
+    im_map[ int(im*IM_BINNING) ].push_back( tmps[k] );
+  }
+
+  // Add spectra to result, note that this is guaranteed to be
+  // sorted by ion mobility (through std::map).
+  for (auto s : im_map)
+  {
+    result.push_back(s.second);
+  }
+}
+
+/**
+  @brief Collapses multiple IM spectra from the same frame into a single MSSpectrum
+
+  @param exp The input experiment with multiple spectra per frame
+  @param result The output spectra collapsed to a single spectrum per frame
+
+  @note: this requires that all spectra from the same frame have the same RT ("scan start time")
+*/
+void collapseIMSpectrum(const MSExperiment& exp, std::vector<MSSpectrum>& result)
+{
+  if (exp.empty()) return;
+
+  std::vector<MSSpectrum> stack;
+  double curr_rt = exp[0].getRT();
+  stack.push_back(exp[0]);
+  for (Size k = 1; k < exp.size(); k++)
+  {
+    // spectra from the same frame (drift time scan) will have the same retention time start time
+    if (exp[k].getDriftTime() >= 0.0 && (fabs(exp[k].getRT() - curr_rt) < 1e-5) )
+    {
+      stack.push_back(exp[k]);
+    }
+    else
+    {
+      processDriftTimeStack(stack, result);
+      // push next spectrum
+      stack.clear();
+      stack.push_back(exp[k]);
+      curr_rt = exp[k].getRT();
+    }
+  }
+
+  // stack will always have at least one spectrum
+  processDriftTimeStack(stack, result);
+}
+
+}
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -181,6 +318,9 @@ protected:
     registerFlag_("convert_to_chromatograms", "[mzML output only] Assumes that the provided spectra represent data in SRM mode or targeted MS1 mode and converts them to chromatogram data.", true);
     registerFlag_("force_TPP_compatibility", "[mzML output only] Make sure that TPP parsers can read the mzML and the precursor ion m/z in the file (otherwise it will be set to zero by the TPP).", true);
 
+    registerStringOption_("change_im_format", "<toogle>", "none", "[mzML output only] How to store ion mobility scans (none: no change in format, multiple: store each frame as multiple scans, one per drift time value, single: store whole frame as single scan with IM values in a FloatDataArray", false, true);
+    setValidStrings_("change_im_format", ListUtils::create<String>("none,multiple,single"));
+
     registerStringOption_("write_scan_index", "<toogle>", "true", "Append an index when writing mzML or mzXML files. Some external tools might rely on it.", false, true);
     setValidStrings_("write_scan_index", ListUtils::create<String>("true,false"));
     registerFlag_("lossy_compression", "Use numpress compression to achieve optimally small file size using linear compression for m/z domain and slof for intensity and float data arrays (attention: may cause small loss of precision; only for mzML data).", true);
@@ -198,6 +338,7 @@ protected:
     //input file names
     String in = getStringOption_("in");
     bool write_scan_index = getStringOption_("write_scan_index") == "true" ? true : false;
+    String store_im = getStringOption_("change_im_format");
     bool force_MaxQuant_compatibility = getFlag_("force_MaxQuant_compatibility");
     bool force_TPP_compatibility = getFlag_("force_TPP_compatibility");
     bool convert_to_chromatograms = getFlag_("convert_to_chromatograms");
@@ -356,6 +497,12 @@ protected:
       // loading the complete data into memory. PlainMSDataWritingConsumer will
       // write out mzML to disk as they are read from the input.
 
+      if (store_im != "none")
+      {
+        std::cout << "Converting IM formats is currently not implemented for low-memory processing" << std::endl;
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+
       if ((in_type == FileTypes::MZXML || in_type == FileTypes::MZML) && out_type == FileTypes::MZML)
       {
         // Prepare the consumer
@@ -367,6 +514,7 @@ protected:
         {
           consumer.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
           consumer.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+          consumer.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
           consumer.getOptions().setCompression(true);
         }
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
@@ -434,6 +582,7 @@ protected:
       {
         f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
         f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
         f.getOptions().setCompression(true);
       }
 
@@ -442,6 +591,52 @@ protected:
         for (auto & s : exp)
         {
           s.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+        }
+      }
+
+      if (store_im != "none")
+      {
+        IMType itype = determineIMType(exp);
+
+        if (itype == IMType::IM_NONE)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Requested conversion to different ion mobility format, but no ion mobility data is present.");
+        }
+        else if (store_im == "multiple" && itype == IMType::IM_MULTIPLE_SPECTRA)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Requested conversion to 'multiple' ion mobility format, but data is already in this format.");
+        }
+        else if (store_im == "single" && itype == IMType::IM_STACKED)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Requested conversion to 'single' ion mobility format, but data is already in this format.");
+        }
+
+        if (store_im == "multiple" && itype == IMType::IM_STACKED)
+        {
+          std::vector<MSSpectrum> result;
+          for (Size k = 0; k < exp.size(); k++)
+          {
+            // For data without ion mobility, simply append the result (only
+            // collapse for scans that actually have a float data array).
+            if (exp[k].getFloatDataArrays().empty())
+            {
+              result.push_back(exp[k]);
+            }
+            else
+            {
+              expandIMSpectrum(exp[k], result);
+            }
+          }
+          exp.setSpectra(result); // swap data
+        }
+        else if (store_im == "single" && !exp.empty() && itype == IMType::IM_MULTIPLE_SPECTRA)
+        {
+          std::vector<MSSpectrum> result;
+          collapseIMSpectrum(exp, result);
+          exp.setSpectra(result); // swap data
         }
       }
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
