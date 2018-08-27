@@ -493,6 +493,9 @@ protected:
     registerIntOption_("batchSize", "<number>", 0, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 500-1000)", false, true);
     setMinInt_("batchSize", 0);
 
+    registerIntOption_("ms1_isotopes", "<number>", 0, "The number of MS1 isotopes used for extraction", false, true);
+    setMinInt_("ms1_isotopes", 0);
+
     registerSubsection_("Scoring", "Scoring parameters section");
     registerSubsection_("Library", "Library parameters section");
 
@@ -652,6 +655,7 @@ protected:
     String extraction_function = getStringOption_("extraction_function");
     String swath_windows_file = getStringOption_("swath_windows_file");
     int batchSize = (int)getIntOption_("batchSize");
+    int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
     Size debug_level = (Size)getIntOption_("debug");
 
     double mz_extraction_window_ms1 = getDoubleOption_("mz_extraction_window_ms1");
@@ -865,7 +869,7 @@ protected:
       OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, load_into_memory);
+          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
     }
 
     if (!out.empty())

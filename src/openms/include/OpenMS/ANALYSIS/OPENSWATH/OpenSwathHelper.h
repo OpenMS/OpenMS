@@ -52,10 +52,45 @@ public:
 
     /**
       @brief Compute unique precursor identifier
+
+      Uses transition_group_id and isotope number to compute a unique precursor
+      id of the form "groupID_Precursor_ix" where x is the isotope number, e.g.
+      the monoisotopic precursor would become "groupID_Precursor_i0".
+
+      @param[in] transition_group_id Unique id of the transition group (peptide/compound)
+      @param[in] isotope Precursor isotope number
+
+      @return Unique precursor identifier
     */
     static String computePrecursorId(const String& transition_group_id, int isotope)
     {
       return transition_group_id + "_Precursor_i" + String(isotope);
+    }
+
+    /**
+      @brief Compute transition group id
+
+      Uses the unique precursor identifier to compute the transition group id
+      (peptide/compound identifier), reversing the operation performed by
+      computePrecursorId().
+
+      @param[in] precursor_id Precursor identifier as computed by computePrecursorId()
+
+      @return Original transition group id
+    */
+    static String computeTransitionGroupId(const String& precursor_id)
+    {
+      std::vector<String> substrings;
+      precursor_id.split("_", substrings);
+
+      if (substrings.size() == 3) return substrings[0];
+      else if (substrings.size() > 3)
+      {
+        String r;
+        for (Size k = 0; k < substrings.size() - 2; k++) r += substrings[k] + "_";
+        return r.prefix(r.size() - 1);
+      }
+      return "";
     }
 
     /**
