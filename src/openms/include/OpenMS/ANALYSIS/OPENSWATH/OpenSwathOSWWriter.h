@@ -137,12 +137,15 @@ namespace OpenMS
         "VAR_MASSDEV_SCORE REAL NOT NULL," \
         "VAR_MI_SCORE REAL NULL," \
         "VAR_MI_CONTRAST_SCORE REAL NULL," \
+        "VAR_MI_COMBINED_SCORE REAL NULL," \
         "VAR_ISOTOPE_CORRELATION_SCORE REAL NOT NULL," \
         "VAR_ISOTOPE_OVERLAP_SCORE REAL NOT NULL," \
         "VAR_XCORR_COELUTION REAL NOT NULL," \
         "VAR_XCORR_COELUTION_CONTRAST REAL NOT NULL," \
+        "VAR_XCORR_COELUTION_COMBINED REAL NOT NULL," \
         "VAR_XCORR_SHAPE REAL NOT NULL," \
-        "VAR_XCORR_SHAPE_CONTRAST REAL NOT NULL); " \
+        "VAR_XCORR_SHAPE_CONTRAST REAL NOT NULL," \
+        "VAR_XCORR_SHAPE_COMBINED REAL NOT NULL); " \
 
         "CREATE TABLE FEATURE_MS2(" \
         "FEATURE_ID INT NOT NULL," \
@@ -399,19 +402,27 @@ namespace OpenMS
           {
             var_ms1_mi_contrast_score = feature_it->getMetaValue("var_ms1_mi_contrast_score").toString();
           }
-          sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_CONTRAST_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_COELUTION_CONTRAST, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_CONTRAST) VALUES (" 
+          std::string var_ms1_mi_combined_score = "NULL"; // var_ms1_mi_combined_score is not guaranteed to be set
+          if (!feature_it->getMetaValue("var_ms1_mi_combined_score").isEmpty())
+          {
+            var_ms1_mi_combined_score = feature_it->getMetaValue("var_ms1_mi_combined_score").toString();
+          }
+          sql_feature_ms1 << "INSERT INTO FEATURE_MS1 (FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_CONTRAST_SCORE, VAR_MI_COMBINED_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_COELUTION_CONTRAST, VAR_XCORR_COELUTION_COMBINED, VAR_XCORR_SHAPE, VAR_XCORR_SHAPE_CONTRAST, VAR_XCORR_SHAPE_COMBINED) VALUES (" 
                           << feature_id << ", " 
                           << feature_it->getMetaValue("ms1_area_intensity") << ", " 
                           << feature_it->getMetaValue("ms1_apex_intensity") << ", " 
                           << feature_it->getMetaValue("var_ms1_ppm_diff") << ", " 
                           << var_ms1_mi_score << ", " 
                           << var_ms1_mi_contrast_score << ", " 
+                          << var_ms1_mi_combined_score << ", " 
                           << feature_it->getMetaValue("var_ms1_isotope_correlation") << ", " 
                           << feature_it->getMetaValue("var_ms1_isotope_overlap") << ", " 
                           << feature_it->getMetaValue("var_ms1_xcorr_coelution") << ", " 
                           << feature_it->getMetaValue("var_ms1_xcorr_coelution_contrast") << ", " 
+                          << feature_it->getMetaValue("var_ms1_xcorr_coelution_combined") << ", " 
                           << feature_it->getMetaValue("var_ms1_xcorr_shape") << ", " 
-                          << feature_it->getMetaValue("var_ms1_xcorr_shape_contrast") << "); ";
+                          << feature_it->getMetaValue("var_ms1_xcorr_shape_contrast") << ", " 
+                          << feature_it->getMetaValue("var_ms1_xcorr_shape_combined") << "); ";
         }
 
         if (enable_uis_scoring_)

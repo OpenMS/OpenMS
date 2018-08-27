@@ -272,6 +272,10 @@ namespace OpenMS
       mrmscore_.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
       scores.ms1_xcorr_coelution_contrast_score = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
       scores.ms1_xcorr_shape_contrast_score = mrmscore_.calcXcorrPrecursorContrastShapeScore();
+
+      mrmscore_.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
+      scores.ms1_xcorr_coelution_combined_score = mrmscore_.calcXcorrPrecursorCombinedCoelutionScore();
+      scores.ms1_xcorr_shape_combined_score = mrmscore_.calcXcorrPrecursorCombinedShapeScore();
     }
 
     if (su_.use_nr_peaks_score_)
@@ -313,6 +317,9 @@ namespace OpenMS
       }
       mrmscore_.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
       scores.ms1_mi_contrast_score = mrmscore_.calcMIPrecursorContrastScore();
+
+      mrmscore_.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+      scores.ms1_mi_combined_score = mrmscore_.calcMIPrecursorCombinedScore();
     }
   }
 

@@ -869,12 +869,15 @@ namespace OpenMS
             mrmfeature->addScore("var_ms1_xcorr_shape", scores.ms1_xcorr_shape_score);
             mrmfeature->addScore("var_ms1_xcorr_coelution", scores.ms1_xcorr_coelution_score);
             mrmfeature->addScore("var_ms1_xcorr_shape_contrast", scores.ms1_xcorr_shape_contrast_score);
+            mrmfeature->addScore("var_ms1_xcorr_shape_combined", scores.ms1_xcorr_shape_combined_score);
             mrmfeature->addScore("var_ms1_xcorr_coelution_contrast", scores.ms1_xcorr_coelution_contrast_score);
+            mrmfeature->addScore("var_ms1_xcorr_coelution_combined", scores.ms1_xcorr_coelution_combined_score);
           }
           if (su_.use_ms1_mi)
           {
             mrmfeature->addScore("var_ms1_mi_score", scores.ms1_mi_score);
             mrmfeature->addScore("var_ms1_mi_contrast_score", scores.ms1_mi_contrast_score);
+            mrmfeature->addScore("var_ms1_mi_combined_score", scores.ms1_mi_combined_score);
           }
           if (su_.use_ms1_fullscan)
           {

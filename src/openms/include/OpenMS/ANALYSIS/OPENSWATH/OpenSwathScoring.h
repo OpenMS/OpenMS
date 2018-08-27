@@ -145,13 +145,16 @@ namespace OpenMS
    
     double ms1_xcorr_coelution_score;
     double ms1_xcorr_coelution_contrast_score;
+    double ms1_xcorr_coelution_combined_score;
     double ms1_xcorr_shape_score;
     double ms1_xcorr_shape_contrast_score;
+    double ms1_xcorr_shape_combined_score;
     double ms1_ppm_score;
     double ms1_isotope_correlation;
     double ms1_isotope_overlap;
     double ms1_mi_score;
     double ms1_mi_contrast_score;
+    double ms1_mi_combined_score;
 
     double sonar_sn;
     double sonar_diff;
@@ -213,13 +216,16 @@ namespace OpenMS
       weighted_massdev_score(0),
       ms1_xcorr_coelution_score(0),
       ms1_xcorr_coelution_contrast_score(0),
+      ms1_xcorr_coelution_combined_score(0),
       ms1_xcorr_shape_score(0),
       ms1_xcorr_shape_contrast_score(0),
+      ms1_xcorr_shape_combined_score(0),
       ms1_ppm_score(0),
       ms1_isotope_correlation(0),
       ms1_isotope_overlap(0),
       ms1_mi_score(0),
       ms1_mi_contrast_score(0),
+      ms1_mi_combined_score(0),
       sonar_sn(0),
       sonar_diff(0),
       sonar_trend(0),
