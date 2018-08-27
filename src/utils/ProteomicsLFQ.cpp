@@ -333,6 +333,7 @@ protected:
           std::set<Size> corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(
             ms_centroided, 
             0.01, // check if we can estimate this from data (here it is given in m/z not ppm)
+            false, // is ppm = false
             deltaMZs, 
             mzs, 
             rts

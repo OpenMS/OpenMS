@@ -332,6 +332,14 @@ public:
         double local_right = best_right;
         if (!use_consensus_)
         {
+          // We cannot have any non-detecting transitions (otherwise we have
+          // too few left / right edges) as we skipped those when doing peak
+          // picking and smoothing.
+          if (!transition_group.getTransitions()[k].isDetectingTransition())
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                "When using non-censensus peak picker, all transitions need to be detecting transitions.");
+          }
           local_left = left_edges[k];
           local_right = right_edges[k];
         }
@@ -456,15 +464,16 @@ public:
         ConvexHull2D hull;
         hull.setHullPoints(pa.hull_points);
         f.getConvexHulls().push_back(hull);
-        if (chromatogram.metaValueExists("product_mz"))
+
+        f.setMZ(chromatogram.getProduct().getMZ());
+        mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());
+
+        if (chromatogram.metaValueExists("product_mz")) // legacy code (ensures that old tests still work)
         {
           f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
           f.setMZ(chromatogram.getMetaValue("product_mz"));
         }
-        else
-        {
-          LOG_WARN << "Please set meta value 'product_mz' on chromatogram to populate feature m/z value" << std::endl;
-        }
+
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
         f.setMetaValue("total_xic", transition_total_xic);
@@ -473,7 +482,7 @@ public:
           f.setMetaValue("total_mi", transition_total_mi);
         }
 
-        if (transition_group.getTransitions()[k].isDetectingTransition())
+        if (transition_group.getTransitions()[k].isQuantifyingTransition())
         {
           total_intensity += peak_integral;
           total_peak_apices += peak_apex_int;
@@ -510,6 +519,9 @@ public:
       for (Size k = 0; k < transition_group.getPrecursorChromatograms().size(); k++)
       {
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
+
+        // Identify precursor index
+        // note: this is only valid if all transitions are detecting transitions
         Size prec_idx = transition_group.getChromatograms().size() + k;
 
         double local_left = best_left;
@@ -583,10 +595,13 @@ public:
           f.setMetaValue("noise_background_level", avg_noise_level);
         }
 
-        if (chromatogram.metaValueExists("precursor_mz")) 
+        f.setMZ(chromatogram.getPrecursor().getMZ());
+        if (k == 0) {mrmFeature.setMZ(chromatogram.getPrecursor().getMZ());} // only use m/z if first (monoisotopic) isotope
+
+        if (chromatogram.metaValueExists("precursor_mz")) // legacy code (ensures that old tests still work)
         {
           f.setMZ(chromatogram.getMetaValue("precursor_mz"));
-          mrmFeature.setMZ(chromatogram.getMetaValue("precursor_mz"));
+          if (k == 0) {mrmFeature.setMZ(chromatogram.getMetaValue("precursor_mz"));} // only use m/z if first (monoisotopic) isotope
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());

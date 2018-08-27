@@ -108,17 +108,24 @@ protected:
     {
     }
 
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+      use_ms1_traces_(use_ms1_traces),
+      use_ms1_ion_mobility_(use_ms1_ion_mobility)
+    {
+    }
+
     /** @brief Perform MS1 extraction and store result in ms1_chromatograms
      *
     */
     void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                        std::map< std::string, OpenSwath::ChromatogramPtr >& ms1_chromatograms,
+                        std::vector< MSChromatogram >& ms1_chromatograms,
                         Interfaces::IMSDataConsumer * chromConsumer,
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp,
                         const TransformationDescription& trafo_inverse,
                         bool load_into_memory,
-                        bool ms1only = false);
+                        bool ms1only = false,
+                        int ms1_isotopes = 0);
 
     /** @brief Function to prepare extraction coordinates that also correctly handles RT transformations
      *
@@ -138,10 +145,12 @@ protected:
      *
     */
     void prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
-      std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
-      const OpenSwath::LightTargetedExperiment & transition_exp_used,
-      const bool ms1, const TransformationDescription trafo_inverse,
-      const ChromExtractParams & cp) const;
+                                       std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
+                                       const OpenSwath::LightTargetedExperiment & transition_exp_used,
+                                       const TransformationDescription trafo_inverse,
+                                       const ChromExtractParams & cp,
+                                       const bool ms1 = false,
+                                       const int ms1_isotopes = -1) const;
 
 
     /**
@@ -156,7 +165,8 @@ protected:
     /// Whether to use the MS1 traces
     bool use_ms1_traces_;
 
-
+    /// Whether to use ion mobility extraction on MS1 traces
+    bool use_ms1_ion_mobility_;
   };
 
   /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on a set of known peptides
@@ -167,7 +177,7 @@ protected:
   {
   public:
 
-    explicit OpenSwathRetentionTimeNormalization() :
+    OpenSwathRetentionTimeNormalization() :
       OpenSwathWorkflowBase(false)
     {
     }
@@ -271,6 +281,11 @@ protected:
     {
     }
 
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility)
+    {
+    }
+
     /** @brief Execute the OpenSWATH workflow on a set of SwathMaps and transitions.
      *
      * Executes the following operations on the given input:
@@ -291,12 +306,14 @@ protected:
      * @param osw_writer OSW Writer object to store identified features in SQLite format
      * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
+     * @param int ms1_isotopes Number of MS1 isotopes to extract (zero means only monoisotopic peak)
      * @param load_into_memory Whether to cache the current SWATH map in memory
      *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
                            const TransformationDescription trafo,
                            const ChromExtractParams & cp,
+                           const ChromExtractParams & cp_ms1,
                            const Param & feature_finder_param,
                            const OpenSwath::LightTargetedExperiment& transition_exp,
                            FeatureMap& out_featureFile,
@@ -305,6 +322,7 @@ protected:
                            OpenSwathOSWWriter & osw_writer,
                            Interfaces::IMSDataConsumer * chromConsumer,
                            int batchSize,
+                           int ms1_isotopes,
                            bool load_into_memory);
 
   protected:
@@ -337,8 +355,8 @@ protected:
      *
     */
     void scoreAllChromatograms(
-        const OpenSwath::SpectrumAccessPtr input,
-        const std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms,
+        const std::vector< OpenMS::MSChromatogram > & chrom_input,
+        const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
         const std::vector< OpenSwath::SwathMap >& swath_maps,
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
@@ -347,7 +365,8 @@ protected:
         FeatureMap& output,
         OpenSwathTSVWriter & tsv_writer,
         OpenSwathOSWWriter & osw_writer,
-        bool ms1only = false);
+        int nr_ms1_isotopes = 0,
+        bool ms1only = false) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *
@@ -396,9 +415,11 @@ protected:
   {
 
   public:
+
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces)
-    {}
+      OpenSwathWorkflow(use_ms1_traces, false)
+    {
+    }
 
     /** @brief Execute the OpenSWATH workflow on a set of SONAR SwathMaps and transitions.
      *
@@ -429,6 +450,7 @@ protected:
     void performExtractionSonar(const std::vector< OpenSwath::SwathMap > & swath_maps,
                                 const TransformationDescription trafo,
                                 const ChromExtractParams & cp,
+                                const ChromExtractParams & cp_ms1,
                                 const Param & feature_finder_param,
                                 const OpenSwath::LightTargetedExperiment& transition_exp,
                                 FeatureMap& out_featureFile,

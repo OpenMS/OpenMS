@@ -74,11 +74,11 @@ namespace OpenMS
         AASequence alpha; // longer peptide
         AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
         std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
-        double cross_linker_mass;
+        double cross_linker_mass = 0;
         String cross_linker_name;
         ResidueModification::TermSpecificity term_spec_alpha;
         ResidueModification::TermSpecificity term_spec_beta;
-        int precursor_correction;
+        int precursor_correction = 0;
 
         ProteinProteinCrossLinkType getType() const
         {
@@ -115,61 +115,61 @@ namespace OpenMS
         ProteinProteinCrossLink cross_link;
 
         /// reference to pair of spectra
-        Size scan_index_light;
-        Size scan_index_heavy;
+        Size scan_index_light = 0;
+        Size scan_index_heavy = 0;
 
         /// final score
-        double score;
+        double score = 0;
 
         /// rank among the matches to the same spectrum
-        Size rank;
+        Size rank = 0;
 
         /// counts, scores and other data for xQuest-like output
-        double xquest_score;
-        double pre_score;
-        double percTIC;
-        double wTIC;
-        double wTICold;
-        double int_sum;
-        double intsum_alpha;
-        double intsum_beta;
-        double total_current;
-        double precursor_error_ppm;
+        double xquest_score = 0;
+        double pre_score = 0;
+        double percTIC = 0;
+        double wTIC = 0;
+        double wTICold = 0;
+        double int_sum = 0;
+        double intsum_alpha = 0;
+        double intsum_beta = 0;
+        double total_current = 0;
+        double precursor_error_ppm = 0;
 
-        double match_odds;
-        double match_odds_alpha;
-        double match_odds_beta;
-        double log_occupancy;
-        double log_occupancy_alpha;
-        double log_occupancy_beta;
-        double xcorrx_max;
-        double xcorrc_max;
-        Size matched_linear_alpha;
-        Size matched_linear_beta;
-        Size matched_xlink_alpha;
-        Size matched_xlink_beta;
+        double match_odds = 0;
+        double match_odds_alpha = 0;
+        double match_odds_beta = 0;
+        double log_occupancy = 0;
+        double log_occupancy_alpha = 0;
+        double log_occupancy_beta = 0;
+        double xcorrx_max = 0;
+        double xcorrc_max = 0;
+        Size matched_linear_alpha = 0;
+        Size matched_linear_beta = 0;
+        Size matched_xlink_alpha = 0;
+        Size matched_xlink_beta = 0;
 
-        double num_iso_peaks_mean;
-        double num_iso_peaks_mean_linear_alpha;
-        double num_iso_peaks_mean_linear_beta;
-        double num_iso_peaks_mean_xlinks_alpha;
-        double num_iso_peaks_mean_xlinks_beta;
+        double num_iso_peaks_mean = 0;
+        double num_iso_peaks_mean_linear_alpha = 0;
+        double num_iso_peaks_mean_linear_beta = 0;
+        double num_iso_peaks_mean_xlinks_alpha = 0;
+        double num_iso_peaks_mean_xlinks_beta = 0;
 
-        double ppm_error_abs_sum_linear_alpha;
-        double ppm_error_abs_sum_linear_beta;
-        double ppm_error_abs_sum_xlinks_alpha;
-        double ppm_error_abs_sum_xlinks_beta;
-        double ppm_error_abs_sum_linear;
-        double ppm_error_abs_sum_xlinks;
-        double ppm_error_abs_sum_alpha;
-        double ppm_error_abs_sum_beta;
-        double ppm_error_abs_sum;
+        double ppm_error_abs_sum_linear_alpha = 0;
+        double ppm_error_abs_sum_linear_beta = 0;
+        double ppm_error_abs_sum_xlinks_alpha = 0;
+        double ppm_error_abs_sum_xlinks_beta = 0;
+        double ppm_error_abs_sum_linear = 0;
+        double ppm_error_abs_sum_xlinks = 0;
+        double ppm_error_abs_sum_alpha = 0;
+        double ppm_error_abs_sum_beta = 0;
+        double ppm_error_abs_sum = 0;
 
-        int precursor_correction;
+        int precursor_correction = 0;
 
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
-        Size peptide_id_index;
+        Size peptide_id_index = 0;
       };
 
       /**
