@@ -2017,7 +2017,7 @@ namespace OpenMS
 
        // MzTabString uri; // Location of the protein’s source entry.
        // MzTabStringList go_terms; // List of GO terms for the protein.
-          double coverage = hit.getCoverage();
+          double coverage = hit.getCoverage() / 100.0; // convert percent to fraction
           protein_row.protein_coverage = coverage >= 0 ? MzTabDouble(coverage) : MzTabDouble(); // (0-1) Amount of protein sequence identified.
        // std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
 
@@ -2120,7 +2120,7 @@ namespace OpenMS
           double coverage{0};
           for (const Size & prot_idx : protein_hits_idx)
           {
-            coverage += (1.0 / (double)protein_hits_idx.size()) * protein_hits[prot_idx].getCoverage();
+            coverage += (1.0 / (double)protein_hits_idx.size()) * 0.01 * protein_hits[prot_idx].getCoverage();
           }
           if (coverage >= 0) { protein_row.protein_coverage = MzTabDouble(coverage); }
                     
