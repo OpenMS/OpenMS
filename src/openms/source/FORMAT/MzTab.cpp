@@ -1606,7 +1606,19 @@ namespace OpenMS
     MzTabMSRunMetaData ms_run;
     StringList spectra_data;
     feature_map.getPrimaryMSRunPath(spectra_data);
-    ms_run.location = spectra_data.empty() ? MzTabString("null") : MzTabString(spectra_data[0]);
+
+    if (!spectra_data.empty())
+    {
+      // prepend file:// if not there yet
+      String m = spectra_data[0];
+      if (!m.hasPrefix("file://")) {m = String("file://") + m; }
+      ms_run.location = MzTabString(m);
+    }
+    else
+    {
+      ms_run.location = MzTabString("null");
+    }
+
     meta_data.ms_run[1] = ms_run; 
     meta_data.uri[1] = MzTabString(filename);
     meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
@@ -1941,7 +1953,19 @@ namespace OpenMS
         MzTabMSRunMetaData ms_run;
         StringList ms_run_in_data;
         it->getPrimaryMSRunPath(ms_run_in_data);
-        ms_run.location = ms_run_in_data.empty() ? MzTabString("null") : MzTabString(ms_run_in_data[0]);
+
+        if (!ms_run_in_data.empty())
+        {
+          // prepend file:// if not there yet
+          String m = ms_run_in_data[0];
+          if (!m.hasPrefix("file://")) {m = String("file://") + m; }
+          ms_run.location = MzTabString(m);
+        }
+        else
+        {
+          ms_run.location = MzTabString("null");
+        }
+        
         meta_data.ms_run[current_run_index] = ms_run;
 
         // TODO: add processing information that this file has been exported from "filename"
@@ -2549,11 +2573,15 @@ Not sure how to handle these:
 
     // set run meta data
     Size run_index{1};
-    for (auto const & m : ms_runs)
+    for (String m : ms_runs)
     {
       MzTabMSRunMetaData mztab_run_metadata;
       mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
       mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+
+      // prepend file:// if not there yet
+      if (!m.hasPrefix("file://")) {m = String("file://") + m; }
+
       mztab_run_metadata.location = MzTabString(m);
       meta_data.ms_run[run_index] = mztab_run_metadata;
       LOG_DEBUG << "Adding MS run for file: " << m << endl;
@@ -2604,7 +2632,7 @@ Not sure how to handle these:
 
       // look up run index by filename
       auto it = find_if(meta_data.ms_run.begin(), meta_data.ms_run.end(), 
-        [&c] (const pair<Size, MzTabMSRunMetaData>& m) { return m.second.location.toCellString() == c.second.filename; } );
+        [&c] (const pair<Size, MzTabMSRunMetaData>& m) { return m.second.location.toCellString().hasSuffix(c.second.filename); } );
       Size run_index = it->first;
 
       meta_data.assay[assay_index].quantification_reagent = quantification_reagent;

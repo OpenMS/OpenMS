@@ -818,7 +818,7 @@ protected:
       {
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
-        PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_);
+        PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_, quantifier.getStatistics().n_samples);
         vector<ProteinIdentification> proteins = consensus.getProteinIdentifications();
         proteins.insert(proteins.begin(), proteins_); // insert inference information as first protein identification
         consensus.setProteinIdentifications(proteins);
