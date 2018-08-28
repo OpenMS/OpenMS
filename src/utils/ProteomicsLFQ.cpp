@@ -971,7 +971,7 @@ protected:
     auto const & protein_quants = quantifier.getProteinResults();
 
     // annotates final quantities to proteins and protein groups in the ID data structure
-    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0]);
+    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0], design.getNumberOfFractionGroups());
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
     proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
