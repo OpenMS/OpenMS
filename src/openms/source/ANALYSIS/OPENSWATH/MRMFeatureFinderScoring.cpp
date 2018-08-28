@@ -69,8 +69,11 @@ void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hu
   curr_feature.ensureUniqueId();
 
   // Sum up intensities of the features
-  total_intensity += curr_feature.getIntensity();
-  total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
+  if (curr_feature.getMZ() > quantification_cutoff_)
+  {
+    total_intensity += curr_feature.getIntensity();
+    total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
+  }
 
   curr_feature.setMetaValue("FeatureLevel", ms_level);
 }

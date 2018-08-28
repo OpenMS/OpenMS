@@ -9,7 +9,7 @@
 		<feature id="f_4835329514588776807">
 			<position dim="0">99.9999997019768</position>
 			<position dim="1">510.05</position>
-			<intensity>12972.2</intensity>
+			<intensity>37737.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.233235</overallquality>
@@ -59,7 +59,7 @@
 			<UserParam type="float" name="leftWidth" value="10"/>
 			<UserParam type="float" name="rightWidth" value="190"/>
 			<UserParam type="float" name="total_xic" value="0"/>
-			<UserParam type="float" name="peak_apices_sum" value="1316.50946044922"/>
+			<UserParam type="float" name="peak_apices_sum" value="3829.845703125"/>
 			<UserParam type="float" name="sn_ratio" value="1.41700100519903"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.348542670093634"/>
 			<UserParam type="float" name="delta_rt" value="-60.0000002980232"/>
@@ -68,17 +68,19 @@
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="0.00300000001490116"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.023933009041013"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105771125344"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105769338282"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="PrecursorMZ" value="510.05"/>
+			<UserParam type="float" name="ms1_area_intensity" value="12972.2163085938"/>
+			<UserParam type="float" name="ms1_apex_intensity" value="1316.50946044922"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_3332699010107892018">
 			<position dim="0">99.9999997019768</position>
 			<position dim="1">500.01</position>
-			<intensity>16510.1</intensity>
+			<intensity>44813.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.233235</overallquality>
@@ -128,7 +130,7 @@
 			<UserParam type="float" name="leftWidth" value="10"/>
 			<UserParam type="float" name="rightWidth" value="190"/>
 			<UserParam type="float" name="total_xic" value="0"/>
-			<UserParam type="float" name="peak_apices_sum" value="1675.55749511719"/>
+			<UserParam type="float" name="peak_apices_sum" value="4547.94177246094"/>
 			<UserParam type="float" name="sn_ratio" value="1.41700100519903"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.348542670093634"/>
 			<UserParam type="float" name="delta_rt" value="-60.0000002980232"/>
@@ -137,11 +139,13 @@
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="0.00300000001490116"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.0195308594010019"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503417274433"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503417082028"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.50000005099749"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="PrecursorMZ" value="500.01"/>
+			<UserParam type="float" name="ms1_area_intensity" value="16510.09375"/>
+			<UserParam type="float" name="ms1_apex_intensity" value="1675.55749511719"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 	</featureList>

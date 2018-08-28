@@ -282,7 +282,7 @@ namespace OpenMS
                                         << sub_it->getMetaValue("peak_apex_int") << ", " 
                                         << total_mi << "); ";
           }
-          else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1" && sub_it->getIntensity() > 0)
+          else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1" && sub_it->getIntensity() > 0.0)
           {
             std::vector<String> precursor_id;
             OpenMS::String(sub_it->getMetaValue("native_id")).split('Precursor_i', precursor_id);
