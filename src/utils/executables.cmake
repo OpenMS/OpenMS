@@ -37,8 +37,6 @@ MultiplexResolver
 MzMLSplitter
 NovorAdapter
 NucleicAcidSearchEngine
-NucleotideIDAMSDBCreator
-NucSpectrumGen
 OpenMSInfo
 OpenPepXL
 OpenPepXLLF
