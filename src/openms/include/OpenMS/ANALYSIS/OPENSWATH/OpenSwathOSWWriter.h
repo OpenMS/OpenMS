@@ -285,7 +285,7 @@ namespace OpenMS
           else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1" && sub_it->getIntensity() > 0.0)
           {
             std::vector<String> precursor_id;
-            OpenMS::String(sub_it->getMetaValue("native_id")).split('Precursor_i', precursor_id);
+            OpenMS::String(sub_it->getMetaValue("native_id")).split(OpenMS::String("Precursor_i"), precursor_id);
             sql_feature_ms1_precursor  << "INSERT INTO FEATURE_PRECURSOR (FEATURE_ID, ISOTOPE, AREA_INTENSITY, APEX_INTENSITY) VALUES (" 
                                         << feature_id << ", " 
                                         << precursor_id[1] << ", " 
