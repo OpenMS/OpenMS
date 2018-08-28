@@ -37,7 +37,6 @@ MultiplexResolver
 MzMLSplitter
 NovorAdapter
 NucleicAcidSearchEngine
-NucleotideID
 NucleotideIDAMSDBCreator
 NucSpectrumGen
 OpenMSInfo
