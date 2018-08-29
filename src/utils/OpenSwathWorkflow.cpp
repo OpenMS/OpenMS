@@ -452,23 +452,37 @@ protected:
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
+    // misc options
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
+    registerFlag_("sonar", "data is scanning SWATH data");
+
+    // RT, mz and IM windows
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window that by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
+    setMinFloat_("extra_rt_extraction_window", 0.0);
     registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in milliseconds). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side.", false);
     registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
     setMinFloat_("mz_extraction_window", 0.0);
-    setMinFloat_("extra_rt_extraction_window", 0.0);
-    registerFlag_("ppm", "m/z extraction_window is in ppm");
-    registerFlag_("sonar", "data is scanning SWATH data");
+    registerStringOption_("mz_extraction_window_unit", "<name>", "Th", "Unit for mz extraction", false, true);
+    setValidStrings_("mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
 
-    registerStringOption_("use_ms1_ion_mobility", "<name>", "true", "Also perform precursor extraction using the same ion mobility window as for fragment ion extraction", false, true);
-    setValidStrings_("use_ms1_ion_mobility", ListUtils::create<String>("true,false"));
-
+    // MS1 mz windows and ion mobility
     registerDoubleOption_("mz_extraction_window_ms1", "<double>", 0.05, "Extraction window used in MS1 (in ppm)", false);
     setMinFloat_("mz_extraction_window_ms1", 0.0);
     registerStringOption_("mz_extraction_window_ms1_unit", "<name>", "Th", "Unit of the MS1 m/z extraction window", false, true);
     setValidStrings_("mz_extraction_window_ms1_unit", ListUtils::create<String>("ppm,Th"));
+    registerDoubleOption_("im_extraction_window_ms1", "<double>", -1, "Extraction window in ion mobility dimension for MS1 (in milliseconds).", false);
+
+    registerStringOption_("use_ms1_ion_mobility", "<name>", "true", "Also perform precursor extraction using the same ion mobility window as for fragment ion extraction", false, true);
+    setValidStrings_("use_ms1_ion_mobility", ListUtils::create<String>("true,false"));
+
+    // iRT mz and IM windows
+    registerDoubleOption_("irt_mz_extraction_window", "<double>", 0.05, "Extraction window used for iRT and m/z correction (in Thomson, use ppm use -ppm flag)", false, true);
+    setMinFloat_("irt_mz_extraction_window", 0.0);
+    registerDoubleOption_("irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT (in 1/K0 or milliseconds)", false, true);
+    registerStringOption_("irt_mz_extraction_window_unit", "<name>", "Th", "Unit for mz extraction", false, true);
+    setValidStrings_("irt_mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
+
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false, true);
@@ -481,16 +495,13 @@ protected:
 
     registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
     setValidStrings_("mz_correction_function", ListUtils::create<String>("none,regression_delta_ppm,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
-    registerDoubleOption_("irt_mz_extraction_window", "<double>", 0.05, "Extraction window used for iRT and m/z correction (in Thomson, use ppm use -ppm flag)", false, true);
-    registerFlag_("ppm_irtwindow", "iRT m/z extraction_window is in ppm", true);
 
-    // TODO terminal slash !
     registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 0, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 500-1000)", false, true);
+    registerIntOption_("batchSize", "<number>", 250, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 250-1000)", false, true);
     setMinInt_("batchSize", 0);
     registerIntOption_("outer_loop_threads", "<number>", -1, "How many threads should be used for the outer loop (-1 use all threads, use 4 to analyze 4 SWATH windows in memory at once).", false, true);
 
@@ -511,9 +522,10 @@ protected:
       // set sensible default parameters
       Param feature_finder_param = MRMFeatureFinderScoring().getDefaults();
       feature_finder_param.remove("rt_extraction_window");
+      feature_finder_param.setValue("stop_report_after_feature", 5);
       feature_finder_param.setValue("rt_normalization_factor", 100.0); // for iRT peptides between 0 and 100 (more or less)
 
-      feature_finder_param.setValue("TransitionGroupPicker:min_peak_width", 14.0);
+      feature_finder_param.setValue("TransitionGroupPicker:min_peak_width", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks", "true");
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
       feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", -1.5);
@@ -635,32 +647,20 @@ protected:
     String irt_tr_file = getStringOption_("tr_irt");
     String nonlinear_irt_tr_file = getStringOption_("tr_irt_nonlinear");
     String trafo_in = getStringOption_("rt_norm");
+    String swath_windows_file = getStringOption_("swath_windows_file");
 
     String out_chrom = getStringOption_("out_chrom");
-    bool ppm = getFlag_("ppm");
-    bool irt_ppm = getFlag_("ppm_irtwindow");
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool force = getFlag_("force");
     bool sonar = getFlag_("sonar");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
     bool use_ms1_traces = getFlag_("use_ms1_traces");
-    bool use_ms1_im = getStringOption_("use_ms1_ion_mobility") == "true";
     bool enable_uis_scoring = getFlag_("enable_uis_scoring");
-    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    double mz_extraction_window = getDoubleOption_("mz_extraction_window");
-    double irt_mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
-    double rt_extraction_window = getDoubleOption_("rt_extraction_window");
-    double im_extraction_window = getDoubleOption_("ion_mobility_window");
-    double extra_rt_extract = getDoubleOption_("extra_rt_extraction_window");
-    String extraction_function = getStringOption_("extraction_function");
-    String swath_windows_file = getStringOption_("swath_windows_file");
     int batchSize = (int)getIntOption_("batchSize");
     int outer_loop_threads = (int)getIntOption_("outer_loop_threads");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
     Size debug_level = (Size)getIntOption_("debug");
-
-    double mz_extraction_window_ms1 = getDoubleOption_("mz_extraction_window_ms1");
 
     double min_rsq = getDoubleOption_("min_rsq");
     double min_coverage = getDoubleOption_("min_coverage");
@@ -724,22 +724,28 @@ protected:
       }
     }
 
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    bool use_ms1_im = getStringOption_("use_ms1_ion_mobility") == "true";
+
     ChromExtractParams cp;
     cp.min_upper_edge_dist   = min_upper_edge_dist;
-    cp.mz_extraction_window  = mz_extraction_window;
-    cp.ppm                   = ppm;
-    cp.rt_extraction_window  = rt_extraction_window;
-    cp.im_extraction_window  = im_extraction_window;
-    cp.extraction_function   = extraction_function;
-    cp.extra_rt_extract      = extra_rt_extract;
+    cp.mz_extraction_window  = getDoubleOption_("mz_extraction_window");
+    cp.ppm                   = getStringOption_("mz_extraction_window_unit") == "ppm";
+    cp.rt_extraction_window  = getDoubleOption_("rt_extraction_window");
+    cp.im_extraction_window  = getDoubleOption_("ion_mobility_window");
+    cp.extraction_function   = getStringOption_("extraction_function");
+    cp.extra_rt_extract      = getDoubleOption_("extra_rt_extraction_window");
 
     ChromExtractParams cp_irt = cp;
-    cp_irt.rt_extraction_window = -1; // extract the whole RT range
-    cp_irt.mz_extraction_window = irt_mz_extraction_window;
-    cp_irt.ppm                  = irt_ppm;
+    cp_irt.rt_extraction_window = -1; // extract the whole RT range for iRT measurements
+    cp_irt.mz_extraction_window = getDoubleOption_("irt_mz_extraction_window");
+    cp_irt.im_extraction_window = getDoubleOption_("irt_im_extraction_window");
+    cp_irt.ppm                  = getStringOption_("irt_mz_extraction_window_unit") == "ppm";
 
     ChromExtractParams cp_ms1 = cp;
-    cp_ms1.mz_extraction_window = mz_extraction_window_ms1;
+    cp_ms1.mz_extraction_window  = getDoubleOption_("mz_extraction_window_ms1");
+    cp_ms1.ppm                   = getStringOption_("mz_extraction_window_ms1_unit") == "ppm";
+    cp_ms1.im_extraction_window  = getDoubleOption_("im_extraction_window_ms1");
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
     Param tsv_reader_param = getParam_().copy("Library:", true);
