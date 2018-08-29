@@ -88,7 +88,8 @@ private:
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_() {
+  void registerOptionsAndFlags_()
+  {
     registerInputFile_("in_cm", "<file>", "", "input file containing consensus elements with \'peptide\' annotations");
     setValidFormats_("in_cm", ListUtils::create<String>("consensusXML"));
 
@@ -140,7 +141,8 @@ protected:
 
     // MSExperiment
     vector<MSExperiment> ms_maps;
-    for(auto mzml_file_path : mzml_file_paths) {
+    for (auto mzml_file_path : mzml_file_paths)
+    {
       MzMLFile mzml_file;
       MSExperiment map;
       mzml_file.setLogType(log_type_);
@@ -156,7 +158,8 @@ protected:
     progress_logger.startProgress(0, consensus_map.size(), "parsing features and ms2 identifications...");
     std::stringstream output_stream;
     Size feature_count = 1;
-    for(Size i = 0; i != consensus_map.size(); ++i) {
+    for (Size i = 0; i != consensus_map.size(); ++i)
+    {
       progress_logger.setProgress(i);
       // current feature
       const ConsensusFeature& feature = consensus_map[i];
@@ -184,20 +187,25 @@ protected:
       vector<pair<pair<double,PeptideIdentification>,pair<int,int>>> peptides;
 
       bool should_skip_feature;
-      if(!(should_skip_feature = peptide_identifications.empty())) {
-        for(Size peptide_index = 0; peptide_index < peptide_identifications.size(); peptide_index++) {
+      if (!(should_skip_feature = peptide_identifications.empty()))
+      {
+        for (Size peptide_index = 0; peptide_index < peptide_identifications.size(); peptide_index++)
+        {
           auto peptide_identification = peptide_identifications[peptide_index];
 
           // append spectra information to scans_output
           int map_index = -1, spectrum_index = -1;
-          if(peptide_identification.metaValueExists("spectrum_index")) {
+          if (peptide_identification.metaValueExists("spectrum_index"))
+          {
             spectrum_index = peptide_identification.getMetaValue("spectrum_index");
           }
-          if(peptide_identification.metaValueExists("map_index")) {
+          if (peptide_identification.metaValueExists("map_index"))
+          {
             map_index = peptide_identification.getMetaValue("map_index");
           }
 
-          if(map_index != -1 && spectrum_index != -1) {
+          if (map_index != -1 && spectrum_index != -1)
+          {
             // TEMP: log debug map index and spectrum index values once they are found
             LOG_DEBUG << "map index\t" << map_index << "\tspectrum index\t" << spectrum_index << endl;
 
@@ -205,12 +213,14 @@ protected:
             auto ms2_scan = ms_maps[map_index][spectrum_index];
             ms2_scan.sortByIntensity(true);
 
-            if(ms2_scan.getMSLevel() == 2 && !ms2_scan.empty()) {
+            if (ms2_scan.getMSLevel() == 2 && !ms2_scan.empty())
+            {
               should_skip_feature = false;
 
               // DEBUG determine if within user rt and mz tol range
-              if(abs(feature.getMZ() - peptide_identification.getMZ()) > prec_mz_tol
-              && abs(feature.getRT() - peptide_identification.getRT()) > prec_rt_tol) {
+              if (abs(feature.getMZ() - peptide_identification.getMZ()) > prec_mz_tol
+              && abs(feature.getRT() - peptide_identification.getRT()) > prec_rt_tol)
+              {
                 continue;
               }
 
@@ -223,16 +233,22 @@ protected:
 
               peptides.push_back(pair<pair<double,PeptideIdentification>,pair<int,int>>(first_pair,second_pair));
             }
-          } else { should_skip_feature = true; }
+          }
+          else
+          {
+            should_skip_feature = true;
+          }
         }
       }
 
       // peptides list of < <similarity_index, PeptideIdentification>, <map_index, feature_index> >
 
       // with the remaining peptides left within mz/rt tol of most intense
-      if(!should_skip_feature && !peptides.empty()) {
+      if (!should_skip_feature && !peptides.empty())
+      {
         // prepare peptides for output with highest mz value at top
-        sort(peptides.begin(), peptides.end(), [](const pair<pair<double,PeptideIdentification>,pair<int,int>> &a, const pair<pair<double,PeptideIdentification>,pair<int,int>> &b) {
+        sort (peptides.begin(), peptides.end(), [](const pair<pair<double,PeptideIdentification>,pair<int,int>> &a, const pair<pair<double,PeptideIdentification>,pair<int,int>> &b)
+        {
           return a.first.first < b.first.first;
         });
 
@@ -240,8 +256,11 @@ protected:
         stringstream feature_stream;
         feature_stream << setprecision(4) << fixed;
 
-        if(output_type == "full_spectra") { // full spectra
-          for(auto peptide : peptides) {
+        // full spectra
+        if (output_type == "full_spectra")
+        {
+          for (auto peptide : peptides)
+          {
             feature_stream << "BEGIN IONS" << endl;
 
             feature_stream << "FEATURE_ID=" << to_string(feature_count) << endl;
@@ -259,19 +278,23 @@ protected:
 
             auto ms2_scan = ms_maps[peptide.second.first][peptide.second.second];
             // sort spectra
-            sort(ms2_scan.begin(), ms2_scan.end(), [](const Peak1D& a, const Peak1D& b) {
+            sort (ms2_scan.begin(), ms2_scan.end(), [](const Peak1D& a, const Peak1D& b)
+            {
               return a.getMZ() > b.getMZ();
             });
             // ms2_scan.sortByIntensity(true);
 
-            for(Size l = 0; l < ms2_scan.size(); l++) {
+            for (Size l = 0; l < ms2_scan.size(); l++)
+            {
               feature_stream << ms2_scan[l].getMZ() << "\t" << (int) ms2_scan[l].getIntensity() << endl;
             }
 
             feature_stream << "END IONS" << endl << endl;
           }
           feature_count++;
-        } else { // merged spectra
+        }
+        else // merged spectra
+        {
           // map mz to intensity
           map<double,int> ms2_block;
 
@@ -279,7 +302,8 @@ protected:
 
           const BinnedSpectrum binned_highest_int(ms_maps[peptides[0].second.first][peptides[0].second.second], BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
 
-          for(auto peptide : peptides) {
+          for (auto peptide : peptides)
+          {
             int map_index = peptide.second.first;
             int spectra_index = peptide.second.second;
             // int highest_binned_intensity = peptide.first.first;
@@ -294,12 +318,15 @@ protected:
             // LOG_DEBUG << cosine_sim << " >= " << cos_sim << endl;
 
             // compare calculated cosine sim to binned highest int
-            if(cosine_sim >= cos_sim) {
-              for(Size spectrum_index = 0; spectrum_index < spectrum.size(); ++spectrum_index) {
+            if (cosine_sim >= cos_sim)
+            {
+              for (Size spectrum_index = 0; spectrum_index < spectrum.size(); ++spectrum_index)
+              {
                 // exp.addSpectrum(spectrum);
                 // exp.addSpectrum(spectrum);
                 auto curr_spectrum = spectrum[spectrum_index];
-                if (ms2_block[curr_spectrum.getMZ()] < curr_spectrum.getIntensity()) {
+                if (ms2_block[curr_spectrum.getMZ()] < curr_spectrum.getIntensity())
+                {
                   ms2_block[curr_spectrum.getMZ()] = curr_spectrum.getIntensity();
                 }
               }
@@ -318,7 +345,8 @@ protected:
           feature_stream << "FILE_INDEX=" << peptides[0].second.second << endl;
           feature_stream << "RTINSECOND=" << peptides[0].first.second.getRT() << endl;
 
-          for(auto ms2_iter = ms2_block.rbegin(); ms2_iter != ms2_block.rend(); ++ms2_iter) {
+          for (auto ms2_iter = ms2_block.rbegin(); ms2_iter != ms2_block.rend(); ++ms2_iter)
+          {
             feature_stream << ms2_iter->first << "\t" << (int) ms2_iter->second << endl;
           }
           feature_stream << "END IONS" << endl << endl;
@@ -344,7 +372,8 @@ protected:
 };
 
 // the actual main functioned needed to create an executable
-int main(int argc, const char** argv) {
+int main (int argc, const char** argv)
+{
   TOPPGNPSExport tool;
   return tool.main(argc, argv);
 }
