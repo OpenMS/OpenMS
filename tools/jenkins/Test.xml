@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="(empty)"
+	BuildStamp="20130513-1259-Experimental"
+	Name="(empty)"
+	Generator="ctest-2.8.11-rc4"
+	CompilerName=""
+	OSName="Windows"
+	Hostname="foo-laptop"
+	OSRelease="7"
+	OSVersion="Service Pack 1 (Build 7601)"
+	OSPlatform="x86"
+	Is64Bits="0"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="5"
+	ProcessorCacheSize="-1"
+	NumberOfLogicalCPU="16"
+	NumberOfPhysicalCPU="0"
+	TotalVirtualMemory="2047"
+	TotalPhysicalMemory="3947"
+	LogicalProcessorsPerPhysical="16"
+	ProcessorClockFrequency="2659"
+>
+<Testing>
+	<StartDateTime>May 13 14:59 Romance Daylight Time</StartDateTime>
+	<StartTestTime>1368449947</StartTestTime>
+	<TestList>
+		<Test>./cppcheck</Test>
+		<Test>E_/foo/sources/FileSystem-testU</Test>
+		<Test>E_/foo/sources/Logging-testU</Test>
+		<Test>E_/foo/sources/MD5-testU</Test>
+		<Test>E_/foo/sources/ScriptWriter-testU</Test>
+		<Test>E_/foo/sources/String-testU</Test>
+		<Test>E_/foo/sources/WGET-testU-MD5-fail</Test>
+		<Test>E_/foo/sources/WGET-testU-noMD5</Test>
+		<Test>E_/foo/sources/WGET-testU</Test>
+		<Test>./tests/helloexe-shared</Test>
+		<Test>./tests/helloexe-static</Test>
+	</TestList>
+	<Test Status="passed">
+		<Name>cppcheck</Name>
+		<Path>.</Path>
+		<FullName>./cppcheck</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;--build&quot; &quot;E:/foo/build-vs2008-visual/_cmake&quot; &quot;--target&quot; &quot;cppcheck&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>1.65417</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;--build&quot; &quot;E:/foo/build-vs2008-visual/_cmake&quot; &quot;--target&quot; &quot;cppcheck&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value>
+Microsoft (R) Visual C++ Express Edition Version 9.0.30729.1.
+Copyright (C) Microsoft Corp 2007. All rights reserved.
+1&gt;------ Build started: Project: cppcheck, Configuration: Debug Win32 ------
+1&gt;Performing Post-Build Event...
+1&gt;-- Running cppcheck for target hellolib
+1&gt;-- Running cppcheck for target hellolib_static
+1&gt;-- Running cppcheck for target hellolib_object
+1&gt;-- Running cppcheck for target helloexe-shared
+1&gt;-- Running cppcheck for target helloexe-static
+1&gt;-- Running cppcheck for target helloexe-object
+1&gt;Build log was saved at &quot;file://e:\foo\build-vs2008-visual\_cmake\cppcheck.dir\Debug\BuildLog.htm&quot;
+1&gt;cppcheck - 0 error(s), 0 warning(s)
+========== Build: 1 succeeded, 0 failed, 1 up-to-date, 0 skipped ==========
+</Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="passed">
+		<Name>FileSystem-testU</Name>
+		<Path>E_/foo/sources</Path>
+		<FullName>E_/foo/sources/FileSystem-testU</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_FileSystem&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/FileSystem-testU.cmake&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.0970097</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_FileSystem&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/FileSystem-testU.cmake&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value></Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="passed">
+		<Name>Logging-testU</Name>
+		<Path>E_/foo/sources</Path>
+		<FullName>E_/foo/sources/Logging-testU</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_Logging&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/Logging-testU.cmake&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.0710068</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_Logging&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/Logging-testU.cmake&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value>-- TODO: implement a test if it possible
+</Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="passed">
+		<Name>MD5-testU</Name>
+		<Path>E_/foo/sources</Path>
+		<FullName>E_/foo/sources/MD5-testU</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_MD5&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/MD5-testU.cmake&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.0730076</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_MD5&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/MD5-testU.cmake&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value></Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="failed">
+		<Name>ScriptWriter-testU</Name>
+		<Path>E_/foo/sources</Path>
+		<FullName>E_/foo/sources/ScriptWriter-testU</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_ScriptWriter&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/ScriptWriter-testU.cmake&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="text/string" name="Exit Code"><Value>Failed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Exit Value"><Value>1</Value></NamedMeasurement>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.0920086</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_ScriptWriter&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/ScriptWriter-testU.cmake&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value>CMake Error at modules/testU/ScriptWriter-testU.cmake:28 (BAR_script_write_add_to_path):
+  Unknown CMake command &quot;BAR_script_write_add_to_path&quot;.
+
+
+</Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="passed">
+		<Name>String-testU</Name>
+		<Path>E_/foo/sources</Path>
+		<FullName>E_/foo/sources/String-testU</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_String&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/String-testU.cmake&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.0980091</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_String&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/String-testU.cmake&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value></Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="failed">
+		<Name>WGET-testU-MD5-fail</Name>
+		<Path>E_/foo/sources</Path>
+		<FullName>E_/foo/sources/WGET-testU-MD5-fail</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_WGET&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/WGET-testU-MD5-fail.cmake&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="text/string" name="Exit Code"><Value>Failed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Exit Value"><Value>0</Value></NamedMeasurement>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.0760078</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_WGET&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/WGET-testU-MD5-fail.cmake&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value>-- Download of file://\\wsrvmov003\Softs\packages/BuildSystemTests/WGET-test-wrong-md5.txt failed with message: [37]&quot;couldn&apos;t read a file:// file&quot;
+</Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="failed">
+		<Name>WGET-testU-noMD5</Name>
+		<Path>E_/foo/sources</Path>
+		<FullName>E_/foo/sources/WGET-testU-noMD5</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_WGET&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/WGET-testU-noMD5.cmake&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="text/string" name="Exit Code"><Value>Failed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Exit Value"><Value>1</Value></NamedMeasurement>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.0820084</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_WGET&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/WGET-testU-noMD5.cmake&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value>-- Download of file://\\wsrvmov003\Softs\packages/BuildSystemTests/WGET-test-wrong-md5.txt failed with message: [37]&quot;couldn&apos;t read a file:// file&quot;
+CMake Error at modules/Logging.cmake:121 (message):
+  
+
+  test BAR_wget_file succeed: result is &quot;OFF&quot; instead of &quot;ON&quot;
+
+Call Stack (most recent call first):
+  modules/Test.cmake:74 (BAR_msg_fatal)
+  modules/testU/WGET-testU-noMD5.cmake:14 (BAR_check_equal)
+
+
+</Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="failed">
+		<Name>WGET-testU</Name>
+		<Path>E_/foo/sources</Path>
+		<FullName>E_/foo/sources/WGET-testU</FullName>
+		<FullCommandLine>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_WGET&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/WGET-testU.cmake&quot;</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="text/string" name="Exit Code"><Value>Failed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Exit Value"><Value>1</Value></NamedMeasurement>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.115011</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>E:\Tools\cmake\cmake-2.8.11-rc4-win32-x86\bin\cmake.exe &quot;-DTEST_OUTPUT_DIR:PATH=E:/foo/build-vs2008-visual/_cmake/modules/testU_WGET&quot; &quot;-P&quot; &quot;E:/foo/sources/modules/testU/WGET-testU.cmake&quot;</Value></NamedMeasurement>
+			<Measurement>
+				<Value>-- Download of file://\\wsrvmov003\Softs\packages/BuildSystemTests/WGET-test-md5.txt failed with message: [37]&quot;couldn&apos;t read a file:// file&quot;
+CMake Error at modules/Logging.cmake:121 (message):
+  
+
+  Test BAR_wget_file succeed: result is &quot;OFF&quot; instead of &quot;ON&quot;
+
+Call Stack (most recent call first):
+  modules/Test.cmake:74 (BAR_msg_fatal)
+  modules/testU/WGET-testU.cmake:14 (BAR_check_equal)
+
+
+</Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="passed">
+		<Name>helloexe-shared</Name>
+		<Path>./tests</Path>
+		<FullName>./tests/helloexe-shared</FullName>
+		<FullCommandLine>e:\foo\build-vs2008-visual\release\bin\helloexe-shared.exe</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.168016</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>e:\foo\build-vs2008-visual\release\bin\helloexe-shared.exe</Value></NamedMeasurement>
+			<Measurement>
+				<Value>Hello BAR
+Hello lib shared
+BAR version from hellolib : 2.4.2
+BAR version from helloexe : 2.4.2
+</Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<Test Status="passed">
+		<Name>helloexe-static</Name>
+		<Path>./tests</Path>
+		<FullName>./tests/helloexe-static</FullName>
+		<FullCommandLine>e:\foo\build-vs2008-visual\release\bin\helloexe-static.exe</FullCommandLine>
+		<Results>
+			<NamedMeasurement type="numeric/double" name="Execution Time"><Value>0.124012</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Completion Status"><Value>Completed</Value></NamedMeasurement>
+			<NamedMeasurement type="text/string" name="Command Line"><Value>e:\foo\build-vs2008-visual\release\bin\helloexe-static.exe</Value></NamedMeasurement>
+			<Measurement>
+				<Value>Hello BAR
+Hello lib static
+BAR version from hellolib : 2.4.2
+BAR version from helloexe : 2.4.2
+</Value>
+			</Measurement>
+		</Results>
+	</Test>
+	<EndDateTime>May 13 14:59 Romance Daylight Time</EndDateTime>
+	<EndTestTime>1368449950</EndTestTime>
+<ElapsedMinutes>0</ElapsedMinutes></Testing>
+</Site>
