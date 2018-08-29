@@ -671,7 +671,8 @@ namespace OpenMS
         abundances.resize(n_samples);
         for (auto const & s : total_abundances)
         {
-          abundances[s.first] = s.second;
+          // Note: sample indices are one-based
+          abundances[s.first - 1] = s.second;
         }
       }
       else
