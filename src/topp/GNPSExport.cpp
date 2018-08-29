@@ -171,8 +171,10 @@ protected:
       // determining charge and most intense feature for header
       BaseFeature::ChargeType charge = feature.getCharge();
       for (ConsensusFeature::HandleSetType::const_iterator feature_iter = feature.begin();
-      feature_iter != feature.end(); ++feature_iter) {
-        if(feature_iter->getCharge() > charge) {
+      feature_iter != feature.end(); ++feature_iter)
+      {
+        if (feature_iter->getCharge() > charge)
+        {
           charge = feature_iter->getCharge();
         }
       }
@@ -223,7 +225,6 @@ protected:
               {
                 continue;
               }
-
 
               double similarity_index = 5 * abs(feature.getMZ() - peptide_identification.getMZ()) +
               abs(feature.getRT() - peptide_identification.getRT());
