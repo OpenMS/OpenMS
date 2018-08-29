@@ -381,6 +381,7 @@ set(chemistry_executables_list
   ResidueDB_test
   ResidueModification_test
   Residue_test
+  Ribonucleotide_test
   RibonucleotideDB_test
   RNaseDigestion_test
   SpectrumAnnotator_test

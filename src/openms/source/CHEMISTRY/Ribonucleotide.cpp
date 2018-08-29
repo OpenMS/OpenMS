@@ -64,6 +64,20 @@ namespace OpenMS
   {
   }
 
+  bool Ribonucleotide::operator==(const Ribonucleotide& ribonucleotide) const
+  {
+    return name_ == ribonucleotide.name_ &&
+        code_ == ribonucleotide.code_ &&
+        new_code_ == ribonucleotide.new_code_ &&
+        html_code_ == ribonucleotide.html_code_ &&
+        formula_ == ribonucleotide.formula_ &&
+        origin_ == ribonucleotide.origin_ &&
+        mono_mass_ == ribonucleotide.mono_mass_ &&
+        avg_mass_ == ribonucleotide.avg_mass_ &&
+        term_spec_ == ribonucleotide.term_spec_ &&
+        baseloss_formula_ == ribonucleotide.baseloss_formula_;
+  }
+
   const String Ribonucleotide::getCode() const
   {
     return code_;
