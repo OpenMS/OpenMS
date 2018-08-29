@@ -5189,7 +5189,13 @@ namespace OpenMS
 
         compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", true);
         compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationFloatDataArray(), "\t\t\t\t\t\t", false);
-        np_config = pf_options_.getNumpressConfigurationIntensity();
+        np_config = pf_options_.getNumpressConfigurationFloatDataArray();
+      }
+
+      String data_processing_ref_string = "";
+      if (array.getDataProcessing().size() != 0)
+      {
+        data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
       }
 
       // Try numpress encoding (if it is enabled) and fall back to regular encoding if it fails
@@ -5200,16 +5206,10 @@ namespace OpenMS
         {
           // numpress succeeded
           no_numpress = false;
-          os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+          os << "\t\t\t\t\t<binaryDataArray arrayLength=\"" << array.size() << "\" encodedLength=\"" << encoded_string.size() << "\" " << data_processing_ref_string << ">\n";
           os << cv_term_type;
           os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
         }
-      }
-
-      String data_processing_ref_string = "";
-      if (array.getDataProcessing().size() != 0)
-      {
-        data_processing_ref_string = String("dataProcessingRef=\"dp_sp_") + spec_chrom_idx + "_bi_" + array_idx + "\"";
       }
 
       // Regular DataArray without numpress (here: only 32 bit encoded)
