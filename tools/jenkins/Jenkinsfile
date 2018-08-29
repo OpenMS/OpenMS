@@ -52,6 +52,30 @@ pipeline {
                        }
                     }
                 }
+                stage('PyOpenMS') {
+                    agent {
+                        label "openms && ci-ready"
+                    }
+                    stages {
+                       stage("py build") {
+                           steps {
+                               echo 'build'
+                               sh 'echo py > test.txt'
+                           }
+                       }
+                       stage("py test") {
+                           steps {
+                               echo 'test'
+                               sh 'less test.txt'
+                               step([$class: 'XUnitBuilder',
+                                thresholds: [[$class: 'FailedThreshold', unstableThreshold: '0']],
+                                tools: [
+                                        [$class: 'CTestType', pattern: 'OpenMS/tools/jenkins/Test.xml'],
+                                         ]])
+                           }
+                       }
+                    }
+                }
             }
         }
         stage('Deploy') {
