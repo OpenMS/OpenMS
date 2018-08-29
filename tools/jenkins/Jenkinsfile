@@ -67,12 +67,10 @@ pipeline {
                            steps {
                                echo 'test'
                                sh 'less test.txt'
-                               sh 'ls'
-                               sh 'ls OpenMS/tools/jenkins/'
                                step([$class: 'XUnitBuilder',
                                 thresholds: [[$class: 'FailedThreshold', unstableThreshold: '0']],
                                 tools: [
-                                        [$class: 'CTestType', pattern: 'OpenMS/tools/jenkins/*.xml'],
+                                        [$class: 'CTestType', pattern: 'tools/jenkins/Test.xml'],
                                          ]])
                            }
                        }
