@@ -1,3 +1,4 @@
+
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -323,6 +324,9 @@ protected:
                            Interfaces::IMSDataConsumer * chromConsumer,
                            int batchSize,
                            int ms1_isotopes,
+                           int min_ms1_chromatograms,
+                           int max_transitions,
+                           int min_transitions,
                            bool load_into_memory);
 
   protected:
@@ -366,6 +370,9 @@ protected:
         OpenSwathTSVWriter & tsv_writer,
         OpenSwathOSWWriter & osw_writer,
         int nr_ms1_isotopes = 0,
+        int min_ms1_chromatograms = 0,
+        int max_transitions = 0,
+        int min_transitions = 0,
         bool ms1only = false) const;
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)

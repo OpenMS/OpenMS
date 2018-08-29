@@ -476,6 +476,15 @@ protected:
     registerIntOption_("ms1_isotopes", "<number>", 0, "The number of MS1 isotopes used for extraction", false, true);
     setMinInt_("ms1_isotopes", 0);
 
+    registerIntOption_("min_ms1_chromatograms", "<number>", 1, "The minimal number of MS1 isotopes (including monoisotopic peak) required for scoring", false, true);
+    setMinInt_("min_ms1_chromatograms", 1);
+
+    registerIntOption_("min_transitions", "<number>", 6, "Minimal number of transitions used for scoring", false, true);
+    setMinInt_("min_transitions", 3);
+
+        registerIntOption_("max_transitions", "<number>", 6, "Maximum number of transitions used for scoring", false, true);
+    setMinInt_("max_transitions", 3);
+
     registerSubsection_("Scoring", "Scoring parameters section");
     registerSubsection_("Library", "Library parameters section");
 
@@ -636,6 +645,9 @@ protected:
     String swath_windows_file = getStringOption_("swath_windows_file");
     int batchSize = (int)getIntOption_("batchSize");
     int ms1_isotopes = (int)getIntOption_("ms1_isotopes");
+    int min_ms1_chromatograms = (int)getIntOption_("min_ms1_chromatograms");
+    int min_transitions = (int)getIntOption_("min_transitions");
+    int max_transitions = (int)getIntOption_("max_transitions");
     Size debug_level = (Size)getIntOption_("debug");
 
     double mz_extraction_window_ms1 = getDoubleOption_("mz_extraction_window_ms1");
@@ -845,7 +857,8 @@ protected:
       OpenSwathWorkflow wf(use_ms1_traces, use_ms1_im);
       wf.setLogType(log_type_);
       wf.performExtraction(swath_maps, trafo_rtnorm, cp, cp_ms1, feature_finder_param, transition_exp,
-          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, load_into_memory);
+          out_featureFile, !out.empty(), tsvwriter, oswwriter, chromatogramConsumer, batchSize, ms1_isotopes, min_ms1_chromatograms,
+          max_transitions, min_transitions, load_into_memory);
     }
 
     if (!out.empty())

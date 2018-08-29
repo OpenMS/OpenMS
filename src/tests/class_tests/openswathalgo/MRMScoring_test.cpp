@@ -104,6 +104,67 @@ void fill_mock_objects(MockMRMFeature * imrmfeature, std::vector<std::string>& n
   imrmfeature->m_precursor_features = ms1_features; // add ms1 feature
 }
 
+void fill_mock_objects2(MockMRMFeature * imrmfeature, std::vector<std::string>& precursor_ids, std::vector<std::string>& native_ids)
+{
+  precursor_ids.push_back("ms1trace1");
+  precursor_ids.push_back("ms1trace2");
+  precursor_ids.push_back("ms1trace3");
+
+  native_ids.push_back("group1");
+  native_ids.push_back("group2");
+
+  static const double arr1[] =
+  {
+    5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
+    8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392
+  };
+  std::vector<double> intensity1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+  static const double arr2[] =
+  {
+    15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
+    121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
+  };
+  std::vector<double> intensity2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+  static const double arr3[] =
+  {
+    0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0
+  };
+  std::vector<double> ms1intensity1 (arr3, arr3 + sizeof(arr3) / sizeof(arr3[0]) );
+  static const double arr4[] =
+  {
+    10.0, 115.0, 180.0, 280.0, 330.0, 340.0, 390.0, 320.0, 300.0, 250.0, 100.0
+  };
+  std::vector<double> ms1intensity2 (arr4, arr4 + sizeof(arr4) / sizeof(arr4[0]) );
+  static const double arr5[] =
+  {
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  };
+  std::vector<double> ms1intensity3 (arr5, arr5 + sizeof(arr5) / sizeof(arr5[0]) );
+
+  boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  boost::shared_ptr<MockFeature> ms1_f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  boost::shared_ptr<MockFeature> ms1_f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  boost::shared_ptr<MockFeature> ms1_f3_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+
+  f1_ptr->m_intensity_vec = intensity1;
+  f2_ptr->m_intensity_vec = intensity2;
+  ms1_f1_ptr->m_intensity_vec = ms1intensity1;
+  ms1_f2_ptr->m_intensity_vec = ms1intensity2;
+  ms1_f3_ptr->m_intensity_vec = ms1intensity3;
+
+  std::map<std::string, boost::shared_ptr<MockFeature> > features;
+  features["group1"] = f1_ptr;
+  features["group2"] = f2_ptr;
+  imrmfeature->m_features = features; // add features
+
+  std::map<std::string, boost::shared_ptr<MockFeature> > ms1_features;
+  ms1_features["ms1trace1"] = ms1_f1_ptr;
+  ms1_features["ms1trace2"] = ms1_f2_ptr;
+  ms1_features["ms1trace3"] = ms1_f3_ptr;
+  imrmfeature->m_precursor_features = ms1_features; // add ms1 feature
+}
+
 ///////////////////////////
 
 START_TEST(MRMScoring, "$Id$")
@@ -228,16 +289,14 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorContrastMatrix)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().size(), 1)
+  TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix().size(), 3)
   TEST_EQUAL(mrmscore.getXCorrPrecursorContrastMatrix()[0].size(), 2)
 }
 END_SECTION
@@ -247,17 +306,15 @@ BOOST_AUTO_TEST_CASE(initializeXCorrPrecursorCombinedMatrix)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().size(), 3)
-  TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix()[0].size(), 3)
+  TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix().size(), 5)
+  TEST_EQUAL(mrmscore.getXCorrPrecursorCombinedMatrix()[0].size(), 5)
 }
 END_SECTION
 
@@ -379,34 +436,30 @@ BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastCoelutionScore)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastCoelutionScore(), 1 + std::sqrt(2.0) ) // mean + std deviation
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastCoelutionScore(), 9.5741984 )
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastCombinedScore)
+BOOST_AUTO_TEST_CASE(calcXcorrPrecursorCombinedCoelutionScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedCoelutionScore(), 2.16249346915846 )
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedCoelutionScore(), 9.2444789 )
 }
 END_SECTION
 
@@ -415,16 +468,14 @@ BOOST_AUTO_TEST_CASE(calcXcorrPrecursorContrastShapeScore)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastShapeScore(), (0.4657062259416978 + 0.61670976986284221 ) / 2.0 ) // mean + std deviation
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorContrastShapeScore(), 0.3772868 )
 }
 END_SECTION
 
@@ -433,16 +484,14 @@ BOOST_AUTO_TEST_CASE(calcXcorrPrecursorCombinedShapeScore)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedShapeScore(), 0.746566536363622 )
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrPrecursorCombinedShapeScore(), 0.5079334 )
 }
 END_SECTION
 
@@ -629,16 +678,14 @@ BOOST_AUTO_TEST_CASE(initializeMIPrecursorContrastMatrix)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().size(), 1)
+  TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix().size(), 3)
   TEST_EQUAL(mrmscore.getMIPrecursorContrastMatrix()[0].size(), 2)
 }
 END_SECTION
@@ -648,17 +695,15 @@ BOOST_AUTO_TEST_CASE(initializeMIPrecursorCombinedMatrix)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().size(), 3)
-  TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix()[0].size(), 3)
+  TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix().size(), 5)
+  TEST_EQUAL(mrmscore.getMIPrecursorCombinedMatrix()[0].size(), 5)
 }
 END_SECTION
 
@@ -723,16 +768,14 @@ BOOST_AUTO_TEST_CASE(test_calcMIPrecursorContrastScore)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_REAL_SIMILAR(mrmscore.calcMIPrecursorContrastScore(), 2.64125 )
+  TEST_REAL_SIMILAR(mrmscore.calcMIPrecursorContrastScore(), 2.003257 )
 }
 END_SECTION
 
@@ -741,16 +784,14 @@ BOOST_AUTO_TEST_CASE(test_calcMIPrecursorCombinedScore)
   MockMRMFeature * imrmfeature = new MockMRMFeature();
   MRMScoring mrmscore;
 
-  std::vector<std::string> native_ids;
-  fill_mock_objects(imrmfeature, native_ids);
-
   std::vector<std::string> precursor_ids;
-  precursor_ids.push_back("ms1trace");
+  std::vector<std::string> native_ids;
+  fill_mock_objects2(imrmfeature, precursor_ids, native_ids);
 
   //initialize the XCorr vector
   mrmscore.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
 
-  TEST_REAL_SIMILAR(mrmscore.calcMIPrecursorCombinedScore(), 2.95438111358679 )
+  TEST_REAL_SIMILAR(mrmscore.calcMIPrecursorCombinedScore(), 1.959490 )
 }
 END_SECTION
 

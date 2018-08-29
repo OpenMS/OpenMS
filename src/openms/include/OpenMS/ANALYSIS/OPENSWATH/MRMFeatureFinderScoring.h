@@ -132,7 +132,11 @@ public:
      *
     */
     void pickExperiment(PeakMap & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
-                        TransformationDescription trafo, PeakMap& swath_map);
+                        TransformationDescription trafo, PeakMap& swath_map,
+                        int max_ms1_chromatograms = 1000,
+                        int min_ms1_chromatograms = 1000,
+                        int max_transitions = 1000,
+                        int min_transitions = 1000);
 
     /** @brief Pick features in one experiment containing chromatogram
      *
@@ -153,7 +157,11 @@ public:
                         OpenSwath::LightTargetedExperiment& transition_exp,
                         TransformationDescription trafo,
                         std::vector<OpenSwath::SwathMap> swath_maps,
-                        TransitionGroupMapType& transition_group_map);
+                        TransitionGroupMapType& transition_group_map,
+                        int max_ms1_chromatograms = 1000,
+                        int min_ms1_chromatograms = 1000,
+                        int max_transitions = 1000,
+                        int min_transitions = 1000);
 
     /** @brief Prepares the internal mappings of peptides and proteins.
      *
@@ -186,6 +194,10 @@ public:
                          const TransformationDescription & trafo,
                          const std::vector<OpenSwath::SwathMap>& swath_maps,
                          FeatureMap& output,
+                         int max_ms1_chromatograms,
+                         int min_ms1_chromatograms,
+                         int max_transitions,
+                         int min_transitions,
                          bool ms1only=false);
 
     /** @brief Set the flag for strict mapping

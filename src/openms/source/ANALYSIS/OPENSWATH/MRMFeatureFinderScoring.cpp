@@ -157,7 +157,11 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::pickExperiment(PeakMap& chromatograms,
                                                FeatureMap& output, TargetedExperiment& transition_exp_,
-                                               TransformationDescription trafo, PeakMap& swath_map)
+                                               TransformationDescription trafo, PeakMap& swath_map,
+                                               int max_ms1_chromatograms,
+                                               int min_ms1_chromatograms,
+                                               int max_transitions,
+                                               int min_transitions)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
@@ -174,14 +178,18 @@ namespace OpenMS
     std::vector<OpenSwath::SwathMap> swath_ptrs;
     swath_ptrs.push_back(m);
 
-    pickExperiment(chromatogram_ptr, output, transition_exp, trafo, swath_ptrs, transition_group_map);
+    pickExperiment(chromatogram_ptr, output, transition_exp, trafo, swath_ptrs, transition_group_map, max_ms1_chromatograms, min_ms1_chromatograms, max_transitions, min_transitions);
   }
 
   void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
                                                FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
                                                TransformationDescription trafo, 
                                                std::vector<OpenSwath::SwathMap> swath_maps,
-                                               TransitionGroupMapType& transition_group_map)
+                                               TransitionGroupMapType& transition_group_map,
+                                               int max_ms1_chromatograms,
+                                               int min_ms1_chromatograms,
+                                               int max_transitions,
+                                               int min_transitions)
   {
     updateMembers_();
 
@@ -245,7 +253,7 @@ namespace OpenMS
       }
 
       trgroup_picker.pickTransitionGroup(transition_group);
-      scorePeakgroups(trgroup_it->second, trafo, swath_maps, output);
+      scorePeakgroups(trgroup_it->second, trafo, swath_maps, output, max_ms1_chromatograms, min_ms1_chromatograms, max_transitions, min_transitions);
     }
     endProgress();
 
@@ -469,6 +477,10 @@ namespace OpenMS
                                                 const TransformationDescription& trafo, 
                                                 const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                 FeatureMap& output, 
+                                                int max_ms1_chromatograms,
+                                                int min_ms1_chromatograms,
+                                                int max_transitions,
+                                                int min_transitions,
                                                 bool ms1only)
   {
     if (PeptideRefMap_.empty())
@@ -651,20 +663,43 @@ namespace OpenMS
         std::vector<double> normalized_library_intensity;
         transition_group_detection.getLibraryIntensity(normalized_library_intensity);
         OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
+
+        // Select transitions and precursor isotopes for scoring
+        std::vector<std::pair<double, std::string> > native_ids_intensities;
+        std::vector<std::pair<double, std::string> > precursor_ids_intensities;
+
         std::vector<std::string> native_ids_detection;
         std::vector<std::string> precursor_ids;
+
+        // Prioritize transitions according to intensity
         for (Size i = 0; i < transition_group_detection.size(); i++)
         {
-          native_ids_detection.push_back(transition_group_detection.getTransitions()[i].getNativeID());
+          std::string native_id = transition_group_detection.getTransitions()[i].getNativeID();
+          native_ids_intensities.push_back(std::make_pair(mrmfeature->getFeature(native_id).getIntensity(), native_id));
         }
+        sort(native_ids_intensities.rbegin(), native_ids_intensities.rbegin());
+
+        for (Size i = 0; i < native_ids_intensities.size(); i++) // limit to max_transitions
+        {
+          if ((i < max_transitions) && (native_ids_intensities[i].first > 0 || i < min_transitions)) // after reaching min_transitions, only select chromatograms with signal
+          {
+            native_ids_detection.push_back(native_ids_intensities[i].second);
+          }
+        }
+
+        // Prioritize precursors according to intensity
         for (Size i = 0; i < transition_group_detection.getPrecursorChromatograms().size(); i++)
         {
-          String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
+          std::string precursor_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
+          precursor_ids_intensities.push_back(std::make_pair(mrmfeature->getPrecursorFeature(precursor_id).getIntensity(), precursor_id));
+        }
+        sort(precursor_ids_intensities.rbegin(), precursor_ids_intensities.rbegin());
 
-          // append precursor monoisotopic peak and additional isotopes with a signal for scoring
-          if (OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0) == precursor_chrom_id || mrmfeature->getPrecursorFeature(precursor_chrom_id).getIntensity() > 0)
+        for (Size i = 0; i < precursor_ids_intensities.size(); i++) // limit to number of isotopes + monoisotopic precursor
+        {
+          if ((i < max_ms1_chromatograms) && (precursor_ids_intensities[i].first > 0 || i < min_ms1_chromatograms)) // after reaching min_ms1_chromatograms, only select chromatograms with signal
           {
-            precursor_ids.push_back(precursor_chrom_id);
+            precursor_ids.push_back(precursor_ids_intensities[i].second);
           }
         }
 
@@ -869,8 +904,14 @@ namespace OpenMS
           mrmfeature->addScore("var_manhatt_score", scores.manhatt_score_dia);
           if (su_.use_ms1_correlation)
           {
-            mrmfeature->addScore("var_ms1_xcorr_shape", scores.ms1_xcorr_shape_score);
-            mrmfeature->addScore("var_ms1_xcorr_coelution", scores.ms1_xcorr_coelution_score);
+            if (scores.ms1_xcorr_shape_score > -1)
+            {
+              mrmfeature->addScore("var_ms1_xcorr_shape", scores.ms1_xcorr_shape_score);
+            }
+            if (scores.ms1_xcorr_coelution_score > -1)
+            {
+              mrmfeature->addScore("var_ms1_xcorr_coelution", scores.ms1_xcorr_coelution_score);
+            }
             mrmfeature->addScore("var_ms1_xcorr_shape_contrast", scores.ms1_xcorr_shape_contrast_score);
             mrmfeature->addScore("var_ms1_xcorr_shape_combined", scores.ms1_xcorr_shape_combined_score);
             mrmfeature->addScore("var_ms1_xcorr_coelution_contrast", scores.ms1_xcorr_coelution_contrast_score);
@@ -878,7 +919,10 @@ namespace OpenMS
           }
           if (su_.use_ms1_mi)
           {
-            mrmfeature->addScore("var_ms1_mi_score", scores.ms1_mi_score);
+            if (scores.ms1_mi_score > -1)
+            {
+              mrmfeature->addScore("var_ms1_mi_score", scores.ms1_mi_score);
+            }
             mrmfeature->addScore("var_ms1_mi_contrast_score", scores.ms1_mi_contrast_score);
             mrmfeature->addScore("var_ms1_mi_combined_score", scores.ms1_mi_combined_score);
           }
