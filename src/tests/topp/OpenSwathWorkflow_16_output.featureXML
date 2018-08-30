@@ -132,8 +132,6 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.569372251601909"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.41687884380158"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_contrast" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_combined" value="0.599999998589742"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="19"/>
@@ -273,8 +271,6 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.56925470788801"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.41701524040422"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_contrast" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_combined" value="0.599999998612287"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="19"/>
@@ -414,8 +410,6 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.568606697754011"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.41776652740856"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_contrast" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_combined" value="0.599999998257311"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="17"/>
@@ -555,8 +549,6 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.568489382789048"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.41790252835303"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_contrast" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_combined" value="0.599999998107846"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="16"/>
@@ -696,8 +688,6 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.565984186901344"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.42079941730189"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999999999153825"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_contrast" value="0.488860258432165"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_combined" value="0.795544101878765"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="11"/>
@@ -710,6 +700,8 @@
 			<UserParam type="float" name="ms1_area_intensity" value="11675.7864990234"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="1296.26606369019"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999999999153825"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 		</feature>
 		<feature id="f_10627069796380146481">
 			<position dim="0">145.392653644085</position>
@@ -837,8 +829,6 @@
 			<UserParam type="float" name="var_yseries_score" value="0"/>
 			<UserParam type="float" name="var_dotprod_score" value="0.565984186901344"/>
 			<UserParam type="float" name="var_manhatt_score" value="1.42079941730189"/>
-			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999999999519461"/>
-			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_contrast" value="0.488862291030798"/>
 			<UserParam type="float" name="var_ms1_xcorr_shape_combined" value="0.795544914991346"/>
 			<UserParam type="float" name="var_ms1_xcorr_coelution_contrast" value="11"/>
@@ -851,6 +841,8 @@
 			<UserParam type="float" name="ms1_area_intensity" value="14860.0986328125"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="1649.78857421875"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.999999999519461"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="0"/>
 		</feature>
 	</featureList>
 </featureMap>
