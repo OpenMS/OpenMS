@@ -1,4 +1,3 @@
-
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -421,9 +420,6 @@ namespace OpenMS
     Interfaces::IMSDataConsumer * chromConsumer,
     int batchSize,
     int ms1_isotopes,
-    int min_ms1_chromatograms,
-    int max_transitions,
-    int min_transitions,
     bool load_into_memory)
   {
     tsv_writer.writeHeader();
@@ -464,7 +460,7 @@ namespace OpenMS
       OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
       scoreAllChromatograms_(std::vector<MSChromatogram>(), ms1_chromatograms, swath_maps, transition_exp_used, 
                             feature_finder_param, trafo,
-                            cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, ms1_isotopes, min_ms1_chromatograms, max_transitions, min_transitions, true);
+                            cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, ms1_isotopes, true);
 
       // write features to output if so desired
       std::vector< OpenMS::MSChromatogram > chromatograms;
@@ -581,7 +577,7 @@ namespace OpenMS
             std::vector< OpenSwath::SwathMap > tmp = {swath_maps[i]};
             tmp.back().sptr = current_swath_map_inner;
             scoreAllChromatograms_(chrom_exp.getChromatograms(), ms1_chromatograms, tmp, transition_exp_used,
-                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, ms1_isotopes, min_ms1_chromatograms, max_transitions, min_transitions);
+                feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, osw_writer, ms1_isotopes);
 
             // Step 4: write all chromatograms and features out into an output object / file
             // (this needs to be done in a critical section since we only have one
@@ -722,10 +718,7 @@ namespace OpenMS
     FeatureMap& output, 
     OpenSwathTSVWriter & tsv_writer,
     OpenSwathOSWWriter & osw_writer,
-    int ms1_isotopes,
-    int min_ms1_chromatograms,
-    int max_transitions,
-    int min_transitions,
+    int nr_ms1_isotopes,
     bool ms1only) const
   {
     TransformationDescription trafo_inv = trafo;
@@ -848,7 +841,7 @@ namespace OpenMS
       // 2. Set the MS1 chromatograms for the different isotopes, if available
       // (note that for 3 isotopes, we include the monoisotopic peak plus three
       // isotopic traces)
-      for (int iso = 0; iso <= ms1_isotopes; iso++)
+      for (int iso = 0; iso <= nr_ms1_isotopes; iso++)
       {
         String prec_id = OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), iso);
         if (!ms1_chromatograms.empty() && ms1_chromatogram_map.find(prec_id) != ms1_chromatogram_map.end())
@@ -860,8 +853,7 @@ namespace OpenMS
 
       // 3. / 4. Process the MRMTransitionGroup: find peakgroups and score them
       trgroup_picker.pickTransitionGroup(transition_group);
-      int max_ms1_chromatograms = ms1_isotopes + 1; // we need to also add the monoisotopic precursor
-      featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, max_ms1_chromatograms, min_ms1_chromatograms, max_transitions, min_transitions, ms1only);
+      featureFinder.scorePeakgroups(transition_group, trafo, swath_maps, output, ms1only);
 
       // Ensure that a detection transition is used to derive features for output
       if (detection_assay_it < 0 && output.size() > 0)
