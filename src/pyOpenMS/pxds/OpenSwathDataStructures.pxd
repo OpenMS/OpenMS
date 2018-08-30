@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
       
   ctypedef shared_ptr[OSBinaryDataArray] OSBinaryDataArrayPtr
 
-  # See addons/OSSpectrum.pyx
+  # See ../addons/OSSpectrum.pyx
   cdef cppclass OSSpectrum:
         OSSpectrum() nogil except +
         OSSpectrum(OSSpectrum) nogil except +
@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
   # boost::shared_ptr<OpenSwath::Spectrum> OpenSwath::SpectrumPtr;
   ctypedef shared_ptr[OSSpectrum] OSSpectrumPtr
 
-  # See addons/OSChromatogram.pyx
+  # See ../addons/OSChromatogram.pyx
   cdef cppclass OSChromatogram:
         OSChromatogram() nogil except +
         OSChromatogram(OSChromatogram) nogil except +
