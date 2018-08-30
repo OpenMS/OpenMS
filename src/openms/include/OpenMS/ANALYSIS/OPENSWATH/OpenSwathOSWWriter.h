@@ -282,7 +282,7 @@ namespace OpenMS
         tmp_separated_scores = ListUtils::create<String>((String)feature.getMetaValue(score_name),';');
       }
 
-      for (int i = 0; i < tmp_separated_scores.size(); ++i)
+      for (Size i = 0; i < tmp_separated_scores.size(); ++i)
       {
         if (tmp_separated_scores[i] == "")
         {
@@ -486,7 +486,7 @@ namespace OpenMS
           {
             int id_decoy_num_transitions = feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt();
 
-            for (int i = 0; i < feature_it->getMetaValue("id_decoy_num_transitions").toString().toInt(); ++i)
+            for (int i = 0; i < id_decoy_num_transitions; ++i)
             {
                sql_feature_uis_transition  << "INSERT INTO FEATURE_TRANSITION (FEATURE_ID, TRANSITION_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, VAR_INTENSITY_SCORE, VAR_INTENSITY_RATIO_SCORE, VAR_LOG_INTENSITY, VAR_XCORR_COELUTION, VAR_XCORR_SHAPE, VAR_LOG_SN_SCORE, VAR_MASSDEV_SCORE, VAR_MI_SCORE, VAR_MI_RATIO_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE) VALUES (" 
                                           << feature_id << ", " 
