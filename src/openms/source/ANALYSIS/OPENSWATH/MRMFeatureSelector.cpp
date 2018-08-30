@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
-// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
 // --------------------------------------------------------------------------
 
 #include <algorithm>
@@ -65,7 +65,42 @@ namespace OpenMS
     problem.addRow(indices, values, name, lb, ub, param);
   }
 
-  std::vector<String> MRMFeatureSelector::optimize_Tr(
+  std::vector<String> MRMFeatureSelectorScore::optimize(
+      std::vector<std::pair<double, String>> time_to_name, 
+      std::map< String, std::vector<Feature> > feature_name_map,
+      std::map< String, double > score_map
+  ) {
+    std::cout << "=======START OPTIMIZE SCORE========" << std::endl;
+    std::unordered_set<std::string> variables;
+    LPWrapper problem;
+    problem.setObjectiveSense(LPWrapper::MIN);
+    std::vector<Int> constraints;
+    for (size_t cnt1=0; cnt1 < time_to_name.size(); ++cnt1) {
+      std::vector<Feature> feature_row1 = feature_name_map[time_to_name[cnt1].second];
+      for (size_t i=0; i < feature_row1.size(); ++i) {
+        String name1 = time_to_name[cnt1].second + "_" + (String)feature_row1[i].getUniqueId();
+        if (variables.find(name1) == variables.end()) {
+            constraints.push_back(_addVariable(problem, name1));
+            variables.insert(name1);
+        }
+      }
+      std::vector<double> constraints_values(constraints.size(), 1.);
+      _addConstraint(problem, constraints.size(), &constraints[0], &constraints_values[0], time_to_name[cnt1].second + "_constraint", 1., 1., LPWrapper::DOUBLE_BOUNDED);
+    }
+    LPWrapper::SolverParam param;
+    problem.solve(param);
+    std::vector<String> result;
+    for (Int c = 0; c < problem.getNumberOfColumns(); ++c) {
+      if (problem.getColumnValue(c) > getOptimalThreshold()) {
+        result.push_back(problem.getColumnName(c));
+      }
+    }
+    std::cout << problem.getObjectiveValue() << std::endl;
+    std::cout << "=======END OPTIMIZE SCORE========" << std::endl;
+    return result;
+  }
+
+  std::vector<String> MRMFeatureSelectorQMIP::optimize(
       std::vector<std::pair<double, String>> time_to_name, 
       std::map< String, std::vector<Feature> > feature_name_map,
       std::map< String, double > score_map
@@ -135,9 +170,7 @@ namespace OpenMS
     return result;
   }
 
-  void MRMFeatureSelector::optimize_score() {}
-
-  FeatureMap MRMFeatureSelector::select_MRMFeature_qmip(
+  FeatureMap MRMFeatureSelector::select_MRMFeature(
     FeatureMap& features
   )
   {
@@ -194,7 +227,7 @@ namespace OpenMS
       size_t start = step_length*i;
       size_t end = std::min(start + window_length, (double)time_to_name.size());
       std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
-      std::vector<String> result = optimize_Tr(time_slice, feature_name_map, score_map);
+      std::vector<String> result = optimize(time_slice, feature_name_map, score_map);
       result_names.insert(result_names.end(), result.begin(), result.end());
     }
     std::unordered_set<std::string> result_names_set(result_names.begin(), result_names.end());
@@ -222,8 +255,6 @@ namespace OpenMS
     }
     return features_filtered;
   }
-
-  void MRMFeatureSelector::select_MRMFeature_score() {}
 
   double MRMFeatureSelector::make_score(
     Feature& feature

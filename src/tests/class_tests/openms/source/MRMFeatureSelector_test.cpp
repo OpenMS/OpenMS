@@ -54,8 +54,8 @@ START_TEST(MRMFeatureSelector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureSelector* ptr = 0;
-MRMFeatureSelector* null_ptr = 0;
+MRMFeatureSelectorQMIP* ptr = 0;
+MRMFeatureSelectorQMIP* null_ptr = 0;
 
 const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1.featureXML");
 const String target_list_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_BloodProject01_SWATH.csv");
@@ -75,20 +75,20 @@ feature_file.load(features_path, feature_map);
 // mrmfqcfile.load(components_path, mrmfqc, false); // components file
 // mrmfqcfile.load(components_groups_path, mrmfqc, true); // component groups file
 
-START_SECTION(MRMFeatureSelector())
+START_SECTION(MRMFeatureSelectorQMIP())
 {
-  ptr = new MRMFeatureSelector();
+  ptr = new MRMFeatureSelectorQMIP();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~MRMFeatureSelector())
+START_SECTION(~MRMFeatureSelectorQMIP())
 {
   delete ptr;
 }
 END_SECTION
 
-ptr = new MRMFeatureSelector();
+ptr = new MRMFeatureSelectorQMIP();
 
 START_SECTION(getParameters().getValue("nn_threshold"))
 {
@@ -160,9 +160,9 @@ START_SECTION(getOptimalThreshold())
 }
 END_SECTION
 
-START_SECTION(select_MRMFeature_qmip())
+START_SECTION(select_MRMFeature())
 {
-  ptr->select_MRMFeature_qmip(feature_map);
+  ptr->select_MRMFeature(feature_map);
 }
 END_SECTION
 

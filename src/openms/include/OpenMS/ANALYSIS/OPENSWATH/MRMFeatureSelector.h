@@ -47,18 +47,18 @@ namespace OpenMS
   class OPENMS_DLLAPI MRMFeatureSelector :
     public DefaultParamHandler
   {
+    friend class MRMFeatureSelectorQMIP;
+    friend class MRMFeatureSelectorScore;
 public:
     MRMFeatureSelector();
     virtual ~MRMFeatureSelector();
 
-    std::vector<String> optimize_Tr(
+    virtual std::vector<String> optimize(
       std::vector<std::pair<double, String>> time_to_name, 
       std::map< String, std::vector<Feature> > feature_name_map,
       std::map< String, double > score_map
-    );
-    void optimize_score();
-    FeatureMap select_MRMFeature_qmip(FeatureMap& features);
-    void select_MRMFeature_score();
+    )=0;
+    FeatureMap select_MRMFeature(FeatureMap& features);
     double make_score(Feature& feature);
 
     void setNNThreshold(const double& nn_threshold);
@@ -101,6 +101,26 @@ private:
     double optimal_threshold_;
     Int _addVariable(LPWrapper& problem, String& name, double lb, double ub);
     void _addConstraint(LPWrapper& problem, size_t size, Int *indices_array, double *values_array, String name, double lb, double ub, LPWrapper::Type param);
+  };
+
+  class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
+  {
+public:
+    std::vector<String> optimize(
+      std::vector<std::pair<double, String>> time_to_name, 
+      std::map< String, std::vector<Feature> > feature_name_map,
+      std::map< String, double > score_map
+    );
+  };
+
+  class OPENMS_DLLAPI MRMFeatureSelectorScore : public MRMFeatureSelector
+  {
+public:
+    std::vector<String> optimize(
+      std::vector<std::pair<double, String>> time_to_name, 
+      std::map< String, std::vector<Feature> > feature_name_map,
+      std::map< String, double > score_map
+    );
   };
 }
 
