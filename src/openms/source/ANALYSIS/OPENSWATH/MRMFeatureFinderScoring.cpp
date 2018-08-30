@@ -982,8 +982,8 @@ namespace OpenMS
         processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, ms1_total_intensity, ms1_total_peak_apices, "MS1");
         if (ms1only)
         {
-          total_intensity += ms1_total_intensity;
-          total_peak_apices += ms1_total_peak_apices;
+          total_intensity += curr_feature.getIntensity();
+          total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
         }
         allFeatures.push_back(curr_feature);
       }
