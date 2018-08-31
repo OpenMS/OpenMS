@@ -72,17 +72,18 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
         void setXTandemID(String value) nogil except +
         String getXTandemID() nogil except +
 
-        # sets the Comet ID
-        void setCometID(int value) nogil except +
+        String getCruxID() nogil except +
+        void setCruxID(const String & value) nogil except +
 
-        # returns the Comet ID
+        void setCometID(int value) nogil except +
         int getCometID() nogil except +
 
         # sets the OMSSA ID
         void setOMSSAID(int value) nogil except +
-
-        # returns the OMSSA ID
         int getOMSSAID() nogil except +
+
+        void setMSGFID(Int value) nogil except +
+        Int getMSGFID() nogil except +
 
         # equality operator
         bool operator==(DigestionEnzymeProtein& Enzyme) nogil except +
@@ -95,3 +96,6 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
 
         # equality operator for cleavage regex
         bool operator!=(EmpiricalFormula cleavage_regex) nogil except +
+
+        bool setValueFromFile(const String & key, const String & value) nogil except +
+

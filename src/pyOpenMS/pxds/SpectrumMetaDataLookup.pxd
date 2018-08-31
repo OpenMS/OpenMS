@@ -22,6 +22,8 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
 
         void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta, unsigned char flags) nogil except +
 
+        void setSpectraDataRef(const String & spectra_data) nogil except +
+
 #
 ## wrap static methods
 #
