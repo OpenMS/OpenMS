@@ -501,30 +501,6 @@ protected:
 
         if (getStringOption_("targeted_only") == "false")
         {
-/*
-          std::vector<MassTrace> m_traces_full;
-          mt_ext.run(ms_centroided, m_traces_full);
-
-          std::vector<MassTrace> splitted_mtraces;
-          ElutionPeakDetection epdet;
-          epdet.detectPeaks(m_traces_full, splitted_mtraces);
-
-          FeatureFindingMetabo ffm;
-          Param ffm_param = getParam_().copy("Seeds:", true);
-          ffm_param.setValue("mz_scoring_13C", "true");
-          ffm_param.setValue("isotope_filtering_model", "peptides");
-          ffm_param.setValue("remove_single_traces", "true");
-          ffm_param.setValue("chrom_fwhm", median_fwhm);
-          ffm_param.setValue("charge_lower_bound", 2);
-          ffm_param.setValue("charge_upper_bound", 5);
-          ffm_param.setValue("report_chromatograms", "false");
-          ffm.setLogType(log_type_);
-          ffm.setParameters(ffm_param);
-          std::vector<std::vector< OpenMS::MSChromatogram > > chromatograms;
-          writeDebug_("Parameters passed to FeatureFindingMetabo algorithm", ffm_param, 3);
-
-          ffm.run(splitted_mtraces, seeds, chromatograms);
-*/
           MSExperiment e;
           for (auto s : ms_centroided) 
           { 
@@ -635,6 +611,12 @@ protected:
         {
           MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
             transformations[i]);
+          if (debug_level_ > 666)
+          {
+            // plot with e.g.:
+            // Rscript ../share/OpenMS/SCRIPTS/plot_trafo.R debug_trafo_1.trafoXML debug_trafo_1.trafoXML
+            TransformationXMLFile().store("debug_trafo_" + String(i) + ".trafoXML", transformations[i]);
+          }
         }
         addDataProcessing_(consensus_fraction,
                        getProcessingInfo_(DataProcessing::ALIGNMENT));
@@ -702,16 +684,12 @@ protected:
       IDConflictResolverAlgorithm::resolve(consensus_fraction);
 
       //-------------------------------------------------------------
-      // ConsensusMap normalization
+      // ConsensusMap normalization (basic)
       //-------------------------------------------------------------
-
-
-      /*
       ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, 
-        ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
+        ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, 
         "", 
         "");
-      */
 
       // append consensus map calculated for this fraction number
 
@@ -727,8 +705,6 @@ protected:
     {
       ConsensusXMLFile().store("debug_after normalization.consensusXML", consensus);
     }
-
-
 
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
@@ -993,7 +969,8 @@ protected:
       consensus, 
       String("null"),   
       report_unidentified_features, 
-      report_unmapped);
+      report_unmapped,
+      "Export from ProteomicsLFQ workflow in OpenMS.");
     MzTabFile().store(out, m);
 
     if (!out_msstats.empty())
