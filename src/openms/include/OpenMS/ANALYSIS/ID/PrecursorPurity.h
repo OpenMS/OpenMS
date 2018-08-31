@@ -99,7 +99,7 @@ namespace OpenMS
 
   private:
     // simple helper to combine the metrics contained in two PurityScores
-    static PurityScores combinePrecursorPurities(PrecursorPurity::PurityScores score1, PrecursorPurity::PurityScores score2);
+    static PurityScores combinePrecursorPurities(const PrecursorPurity::PurityScores& score1, const PrecursorPurity::PurityScores& score2);
 
   };
 }

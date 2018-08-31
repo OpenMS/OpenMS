@@ -55,9 +55,9 @@ namespace OpenMS
     auto lower_it = ms1.MZBegin(lower);
     auto upper_it = ms1.MZEnd(upper);
 
-    std::cout << "MS1: " << ms1.getNativeID() << " | charge: " << charge << " | lower: " << lower << " | target: " << target_mz << " | upper: " << upper << std::endl;
-    std::cout << "lower_it: " << (*lower_it).getMZ() << " | upper_it: " << (*upper_it).getMZ() << std::endl;
-    std::cout << "lower offset: " << pre.getIsolationWindowLowerOffset() << " | upper offset: " << pre.getIsolationWindowUpperOffset() << std::endl;
+    // std::cout << "MS1: " << ms1.getNativeID() << " | charge: " << charge << " | lower: " << lower << " | target: " << target_mz << " | upper: " << upper << std::endl;
+    // std::cout << "lower_it: " << (*lower_it).getMZ() << " | upper_it: " << (*upper_it).getMZ() << std::endl;
+    // std::cout << "lower offset: " << pre.getIsolationWindowLowerOffset() << " | upper offset: " << pre.getIsolationWindowUpperOffset() << std::endl;
 
     PeakSpectrum isolated_window;
     while (lower_it != upper_it)
@@ -66,12 +66,12 @@ namespace OpenMS
       lower_it++;
     }
 
-    std::cout << "Isolation window peaks: " << isolated_window.size();
-    for (auto peak : isolated_window)
-    {
-      std::cout << " | " << peak.getMZ();
-    }
-    std::cout << std::endl;
+    // std::cout << "Isolation window peaks: " << isolated_window.size();
+    // for (auto peak : isolated_window)
+    // {
+    //   std::cout << " | " << peak.getMZ();
+    // }
+    // std::cout << std::endl;
 
     // total intensity in isolation window
     double total_intensity(0);
@@ -93,9 +93,13 @@ namespace OpenMS
     double target_intensity(0);
     target_intensity = isolated_window[target_index].getIntensity();
     isolated_window.erase(isolated_window.begin()+target_index);
+    if (target_intensity == 0.0)
+    {
+      return score;
+    }
 
     // deisotoping
-    std::cout << "iso peaks: ";
+    // std::cout << "iso peaks: ";
     Size target_peak_count(1);
     bool next_peak_found = true;
     double iso = 1;
@@ -111,7 +115,7 @@ namespace OpenMS
       {
         target_intensity += isolated_window[next_iso_index].getIntensity();
 
-        std::cout << isolated_window[next_iso_index].getMZ() << " | ";
+        // std::cout << isolated_window[next_iso_index].getMZ() << " | ";
 
         isolated_window.erase(isolated_window.begin()+next_iso_index);
         iso++;
@@ -133,23 +137,23 @@ namespace OpenMS
       {
         target_intensity += isolated_window[next_iso_index].getIntensity();
 
-        std::cout << isolated_window[next_iso_index].getMZ() << " | ";
+        // std::cout << isolated_window[next_iso_index].getMZ() << " | ";
 
         isolated_window.erase(isolated_window.begin()+next_iso_index);
         iso--;
         target_peak_count++;
       }
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    std::cout << "noise peaks: ";
+    // std::cout << "noise peaks: ";
     double noise_intensity(0);
     for (auto peak : isolated_window)
     {
       noise_intensity += peak.getIntensity();
-      std::cout << peak.getMZ() << " | ";
+      // std::cout << peak.getMZ() << " | ";
     }
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
     double rel_sig = target_intensity / total_intensity;
 
@@ -163,13 +167,16 @@ namespace OpenMS
     return score;
   }
 
-  PrecursorPurity::PurityScores PrecursorPurity::combinePrecursorPurities(PrecursorPurity::PurityScores score1, PrecursorPurity::PurityScores score2)
+  PrecursorPurity::PurityScores PrecursorPurity::combinePrecursorPurities(const PrecursorPurity::PurityScores& score1, const PrecursorPurity::PurityScores& score2)
   {
     PrecursorPurity::PurityScores score;
     score.total_intensity = score1.total_intensity + score2.total_intensity;
     score.target_intensity = score1.target_intensity + score2.target_intensity;
     score.residual_intensity = score1.residual_intensity + score2.residual_intensity;
-    score.signal_proportion = score.target_intensity / score.total_intensity;
+    if (score.target_intensity > 0.0) // otherwise default value of 0 is used
+    {
+      score.signal_proportion = score.target_intensity / score.total_intensity;
+    }
     score.target_peak_count = score1.target_peak_count + score2.target_peak_count;
     score.residual_peak_count = score1.residual_peak_count + score2.residual_peak_count;
 
@@ -207,9 +214,9 @@ namespace OpenMS
         PrecursorPurity::PurityScores score = PrecursorPurity::combinePrecursorPurities(score1, score2);
         purityscores.push_back(score);
 
-        std::cout << "Score1 | Spectrum: " << i << " | total intensity: " << score1.total_intensity << " | target intensity: " << score1.target_intensity << " | noise intensity: " << score1.residual_intensity << " | rel_sig: " << score1.signal_proportion << std::endl;
-        std::cout << "Score2 | Spectrum: " << i << " | total intensity: " << score2.total_intensity << " | target intensity: " << score2.target_intensity << " | noise intensity: " << score2.residual_intensity << " | rel_sig: " << score2.signal_proportion << std::endl;
-        std::cout << "Combin | Spectrum: " << i << " | total intensity: " << score.total_intensity << " | target intensity: " << score.target_intensity << " | noise intensity: " << score.residual_intensity << " | rel_sig: " << score.signal_proportion << std::endl;
+        // std::cout << "Score1 | Spectrum: " << i << " | total intensity: " << score1.total_intensity << " | target intensity: " << score1.target_intensity << " | noise intensity: " << score1.residual_intensity << " | rel_sig: " << score1.signal_proportion << std::endl;
+        // std::cout << "Score2 | Spectrum: " << i << " | total intensity: " << score2.total_intensity << " | target intensity: " << score2.target_intensity << " | noise intensity: " << score2.residual_intensity << " | rel_sig: " << score2.signal_proportion << std::endl;
+        // std::cout << "Combin | Spectrum: " << i << " | total intensity: " << score.total_intensity << " | target intensity: " << score.target_intensity << " | noise intensity: " << score.residual_intensity << " | rel_sig: " << score.signal_proportion << std::endl;
 
       } // end of MS2 spectrum
     } // spectra loop
