@@ -102,7 +102,7 @@ namespace OpenMS
     Size target_peak_count(1);
     bool next_peak_found = true;
     double iso = 1;
-    while(next_peak_found)
+    while (next_peak_found)
     {
       double next_peak = target_mz + (iso * Constants::C13C12_MASSDIFF_U / charge);
       int next_iso_index = isolated_window.findNearest(next_peak, precursor_tolerance_abs);
@@ -124,7 +124,7 @@ namespace OpenMS
 
     next_peak_found = true;
     iso = -1;
-    while(next_peak_found)
+    while (next_peak_found)
     {
       double next_peak = target_mz + (iso * Constants::C13C12_MASSDIFF_U / charge);
       int next_iso_index = isolated_window.findNearest(next_peak, precursor_tolerance_abs);
