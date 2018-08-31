@@ -2498,8 +2498,9 @@ Not sure how to handle these:
     const ConsensusMap& consensus_map, 
     const String& filename, 
     const bool export_unidentified_features,
-    const bool export_unassigned_ids)
-  {
+    const bool export_unassigned_ids,
+    String title)
+  {  
     LOG_INFO << "exporting consensus map: \"" << filename << "\" to mzTab: " << std::endl;
     vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
 
@@ -2552,6 +2553,7 @@ Not sure how to handle these:
     meta_data.mz_tab_type = MzTabString("Quantification");
     meta_data.mz_tab_mode = MzTabString("Summary");
     meta_data.description = MzTabString("OpenMS export from consensusXML");
+    meta_data.title = MzTabString(title);
 
     MzTabParameter quantification_method;
     quantification_method.fromCellString("[MS,MS:1001834,LC-MS label-free quantitation analysis,]");

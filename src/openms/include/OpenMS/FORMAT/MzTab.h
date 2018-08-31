@@ -780,7 +780,8 @@ public:
       const ConsensusMap & consensus_map, 
       const String & filename,
       const bool export_unidentified_features,
-      const bool export_unassigned_ids);
+      const bool export_unassigned_ids,
+      String title = "ConsensusMap export from OpenMS");
 
 protected:
     MzTabMetaData meta_data_;

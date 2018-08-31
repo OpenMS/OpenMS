@@ -968,7 +968,8 @@ protected:
       consensus, 
       String("null"),   
       report_unidentified_features, 
-      report_unmapped);
+      report_unmapped,
+      "Export from ProteomicsLFQ workflow in OpenMS.");
     MzTabFile().store(out, m);
 
     if (!out_msstats.empty())
