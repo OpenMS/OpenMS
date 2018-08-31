@@ -881,6 +881,34 @@ namespace OpenMS
         ph_beta.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
         ph_beta.setMetaValue("selected", "false");
 
+        ph_beta.setMetaValue("matched_xlink_alpha",top_csms_spectrum[i].matched_xlink_alpha);
+        ph_beta.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
+        ph_beta.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
+        ph_beta.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
+
+        ph_beta.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
+        ph_beta.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
+        ph_beta.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
+        ph_beta.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
+        ph_beta.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
+
+        ph_beta.setMetaValue("ppm_error_abs_sum_linear_alpha", top_csms_spectrum[i].ppm_error_abs_sum_linear_alpha);
+        ph_beta.setMetaValue("ppm_error_abs_sum_linear_beta", top_csms_spectrum[i].ppm_error_abs_sum_linear_beta);
+        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks_alpha", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_alpha);
+        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks_beta", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_beta);
+
+        ph_beta.setMetaValue("ppm_error_abs_sum_linear", top_csms_spectrum[i].ppm_error_abs_sum_linear);
+        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks", top_csms_spectrum[i].ppm_error_abs_sum_xlinks);
+        ph_beta.setMetaValue("ppm_error_abs_sum_alpha", top_csms_spectrum[i].ppm_error_abs_sum_alpha);
+        ph_beta.setMetaValue("ppm_error_abs_sum_beta", top_csms_spectrum[i].ppm_error_abs_sum_beta);
+        ph_beta.setMetaValue("ppm_error_abs_sum", top_csms_spectrum[i].ppm_error_abs_sum);
+
+        ph_beta.setMetaValue("precursor_total_intensity", top_csms_spectrum[i].precursor_total_intensity);
+        ph_beta.setMetaValue("precursor_target_intensity", top_csms_spectrum[i].precursor_target_intensity);
+        ph_beta.setMetaValue("precursor_signal_proportion", top_csms_spectrum[i].precursor_signal_proportion);
+        ph_beta.setMetaValue("precursor_target_peak_count", top_csms_spectrum[i].precursor_target_peak_count);
+        ph_beta.setMetaValue("precursor_residual_peak_count", top_csms_spectrum[i].precursor_residual_peak_count);
+
         phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
       }
