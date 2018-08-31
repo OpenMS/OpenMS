@@ -143,12 +143,18 @@ namespace OpenMS
     double weighted_xcorr_shape;
     double weighted_massdev_score;
    
-    double xcorr_ms1_coelution_score;
-    double xcorr_ms1_shape_score;
+    double ms1_xcorr_coelution_score;
+    double ms1_xcorr_coelution_contrast_score;
+    double ms1_xcorr_coelution_combined_score;
+    double ms1_xcorr_shape_score;
+    double ms1_xcorr_shape_contrast_score;
+    double ms1_xcorr_shape_combined_score;
     double ms1_ppm_score;
     double ms1_isotope_correlation;
     double ms1_isotope_overlap;
     double ms1_mi_score;
+    double ms1_mi_contrast_score;
+    double ms1_mi_combined_score;
 
     double sonar_sn;
     double sonar_diff;
@@ -208,12 +214,18 @@ namespace OpenMS
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),
-      xcorr_ms1_coelution_score(0),
-      xcorr_ms1_shape_score(0),
+      ms1_xcorr_coelution_score(-1),
+      ms1_xcorr_coelution_contrast_score(0),
+      ms1_xcorr_coelution_combined_score(0),
+      ms1_xcorr_shape_score(-1),
+      ms1_xcorr_shape_contrast_score(0),
+      ms1_xcorr_shape_combined_score(0),
       ms1_ppm_score(0),
       ms1_isotope_correlation(0),
       ms1_isotope_overlap(0),
-      ms1_mi_score(0),
+      ms1_mi_score(-1),
+      ms1_mi_contrast_score(0),
+      ms1_mi_combined_score(0),
       sonar_sn(0),
       sonar_diff(0),
       sonar_trend(0),
@@ -517,6 +529,7 @@ var_yseries_score   -0.0327896378737766
      *
      * @param imrmfeature The feature to be scored
      * @param native_ids The list of native ids (giving a canonical ordering of the transitions)
+     * @param precursor_ids The list of precursor ids
      * @param normalized_library_intensity The weights to be used for each transition (e.g. normalized library intensities)
      * @param signal_noise_estimators The signal-to-noise estimators for each transition
      * @param scores The object to store the result
@@ -525,7 +538,7 @@ var_yseries_score   -0.0327896378737766
     void calculateChromatographicScores(
           OpenSwath::IMRMFeature* imrmfeature,
           const std::vector<std::string>& native_ids,
-          const std::string& precursor_chrom_id,
+          const std::vector<std::string>& precursor_ids,
           const std::vector<double>& normalized_library_intensity,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
           OpenSwath_Scores & scores);

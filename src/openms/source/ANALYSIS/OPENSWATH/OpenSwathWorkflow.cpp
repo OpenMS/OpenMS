@@ -548,7 +548,7 @@ namespace OpenMS
 #endif
               "will analyze " << transition_exp_used_all.getCompounds().size() <<  " compounds and "
               << transition_exp_used_all.getTransitions().size() <<  " transitions "
-              "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << std::endl;
+              "from SWATH " << i << " (batch " << pep_idx << " out of " << nr_batches << ")" << std::endl;
             }
 
             // Create the new, batch-size transition experiment

@@ -635,12 +635,12 @@ PyOpenMSChecker:
 
     OpenSwath::MRMScoring:
         - getXCorrMatrix
+        - getXCorrContrastMatrix
         - initializeXCorrMatrix
-        - initializeMS1XCorr
+        - initializeXCorrContrastMatrix
         - calcLibraryScore
         - calcSNScore
-        - initializeXCorrIdMatrix
-        - calcIndSNScore
+        - calcSeparateSNScore
 
     OpenMS::MRMTransitionGroupPicker:
         - pickTransitionGroup
