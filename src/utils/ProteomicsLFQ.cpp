@@ -613,7 +613,7 @@ protected:
           if (debug_level_ > 666)
           {
             // plot with e.g.:
-            // Rscript ../share/OpenMS/SCRIPTS/plot_trafo.R debug_trafo_1.trafoXML debug_trafo_1.trafoXML
+            // Rscript ../share/OpenMS/SCRIPTS/plot_trafo.R debug_trafo_1.trafoXML debug_trafo_1.pdf
             TransformationXMLFile().store("debug_trafo_" + String(i) + ".trafoXML", transformations[i]);
           }
         }
