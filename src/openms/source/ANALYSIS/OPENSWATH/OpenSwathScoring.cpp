@@ -234,7 +234,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateChromatographicScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<std::string>& native_ids,
-        const std::string& precursor_feature_id,
+        const std::vector<std::string>& precursor_ids,
         const std::vector<double>& normalized_library_intensity,
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
         OpenSwath_Scores & scores)
@@ -246,7 +246,7 @@ namespace OpenMS
     if (su_.use_coelution_score_)
     {
       scores.xcorr_coelution_score = mrmscore_.calcXcorrCoelutionScore();
-      scores.weighted_coelution_score = mrmscore_.calcXcorrCoelutionScore_weighted(normalized_library_intensity);
+      scores.weighted_coelution_score = mrmscore_.calcXcorrCoelutionWeightedScore(normalized_library_intensity);
     }
 
     // XCorr score (shape)
@@ -255,16 +255,27 @@ namespace OpenMS
     // FEATURE : normalize with the intensity at the peak group apex?
     if (su_.use_shape_score_)
     {
-      scores.xcorr_shape_score = mrmscore_.calcXcorrShape_score();
-      scores.weighted_xcorr_shape = mrmscore_.calcXcorrShape_score_weighted(normalized_library_intensity);
+      scores.xcorr_shape_score = mrmscore_.calcXcorrShapeScore();
+      scores.weighted_xcorr_shape = mrmscore_.calcXcorrShapeWeightedScore(normalized_library_intensity);
     }
 
     // check that the MS1 feature is present and that the MS1 correlation should be calculated
     if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
     {
-      mrmscore_.initializeMS1XCorr(imrmfeature, native_ids, precursor_feature_id); // perform cross-correlation on monoisotopic precursor
-      scores.xcorr_ms1_coelution_score = mrmscore_.calcMS1XcorrCoelutionScore();
-      scores.xcorr_ms1_shape_score = mrmscore_.calcMS1XcorrShape_score();
+      // we need at least two precursor isotopes
+      if (precursor_ids.size() > 1)
+      {
+        mrmscore_.initializeXCorrPrecursorMatrix(imrmfeature, precursor_ids);
+        scores.ms1_xcorr_coelution_score = mrmscore_.calcXcorrPrecursorCoelutionScore();
+        scores.ms1_xcorr_shape_score = mrmscore_.calcXcorrPrecursorShapeScore();
+      }
+      mrmscore_.initializeXCorrPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
+      scores.ms1_xcorr_coelution_contrast_score = mrmscore_.calcXcorrPrecursorContrastCoelutionScore();
+      scores.ms1_xcorr_shape_contrast_score = mrmscore_.calcXcorrPrecursorContrastShapeScore();
+
+      mrmscore_.initializeXCorrPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids); // perform cross-correlation on monoisotopic precursor
+      scores.ms1_xcorr_coelution_combined_score = mrmscore_.calcXcorrPrecursorCombinedCoelutionScore();
+      scores.ms1_xcorr_shape_combined_score = mrmscore_.calcXcorrPrecursorCombinedShapeScore();
     }
 
     if (su_.use_nr_peaks_score_)
@@ -292,14 +303,23 @@ namespace OpenMS
     {
       mrmscore_.initializeMIMatrix(imrmfeature, native_ids);
       scores.mi_score = mrmscore_.calcMIScore();
-      scores.weighted_mi_score = mrmscore_.calcMIScore_weighted(normalized_library_intensity);
+      scores.weighted_mi_score = mrmscore_.calcMIWeightedScore(normalized_library_intensity);
     }
 
     // check that the MS1 feature is present and that the MS1 MI should be calculated
     if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_mi)
     {
-      mrmscore_.initializeMS1MI(imrmfeature, native_ids, precursor_feature_id); // perform cross-correlation on monoisotopic precursor
-      scores.ms1_mi_score = mrmscore_.calcMS1MIScore();
+      // we need at least two precursor isotopes
+      if (precursor_ids.size() > 1)
+      {
+        mrmscore_.initializeMIPrecursorMatrix(imrmfeature, precursor_ids);
+        scores.ms1_mi_score = mrmscore_.calcMIPrecursorScore();
+      }
+      mrmscore_.initializeMIPrecursorContrastMatrix(imrmfeature, precursor_ids, native_ids);
+      scores.ms1_mi_contrast_score = mrmscore_.calcMIPrecursorContrastScore();
+
+      mrmscore_.initializeMIPrecursorCombinedMatrix(imrmfeature, precursor_ids, native_ids);
+      scores.ms1_mi_combined_score = mrmscore_.calcMIPrecursorCombinedScore();
     }
   }
 
@@ -311,29 +331,29 @@ namespace OpenMS
         OpenSwath_Scores & idscores)
   {
     OpenSwath::MRMScoring mrmscore_;
-    mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+    mrmscore_.initializeXCorrContrastMatrix(imrmfeature, native_ids_identification, native_ids_detection);
 
     if (su_.use_coelution_score_)
     {
-      idscores.ind_xcorr_coelution_score = mrmscore_.calcIndXcorrIdCoelutionScore();
+      idscores.ind_xcorr_coelution_score = mrmscore_.calcSeparateXcorrContrastCoelutionScore();
     }
 
     if (su_.use_shape_score_)
     {
-      idscores.ind_xcorr_shape_score = mrmscore_.calcIndXcorrIdShape_score();
+      idscores.ind_xcorr_shape_score = mrmscore_.calcSeparateXcorrContrastShapeScore();
     }
 
     // Signal to noise scoring
     if (su_.use_sn_score_)
     {
-      idscores.ind_log_sn_score = mrmscore_.calcIndSNScore(imrmfeature, signal_noise_estimators);
+      idscores.ind_log_sn_score = mrmscore_.calcSeparateSNScore(imrmfeature, signal_noise_estimators);
     }
 
     // Mutual information scoring
     if (su_.use_mi_score_)
     {
-      mrmscore_.initializeMIIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
-      idscores.ind_mi_score = mrmscore_.calcIndMIIdScore();
+      mrmscore_.initializeMIContrastMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+      idscores.ind_mi_score = mrmscore_.calcSeparateMIContrastScore();
     }
   }
 

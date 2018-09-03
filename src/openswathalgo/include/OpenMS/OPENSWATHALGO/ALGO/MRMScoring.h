@@ -95,12 +95,20 @@ public:
 
     /** @name Accessors */
     //@{
-    /// non-mutable access to the Cross-correlation matrix
+    /// non-mutable access to the cross-correlation matrix
     const XCorrMatrixType& getXCorrMatrix() const;
     //@}
 
-    /// non-mutable access to the MI matrix
-    const std::vector< std::vector<double> > & getMIMatrix() const;
+    /// non-mutable access to the cross-correlation contrast matrix
+    const XCorrMatrixType& getXCorrContrastMatrix() const;
+    //@}
+
+    /// non-mutable access to the cross-correlation precursor contrast matrix
+    const XCorrMatrixType& getXCorrPrecursorContrastMatrix() const;
+    //@}
+
+    /// non-mutable access to the cross-correlation precursor contrast matrix
+    const XCorrMatrixType& getXCorrPrecursorCombinedMatrix() const;
     //@}
 
     /** @name Scores */
@@ -108,31 +116,59 @@ public:
     /// Initialize the scoring object and building the cross-correlation matrix
     void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids);
 
-    /// Initialize the cross-correlation vector with the MS1 trace
-    void initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids, const std::string& precursor_id);
+    /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
+    void initializeXCorrContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_set1, const std::vector<String>& native_ids_set2);
 
-    /// Initialize the scoring object and building the cross-correlation matrix of identification vs detection chromatograms
-    void initializeXCorrIdMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& native_ids_identification, const std::vector<String>& native_ids_detection);
+    /// Initialize the scoring object and building the cross-correlation matrix
+    void initializeXCorrPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids);
+
+    /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes vs transitions
+    void initializeXCorrPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
+
+    /// Initialize the scoring object and building the cross-correlation matrix of chromatograms of precursor isotopes and transitions
+    void initializeXCorrPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
 
     /// calculate the cross-correlation score
     double calcXcorrCoelutionScore();
-    std::string calcIndXcorrIdCoelutionScore();
-
-    /// calculate the cross-correlation shape score
-    double calcXcorrShape_score();
-    std::string calcIndXcorrIdShape_score();
-
-    /// calculate the weighted cross-correlation shape score
-    double calcXcorrShape_score_weighted(const std::vector<double>& normalized_library_intensity);
 
     /// calculate the weighted cross-correlation score
-    double calcXcorrCoelutionScore_weighted(const std::vector<double>& normalized_library_intensity);
+    double calcXcorrCoelutionWeightedScore(const std::vector<double>& normalized_library_intensity);
 
-    /// calculate the MS1 cross-correlation score
-    double calcMS1XcorrCoelutionScore();
+    /// calculate the cross-correlation contrast score
+    double calcXcorrContrastCoelutionScore();
 
-    /// calculate the MS1 cross-correlation shape score
-    double calcMS1XcorrShape_score();
+    /// calculate the separate cross-correlation contrast score
+    std::string calcSeparateXcorrContrastCoelutionScore();
+
+    /// calculate the precursor cross-correlation contrast score
+    double calcXcorrPrecursorCoelutionScore();
+
+    /// calculate the precursor cross-correlation contrast score against the transitions
+    double calcXcorrPrecursorContrastCoelutionScore();
+
+    /// calculate the precursor cross-correlation coelution score including the transitions
+    double calcXcorrPrecursorCombinedCoelutionScore();
+
+    /// calculate the cross-correlation shape score
+    double calcXcorrShapeScore();
+
+    /// calculate the weighted cross-correlation shape score
+    double calcXcorrShapeWeightedScore(const std::vector<double>& normalized_library_intensity);
+
+    /// calculate the cross-correlation contrast shape score
+    double calcXcorrContrastShapeScore();
+
+    /// calculate the separate cross-correlation contrast shape score
+    std::string calcSeparateXcorrContrastShapeScore();
+
+    /// calculate the precursor cross-correlation shape score
+    double calcXcorrPrecursorShapeScore();
+
+    /// calculate the precursor cross-correlation shape score against the transitions
+    double calcXcorrPrecursorContrastShapeScore();
+
+    /// calculate the precursor cross-correlation shape score including the transitions
+    double calcXcorrPrecursorCombinedShapeScore();
 
     /// calculate the library correlation score
     static void calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature,
@@ -149,22 +185,46 @@ public:
     static double calcSNScore(OpenSwath::IMRMFeature* mrmfeature, 
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
 
-    static std::string calcIndSNScore(OpenSwath::IMRMFeature* mrmfeature, 
+    static std::string calcSeparateSNScore(OpenSwath::IMRMFeature* mrmfeature, 
         std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators);
+
+    /// non-mutable access to the MI matrix
+    const std::vector< std::vector<double> > & getMIMatrix() const;
+    //@}
+
+    /// non-mutable access to the MI contrast matrix
+    const std::vector< std::vector<double> > & getMIContrastMatrix() const;
+    //@}
+
+    /// non-mutable access to the MI precursor contrast matrix
+    const std::vector< std::vector<double> > & getMIPrecursorContrastMatrix() const;
+    //@}
+
+    /// non-mutable access to the MI precursor combined matrix
+    const std::vector< std::vector<double> > & getMIPrecursorCombinedMatrix() const;
+    //@}
 
     /// Initialize the scoring object and building the MI matrix
     void initializeMIMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids);
 
-    /// Initialize the mutual information vector with the MS1 trace
-    void initializeMS1MI(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id);
+    /// Initialize the scoring object and building the MI matrix of chromatograms of set1 (e.g. identification transitions) vs set2 (e.g. detection transitions)
+    void initializeMIContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_set1, std::vector<String> native_ids_set2);
 
-    /// Initialize the scoring object and building the mutual information matrix of identification vs detection chromatograms
-    void initializeMIIdMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids_identification, std::vector<String> native_ids_detection);
+    /// Initialize the scoring object and building the MI matrix
+    void initializeMIPrecursorMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> precursor_ids);
+
+    /// Initialize the mutual information vector against the MS1 trace
+    void initializeMIPrecursorContrastMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
+
+    /// Initialize the mutual information vector with the MS1 trace
+    void initializeMIPrecursorCombinedMatrix(OpenSwath::IMRMFeature* mrmfeature, const std::vector<String>& precursor_ids, const std::vector<String>& native_ids);
 
     double calcMIScore();
-    double calcMIScore_weighted(const std::vector<double>& normalized_library_intensity);
-    double calcMS1MIScore();
-    std::string calcIndMIIdScore();
+    double calcMIWeightedScore(const std::vector<double>& normalized_library_intensity);
+    double calcMIPrecursorScore();
+    double calcMIPrecursorContrastScore();
+    double calcMIPrecursorCombinedScore();
+    std::string calcSeparateMIContrastScore();
 
     //@}
 
@@ -175,15 +235,36 @@ private:
     /// the precomputed cross correlation matrix
     XCorrMatrixType xcorr_matrix_;
 
+    /// the precomputed contrast cross correlation
+    XCorrMatrixType xcorr_contrast_matrix_;
+    //@}
+
+    /// the precomputed cross correlation matrix of the MS1 trace
+    XCorrMatrixType xcorr_precursor_matrix_;
+
+    /// the precomputed cross correlation against the MS1 trace
+    XCorrMatrixType xcorr_precursor_contrast_matrix_;
+    //@}
+
     /// the precomputed cross correlation with the MS1 trace
-    std::vector<XCorrArrayType> ms1_xcorr_vector_;
+    XCorrMatrixType xcorr_precursor_combined_matrix_;
     //@}
 
     /// the precomputed mutual information matrix
     std::vector< std::vector<double> > mi_matrix_;
 
-    /// the precomputed mutual information with the MS1 trace
-    std::vector<double> ms1_mi_vector_;
+    /// the precomputed contrast mutual information matrix
+    std::vector< std::vector<double> > mi_contrast_matrix_;
+
+    /// the precomputed mutual information matrix of the MS1 trace
+    std::vector< std::vector<double> > mi_precursor_matrix_;
+
+    /// the precomputed contrast mutual information matrix against the MS1 trace
+    std::vector< std::vector<double> > mi_precursor_contrast_matrix_;
+    //@}
+
+    /// the precomputed contrast mutual information matrix with the MS1 trace
+    std::vector< std::vector<double> > mi_precursor_combined_matrix_;
     //@}
 
   };

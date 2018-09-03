@@ -93,8 +93,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
         double weighted_xcorr_shape
         double weighted_massdev_score
        
-        double xcorr_ms1_coelution_score
-        double xcorr_ms1_shape_score
+        double ms1_xcorr_coelution_score
+        double ms1_xcorr_shape_score
         double ms1_ppm_score
         double ms1_isotope_correlation
         double ms1_isotope_overlap
