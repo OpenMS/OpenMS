@@ -785,12 +785,12 @@ PyOpenMSChecker:
         - initializeMS1MI
         - initializeMIIdMatrix
         - getXCorrMatrix
+        - getXCorrContrastMatrix
         - initializeXCorrMatrix
-        - initializeMS1XCorr
+        - initializeXCorrContrastMatrix
         - calcLibraryScore
         - calcSNScore
-        - initializeXCorrIdMatrix
-        - calcIndSNScore
+        - calcSeparateSNScore
 
     OpenMS::MRMTransitionGroupPicker:
         - pickTransitionGroup
