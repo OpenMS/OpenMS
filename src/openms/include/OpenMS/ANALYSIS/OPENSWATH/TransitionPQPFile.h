@@ -45,11 +45,13 @@ namespace OpenMS
 {
 
   /**
-      @brief This class can convert TraML and PQP files into each other
+      @brief This class supports reading and writing of PQP files. 
 
       The PQP files are SQLite databases consisting of several tables representing the data contained in TraML files.
 
-  @htmlinclude OpenMS_TransitionPQPFile.parameters
+      This class can convert TraML and PQP files into each other
+
+      @htmlinclude OpenMS_TransitionPQPFile.parameters
 
   */
   class OPENMS_DLLAPI TransitionPQPFile :
