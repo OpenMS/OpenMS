@@ -31,3 +31,8 @@ cdef extern from "<OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath
         # NAMESPACE # # POINTER # double calcSNScore(OpenSwath::IMRMFeature * mrmfeature, libcpp_vector[ OpenSwath::ISignalToNoisePtr ] & signal_noise_estimators) nogil except +
 
 
+        double calcMIScore() nogil except +
+        double calcMIScore_weighted(const libcpp_vector[ double ] & normalized_library_intensity) nogil except +
+        double calcMS1MIScore() nogil except +
+        libcpp_string calcIndMIIdScore() nogil except +
+        libcpp_vector[ libcpp_vector[ double ] ]  getMIMatrix() nogil except +

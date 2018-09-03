@@ -116,11 +116,6 @@ namespace OpenMS
 
     /// returns the current value of the flag to return expected masses (true) or atomic numbers (false).
     bool getRoundMasses() const;
-    
-    Size getMin() const;
-    Size getMax() const;
-    
-    void clear();
     //@}
 
     /**

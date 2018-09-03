@@ -2,7 +2,6 @@ from OPXLDataStructs cimport *
 from ProteinProteinCrossLink cimport ProteinProteinCrossLink
 from PeptideHit cimport PeptideHit_PeakAnnotation
 
-
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
 
     cdef cppclass CrossLinkSpectrumMatch "OpenMS::OPXLDataStructs::CrossLinkSpectrumMatch":
@@ -25,9 +24,11 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         double intsum_alpha
         double intsum_beta
         double total_current
+        double precursor_error_ppm
 
         double match_odds
         double match_odds_alpha
+        double match_odds_beta
         double log_occupancy
         double log_occupancy_alpha
         double log_occupancy_beta
