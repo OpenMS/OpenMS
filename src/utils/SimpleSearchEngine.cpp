@@ -65,7 +65,6 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <map>
-#include <unordered_set>
 #include <algorithm>
 
 #ifdef _OPENMP
