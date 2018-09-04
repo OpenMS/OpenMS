@@ -440,13 +440,13 @@ protected:
     setValidFormats_("tr_irt", ListUtils::create<String>("traML,tsv,pqp"));
 
     // one of the following two needs to be set
-    registerInputFile_("tr_irt_nonlinear", "<file>", "", "transition file ('TraML')", false);
+    registerInputFile_("tr_irt_nonlinear", "<file>", "", "additional nonlinear transition file ('TraML')", false);
     setValidFormats_("tr_irt_nonlinear", ListUtils::create<String>("traML,tsv,pqp"));
 
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
-    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows for extraction: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
+    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false, true);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
@@ -456,10 +456,10 @@ protected:
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet compatible TSV file)", false);
+    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet-compatible TSV file)", false);
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet compatible SQLite file)", false);
+    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet-compatible SQLite file)", false);
     setValidFormats_("out_osw", ListUtils::create<String>("osw"));
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
@@ -471,7 +471,7 @@ protected:
 
     // RT, mz and IM windows
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
-    registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window that by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
+    registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
     setMinFloat_("extra_rt_extraction_window", 0.0);
     registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in milliseconds). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side.", false);
     registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
