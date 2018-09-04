@@ -167,6 +167,317 @@ protected:
     registerFullParam_(combined);
   }
 
+  // Map between mzML file and corresponding id file
+  // Here we currently assume that these are provided in the exact same order.
+  // In the future, we could warn or reorder them based on the annotated primaryMSRunPath in the ID file.
+  map<String, String> mapMzML2Ids_(StringList & in, StringList & in_ids)
+  {
+    map<String, String> mzfile2idfile;
+    for (Size i = 0; i != in.size(); ++i)
+    {
+      const String& in_abs_path = File::absolutePath(in[i]);
+      const String& id_abs_path = File::absolutePath(in_ids[i]);
+      mzfile2idfile[in_abs_path] = id_abs_path;      
+      writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
+      if (!File::exists(in[i]))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Spectra file '" + in[i] + "' does not exist.");
+      }
+
+      if (!File::exists(in_ids[i]))
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, 
+          OPENMS_PRETTY_FUNCTION, "Id file '" + in[i] + "' does not exist.");
+      }    
+    }
+    return mzfile2idfile;
+  }
+
+  ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
+  { 
+    Param pp_param = getParam_().copy("Centroiding:", true);
+    writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
+
+    // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
+    // load raw file
+    MzMLFile mzML_file;
+    mzML_file.setLogType(log_type_);
+
+    PeakMap ms_raw;
+    mzML_file.load(mz_file, ms_raw);
+    ms_raw.clearMetaDataArrays();
+
+    if (ms_raw.empty())
+    {
+      LOG_WARN << "The given file does not contain any spectra.";
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+
+    // remove MS2 peak data and check if spectra are sorted
+    for (Size i = 0; i < ms_raw.size(); ++i)
+    {
+      if (ms_raw[i].getMSLevel() == 2)
+      {
+        ms_raw[i].clear(false);  // delete MS2 peaks
+      }
+      if (!ms_raw[i].isSorted())
+      {
+        ms_raw[i].sortByPosition();
+        writeLog_("Info: Sorted peaks by m/z.");
+      }
+    }
+
+    //-------------------------------------------------------------
+    // Centroiding of MS1
+    //-------------------------------------------------------------
+    PeakPickerHiRes pp;
+    pp.setLogType(log_type_);
+    pp.setParameters(pp_param);
+    pp.pickExperiment(ms_raw, ms_centroided, true);
+      
+    //-------------------------------------------------------------
+    // HighRes Precursor Mass Correction
+    //-------------------------------------------------------------
+    std::vector<double> deltaMZs, mzs, rts;
+    std::set<Size> corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(
+      ms_centroided, 
+      0.01, // check if we can estimate this from data (here it is given in m/z not ppm)
+      false, // is ppm = false
+      deltaMZs, 
+      mzs, 
+      rts
+      );      
+    writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
+    if (!deltaMZs.empty())
+    {
+      vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
+      for (Size i = 0; i != deltaMZs.size(); ++i)
+      {
+        deltaMZs_ppm.push_back(Math::getPPM(mzs[i], mzs[i] + deltaMZs[i]));
+        deltaMZs_ppmabs.push_back(Math::getPPMAbs(mzs[i], mzs[i] + deltaMZs[i]));
+      }
+
+      double median = Math::median(deltaMZs_ppm.begin(), deltaMZs_ppm.end());
+      double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
+      double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
+      double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
+      writeLog_("Precursor correction:\n  median = " + String(median) + " ppm  MAD = " + String(MAD)
+                +"\n  median (abs.) = " + String(median_abs) + " ppm  MAD = " + String(MAD_abs));
+    }
+    return EXECUTION_OK;
+  }
+
+  void recalibrateMasses_(MSExperiment & ms_centroided, vector<PeptideIdentification>& peptide_ids, const String & id_file_abs_path)
+  {
+    InternalCalibration ic;
+    ic.setLogType(log_type_);
+    ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
+    MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
+    bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
+    Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
+    Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
+    MZTrafoModel::setRANSACParams(p);
+    // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
+    MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
+
+    IntList ms_level = {1};
+    double rt_chunk = 300.0; // 5 minutes
+    String qc_residual_path, qc_residual_png_path;
+    if (debug_level_ >= 1)
+    {
+      const String & id_basename = File::basename(id_file_abs_path);
+      qc_residual_path = id_basename + "qc_residuals.tsv";
+      qc_residual_png_path = id_basename + "qc_residuals.png";
+    } 
+
+    if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
+                  10.0,
+                  5.0, 
+                  "",                      
+                  "",
+                  qc_residual_path,
+                  qc_residual_png_path,
+                  "Rscript"))
+    {
+      LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;          
+    }
+  }
+
+  double estimateMedianChromatographicFWHM_(MSExperiment & ms_centroided)
+  {
+    MassTraceDetection mt_ext;
+    Param mtd_param = mt_ext.getParameters();
+    writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
+
+    std::vector<MassTrace> m_traces;
+    mt_ext.run(ms_centroided, m_traces, 1000);
+
+    std::vector<double> fwhm_1000;
+    for (auto &m : m_traces)
+    {
+      if (m.getSize() == 0) continue;
+      m.updateMeanMZ();
+      m.updateWeightedMZsd();
+      double fwhm = m.estimateFWHM(false);
+      fwhm_1000.push_back(fwhm);
+    }
+
+    double median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
+
+    LOG_INFO << "Median chromatographic FWHM: " << median_fwhm << std::endl;
+
+    return median_fwhm;
+  }
+
+  void calculateSeeds_(const MSExperiment & ms_centroided, FeatureMap & seeds, double median_fwhm)
+  {
+    MSExperiment e;
+    for (auto s : ms_centroided) 
+    { 
+      if (s.getMSLevel() == 1) 
+      {              
+        e.addSpectrum(s);
+      }
+    }
+    ThresholdMower threshold_mower_filter;
+    Param tm = threshold_mower_filter.getParameters();
+    tm.setValue("threshold", 10000.0);  // TODO: derive from data
+    threshold_mower_filter.setParameters(tm);
+    threshold_mower_filter.filterPeakMap(e);
+
+    FeatureFinderMultiplexAlgorithm algorithm;
+    Param p = algorithm.getParameters();
+    p.setValue("algorithm:labels", "");
+    p.setValue("algorithm:charge", "2:5");
+    p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
+    p.setValue("algorithm:rt_band", median_fwhm);
+    p.setValue("algorithm:rt_min", median_fwhm * 0.5);
+    p.setValue("algorithm:spectrum_type", "centroid");
+    algorithm.setParameters(p);
+    const bool progress(true);
+    algorithm.run(e, progress);
+    seeds = algorithm.getFeatureMap(); 
+    LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
+  }
+
+  void alignAndLink_(
+    vector<FeatureMap> & feature_maps, 
+    ConsensusMap & consensus_fraction, 
+    const double median_fwhm,
+    const UInt fraction,
+    const StringList & mz_files)
+  {
+    if (feature_maps.size() > 1) // do we have several maps to align / link?
+    {
+      Param ma_param = getParam_().copy("Alignment:", true);
+      writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
+
+      vector<TransformationDescription> transformations;
+  
+      // Determine reference from data, otherwise a change in order of input files
+      // leads to slightly different results
+      const int reference_index(-1); // set no reference (determine from data)
+      MapAlignmentAlgorithmIdentification aligner;
+      aligner.setLogType(log_type_);
+      aligner.setParameters(ma_param);
+      aligner.align(feature_maps, transformations, reference_index);
+
+      // find model parameters:
+      Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
+      String model_type = model_params.getValue("type");
+      model_params = model_params.copy(model_type + ":", true);
+      
+      vector<TransformationDescription::TransformationStatistics> alignment_stats;
+      for (TransformationDescription & t : transformations)
+      {
+        writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
+        if (t.getDataPoints().size() > 10)
+        {
+          t.fitModel(model_type, model_params);
+        }
+        t.printSummary(LOG_DEBUG);
+        alignment_stats.emplace_back(t.getStatistics());
+      }
+
+      // determine maximum RT shift after transformation that includes all high confidence IDs 
+      using TrafoStat = TransformationDescription::TransformationStatistics;
+      double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(),
+              [](TrafoStat a, TrafoStat b) 
+              { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
+      // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
+        max_alignment_diff = std::max(max_alignment_diff, 120.0);
+
+
+      // Apply transformations
+      for (Size i = 0; i < feature_maps.size(); ++i)
+      {
+        MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
+          transformations[i]);
+        if (debug_level_ > 666)
+        {
+          // plot with e.g.:
+          // Rscript ../share/OpenMS/SCRIPTS/plot_trafo.R debug_trafo_1.trafoXML debug_trafo_1.pdf
+          TransformationXMLFile().store("debug_trafo_" + String(i) + ".trafoXML", transformations[i]);
+        }
+      }
+      addDataProcessing_(consensus_fraction,
+                      getProcessingInfo_(DataProcessing::ALIGNMENT));
+      //-------------------------------------------------------------
+      // Link all features of this fraction
+      //-------------------------------------------------------------
+      Param fl_param = getParam_().copy("Linking:", true);
+      writeDebug_("Parameters passed to FeatureGroupingAlgorithmQT algorithm", fl_param, 3);
+
+      writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
+      // grouping tolerance = max alignment error + median FWHM
+      FeatureGroupingAlgorithmQT linker;
+      fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+      fl_param.setValue("distance_MZ:max_difference", 10.0);
+      fl_param.setValue("distance_MZ:unit", "ppm");
+      fl_param.setValue("distance_MZ:weight", 5.0);
+      fl_param.setValue("distance_intensity:weight", 0.1); 
+
+/*      FeatureGroupingAlgorithmKD linker;
+      fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+      fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+      fl_param.setValue("link:mz_tol", 10.0);
+      fl_param.setValue("mz_unit", "ppm");
+*/      
+      linker.setParameters(fl_param);      
+      linker.group(feature_maps, consensus_fraction);
+      addDataProcessing_(consensus_fraction,
+                      getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+
+    }
+    else // only one feature map
+    {
+      MapConversion::convert(0, feature_maps.back(), consensus_fraction);                           
+    }
+
+    ////////////////////////////////////////////////////////////
+    // Annotate experimental design in consensus map
+    ////////////////////////////////////////////////////////////
+    Size j(0);
+    // for each MS file (as provided in the experimental design)
+    for (String const & mz_file : mz_files) 
+    {
+      const Size fraction_group = j + 1;
+      consensus_fraction.getColumnHeaders()[j].label = "label-free";
+      consensus_fraction.getColumnHeaders()[j].filename = mz_file;
+      consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
+      consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction", fraction);
+      consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction_group", fraction_group);
+      ++j;
+    }
+
+    // assign unique ids
+    consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    // sort list of peptide identifications in each consensus feature by map index
+    consensus_fraction.sortPeptideIdentificationsByMapIndex();
+  }
+
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -226,35 +537,7 @@ protected:
     // Map between mzML file and corresponding id file
     // Here we currently assume that these are provided in the exact same order.
     // In the future, we could warn or reorder them based on the annotated primaryMSRunPath in the ID file.
-    map<String, String> mzfile2idfile;
-    for (Size i = 0; i != in.size(); ++i)
-    {
-      const String& in_abs_path = File::absolutePath(in[i]);
-      const String& id_abs_path = File::absolutePath(in_ids[i]);
-      mzfile2idfile[in_abs_path] = id_abs_path;      
-      writeDebug_("Spectra: " + in[i] + "\t Ids: " + in_ids[i],  1);
-      if (!File::exists(in[i]))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Spectra file '" + in[i] + "' does not exist.");
-      }
-
-      if (!File::exists(in_ids[i]))
-      {
-        throw Exception::FileNotFound(__FILE__, __LINE__, 
-          OPENMS_PRETTY_FUNCTION, "Id file '" + in[i] + "' does not exist.");
-      }    
-    }
-
-    Param pp_param = getParam_().copy("Centroiding:", true);
-    writeDebug_("Parameters passed to PeakPickerHiRes algorithm", pp_param, 3);
-
-
-    Param ma_param = getParam_().copy("Alignment:", true);
-    writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
-
-    Param fl_param = getParam_().copy("Linking:", true);
-    writeDebug_("Parameters passed to FeatureGroupingAlgorithmQT algorithm", fl_param, 3);
+    map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
 
     Param pep_param = getParam_().copy("Posterior Error Probability:", true);
     writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
@@ -284,85 +567,20 @@ protected:
       writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
       for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
 
-      // for each MS file
+      // for each MS file of current fraction
       Size fraction_group{1};
       for (String const & mz_file : ms_files.second)
-      {     
-        PeakMap ms_centroided;
-        { // create scope for raw data so it is properly freed (Note: clear() is not sufficient)
-          // load raw file
-          MzMLFile mzML_file;
-          mzML_file.setLogType(log_type_);
-
-          PeakMap ms_raw;
-          mzML_file.load(mz_file, ms_raw);
-          ms_raw.clearMetaDataArrays();
-
-          if (ms_raw.empty())
-          {
-            LOG_WARN << "The given file does not contain any spectra.";
-            return INCOMPATIBLE_INPUT_DATA;
-          }
-
-          // remove MS2 peak data and check if spectra are sorted
-          for (Size i = 0; i < ms_raw.size(); ++i)
-          {
-            if (ms_raw[i].getMSLevel() == 2)
-            {
-              ms_raw[i].clear(false);  // delete MS2 peaks
-            }
-            if (!ms_raw[i].isSorted())
-            {
-              ms_raw[i].sortByPosition();
-              writeLog_("Info: Sorted peaks by m/z.");
-            }
-          }
-
-          //-------------------------------------------------------------
-          // Centroiding of MS1
-          //-------------------------------------------------------------
-          PeakPickerHiRes pp;
-          pp.setLogType(log_type_);
-          pp.setParameters(pp_param);
-          pp.pickExperiment(ms_raw, ms_centroided, true);
-           
-          //-------------------------------------------------------------
-          // HighRes Precursor Mass Correction
-          //-------------------------------------------------------------
-          std::vector<double> deltaMZs, mzs, rts;
-          std::set<Size> corrected_to_highest_intensity_peak = PrecursorCorrection::correctToHighestIntensityMS1Peak(
-            ms_centroided, 
-            0.01, // check if we can estimate this from data (here it is given in m/z not ppm)
-            false, // is ppm = false
-            deltaMZs, 
-            mzs, 
-            rts
-            );      
-          writeLog_("Info: Corrected " + String(corrected_to_highest_intensity_peak.size()) + " precursors.");
-          if (!deltaMZs.empty())
-          {
-            vector<double> deltaMZs_ppm, deltaMZs_ppmabs;
-            for (Size i = 0; i != deltaMZs.size(); ++i)
-            {
-              deltaMZs_ppm.push_back(Math::getPPM(mzs[i], mzs[i] + deltaMZs[i]));
-              deltaMZs_ppmabs.push_back(Math::getPPMAbs(mzs[i], mzs[i] + deltaMZs[i]));
-            }
-
-            double median = Math::median(deltaMZs_ppm.begin(), deltaMZs_ppm.end());
-            double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
-            double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
-            double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
-            writeLog_("Precursor correction:\n  median = " + String(median) + " ppm  MAD = " + String(MAD)
-                     +"\n  median (abs.) = " + String(median_abs) + " ppm  MAD = " + String(MAD_abs));
-          }
-        }
+      { 
+        // centroid spectra (if in profile mode) and correct precursor masses
+        MSExperiment ms_centroided;    
+        ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
+        if (e != EXECUTION_OK) { return e; }
 
         // writing picked mzML files for data submission
         // annotate output with data processing info
         // TODO: how to store picked files? by specifying a folder? or by output files that match in number to input files
         // TODO: overwrite primaryMSRun with picked mzML name (for submission)
         // mzML_file.store(OUTPUTFILENAME, ms_centroided);
-        // TODO: free all MS2 spectra (to release memory!)
 
         vector<ProteinIdentification> protein_ids;
         vector<PeptideIdentification> peptide_ids;
@@ -423,64 +641,13 @@ protected:
         //-------------------------------------------------------------
         if (getStringOption_("mass_recalibration") == "true")
         {
-          InternalCalibration ic;
-          ic.setLogType(log_type_);
-          ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
-          MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
-          bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
-          Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
-          Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
-          MZTrafoModel::setRANSACParams(p);
-          // these limits are a little loose, but should prevent grossly wrong models without burdening the user with yet another parameter.
-          MZTrafoModel::setCoefficientLimits(25.0, 25.0, 0.5); 
-
-          IntList ms_level = {1};
-          double rt_chunk = 300.0; // 5 minutes
-          String qc_residual_path, qc_residual_png_path;
-          if (debug_level_ >= 1)
-          {
-            const String & id_basename = File::basename(id_file_abs_path);
-            qc_residual_path = id_basename + "qc_residuals.tsv";
-            qc_residual_png_path = id_basename + "qc_residuals.png";
-          } 
-
-          if (!ic.calibrate(ms_centroided, ms_level, md, rt_chunk, use_RANSAC, 
-                        10.0,
-                        5.0, 
-                        "",                      
-                        "",
-                        qc_residual_path,
-                        qc_residual_png_path,
-                        "Rscript"))
-          {
-            LOG_WARN << "\nCalibration failed. See error message above!" << std::endl;          
-          }
+          recalibrateMasses_(ms_centroided, peptide_ids, id_file_abs_path);
         }
         
-
         //////////////////////////////////////////
         // Chromatographic parameter estimation
         //////////////////////////////////////////
-        MassTraceDetection mt_ext;
-        Param mtd_param = mt_ext.getParameters();
-        writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
-
-        std::vector<MassTrace> m_traces;
-        mt_ext.run(ms_centroided, m_traces, 1000);
-
-        std::vector<double> fwhm_1000;
-        for (auto &m : m_traces)
-        {
-          if (m.getSize() == 0) continue;
-          m.updateMeanMZ();
-          m.updateWeightedMZsd();
-          double fwhm = m.estimateFWHM(false);
-          fwhm_1000.push_back(fwhm);
-        }
-
-        median_fwhm = Math::median(fwhm_1000.begin(), fwhm_1000.end());
-
-        LOG_INFO << "Median FWHM: " << median_fwhm << std::endl;
+        median_fwhm = estimateMedianChromatographicFWHM_(ms_centroided);
 
         //-------------------------------------------------------------
         // Feature detection
@@ -488,7 +655,6 @@ protected:
         vector<ProteinIdentification> ext_protein_ids;
         vector<PeptideIdentification> ext_peptide_ids;
 
- 
         ///////////////////////////////////////////////
         // Run MTD before FFM
 
@@ -501,33 +667,7 @@ protected:
 
         if (getStringOption_("targeted_only") == "false")
         {
-          MSExperiment e;
-          for (auto s : ms_centroided) 
-          { 
-            if (s.getMSLevel() == 1) 
-            {              
-              e.addSpectrum(s);
-            }
-          }
-          ThresholdMower threshold_mower_filter;
-          Param tm = threshold_mower_filter.getParameters();
-          tm.setValue("threshold", 10000.0);  // TODO: derive from data
-          threshold_mower_filter.setParameters(tm);
-          threshold_mower_filter.filterPeakMap(e);
-
-          FeatureFinderMultiplexAlgorithm algorithm;
-          Param p = algorithm.getParameters();
-          p.setValue("algorithm:labels", "");
-          p.setValue("algorithm:charge", "2:5");
-          p.setValue("algorithm:rt_typical", median_fwhm * 3.0);
-          p.setValue("algorithm:rt_band", median_fwhm);
-          p.setValue("algorithm:rt_min", median_fwhm * 0.5);
-          p.setValue("algorithm:spectrum_type", "centroid");
-          algorithm.setParameters(p);
-          const bool progress(true);
-          algorithm.run(e, progress);
-          seeds = algorithm.getFeatureMap(); 
-          LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
+          calculateSeeds_(ms_centroided, seeds, median_fwhm);
           if (debug_level_ > 666)
           {
             FeatureXMLFile().store("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds);
@@ -568,109 +708,7 @@ protected:
       //-------------------------------------------------------------
       // Align all features of this fraction
       //-------------------------------------------------------------
-      if (feature_maps.size() > 1) // do we have several maps to align / link?
-      {
-        vector<TransformationDescription> transformations;
-    
-        // Determine reference from data, otherwise a change in order of input files
-        // leads to slightly different results
-        const int reference_index(-1); // set no reference (determine from data)
-        MapAlignmentAlgorithmIdentification aligner;
-        aligner.setLogType(log_type_);
-        aligner.setParameters(ma_param);
-        aligner.align(feature_maps, transformations, reference_index);
-
-        // find model parameters:
-        Param model_params = TOPPMapAlignerBase::getModelDefaults("b_spline");
-        String model_type = model_params.getValue("type");
-        model_params = model_params.copy(model_type + ":", true);
-        
-        vector<TransformationDescription::TransformationStatistics> alignment_stats;
-        for (TransformationDescription & t : transformations)
-        {
-          writeDebug_("Using " + String(t.getDataPoints().size()) + " points in fit.", 1); 
-          if (t.getDataPoints().size() > 10)
-          {
-            t.fitModel(model_type, model_params);
-          }
-          t.printSummary(LOG_DEBUG);
-          alignment_stats.emplace_back(t.getStatistics());
-        }
-
-        // determine maximum RT shift after transformation that includes all high confidence IDs 
-        using TrafoStat = TransformationDescription::TransformationStatistics;
-        double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(),
-                [](TrafoStat a, TrafoStat b) 
-                { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
-        // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
-         max_alignment_diff = std::max(max_alignment_diff, 120.0);
-
-
-        // Apply transformations
-        for (Size i = 0; i < feature_maps.size(); ++i)
-        {
-          MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
-            transformations[i]);
-          if (debug_level_ > 666)
-          {
-            // plot with e.g.:
-            // Rscript ../share/OpenMS/SCRIPTS/plot_trafo.R debug_trafo_1.trafoXML debug_trafo_1.pdf
-            TransformationXMLFile().store("debug_trafo_" + String(i) + ".trafoXML", transformations[i]);
-          }
-        }
-        addDataProcessing_(consensus_fraction,
-                       getProcessingInfo_(DataProcessing::ALIGNMENT));
-        //-------------------------------------------------------------
-        // Link all features of this fraction
-        //-------------------------------------------------------------
-        writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
-        // grouping tolerance = max alignment error + median FWHM
-        FeatureGroupingAlgorithmQT linker;
-        fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-        fl_param.setValue("distance_MZ:max_difference", 10.0);
-        fl_param.setValue("distance_MZ:unit", "ppm");
-        fl_param.setValue("distance_MZ:weight", 5.0);
-        fl_param.setValue("distance_intensity:weight", 0.1); 
-
-/*      FeatureGroupingAlgorithmKD linker;
-        fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-        fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-        fl_param.setValue("link:mz_tol", 10.0);
-        fl_param.setValue("mz_unit", "ppm");
-  */      
-        linker.setParameters(fl_param);      
-        linker.group(feature_maps, consensus_fraction);
-        addDataProcessing_(consensus_fraction,
-                       getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
-
-      }
-      else // only one feature map
-      {
-        MapConversion::convert(0, feature_maps.back(), consensus_fraction);                           
-      }
-
-      ////////////////////////////////////////////////////////////
-      // Annotate experimental design in consensus map
-      ////////////////////////////////////////////////////////////
-      Size j(0);
-      // for each MS file (as provided in the experimental design)
-      for (String const & mz_file : ms_files.second) 
-      {
-        const Size fraction = ms_files.first;
-        const Size fraction_group = j + 1;
-        consensus_fraction.getColumnHeaders()[j].label = "label-free";
-        consensus_fraction.getColumnHeaders()[j].filename = mz_file;
-        consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
-        consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction", fraction);
-        consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction_group", fraction_group);
-        ++j;
-      }
-
-      // assign unique ids
-      consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-      // sort list of peptide identifications in each consensus feature by map index
-      consensus_fraction.sortPeptideIdentificationsByMapIndex();
+      alignAndLink_(feature_maps, consensus_fraction, median_fwhm, ms_files.first, ms_files.second);
 
       if (debug_level_ >= 666)
       {
@@ -690,6 +728,7 @@ protected:
         ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, 
         "", 
         "");
+
 
       // append consensus map calculated for this fraction number
 
