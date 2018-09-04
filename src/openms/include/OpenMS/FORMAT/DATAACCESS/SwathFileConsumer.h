@@ -245,6 +245,7 @@ public:
           {
             found = true;
             consumeSwathSpectrum_(s, i);
+            break;
           }
         }
         if (!found)
