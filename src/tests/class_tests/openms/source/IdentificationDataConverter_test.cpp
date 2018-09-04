@@ -53,13 +53,6 @@ START_TEST(IdentificationDataConverter, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IdentificationData* ptr = 0;
-IdentificationData* null = 0;
-START_SECTION((IdentificationDataConverter()))
-  ptr = new IdentificationData();
-  TEST_NOT_EQUAL(ptr, null);
-END_SECTION
-
 START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentification>&, const vector<PeptideIdentification>&)))
 {
   vector<ProteinIdentification> proteins_in;
