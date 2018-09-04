@@ -32,8 +32,8 @@ cdef extern from "<OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath
 
         double calcMIScore() nogil except +
         double calcMIWeightedScore(const libcpp_vector[ double ] & normalized_library_intensity) nogil except +
-        double calcMIWeightedScore() nogil except +
         
+        double calcMIPrecursorScore() nogil except + 
         double calcMIPrecursorContrastScore() nogil except + 
         double calcMIPrecursorCombinedScore() nogil except + 
         libcpp_string calcSeparateMIContrastScore() nogil except +              
