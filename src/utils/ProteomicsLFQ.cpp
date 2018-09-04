@@ -478,6 +478,282 @@ protected:
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
   }
 
+  // determine cooccurance of peptide in different runs
+  // returns map sequence+charge -> map index in consensus map 
+  map<pair<String, UInt>, vector<int> > getPeptideOccurance_(const ConsensusMap& cons)
+  {
+    map<Size, UInt> num_consfeat_of_size;
+    map<Size, UInt> num_consfeat_of_size_with_id;
+
+    map<pair<String, UInt>, vector<int> > seq_charge2map_occurence;
+    for (ConsensusMap::const_iterator cmit = cons.begin(); cmit != cons.end(); ++cmit)
+    {
+      ++num_consfeat_of_size[cmit->size()];
+      const auto& pids = cmit->getPeptideIdentifications();
+      if (!pids.empty())
+      {
+        ++num_consfeat_of_size_with_id[cmit->size()];
+
+        // count how often a peptide/charge pair has been observed in the different maps
+        const vector<PeptideHit>& phits = pids[0].getHits();
+        if (!phits.empty())
+        {
+          const String s = phits[0].getSequence().toString();
+          const int z = phits[0].getCharge();
+
+          if (seq_charge2map_occurence[make_pair(s,z)].empty())
+          {
+            seq_charge2map_occurence[make_pair(s,z)] = vector<int>(cons.getColumnHeaders().size(), 0);
+          }
+
+          // assign id to all dimensions in the consensus feature
+          for (auto const & f : cmit->getFeatures())
+          {
+            Size map_index = f.getMapIndex();
+            seq_charge2map_occurence[make_pair(s,z)][map_index] += 1;
+          }
+        }
+      }
+    }
+    return seq_charge2map_occurence;
+  }
+
+  // simple transfer between runs
+  // if a peptide has not been quantified in more than min_occurance runs, then take all consensus features that have it identified at least once
+  // and transfer the ID with RT of the the consensus feature (the average if we have multiple consensus elements)
+  multimap<Size, PeptideIdentification> transferIDsBetweenFractions_(const ConsensusMap& consensus_fraction, Size min_occurance = 3)
+  {
+    // determine occurance of ids
+    map<pair<String, UInt>, vector<int> > occurance = getPeptideOccurance_(consensus_fraction);
+
+    // build map of missing ids
+    map<pair<String, UInt>, set<int> > missing; // set of maps missing the id
+    for (auto & o : occurance)
+    {
+      // more than min_occurance elements in consensus map that are non-zero?
+      const Size count_non_zero = std::count_if(o.second.begin(), o.second.end(), [](int i){return i > 0;});
+
+      if (count_non_zero >= min_occurance 
+       && count_non_zero < o.second.size())
+      {
+        for (Size i = 0; i != o.second.size(); ++i)
+        {
+          // missing ID for this consensus element
+          if (o.second[i] == 0) { missing[o.first].insert(i); }
+        }
+      }
+    }
+
+    // create representative id to transfer to missing
+    multimap<Size, PeptideIdentification> transfer_ids;
+    for (auto & c : consensus_fraction)
+    {
+      const auto& pids = c.getPeptideIdentifications();
+      if (!pids.empty())
+      {
+        const vector<PeptideHit>& phits = pids[0].getHits();
+        if (!phits.empty())
+        {
+          const String s = phits[0].getSequence().toString();
+          const int z = phits[0].getCharge();
+          pair<String, UInt> seq_z = make_pair(s, z);
+          map<pair<String, UInt>, set<int> >::const_iterator it = missing.find(seq_z);
+          if (it != missing.end())
+          {
+            for (int idx : it->second)
+            {
+              // use consensus feature ID and retention time to transfer between runs
+              pair<Size, PeptideIdentification> p = make_pair(idx, pids[0]);
+              p.second.setRT(c.getRT());
+              transfer_ids.insert(p);
+            }
+          }
+        }
+      }
+    }
+    return transfer_ids;
+  }
+
+  ExitCodes quantifyFraction_(
+    const pair<unsigned int, std::vector<String> >  & ms_files, 
+    const map<String, String>& mzfile2idfile, 
+    double & median_fwhm,
+    ConsensusMap & consensus_fraction)
+  {
+    vector<FeatureMap> feature_maps;
+    const Size fraction = ms_files.first;
+
+    // debug output
+    writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
+    for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
+
+    // for each MS file of current fraction
+    Size fraction_group{1};
+    for (String const & mz_file : ms_files.second)
+    { 
+      // centroid spectra (if in profile mode) and correct precursor masses
+      MSExperiment ms_centroided;    
+      ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
+      if (e != EXECUTION_OK) { return e; }
+
+      // writing picked mzML files for data submission
+      // annotate output with data processing info
+      // TODO: how to store picked files? by specifying a folder? or by output files that match in number to input files
+      // TODO: overwrite primaryMSRun with picked mzML name (for submission)
+      // mzML_file.store(OUTPUTFILENAME, ms_centroided);
+
+      vector<ProteinIdentification> protein_ids;
+      vector<PeptideIdentification> peptide_ids;
+      const String& mz_file_abs_path = File::absolutePath(mz_file);
+      const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
+      IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
+
+      if (protein_ids.size() != 1)
+      {
+        LOG_FATAL_ERROR << "Exactly one protein identification runs must be annotated in " << id_file_abs_path << endl;
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;     
+      }
+
+      // annotate experimental design
+      StringList id_msfile_ref;
+      protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
+      if (id_msfile_ref.empty())
+      {
+        LOG_DEBUG << "MS run path not set in ID file." << endl;
+      }
+      else
+      {
+        // TODO: we could add a check (e.g., matching base name) here
+        id_msfile_ref.clear();
+      }                
+      id_msfile_ref.push_back(mz_file);
+      protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
+      protein_ids[0].setMetaValue("fraction_group", fraction_group);
+      protein_ids[0].setMetaValue("fraction", fraction);
+
+      // update identifers to make them unique 
+      // fixes some bugs related to users splitting the original mzML and id files before running the analysis
+      // in that case these files might have the same identifier
+      const String old_identifier = protein_ids[0].getIdentifier();
+      const String new_identifier = old_identifier + "_" + String(fraction_group) + "F" + String(fraction);
+      protein_ids[0].setIdentifier(new_identifier);
+      for (auto & p : peptide_ids)
+      {
+        if (p.getIdentifier() == old_identifier)
+        {
+          p.setIdentifier(new_identifier);
+        }
+        else
+        {
+          LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl;
+        }
+      }
+
+      // reannotate spectrum references
+      SpectrumMetaDataLookup::addMissingSpectrumReferences(
+        peptide_ids, 
+        mz_file_abs_path,
+        true);
+
+      //-------------------------------------------------------------
+      // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
+      // TODO: check if this improves targeted extraction
+      //-------------------------------------------------------------
+      if (getStringOption_("mass_recalibration") == "true")
+      {
+        recalibrateMasses_(ms_centroided, peptide_ids, id_file_abs_path);
+      }
+      
+      //////////////////////////////////////////
+      // Chromatographic parameter estimation
+      //////////////////////////////////////////
+      median_fwhm = estimateMedianChromatographicFWHM_(ms_centroided);
+
+      //-------------------------------------------------------------
+      // Feature detection
+      //-------------------------------------------------------------   
+      vector<ProteinIdentification> ext_protein_ids;
+      vector<PeptideIdentification> ext_peptide_ids;
+
+      ///////////////////////////////////////////////
+      // Run MTD before FFM
+
+      // create empty feature map and annotate MS file
+      FeatureMap seeds;
+
+      StringList sl;
+      sl.push_back(mz_file);
+      seeds.setPrimaryMSRunPath(sl);
+
+      if (getStringOption_("targeted_only") == "false")
+      {
+        calculateSeeds_(ms_centroided, seeds, median_fwhm);
+        if (debug_level_ > 666)
+        {
+          FeatureXMLFile().store("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds);
+        }
+      }
+
+      /////////////////////////////////////////////////
+      // Run FeatureFinderIdentification
+
+      FeatureMap fm;
+      StringList feature_msfile_ref;
+      feature_msfile_ref.push_back(mz_file);
+      fm.setPrimaryMSRunPath(feature_msfile_ref);
+      feature_maps.push_back(fm);
+
+      FeatureFinderIdentificationAlgorithm ffi;
+      ffi.getMSData().swap(ms_centroided);
+      ffi.getProgressLogger().setLogType(log_type_);
+
+      Param ffi_param = getParam_().copy("PeptideQuantification:", true);
+      ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
+      ffi.setParameters(ffi_param);
+      writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
+
+      ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back(), seeds);
+      
+      if (debug_level_ > 666)
+      {
+        FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
+      }
+
+      // TODO: think about external ids ;) / maybe for technical replicates?
+
+      // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
+      ++fraction_group;
+    }
+
+    //-------------------------------------------------------------
+    // Align all features of this fraction
+    //-------------------------------------------------------------
+    alignAndLink_(feature_maps, consensus_fraction, median_fwhm, ms_files.first, ms_files.second);
+
+    if (debug_level_ >= 666)
+    {
+      ConsensusXMLFile().store("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction);
+      writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
+    }
+
+    //-------------------------------------------------------------
+    // ID conflict resolution
+    //-------------------------------------------------------------
+    IDConflictResolverAlgorithm::resolve(consensus_fraction);
+
+    //-------------------------------------------------------------
+    // ConsensusMap normalization (basic)
+    //-------------------------------------------------------------
+    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, 
+      ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, 
+      "", 
+      "");
+
+    return EXECUTION_OK;
+  }
+
+
+
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -557,185 +833,14 @@ protected:
     ConsensusMap consensus;
     double median_fwhm(0);
 
-    for (auto const &ms_files : frac2ms) // for each fraction->ms file(s)
+    for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
     {
-      vector<FeatureMap> feature_maps;
       ConsensusMap consensus_fraction;
-      const Size fraction = ms_files.first;
+      ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction);
+      if (e != EXECUTION_OK) { return e; }
 
-      // debug output
-      writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
-      for (String const & mz_file : ms_files.second) { writeDebug_(mz_file,  1); }
-
-      // for each MS file of current fraction
-      Size fraction_group{1};
-      for (String const & mz_file : ms_files.second)
-      { 
-        // centroid spectra (if in profile mode) and correct precursor masses
-        MSExperiment ms_centroided;    
-        ExitCodes e = centroidAndCorrectPrecursors_(mz_file, ms_centroided);
-        if (e != EXECUTION_OK) { return e; }
-
-        // writing picked mzML files for data submission
-        // annotate output with data processing info
-        // TODO: how to store picked files? by specifying a folder? or by output files that match in number to input files
-        // TODO: overwrite primaryMSRun with picked mzML name (for submission)
-        // mzML_file.store(OUTPUTFILENAME, ms_centroided);
-
-        vector<ProteinIdentification> protein_ids;
-        vector<PeptideIdentification> peptide_ids;
-        const String& mz_file_abs_path = File::absolutePath(mz_file);
-        const String& id_file_abs_path = File::absolutePath(mzfile2idfile[mz_file_abs_path]);
-        IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
-
-        if (protein_ids.size() != 1)
-        {
-          LOG_FATAL_ERROR << "Exactly one protein identification runs must be annotated in " << id_file_abs_path << endl;
-          return ExitCodes::INCOMPATIBLE_INPUT_DATA;     
-        }
-
-        // annotate experimental design
-        StringList id_msfile_ref;
-        protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
-        if (id_msfile_ref.empty())
-        {
-          LOG_DEBUG << "MS run path not set in ID file." << endl;
-        }
-        else
-        {
-          // TODO: we could add a check (e.g., matching base name) here
-          id_msfile_ref.clear();
-        }                
-        id_msfile_ref.push_back(mz_file);
-        protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
-        protein_ids[0].setMetaValue("fraction_group", fraction_group);
-        protein_ids[0].setMetaValue("fraction", fraction);
-
-        // update identifers to make them unique 
-        // fixes some bugs related to users splitting the original mzML and id files before running the analysis
-        // in that case these files might have the same identifier
-        const String old_identifier = protein_ids[0].getIdentifier();
-        const String new_identifier = old_identifier + "_" + String(fraction_group) + "F" + String(fraction);
-        protein_ids[0].setIdentifier(new_identifier);
-        for (auto & p : peptide_ids)
-        {
-          if (p.getIdentifier() == old_identifier)
-          {
-            p.setIdentifier(new_identifier);
-          }
-          else
-          {
-            LOG_WARN << "Peptide ID identifier found not present in the protein ID" << endl;
-          }
-        }
-
-        // reannotate spectrum references
-        SpectrumMetaDataLookup::addMissingSpectrumReferences(
-          peptide_ids, 
-          mz_file_abs_path,
-          true);
-
-        //-------------------------------------------------------------
-        // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
-        // TODO: check if this improves targeted extraction
-        //-------------------------------------------------------------
-        if (getStringOption_("mass_recalibration") == "true")
-        {
-          recalibrateMasses_(ms_centroided, peptide_ids, id_file_abs_path);
-        }
-        
-        //////////////////////////////////////////
-        // Chromatographic parameter estimation
-        //////////////////////////////////////////
-        median_fwhm = estimateMedianChromatographicFWHM_(ms_centroided);
-
-        //-------------------------------------------------------------
-        // Feature detection
-        //-------------------------------------------------------------   
-        vector<ProteinIdentification> ext_protein_ids;
-        vector<PeptideIdentification> ext_peptide_ids;
-
-        ///////////////////////////////////////////////
-        // Run MTD before FFM
-
-        // create empty feature map and annotate MS file
-        FeatureMap seeds;
-
-        StringList sl;
-        sl.push_back(mz_file);
-        seeds.setPrimaryMSRunPath(sl);
-
-        if (getStringOption_("targeted_only") == "false")
-        {
-          calculateSeeds_(ms_centroided, seeds, median_fwhm);
-          if (debug_level_ > 666)
-          {
-            FeatureXMLFile().store("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds);
-          }
-        }
-
-        /////////////////////////////////////////////////
-        // Run FeatureFinderIdentification
-
-        FeatureMap fm;
-        StringList feature_msfile_ref;
-        feature_msfile_ref.push_back(mz_file);
-        fm.setPrimaryMSRunPath(feature_msfile_ref);
-        feature_maps.push_back(fm);
-
-        FeatureFinderIdentificationAlgorithm ffi;
-        ffi.getMSData().swap(ms_centroided);
-        ffi.getProgressLogger().setLogType(log_type_);
-
-        Param ffi_param = getParam_().copy("PeptideQuantification:", true);
-        ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
-        ffi.setParameters(ffi_param);
-        writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
-
-        ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back(), seeds);
-        
-        if (debug_level_ > 666)
-        {
-          FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
-        }
-
-        // TODO: think about external ids ;) / maybe for technical replicates?
-
-        // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
-        ++fraction_group;
-      }
-
-      //-------------------------------------------------------------
-      // Align all features of this fraction
-      //-------------------------------------------------------------
-      alignAndLink_(feature_maps, consensus_fraction, median_fwhm, ms_files.first, ms_files.second);
-
-      if (debug_level_ >= 666)
-      {
-        ConsensusXMLFile().store("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction);
-        writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
-      }
-
-      //-------------------------------------------------------------
-      // ID conflict resolution
-      //-------------------------------------------------------------
-      IDConflictResolverAlgorithm::resolve(consensus_fraction);
-
-      //-------------------------------------------------------------
-      // ConsensusMap normalization (basic)
-      //-------------------------------------------------------------
-      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, 
-        ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, 
-        "", 
-        "");
-
-
-      // append consensus map calculated for this fraction number
-
-      consensus.appendColumns(consensus_fraction);
-
-      // end of scope of fraction related data
-    }
+      consensus.appendColumns(consensus_fraction);  // append consensus map calculated for this fraction number
+    }  // end of scope of fraction related data
 
     consensus.sortByPosition();
     consensus.sortPeptideIdentificationsByMapIndex();
