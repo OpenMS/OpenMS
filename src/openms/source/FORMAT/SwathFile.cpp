@@ -288,10 +288,11 @@ namespace OpenMS
     String meta_file = tmp + tmp_fname;
 
     // Create new consumer, transform infile, write out metadata
-    MSDataCachedConsumer* cachedConsumer = new MSDataCachedConsumer(cached_file, true);
-    MzMLFile().transform(in, cachedConsumer, *experiment_metadata.get());
-    Internal::CachedMzMLHandler().writeMetadata(*experiment_metadata.get(), meta_file, true);
-    delete cachedConsumer; // ensure that filestream gets closed
+    {
+      MSDataCachedConsumer cachedConsumer(cached_file, true);
+      MzMLFile().transform(in, &cachedConsumer, *experiment_metadata.get());
+      Internal::CachedMzMLHandler().writeMetadata(*experiment_metadata.get(), meta_file, true);
+    } // ensure that filestream gets closed
 
     boost::shared_ptr<PeakMap > exp(new PeakMap);
     MzMLFile().load(meta_file, *exp.get());
