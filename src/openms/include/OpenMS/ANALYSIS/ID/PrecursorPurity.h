@@ -79,7 +79,7 @@ namespace OpenMS
     /* @brief compute precursor purity metrics for each MS2 spectrum in a PeakMap
        This is the main function of this class. See class description.
 
-     * @param spectra A PeakMap containing MS1 and MS2 spectra in order of acquisition or measurement
+     * @param spectra A PeakMap containing MS1 and MS2 spectra in order of acquisition or measurement. The first spectrum must be an MS1.
      * @param precursor_mass_tolerance The precursor tolerance. Is used for determining the targeted peak and deisotoping.
      * @param precursor_mass_tolerance_unit_ppm The unit of the precursor tolerance
     */
