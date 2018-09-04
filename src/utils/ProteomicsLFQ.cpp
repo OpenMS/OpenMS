@@ -142,6 +142,9 @@ protected:
     registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
+    registerStringOption_("transfer_ids", "<option>", "false", "Requantification.", false, true);
+    setValidStrings_("transfer_ids", ListUtils::create<String>("true,false"));
+
     registerStringOption_("mass_recalibration", "<option>", "true", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
 
@@ -544,6 +547,7 @@ protected:
       }
     }
 
+    Size n_transfered_ids(0);
     // create representative id to transfer to missing
     multimap<Size, PeptideIdentification> transfer_ids;
     for (auto & c : consensus_fraction)
@@ -566,11 +570,13 @@ protected:
               pair<Size, PeptideIdentification> p = make_pair(idx, pids[0]);
               p.second.setRT(c.getRT());
               transfer_ids.insert(p);
+              ++n_transfered_ids;
             }
           }
         }
       }
     }
+    LOG_INFO << "Transfered IDs: " << n_transfered_ids << endl;
     return transfer_ids;
   }
 
@@ -578,7 +584,8 @@ protected:
     const pair<unsigned int, std::vector<String> >  & ms_files, 
     const map<String, String>& mzfile2idfile, 
     double & median_fwhm,
-    ConsensusMap & consensus_fraction)
+    ConsensusMap & consensus_fraction,
+    const multimap<Size, PeptideIdentification>& transfered_ids)
   {
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
@@ -664,6 +671,16 @@ protected:
         recalibrateMasses_(ms_centroided, peptide_ids, id_file_abs_path);
       }
       
+      if (!transfered_ids.empty())
+      {
+        // copy ids for this map to peptide_ids
+        auto range = transfered_ids.equal_range(fraction_group - 1);
+        for (auto it = range.first; it != range.second; ++it)
+        {
+          peptide_ids.push_back(it->second);
+        }
+      }
+
       //////////////////////////////////////////
       // Chromatographic parameter estimation
       //////////////////////////////////////////
@@ -753,7 +770,6 @@ protected:
   }
 
 
-
   ExitCodes main_(int, const char **) override
   {
     //-------------------------------------------------------------
@@ -834,11 +850,19 @@ protected:
     double median_fwhm(0);
 
     for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
-    {
+    {      
       ConsensusMap consensus_fraction;
-      ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction);
-      if (e != EXECUTION_OK) { return e; }
 
+      ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction, multimap<Size, PeptideIdentification>());
+      if (e != EXECUTION_OK) { return e; }
+        
+      if (getStringOption_("transfer_ids") == "true")
+      {
+        // TODO: determine minimum occurance from data (e.g., fraction of total runs per fraction, n replicates etc.)
+        multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenFractions_(consensus_fraction, 3); 
+        ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction, transfered_ids);
+        if (e != EXECUTION_OK) { return e; }
+      }
       consensus.appendColumns(consensus_fraction);  // append consensus map calculated for this fraction number
     }  // end of scope of fraction related data
 
