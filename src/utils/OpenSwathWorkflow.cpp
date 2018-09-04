@@ -49,6 +49,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
+#include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -82,6 +83,9 @@ using namespace OpenMS;
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/APPLICATIONS/OpenSwathBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+
+#include <QDir>
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -509,7 +513,7 @@ protected:
     registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
     setValidStrings_("mz_correction_function", ListUtils::create<String>("none,regression_delta_ppm,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
 
-    registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
+    registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
@@ -637,8 +641,6 @@ protected:
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
 
-    Param irt_detection_param = getParam_().copy("RTNormalization:", true);
-
     //tr_file input file type
     FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
     if (tr_type == FileTypes::UNKNOWN)
@@ -682,7 +684,10 @@ protected:
 
     String readoptions = getStringOption_("readOptions");
     String mz_correction_function = getStringOption_("mz_correction_function");
-    String tmp = getStringOption_("tempDirectory");
+    
+    // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
+    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
+    String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath()).ensureLastChar('/');
 
     ///////////////////////////////////
     // Parameter validation
@@ -804,7 +809,7 @@ protected:
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
-    if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp, readoptions, 
+    if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
                         swath_windows_file, min_upper_edge_dist, force,
                         sort_swath_maps, sonar))
     {
@@ -816,6 +821,7 @@ protected:
     ///////////////////////////////////
     String irt_trafo_out = debug_params.getValue("irt_trafo");
     String irt_mzml_out = debug_params.getValue("irt_mzml");
+    Param irt_detection_param = getParam_().copy("RTNormalization:", true);
     TransformationDescription trafo_rtnorm;
     if (nonlinear_irt_tr_file.empty())
     {
