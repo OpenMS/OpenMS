@@ -715,7 +715,7 @@ using namespace OpenMS;
 
         csm.precursor_correction = cross_link_candidate.precursor_correction;
 
-        if (precursor_purities.size() > scan_index)
+        if (precursor_purities.size() > 0)
         {
           csm.precursor_total_intensity = precursor_purities[scan_index].total_intensity;
           csm.precursor_target_intensity = precursor_purities[scan_index].target_intensity;
