@@ -48,7 +48,7 @@ namespace OpenMS
       This class computes metrics for precursor isolation window purity (or noise).
       The function extracts the peaks from an isolation window targeted for fragmentation
       and determines which peaks are isotopes of the target and which come from other sources.
-      The intensities of the assumed target peaks are summed up as the target intesity.
+      The intensities of the assumed target peaks are summed up as the target intensity.
       Using this information it calculates an intensity ratio for the relative intensity of the target
       compared to other sources.
       These metrics are combined over the previous and the next MS1 spectrum.
