@@ -2218,9 +2218,6 @@ protected:
                      max_variable_mods_per_peptide);
     progresslogger.endProgress();
 
-    // annotate RNPxl related information to hits and create report
-    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
-
     // reindex ids
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
@@ -2249,6 +2246,9 @@ protected:
         return UNKNOWN_ERROR;
       }
     } 
+
+    // annotate RNPxl related information to hits and create report
+    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
 
     if (generate_decoys)	
     {
