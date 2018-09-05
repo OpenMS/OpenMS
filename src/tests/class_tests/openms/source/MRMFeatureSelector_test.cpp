@@ -37,8 +37,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MRMFeatureQCFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
@@ -54,41 +53,30 @@ START_TEST(MRMFeatureSelector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureSelectorQMIP* ptr = 0;
-MRMFeatureSelectorQMIP* null_ptr = 0;
+MRMFeatureSelectorScore* ptr = 0;
+MRMFeatureSelectorScore* null_ptr = 0;
 
 const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1.featureXML");
-const String target_list_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_BloodProject01_SWATH.csv");
-// const String components_path = OPENMS_GET_TEST_DATA_PATH("test_pyTOPP_MRMFeatureQCComponents.csv");
-// const String components_groups_path = OPENMS_GET_TEST_DATA_PATH("test_pyTOPP_MRMFeatureQCComponentGroups.csv");
 
 FeatureMap feature_map;
 FeatureXMLFile feature_file;
+std::cout << feature_file.getOptions().getLoadSubordinates() << std::endl;
 feature_file.load(features_path, feature_map);
 
-// TransitionTSVFile tsv_reader;
-// TargetedExperiment targeted_exp;
-// tsv_reader.convertTSVToTargetedExperiment(target_list_path.c_str(), FileTypes::CSV, targeted_exp);
-
-// MRMFeatureQCFile mrmfqcfile;
-// MRMFeatureQC mrmfqc;
-// mrmfqcfile.load(components_path, mrmfqc, false); // components file
-// mrmfqcfile.load(components_groups_path, mrmfqc, true); // component groups file
-
-START_SECTION(MRMFeatureSelectorQMIP())
+START_SECTION(MRMFeatureSelectorScore())
 {
-  ptr = new MRMFeatureSelectorQMIP();
+  ptr = new MRMFeatureSelectorScore();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~MRMFeatureSelectorQMIP())
+START_SECTION(~MRMFeatureSelectorScore())
 {
   delete ptr;
 }
 END_SECTION
 
-ptr = new MRMFeatureSelectorQMIP();
+ptr = new MRMFeatureSelectorScore();
 
 START_SECTION(getParameters().getValue("nn_threshold"))
 {
@@ -162,7 +150,33 @@ END_SECTION
 
 START_SECTION(select_MRMFeature())
 {
-  ptr->select_MRMFeature(feature_map);
+        //   select_transition_groups = True
+        // segment_window_length = -1
+        // segment_step_length = -1
+        // select_highest_count = False
+        // variable_type = 'integer'
+        // optimal_threshold = 0.5
+    // double nn_threshold_;
+    // bool   locality_weight_;
+    // bool   select_transition_group_;
+    // double segment_window_length_;
+    // double segment_step_length_;
+    // bool   select_highest_count_;
+    // String variable_type_;
+    // double optimal_threshold_;
+  ptr->setSelectTransitionGroup(true);
+  ptr->setSegmentWindowLength(-1);
+  ptr->setSegmentWindowLength(-1);
+  ptr->setSelectHighestCount(false);
+  FeatureMap output_selected = ptr->select_MRMFeature(feature_map);
+  TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);
+  std::cout << output_selected[0].getMetaValue("PeptideRef").toString() << std::endl;
+  std::cout << output_selected[50].getMetaValue("PeptideRef").toString() << std::endl;
+  TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
+  TEST_EQUAL(output_selected[0].getSubordinates()[0].getRT(), 17.2147079447428);
+  TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);
+  TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id").toString(), "f1p.f1p_1.Heavy");
+  TEST_EQUAL(output_selected[50].getSubordinates()[0].getRT(), 13.4859151489258);
 }
 END_SECTION
 
@@ -170,4 +184,20 @@ delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+// MRMFeatureSelectorQMIP* ptrQMIP = 0;
+// ptrQMIP = new MRMFeatureSelectorQMIP();
+
+// START_SECTION(select_MRMFeatureQMIP())
+// {
+//   FeatureMap output_selected = ptrQMIP->select_MRMFeature(feature_map);
+//   TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);
+//   TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");
+//   TEST_EQUAL(output_selected[0].getSubordinates()[0].getRT(), 15.8944563381195);
+//   TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 1080.0);
+//   TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "oxa.oxa_1.Heavy");
+//   TEST_EQUAL(output_selected[50].getSubordinates()[0].getRT(), 13.4963475631714);
+// }
+// END_SECTION
+
 END_TEST

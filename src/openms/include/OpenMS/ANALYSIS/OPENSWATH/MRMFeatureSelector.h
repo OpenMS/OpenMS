@@ -55,8 +55,7 @@ public:
 
     virtual std::vector<String> optimize(
       std::vector<std::pair<double, String>> time_to_name, 
-      std::map< String, std::vector<Feature> > feature_name_map,
-      std::map< String, double > score_map
+      std::map< String, std::vector<Feature> > feature_name_map
     )=0;
     FeatureMap select_MRMFeature(FeatureMap& features);
     double make_score(Feature& feature);
@@ -99,7 +98,7 @@ private:
     bool   select_highest_count_;
     String variable_type_;
     double optimal_threshold_;
-    Int _addVariable(LPWrapper& problem, String& name, double lb, double ub);
+    Int _addVariable(LPWrapper& problem, String& name, double lb, double ub, double obj);
     void _addConstraint(LPWrapper& problem, size_t size, Int *indices_array, double *values_array, String name, double lb, double ub, LPWrapper::Type param);
   };
 
@@ -108,8 +107,7 @@ private:
 public:
     std::vector<String> optimize(
       std::vector<std::pair<double, String>> time_to_name, 
-      std::map< String, std::vector<Feature> > feature_name_map,
-      std::map< String, double > score_map
+      std::map< String, std::vector<Feature> > feature_name_map
     );
   };
 
@@ -118,8 +116,7 @@ public:
 public:
     std::vector<String> optimize(
       std::vector<std::pair<double, String>> time_to_name, 
-      std::map< String, std::vector<Feature> > feature_name_map,
-      std::map< String, double > score_map
+      std::map< String, std::vector<Feature> > feature_name_map
     );
   };
 }
