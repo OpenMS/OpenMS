@@ -85,8 +85,6 @@ namespace OpenMS
       return score;
     }
 
-    int target_index = isolated_window.findNearest(target_mz, precursor_tolerance_abs);
-
     // estimate a lower boundary for isotopic peaks
     int negative_isotopes((pre.getIsolationWindowLowerOffset() * charge));
     double iso = -negative_isotopes;
