@@ -553,27 +553,25 @@ protected:
     for (auto & c : consensus_fraction)
     {
       const auto& pids = c.getPeptideIdentifications();
-      if (!pids.empty())
+      if (pids.empty()) continue; // skip consensus feature without IDs 
+
+      const vector<PeptideHit>& phits = pids[0].getHits();
+      if (phits.empty()) continue; // skip no PSM annotated
+
+      const String s = phits[0].getSequence().toString();
+      const int z = phits[0].getCharge();
+      pair<String, UInt> seq_z = make_pair(s, z);
+      map<pair<String, UInt>, set<int> >::const_iterator it = missing.find(seq_z);
+
+      if (it == missing.end()) continue; // skip sequence and charge not marked as missing in one of the other maps
+
+      for (int idx : it->second)
       {
-        const vector<PeptideHit>& phits = pids[0].getHits();
-        if (!phits.empty())
-        {
-          const String s = phits[0].getSequence().toString();
-          const int z = phits[0].getCharge();
-          pair<String, UInt> seq_z = make_pair(s, z);
-          map<pair<String, UInt>, set<int> >::const_iterator it = missing.find(seq_z);
-          if (it != missing.end())
-          {
-            for (int idx : it->second)
-            {
-              // use consensus feature ID and retention time to transfer between runs
-              pair<Size, PeptideIdentification> p = make_pair(idx, pids[0]);
-              p.second.setRT(c.getRT());
-              transfer_ids.insert(p);
-              ++n_transfered_ids;
-            }
-          }
-        }
+        // use consensus feature ID and retention time to transfer between runs
+        pair<Size, PeptideIdentification> p = make_pair(idx, pids[0]);
+        p.second.setRT(c.getRT());
+        transfer_ids.insert(p);
+        ++n_transfered_ids;        
       }
     }
     LOG_INFO << "Transfered IDs: " << n_transfered_ids << endl;
@@ -857,9 +855,10 @@ protected:
       if (e != EXECUTION_OK) { return e; }
         
       if (getStringOption_("transfer_ids") == "true")
-      {
+      {  
         // TODO: determine minimum occurance from data (e.g., fraction of total runs per fraction, n replicates etc.)
-        multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenFractions_(consensus_fraction, 3); 
+        multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenFractions_(consensus_fraction, 1); 
+        consensus_fraction.clear();
         ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction, transfered_ids);
         if (e != EXECUTION_OK) { return e; }
       }
