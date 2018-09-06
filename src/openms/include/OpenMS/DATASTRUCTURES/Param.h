@@ -318,6 +318,8 @@ protected:
     /**
       @brief Adds the tag @p tag to the entry @p key
 
+      E.g. "advanced", "required", "input file", "output file"
+
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
       @exception Exception::InvalidValue is thrown if the tag contain a comma character.
     */
