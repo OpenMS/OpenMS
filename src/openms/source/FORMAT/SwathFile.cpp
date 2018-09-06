@@ -143,7 +143,7 @@ namespace OpenMS
     String readoptions)
   {
     std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << std::endl;
-    String tmp_fname = "openswath_tmpfile";
+    String tmp_fname = File::getUniqueName();
 
     startProgress(0, 1, "Loading metadata file " + file);
     boost::shared_ptr<PeakMap> experiment_metadata = populateMetaData_(file);
