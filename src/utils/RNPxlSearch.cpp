@@ -1635,6 +1635,10 @@ protected:
     FalseDiscoveryRate fdr;
     Param p = fdr.getParameters();
     p.setValue("add_decoy_peptides", "true"); // we still want decoys in the result (e.g., to run percolator)
+    if (report_top_hits >= 2)
+    {
+      p.setValue("use_all_hits", "true");
+    }
     fdr.setParameters(p);
 
     // load MS2 map
