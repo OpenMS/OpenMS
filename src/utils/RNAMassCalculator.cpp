@@ -271,6 +271,8 @@ protected:
       outfile.open(out.c_str());
       output_ = &outfile;
     }
+    // use 4 decimal places:
+    *output_ << std::fixed << std::setprecision(4);
 
     format_ = getStringOption_("format");
     if (format_ == "table")
