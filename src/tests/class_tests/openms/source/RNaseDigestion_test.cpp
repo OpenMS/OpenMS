@@ -115,6 +115,12 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[0].toString(), "CCCp");
   TEST_STRING_EQUAL(out[1].toString(), "AUCCp");
   TEST_STRING_EQUAL(out[2].toString(), "G");
+
+  rd.setEnzyme("no cleavage");
+  rd.setMissedCleavages(3);
+  rd.digest(NASequence::fromString("CCCAUCCG"), out);
+  TEST_EQUAL(out.size(), 1);
+  TEST_STRING_EQUAL(out[0].toString(), "CCCAUCCG");
 }
 END_SECTION
 
