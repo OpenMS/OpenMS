@@ -618,9 +618,9 @@ protected:
     {
       Param p;
       p.setValue("irt_mzml", "", "Chromatogram mzML containing the iRT peptides");
-      // p.setValidFormats_("irt_mzml", ListUtils::create<String>("mzML"));
+      p.addTag("irt_mzml", "output file");
       p.setValue("irt_trafo", "", "Transformation file for RT transform");
-      // p.setValidFormats_("irt_trafo", ListUtils::create<String>("trafoXML"));
+      p.addTag("irt_trafo", "output file");
       return p;
     }
     else if (name == "Library")
