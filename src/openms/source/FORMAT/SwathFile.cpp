@@ -44,8 +44,9 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/SYSTEM/File.h>
 
-
+#include <memory> // for unique_ptr
 
 namespace OpenMS
 {
@@ -159,22 +160,22 @@ namespace OpenMS
       " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
     endProgress();
 
-    FullSwathFileConsumer* dataConsumer;
+    std::unique_ptr<FullSwathFileConsumer> dataConsumer;
     startProgress(0, 1, "Loading data file " + file);
     if (readoptions == "normal")
     {
-      dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
-      MzMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<RegularSwathFileConsumer>(known_window_boundaries);
+      MzMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "cache")
     {
-      dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      MzMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      MzMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "split")
     {
-      dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      MzMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_unique<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      MzMLFile().transform(file, dataConsumer.get());
     }
     else
     {
@@ -184,7 +185,6 @@ namespace OpenMS
     LOG_DEBUG << "Finished parsing Swath file " << std::endl;
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
-    delete dataConsumer;
 
     endProgress();
     return swath_maps;
