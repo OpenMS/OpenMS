@@ -509,7 +509,7 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator(const NASequence::Iterator& rhs)))
 {
-  // TODO
+  NOT_TESTABLE
 }
 END_SECTION
 
@@ -637,7 +637,7 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator(const Iterator& rhs)))
 {
-  // TODO
+  NOT_TESTABLE
 }
 END_SECTION
 
