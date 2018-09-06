@@ -194,7 +194,7 @@ protected:
     pos = line.find_first_not_of(skip, pos);
     if (pos == String::npos) line = "";
     else line = line.substr(pos);
-    return prefix;
+    return prefix.trim();
   }
 
   void readFile_(const String& filename, const set<Int>& charges)
