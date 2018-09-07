@@ -164,13 +164,13 @@ namespace OpenMS
     return score;
   }
 
-  std::vector<PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, int child_spectrum_level)
+  std::vector<PrecursorPurity::PurityScores> PrecursorPurity::computePrecursorPurities(const PeakMap& spectra, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     std::vector<PrecursorPurity::PurityScores> purityscores;
 
     // TODO throw an exception or at least a warning?
     // if there is no MS1 before the first MS2, the spectra datastructure is not suitable for this function
-    if (spectra[0].getMSLevel() == child_spectrum_level)
+    if (spectra[0].getMSLevel() == 2)
     {
       LOG_WARN << "Warning: Input data not suitable for Precursor Purity computation. Will be skipped!\n";
       return purityscores;
@@ -183,18 +183,18 @@ namespace OpenMS
     for (Size i = 0; i < spectra.size(); ++i)
     {
       // change current parent index if a new MS1 spectrum is reached
-      if (spectra[i].getMSLevel() == child_spectrum_level-1)
+      if (spectra[i].getMSLevel() == 1)
       {
         current_parent_index = i;
       }
-      else if (spectra[i].getMSLevel() == child_spectrum_level)
+      else if (spectra[i].getMSLevel() == 2)
       {
         // update next MS1 index, if it is lower than the current MS2 index
         if (next_parent_index < i)
         {
           for (Size j = i+1; j < spectra.size(); ++j)
           {
-            if (spectra[j].getMSLevel() == child_spectrum_level-1)
+            if (spectra[j].getMSLevel() == 1)
             {
               next_parent_index = j;
               break;
