@@ -403,18 +403,18 @@ namespace OpenMS
                 if (seq.empty()) seq = ph.getMetaValue("label"); // e.g. for RNA sequences
                 widget_1D->canvas()->setTextBox(seq.toQString());
               }
-              else if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+              else if (widget_1D->canvas()->isIonLadderVisible())
               {
-                if (widget_1D->canvas()->isIonLadderVisible())
+                if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
                 {
                   // @TODO: read ion list from the input file (meta value)
                   static vector<String> top_ions = ListUtils::create<String>("a,b,c");
                   static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
                   String diagram = generateSequenceDiagram_(
-                    ph.getSequence(),
-                    ph.getPeakAnnotations(),
-                    top_ions,
-                    bottom_ions);
+                        ph.getSequence(),
+                        ph.getPeakAnnotations(),
+                        top_ions,
+                        bottom_ions);
                   widget_1D->canvas()->setTextBox(diagram.toQString());
                 }
                 else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
@@ -426,7 +426,7 @@ namespace OpenMS
                     static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
                     static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
                     String diagram = generateSequenceDiagram_(
-                      na_seq, ph.getPeakAnnotations(), top_ions, bottom_ions);
+                          na_seq, ph.getPeakAnnotations(), top_ions, bottom_ions);
                     widget_1D->canvas()->setTextBox(diagram.toQString());
                   }
                   catch (Exception::ParseError) // label doesn't contain have a valid seq.
