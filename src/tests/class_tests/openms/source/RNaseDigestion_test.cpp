@@ -121,6 +121,25 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   rd.digest(NASequence::fromString("CCCAUCCG"), out);
   TEST_EQUAL(out.size(), 1);
   TEST_STRING_EQUAL(out[0].toString(), "CCCAUCCG");
+
+  rd.setEnzyme("unspecific cleavage");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("ACGU"), out);
+  TEST_EQUAL(out.size(), 4);
+  TEST_STRING_EQUAL(out[0].toString(), "A");
+  TEST_STRING_EQUAL(out[1].toString(), "C");
+  TEST_STRING_EQUAL(out[2].toString(), "G");
+  TEST_STRING_EQUAL(out[3].toString(), "U");
+  rd.setMissedCleavages(1);
+  rd.digest(NASequence::fromString("ACGU"), out);
+  TEST_EQUAL(out.size(), 7);
+  TEST_STRING_EQUAL(out[0].toString(), "A");
+  TEST_STRING_EQUAL(out[1].toString(), "AC");
+  TEST_STRING_EQUAL(out[2].toString(), "C");
+  TEST_STRING_EQUAL(out[3].toString(), "CG");
+  TEST_STRING_EQUAL(out[4].toString(), "G");
+  TEST_STRING_EQUAL(out[5].toString(), "GU");
+  TEST_STRING_EQUAL(out[6].toString(), "U");
 }
 END_SECTION
 
