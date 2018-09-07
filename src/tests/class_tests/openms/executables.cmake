@@ -75,6 +75,7 @@ set(metadata_executables_list
   HPLC_test
   DocumentIDTagger_test
   Identification_test
+  IdentificationData_test
   IdentificationDataConverter_test
   IdentificationHit_test
   InstrumentSettings_test
