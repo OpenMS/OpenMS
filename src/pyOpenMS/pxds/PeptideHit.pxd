@@ -82,6 +82,8 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         double mz
         double intensity
 
+        void writePeakAnnotationsString_(String & annotation_string, libcpp_vector[ PeptideHit_PeakAnnotation ] annotations) nogil except +
+
         bool operator<(PeptideHit_PeakAnnotation) nogil except +
         bool operator==(PeptideHit_PeakAnnotation) nogil except +
 

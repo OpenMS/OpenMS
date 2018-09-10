@@ -567,7 +567,14 @@ protected:
           const String precursor_rna_adduct = *mod_combinations_it->second.begin();
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
-          // copy PSM information for each cross-linkable nucleotides
+          // just copy non-cross-linked peptide PSMs
+          if (precursor_rna_adduct == "none") 
+          {
+            new_hits.push_back(annotated_hits[scan_index][i]);
+            continue;
+          }
+
+          // if we have a cross-link, copy PSM information for each cross-linkable nucleotides
           for (auto const & c : feasible_MS2_adducts)
           {
             AnnotatedHit a(annotated_hits[scan_index][i]);
@@ -1628,6 +1635,10 @@ protected:
     FalseDiscoveryRate fdr;
     Param p = fdr.getParameters();
     p.setValue("add_decoy_peptides", "true"); // we still want decoys in the result (e.g., to run percolator)
+    if (report_top_hits >= 2)
+    {
+      p.setValue("use_all_hits", "true");
+    }
     fdr.setParameters(p);
 
     // load MS2 map
@@ -2218,9 +2229,6 @@ protected:
                      max_variable_mods_per_peptide);
     progresslogger.endProgress();
 
-    // annotate RNPxl related information to hits and create report
-    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
-
     // reindex ids
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
@@ -2250,6 +2258,9 @@ protected:
       }
     } 
 
+    // annotate RNPxl related information to hits and create report
+    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+
     if (generate_decoys)	
     {
       fdr.apply(peptide_ids);	
@@ -2261,7 +2272,6 @@ protected:
     // save report
     if (!out_csv.empty())
     {
-      csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
       TextFile csv_file;
       csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
       for (Size i = 0; i != csv_rows.size(); ++i)

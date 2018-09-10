@@ -1,4 +1,5 @@
-from libcpp.string cimport string as libcpp_string
+from Types cimport *
+from String cimport *
 
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
 
@@ -25,6 +26,8 @@ cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
         libcpp_string getNativeIDType() nogil except +
         void setNativeIDType(libcpp_string) nogil except +
 
+        String getNativeIDTypeAccession() nogil except +
+        void setNativeIDTypeAccession(const String & accesssion) nogil except +
 
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS::SourceFile":
     cdef enum ChecksumType:

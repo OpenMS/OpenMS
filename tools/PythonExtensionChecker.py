@@ -176,12 +176,28 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 tres.setPassed(True)
 
         else:
+
+            # Missing method, lets remove false positives (destructors, operators, etc)
             cnt.public_methods_missing += 1
             if mdef.name.find("~") != -1:
                 # destructor
                 cnt.public_methods_missing_nowrapping += 1
                 tres.setPassed(True)
                 tres.setMessage("Cannot wrap destructor")
+            elif mdef.definition == mdef.name:
+                # constructor
+                find_match = False
+                for kk in pxd_class.methods:
+                    if kk.split("_")[-1] == mdef.name:
+                        find_match = True
+                if find_match:
+                    cnt.public_methods_missing_nowrapping += 1
+                    tres.setPassed(True)
+                    tres.setMessage("Renamed constructor")
+                else:
+                    tres.setPassed(False)
+                    tres.setMessage(" -- TODO missing constructor in PXD: %s nogil except +" % mdef.format_definition_for_cython())
+
             elif (mdef.name.find("operator") != -1 or
                   mdef.name.find("begin") != -1 or
                   mdef.name.find("end") != -1):

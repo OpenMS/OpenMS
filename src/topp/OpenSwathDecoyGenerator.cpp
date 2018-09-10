@@ -58,19 +58,24 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenSwathDecoyGenerator \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathDecoyGenerator \f$ \longrightarrow \f$</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_OpenSwathAssayGenerator </td>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenSwathWorkflow </td>
           </tr>
       </table>
   </CENTER>
 
   This module generates "decoy" transitions from a set of real or "target"
   transitions. The idea is to use the decoy transitions in a statistical scoring
-  process to estimate the false hits in an SRM / SWATH experiment.
+  process to estimate the false hits in an SRM / SWATH experiment.  The tool
+  operates on @ref OpenMS::TraMLFile "TraML" files, which can come from @ref
+  UTILS_TargetedFileConverter or any other tool.
 
   There are multiple methods to create the decoy transitions, the simplest ones
   are reverse and pseudo-reverse which reverse the sequence either completely or
@@ -93,6 +98,7 @@ using namespace OpenMS;
 
 
 */
+
 // TODO: could theoretical also produce an annotation in the TraML of what it thinks the ion is?
 
 // We do not want this class to show up in the docu:

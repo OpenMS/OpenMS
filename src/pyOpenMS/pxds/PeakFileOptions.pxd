@@ -70,3 +70,9 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         NumpressConfig getNumpressConfigurationFloatDataArray() nogil except +
         void setNumpressConfigurationFloatDataArray(NumpressConfig config) nogil except +
 
+        void setForceMQCompatability(bool forceMQ) nogil except +
+        bool getForceMQCompatability() nogil except +
+
+        void setForceTPPCompatability(bool forceTPP) nogil except +
+        bool getForceTPPCompatability() nogil except +
+        

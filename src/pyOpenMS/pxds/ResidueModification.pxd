@@ -69,7 +69,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         double getNeutralLossMonoMass() nogil except +
         void setNeutralLossAverageMass(double average_mass) nogil except +
         double getNeutralLossAverageMass() nogil except +
+
         bool hasNeutralLoss() nogil except +
+        bool isUserDefined() nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::ResidueModification":
     cdef enum TermSpecificity "OpenMS::ResidueModification::TermSpecificity":

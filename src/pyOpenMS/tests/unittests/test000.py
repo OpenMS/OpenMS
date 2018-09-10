@@ -197,15 +197,18 @@ def testAASequence():
     aas += aas
 
     aas.__doc__
-    aas = pyopenms.AASequence.fromString(b"DFPIANGER", True)
+    aas = pyopenms.AASequence.fromString(b"DFPIANGER")
     assert aas.getCTerminalModificationName() == b""
     assert aas.getNTerminalModificationName() == b""
     aas.setCTerminalModification(b"")
     aas.setNTerminalModification(b"")
     assert aas.toString() == b"DFPIANGER"
     assert aas.toUnmodifiedString() == b"DFPIANGER"
+    aas = pyopenms.AASequence.fromStringPermissive(b"DFPIANGER", True)
+    assert aas.toString() == b"DFPIANGER"
+    assert aas.toUnmodifiedString() == b"DFPIANGER"
 
-    seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER", True)
+    seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
     assert seq.toString() == b"PEPTIDESEKUEM(Oxidation)CER"
     assert seq.toUnmodifiedString() == b"PEPTIDESEKUEMCER"
     assert seq.toBracketString() == b"PEPTIDESEKUEM[147]CER"
@@ -3833,7 +3836,7 @@ def testPeptideHit():
     assert ph == ph
     assert not ph != ph
 
-    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
+    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A"))
     _testMetaInfoInterface(ph)
 
     assert len(ph.getPeptideEvidences()) == 0
@@ -3858,7 +3861,7 @@ def testPeptideHit():
     assert ph.getScore() == 2.0
     ph.setRank(30)
     assert ph.getRank() == 30
-    ph.setSequence(pyopenms.AASequence.fromString(b"AAA", True))
+    ph.setSequence(pyopenms.AASequence.fromString(b"AAA"))
     assert ph.getSequence().toString() == b"AAA"
 
     assert ph == ph
@@ -3934,7 +3937,7 @@ def testPeptideIdentification():
     pe = pyopenms.PeptideEvidence()
     pe.setProteinAccession(b'B_id')
 
-    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
+    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A"))
     ph.addPeptideEvidence(pe)
     pi.insertHit(ph)
     phx, = pi.getHits()

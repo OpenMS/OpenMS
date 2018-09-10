@@ -57,6 +57,9 @@ namespace OpenMS
     molecules (for metabolomics) and each precursor has a set of product ions
     associated with it.
 
+    The TargetedExperiment can be stored to disk either in .traml format using
+    the @ref TraMLFile "TraMLFile" or in .tsv format using the TransitionTSVFile.
+
   */
   class OPENMS_DLLAPI TargetedExperiment
   {

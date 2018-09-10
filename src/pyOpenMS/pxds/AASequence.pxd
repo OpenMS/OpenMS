@@ -11,6 +11,11 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
     cdef cppclass AASequence:
         # wrap-hash:
         #   toString().c_str()
+        #
+        # wrap-doc:
+        #   Representation of a peptide/protein sequence
+        #   This class represents amino acid sequences in OpenMS. An AASequence
+        #   instance primarily contains a sequence of residues. 
 
         AASequence() nogil except +
         AASequence(AASequence) nogil except + # wrap-ignore
@@ -31,10 +36,9 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns the peptide as string without any modifications
         String toUniModString() nogil except +
 
-        # returns the peptide as a pepXML style bracket string . fixed modifications are omitted
-        String toBracketString() nogil except +
-        String toBracketString(bool integer_mass) nogil except +
-        String toBracketString(bool integer_mass, libcpp_vector[String] fixed_modifications) nogil except +
+        String toBracketString() nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation. Uses integer mass by default.
+        String toBracketString(bool integer_mass) nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation. 
+        String toBracketString(bool integer_mass, libcpp_vector[String] fixed_modifications) nogil except + #wrap-doc:create a TPP compatible string of the modified sequence using bracket notation. 
 
         # set the modification of the residue at position index
         void setModification(Size index, String modification) nogil except +
@@ -59,7 +63,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         Residue getResidue(Size index) nogil except +
 
         # returns the formula of the peptide
-        EmpiricalFormula getFormula() nogil except +
+        EmpiricalFormula getFormula() nogil except + # wrap-doc:convenience function with ResidueType=Full and charge = 0 by default
         EmpiricalFormula getFormula(ResidueType type_, Int charge) nogil except +
 
         # returns the average weight of the peptide
@@ -85,7 +89,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # compute frequency table of amino acids
         void getAAFrequencies(Map[String, size_t]) nogil except + # wrap-ignore
 
-        # returns true if the peptude contains the given residue
+        # returns true if the peptide contains the given residue
         bool has(Residue residue) nogil except +
 
         # returns true if the peptide contains the given peptide
@@ -111,15 +115,10 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
 # COMMENT: wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
-
+        
         # static members
-        AASequence fromString(String s, bool permissive) nogil except +  # wrap-attach:AASequence
-
-        # TODO: autowrap 0.18 will allow this
-        #
-        # # static members
-        # AASequence fromString(String s, bool permissive) nogil except +  # wrap-attach:AASequence wrap-as:fromStringPermissive
-        #
-        # # static members
-        # AASequence fromString(String s) nogil except +  # wrap-attach:AASequence
+        AASequence fromString(String s, bool permissive) nogil except +  # wrap-attach:AASequence wrap-as:fromStringPermissive
+        
+        # static members
+        AASequence fromString(String s) nogil except +  # wrap-attach:AASequence
 
