@@ -529,7 +529,11 @@ protected:
     registerSubsection_("Library", "Library parameters section");
 
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
-    registerSubsection_("Debugging", "Debugging");
+    registerTOPPSubsection_("Debugging", "Debugging");
+    registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
+    setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
+    registerOutputFile_("Debugging:irt_trafo", "<file>", "", "Transformation file for RT transform", false);
+    setValidFormats_("Debugging:irt_trafo", ListUtils::create<String>("trafoXML"));
   }
 
   Param getSubsectionDefaults_(const String& name) const override
@@ -612,15 +616,6 @@ protected:
       p.setValue("NrRTBins", 10, "Number of RT bins to use to compute coverage. This option should be used to ensure that there is a complete coverage of the RT space (this should detect cases where only a part of the RT gradient is actually covered by normalization peptides)");
       p.setValue("MinPeptidesPerBin", 1, "Minimal number of peptides that are required for a bin to counted as 'covered'");
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
-      return p;
-    }
-    else if (name == "Debugging")
-    {
-      Param p;
-      p.setValue("irt_mzml", "", "Chromatogram mzML containing the iRT peptides");
-      p.addTag("irt_mzml", "output file");
-      p.setValue("irt_trafo", "", "Transformation file for RT transform");
-      p.addTag("irt_trafo", "output file");
       return p;
     }
     else if (name == "Library")
