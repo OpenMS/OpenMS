@@ -405,11 +405,11 @@ namespace OpenMS
                   double score = inner_pep->getScore();
                   if (is_e_value) score = -log(score + 0.0001);
 
-                  if (outer_pep->getMetaValue("TMP:sources") == inner_pep->getMetaValue("TMP:sources"))  // PSMs from different runs
+                  if (outer_pep->getMetaValue("TMP:sources") == inner_pep->getMetaValue("TMP:sources"))  // PSMs from the same run
                   {
                     replicate_spectra += score;
                   }
-                  else  // PSMs from the same run
+                  else  // PSMs from different runs
                   {
                     sibling_experiments += score;
                   }
