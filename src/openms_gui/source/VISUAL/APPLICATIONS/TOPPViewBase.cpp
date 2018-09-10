@@ -681,11 +681,15 @@ namespace OpenMS
   // static
   bool TOPPViewBase::containsIMData(const MSSpectrum& s)
   {
-    if (s.getFloatDataArrays().empty() || s.getFloatDataArrays()[0].getName() != "Ion Mobility")
+    if (!s.getFloatDataArrays().empty() &&
+        (s.getFloatDataArrays()[0].getName() == "Ion Mobility" ||
+         s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
+         s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
+        )
     {
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
