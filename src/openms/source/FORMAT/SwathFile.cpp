@@ -52,7 +52,8 @@ namespace OpenMS
 {
 
   /// Loads a Swath run from a list of split mzML files
-  std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list, String tmp,
+  std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list, 
+	String tmp,
     boost::shared_ptr<ExperimentalSettings>& exp_meta,
     String readoptions)
   {
@@ -144,7 +145,7 @@ namespace OpenMS
     String readoptions)
   {
     std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << std::endl;
-    String tmp_fname = File::getUniqueName();
+	String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
 
     startProgress(0, 1, "Loading metadata file " + file);
     boost::shared_ptr<PeakMap> experiment_metadata = populateMetaData_(file);
