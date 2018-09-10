@@ -46,7 +46,7 @@
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <memory> // for unique_ptr
+#include <memory> // for make_shared
 
 namespace OpenMS
 {
@@ -160,21 +160,21 @@ namespace OpenMS
       " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
     endProgress();
 
-    std::unique_ptr<FullSwathFileConsumer> dataConsumer;
+    std::shared_ptr<FullSwathFileConsumer> dataConsumer;
     startProgress(0, 1, "Loading data file " + file);
     if (readoptions == "normal")
     {
-      dataConsumer = std::make_unique<RegularSwathFileConsumer>(known_window_boundaries);
+      dataConsumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
       MzMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "cache")
     {
-      dataConsumer = std::make_unique<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      dataConsumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
       MzMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "split")
     {
-      dataConsumer = std::make_unique<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      dataConsumer = std::make_shared<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
       MzMLFile().transform(file, dataConsumer.get());
     }
     else
