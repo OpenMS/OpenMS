@@ -58,5 +58,11 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
 
         int precursor_correction
 
+        double precursor_total_intensity
+        double precursor_target_intensity
+        double precursor_signal_proportion
+        Size precursor_target_peak_count
+        Size precursor_residual_peak_count
+
         libcpp_vector[ PeptideHit_PeakAnnotation ] frag_annotations
         Size peptide_id_index
