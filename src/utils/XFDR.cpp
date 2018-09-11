@@ -134,9 +134,6 @@ public:
   static const String crosslink_class_hybriddecoysintralinks; // hybriddecoysintralinks
   static const String crosslink_class_hybriddecoysinterlinks; // hybriddecoysintralinks
 
-  // Score range for calculating the FPs
-  // static const double fpnum_score_step;
-
   // Meta values used to identify cross-links
   static const String crosslink_type;
   static const String crosslink_rank;
@@ -1070,9 +1067,6 @@ const String TOPPXFDR::crosslink_class_decoys = "decoys";
 const String TOPPXFDR::crosslink_class_targets = "targets";
 const String TOPPXFDR::crosslink_class_hybriddecoysintralinks = "hybriddecoysintralinks";
 const String TOPPXFDR::crosslink_class_hybriddecoysinterlinks = "hybriddecoysinterlinks";
-
-// Parameters for actually calculating the number of FPs
-// const double TOPPXFDR::fpnum_score_step = 0.1;
 
 // meta values for crosslink identifications
 const String TOPPXFDR::crosslink_type = "xl_type";
