@@ -188,6 +188,13 @@ protected:
                         false, 
                         false);
 
+    registerStringList_("RNPxl:nt_groups",
+        "",
+        {},
+	"Restrict which nucleotides can cooccur in a precursor adduct to be able to search both RNA and DNA (Formate e.g.: AU CG).",
+        false,
+        false);
+
     registerStringList_("RNPxl:mapping", "", {"A->A", "C->C", "G->G", "U->U"}, "format: source->target e.g. A->A, ..., U->U, U->X", false, false);
 
     // define if nucleotide can cross-link (produce y,b,a,immonium-ion shifts) in addition to marker ions
@@ -1588,6 +1595,8 @@ protected:
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides = getStringList_("RNPxl:target_nucleotides");
 
+    StringList nt_groups = getStringList_("RNPxl:nt_groups");
+
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
     StringList mappings = getStringList_("RNPxl:mapping");
 
@@ -1612,6 +1621,7 @@ protected:
     {
       mm = RNPxlModificationsGenerator::initModificationMassesRNA(
             target_nucleotides,
+            nt_groups, 
             can_xl_,
             mappings,
             modifications, 
