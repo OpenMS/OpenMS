@@ -49,6 +49,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathOSWWriter.h>
+#include <OpenMS/SYSTEM/File.h>
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -82,6 +83,9 @@ using namespace OpenMS;
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/APPLICATIONS/OpenSwathBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+
+#include <QDir>
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -440,13 +444,13 @@ protected:
     setValidFormats_("tr_irt", ListUtils::create<String>("traML,tsv,pqp"));
 
     // one of the following two needs to be set
-    registerInputFile_("tr_irt_nonlinear", "<file>", "", "transition file ('TraML')", false);
+    registerInputFile_("tr_irt_nonlinear", "<file>", "", "additional nonlinear transition file ('TraML')", false);
     setValidFormats_("tr_irt_nonlinear", ListUtils::create<String>("traML,tsv,pqp"));
 
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
-    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows for extraction: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
+    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab-separated file containing the SWATH windows for extraction: lower_offset upper_offset. Note that the first line is a header and will be skipped.", false, true);
     registerFlag_("sort_swath_maps", "Sort input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
@@ -456,10 +460,10 @@ protected:
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
-    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet compatible TSV file)", false);
+    registerOutputFile_("out_tsv", "<file>", "", "TSV output file (mProphet-compatible TSV file)", false);
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
-    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet compatible SQLite file)", false);
+    registerOutputFile_("out_osw", "<file>", "", "OSW output file (PyProphet-compatible SQLite file)", false);
     setValidFormats_("out_osw", ListUtils::create<String>("osw"));
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
@@ -471,7 +475,7 @@ protected:
 
     // RT, mz and IM windows
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
-    registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window that by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
+    registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
     setMinFloat_("extra_rt_extraction_window", 0.0);
     registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in milliseconds). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side.", false);
     registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
@@ -509,7 +513,7 @@ protected:
     registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
     setValidStrings_("mz_correction_function", ListUtils::create<String>("none,regression_delta_ppm,unweighted_regression,weighted_regression,quadratic_regression,weighted_quadratic_regression,weighted_quadratic_regression_delta_ppm,quadratic_regression_delta_ppm"));
 
-    registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
+    registerStringOption_("tempDirectory", "<tmp>", File::getTempDirectory(), "Temporary directory to store cached files for example", false, true);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
@@ -525,7 +529,11 @@ protected:
     registerSubsection_("Library", "Library parameters section");
 
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
-    registerSubsection_("Debugging", "Debugging");
+    registerTOPPSubsection_("Debugging", "Debugging");
+    registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
+    setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
+    registerOutputFile_("Debugging:irt_trafo", "<file>", "", "Transformation file for RT transform", false);
+    setValidFormats_("Debugging:irt_trafo", ListUtils::create<String>("trafoXML"));
   }
 
   Param getSubsectionDefaults_(const String& name) const override
@@ -610,15 +618,6 @@ protected:
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
       return p;
     }
-    else if (name == "Debugging")
-    {
-      Param p;
-      p.setValue("irt_mzml", "", "Chromatogram mzML containing the iRT peptides");
-      // p.setValidFormats_("irt_mzml", ListUtils::create<String>("mzML"));
-      p.setValue("irt_trafo", "", "Transformation file for RT transform");
-      // p.setValidFormats_("irt_trafo", ListUtils::create<String>("trafoXML"));
-      return p;
-    }
     else if (name == "Library")
     {
       return TransitionTSVFile().getDefaults();
@@ -636,8 +635,6 @@ protected:
     ///////////////////////////////////
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
-
-    Param irt_detection_param = getParam_().copy("RTNormalization:", true);
 
     //tr_file input file type
     FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
@@ -682,7 +679,10 @@ protected:
 
     String readoptions = getStringOption_("readOptions");
     String mz_correction_function = getStringOption_("mz_correction_function");
-    String tmp = getStringOption_("tempDirectory");
+    
+    // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
+    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
+    String tmp_dir = String(QDir(getStringOption_("tempDirectory").c_str()).absolutePath()).ensureLastChar('/');
 
     ///////////////////////////////////
     // Parameter validation
@@ -804,7 +804,7 @@ protected:
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
-    if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp, readoptions, 
+    if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
                         swath_windows_file, min_upper_edge_dist, force,
                         sort_swath_maps, sonar))
     {
@@ -816,6 +816,7 @@ protected:
     ///////////////////////////////////
     String irt_trafo_out = debug_params.getValue("irt_trafo");
     String irt_mzml_out = debug_params.getValue("irt_mzml");
+    Param irt_detection_param = getParam_().copy("RTNormalization:", true);
     TransformationDescription trafo_rtnorm;
     if (nonlinear_irt_tr_file.empty())
     {
