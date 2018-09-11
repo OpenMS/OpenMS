@@ -202,7 +202,7 @@ protected:
     registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum score to be considered for FDR calculation", false);
 
     // Cumulative Histograms bin size
-    registerDoubleOption_(TOPPXFDR::param_binsize, "<binsize>", 0.1, "Bin size for the cumulative histograms for score distributions. Should be about the same size as the smallest expected difference between scores. Smaller numbers will make XFDR more robust, but much slower. Negative numbers are not allowed.", false);
+    registerDoubleOption_(TOPPXFDR::param_binsize, "<binsize>", 0.0001, "Bin size for the cumulative histograms for score distributions. Should be about the same size as the smallest expected difference between scores. Smaller numbers will make XFDR more robust, but much slower. Negative numbers are not allowed.", false, true);
     setMinFloat_(TOPPXFDR::param_binsize, 1e-15);
   }
 
