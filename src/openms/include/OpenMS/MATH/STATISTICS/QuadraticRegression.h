@@ -42,8 +42,6 @@
 #include "Wm5LinearSystem.h"
 #include <iterator>
 
-using Wm5::LinearSystem;
-
 namespace OpenMS
 {
   namespace Math

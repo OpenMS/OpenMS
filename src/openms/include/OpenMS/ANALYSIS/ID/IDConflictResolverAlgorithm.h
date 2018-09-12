@@ -44,9 +44,6 @@
 
 #include <algorithm>
 
-using namespace OpenMS;
-using std::vector;
-
 //-------------------------------------------------------------
 // Doxygen docu
 //-------------------------------------------------------------
@@ -120,8 +117,8 @@ protected:
                           const PeptideIdentification & right);
 
   static void resolveConflict_(
-    vector<PeptideIdentification> & peptides, 
-    vector<PeptideIdentification> & removed,
+    std::vector<PeptideIdentification> & peptides,
+    std::vector<PeptideIdentification> & removed,
     UInt64 uid);
   
   template<class T>
