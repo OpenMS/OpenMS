@@ -97,6 +97,14 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[2].toString(), "CAG");
   out.clear();
 
+  // RNase T1 should cut after G and m1G, but not after Gm:
+  rd.digest(NASequence::fromString("G[m1G][Gm]A"), out);
+  TEST_EQUAL(out.size(), 3);
+  TEST_STRING_EQUAL(out[0].toString(), "Gp");
+  TEST_STRING_EQUAL(out[1].toString(), "[m1G]p");
+  TEST_STRING_EQUAL(out[2].toString(), "[Gm]A");
+  out.clear();
+
   rd.setMissedCleavages(2);
   rd.digest(NASequence::fromString("pAUGUCGCAG"), out);
   TEST_EQUAL(out.size(), 6);
@@ -143,6 +151,20 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
 }
 END_SECTION
 
+START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
+                Size max_length = 0) const))
+{
+  IdentificationData id_data;
+  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
+  id_data.registerParentMolecule(rna);
+
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1"); // cuts after G and leaves a 3'-phosphate
+  rd.digest(id_data);
+
+  TEST_EQUAL(id_data.getIdentifiedOligos().size(), 3);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
