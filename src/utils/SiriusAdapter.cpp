@@ -137,7 +137,7 @@ protected:
     registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
-    registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after openMS preprocessing", false);
+    registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing", false);
     registerStringOption_("sirius_workspace_directory","<directory>", "", "Output directory with SIRIUS workspace", false);
 
 
@@ -414,7 +414,7 @@ protected:
     }
 
     // should the sirius workspace be retained
-    if(!sirius_workspace_directory.empty())
+    if (!sirius_workspace_directory.empty())
     {
       // convert path to absolute path
       QDir sw_dir(sirius_workspace_directory.toQString());
@@ -432,14 +432,16 @@ protected:
     }
    
     // should the ms file be retained (non-converter mode)
-    if(!out_ms.empty())
+    if (!out_ms.empty())
     {  
       QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
       LOG_WARN << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
     }
 
 
-    // clean tmp directory if debug level < 2
+    // clean tmp directory if debug level < 2 
+    // if out_ms and sirius_workspace_directoy is set - the files/folders have already be moved to 
+    // the designated location
     if (debug_level_ >= 2 && out_ms.empty() && sirius_workspace_directory.empty())
     {
       writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
