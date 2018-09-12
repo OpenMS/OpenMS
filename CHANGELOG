@@ -46,7 +46,7 @@ Deprecated and removed tools:
 - AdditiveSeries -- Computes an additive series to quantify a peptide in a set of samples (TOPP)
 - IDEvaluator -- Computes a 'q-value vs. #PSM' plot which is saved as an image to visualize the number identifications for a certain q-value (UTIL)
 - IDEvaluatorGUI -- Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value (UTIL)
-- RNPxl -- Tool for RNP cross linking experiment analysis (UTIL)
+- RNPxl -- Tool for RNP cross linking experiment analysis (UTIL) (superseded by RNPxlSearch)
   
 Changed Tools:
 - SiriusAdapter now supports several input data
@@ -501,6 +501,7 @@ Major changes in functionality:
     - Add S/N ratio for each ion trace
   - Support for C++11 (requires a compiler that supports C++11)
 
+    
 Library:
   - TOPP tools report their peak memory usage when using -debug 1 (or higher)
   - idXML files can now be written faster (about 10%)

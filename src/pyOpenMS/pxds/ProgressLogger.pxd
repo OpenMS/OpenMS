@@ -9,7 +9,8 @@ cdef extern from "<OpenMS/CONCEPT/ProgressLogger.h>" namespace "OpenMS":
         LogType getLogType()           nogil except +
         void startProgress(SignedSize begin, SignedSize end, String label)           nogil except +
         void setProgress(SignedSize value)           nogil except +
-        void endProgress()           nogil except +
+        void endProgress() nogil except +
+        void nextProgress() nogil except +
 
 
 cdef extern from "<OpenMS/CONCEPT/ProgressLogger.h>" namespace "OpenMS::ProgressLogger":
