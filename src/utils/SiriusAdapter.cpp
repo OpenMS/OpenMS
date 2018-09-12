@@ -131,11 +131,15 @@ protected:
     registerInputFile_("in_featureinfo", "<file>", "", "FeatureXML input with feature and adduct information", false);
     setValidFormats_("in_featureinfo", ListUtils::create<String>("featurexml"));
 
-    registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results");
+    registerOutputFile_("out_sirius", "<file>", "", "MzTab Output file for SiriusAdapter results", false);
     setValidFormats_("out_sirius", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("out_fingerid","<file>", "", "MzTab output file for CSI:FingerID, if this parameter is given, SIRIUS will search for a molecular structure using CSI:FingerID after determining the sum formula", false);
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
+
+    registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after openMS preprocessing", false);
+    registerStringOption_("sirius_workspace_directory","<directory>", "", "Output directory with SIRIUS workspace", false);
+
 
     // adapter parameters
     registerIntOption_("filter_by_num_masstraces", "<num>", 1, "Features have to have at least x MassTraces. To use this parameter feature_only is neccessary", false);
@@ -147,6 +151,7 @@ protected:
     registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds]", false);
     registerIntOption_("isotope_pattern_iterations", "<num>", 3, "Number of iterations that should be performed to extract the C13 isotope pattern. If no peak is found (C13 distance) the function will abort. Be careful with noisy data - since this can lead to wrong isotope patterns.", false, true);
     registerFlag_("no_masstrace_info_isotope_pattern", "Use this flag if the masstrace information from a feature should be discarded and the isotope_pattern_iterations should be used instead.", true);
+    registerFlag_("converter_mode", "Use this flag in combination with the out_ms file to only convert the input mzML and featureXML to an .ms file. Without further SIRIUS processing.", true);
 
     // internal sirius parameters
     registerStringOption_("profile", "<choice>", "qtof", "Specify the used analysis profile", false);
@@ -179,6 +184,11 @@ protected:
     String out_sirius = getStringOption_("out_sirius");
     String out_csifingerid = getStringOption_("out_fingerid");
     String featureinfo = getStringOption_("in_featureinfo");
+
+    String out_ms = getStringOption_("out_ms");
+    String sirius_workspace_directory = getStringOption_("sirius_workspace_directory");
+
+    bool converter_mode = getFlag_("converter_mode");
 
     // parameter for SiriusAdapter
     bool feature_only = getFlag_("feature_only");
@@ -299,6 +309,15 @@ protected:
     // write msfile
     SiriusMSFile::store(spectra, tmp_ms_file, feature_mapping, feature_only, isotope_pattern_iterations, no_mt_info);
 
+    // converter_mode enabled 
+    if (!out_ms.empty() && converter_mode)
+    {
+      QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
+      LOG_WARN << "SiriusAdapter was used in converter mode and is terminated after openms preprocessing. \n"
+                  "If you would like to run SIRIUS internally please disable the converter mode." << std::endl; 
+      return EXECUTION_OK;
+    }
+
     // assemble SIRIUS parameters
     QStringList process_params;
     process_params << "-p" << profile
@@ -353,7 +372,7 @@ protected:
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     qp.close();
 
-    if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
+    if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
       writeLog_( "FATAL: External invocation of Sirius failed. Standard output and error were:");
       const QString sirius_stdout(qp.readAllStandardOutput());
@@ -386,7 +405,7 @@ protected:
     siriusfile.store(out_sirius, sirius_result);
 
     // convert sirius_output to mztab and store file
-    if (out_csifingerid.empty() == false)
+    if (!out_csifingerid.empty())
     {
       MzTab csi_result;
       MzTabFile csifile;
@@ -394,8 +413,34 @@ protected:
       csifile.store(out_csifingerid, csi_result);
     }
 
+    // should the sirius workspace be retained
+    if(!sirius_workspace_directory.empty())
+    {
+      // convert path to absolute path
+      QDir sw_dir(sirius_workspace_directory.toQString());
+      sirius_workspace_directory = String(sw_dir.absolutePath());
+      
+      // try to create directory if not present
+      if (!sw_dir.exists())
+      {
+        sw_dir.mkpath(sirius_workspace_directory.toQString());
+      }
+      
+      // move tmp folder to new location
+      std::rename(tmp_dir.toStdString().c_str(), sirius_workspace_directory.c_str());
+      LOG_WARN << "Sirius Workspace was moved to " << sirius_workspace_directory << std::endl;
+    }
+   
+    // should the ms file be retained (non-converter mode)
+    if(!out_ms.empty())
+    {  
+      QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
+      LOG_WARN << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
+    }
+
+
     // clean tmp directory if debug level < 2
-    if (debug_level_ >= 2)
+    if (debug_level_ >= 2 && out_ms.empty() && sirius_workspace_directory.empty())
     {
       writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
     }
