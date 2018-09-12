@@ -49,7 +49,7 @@ namespace OpenMS
 {
 
   void SwathMapMassCorrection::correctMZ(
-    const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+    const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
     std::vector< OpenSwath::SwathMap > & swath_maps,
     const std::string& corr_type,
     const double mz_extr_window,
@@ -81,7 +81,7 @@ namespace OpenMS
     {
 
       // we need at least one feature to find the best one
-      auto transition_group = &trgroup_it->second;
+      auto transition_group = trgroup_it->second;
       if (transition_group->getFeatures().size() == 0)
       {
         continue;
@@ -117,7 +117,7 @@ namespace OpenMS
 
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(used_maps, bestRT, 1);
+      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
       for (std::vector< OpenMS::MRMFeatureFinderScoring::TransitionType >::const_iterator
           tr = transition_group->getTransitions().begin();
           tr != transition_group->getTransitions().end(); ++tr)

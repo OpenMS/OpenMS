@@ -48,31 +48,93 @@ namespace OpenMS
 {
 
   /**
-      @brief This class can convert TraML and TSV files into each other
+      @brief This class supports reading and writing of OpenSWATH transition
+      lists.
+      
+      The transition lists can be either comma- or tab-separated plain
+      text files (CSV or TSV format).  Modifications should be provided in
+      UniMod format<sup>1</sup>, but can also be provided in TPP format.
+      
+      The following columns are required:
 
-      The TSV are tab-separated and need to have the following columns:
+      <table>
+        <tr> <td BGCOLOR="#EBEBEB">PrecursorMz*</td> <td>float</td> <td>This describes the precursor ion \a m/z</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">ProductMz*</td> <td>float; synonyms: FragmentMz</td> <td>This specifies the product ion \a m/z</td> </tr>
+        <tr> <td BGCOLOR="#EBEBEB">LibraryIntensity*</td> <td>float; synonyms: RelativeFragmentIntensity</td> <td>This specifies the relative intensity of the fragment ion</td></tr>
+        <tr> <td BGCOLOR="#EBEBEB">NormalizedRetentionTime*</td> <td>float; synonyms: RetentionTime, Tr_recalibrated, iRT, RetentionTimeCalculatorScore</td> <td>This specifies the expected retention time (normalized retention time) </td></tr>
+      </table>
 
-      PrecursorMz (float)
-      ProductMz (float)
-      Tr_calibrated (float)
-      transition_name (free text, needs to be unique for each transition [in this file])
-      CE (float)
-      LibraryIntensity (float)
-      transition_group_id (free text, designates the transition group [e.g. peptide] to which this transition belongs)
-      decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not)
-      PeptideSequence  (free text, sequence only (no modifications) )
-      ProteinName  (free text)
-      Annotation  (free text, e.g. y7)
-      FullUniModPeptideName  (free text, should contain modifications*)
-      MissedCleavages
-      Replicates
-      NrModifications
-      PrecursorCharge (integer)
-      PeptideGroupLabel (free text, designates to which peptide label group (as defined in MS:1000893) the peptide belongs to)
-      LabelType (free text, optional description of which label was used, e.g. heavy or light)
-      detecting_transition (bool, should this transition be used for peak-picking (detection) of the peak group?)
-      identifying_transition (bool, should this transition be used for UIS identification together with the detecting transitions?)
-      quantifying_transition (bool, should this transition be used for quantification?)
+  For targeted proteomics files, the following additional columns should be provided:
+        <table>
+          <tr> <td BGCOLOR="#EBEBEB">ProteinId**</td> <td>free text; synonyms: ProteinName</td><td> Protein identifier</td></tr>
+          <tr> <td BGCOLOR="#EBEBEB">PeptideSequence**</td> <td>free text</td> <td> sequence only (no modifications); synonyms: Sequence, StrippedSequence</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">ModifiedPeptideSequence**</td> <td>free text</td> <td> should contain modifications<sup>1</sup>; synonyms: FullUniModPeptideName, FullPeptideName, ModifiedSequence</td>  </tr>
+          <tr> <td BGCOLOR="#EBEBEB">PrecursorCharge**</td> <td>integer; synonyms: Charge</td> <td> contains the charge of the precursor ion</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">ProductCharge**</td> <td>integer; synonyms: FragmentCharge</td> <td> contains the fragment charge</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">FragmentType</td> <td>free text</td> <td> contains the type of the fragment, e.g. "b" or "y"</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">FragmentSeriesNumber</td> <td>integer; synonyms: FragmentNumber</td> <td> e.g. for y7 use "7" here</td> </tr>
+        </table>
+
+  OpenSWATH uses grouped transitions to detect candidate analyte signals. These groups are by default generated based on the input, but can also be manually specified:
+
+        <table>
+          <tr> <td BGCOLOR="#EBEBEB">TransitionGroupId**</td> <td>free text; synomys: TransitionGroupName, transition_group_id</td><td> designates the transition group [e.g. peptide] to which this transition belongs</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">TransitionId**</td> <td>free text; synonyms: TransitionName, transition_name </td> <td> needs to be unique for each transition [in this file]</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">Decoy</td> <td>1: decoy, 0: target; synomys: decoy, isDecoy </td> <td> determines whether the transition is a decoy transition or not</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">PeptideGroupLabel</td> <td>free text </td> <td> designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup></td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">DetectingTransition</td> <td> 0 or 1; synonyms: detecting_transition</td> <td>1: use transition to detect peak group, 0: don't use transition for detection</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">IdentifyingTransition</td> <td> 0 or 1; synonyms: identifying_transition</td> <td>1: use transition for peptidoform inference using IPF, 0: don't use transition for identification</td> </tr>
+          <tr> <td BGCOLOR="#EBEBEB">QuantifyingTransition</td> <td> 0 or 1; synonyms: quantifying_transition</td> <td>1: use transition to quantify peak group, 0: don't use transition for quantification</td> </tr>
+        </table>
+
+  Optionally, the following columns can be specified but they are not actively used by OpenSWATH:
+        <table>
+          <tr>  <td BGCOLOR="#EBEBEB">CollisionEnergy </td><td>float; synonyms: CE</td><td>Collision energy </td></tr>
+          <tr>  <td BGCOLOR="#EBEBEB">Annotation </td><td>free text</td><td>Transition-level annotation, e.g. y7</td> </tr>
+          <tr>  <td BGCOLOR="#EBEBEB">UniprotId </td><td>free text; synonyms: UniprotID</td> <td>A Uniprot identifier </td></tr>
+          <tr>  <td BGCOLOR="#EBEBEB">LabelType </td><td>free text</td><td>optional description of which label was used, e.g. heavy or light</td> </tr>
+        </table>
+
+  For targeted metabolomics files, the following fields are also supported:
+
+        <table>
+          <tr> <td BGCOLOR="#EBEBEB">CompoundName**</td> <td>free text; synonyms: CompoundId</td><td>Should be unique for the analyte, if present the file will be interpreted as a metabolomics file </td></tr>
+          <tr> <td BGCOLOR="#EBEBEB">SMILES</td><td>free text</td><td>SMILES identifier</td></tr>
+          <tr> <td BGCOLOR="#EBEBEB">SumFormula</td><td>free text</td><td>molecular formula </td></tr>
+        </table>
+
+  Fields indicated with * are strictly required to create a TraML file. Fields
+  indicated with ** are recommended, but only required for a specific
+  application (such as using the transition list for an analysis tool such as
+  OpenSwath) or in a specific context (proteomics or metabolomics).
+
+<p>
+Remarks:
+</p>
+<ul>
+  <li>
+    1. modifications should be supplied inside the sequence using UniMod
+      identifiers or freetext identifiers that are understood by %OpenMS. See also @ref OpenMS::AASequence for more information. For example:
+      <ul>
+      <li> PEPT(Phosphorylation)IDE(UniMod:27)A ) </li>
+      </ul>
+  </li>
+  <li>
+    2. peptide label groups designate groups of peptides that are isotopically
+    modified forms of the same peptide species. For example, the heavy and
+    light forms of the same peptide will both be assigned the same peptide
+    group label. For example:
+      <ul>
+      <li> PEPTIDEAK -> gets label "PEPTIDEAK_gr1"  </li>
+      <li> PEPTIDEAK[+8] -> gets label "PEPTIDEAK_gr1"  </li>
+      <li> PEPT(Phosphorylation)IDEAK -> gets label "PEPTIDEAK_gr2"  </li>
+      <li> PEPT(Phosphorylation)IDEAK[+8] -> gets label "PEPTIDEAK_gr2"  </li>
+      </ul>
+  </li>
+</ul>
+</p>
+
+
 
   @htmlinclude OpenMS_TransitionTSVFile.parameters
 

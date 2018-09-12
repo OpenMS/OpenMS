@@ -493,6 +493,7 @@ set(analysis_executables_list
   PrecursorIonSelectionPreprocessing_test
   PrecursorIonSelection_test
   ProteinInference_test
+  PrecursorPurity_test
   ProtonDistributionModel_test
   ProteinResolver_test
   PSLPFormulation_test

@@ -245,6 +245,7 @@ public:
           {
             found = true;
             consumeSwathSpectrum_(s, i);
+            break;
           }
         }
         if (!found)
@@ -452,8 +453,8 @@ protected:
       {
         addNewSwathMap_();
       }
-      swath_consumers_[swath_nr]->consumeSpectrum(s);
-      swath_maps_[swath_nr]->addSpectrum(s); // append for the metadata (actual data is deleted)
+      swath_consumers_[swath_nr]->consumeSpectrum(s); // write data to cached file; clear data from spectrum s
+      swath_maps_[swath_nr]->addSpectrum(s); // append for the metadata (actual data was deleted)
     }
 
     void addMS1Map_()
