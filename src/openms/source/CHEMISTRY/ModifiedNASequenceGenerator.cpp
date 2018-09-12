@@ -107,7 +107,7 @@ namespace OpenMS
       return;
     }
 
-    // if there is at most one variable modification allowed for a seq we don't need combinatoric placement and can reside to a faster implementation
+    // if there is at most one variable modification allowed for a seq we don't need combinatoric placement and can resort to a faster implementation
     if (max_variable_mods_per_seq == 1)
     {
       applyAtMostOneVariableModification_(var_mods_begin,
@@ -125,13 +125,13 @@ namespace OpenMS
     if (keep_unmodified) { modified_seqs.push_back(seq); }
 
     //iterate over each residue and build compatibility mapping describing
-    //which amino acid (seq index) is compatible with which modification
+    //which ribonucleotide (seq index) is compatible with which modification
     map<int, vector<ConstRibonucleotidePtr> > map_compatibility;
 
     const int FIVE_PRIME_MODIFICATION_INDEX = -1;
     const int THREE_PRIME_MODIFICATION_INDEX = -2;
 
-    // set terminal modifications for modifications without amino acid preference
+    // set terminal modifications, if any are specified
     std::for_each(var_mods_begin, var_mods_end, [&seq, &map_compatibility] (ConstRibonucleotidePtr const & v)
       {
         if (v->getTermSpecificity() == Ribonucleotide::FIVE_PRIME)
