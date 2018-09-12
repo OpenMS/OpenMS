@@ -117,13 +117,19 @@ public:
     {}
 
 protected:
+
+  //(static bool PrecMzLess_(const double& i, const double& j)
+  //{
+  //  return (precursor_mz(i) < precursor_mz(j));
+  //)}
+
   void registerOptionsAndFlags_() override
   {
 
     registerInputFileList_("in", "<files>", StringList(), "MzML input files used for assay library generation");
     setValidFormats_("in", ListUtils::create<String>("mzml"));
 
-    registerInputFileList_("in_id", "<files>", StringList(), "FeatureXML input files containing id information (accurate mass search)");
+    registerInputFileList_("in_id", "<files>", StringList(), "FeatureXML input files containing id information (e.g. accurate mass search)");
     setValidFormats_("in_id", ListUtils::create<String>("featurexml"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
@@ -258,16 +264,48 @@ protected:
     // check size of .mzML & .feautreXML input
     if (in.size() != id.size())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Number of .mzML do not match to the number of .featureXML files. Please provide the corresponding files. ");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Number of .mzML do not match to the number of .featureXML files. Please check and provide the corresponding files. ");
     }
 
     vector<PotentialTransitions> v_pts;
+    // iteratore over all the files
     for (unsigned i = 0; i < in.size(); ++i)
     {
+
       // load mzML
       MzMLFile mzml;
       PeakMap spectra;
       mzml.load(in[i], spectra);
+
+      // load featurexml
+      FeatureXMLFile fxml;
+      FeatureMap feature_map;
+      fxml.load(id[i], feature_map);
+
+      // need featureXML with Sourcefile have a look additional to ams
+      StringList mzml_primary_path;
+      StringList featurexml_primary_path;
+      spectra.getPrimaryMSRunPath(mzml_primary_path);
+      feature_map.getPrimaryMSRunPath(featurexml_primary_path);
+
+      for (auto it : mzml_primary_path)
+      {
+        std::cout << "mzml: " << it << std::endl;
+      }
+
+      for (auto it : featurexml_primary_path)
+      {
+        std::cout << "feautreXML: " << it << std::endl;
+      }
+
+      if (mzml_primary_path != featurexml_primary_path)
+      {
+        throw Exception::MissingInformation(__FILE__,
+                                            __LINE__,
+                                            OPENMS_PRETTY_FUNCTION,
+                                            "Path of the original input file do not match in the .mzML and .featureXML files. Please check and provide the corresponding files. ");
+      }
 
       // determine type of spectral data (profile or centroided)
       SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
@@ -276,8 +314,10 @@ protected:
       {
         if (!getFlag_("force"))
         {
-          throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__,
-                                             "Error: Profile data provided but centroided spectra expected.");
+          throw OpenMS::Exception::FileEmpty(__FILE__,
+                                             __LINE__,
+                                             __FUNCTION__,
+                                             "Error: Profile data provided but centroided spectra expected. ");
         }
       }
 
@@ -305,11 +345,6 @@ protected:
                                                                   true)), it->end());
         }
       }
-
-      // load featurexml
-      FeatureXMLFile fxml;
-      FeatureMap feature_map;
-      fxml.load(id[i], feature_map);
 
       // check if correct featureXML is given and set use_known_unkowns parameter if no id information is available
       const std::vector<DataProcessing> &processing = feature_map.getDataProcessing();
@@ -601,10 +636,16 @@ protected:
     } //end iteration over all files
 
     // filter found transitions
-    // TODO: sort v_pts by precursor_mz
+    // sort by precurosr mz
+    // std::sort(v_pts.begin(), v_pts.end(), PrecMzLess_);
 
-    // TODO: add filter for mz in rt range?
+    // TODO: New or add Methods to MRMAssay
+
+    // TODO: add filter for mz in rt range
+
+
     // TODO: think about how to filter e.g. precursor intensity
+    // e.g. if same mz and rt -> use the one with higher precursor intensity
 
     // merge possible transitions after filtering
     vector<TargetedExperiment::Compound> v_cmp_all;
