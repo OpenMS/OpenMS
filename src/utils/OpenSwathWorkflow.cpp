@@ -240,11 +240,11 @@ using namespace OpenMS;
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Peptide sequence (no modifications) </td>
     </tr>
 
-	<tr>
-	<td VALIGN="middle" ALIGN = "left" ROWSPAN=1> MC </td>
-	<td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
-	<td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Missed cleavages of the sequence (assuming Trypsin) </td>
-	</tr>
+	  <tr>
+	  <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> MC </td>
+	  <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
+	  <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Missed cleavages of the sequence (assuming Trypsin) </td>
+	  </tr>
 
     <tr>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> FullPeptideName </td>
