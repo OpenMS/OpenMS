@@ -674,4 +674,18 @@ namespace OpenMS
     id_data.cleanup();
   }
 
+
+  void IDFilter::removeDecoys(IdentificationData& id_data)
+  {
+    Size n_parents = id_data.getParentMolecules().size();
+    id_data.removeFromSetIf_(
+      id_data.parent_molecules_,
+      [&](IdentificationData::ParentMoleculeRef it) -> bool
+      {
+        return it->is_decoy;
+      });
+
+    if (id_data.getParentMolecules().size() < n_parents) id_data.cleanup();
+  }
+
 } // namespace OpenMS

@@ -97,6 +97,14 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[2].toString(), "CAG");
   out.clear();
 
+  // RNase T1 should cut after G and m1G, but not after Gm:
+  rd.digest(NASequence::fromString("G[m1G][Gm]A"), out);
+  TEST_EQUAL(out.size(), 3);
+  TEST_STRING_EQUAL(out[0].toString(), "Gp");
+  TEST_STRING_EQUAL(out[1].toString(), "[m1G]p");
+  TEST_STRING_EQUAL(out[2].toString(), "[Gm]A");
+  out.clear();
+
   rd.setMissedCleavages(2);
   rd.digest(NASequence::fromString("pAUGUCGCAG"), out);
   TEST_EQUAL(out.size(), 6);
@@ -115,9 +123,48 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[0].toString(), "CCCp");
   TEST_STRING_EQUAL(out[1].toString(), "AUCCp");
   TEST_STRING_EQUAL(out[2].toString(), "G");
+
+  rd.setEnzyme("no cleavage");
+  rd.setMissedCleavages(3);
+  rd.digest(NASequence::fromString("CCCAUCCG"), out);
+  TEST_EQUAL(out.size(), 1);
+  TEST_STRING_EQUAL(out[0].toString(), "CCCAUCCG");
+
+  rd.setEnzyme("unspecific cleavage");
+  rd.setMissedCleavages(0);
+  rd.digest(NASequence::fromString("ACGU"), out);
+  TEST_EQUAL(out.size(), 4);
+  TEST_STRING_EQUAL(out[0].toString(), "A");
+  TEST_STRING_EQUAL(out[1].toString(), "C");
+  TEST_STRING_EQUAL(out[2].toString(), "G");
+  TEST_STRING_EQUAL(out[3].toString(), "U");
+  rd.setMissedCleavages(1);
+  rd.digest(NASequence::fromString("ACGU"), out);
+  TEST_EQUAL(out.size(), 7);
+  TEST_STRING_EQUAL(out[0].toString(), "A");
+  TEST_STRING_EQUAL(out[1].toString(), "AC");
+  TEST_STRING_EQUAL(out[2].toString(), "C");
+  TEST_STRING_EQUAL(out[3].toString(), "CG");
+  TEST_STRING_EQUAL(out[4].toString(), "G");
+  TEST_STRING_EQUAL(out[5].toString(), "GU");
+  TEST_STRING_EQUAL(out[6].toString(), "U");
 }
 END_SECTION
 
+START_SECTION((void digest(IdentificationData& id_data, Size min_length = 0,
+                Size max_length = 0) const))
+{
+  IdentificationData id_data;
+  IdentificationData::ParentMolecule rna("test", IdentificationData::MoleculeType::RNA, "pAUGUCGCAG");
+  id_data.registerParentMolecule(rna);
+
+  RNaseDigestion rd;
+  rd.setEnzyme("RNase_T1"); // cuts after G and leaves a 3'-phosphate
+  rd.digest(id_data);
+
+  TEST_EQUAL(id_data.getIdentifiedOligos().size(), 3);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

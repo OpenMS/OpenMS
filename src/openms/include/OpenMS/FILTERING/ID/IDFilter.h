@@ -1096,6 +1096,7 @@ public:
       IdentificationData& id_data,
       IdentificationData::ScoreTypeRef score_ref, double cutoff);
 
+    static void removeDecoys(IdentificationData& id_data);
     ///@}
 
   };

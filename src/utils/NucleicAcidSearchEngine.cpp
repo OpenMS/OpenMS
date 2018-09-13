@@ -652,6 +652,10 @@ protected:
     IdentificationData::ScoreTypeRef fdr_ref =
       fdr.applyToQueryMatches(id_data, score_ref);
     double fdr_cutoff = getDoubleOption_("fdr:cutoff");
+    if (remove_decoys) // remove references to decoys from shared oligos
+    {
+      IDFilter::removeDecoys(id_data);
+    }
     if (fdr_cutoff < 1.0)
     {
       IDFilter::filterQueryMatchesByScore(id_data, fdr_ref, fdr_cutoff);

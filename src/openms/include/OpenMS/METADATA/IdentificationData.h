@@ -136,6 +136,7 @@ namespace OpenMS
     }
 
     // Copy constructor - not allowed, as references would be invalidated:
+    // @TODO: implement using deep copy
     IdentificationData(const IdentificationData& other) = delete;
 
     /// Move constructor

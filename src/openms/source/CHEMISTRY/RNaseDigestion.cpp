@@ -134,12 +134,15 @@ namespace OpenMS
 
   vector<pair<Size, Size>> RNaseDigestion::getFragmentPositions_(
     const NASequence& rna, Size min_length, Size max_length,
-    const boost::regex& cuts_after_regex, const boost::regex& cuts_before_regex) const
+    const boost::regex& cuts_after_regex, const boost::regex& cuts_before_regex)
+    const
   {
     vector<pair<Size, Size>> result;
     vector<Size> fragment_pos(1, 0);
-    if (!cuts_after_regex.empty() && !cuts_before_regex.empty())
-    {
+    // note that "boost::regex::empty" is always false after initialization with
+    // a string, even if the string is empty!
+    if (!cuts_after_regex.str().empty() && !cuts_before_regex.str().empty())
+    { // cleavage isn't "no cleavage"
       for (Size i = 1; i < rna.size(); ++i)
       {
         if (boost::regex_search(rna[i - 1]->getCode(), cuts_after_regex) &&
