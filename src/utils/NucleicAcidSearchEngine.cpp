@@ -628,6 +628,12 @@ protected:
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(in_mzml);
     Software software(toolName_(), version_);
+    // if we are in test mode just overwrite with a generic version
+    if (test_mode_)
+    {
+      software.setVersion("test");
+    }
+
     IdentificationData::ProcessingSoftwareRef software_ref = id_data.registerDataProcessingSoftware(software);
     IdentificationData::SearchParamRef search_ref = id_data.registerDBSearchParam(search_param);
     // @TODO: add suitable data processing action
