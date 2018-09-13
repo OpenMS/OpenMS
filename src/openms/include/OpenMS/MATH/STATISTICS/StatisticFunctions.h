@@ -55,13 +55,12 @@
 #include <iterator>
 #include <algorithm>
 
-using std::iterator_traits;
-
 namespace OpenMS
 {
 
   namespace Math
   {
+
     /**
       @brief Helper function checking if two iterators are not equal
 
@@ -366,9 +365,6 @@ namespace OpenMS
       Size n = std::distance(begin_a, end_a);
       return sum / (n-1);
     }
-
-
-
 
     /**
        @brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)

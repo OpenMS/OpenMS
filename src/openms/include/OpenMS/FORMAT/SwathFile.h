@@ -66,7 +66,7 @@ public:
 
     /// Loads a Swath run from a list of split mzML files
     std::vector<OpenSwath::SwathMap> loadSplit(StringList file_list,
-											   String tmp,
+                                               String tmp,
                                                boost::shared_ptr<ExperimentalSettings>& exp_meta, 
                                                String readoptions = "normal");
 

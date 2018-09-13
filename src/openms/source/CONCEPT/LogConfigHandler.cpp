@@ -315,7 +315,7 @@ namespace OpenMS
     return *s;
   }
 
-  ostream & LogConfigHandler::getStream(const String & name)
+  std::ostream & LogConfigHandler::getStream(const String & name)
   {
     if (stream_type_map_.count(name) != 0)
     {

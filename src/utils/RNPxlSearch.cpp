@@ -188,6 +188,13 @@ protected:
                         false, 
                         false);
 
+    registerStringList_("RNPxl:nt_groups",
+        "",
+        {},
+	"Restrict which nucleotides can cooccur in a precursor adduct to be able to search both RNA and DNA (Formate e.g.: AU CG).",
+        false,
+        false);
+
     registerStringList_("RNPxl:mapping", "", {"A->A", "C->C", "G->G", "U->U"}, "format: source->target e.g. A->A, ..., U->U, U->X", false, false);
 
     // define if nucleotide can cross-link (produce y,b,a,immonium-ion shifts) in addition to marker ions
@@ -567,7 +574,14 @@ protected:
           const String precursor_rna_adduct = *mod_combinations_it->second.begin();
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
-          // copy PSM information for each cross-linkable nucleotides
+          // just copy non-cross-linked peptide PSMs
+          if (precursor_rna_adduct == "none") 
+          {
+            new_hits.push_back(annotated_hits[scan_index][i]);
+            continue;
+          }
+
+          // if we have a cross-link, copy PSM information for each cross-linkable nucleotides
           for (auto const & c : feasible_MS2_adducts)
           {
             AnnotatedHit a(annotated_hits[scan_index][i]);
@@ -1581,6 +1595,8 @@ protected:
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides = getStringList_("RNPxl:target_nucleotides");
 
+    StringList nt_groups = getStringList_("RNPxl:nt_groups");
+
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
     StringList mappings = getStringList_("RNPxl:mapping");
 
@@ -1605,6 +1621,7 @@ protected:
     {
       mm = RNPxlModificationsGenerator::initModificationMassesRNA(
             target_nucleotides,
+            nt_groups, 
             can_xl_,
             mappings,
             modifications, 
@@ -1628,6 +1645,10 @@ protected:
     FalseDiscoveryRate fdr;
     Param p = fdr.getParameters();
     p.setValue("add_decoy_peptides", "true"); // we still want decoys in the result (e.g., to run percolator)
+    if (report_top_hits >= 2)
+    {
+      p.setValue("use_all_hits", "true");
+    }
     fdr.setParameters(p);
 
     // load MS2 map
@@ -2218,9 +2239,6 @@ protected:
                      max_variable_mods_per_peptide);
     progresslogger.endProgress();
 
-    // annotate RNPxl related information to hits and create report
-    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
-
     // reindex ids
     PeptideIndexing indexer;
     Param param_pi = indexer.getParameters();
@@ -2249,6 +2267,9 @@ protected:
         return UNKNOWN_ERROR;
       }
     } 
+
+    // annotate RNPxl related information to hits and create report
+    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
 
     if (generate_decoys)	
     {
