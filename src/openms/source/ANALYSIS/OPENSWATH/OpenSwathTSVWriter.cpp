@@ -59,7 +59,7 @@ namespace OpenMS
 
     void OpenSwathTSVWriter::writeHeader()
     {
-      ofs << "transition_group_id\tpeptide_group_label\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName" <<
+      ofs << "transition_group_id" << "\tpeptide_group_label" << "\trun_id" << "\tfilename" << "\tRT" << "\tid" << "\tSequence" << "\tMC" << "\tFullPeptideName" <<
         "\tCharge\tm/z\tIntensity\tProteinName\tdecoy\tassay_rt\tdelta_rt\tleftWidth" <<
         "\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier\tinitialPeakQuality" <<
         "\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score" <<
@@ -118,6 +118,7 @@ namespace OpenMS
           decoy = "1";
         }
 
+		// iterator over MRMFeatures
         for (FeatureMap::const_iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
         {
 
@@ -205,6 +206,7 @@ namespace OpenMS
             + "\t" + (String)feature_it->getRT()
             + "\t" + "f_" + feature_it->getUniqueId()  // TODO might not be unique!!!
             + "\t" + (String)pep.sequence
+			+ "\t" + (String)feature_it->getMetaValue("missedCleavages")
             + "\t" + full_peptide_name
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz

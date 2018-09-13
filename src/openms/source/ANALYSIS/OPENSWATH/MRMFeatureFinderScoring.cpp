@@ -45,6 +45,7 @@
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <boost/range/adaptor/map.hpp>
 #include <boost/foreach.hpp>
@@ -541,6 +542,9 @@ namespace OpenMS
     OpenSwathScoring scorer;
     scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
 
+	ProteaseDigestion pd;
+	pd.setEnzyme("Trypsin");
+
     size_t feature_idx = 0;
     // Go through all peak groups (found MRM features) and score them
     for (std::vector<MRMFeature>::iterator mrmfeature = transition_group_detection.getFeaturesMuteable().begin();
@@ -641,7 +645,7 @@ namespace OpenMS
         mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
         mrmfeature->setOverallQuality(xx_lda_prescore);
       }
-      else
+      else //!ms1only
       {
 
         ///////////////////////////////////
@@ -942,6 +946,7 @@ namespace OpenMS
       if (pep->isPeptide())
       {
         pep_hit_.setSequence(AASequence::fromString(pep->sequence));
+		mrmfeature->setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()));
       }
 
       // set protein accession numbers 
