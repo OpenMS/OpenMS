@@ -300,9 +300,9 @@ namespace OpenMS
       return result;
     }
 
-    void OpenSwathTSVWriter::writeLines(std::vector<String> to_output)
+    void OpenSwathTSVWriter::writeLines(const std::vector<String>& to_output)
     {
-      for (Size i = 0; i < to_output.size(); i++) { ofs << to_output[i]; }
+      for (const auto& s : to_output) ofs << s;
     }
 
 }
