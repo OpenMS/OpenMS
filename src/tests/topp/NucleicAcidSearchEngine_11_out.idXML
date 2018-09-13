@@ -3,12 +3,9 @@
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<SearchParameters id="SP_0" db="./NucleicAcidSearchEngine_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="-14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2" enzyme="unknown_enzyme" missed_cleavages="22" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="5" peak_mass_tolerance_ppm="true" >
 	</SearchParameters>
-	<IdentificationRun date="2018-09-13T12:26:17" search_engine="NucleicAcidSearchEngine" search_engine_version="test" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2018-09-13T13:56:17" search_engine="NucleicAcidSearchEngine" search_engine_version="test" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="dme-let-7-5p" score="0" coverage="100" sequence="UGAGGUAGUAGGUUGUAUAGU" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-			</ProteinHit>
-			<ProteinHit id="PH_1" accession="dme-let-7-5p-methyl" score="0" coverage="100" sequence="UGAGGUAGUAGGUUGUAUAG[Um]" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 			</ProteinHit>
 			<UserParam type="stringList" name="spectra_data" value="[file:///U:\Byron\DATA\20180522_Let7-+Um_mixture_ramp_02/minimal_01a.raw]"/>
@@ -20,14 +17,6 @@
 				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.85116494691448"/>
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="0"/>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0" MZ="1360.17260742188" RT="29.73954" spectrum_reference="controllerType=0 controllerNumber=1 scan=184" >
-			<PeptideHit score="73.0151749453695" sequence="" charge="-5" aa_before="[" aa_after="]" start="0" end="20" protein_refs="PH_1" >
-				<UserParam type="string" name="fragment_annotation" value="305.017883300781,0.357987880706787,-1,&quot;c1&quot;|337.044067382812,0.450065970420837,-1,&quot;w1&quot;|419.049499511719,0.211704507470131,-1,&quot;a2-B&quot;|602.125732421875,0.582288861274719,-1,&quot;y2&quot;|650.065490722656,1,-1,&quot;c2&quot;|658.080627441406,0.0397053398191929,-2,&quot;w4&quot;|661.579040527344,0.0178722515702248,-4,&quot;c8&quot;|661.579040527344,0.0178722515702248,-2,&quot;c4&quot;|682.09130859375,0.357062309980392,-1,&quot;w2&quot;|690.089233398438,0.0177043918520212,-4,&quot;a9-B&quot;|764.096984863281,0.254349589347839,-1,&quot;a3-B&quot;|782.624267578125,0.0366923026740551,-2,&quot;y5&quot;|834.102478027344,0.0409898050129414,-2,&quot;c5&quot;|931.178344726562,0.481656163930893,-1,&quot;y3&quot;|935.637084960938,0.0460890643298626,-2,&quot;y6&quot;|975.6201171875,0.0601151064038277,-2,&quot;w6&quot;|979.1181640625,0.891298174858093,-1,&quot;c3&quot;|987.114929199219,0.0321103595197201,-2,&quot;c6&quot;|1011.14453125,0.0417899116873741,-1,&quot;w3&quot;|1093.14953613281,0.259898722171783,-1,&quot;a4-B&quot;|1108.15942382812,0.0209055729210377,-2,&quot;y7&quot;|1151.64587402344,0.0122535172849894,-2,&quot;c7&quot;|1237.20324707031,0.162243917584419,-1,&quot;y4&quot;|1317.17041015625,0.0903863906860352,-1,&quot;w4&quot;|1324.16430664062,0.212912887334824,-3,&quot;c12&quot;|1324.16430664062,0.212912887334824,-2,&quot;c8&quot;|1324.16430664062,0.212912887334824,-1,&quot;c4&quot;|1438.1982421875,0.0551104545593262,-1,&quot;a5-B&quot;|1566.2548828125,0.0531029738485813,-1,&quot;y5&quot;|1872.28088378906,0.00533470930531621,-1,&quot;y6&quot;|1952.25122070312,0.0073296120390296,-1,&quot;w6&quot;|1975.23669433594,0.00265222741290927,-1,&quot;c6&quot;"/>
-				<UserParam type="string" name="label" value="UGAGGUAGUAGGUUGUAUAG[Um]"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-0.735719418249447"/>
-			</PeptideHit>
-			<UserParam type="int" name="scan_index" value="1"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>
