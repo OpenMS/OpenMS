@@ -159,7 +159,7 @@ namespace OpenMS
     
     map.sortByPosition();
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    map.setExperimentType("debug");
+    map.setExperimentType("label-free");
 
     ConsensusXMLFile file;
     file.store(debug_out, map);

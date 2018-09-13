@@ -14,7 +14,7 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="2">
-			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_23_input.mzML" location="file:///home/hr/openmsall/source/OpenMS_trunk/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="a262023f28d63389e25eac6007d172b040fde24f" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -351,20 +351,20 @@
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="10" encodedLength="108" dataProcessingRef="dp_sp_1_bi_0">
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="10" encodedLength="56" dataProcessingRef="dp_sp_1_bi_0">
 						<cvParam cvRef="MS" accession="MS:1000517" name="signal to noise array" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="name" type="xsd:string" value="binaryDataArray_sn"/>
 						<userParam name="name2" type="xsd:string" value="binaryDataArray_sn2"/>
-						<binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="10" encodedLength="108" >
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+					<binaryDataArray arrayLength="10" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="user-defined name" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<userParam name="name" type="xsd:string" value="binaryDataArray_c"/>
-						<binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -513,16 +513,16 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="index=0">13643</offset>
-		<offset idRef="index=1">17447</offset>
-		<offset idRef="index=2">26125</offset>
-		<offset idRef="index=3">30892</offset>
+		<offset idRef="index=0">13640</offset>
+		<offset idRef="index=1">17444</offset>
+		<offset idRef="index=2">26016</offset>
+		<offset idRef="index=3">30783</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">32230</offset>
-		<offset idRef="sic native">33609</offset>
+		<offset idRef="tic native">32121</offset>
+		<offset idRef="sic native">33500</offset>
 	</index>
 </indexList>
-<indexListOffset>35190</indexListOffset>
+<indexListOffset>35081</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

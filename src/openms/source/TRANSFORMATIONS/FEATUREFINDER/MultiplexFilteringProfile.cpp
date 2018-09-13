@@ -115,17 +115,16 @@ namespace OpenMS
       // data structure storing peaks which pass all filters
       MultiplexFilteredMSExperiment result;
 
-      // construct new white experiment
-      White2Original exp_picked_mapping;
-      MSExperiment exp_picked_white = getWhiteMSExperiment_(exp_picked_mapping);
+      // update white experiment
+      updateWhiteMSExperiment_();
 
       // loop over spectra
       // loop simultaneously over RT in the spline interpolated profile and (white) centroided experiment (including peak boundaries)
       std::vector<SplineSpectrum>::iterator it_rt_profile;
       MSExperiment::ConstIterator it_rt_picked;
       std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-      for (it_rt_profile = exp_spline_profile_.begin(), it_rt_picked = exp_picked_white.begin(), it_rt_boundaries = boundaries_.begin();
-           it_rt_profile < exp_spline_profile_.end() && it_rt_picked < exp_picked_white.end() && it_rt_boundaries < boundaries_.end();
+      for (it_rt_profile = exp_spline_profile_.begin(), it_rt_picked = exp_picked_white_.begin(), it_rt_boundaries = boundaries_.begin();
+           it_rt_profile < exp_spline_profile_.end() && it_rt_picked < exp_picked_white_.end() && it_rt_boundaries < boundaries_.end();
            ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
       {
         // skip empty spectra
@@ -137,21 +136,21 @@ namespace OpenMS
         setProgress(++progress);
         
         double rt = it_rt_picked->getRT();
-        MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white.RTBegin(rt - rt_band_/2);
-        MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white.RTEnd(rt + rt_band_/2);
+        MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white_.RTBegin(rt - rt_band_/2);
+        MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white_.RTEnd(rt + rt_band_/2);
         
         // loop over mz
         for (MSSpectrum::ConstIterator it_mz = it_rt_picked->begin(); it_mz != it_rt_picked->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white.begin());
+          MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping_[it_rt_picked - exp_picked_white_.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white_.begin());
           
-          if (!(filterPeakPositions_(it_mz, exp_picked_mapping, exp_picked_white.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(it_mz, exp_picked_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
           {
             continue;
           }
           
-          size_t mz_idx = exp_picked_mapping[it_rt_picked - exp_picked_white.begin()][it_mz - it_rt_picked->begin()];
+          size_t mz_idx = exp_picked_mapping_[it_rt_picked - exp_picked_white_.begin()][it_mz - it_rt_picked->begin()];
           double peak_min = (*it_rt_boundaries)[mz_idx].mz_min;
           double peak_max = (*it_rt_boundaries)[mz_idx].mz_max;
           

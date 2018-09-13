@@ -75,13 +75,12 @@ namespace OpenMS
       // data structure storing peaks which pass all filters for this pattern
       MultiplexFilteredMSExperiment result;
   
-      // construct new white experiment
-      White2Original exp_picked_mapping;
-      MSExperiment exp_picked_white = getWhiteMSExperiment_(exp_picked_mapping);
+      // update white experiment
+      updateWhiteMSExperiment_();
   
       // filter (white) experiment
       // loop over spectra
-      for (MSExperiment::ConstIterator it_rt = exp_picked_white.begin(); it_rt < exp_picked_white.end(); ++it_rt)
+      for (MSExperiment::ConstIterator it_rt = exp_picked_white_.begin(); it_rt < exp_picked_white_.end(); ++it_rt)
       {
         // skip empty spectra
         if (it_rt->empty())
@@ -92,16 +91,16 @@ namespace OpenMS
         setProgress(++progress);
 
         double rt = it_rt->getRT();
-        MSExperiment::ConstIterator it_rt_band_begin = exp_picked_white.RTBegin(rt - rt_band_/2);
-        MSExperiment::ConstIterator it_rt_band_end = exp_picked_white.RTEnd(rt + rt_band_/2);
+        MSExperiment::ConstIterator it_rt_band_begin = exp_picked_white_.RTBegin(rt - rt_band_/2);
+        MSExperiment::ConstIterator it_rt_band_end = exp_picked_white_.RTEnd(rt + rt_band_/2);
         
         // loop over m/z
         for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping[it_rt - exp_picked_white.begin()][it_mz - it_rt->begin()], it_rt - exp_picked_white.begin());
+          MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping_[it_rt - exp_picked_white_.begin()][it_mz - it_rt->begin()], it_rt - exp_picked_white_.begin());
           
-          if (!(filterPeakPositions_(it_mz, exp_picked_mapping, exp_picked_white.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(it_mz, exp_picked_white_.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
           {
             continue;
           }

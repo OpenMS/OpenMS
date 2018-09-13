@@ -7,7 +7,7 @@ from String cimport *
 from RangeManager cimport *
 from DataArrays cimport *
 
-# this class has addons, see the ./addons folder
+# this class has addons, see the ./addons folder (../addons/MSSpectrum.pyx)
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 

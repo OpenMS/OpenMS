@@ -49,8 +49,8 @@ START_TEST(RibonucleotideDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-RibonucleotideDB* ptr = 0;
-RibonucleotideDB* null = 0;
+RibonucleotideDB* ptr = nullptr;
+RibonucleotideDB* null = nullptr;
 START_SECTION(RibonucleotideDB* getInstance())
 {
 	ptr = RibonucleotideDB::getInstance();

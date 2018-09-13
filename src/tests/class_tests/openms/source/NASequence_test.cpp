@@ -52,8 +52,8 @@ START_TEST(NASequence, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-NASequence* ptr = 0;
-NASequence* null_ptr = 0;
+NASequence* ptr = nullptr;
+NASequence* null_ptr = nullptr;
 RibonucleotideDB* db = RibonucleotideDB::getInstance();
 
 START_SECTION((NASequence()=default))
@@ -377,13 +377,29 @@ END_SECTION
 
 START_SECTION((NASequence getPrefix(Size length) const))
 {
-  // TODO
+  NASequence seq = NASequence::fromString("A[ms2i6A]AACCGp");
+  NASequence seq2 = NASequence::fromString("A[ms2i6A]");
+  NASequence seq3 = NASequence::fromString("AAACCG");
+  NASequence seq4 = NASequence::fromString("AAA");
+  TEST_EQUAL(seq.getPrefix(2),seq2);
+  TEST_EQUAL(seq3.getPrefix(3),seq4);
+  TEST_NOT_EQUAL(seq.getPrefix(3),seq2);
+  TEST_NOT_EQUAL(seq.getPrefix(3),seq4);
+  TEST_EXCEPTION(Exception::IndexOverflow, seq.getPrefix(10));
 }
 END_SECTION
 
 START_SECTION((NASequence getSuffix(Size length) const))
 {
-  // TODO
+  NASequence seq = NASequence::fromString("A[ms2i6A]AACCGp");
+  NASequence seq2 = NASequence::fromString("[ms2i6A]AACCGp");
+  NASequence seq3 = NASequence::fromString("AAACCG");
+  NASequence seq4 = NASequence::fromString("CCG");
+  TEST_EQUAL(seq.getSuffix(6),seq2);
+  TEST_EQUAL(seq3.getSuffix(3),seq4);
+  TEST_NOT_EQUAL(seq.getSuffix(3),seq2);
+  TEST_NOT_EQUAL(seq.getSuffix(3),seq4);
+  TEST_EXCEPTION(Exception::IndexOverflow, seq.getSuffix(10));
 }
 END_SECTION
 
@@ -399,49 +415,89 @@ END_SECTION
 
 START_SECTION((Iterator begin()))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION((ConstIterator begin() const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION((Iterator end()))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION((ConstIterator end() const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::ConstIterator it = seq.begin(); it != seq.end(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION((ConstIterator cbegin() const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION((ConstIterator cend() const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator() = default))
 {
-  // TODO
+  NASequence::ConstIterator iter = NASequence::ConstIterator(); // fails if it segfault
+  NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator(const std::vector<const Ribonucleotide*>* vec_ptr, difference_type position)))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  NASequence::ConstIterator it = seq.cbegin();
+  TEST_EQUAL((*(it+2)).getCode(), "C");
 }
 END_SECTION
 
@@ -453,31 +509,41 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator(const NASequence::Iterator& rhs)))
 {
-  // TODO
+  NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] virtual ~ConstIterator()))
 {
-  // TODO
+NASequence::ConstIterator* ptr = new NASequence::ConstIterator();
+delete ptr;
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] const_reference operator*() const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] const_pointer operator->() const))
 {
-  // TODO
+  NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] const ConstIterator operator+(difference_type diff) const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  NASequence::ConstIterator it = seq.begin();
+  TEST_EQUAL((*(it+2)).getCode(), "C");
 }
 END_SECTION
 
@@ -489,127 +555,201 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] const ConstIterator operator-(difference_type diff) const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  NASequence::ConstIterator it = seq.end();
+  TEST_EQUAL((*(it-2)).getCode(), "C");
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] bool operator==(const ConstIterator &rhs) const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  NASequence::ConstIterator it = seq.end();
+  TEST_EQUAL((it-4 == seq.begin()), true);
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] bool operator!=(const ConstIterator &rhs) const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator& operator++()))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator& operator--()))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=3;
+  for (NASequence::ConstIterator it = seq.end()-1; it != seq.begin(); --it, --i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator& operator=(const ConstIterator& rhs)))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::ConstIterator it = seq.cbegin(); it != seq.cend(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator()=default))
 {
-  // TODO
+  NASequence::Iterator iter= NASequence::Iterator();
+  NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator(std::vector<const Ribonucleotide*>* vec_ptr, difference_type position)))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  NASequence::Iterator it = seq.begin();
+  TEST_EQUAL((*(it+2)).getCode(), "C");
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator(const Iterator& rhs)))
 {
-  // TODO
+  NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] virtual ~Iterator()))
 {
-  // TODO
+  NASequence::Iterator* ptr = new NASequence::Iterator();
+  delete ptr;
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] const_reference operator*() const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] const_pointer operator->() const))
 {
-  // TODO
+  NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] pointer operator->()))
 {
-  // TODO
+  NOT_TESTABLE
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] const Iterator operator+(difference_type diff) const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  NASequence::Iterator it = seq.begin();
+  TEST_EQUAL((*(it+2)).getCode(), "C");
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] difference_type operator-(Iterator rhs) const))
 {
-  // TODO
+  //TODO
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] const Iterator operator-(difference_type diff) const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  NASequence::Iterator it = seq.end();
+  TEST_EQUAL((*(it-2)).getCode(), "C");
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] bool operator==(const Iterator& rhs) const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  NASequence::Iterator it = seq.end();
+  TEST_EQUAL((it-4 == seq.begin()), true);
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] bool operator!=(const Iterator& rhs) const))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator& operator++()))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator& operator--()))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=3;
+  for (NASequence::Iterator it = seq.end()-1; it != seq.begin(); --it, --i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator& operator=(const Iterator& rhs)))
 {
-  // TODO
+  String result[] = {"A","U","C","G"};
+  NASequence seq = NASequence::fromString("AUCG");
+  Size i=0;
+  for (NASequence::Iterator it = seq.begin(); it != seq.end(); ++it, ++i)
+  {
+    TEST_EQUAL((*it).getCode(), result[i]);
+  }
 }
 END_SECTION
 

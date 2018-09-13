@@ -93,6 +93,13 @@ namespace OpenMS
     //@}
 
 
+    /** @name Equality
+     */
+    //@{
+    /// Equality operator
+    bool operator==(const Ribonucleotide& ribonucleotide) const;
+    //@}
+
     /** Accessors
      */
     //@{

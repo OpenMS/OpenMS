@@ -52,7 +52,7 @@ namespace OpenMS
     This class can be used to load the content of a consensusXML file into a ConsensusMap
     or to save the content of an ConsensusMap object into an XML file.
 
-    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
   @todo Take care that unique ids are assigned properly by TOPP tools before calling ConsensusXMLFile::store().  There will be a message on LOG_INFO but we will make no attempt to fix the problem in this class.  (all developers)
 
