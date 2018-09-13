@@ -118,7 +118,7 @@ namespace OpenMS
           decoy = "1";
         }
 
-		    // iterator over MRMFeatures
+        // iterator over MRMFeatures
         for (FeatureMap::const_iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
         {
 
@@ -143,7 +143,7 @@ namespace OpenMS
             else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
             {
               aggr_prec_Peak_Area += (String)intensity_char + ";";
-			        aggr_prec_Peak_Apex += (String)intensity_apex_char + ";";
+              aggr_prec_Peak_Apex += (String)intensity_apex_char + ";";
               aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
           }
@@ -206,7 +206,7 @@ namespace OpenMS
             + "\t" + (String)feature_it->getRT()
             + "\t" + "f_" + feature_it->getUniqueId()  // TODO might not be unique!!!
             + "\t" + (String)pep.sequence
-			      + "\t" + (String)feature_it->getMetaValue("missedCleavages")
+            + "\t" + (String)feature_it->getMetaValue("missedCleavages")
             + "\t" + full_peptide_name
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz
