@@ -32,75 +32,83 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_PARENTMOLECULE_H
-#define OPENMS_METADATA_ID_PARENTMOLECULE_H
+#ifndef OPENMS_METADATA_ID_SCOREDPROCESSINGRESULT_H
+#define OPENMS_METADATA_ID_SCOREDPROCESSINGRESULT_H
 
-#include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
-
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
+#include <OpenMS/METADATA/ID/MetaData.h>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Representation of a parent molecule that is identified only indirectly (e.g. a protein).
-    */
-    struct ParentMolecule: public ScoredProcessingResult
+    /// Base class for ID data with scores and processing steps (and meta info)
+    struct ScoredProcessingResult: public MetaInfoInterface
     {
-      String accession;
+      ScoreList scores;
 
-      enum MoleculeType molecule_type;
+      // @TODO: use a "boost::multi_index_container" here for efficient look-up?
+      std::vector<ProcessingStepRef> processing_step_refs;
 
-      // @TODO: if there are modifications in the sequence, "sequence.size()"
-      // etc. will be misleading!
-      String sequence;
-
-      String description;
-
-      double coverage; //< sequence coverage as a fraction between 0 and 1
-
-      bool is_decoy;
-
-      explicit ParentMolecule(
-        const String& accession,
-        MoleculeType molecule_type = MoleculeType::PROTEIN,
-        const String& sequence = "", const String& description = "",
-        double coverage = 0.0, bool is_decoy = false,
-        const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepRef>& processing_step_refs =
-        std::vector<ProcessingStepRef>()):
-        ScoredProcessingResult(scores, processing_step_refs),
-        accession(accession), molecule_type(molecule_type), sequence(sequence),
-        description(description), coverage(coverage), is_decoy(is_decoy)
+      /// Merge in data from another objects
+      ScoredProcessingResult& operator+=(const ScoredProcessingResult& other)
       {
-      }
-
-      ParentMolecule(const ParentMolecule& other) = default;
-
-      ParentMolecule& operator+=(const ParentMolecule& other)
-      {
-        ScoredProcessingResult::operator+=(other);
-        if (sequence.empty()) sequence = other.sequence;
-        if (description.empty()) description = other.description;
-        if (!is_decoy) is_decoy = other.is_decoy; // believe it when it's set
-        // @TODO: what about coverage? (not reliable if we're merging data)
+        // merge processing steps:
+        for (auto step_ref : other.processing_step_refs)
+        {
+          if (std::find(processing_step_refs.begin(),
+                        processing_step_refs.end(), step_ref) ==
+              processing_step_refs.end())
+          {
+            processing_step_refs.push_back(step_ref);
+          }
+        }
+        // merge scores:
+        for (auto score_pair : other.scores)
+        {
+          // @TODO: should we overwrite scores?
+          if (std::find(scores.begin(), scores.end(), score_pair) ==
+              scores.end())
+          {
+            scores.push_back(score_pair);
+          }
+        }
+        // merge meta info:
+        std::vector<UInt> keys;
+        other.getKeys(keys);
+        for (const UInt key : keys)
+        {
+          // @TODO: should we overwrite meta values?
+          if (!metaValueExists(key))
+          {
+            setMetaValue(key, other.getMetaValue(key));
+          }
+        }
 
         return *this;
       }
-    };
 
-    // parent molecules indexed by their accessions:
-    // @TODO: allow querying/iterating over proteins and RNAs separately
-    typedef boost::multi_index_container<
-      ParentMolecule,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          ParentMolecule, String, &ParentMolecule::accession>>>
-      > ParentMolecules;
-    typedef IteratorWrapper<ParentMolecules::iterator> ParentMoleculeRef;
+      std::pair<double, bool> getScore(ScoreTypeRef score_ref) const
+      {
+        // give priority to "later" scores in the list:
+        for (ScoreList::const_reverse_iterator it = scores.rbegin();
+             it != scores.rend(); ++it)
+        {
+          if (it->first == score_ref) return std::make_pair(it->second, true);
+        }
+        return std::make_pair(std::numeric_limits<double>::quiet_NaN(), false);
+      }
+
+    protected:
+      explicit ScoredProcessingResult(
+        const ScoreList& scores = ScoreList(),
+        const std::vector<ProcessingStepRef>& processing_step_refs =
+        std::vector<ProcessingStepRef>()):
+        scores(scores), processing_step_refs(processing_step_refs)
+      {
+      }
+
+      ScoredProcessingResult(const ScoredProcessingResult& other) = default;
+    };
 
   }
 }

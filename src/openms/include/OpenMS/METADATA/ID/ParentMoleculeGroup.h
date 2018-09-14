@@ -32,10 +32,10 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_PARENTMOLECULE_H
-#define OPENMS_METADATA_ID_PARENTMOLECULE_H
+#ifndef OPENMS_METADATA_ID_PARENTMOLECULEGROUP_H
+#define OPENMS_METADATA_ID_PARENTMOLECULEGROUP_H
 
-#include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
+#include <OpenMS/METADATA/ID/ParentMolecule.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -46,61 +46,36 @@ namespace OpenMS
   namespace IdentificationDataInternal
   {
     /*!
-      Representation of a parent molecule that is identified only indirectly (e.g. a protein).
+      Group of ambiguously identified parent molecules (e.g. protein group)
     */
-    struct ParentMolecule: public ScoredProcessingResult
+    struct ParentMoleculeGroup
     {
-      String accession;
-
-      enum MoleculeType molecule_type;
-
-      // @TODO: if there are modifications in the sequence, "sequence.size()"
-      // etc. will be misleading!
-      String sequence;
-
-      String description;
-
-      double coverage; //< sequence coverage as a fraction between 0 and 1
-
-      bool is_decoy;
-
-      explicit ParentMolecule(
-        const String& accession,
-        MoleculeType molecule_type = MoleculeType::PROTEIN,
-        const String& sequence = "", const String& description = "",
-        double coverage = 0.0, bool is_decoy = false,
-        const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepRef>& processing_step_refs =
-        std::vector<ProcessingStepRef>()):
-        ScoredProcessingResult(scores, processing_step_refs),
-        accession(accession), molecule_type(molecule_type), sequence(sequence),
-        description(description), coverage(coverage), is_decoy(is_decoy)
-      {
-      }
-
-      ParentMolecule(const ParentMolecule& other) = default;
-
-      ParentMolecule& operator+=(const ParentMolecule& other)
-      {
-        ScoredProcessingResult::operator+=(other);
-        if (sequence.empty()) sequence = other.sequence;
-        if (description.empty()) description = other.description;
-        if (!is_decoy) is_decoy = other.is_decoy; // believe it when it's set
-        // @TODO: what about coverage? (not reliable if we're merging data)
-
-        return *this;
-      }
+      ScoreList scores;
+      // @TODO: does this need a "leader" or some such?
+      std::set<ParentMoleculeRef> parent_molecule_refs;
     };
 
-    // parent molecules indexed by their accessions:
-    // @TODO: allow querying/iterating over proteins and RNAs separately
     typedef boost::multi_index_container<
-      ParentMolecule,
+      ParentMoleculeGroup,
       boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          ParentMolecule, String, &ParentMolecule::accession>>>
-      > ParentMolecules;
-    typedef IteratorWrapper<ParentMolecules::iterator> ParentMoleculeRef;
+        boost::multi_index::ordered_unique<
+        boost::multi_index::member<
+          ParentMoleculeGroup, std::set<ParentMoleculeRef>,
+          &ParentMoleculeGroup::parent_molecule_refs>>>
+      > ParentMoleculeGroups;
+    typedef IteratorWrapper<ParentMoleculeGroups::iterator> ParentGroupRef;
+
+    /*!
+      Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
+    */
+    struct ParentMoleculeGrouping
+    {
+      String label; // @TODO: use "label" as a uniqueness constraint?
+      std::vector<ProcessingStepRef> processing_step_refs;
+      ParentMoleculeGroups groups;
+    };
+
+    typedef std::vector<ParentMoleculeGrouping> ParentMoleculeGroupings;
 
   }
 }

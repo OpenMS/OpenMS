@@ -38,7 +38,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
-#include <OpenMS/METADATA/ID/ParentMolecule.h>
+#include <OpenMS/METADATA/ID/MoleculeParentMatch.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>

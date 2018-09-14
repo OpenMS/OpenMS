@@ -8,9 +8,12 @@ IdentificationData.h
 IdentificationDataConverter.h
 IdentifiedMolecule.h
 MetaData.h
+MoleculeParentMatch.h
 MoleculeQueryMatch.h
 ParentMolecule.h
+ParentMoleculeGroup.h
 QueryMatchGroup.h
+ScoredProcessingResult.h
 )
 
 ### add path to the filenames
