@@ -39,6 +39,8 @@
 #include <OpenMS/METADATA/ID/ParentMolecule.h>
 #include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
 #include <OpenMS/METADATA/ID/DataQuery.h>
+#include <OpenMS/METADATA/ID/MoleculeQueryMatch.h>
+#include <OpenMS/METADATA/ID/QueryMatchGroup.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -497,7 +499,7 @@ namespace OpenMS
       return lookup.count(ref);
     }
 
-    /// Remove elements from a set (or ordered multi_index_container) if they fulfil a predicate
+    /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate
     template <typename ContainerType, typename PredicateType>
     // static void removeFromSetIf_(ContainerType& container, std::function<bool(RefType)> predicate)
     static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
