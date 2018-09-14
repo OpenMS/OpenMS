@@ -8,7 +8,7 @@ jobs:
   pool:
     vmImage: 'ubuntu-16.04'
   steps:
-  - script: 
+  script: 
   - echo hello from Linux
   - apt-get update
   - apt-get install build-essential cmake autoconf patch libtool git automake
