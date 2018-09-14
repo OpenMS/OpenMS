@@ -162,6 +162,7 @@ namespace OpenMS
     };
 
     // parent molecules indexed by their accessions:
+    // @TODO: allow querying/iterating over proteins and RNAs separately
     typedef boost::multi_index_container<
       ParentMolecule,
       boost::multi_index::indexed_by<
