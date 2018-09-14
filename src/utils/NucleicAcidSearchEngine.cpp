@@ -100,6 +100,27 @@
 using namespace OpenMS;
 using namespace std;
 
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+    @page UTILS_NucleicAcidSearchEngine NucleicAcidSearchEngine
+
+    @brief Searches an mzML file for specified nucleic acid sequences.
+
+    Given a FASTA file containing oligonucleotide sequences (and optionally decoys) and a mzML file from a nucleic acid mass spec experiment:
+    - Generate a list of digest fragments from the FASTA file with a specified RNAse
+    - Search the mzML input for MS2 spectra with parent masses corresponding to any of these digests
+    - Match the MS2 spectra to theoretically generated spectra
+    - Score the resulting matches
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_NucleicAcidSearchEngine.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_NucleicAcidSearchEngine.html
+*/
+
 class NucleicAcidSearchEngine :
   public TOPPBase
 {
