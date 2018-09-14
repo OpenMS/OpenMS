@@ -36,7 +36,8 @@
 #define OPENMS_METADATA_ID_MOLECULEQUERYMATCH_H
 
 #include <OpenMS/METADATA/ID/MetaData.h>
-#include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
+#include <OpenMS/METADATA/ID/IdentifiedCompound.h>
+#include <OpenMS/METADATA/ID/IdentifiedSequence.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
 
 #include <boost/multi_index_container.hpp>
@@ -48,10 +49,6 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Meta data for a search hit (e.g. peptide-spectrum match).
-    */
-
     // @TODO: move "PeakAnnotation" out of "PeptideHit"
     typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
     typedef std::map<ProcessingStepRef, PeakAnnotations> PeakAnnotationSteps;
@@ -59,6 +56,9 @@ namespace OpenMS
     typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
                            IdentifiedOligoRef> IdentifiedMoleculeRef;
 
+    /*!
+      Meta data for a search hit (e.g. peptide-spectrum match).
+    */
     struct MoleculeQueryMatch: public ScoredProcessingResult
     {
       IdentifiedMoleculeRef identified_molecule_ref;

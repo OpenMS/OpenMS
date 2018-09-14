@@ -6,7 +6,8 @@ set(sources_list_h
 DataQuery.h
 IdentificationData.h
 IdentificationDataConverter.h
-IdentifiedMolecule.h
+IdentifiedCompound.h
+IdentifiedSequence.h
 MetaData.h
 MoleculeParentMatch.h
 MoleculeQueryMatch.h

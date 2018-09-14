@@ -36,7 +36,8 @@
 #define OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
 
 #include <OpenMS/METADATA/ID/DataQuery.h>
-#include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
+#include <OpenMS/METADATA/ID/IdentifiedCompound.h>
+#include <OpenMS/METADATA/ID/IdentifiedSequence.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/MoleculeParentMatch.h>
 #include <OpenMS/METADATA/ID/MoleculeQueryMatch.h>
