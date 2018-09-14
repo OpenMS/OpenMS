@@ -62,6 +62,9 @@ IdentificationData::InputFileRef file_ref;
 IdentificationData::ProcessingSoftwareRef sw_ref;
 IdentificationData::SearchParamRef param_ref;
 IdentificationData::ProcessingStepRef step_ref;
+IdentificationData::ScoreTypeRef score_ref;
+IdentificationData::DataQueryRef query_ref;
+IdentificationData::ParentMoleculeRef protein_ref, rna_ref;
 
 START_SECTION((const InputFiles& getInputFiles() const))
 {
@@ -127,7 +130,14 @@ START_SECTION((ProcessingStepRef registerDataProcessingStep(const DataProcessing
   IdentificationData::DataProcessingStep step(sw_ref, file_refs);
   step_ref = data.registerDataProcessingStep(step);
   TEST_EQUAL(data.getDataProcessingSteps().size(), 1);
-  TEST_EQUAL(*step_ref == step, true);
+  TEST_EQUAL(*step_ref == step, true); // "TEST_EQUAL(*step_ref, step)" doesn't compile
+}
+END_SECTION
+
+START_SECTION((const DataProcessingSteps& getDBSearchSteps() const))
+{
+  TEST_EQUAL(data.getDBSearchSteps().empty(), true);
+  // tested further below
 }
 END_SECTION
 
@@ -136,9 +146,104 @@ START_SECTION((ProcessingStepRef registerDataProcessingStep(const DataProcessing
   IdentificationData::DataProcessingStep step(sw_ref);
   step_ref = data.registerDataProcessingStep(step, param_ref);
   TEST_EQUAL(data.getDataProcessingSteps().size(), 2);
-  TEST_EQUAL(*step_ref == step, true);
+  TEST_EQUAL(*step_ref == step, true); // "TEST_EQUAL(*step_ref, step)" doesn't compile
+  TEST_EQUAL(data.getDBSearchSteps().size(), 1);
+  TEST_EQUAL(data.getDBSearchSteps().at(step_ref), param_ref);
 }
 END_SECTION
+
+START_SECTION((const ScoreTypes& getScoreTypes() const))
+{
+  TEST_EQUAL(data.getScoreTypes().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
+{
+  IdentificationData::ScoreType score("test_score", true, sw_ref);
+  score_ref = data.registerScoreType(score);
+  TEST_EQUAL(data.getScoreTypes().size(), 1);
+  TEST_EQUAL(*score_ref == score, true); // "TEST_EQUAL(*score_ref, score)" doesn't compile
+}
+END_SECTION
+
+START_SECTION((const DataQueries& getDataQueries() const))
+{
+  TEST_EQUAL(data.getDataQueries().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((DataQueryRef registerDataQuery(const DataQuery& query)))
+{
+  IdentificationData::DataQuery query("spectrum_1", file_ref, 100.0, 1000.0);
+  query_ref = data.registerDataQuery(query);
+  TEST_EQUAL(data.getDataQueries().size(), 1);
+  TEST_EQUAL(*query_ref == query, true); // "TEST_EQUAL(*query_ref, query)" doesn't compile
+}
+END_SECTION
+
+START_SECTION((const ParentMolecules& getParentMolecules() const))
+{
+  TEST_EQUAL(data.getParentMolecules().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent)))
+{
+  IdentificationData::ParentMolecule protein("protein_1");
+  protein_ref = data.registerParentMolecule(protein);
+  TEST_EQUAL(data.getParentMolecules().size(), 1);
+  TEST_EQUAL(*protein_ref == protein, true); // "TEST_EQUAL(*parent_ref, parent)" doesn't compile
+  IdentificationData::ParentMolecule rna("rna_1",
+                                         IdentificationData::MoleculeType::RNA);
+  rna_ref = data.registerParentMolecule(rna);
+  TEST_EQUAL(data.getParentMolecules().size(), 2);
+  TEST_EQUAL(*rna_ref == rna, true); // "TEST_EQUAL(*parent_ref, parent)" doesn't compile
+}
+END_SECTION
+
+START_SECTION((const ParentMoleculeGroupings& getParentMoleculeGroupings() const))
+{
+  TEST_EQUAL(data.getParentMoleculeGroupings().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((void registerParentMoleculeGrouping(const ParentMoleculeGrouping& grouping)))
+{
+  IdentificationData::ParentMoleculeGroup group;
+  group.parent_molecule_refs.insert(protein_ref);
+  group.parent_molecule_refs.insert(rna_ref);
+  IdentificationData::ParentMoleculeGrouping grouping;
+  grouping.label = "test_grouping";
+  grouping.groups.insert(group);
+  data.registerParentMoleculeGrouping(grouping);
+  TEST_EQUAL(data.getParentMoleculeGroupings().size(), 1);
+  TEST_EQUAL(data.getParentMoleculeGroupings()[0].groups.size(), 1);
+  TEST_EQUAL(data.getParentMoleculeGroupings()[0].groups.begin()->parent_molecule_refs.size(), 2);
+}
+END_SECTION
+
+START_SECTION((const IdentifiedPeptides& getIdentifiedPeptides() const))
+{
+  TEST_EQUAL(data.getIdentifiedPeptides().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+/*
+START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide& peptide)))
+{
+  IdentificationData::IdentifiedPeptide peptide;
+  peptide_ref = data.registerIdentifiedPeptide(peptide);
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
+  TEST_EQUAL(*peptide_ref == peptide, true); // "TEST_EQUAL(*peptide_ref, peptide)" doesn't compile
+}
+END_SECTION
+*/
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
