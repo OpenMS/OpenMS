@@ -164,7 +164,7 @@ protected:
     registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
-    registerStringList_("fragment:ions", "<choice>", ListUtils::create<String>("a-B,c,w,y"), "Fragment ions to include in theoretical spectra", false);
+    registerStringList_("fragment:ions", "<choice>", ListUtils::create<String>("a-B,a,b,c,d,w,x,y,z"), "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
     registerTOPPSubsection_("modifications", "Modifications Options");
