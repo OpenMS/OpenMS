@@ -207,6 +207,16 @@ namespace OpenMS
 
     double rt_uncertainty(0);
     bool with_external_ids = !peptides_ext.empty();
+
+    if (with_external_ids && !seeds.empty())
+    {
+      throw Exception::IllegalArgument(
+        __FILE__, 
+        __LINE__, 
+        OPENMS_PRETTY_FUNCTION, 
+        "Using seeds and external ids is currently not supported.");
+    }
+
     if (with_external_ids)
     {
       // align internal and external IDs to estimate RT shifts:

@@ -143,7 +143,7 @@ protected:
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
 
     registerStringOption_("transfer_ids", "<option>", "false", "Requantification.", false, true);
-    setValidStrings_("transfer_ids", ListUtils::create<String>("true,false"));
+    setValidStrings_("transfer_ids", ListUtils::create<String>("false,merged,SVM"));
 
     registerStringOption_("mass_recalibration", "<option>", "true", "Mass recalibration.", false, true);
     setValidStrings_("mass_recalibration", ListUtils::create<String>("true,false"));
@@ -668,14 +668,24 @@ protected:
       {
         recalibrateMasses_(ms_centroided, peptide_ids, id_file_abs_path);
       }
-      
+
+      vector<ProteinIdentification> ext_protein_ids;
+      vector<PeptideIdentification> ext_peptide_ids;
+
       if (!transfered_ids.empty())
       {
         // copy ids for this map to peptide_ids
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto it = range.first; it != range.second; ++it)
         {
-          peptide_ids.push_back(it->second);
+          if (getStringOption_("transfer_ids") == "merged" )
+          {
+            peptide_ids.push_back(it->second);
+          }
+          else if (getStringOption_("transfer_ids") == "SVM" )
+          {
+            ext_peptide_ids.push_back(it->second);
+          }
         }
       }
 
@@ -687,10 +697,8 @@ protected:
       //-------------------------------------------------------------
       // Feature detection
       //-------------------------------------------------------------   
-      vector<ProteinIdentification> ext_protein_ids;
-      vector<PeptideIdentification> ext_peptide_ids;
-
       ///////////////////////////////////////////////
+
       // Run MTD before FFM
 
       // create empty feature map and annotate MS file
@@ -724,10 +732,16 @@ protected:
 
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
+      ffi_param.setValue("svm:samples", 10000); // restrict number of samples for training
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-      ffi.run(peptide_ids, protein_ids, ext_peptide_ids, ext_protein_ids, feature_maps.back(), seeds);
+      ffi.run(peptide_ids, 
+        protein_ids, 
+        ext_peptide_ids, 
+        ext_protein_ids, 
+        feature_maps.back(), 
+        seeds);
       
       if (debug_level_ > 666)
       {
@@ -854,7 +868,7 @@ protected:
       ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction, multimap<Size, PeptideIdentification>());
       if (e != EXECUTION_OK) { return e; }
         
-      if (getStringOption_("transfer_ids") == "true")
+      if (getStringOption_("transfer_ids") != "false" )
       {  
         // TODO: determine minimum occurance from data (e.g., fraction of total runs per fraction, n replicates etc.)
         multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenFractions_(consensus_fraction, 1); 
