@@ -32,8 +32,8 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATA_METADATA_H
-#define OPENMS_METADATA_IDENTIFICATIONDATA_METADATA_H
+#ifndef OPENMS_METADATA_ID_METADATA_H
+#define OPENMS_METADATA_ID_METADATA_H
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/METADATA/DataProcessing.h>

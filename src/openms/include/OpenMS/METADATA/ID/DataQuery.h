@@ -32,11 +32,11 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATA_DATAQUERY_H
-#define OPENMS_METADATA_IDENTIFICATIONDATA_DATAQUERY_H
+#ifndef OPENMS_METADATA_ID_DATAQUERY_H
+#define OPENMS_METADATA_ID_DATAQUERY_H
 
-#include <OpenMS/METADATA/IdentificationData_MetaData.h>
-#include <OpenMS/METADATA/IdentificationData_IdentifiedMolecule.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
 
 #include <boost/multi_index_container.hpp>

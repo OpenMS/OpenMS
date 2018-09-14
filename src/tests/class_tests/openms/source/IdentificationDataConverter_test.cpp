@@ -38,7 +38,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/METADATA/IdentificationDataConverter.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>

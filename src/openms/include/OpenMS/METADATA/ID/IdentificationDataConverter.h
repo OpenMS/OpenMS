@@ -32,10 +32,10 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATACONVERTER_H
-#define OPENMS_METADATA_IDENTIFICATIONDATACONVERTER_H
+#ifndef OPENMS_METADATA_ID_IDENTIFICATIONDATACONVERTER_H
+#define OPENMS_METADATA_ID_IDENTIFICATIONDATACONVERTER_H
 
-#include <OpenMS/METADATA/IdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>

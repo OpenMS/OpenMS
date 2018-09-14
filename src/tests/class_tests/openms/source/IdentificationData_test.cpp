@@ -38,7 +38,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/METADATA/IdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 ///////////////////////////
 

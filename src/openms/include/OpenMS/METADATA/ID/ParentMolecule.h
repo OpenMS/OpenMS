@@ -32,10 +32,10 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATA_PARENTMOLECULE_H
-#define OPENMS_METADATA_IDENTIFICATIONDATA_PARENTMOLECULE_H
+#ifndef OPENMS_METADATA_ID_PARENTMOLECULE_H
+#define OPENMS_METADATA_ID_PARENTMOLECULE_H
 
-#include <OpenMS/METADATA/IdentificationData_MetaData.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>

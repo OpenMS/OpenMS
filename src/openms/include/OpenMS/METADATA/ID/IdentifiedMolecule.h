@@ -32,13 +32,13 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATA_IDENTIFIEDMOLECULE_H
-#define OPENMS_METADATA_IDENTIFICATIONDATA_IDENTIFIEDMOLECULE_H
+#ifndef OPENMS_METADATA_ID_IDENTIFIEDMOLECULE_H
+#define OPENMS_METADATA_ID_IDENTIFIEDMOLECULE_H
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/METADATA/IdentificationData_MetaData.h>
-#include <OpenMS/METADATA/IdentificationData_ParentMolecule.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/ParentMolecule.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>

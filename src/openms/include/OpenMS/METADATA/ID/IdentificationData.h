@@ -32,13 +32,13 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATA_H
-#define OPENMS_METADATA_IDENTIFICATIONDATA_H
+#ifndef OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
+#define OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
 
-#include <OpenMS/METADATA/IdentificationData_MetaData.h>
-#include <OpenMS/METADATA/IdentificationData_ParentMolecule.h>
-#include <OpenMS/METADATA/IdentificationData_IdentifiedMolecule.h>
-#include <OpenMS/METADATA/IdentificationData_DataQuery.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/ParentMolecule.h>
+#include <OpenMS/METADATA/ID/IdentifiedMolecule.h>
+#include <OpenMS/METADATA/ID/DataQuery.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
