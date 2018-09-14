@@ -48,6 +48,7 @@ namespace OpenMS
     /*!
       Group of ambiguously identified parent molecules (e.g. protein group)
     */
+    // @TODO: derive from MetaInfoInterface?
     struct ParentMoleculeGroup
     {
       ScoreList scores;

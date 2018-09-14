@@ -65,6 +65,10 @@ IdentificationData::ProcessingStepRef step_ref;
 IdentificationData::ScoreTypeRef score_ref;
 IdentificationData::DataQueryRef query_ref;
 IdentificationData::ParentMoleculeRef protein_ref, rna_ref;
+IdentificationData::IdentifiedPeptideRef peptide_ref;
+IdentificationData::IdentifiedOligoRef oligo_ref;
+IdentificationData::IdentifiedCompoundRef compound_ref;
+IdentificationData::QueryMatchRef match_ref1, match_ref2, match_ref3;
 
 START_SECTION((const InputFiles& getInputFiles() const))
 {
@@ -193,7 +197,13 @@ END_SECTION
 
 START_SECTION((ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent)))
 {
-  IdentificationData::ParentMolecule protein("protein_1");
+  IdentificationData::ParentMolecule protein("");
+  // can't register a parent molecule without accession:
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 data.registerParentMolecule(protein));
+  TEST_EQUAL(data.getParentMolecules().empty(), true);
+
+  protein.accession = "protein_1";
   protein_ref = data.registerParentMolecule(protein);
   TEST_EQUAL(data.getParentMolecules().size(), 1);
   TEST_EQUAL(*protein_ref == protein, true); // "TEST_EQUAL(*parent_ref, parent)" doesn't compile
@@ -234,16 +244,142 @@ START_SECTION((const IdentifiedPeptides& getIdentifiedPeptides() const))
 }
 END_SECTION
 
-/*
 START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide& peptide)))
 {
-  IdentificationData::IdentifiedPeptide peptide;
+  IdentificationData::IdentifiedPeptide peptide(AASequence::fromString(""));
+  // can't register a peptide without a sequence:
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 data.registerIdentifiedPeptide(peptide));
+  TEST_EQUAL(data.getIdentifiedPeptides().empty(), true);
+
+  // peptide without protein reference:
+  peptide.sequence = AASequence::fromString("TEST");
   peptide_ref = data.registerIdentifiedPeptide(peptide);
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
   TEST_EQUAL(*peptide_ref == peptide, true); // "TEST_EQUAL(*peptide_ref, peptide)" doesn't compile
+
+  // peptide with protein reference:
+  peptide.sequence = AASequence::fromString("PEPTIDE");
+  peptide.parent_matches[protein_ref];
+  peptide_ref = data.registerIdentifiedPeptide(peptide);
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
+  TEST_EQUAL(*peptide_ref == peptide, true); // "TEST_EQUAL(*peptide_ref, peptide)" doesn't compile
+
+  // registering a peptide with RNA reference doesn't work:
+  peptide.parent_matches[rna_ref];
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 data.registerIdentifiedPeptide(peptide));
 }
 END_SECTION
-*/
+
+START_SECTION((const IdentifiedPeptides& getIdentifiedOligos() const))
+{
+  TEST_EQUAL(data.getIdentifiedOligos().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((IdentifiedPeptideRef registerIdentifiedOligo(const IdentifiedOligo& oligo)))
+{
+  IdentificationData::IdentifiedOligo oligo(NASequence::fromString(""));
+  // can't register an oligo without a sequence:
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 data.registerIdentifiedOligo(oligo));
+  TEST_EQUAL(data.getIdentifiedOligos().empty(), true);
+
+  // oligo without RNA reference:
+  oligo.sequence = NASequence::fromString("ACGU");
+  oligo_ref = data.registerIdentifiedOligo(oligo);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
+  TEST_EQUAL(*oligo_ref == oligo, true); // "TEST_EQUAL(*oligo_ref, oligo)" doesn't compile
+
+  // oligo with protein reference:
+  oligo.sequence = NASequence::fromString("UGCA");
+  oligo.parent_matches[rna_ref];
+  oligo_ref = data.registerIdentifiedOligo(oligo);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
+  TEST_EQUAL(*oligo_ref == oligo, true); // "TEST_EQUAL(*oligo_ref, oligo)" doesn't compile
+
+  // registering an oligo with protein reference doesn't work:
+  oligo.parent_matches[protein_ref];
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 data.registerIdentifiedOligo(oligo));
+}
+END_SECTION
+
+START_SECTION((const IdentifiedPeptides& getIdentifiedCompounds() const))
+{
+  TEST_EQUAL(data.getIdentifiedCompounds().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((IdentifiedPeptideRef registerIdentifiedCompound(const IdentifiedCompound& compound)))
+{
+  IdentificationData::IdentifiedCompound compound("");
+  // can't register a compound without identifier:
+  TEST_EXCEPTION(Exception::IllegalArgument,
+                 data.registerIdentifiedCompound(compound));
+  TEST_EQUAL(data.getIdentifiedCompounds().empty(), true);
+
+  compound = IdentificationData::IdentifiedCompound("compound_1",
+                                                    EmpiricalFormula("C2H5OH"),
+                                                    "ethanol");
+  compound_ref = data.registerIdentifiedCompound(compound);
+  TEST_EQUAL(data.getIdentifiedCompounds().size(), 1);
+  TEST_EQUAL(*compound_ref == compound, true); // "TEST_EQUAL(*compound_ref, compound)" doesn't compile
+}
+END_SECTION
+
+START_SECTION((const MoleculeQueryMatches& getMoleculeQueryMatches() const))
+{
+  TEST_EQUAL(data.getMoleculeQueryMatches().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch& match)))
+{
+  // match with a peptide:
+  IdentificationData::MoleculeQueryMatch match(peptide_ref, query_ref, 3);
+  match_ref1 = data.registerMoleculeQueryMatch(match);
+  TEST_EQUAL(data.getMoleculeQueryMatches().size(), 1);
+  TEST_EQUAL(*match_ref1 == match, true); // "TEST_EQUAL(*match_ref1, match)" doesn't compile
+
+  // match with an oligo:
+  match = IdentificationData::MoleculeQueryMatch(oligo_ref, query_ref, 2);
+  match_ref2 = data.registerMoleculeQueryMatch(match);
+  TEST_EQUAL(data.getMoleculeQueryMatches().size(), 2);
+  TEST_EQUAL(*match_ref2 == match, true); // "TEST_EQUAL(*match_ref2, match)" doesn't compile
+
+  // match with a compound:
+  match = IdentificationData::MoleculeQueryMatch(compound_ref, query_ref, 1);
+  match_ref3 = data.registerMoleculeQueryMatch(match);
+  TEST_EQUAL(data.getMoleculeQueryMatches().size(), 3);
+  TEST_EQUAL(*match_ref3 == match, true); // "TEST_EQUAL(*match_ref3, match)" doesn't compile
+}
+END_SECTION
+
+START_SECTION((const MoleculeQueryMatches& getQueryMatchGroups() const))
+{
+  TEST_EQUAL(data.getQueryMatchGroups().empty(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((MatchGroupRef registerQueryMatchGroup(const QueryMatchGroup& group)))
+{
+  IdentificationData::QueryMatchGroup group;
+  group.query_match_refs.insert(match_ref1);
+  group.query_match_refs.insert(match_ref2);
+  group.query_match_refs.insert(match_ref3);
+
+  data.registerQueryMatchGroup(group);
+  TEST_EQUAL(data.getQueryMatchGroups().size(), 1);
+  TEST_EQUAL(*data.getQueryMatchGroups().begin() == group, true);
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
