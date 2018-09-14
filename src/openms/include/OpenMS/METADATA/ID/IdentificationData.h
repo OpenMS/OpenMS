@@ -35,7 +35,9 @@
 #ifndef OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
 #define OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
 
+#include <OpenMS/METADATA/ID/DataProcessingStep.h>
 #include <OpenMS/METADATA/ID/DataQuery.h>
+#include <OpenMS/METADATA/ID/DBSearchParam.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
 #include <OpenMS/METADATA/ID/IdentifiedSequence.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
@@ -44,6 +46,7 @@
 #include <OpenMS/METADATA/ID/ParentMolecule.h>
 #include <OpenMS/METADATA/ID/ParentMoleculeGroup.h>
 #include <OpenMS/METADATA/ID/QueryMatchGroup.h>
+#include <OpenMS/METADATA/ID/ScoreType.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>

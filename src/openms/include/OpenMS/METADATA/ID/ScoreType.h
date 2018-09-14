@@ -32,67 +32,80 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_METADATA_H
-#define OPENMS_METADATA_ID_METADATA_H
+#ifndef OPENMS_METADATA_ID_SCORETYPE_H
+#define OPENMS_METADATA_ID_SCORETYPE_H
 
-#include <OpenMS/METADATA/Software.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
+
+#include <boost/optional.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /// Wrapper that adds @p operator< to iterators, so they can be used as (part of) keys in maps/sets or @p multi_index_containers
-    template <typename Iterator>
-    struct IteratorWrapper: public Iterator
-    {
-      IteratorWrapper(): Iterator() {}
-
-      IteratorWrapper(const Iterator& it): Iterator(it) {}
-
-      bool operator<(const IteratorWrapper& other) const
-      {
-        // compare by address of referenced element:
-        return &(**this) < &(*other);
-      }
-
-      /// Conversion to pointer type for hashing
-      operator uintptr_t() const
-      {
-        return uintptr_t(&(**this));
-      }
-    };
-
-
-    enum MoleculeType
-    {
-      PROTEIN,
-      COMPOUND,
-      RNA,
-      SIZE_OF_MOLECULETYPE
-    };
-
-
-    enum MassType
-    {
-      MONOISOTOPIC,
-      AVERAGE,
-      SIZE_OF_MASSTYPE
-    };
-
-
-    // Input files that were processed:
-    typedef std::set<String> InputFiles;
-    typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
-
-
     /*!
-      Information about software used for data processing.
-
-      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
- software information only once.
+      Information about a score type.
     */
-    typedef std::set<Software> DataProcessingSoftware;
-    typedef IteratorWrapper<DataProcessingSoftware::iterator> ProcessingSoftwareRef;
+    struct ScoreType: public MetaInfoInterface
+    {
+      CVTerm cv_term;
+
+      String name;
+
+      bool higher_better;
+
+      // reference to the software that assigned the score:
+      boost::optional<ProcessingSoftwareRef> software_opt;
+      // @TODO: scores assigned by different software tools/versions are
+      // considered as different scores (even if they have the same name) -
+      // does that make sense?
+
+      ScoreType():
+        higher_better(true), software_opt()
+      {
+      }
+
+      explicit ScoreType(const CVTerm& cv_term, bool higher_better,
+                         boost::optional<ProcessingSoftwareRef> software_opt =
+                         boost::none):
+        cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better),
+        software_opt(software_opt)
+      {
+      }
+
+      explicit ScoreType(const String& name, bool higher_better,
+                         boost::optional<ProcessingSoftwareRef> software_opt =
+                         boost::none):
+        cv_term(), name(name), higher_better(higher_better),
+        software_opt(software_opt)
+      {
+      }
+
+      ScoreType(const ScoreType& other) = default;
+
+      // don't include "higher_better" in the comparison:
+      bool operator<(const ScoreType& other) const
+      {
+        return (std::tie(cv_term.getAccession(), name, software_opt) <
+                std::tie(other.cv_term.getAccession(), other.name,
+                         other.software_opt));
+      }
+
+      // don't include "higher_better" in the comparison:
+      bool operator==(const ScoreType& other) const
+      {
+        return (std::tie(cv_term.getAccession(), name, software_opt) ==
+                std::tie(other.cv_term.getAccession(), other.name,
+                         other.software_opt));
+      }
+    };
+
+    typedef std::set<ScoreType> ScoreTypes;
+    typedef IteratorWrapper<ScoreTypes::iterator> ScoreTypeRef;
+
+    // @TODO: use a "boost::multi_index_container" to allow efficient access in
+    // sequence and by key?
+    typedef std::vector<std::pair<ScoreTypeRef, double>> ScoreList;
 
   }
 }

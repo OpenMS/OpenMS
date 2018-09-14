@@ -35,7 +35,8 @@
 #ifndef OPENMS_METADATA_ID_SCOREDPROCESSINGRESULT_H
 #define OPENMS_METADATA_ID_SCOREDPROCESSINGRESULT_H
 
-#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/DataProcessingStep.h>
+#include <OpenMS/METADATA/ID/ScoreType.h>
 
 namespace OpenMS
 {

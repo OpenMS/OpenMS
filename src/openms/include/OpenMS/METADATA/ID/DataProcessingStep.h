@@ -32,67 +32,67 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_METADATA_H
-#define OPENMS_METADATA_ID_METADATA_H
+#ifndef OPENMS_METADATA_ID_DATAPROCESSINGSTEP_H
+#define OPENMS_METADATA_ID_DATAPROCESSINGSTEP_H
 
-#include <OpenMS/METADATA/Software.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /// Wrapper that adds @p operator< to iterators, so they can be used as (part of) keys in maps/sets or @p multi_index_containers
-    template <typename Iterator>
-    struct IteratorWrapper: public Iterator
-    {
-      IteratorWrapper(): Iterator() {}
-
-      IteratorWrapper(const Iterator& it): Iterator(it) {}
-
-      bool operator<(const IteratorWrapper& other) const
-      {
-        // compare by address of referenced element:
-        return &(**this) < &(*other);
-      }
-
-      /// Conversion to pointer type for hashing
-      operator uintptr_t() const
-      {
-        return uintptr_t(&(**this));
-      }
-    };
-
-
-    enum MoleculeType
-    {
-      PROTEIN,
-      COMPOUND,
-      RNA,
-      SIZE_OF_MOLECULETYPE
-    };
-
-
-    enum MassType
-    {
-      MONOISOTOPIC,
-      AVERAGE,
-      SIZE_OF_MASSTYPE
-    };
-
-
-    // Input files that were processed:
-    typedef std::set<String> InputFiles;
-    typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
-
-
     /*!
-      Information about software used for data processing.
-
-      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
- software information only once.
+      Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
     */
-    typedef std::set<Software> DataProcessingSoftware;
-    typedef IteratorWrapper<DataProcessingSoftware::iterator> ProcessingSoftwareRef;
+    struct DataProcessingStep: public MetaInfoInterface
+    {
+      ProcessingSoftwareRef software_ref;
+
+      std::vector<InputFileRef> input_file_refs;
+
+      std::vector<String> primary_files; // path(s) to primary MS data
+
+      DateTime date_time;
+
+      // @TODO: add processing actions that are relevant for ID data
+      std::set<DataProcessing::ProcessingAction> actions;
+
+      explicit DataProcessingStep(
+        ProcessingSoftwareRef software_ref,
+        const std::vector<InputFileRef>& input_file_refs =
+        std::vector<InputFileRef>(), const std::vector<String>& primary_files =
+        std::vector<String>(), const DateTime& date_time = DateTime::now(),
+        std::set<DataProcessing::ProcessingAction> actions =
+        std::set<DataProcessing::ProcessingAction>()):
+        software_ref(software_ref), input_file_refs(input_file_refs),
+        primary_files(primary_files), date_time(date_time), actions(actions)
+      {
+      }
+
+      DataProcessingStep(const DataProcessingStep& other) = default;
+
+      // don't compare meta data (?):
+      bool operator<(const DataProcessingStep& other) const
+      {
+        return (std::tie(software_ref, input_file_refs, primary_files,
+                         date_time, actions) <
+                std::tie(other.software_ref, other.input_file_refs,
+                         other.primary_files, other.date_time, other.actions));
+      }
+
+      // don't compare meta data (?):
+      bool operator==(const DataProcessingStep& other) const
+      {
+        return (std::tie(software_ref, input_file_refs, primary_files,
+                         date_time, actions) ==
+                std::tie(other.software_ref, other.input_file_refs,
+                         other.primary_files, other.date_time, other.actions));
+      }
+    };
+
+    typedef std::set<DataProcessingStep> DataProcessingSteps;
+    typedef IteratorWrapper<DataProcessingSteps::iterator> ProcessingStepRef;
 
   }
 }

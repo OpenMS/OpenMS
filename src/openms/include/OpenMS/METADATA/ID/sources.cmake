@@ -3,6 +3,8 @@ set(directory include/OpenMS/METADATA/ID)
 
 ### list all header files of the directory here
 set(sources_list_h
+DBSearchParam.h
+DataProcessingStep.h
 DataQuery.h
 IdentificationData.h
 IdentificationDataConverter.h
@@ -14,6 +16,7 @@ MoleculeQueryMatch.h
 ParentMolecule.h
 ParentMoleculeGroup.h
 QueryMatchGroup.h
+ScoreType.h
 ScoredProcessingResult.h
 )
 
