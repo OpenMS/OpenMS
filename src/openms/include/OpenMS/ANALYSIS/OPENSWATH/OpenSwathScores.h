@@ -94,35 +94,14 @@ namespace OpenMS
     double norm_rt_score = 0;
 
     double isotope_correlation = 0;
-    std::string ind_isotope_correlation = "";
-
     double isotope_overlap = 0;
-    std::string ind_isotope_overlap = "";
-
     double massdev_score = 0;
-    std::string ind_massdev_score = "";
-
     double xcorr_coelution_score = 0;
-    std::string ind_xcorr_coelution_score = "";
-
     double xcorr_shape_score = 0;
-    std::string ind_xcorr_shape_score = "";
 
     double yseries_score = 0;
     double bseries_score = 0;
     double log_sn_score = 0;
-    std::string ind_log_sn_score = "";
-
-    int ind_num_transitions = 0;
-    std::string ind_transition_names = "";
-    std::string ind_area_intensity = "";
-    std::string ind_total_area_intensity = "";
-    std::string ind_intensity_score = "";
-    std::string ind_apex_intensity = "";
-    std::string ind_total_mi = "";
-    std::string ind_log_intensity = "";
-    std::string ind_intensity_ratio = "";
-    std::string ind_mi_ratio = "";
 
     double weighted_coelution_score = 0;
     double weighted_xcorr_shape = 0;
@@ -155,7 +134,6 @@ namespace OpenMS
     double nr_peaks = 0;
     double sn_ratio = 0;
     double mi_score = 0;
-    std::string ind_mi_score = "";
     double weighted_mi_score = 0;
 
     double rt_difference = 0;
@@ -204,6 +182,30 @@ namespace OpenMS
      *
     */
     double calculate_swath_lda_prescore(const OpenSwath_Scores& scores) const;
+
+  };
+
+  struct OPENMS_DLLAPI OpenSwath_Ind_Scores
+  {
+    int ind_num_transitions = 0;
+    std::string ind_isotope_correlation = "";
+    std::string ind_isotope_overlap = "";
+    std::string ind_massdev_score = "";
+    std::string ind_xcorr_coelution_score = "";
+    std::string ind_xcorr_shape_score = "";
+    std::string ind_log_sn_score = "";
+    std::string ind_transition_names = "";
+    std::string ind_area_intensity = "";
+    std::string ind_total_area_intensity = "";
+    std::string ind_intensity_score = "";
+    std::string ind_apex_intensity = "";
+    std::string ind_total_mi = "";
+    std::string ind_log_intensity = "";
+    std::string ind_intensity_ratio = "";
+    std::string ind_mi_ratio = "";
+    std::string ind_mi_score = "";
+
+    OpenSwath_Ind_Scores() = default;
 
   };
 

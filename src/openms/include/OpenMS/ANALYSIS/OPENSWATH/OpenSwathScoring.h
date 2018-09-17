@@ -107,13 +107,12 @@ namespace OpenMS
      * @param scores The object to store the result
      *
     */
-    void calculateChromatographicScores(
-          OpenSwath::IMRMFeature* imrmfeature,
-          const std::vector<std::string>& native_ids,
-          const std::vector<std::string>& precursor_ids,
-          const std::vector<double>& normalized_library_intensity,
-          std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-          OpenSwath_Scores & scores);
+    void calculateChromatographicScores(OpenSwath::IMRMFeature* imrmfeature,
+                                        const std::vector<std::string>& native_ids,
+                                        const std::vector<std::string>& precursor_ids,
+                                        const std::vector<double>& normalized_library_intensity,
+                                        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+                                        OpenSwath_Scores & scores);
 
     /** @brief Score identification transitions against detection transitions of a single peakgroup 
      * in a chromatogram using only chromatographic properties.
@@ -133,12 +132,11 @@ namespace OpenMS
      * @param scores The object to store the result
      *
     */
-    void calculateChromatographicIdScores(
-          OpenSwath::IMRMFeature* imrmfeature,
-          const std::vector<std::string>& native_ids_identification,
-          const std::vector<std::string>& native_ids_detection,
-          std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-          OpenSwath_Scores & scores);
+    void calculateChromatographicIdScores(OpenSwath::IMRMFeature* imrmfeature,
+                                          const std::vector<std::string>& native_ids_identification,
+                                          const std::vector<std::string>& native_ids_detection,
+                                          std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+                                          OpenSwath_Ind_Scores & scores);
 
     /** @brief Score a single chromatographic feature against a spectral library
      *
@@ -155,12 +153,11 @@ namespace OpenMS
      * @param scores The object to store the result
      *
     */
-    void calculateLibraryScores(
-          OpenSwath::IMRMFeature* imrmfeature,
-          const std::vector<TransitionType> & transitions,
-          const CompoundType& compound,
-          const double normalized_feature_rt,
-          OpenSwath_Scores & scores);
+    void calculateLibraryScores(OpenSwath::IMRMFeature* imrmfeature,
+                                const std::vector<TransitionType> & transitions,
+                                const CompoundType& compound,
+                                const double normalized_feature_rt,
+                                OpenSwath_Scores & scores);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
      *
@@ -176,13 +173,13 @@ namespace OpenMS
      *
     */
     void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
-        const std::vector<TransitionType> & transitions,
-        std::vector<OpenSwath::SwathMap> swath_maps,
-        OpenSwath::SpectrumAccessPtr ms1_map,
-        OpenMS::DIAScoring & diascoring,
-        const CompoundType& compound,
-        OpenSwath_Scores & scores, 
-        double im_start, double im_end);
+                            const std::vector<TransitionType> & transitions,
+                            std::vector<OpenSwath::SwathMap> swath_maps,
+                            OpenSwath::SpectrumAccessPtr ms1_map,
+                            OpenMS::DIAScoring & diascoring,
+                            const CompoundType& compound,
+                            OpenSwath_Scores & scores, 
+                            double im_start, double im_end);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -215,11 +212,11 @@ namespace OpenMS
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
-        const TransitionType & transition,
-        const std::vector<OpenSwath::SwathMap> swath_maps,
-        OpenMS::DIAScoring & diascoring,
-        OpenSwath_Scores & scores,
-        double drift_lower, double drift_upper);
+                              const TransitionType & transition,
+                              const std::vector<OpenSwath::SwathMap> swath_maps,
+                              OpenMS::DIAScoring & diascoring,
+                              OpenSwath_Scores & scores,
+                              double drift_lower, double drift_upper);
 
     /** @brief Computing the normalized library intensities from the transition objects
      *
