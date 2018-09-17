@@ -37,6 +37,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <set>
+#include <unordered_set>
+#include <algorithm>
 
 using namespace OpenMS;
 using namespace std;
@@ -70,9 +72,7 @@ using namespace std;
     </table>
 </CENTER>
 
-    @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
-
-    This tool counts the peptide sequences that match a protein accession. From this count for all protein hits in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in general to remove bad identifications.
+    This tool counts and aggregates the scores of peptide sequences that match a protein accession.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -90,9 +90,11 @@ class TOPPProteinInference :
 {
 public:
   TOPPProteinInference() :
-    TOPPBase("ProteinInference", "Protein inference based on the number of identified peptides.")
+    TOPPBase("ProteinInference", "Protein inference based on an aggregation of the scores of the identified peptides.")
   {
   }
+
+  enum AggregationMethod {PROD, SUM, MAXIMUM};
 
 protected:
 
@@ -104,150 +106,158 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
     addEmptyLine_();
-    registerIntOption_("min_peptides_per_protein", "<num>", 2, "Minimal number of peptides needed for a protein identification", false);
-    setMinInt_("min_peptides_per_protein", 1);
+    //registerIntOption_("min_peptides_per_protein", "<num>", 2, "Minimal number of peptides needed for a protein identification", false);
+    //setMinInt_("min_peptides_per_protein", 1);
 
     registerFlag_("treat_charge_variants_separately", "If this flag is set, different charge variants of the same peptide sequence count as inidividual evidences.");
     registerFlag_("treat_modification_variants_separately", "If this flag is set, different modification variants of the same peptide sequence count as individual evidences.");
-    //registerSubsection_("algorithm","Consensus algorithm section");
   }
 
   ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
+    //Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
     bool treat_charge_variants_separately(getFlag_("treat_charge_variants_separately"));
     bool treat_modification_variants_separately(getFlag_("treat_modification_variants_separately"));
+    bool use_shared_peptides(getFlag_("use_shared_peptides"));
+
+    AggregationMethod aggregation_method = AggregationMethod::MAXIMUM;
+
+    String aggMethodString = "";
+
+    switch (aggregation_method)
+    {
+      case AggregationMethod::PROD :
+        aggMethodString = "Product";
+        break;
+      case AggregationMethod::SUM :
+        aggMethodString = "Sum";
+        break;
+      case AggregationMethod::MAXIMUM :
+        aggMethodString = "Maximum";
+        break;
+      default:
+        break;
+    }
+
 
     // load identifications
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
     IdXMLFile().load(in, prot_ids, pep_ids);
 
-    // collect the different proteins (some of the protein hit copies are discarded)
-    Map<String, ProteinHit> acc_to_protein_hit;
-    for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+    unordered_map<std::string, map<Int,PeptideHit*>> best_pep{};
+
+    // iterate over runs
+    unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
+
+    for (auto& prot_run : prot_ids)
     {
-      for (vector<ProteinHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+      acc_to_protein_hitP_and_count.clear();
+      best_pep.clear();
+
+      ProteinIdentification::SearchParameters sp = prot_run.getSearchParameters();
+      prot_run.setSearchEngine("TOPPProteinInference_" + aggMethodString);
+      sp.setMetaValue("use_shared_peptides", use_shared_peptides);
+      sp.setMetaValue("treat_charge_variants_separately", treat_charge_variants_separately);
+      sp.setMetaValue("treat_modification_variants_separately", treat_modification_variants_separately);
+
+      //create Accession to ProteinHit and peptide count map. To have quick access later.
+      for (auto& phit : prot_run.getHits())
       {
-        acc_to_protein_hit[pit->getAccession()] = *pit;
+        acc_to_protein_hitP_and_count[phit.getAccession()] = std::make_pair<ProteinHit*, Size>(&phit, 0);
       }
-    }
 
-    writeDebug_(String(acc_to_protein_hit.size()) + " different protein accessions in the file.", 1);
-
-
-    // count the sequences that match a protein accession
-    // ProtAcc --> [charge, PepSeq]
-    Map<String, Map<Size, set<String> > > acc_peptides;
-    for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
-    {
-      // for all peptide hits
-      for (vector<PeptideHit>::const_iterator it2 = it1->getHits().begin(); it2 != it1->getHits().end(); ++it2)
+      for (auto& pep : pep_ids)
       {
-        String pep_seq;
-        if (treat_modification_variants_separately)
-        {
-          pep_seq = it2->getSequence().toString();
-        }
-        else
-        {
-          pep_seq = it2->getSequence().toUnmodifiedString();
-        }
-        Size charge = 0;
-        if (treat_charge_variants_separately)
-        {
-          charge = it2->getCharge();
-        }
+        //skip if it does not belong to run
+        if (pep.getIdentifier() != prot_run.getIdentifier()) continue;
 
-        // for all protein accessions
-        set<String> protein_accessions = it2->extractProteinAccessionsSet();
-        for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
+        //skip if shared and skip_shared
+        if (!use_shared_peptides && pep.metaValueExists("protein_references") && pep.getMetaValue("protein_references") == "non-unique") continue;
+
+        for (auto& hit : pep.getHits())
         {
-          acc_peptides[*it3][charge].insert(pep_seq);
-        }
-      }
-    }
-
-    writeDebug_("Peptides from " + String(acc_peptides.size()) + " proteins recorded.", 1);
-
-    // for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
-    set<String> accepted_proteins;
-    vector<ProteinHit> accepted_protein_hits;
-    for (Map<String, ProteinHit>::ConstIterator it1 = acc_to_protein_hit.begin(); it1 != acc_to_protein_hit.end(); ++it1)
-    {
-      if (acc_peptides.has(it1->first))
-      {
-        Size num_peps(0);
-        for (Map<Size, set<String> >::ConstIterator it2 = acc_peptides[it1->first].begin(); it2 != acc_peptides[it1->first].end(); ++it2)
-        {
-          num_peps += it2->second.size();
-        }
-
-        if (num_peps >= min_peptides_per_protein)
-        {
-          accepted_proteins.insert(it1->first);
-          accepted_protein_hits.push_back(it1->second);
-        }
-      }
-    }
-
-    writeDebug_("Accepted " + String(accepted_protein_hits.size()) + " proteins.", 1);
-    writeDebug_("Accepted " + String(accepted_proteins.size()) + " proteins.", 1);
-
-    // remove peptides that are not accepted
-    for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
-    {
-      vector<PeptideHit> peptide_hits = it1->getHits();
-      it1->setHits(vector<PeptideHit>());
-      for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
-      {
-        set<String> protein_accessions = it2->extractProteinAccessionsSet();
-        for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
-        {
-          if (accepted_proteins.find(*it3) != accepted_proteins.end())
+          String lookup_seq;
+          if (!treat_modification_variants_separately)
           {
-            it1->insertHit(*it2);
-            break;
+            lookup_seq = hit.getSequence().toUnmodifiedString();
+          }
+          else
+          {
+            lookup_seq = hit.getSequence().toString();
+          }
+
+          int lookup_charge = 0;
+          if (treat_charge_variants_separately)
+          {
+            lookup_charge = hit.getCharge();
+          }
+
+          auto current_best_pep_it = best_pep.find(lookup_seq);
+          if (current_best_pep_it == best_pep.end())
+          {
+            auto& new_entry = best_pep[lookup_seq];
+            new_entry = std::map<Int, PeptideHit*>();
+            new_entry[lookup_charge] = &hit;
+          }
+          else
+          {
+            auto current_best_pep_charge_it = current_best_pep_it->second.find(lookup_charge);
+            if (current_best_pep_charge_it == current_best_pep_it->second.end())
+            {
+              current_best_pep_it->second[lookup_charge] = &hit;
+            }
+            else if ((prot_run.isHigherScoreBetter() && (hit.getScore() > current_best_pep_charge_it->second->getScore())) ||
+                     (!prot_run.isHigherScoreBetter() && (hit.getScore() < current_best_pep_charge_it->second->getScore())))
+            {
+              current_best_pep_charge_it->second = &hit;
+            }
+          }
+        }
+      }
+
+      // update protein scores
+      for (const auto &charge_to_pep_hit_map : best_pep)
+      {
+        // The next line assumes that PeptideHits of different charge states necessarily share the same
+        // protein accessions
+        // TODO this could be done for mods later, too (first hashing AASeq, then the mods)
+        for (const auto &acc : charge_to_pep_hit_map.second.begin()->second->extractProteinAccessionsSet())
+        {
+          for (const auto &pep_hit : charge_to_pep_hit_map.second)
+          {
+            auto prot_count_pair = acc_to_protein_hitP_and_count[acc];
+            ProteinHit* protein = prot_count_pair.first;
+            prot_count_pair.second++;
+
+            double new_score = pep_hit.second->getScore();
+
+            // Note: This requires/works only with Posterior (Error) Probabilities
+            if (!prot_run.isHigherScoreBetter()) new_score = 1. - new_score;
+            switch (aggregation_method)
+            {
+              //TODO for 0 probability peptides we could also multiply a minimum value
+              case AggregationMethod::PROD :
+                if (new_score > 0.0) protein->setScore(protein->getScore() * new_score);
+                break;
+              case AggregationMethod::SUM :
+                protein->setScore(protein->getScore() + new_score);
+                break;
+              case AggregationMethod::MAXIMUM :
+                protein->setScore(max(double(protein->getScore()), new_score));
+                break;
+              default:
+                break;
+            }
           }
         }
       }
     }
 
-    // remove proteins that are not accepted
-    prot_ids.resize(1);
-    prot_ids[0].setHits(accepted_protein_hits);
-
-    // fix wrong accessions of the peptides (to proteins that were removed)
-    for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
-    {
-      vector<PeptideHit> peptide_ids = it1->getHits();
-      for (vector<PeptideHit>::iterator it2 = peptide_ids.begin(); it2 != peptide_ids.end(); ++it2)
-      {
-        vector<PeptideEvidence> filtered_evidence;
-        vector<PeptideEvidence> old_evidence = it2->getPeptideEvidences();
-
-        for (vector<PeptideEvidence>::const_iterator evidence_it = old_evidence.begin(); evidence_it != old_evidence.end(); ++evidence_it)
-        {
-          if (accepted_proteins.find(evidence_it->getProteinAccession()) != accepted_proteins.end())
-          {
-            filtered_evidence.push_back(*evidence_it);
-          }
-        }
-        it2->setPeptideEvidences(filtered_evidence);
-      }
-      it1->setHits(peptide_ids);
-    }
-
-    DateTime now = DateTime::now();
-    String identifier(now.get() + "_TOPPProteinInference");
-    for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
-    {
-      it->setIdentifier(identifier);
-    }
-
-    prot_ids[0].setIdentifier(identifier);
+    //TODO Filtering? I think this should be done separate afterwards with IDFilter
+    //for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
 
     // write output
     IdXMLFile().store(out, prot_ids, pep_ids);
