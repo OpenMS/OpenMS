@@ -372,7 +372,12 @@ namespace OpenMS
       std::stringstream ind_intensity_ratio;
       std::stringstream ind_mi_ratio;
 
-      std::vector<double> ind_mi_score = ListUtils::create<double>((String)idscores.ind_mi_score,';');
+      std::vector<double> ind_mi_score;
+      if (su_.use_mi_score_)
+      {
+        ind_mi_score = ListUtils::create<double>((String)idscores.ind_mi_score,';');
+      }
+
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         if (i != 0)
@@ -396,15 +401,24 @@ namespace OpenMS
           if (det_intensity_ratio_score > 0) { intensity_ratio = intensity_score / det_intensity_ratio_score; }
           if (intensity_ratio > 1) { intensity_ratio = 1 / intensity_ratio; }
 
+          double total_mi = 0;
+          if (su_.use_total_mi_score_)
+          {
+            total_mi = double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi"));
+          }
+
           double mi_ratio = 0;
-          if (det_mi_ratio_score > 0) { mi_ratio = (ind_mi_score[i] / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi"))) / det_mi_ratio_score; }
-          if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+          if (su_.use_mi_score_ && su_.use_total_mi_score_)
+          {
+            if (det_mi_ratio_score > 0) { mi_ratio = (ind_mi_score[i] / total_mi) / det_mi_ratio_score; }
+            if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+          }
 
           ind_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
           ind_total_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic");
           ind_intensity_score << intensity_score;
           ind_apex_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int");
-          ind_total_mi << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi");
+          ind_total_mi << total_mi;
           ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
           ind_intensity_ratio << intensity_ratio;
           ind_mi_ratio << mi_ratio;
