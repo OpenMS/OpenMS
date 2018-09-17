@@ -187,16 +187,7 @@ namespace OpenMS
             protein_name = pep.protein_refs[0];
           }
 
-          String main_var = "0";
-          if (feature_it->metaValueExists("main_var_xx_swath_prelim_score"))
-          {
-            main_var = (String)feature_it->getMetaValue("main_var_xx_swath_prelim_score");
-          }
-          else if (feature_it->metaValueExists("main_var_xx_lda_prelim_score"))
-          {
-            main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
-          }
-
+          String main_var = feature_it->getOverallQuality();
           String line = "";
           line += id + "_run0"
             + "\t" + group_label

@@ -58,6 +58,7 @@ namespace OpenMS
     bool use_total_mi_score_ = true;
     bool use_nr_peaks_score_ = true;
     bool use_sn_score_ = true;
+    bool use_sn_score_sub_ = false;
     bool use_mi_score_ = true;
     bool use_dia_scores_ = true;
     bool use_sonar_scores = true;

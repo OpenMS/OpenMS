@@ -241,6 +241,8 @@ private:
     void splitTransitionGroupsDetection_(const MRMTransitionGroupType& transition_group,
                                          MRMTransitionGroupType& transition_group_detection);
 
+    void prepareFeatureOut_(const MRMFeature* mrmfeature, bool ms1only, int charge);
+
     /** @brief Splits combined transition groups into identification transition groups
      *
      * For standard assays, transition_group_identification is empty. When UIS scoring
