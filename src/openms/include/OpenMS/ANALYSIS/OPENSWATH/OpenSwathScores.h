@@ -34,19 +34,10 @@
 
 #pragma once
 
-// data access
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
-#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/CONCEPT/Types.h>
 
-// scoring
-#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
-
-#include <vector>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <string>
 
 namespace OpenMS
 {
