@@ -57,6 +57,8 @@
 #include <fstream>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <unordered_map>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 
 namespace OpenMS
 {
@@ -669,24 +671,50 @@ public:
             } // no else, since description is empty by default
             if (annotate_nr_theoretical_peptides_ || add_missing_peptides_)
             {
-              std::vector<StringView> tempDigests{};
+              std::vector<std::pair<Size,Size>> tempDigests{};
               enzyme.digestUnmodified(fe.sequence, tempDigests);
               if (annotate_nr_theoretical_peptides_) hit.setMetaValue("maxNrTheoreticalDigests", tempDigests.size());
               if (add_missing_peptides_)
               {
-                for (const auto& pepView : tempDigests)
+                for (const auto& pepStartLength : tempDigests)
                 {
-                  std::pair<Size,Size> pepStartLength = pepView.toPair();
                   if (protein_found_peptides[*it][run_idx].find(pepStartLength) == protein_found_peptides[*it][run_idx].end())
                   { //not found -> add to correct run
                     const ProteinIdentification& piRun = prot_ids[run_idx];
-                    //TODO add different charge states? Different variable mods?
+                    const std::vector<String>& fixedModNames = piRun.getSearchParameters().fixed_modifications;
                     PeptideIdentification pi;
-                    pi.setMZ(AASequence::fromString(pepView.getString()).getMonoWeight(Residue::Full, 1));
-                    pi.setRT(-1.0); // -1 (if no prediction, TODO not yet supported)
+                    AASequence pep = AASequence::fromString(fe.sequence.substr(pepStartLength.first, pepStartLength.second));
+                    std::vector<ResidueModification> modifications;
+                    // iterate over modification names and add to vector
+                    for (String modification : fixedModNames)
+                    {
+                      ResidueModification rm;
+                      if (modification.hasSubstring(" (N-term)"))
+                      {
+                        modification.substitute(" (N-term)", "");
+                        rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
+                      }
+                      else if (modification.hasSubstring(" (C-term)"))
+                      {
+                        modification.substitute(" (C-term)", "");
+                        rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
+                      }
+                      else
+                      {
+                        rm = ModificationsDB::getInstance()->getModification(modification);
+                      }
+                      modifications.push_back(rm);
+                    }
+
+                    ModifiedPeptideGenerator::applyFixedModifications(modifications.begin(), modifications.end(), pep);
+
+                    //TODO pick the most common charge or add all charges. But in case of all, we should add missing
+                    // charges for present peptides, too.
+                    pi.setMZ(pep.getMonoWeight(Residue::Full, 1));
+                    pi.setRT(-1.0); // -1 (if no prediction, TODO prediction not yet supported)
                     pi.setHigherScoreBetter(piRun.isHigherScoreBetter()); //from old run
                     pi.setIdentifier(piRun.getIdentifier()); //from old run
-                    pi.setExperimentLabel(piRun.); //from old run
+                    //pi.setExperimentLabel(piRun.); //only works if we can get it from the IDRun
                     pi.setScoreType(piRun.getScoreType()); //from old run
                     pi.setBaseName("putative"); //putative
 

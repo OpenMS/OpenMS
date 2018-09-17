@@ -495,7 +495,7 @@ namespace OpenMS
 
     GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
 
-    std::array<size_t, 3> bestParams{0, 0, 0};
+    std::array<size_t, 3> bestParams{{0, 0, 0}};
     //TODO run grid search on reduced graph?
     //TODO if not, think about storing results temporary and only keep the best in the end
     gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);

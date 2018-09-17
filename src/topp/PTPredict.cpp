@@ -244,10 +244,10 @@ protected:
       }
       svm.getSVCProbabilities(prediction_data, predicted_likelihoods, predicted_labels);
 
-      for (Size i = 0; i < temp_peptides.size(); i++)
+      for (Size p = 0; p < temp_peptides.size(); p++)
       {
-        predicted_data.insert(make_pair(temp_peptides[i],
-                                        (predicted_likelihoods[i])));
+        predicted_data.insert(make_pair(temp_peptides[p],
+                                        (predicted_likelihoods[p])));
       }
       predicted_likelihoods.clear();
       predicted_labels.clear();

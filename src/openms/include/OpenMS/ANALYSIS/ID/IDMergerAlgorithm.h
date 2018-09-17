@@ -66,6 +66,8 @@ namespace OpenMS
     void mergeProteinIDRuns(ConsensusMap &cmap,
                             std::map<unsigned, unsigned> const &mapIdx_to_new_protIDRun) const;
 
+    //TODO Add methods for to merge vectors of PepIDs based on experimental design
+
   private:
     struct RunDescription
     {
