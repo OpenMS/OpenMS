@@ -116,7 +116,7 @@ public:
     /// copy constructor
     DataValue(const DataValue&);
     /// destructor
-    virtual ~DataValue();
+    ~DataValue();
     //@}
 
     ///@name Cast operators
@@ -372,7 +372,7 @@ public:
     /// Check if the value has a unit
     inline bool hasUnit() const
     {
-      return unit_ != "";
+      return unit_ != nullptr;
     }
 
     /// Return the unit associated to this DataValue.
@@ -416,7 +416,10 @@ protected:
 
 private:
     /// The unit of the data value (if it has one), otherwise empty string.
-    String unit_;
+    String* unit_;
+
+    /// Empty unit to return if a unit is requested when no unit was set.
+    static const String EMPTY_UNIT_;
 
     /// Clears the current state of the DataValue and release every used memory.
     void clear_();

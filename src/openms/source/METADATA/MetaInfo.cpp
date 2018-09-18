@@ -57,7 +57,9 @@ namespace OpenMS
   MetaInfo & MetaInfo::operator=(const MetaInfo & rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     index_to_value_ = rhs.index_to_value_;
 
