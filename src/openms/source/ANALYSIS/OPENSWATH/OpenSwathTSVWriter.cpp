@@ -142,7 +142,7 @@ namespace OpenMS
             else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
             {
               aggr_prec_Peak_Area += (String)intensity_char + ";";
-			  aggr_prec_Peak_Apex += (String)intensity_apex_char + ";";
+              aggr_prec_Peak_Apex += (String)intensity_apex_char + ";";
               aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
           }
