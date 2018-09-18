@@ -774,6 +774,8 @@ namespace OpenMS
       // add the peptide hit information to the feature
       ///////////////////////////////////////////////////////////////////////////
       mrmfeature->setMetaValue("PrecursorMZ", precursor_mz);
+      mrmfeature->setMZ(precursor_mz);
+      mrmfeature->setCharge(pep->getChargeState());
       prepareFeatureOut_(&*mrmfeature, ms1only, pep->getChargeState());
       feature_list.push_back((*mrmfeature));
 
