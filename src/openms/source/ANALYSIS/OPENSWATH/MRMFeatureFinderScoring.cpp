@@ -306,7 +306,7 @@ namespace OpenMS
     transition_group_identification_decoy = transition_group.subsetDependent(identifying_transitions_decoy);
   }
 
-  OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
+  OpenSwath_Ind_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
                                                                  OpenSwathScoring& scorer,
                                                                  const size_t feature_idx,
                                                                  const std::vector<std::string>& native_ids_detection,
@@ -353,7 +353,7 @@ namespace OpenMS
       }
     }
 
-    OpenSwath_Scores idscores;
+    OpenSwath_Ind_Scores idscores;
     if (native_ids_identification.size() > 0)
     {
       scorer.calculateChromatographicIdScores(idimrmfeature,
@@ -713,7 +713,7 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
         {
-          OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, 
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
                                                            sn_win_len_,
@@ -746,7 +746,7 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
         {
-          OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
                                                            sn_win_len_,
