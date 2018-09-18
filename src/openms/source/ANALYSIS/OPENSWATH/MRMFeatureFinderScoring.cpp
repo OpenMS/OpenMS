@@ -129,8 +129,8 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_total_mi_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_sn_score", "true", "Use the SN (signal to noise) score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_sn_score", ListUtils::create<String>("true,false"));
-    scores_to_use.setValue("use_sn_score_sub", "false", "Compute the SN (signal to noise) score for each transition", ListUtils::create<String>("advanced"));
-    scores_to_use.setValidStrings("use_sn_score_sub", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_sn_score_per_transition", "false", "Compute the SN (signal to noise) score for each transition", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_sn_score_per_transition", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_mi_score", "false", "Use the MI (mutual information) score", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_mi_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores. If turned off, will not use fragment ion spectra for scoring.", ListUtils::create<String>("advanced"));
@@ -866,7 +866,7 @@ namespace OpenMS
     su_.use_total_mi_score_      = param_.getValue("Scores:use_total_mi_score").toBool();
     su_.use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
     su_.use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
-    su_.use_sn_score_sub_        = param_.getValue("Scores:use_sn_score_sub").toBool();
+    su_.use_sn_score_sub_        = param_.getValue("Scores:use_sn_score_per_transition").toBool();
     su_.use_mi_score_            = param_.getValue("Scores:use_mi_score").toBool();
 
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();

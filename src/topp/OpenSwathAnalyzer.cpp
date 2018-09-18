@@ -220,6 +220,7 @@ protected:
     if (file_list.size() == 0)
     {
       MRMFeatureFinderScoring featureFinder;
+      feature_finder_param.setValue("Scores:use_dia_scores", "false");
       featureFinder.setParameters(feature_finder_param);
       featureFinder.setLogType(log_type_);
       featureFinder.setStrictFlag(!nostrict);

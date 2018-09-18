@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-    @brief A multi-chromatogram MRM feature 
+    @brief A multi-chromatogram MRM feature
 
     An MRM feature contains corresponding features in multiple chromatograms,
     it is thus a representation of a peak group. The individual features in
@@ -52,24 +52,16 @@ namespace OpenMS
   {
 public:
 
-    ///Type definitions
-    //@{
-    /// Feature list type
-    typedef std::vector<Feature> FeatureListType;
-    /// Peak group score type
-    typedef std::map<String, double> PGScoresType;
-    //@}
-
     ///@name Constructors and Destructor
     //@{
     /// Default constructor
     MRMFeature();
 
     /// Copy constructor
-    MRMFeature(const MRMFeature &rhs);
+    MRMFeature(const MRMFeature &rhs) = default;
 
     /// Assignment operator
-    MRMFeature & operator=(const MRMFeature & rhs);
+    MRMFeature & operator=(const MRMFeature & rhs) = default;
 
     /// Destructor
     ~MRMFeature() override;
@@ -78,11 +70,13 @@ public:
     ///@name Accessors
     //@{
 
+    /// Get expected retention time
     const double & getExpectedRT() const
     {
       return expected_rt_;
     }
 
+    /// Set expected retention time
     void setExpectedRT(double rt)
     {
       expected_rt_ = rt;
@@ -137,13 +131,11 @@ public:
 
 protected:
 
-    double expected_rt_;
+    double expected_rt_ = 0.0;
 
-    double peak_apex_;
+    std::vector<Feature> features_;
 
-    FeatureListType features_;
-
-    FeatureListType precursor_features_;
+    std::vector<Feature> precursor_features_;
 
     /// OpenSwath scores
     OpenSwath_Scores scores_;
