@@ -27,7 +27,6 @@
 					<UserParam type="string" name="native_id" value="tr1"/>
 					<UserParam type="float" name="peak_apex_int" value="945"/>
 					<UserParam type="float" name="total_xic" value="24750"/>
-					<UserParam type="float" name="logSN" value="0.658809291883646"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_6408859317243173796_12999979801269632061">
@@ -42,7 +41,6 @@
 					<UserParam type="string" name="native_id" value="tr2"/>
 					<UserParam type="float" name="peak_apex_int" value="1845"/>
 					<UserParam type="float" name="total_xic" value="47250"/>
-					<UserParam type="float" name="logSN" value="0.743478723066541"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_6408859317243173796_17413765565443951891">
@@ -57,7 +55,6 @@
 					<UserParam type="string" name="native_id" value="3"/>
 					<UserParam type="float" name="peak_apex_int" value="2745"/>
 					<UserParam type="float" name="total_xic" value="69750"/>
-					<UserParam type="float" name="logSN" value="0.741318220818877"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
@@ -80,7 +77,20 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="2.0448098550324"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.715304804747562"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="5.14493545318084"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.0260894319635836"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
+			<UserParam type="float" name="var_massdev_score" value="27.1945494817822"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="20.3108685980962"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.602724783137762"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.961743685679887"/>
+			<UserParam type="float" name="var_sonar_lag" value="0"/>
+			<UserParam type="float" name="var_sonar_shape" value="0.999910678869981"/>
+			<UserParam type="float" name="var_sonar_log_sn" value="1.82185752598802"/>
+			<UserParam type="float" name="var_sonar_log_diff" value="0"/>
+			<UserParam type="float" name="var_sonar_log_trend" value="0"/>
+			<UserParam type="float" name="var_sonar_rsq" value="1"/>
 			<UserParam type="float" name="PrecursorMZ" value="412.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0"/>
@@ -91,22 +101,6 @@
 			<UserParam type="float" name="norm_RT" value="0.5"/>
 			<UserParam type="float" name="rt_score" value="2.22044604925031e-16"/>
 			<UserParam type="float" name="var_norm_rt_score" value="2.22044604925031e-18"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.0260894321462141"/>
-			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
-			<UserParam type="float" name="var_massdev_score" value="27.1945494817822"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="20.3108685980962"/>
-			<UserParam type="float" name="var_bseries_score" value="0"/>
-			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.602724777929433"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.96174368697678"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-1.58726853876165"/>
-			<UserParam type="float" name="var_sonar_lag" value="0"/>
-			<UserParam type="float" name="var_sonar_shape" value="0.999910678869981"/>
-			<UserParam type="float" name="var_sonar_log_sn" value="1.82185752598802"/>
-			<UserParam type="float" name="var_sonar_log_diff" value="0"/>
-			<UserParam type="float" name="var_sonar_log_trend" value="0"/>
-			<UserParam type="float" name="var_sonar_rsq" value="1"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_2927519776102075938">
 			<position dim="0">9.99999952316284</position>
@@ -129,7 +123,6 @@
 					<UserParam type="string" name="native_id" value="7"/>
 					<UserParam type="float" name="peak_apex_int" value="900"/>
 					<UserParam type="float" name="total_xic" value="26212.5"/>
-					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_2927519776102075938_10306100746905639127">
@@ -144,7 +137,6 @@
 					<UserParam type="string" name="native_id" value="8"/>
 					<UserParam type="float" name="peak_apex_int" value="1800"/>
 					<UserParam type="float" name="total_xic" value="52425"/>
-					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_2927519776102075938_12524258085768770586">
@@ -159,7 +151,6 @@
 					<UserParam type="string" name="native_id" value="9"/>
 					<UserParam type="float" name="peak_apex_int" value="2700"/>
 					<UserParam type="float" name="total_xic" value="78637.5"/>
-					<UserParam type="float" name="logSN" value="0.491108057716722"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
@@ -174,7 +165,7 @@
 			<UserParam type="float" name="var_xcorr_shape_weighted" value="1"/>
 			<UserParam type="float" name="var_library_corr" value="-0.970725343394151"/>
 			<UserParam type="float" name="var_library_rmsd" value="0.259259259259259"/>
-			<UserParam type="float" name="var_library_sangle" value="0.837196523039869"/>
+			<UserParam type="float" name="var_library_sangle" value="0.837196523039868"/>
 			<UserParam type="float" name="var_library_rootmeansquare" value="0.297451451929797"/>
 			<UserParam type="float" name="var_library_manhattan" value="0.404623178469163"/>
 			<UserParam type="float" name="var_library_dotprod" value="0.897255754044997"/>
@@ -182,7 +173,20 @@
 			<UserParam type="float" name="nr_peaks" value="3"/>
 			<UserParam type="float" name="sn_ratio" value="1.63412592298157"/>
 			<UserParam type="float" name="var_log_sn_score" value="0.491108057716722"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="4.96579223436568"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.135147819575942"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
+			<UserParam type="float" name="var_massdev_score" value="16.3566522647397"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="17.7471993510744"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.779355962445015"/>
+			<UserParam type="float" name="var_manhatt_score" value="0.676057223290951"/>
+			<UserParam type="float" name="var_sonar_lag" value="0"/>
+			<UserParam type="float" name="var_sonar_shape" value="1"/>
+			<UserParam type="float" name="var_sonar_log_sn" value="1.79175949465937"/>
+			<UserParam type="float" name="var_sonar_log_diff" value="0"/>
+			<UserParam type="float" name="var_sonar_log_trend" value="0"/>
+			<UserParam type="float" name="var_sonar_rsq" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="462.5"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0"/>
@@ -193,22 +197,6 @@
 			<UserParam type="float" name="norm_RT" value="0.7"/>
 			<UserParam type="float" name="rt_score" value="1.11022302462516e-16"/>
 			<UserParam type="float" name="var_norm_rt_score" value="1.11022302462516e-18"/>
-			<UserParam type="float" name="var_isotope_correlation_score" value="0.135147810572877"/>
-			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
-			<UserParam type="float" name="var_massdev_score" value="16.3566522647397"/>
-			<UserParam type="float" name="var_massdev_score_weighted" value="17.7471993510744"/>
-			<UserParam type="float" name="var_bseries_score" value="0"/>
-			<UserParam type="float" name="var_yseries_score" value="0"/>
-			<UserParam type="float" name="var_dotprod_score" value="0.779355973299204"/>
-			<UserParam type="float" name="var_manhatt_score" value="0.676057204992668"/>
-			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="-0.714893187800159"/>
-			<UserParam type="float" name="var_sonar_lag" value="0"/>
-			<UserParam type="float" name="var_sonar_shape" value="1"/>
-			<UserParam type="float" name="var_sonar_log_sn" value="1.79175949465937"/>
-			<UserParam type="float" name="var_sonar_log_diff" value="0"/>
-			<UserParam type="float" name="var_sonar_log_trend" value="0"/>
-			<UserParam type="float" name="var_sonar_rsq" value="0"/>
-			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 	</featureList>
 </featureMap>

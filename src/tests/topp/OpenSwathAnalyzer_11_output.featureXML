@@ -37,7 +37,6 @@
 					<UserParam type="float" name="peak_apex_int" value="169.79216003418"/>
 					<UserParam type="float" name="total_xic" value="812.494094371796"/>
 					<UserParam type="float" name="total_mi" value="2.73422729278948"/>
-					<UserParam type="float" name="logSN" value="4.45869633337531"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_5233264595117471314_17749660155506638460">
@@ -54,14 +53,9 @@
 					<UserParam type="float" name="peak_apex_int" value="577.326416015625"/>
 					<UserParam type="float" name="total_xic" value="2867.66653496027"/>
 					<UserParam type="float" name="total_mi" value="3.586033627559"/>
-					<UserParam type="float" name="logSN" value="4.45007591150298"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="6.92258985582744" sequence="PEPTIDEA" charge="0">
-				</PeptideHit>
-			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="3680.16062933207"/>
 			<UserParam type="float" name="total_mi" value="3.16013046017424"/>
 			<UserParam type="string" name="PeptideRef" value="tr_gr1"/>
@@ -88,8 +82,6 @@
 			<UserParam type="float" name="sn_ratio" value="86.0041379995282"/>
 			<UserParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.985403120517731"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="6.92258985582744"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="6.92258985582744"/>
 			<UserParam type="float" name="PrecursorMZ" value="500"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0"/>
@@ -117,7 +109,6 @@
 					<UserParam type="float" name="peak_apex_int" value="35.5928192138672"/>
 					<UserParam type="float" name="total_xic" value="412.092581033707"/>
 					<UserParam type="float" name="total_mi" value="4.42794793968087"/>
-					<UserParam type="float" name="logSN" value="1.86739581779823"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15004869347769368353_6408859317243173796">
@@ -134,7 +125,6 @@
 					<UserParam type="float" name="peak_apex_int" value="0.236183270812035"/>
 					<UserParam type="float" name="total_xic" value="812.494094371796"/>
 					<UserParam type="float" name="total_mi" value="2.78992957612118"/>
-					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15004869347769368353_474525871221756682">
@@ -151,14 +141,9 @@
 					<UserParam type="float" name="peak_apex_int" value="20.925838470459"/>
 					<UserParam type="float" name="total_xic" value="385.687290549278"/>
 					<UserParam type="float" name="total_mi" value="4.32639896538122"/>
-					<UserParam type="float" name="logSN" value="1.33498168074371"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.95350659622369" sequence="PEPTIDEB" charge="0">
-				</PeptideHit>
-			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1610.27396595478"/>
 			<UserParam type="float" name="total_mi" value="3.84809216039442"/>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -185,8 +170,6 @@
 			<UserParam type="float" name="sn_ratio" value="3.42378266973528"/>
 			<UserParam type="float" name="var_log_sn_score" value="1.23074598364098"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.88344943523407"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.95350659622369"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="1.95350659622369"/>
 			<UserParam type="float" name="PrecursorMZ" value="501"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0"/>
@@ -214,7 +197,6 @@
 					<UserParam type="float" name="peak_apex_int" value="8.40812492370605"/>
 					<UserParam type="float" name="total_xic" value="412.092581033707"/>
 					<UserParam type="float" name="total_mi" value="4.42794793968087"/>
-					<UserParam type="float" name="logSN" value="0"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_7804704400743266335_13440783915218733453">
@@ -231,7 +213,6 @@
 					<UserParam type="float" name="peak_apex_int" value="169.79216003418"/>
 					<UserParam type="float" name="total_xic" value="812.494094371796"/>
 					<UserParam type="float" name="total_mi" value="2.78992957612118"/>
-					<UserParam type="float" name="logSN" value="4.45869633337531"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_7804704400743266335_15916652588957785155">
@@ -248,14 +229,9 @@
 					<UserParam type="float" name="peak_apex_int" value="24.303258895874"/>
 					<UserParam type="float" name="total_xic" value="385.687290549278"/>
 					<UserParam type="float" name="total_mi" value="4.32639896538122"/>
-					<UserParam type="float" name="logSN" value="1.16692266163571"/>
 					<UserParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.2483045614906" sequence="PEPTIDEB" charge="0">
-				</PeptideHit>
-			</PeptideIdentification>
 			<UserParam type="float" name="total_xic" value="1610.27396595478"/>
 			<UserParam type="float" name="total_mi" value="3.84809216039442"/>
 			<UserParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -282,8 +258,6 @@
 			<UserParam type="float" name="sn_ratio" value="30.180081980405"/>
 			<UserParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
 			<UserParam type="float" name="var_elution_model_fit_score" value="0.902114371458689"/>
-			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="1.2483045614906"/>
-			<UserParam type="float" name="xx_lda_prelim_score" value="1.2483045614906"/>
 			<UserParam type="float" name="PrecursorMZ" value="501"/>
 			<UserParam type="float" name="ms1_area_intensity" value="0"/>
 			<UserParam type="float" name="ms1_apex_intensity" value="0"/>
