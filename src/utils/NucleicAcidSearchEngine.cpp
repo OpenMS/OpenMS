@@ -115,6 +115,12 @@ using namespace std;
     - Match the MS2 spectra to theoretically generated spectra
     - Score the resulting matches
 
+    Output is in the form of an mzTab file containing the search results and an optional idXML file containing identifications.
+
+    Modified nucleic acids can either be included in the FASTA input file, or set as @p variable or @p fixed modifications in the tool options.
+    All modification syntax is taken from the Modomics database (http://modomics.genesilico.pl/)
+
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_NucleicAcidSearchEngine.cli
     <B>INI file documentation of this tool:</B>
