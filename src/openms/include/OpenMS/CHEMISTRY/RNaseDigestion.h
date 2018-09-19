@@ -36,7 +36,7 @@
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/METADATA/IdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <boost/regex.hpp>
 

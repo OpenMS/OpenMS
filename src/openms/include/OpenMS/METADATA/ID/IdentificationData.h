@@ -32,13 +32,21 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATA_H
-#define OPENMS_METADATA_IDENTIFICATIONDATA_H
+#ifndef OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
+#define OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
 
-#include <OpenMS/METADATA/IdentificationData_MetaData.h>
-#include <OpenMS/METADATA/IdentificationData_ParentMolecule.h>
-#include <OpenMS/METADATA/IdentificationData_IdentifiedMolecule.h>
-#include <OpenMS/METADATA/IdentificationData_DataQuery.h>
+#include <OpenMS/METADATA/ID/DataProcessingStep.h>
+#include <OpenMS/METADATA/ID/DataQuery.h>
+#include <OpenMS/METADATA/ID/DBSearchParam.h>
+#include <OpenMS/METADATA/ID/IdentifiedCompound.h>
+#include <OpenMS/METADATA/ID/IdentifiedSequence.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/MoleculeParentMatch.h>
+#include <OpenMS/METADATA/ID/MoleculeQueryMatch.h>
+#include <OpenMS/METADATA/ID/ParentMolecule.h>
+#include <OpenMS/METADATA/ID/ParentMoleculeGroup.h>
+#include <OpenMS/METADATA/ID/QueryMatchGroup.h>
+#include <OpenMS/METADATA/ID/ScoreType.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -497,7 +505,7 @@ namespace OpenMS
       return lookup.count(ref);
     }
 
-    /// Remove elements from a set (or ordered multi_index_container) if they fulfil a predicate
+    /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate
     template <typename ContainerType, typename PredicateType>
     // static void removeFromSetIf_(ContainerType& container, std::function<bool(RefType)> predicate)
     static void removeFromSetIf_(ContainerType& container, PredicateType predicate)

@@ -32,76 +32,23 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATA_DATAQUERY_H
-#define OPENMS_METADATA_IDENTIFICATIONDATA_DATAQUERY_H
+#ifndef OPENMS_METADATA_ID_MOLECULEQUERYMATCH_H
+#define OPENMS_METADATA_ID_MOLECULEQUERYMATCH_H
 
-#include <OpenMS/METADATA/IdentificationData_MetaData.h>
-#include <OpenMS/METADATA/IdentificationData_IdentifiedMolecule.h>
+#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/IdentifiedCompound.h>
+#include <OpenMS/METADATA/ID/IdentifiedSequence.h>
 #include <OpenMS/METADATA/PeptideHit.h> // for "PeakAnnotation"
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/composite_key.hpp>
-#include <boost/optional.hpp>
 #include <boost/variant.hpp>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      Search query, e.g. spectrum or feature.
-    */
-    struct DataQuery: public MetaInfoInterface
-    {
-      // spectrum or feature ID (from the file referenced by "input_file_ref"):
-      String data_id;
-
-      // @TODO: make this non-optional (i.e. required)?
-      boost::optional<InputFileRef> input_file_opt;
-
-      double rt, mz; // position
-
-      explicit DataQuery(
-        const String& data_id,
-        boost::optional<InputFileRef> input_file_opt = boost::none,
-        double rt = std::numeric_limits<double>::quiet_NaN(),
-        double mz = std::numeric_limits<double>::quiet_NaN()):
-        data_id(data_id), input_file_opt(input_file_opt), rt(rt), mz(mz)
-      {
-      }
-
-      DataQuery(const DataQuery& other) = default;
-
-      // ignore RT and m/z for comparisons to avoid issues with rounding:
-      bool operator<(const DataQuery& other) const
-      {
-        // can't compare references directly, so compare addresses:
-        const String* sp = input_file_opt ? &(**input_file_opt) : nullptr;
-        const String* o_sp = other.input_file_opt ? &(**other.input_file_opt) :
-          nullptr;
-        return std::tie(sp, data_id) < std::tie(o_sp, other.data_id);
-      }
-
-      // ignore RT and m/z for comparisons to avoid issues with rounding:
-      bool operator==(const DataQuery& other) const
-      {
-        return std::tie(input_file_opt, data_id) ==
-          std::tie(other.input_file_opt, other.data_id);
-      }
-
-      // @TODO: do we need an "experiment label" (used e.g. in pepXML)?
-      // if yes, should it be stored here or together with the input file?
-    };
-
-    typedef std::set<DataQuery> DataQueries;
-    typedef IteratorWrapper<DataQueries::iterator> DataQueryRef;
-
-
-    /*!
-      Meta data for a search hit (e.g. peptide-spectrum match).
-    */
-
     // @TODO: move "PeakAnnotation" out of "PeptideHit"
     typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
     typedef std::map<ProcessingStepRef, PeakAnnotations> PeakAnnotationSteps;
@@ -109,6 +56,9 @@ namespace OpenMS
     typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
                            IdentifiedOligoRef> IdentifiedMoleculeRef;
 
+    /*!
+      Meta data for a search hit (e.g. peptide-spectrum match).
+    */
     struct MoleculeQueryMatch: public ScoredProcessingResult
     {
       IdentifiedMoleculeRef identified_molecule_ref;
@@ -215,54 +165,7 @@ namespace OpenMS
       > MoleculeQueryMatches;
     typedef IteratorWrapper<MoleculeQueryMatches::iterator> QueryMatchRef;
 
-
-    /*!
-      Group of related (co-identified) molecule-query matches
-
-      E.g. for cross-linking data or multiplexed spectra.
-    */
-    struct QueryMatchGroup: public ScoredProcessingResult
-    {
-      std::set<QueryMatchRef> query_match_refs;
-
-      bool allSameMolecule() const
-      {
-        // @TODO: return true or false for the empty set?
-        if (query_match_refs.size() <= 1) return true;
-        IdentifiedMoleculeRef ref =
-          (*query_match_refs.begin())->identified_molecule_ref;
-        for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
-             ++it)
-        {
-          if ((*it)->identified_molecule_ref != ref) return false;
-        }
-        return true;
-      }
-
-      bool allSameQuery() const
-      {
-        // @TODO: return true or false for the empty set?
-        if (query_match_refs.size() <= 1) return true;
-        DataQueryRef ref = (*query_match_refs.begin())->data_query_ref;
-        for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
-             ++it)
-        {
-          if ((*it)->data_query_ref != ref) return false;
-        }
-        return true;
-      }
-    };
-
-    typedef boost::multi_index_container<
-      QueryMatchGroup,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<
-          boost::multi_index::member<QueryMatchGroup, std::set<QueryMatchRef>,
-                                     &QueryMatchGroup::query_match_refs>>>
-      > QueryMatchGroups;
-    typedef IteratorWrapper<QueryMatchGroups::iterator> MatchGroupRef;
   }
-
 }
 
 #endif

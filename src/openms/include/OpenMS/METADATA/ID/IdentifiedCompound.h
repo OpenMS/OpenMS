@@ -32,13 +32,10 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IDENTIFICATIONDATA_IDENTIFIEDMOLECULE_H
-#define OPENMS_METADATA_IDENTIFICATIONDATA_IDENTIFIEDMOLECULE_H
+#ifndef OPENMS_METADATA_ID_IDENTIFIEDCOMPOUND_H
+#define OPENMS_METADATA_ID_IDENTIFIEDCOMPOUND_H
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/NASequence.h>
-#include <OpenMS/METADATA/IdentificationData_MetaData.h>
-#include <OpenMS/METADATA/IdentificationData_ParentMolecule.h>
+#include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
@@ -48,85 +45,6 @@ namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    // Identified molecules:
-    template <typename SeqType>
-    struct IdentifiedSequence: public ScoredProcessingResult
-    {
-      SeqType sequence;
-
-      ParentMatches parent_matches;
-
-      explicit IdentifiedSequence(
-        const SeqType& sequence,
-        const ParentMatches& parent_matches = ParentMatches(),
-        const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepRef>& processing_step_refs =
-        std::vector<ProcessingStepRef>()):
-        ScoredProcessingResult(scores, processing_step_refs),
-        sequence(sequence), parent_matches(parent_matches)
-      {
-      }
-
-      IdentifiedSequence(const IdentifiedSequence& other) = default;
-
-      IdentifiedSequence& operator+=(const IdentifiedSequence& other)
-      {
-        ScoredProcessingResult::operator+=(other);
-        // merge parent matches:
-        for (const auto& pair : other.parent_matches)
-        {
-          auto pos = parent_matches.find(pair.first);
-          if (pos == parent_matches.end()) // new entry
-          {
-            parent_matches.insert(pair);
-          }
-          else // merge entries
-          {
-            pos->second.insert(pair.second.begin(), pair.second.end());
-          }
-        }
-
-        return *this;
-      }
-
-      bool allParentsAreDecoys() const
-      {
-        if (parent_matches.empty())
-        {
-          String msg = "no parent found for identified molecule";
-          throw Exception::MissingInformation(__FILE__, __LINE__,
-                                              OPENMS_PRETTY_FUNCTION, msg);
-        }
-        for (const auto& pair : parent_matches)
-        {
-          if (!pair.first->is_decoy) return false;
-        }
-        return true;
-      }
-    };
-
-    typedef IdentifiedSequence<AASequence> IdentifiedPeptide;
-    typedef IdentifiedSequence<NASequence> IdentifiedOligo;
-
-    // identified peptides indexed by their sequences:
-    typedef boost::multi_index_container<
-      IdentifiedPeptide,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedPeptide, AASequence, &IdentifiedPeptide::sequence>>>
-      > IdentifiedPeptides;
-    typedef IteratorWrapper<IdentifiedPeptides::iterator> IdentifiedPeptideRef;
-
-    // identified oligos indexed by their sequences:
-    typedef boost::multi_index_container<
-      IdentifiedOligo,
-      boost::multi_index::indexed_by<
-        boost::multi_index::ordered_unique<boost::multi_index::member<
-          IdentifiedOligo, NASequence, &IdentifiedOligo::sequence>>>
-      > IdentifiedOligos;
-    typedef IteratorWrapper<IdentifiedOligos::iterator> IdentifiedOligoRef;
-
-
     struct IdentifiedCompound: public ScoredProcessingResult
     {
       String identifier;

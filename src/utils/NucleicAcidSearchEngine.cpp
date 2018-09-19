@@ -43,8 +43,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/METADATA/IdentificationData.h>
-#include <OpenMS/METADATA/IdentificationDataConverter.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 // file types
 #include <OpenMS/FORMAT/FASTAFile.h>
