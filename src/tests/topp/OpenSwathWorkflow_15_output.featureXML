@@ -13,7 +13,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.233235</overallquality>
-			<charge>0</charge>
+			<charge>2</charge>
 			<subordinate>
 				<feature id="f_4835329514588776807_17749660155506638460">
 					<position dim="0">99.9999997019768</position>
@@ -65,7 +65,7 @@
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="0.00300000001490116"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.023933009041013"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105827150454"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105827315735"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="PrecursorMZ" value="510.05"/>
 			<UserParam type="float" name="ms1_area_intensity" value="12972.2163085938"/>
@@ -78,7 +78,7 @@
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.233235</overallquality>
-			<charge>0</charge>
+			<charge>2</charge>
 			<subordinate>
 				<feature id="f_3332699010107892018_13440783915218733453">
 					<position dim="0">99.9999997019768</position>
@@ -130,7 +130,7 @@
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="0.00300000001490116"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.0195308594010019"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503419790631"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503419468642"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.50000005099749"/>
 			<UserParam type="float" name="PrecursorMZ" value="500.01"/>
 			<UserParam type="float" name="ms1_area_intensity" value="16510.09375"/>
