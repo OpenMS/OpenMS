@@ -62,7 +62,7 @@ public:
     static const DataValue EMPTY;
 
     /// Supported types for DataValue
-    enum DataType
+    enum DataType : unsigned char
     {
       STRING_VALUE, ///< string value
       INT_VALUE, ///< integer value
@@ -71,6 +71,14 @@ public:
       INT_LIST, ///< integer list
       DOUBLE_LIST, ///< double list
       EMPTY_VALUE ///< empty value
+    };
+
+    /// Supported types for DataValue
+    enum UnitType : unsigned char
+    { 
+      UNIT_ONTOLOGY, ///< unit.ontology UO:
+      MS_ONTOLOGY, ///< ms.ontology MS:
+      OTHER ///< undefined ontology
     };
 
     /// @name Constructors and destructors
@@ -369,17 +377,28 @@ public:
     ///These methods are used when the DataValue has an associated unit.
     //@{
 
+    /// returns the type of value stored
+    inline UnitType getUnitType() const
+    {
+      return unit_type_;
+    }
+
+    inline void setUnitType(const UnitType & u)
+    {
+      unit_type_ = u;
+    }
+
     /// Check if the value has a unit
     inline bool hasUnit() const
     {
-      return unit_ != nullptr;
+      return unit_ != -1;
     }
 
     /// Return the unit associated to this DataValue.
-    const String& getUnit() const;
+    const int32_t & getUnit() const;
 
     /// Sets the unit to the given String.
-    void setUnit(const String& unit);
+    void setUnit(const int32_t & unit);
 
     //@}
 
@@ -403,6 +422,12 @@ protected:
     /// Type of the currently stored value
     DataType value_type_;
 
+    /// Type of the currently stored unit
+    UnitType unit_type_;
+
+    /// The unit of the data value (if it has one) using UO identifier, otherwise -1.
+    int32_t unit_;
+
     /// Space to store the data
     union
     {
@@ -415,11 +440,6 @@ protected:
     } data_;
 
 private:
-    /// The unit of the data value (if it has one), otherwise empty string.
-    String* unit_;
-
-    /// Empty unit to return if a unit is requested when no unit was set.
-    static const String EMPTY_UNIT_;
 
     /// Clears the current state of the DataValue and release every used memory.
     void clear_();

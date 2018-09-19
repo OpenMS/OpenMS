@@ -44,6 +44,7 @@
 #include <QString>
 
 #include <sstream>
+#include <iostream>
 
 // we ignore the -Wunused-value warning here, since we do not want the compiler
 // to report problems like
@@ -69,6 +70,16 @@ using namespace std;
 DataValue* dv_ptr = nullptr;
 DataValue* dv_nullPointer = nullptr;
 START_SECTION((DataValue()))
+
+  // Just as a sanity check, the size of DataValue should be exactly 16 bytes
+  // on a 64 bit system:
+  // - 1 byte for the data type
+  // - 1 byte for the unit type
+  // - 4 bytes for the unit identifier (32bit integer)
+  // - 1 byte padding
+  // - 8 bytes for the actual data / pointers to data
+  std::cout << "\n\n --- Size of DataValue " << sizeof(DataValue) << std::endl;
+
   dv_ptr = new DataValue;
   TEST_NOT_EQUAL(dv_ptr, dv_nullPointer)
 END_SECTION
@@ -235,15 +246,15 @@ START_SECTION((DataValue(const DataValue&)))
   DataValue val;
   {
     DataValue p1((double) 1.23);
-    p1.setUnit("myUnit");
+    p1.setUnit(8);
     val = DataValue(p1);
   }
   DataValue val2(val);
 
   TEST_REAL_SIMILAR( (double) val, 1.23)
-  TEST_EQUAL( val.getUnit(), "myUnit")
+  TEST_EQUAL( val.getUnit(), 8)
   TEST_REAL_SIMILAR( (double) val2, 1.23)
-  TEST_EQUAL( val2.getUnit(), "myUnit")
+  TEST_EQUAL( val2.getUnit(), 8)
 }
 END_SECTION
 
@@ -285,15 +296,15 @@ START_SECTION((DataValue& operator=(const DataValue&)))
   DataValue val;
   {
     DataValue p1((double) 1.23);
-    p1.setUnit("myUnit");
+    p1.setUnit(9);
     val = p1;
   }
   DataValue val2 = val;
 
   TEST_REAL_SIMILAR( (double) val, 1.23)
-  TEST_EQUAL( val.getUnit(), "myUnit")
+  TEST_EQUAL( val.getUnit(), 9)
   TEST_REAL_SIMILAR( (double) val2, 1.23)
-  TEST_EQUAL( val2.getUnit(), "myUnit")
+  TEST_EQUAL( val2.getUnit(), 9)
 
 }
 END_SECTION
@@ -631,7 +642,7 @@ START_SECTION((bool hasUnit() const))
   DataValue a2(1.45);
   TEST_EQUAL(a2.hasUnit(), false)
 
-  a2.setUnit("millimeters");
+  a2.setUnit(16); // "millimeters"
   TEST_EQUAL(a2.hasUnit(), true)
 
 }
@@ -640,32 +651,30 @@ END_SECTION
 START_SECTION((const String& getUnit() const))
 {
   DataValue a;
-  TEST_EQUAL(a.getUnit(), "")
+  TEST_EQUAL(a.getUnit(), -1)
 
   DataValue a1(2.2);
-  TEST_EQUAL(a1.getUnit(), "")
+  TEST_EQUAL(a1.getUnit(), -1)
 
-  a1.setUnit("ppm");
-  TEST_EQUAL(a1.getUnit(), "ppm")
+  a1.setUnit(169); // id: UO:0000169 name: parts per million
+  TEST_EQUAL(a1.getUnit(), 169)
 }
 END_SECTION
 
 START_SECTION((void setUnit(const String& unit)))
 {
   DataValue a1(2.2);
-  TEST_EQUAL(a1.getUnit(), "")
+  TEST_EQUAL(a1.getUnit(), -1)
 
-  a1.setUnit("ppm");
-  TEST_EQUAL(a1.getUnit(), "ppm")
-  auto tmpref = a1.getUnit();
+  a1.setUnit(169); // id: UO:0000169 name: parts per million
+  TEST_EQUAL(a1.getUnit(), 169)
 
-  a1.setUnit("kg");
-  TEST_EQUAL(a1.getUnit(), "kg")
+  a1.setUnit(9); // id: UO:0000009 name: kilogram
+  TEST_EQUAL(a1.getUnit(), 9)
 
   a1.setUnit(a1.getUnit());
   TEST_EQUAL(a1.hasUnit(), true)
-  TEST_EQUAL(a1.getUnit(), "kg")
-  // note: tmpref has now been deleted (access is illegal)
+  TEST_EQUAL(a1.getUnit(), 9)
 }
 END_SECTION
 

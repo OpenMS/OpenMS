@@ -539,7 +539,8 @@ namespace OpenMS
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
         String type = XMLString::transcode(param->getAttribute(XMLString::transcode("type")));
         DataValue dv;
-        dv.setUnit(unitAcc + ":" + unitName);
+        // dv.setUnit(unitAcc + ":" + unitName);
+        // TODO
         if (type == "xsd:float" || type == "xsd:double")
         {
           try

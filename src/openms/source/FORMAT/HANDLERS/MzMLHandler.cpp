@@ -1393,7 +1393,23 @@ namespace OpenMS
         }
       }
 
-      if (unit_accession != "") termValue.setUnit(unit_accession);
+      if (unit_accession != "")
+      {
+        if (unit_accession.hasPrefix("UO:"))
+        {
+          termValue.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          termValue.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+        }
+        else if (unit_accession.hasPrefix("MS:"))
+        {
+          termValue.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          termValue.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+        }
+        else
+        {
+          warning(LOAD, String("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
+        }
+      }
 
       //------------------------- run ----------------------------
       if (parent_tag == "run")
@@ -1404,7 +1420,9 @@ namespace OpenMS
           exp_->setFractionIdentifier(value);
         }
         else
+        {
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+        }
       }
       //------------------------- binaryDataArray ----------------------------
       else if (parent_tag == "binaryDataArray")
@@ -3255,7 +3273,27 @@ namespace OpenMS
         if (metaValue.hasUnit())
         {
           //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
-          ControlledVocabulary::CVTerm unit = cv_.getTerm(metaValue.getUnit());
+          //
+          // We need to identify the correct CV term for the *unit* by
+          // retrieving the identifier and looking up the term within the
+          // correct ontology in our cv_ object.
+          char s[8];
+          sprintf(s, "%07d", metaValue.getUnit()); // all CV use 7 digit indentifiers padded with zeros
+          String unitstring = String(s);
+          if (metaValue.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
+          {
+            unitstring = "UO:" + unitstring;
+          }
+          else if (metaValue.getUnitType() == DataValue::UnitType::MS_ONTOLOGY)
+          {
+            unitstring = "MS:" + unitstring;
+          }
+          else 
+          {
+            warning(LOAD, String("Unhandled unit ontology '") );
+          }
+
+          ControlledVocabulary::CVTerm unit = cv_.getTerm(unitstring);
           cvTerm += "\" unitAccession=\"" + unit.id + "\" unitName=\"" + unit.name + "\" unitCvRef=\"" + unit.id.prefix(2);
         }
       }

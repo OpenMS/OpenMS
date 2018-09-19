@@ -45,11 +45,12 @@ namespace OpenMS
 {
 
   const DataValue DataValue::EMPTY;
-  const String DataValue::EMPTY_UNIT_ = "";
 
   // default ctor
   DataValue::DataValue() :
-    value_type_(EMPTY_VALUE), unit_(nullptr)
+    value_type_(EMPTY_VALUE),
+    unit_type_(OTHER),
+    unit_(-1)
   {
   }
 
@@ -63,109 +64,109 @@ namespace OpenMS
   //    ctor for all supported types a DataValue object can hold
   //--------------------------------------------------------------------
   DataValue::DataValue(long double p) :
-    value_type_(DOUBLE_VALUE), unit_(nullptr)
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(double p) :
-    value_type_(DOUBLE_VALUE), unit_(nullptr)
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(float p) :
-    value_type_(DOUBLE_VALUE), unit_(nullptr)
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(short int p) :
-    value_type_(INT_VALUE), unit_(nullptr)
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned short int p) :
-    value_type_(INT_VALUE), unit_(nullptr)
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(int p) :
-    value_type_(INT_VALUE), unit_(nullptr)
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned int p) :
-    value_type_(INT_VALUE), unit_(nullptr)
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(long int p) :
-    value_type_(INT_VALUE), unit_(nullptr)
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long int p) :
-    value_type_(INT_VALUE), unit_(nullptr)
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(long long p) :
-    value_type_(INT_VALUE), unit_(nullptr)
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long long p) :
-    value_type_(INT_VALUE), unit_(nullptr)
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(const char* p) :
-    value_type_(STRING_VALUE), unit_(nullptr)
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const string& p) :
-    value_type_(STRING_VALUE), unit_(nullptr)
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const QString& p) :
-    value_type_(STRING_VALUE), unit_(nullptr)
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const String& p) :
-    value_type_(STRING_VALUE), unit_(nullptr)
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const StringList& p) :
-    value_type_(STRING_LIST), unit_(nullptr)
+    value_type_(STRING_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.str_list_ = new StringList(p);
   }
 
   DataValue::DataValue(const IntList& p) :
-    value_type_(INT_LIST), unit_(nullptr)
+    value_type_(INT_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.int_list_ = new IntList(p);
   }
 
   DataValue::DataValue(const DoubleList& p) :
-    value_type_(DOUBLE_LIST), unit_(nullptr)
+    value_type_(DOUBLE_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_list_ = new DoubleList(p);
   }
@@ -175,8 +176,9 @@ namespace OpenMS
   //--------------------------------------------------------------------
   DataValue::DataValue(const DataValue& p) :
     value_type_(p.value_type_),
-    data_(p.data_),
-    unit_(nullptr)
+    unit_type_(p.unit_type_),
+    unit_(p.unit_),
+    data_(p.data_)
   {
     if (value_type_ == STRING_VALUE)
     {
@@ -193,11 +195,6 @@ namespace OpenMS
     else if (value_type_ == DOUBLE_LIST)
     {
       data_.dou_list_ = new DoubleList(*(p.data_.dou_list_));
-    }
-
-    if (p.hasUnit())
-    {
-      setUnit(p.getUnit());
     }
   }
 
@@ -221,12 +218,8 @@ namespace OpenMS
     }
 
     value_type_ = EMPTY_VALUE;
-
-    if (unit_ != nullptr)
-    {
-      delete unit_;
-    }
-    unit_ = nullptr;
+    unit_type_ = OTHER;
+    unit_ = -1;
   }
 
   //--------------------------------------------------------------------
@@ -236,7 +229,9 @@ namespace OpenMS
   {
     // Check for self-assignment
     if (this == &p)
+    {
       return *this;
+    }
 
     // clean up
     clear_();
@@ -265,12 +260,8 @@ namespace OpenMS
 
     // copy type
     value_type_ = p.value_type_;
-
-    // copy unit if necessary
-    if (p.hasUnit())
-    {
-      setUnit(p.getUnit());
-    }
+    unit_type_ = p.unit_type_;
+    unit_ = p.unit_;
 
     return *this;
   }
@@ -684,7 +675,7 @@ namespace OpenMS
 
   bool operator==(const DataValue& a, const  DataValue& b)
   {
-    if (a.value_type_ == b.value_type_)
+    if (a.value_type_ == b.value_type_ && a.unit_type_ == b.unit_type_ && a.unit_ == b.unit_)
     {
       switch (a.value_type_)
       {
@@ -784,28 +775,14 @@ namespace OpenMS
 
   // ----------------- Unit methods ----------------------
 
-  const String& DataValue::getUnit() const
+  const int32_t& DataValue::getUnit() const
   {
-    if (hasUnit())
-    {
-      return *unit_;
-    }
-    else
-    {
-      return EMPTY_UNIT_;
-    }
+    return unit_;
   }
 
-  void DataValue::setUnit(const OpenMS::String& unit)
+  void DataValue::setUnit(const int32_t& unit)
   {
-    // First delete the old string to make space for new data, making sure we
-    // are not deleting the "unit" string:
-    // widget.setUnit(widget.getUnit()) should work
-    if (hasUnit() && unit_ != &unit)
-    {
-      delete unit_;
-    }
-    unit_ = new String(unit);
+    unit_ = unit;
   }
 
 } //namespace
