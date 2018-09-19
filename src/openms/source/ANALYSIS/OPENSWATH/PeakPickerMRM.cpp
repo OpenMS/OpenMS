@@ -76,6 +76,8 @@ namespace OpenMS
     // disable spacing constraints, since we're dealing with chromatograms
     pepi_param.setValue("spacing_difference", 0.0);
     pepi_param.setValue("spacing_difference_gap", 0.0);
+	pepi_param.setValue("report_FWHM", "true");
+	pepi_param.setValue("report_FWHM_unit", "absolute");
     pp_.setParameters(pepi_param);
 
   }
@@ -150,18 +152,20 @@ namespace OpenMS
     }
 
     // Store the result in the picked_chromatogram
-    picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(3);
-    picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
-    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
+	OPENMS_POSTCONDITION(picked_chrom.getFloatDataArrays().size() == 1 &&
+						 picked_chrom.getFloatDataArrays()[IDX_FWHM].getName() == "FWHM", "Swath: PeakPicking did not deliver FWHM attributes.")
+
+    picked_chrom.getFloatDataArrays().resize(SIZE_OF_FLOATINDICES);
+    picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].setName("IntegratedIntensity");
+    picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].setName("rightWidth");
+	// just copy FWHM from initial peak picking
+
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
-      float leftborder = chromatogram[left_width_[i]].getMZ();
-      float rightborder = chromatogram[right_width_[i]].getMZ();
-      picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensities_[i]);
-      picked_chrom.getFloatDataArrays()[1].push_back(leftborder);
-      picked_chrom.getFloatDataArrays()[2].push_back(rightborder);
+      picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(integrated_intensities_[i]);
+      picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back((float)chromatogram[left_width_[i]].getRT());
+      picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back((float)chromatogram[right_width_[i]].getRT());
     }
   }
 
@@ -239,19 +243,19 @@ namespace OpenMS
     std::vector<crawpeaks::SlimCrawPeak> result = crawdad_pp.CalcPeaks();
 
     picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(3);
-    picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
-    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
+    picked_chrom.getFloatDataArrays().resize(SIZE_OF_FLOATINDICES);
+    picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].setName("IntegratedIntensity");
+    picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].setName("rightWidth");
     for (std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); ++it)
     {
       ChromatogramPeak p;
       p.setRT(chromatogram[it->peak_rt_idx].getRT());
       p.setIntensity(it->peak_area); //chromatogram[it->peak_rt_idx].getIntensity() );
 
-      picked_chrom.getFloatDataArrays()[0].push_back(it->peak_area);
-      picked_chrom.getFloatDataArrays()[1].push_back(chromatogram[it->start_rt_idx].getRT());
-      picked_chrom.getFloatDataArrays()[2].push_back(chromatogram[it->stop_rt_idx].getRT());
+      picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(it->peak_area);
+      picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back(chromatogram[it->start_rt_idx].getRT());
+      picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back(chromatogram[it->stop_rt_idx].getRT());
       /*
       int peak_rt_idx, start_rt_idx, stop_rt_idx, max_rt_idx;
       int mz_idx;
