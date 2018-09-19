@@ -261,6 +261,15 @@ public:
     operator unsigned long long() const;
 
     /**
+      @brief Conversion to bool
+
+      Converts the strings 'true' and 'false' to a bool.
+
+      @exception Exception::ConversionError is thrown for non-string parameters and string parameters with values other than 'true' and 'false'.
+    */
+    bool toBool() const;
+
+    /**
       @brief Convert DataValues to char*
 
       If the DataValue contains a string, a pointer to it's char* is returned.
@@ -290,10 +299,11 @@ public:
     DoubleList toDoubleList() const;
     //@}
 
-    ///@name assignment/conversion operators
-    ///These methods are used to assign supported types to DataType.
+    ///@name Assignment operators
+    ///These methods are used to assign supported types directly to a DataValue object.
     //@{
-
+    /// assignment operator
+    DataValue& operator=(const DataValue&);
     /// specific assignment for char* (converted to string)
     DataValue& operator=(const char*);
     /// specific assignment for std::string values
@@ -330,10 +340,9 @@ public:
     DataValue& operator=(const long long);
     /// specific assignment for unsigned long long int values (note: the implementation uses SignedSize)
     DataValue& operator=(const unsigned long long);
-
     //@}
 
-    ///@name conversion operators
+    ///@name Conversion operators
     ///These methods can be used independent of the DataType. If you already know the DataType, you should use a cast operator!
     /// <BR>For conversion of string DataValues to numeric types, first use toString() and then the conversion methods of String.
     //@{
@@ -343,15 +352,6 @@ public:
 
     ///Conversion to QString
     QString toQString() const;
-
-    /**
-      @brief Conversion to bool
-
-      Converts the strings 'true' and 'false' to a bool.
-
-      @exception Exception::ConversionError is thrown for non-string parameters and string parameters with values other than 'true' and 'false'.
-    */
-    bool toBool() const;
     //@}
 
     /// returns the type of value stored
@@ -359,9 +359,6 @@ public:
     {
       return value_type_;
     }
-
-    /// assignment operator
-    DataValue& operator=(const DataValue&);
 
     /**
        @brief Test if the value is empty

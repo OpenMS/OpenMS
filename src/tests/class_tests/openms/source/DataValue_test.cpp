@@ -314,11 +314,14 @@ START_SECTION((bool isEmpty() const))
 {
   DataValue p1;
   TEST_EQUAL(p1.isEmpty(), true);
+
   DataValue p2((float)1.2);
   TEST_EQUAL(p2.isEmpty(), false);
   TEST_REAL_SIMILAR((float) p2, 1.2);
+
   DataValue p3("");
   TEST_EQUAL(p3.isEmpty(), false); // empty string does not count as empty!
+
   DataValue p4("2");
   TEST_EQUAL(p4.isEmpty(), false)
   TEST_EQUAL((std::string) p4, "2");
@@ -496,6 +499,7 @@ START_SECTION((operator unsigned long long() const))
 END_SECTION
 
 START_SECTION(([EXTRA] friend bool operator==(const DataValue&, const DataValue&)))
+{
   DataValue a(5.0);
   DataValue b(5.0);
   TEST_EQUAL(a==b,true);
@@ -517,6 +521,19 @@ START_SECTION(([EXTRA] friend bool operator==(const DataValue&, const DataValue&
   a = DataValue((float)15.13);
   b = DataValue((float)(15.13001));
   TEST_EQUAL(a==b,false);
+
+  a = DataValue("hello");
+  b = DataValue(std::string("hello"));
+  TEST_EQUAL(a==b,true);
+  a.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  TEST_EQUAL(a==b,false);
+  b.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+  TEST_EQUAL(a==b,true);
+  a.setUnit(1);
+  TEST_EQUAL(a==b,false);
+  b.setUnit(1);
+  TEST_EQUAL(a==b,true);
+}
 END_SECTION
 
 START_SECTION(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&)))
@@ -527,6 +544,10 @@ START_SECTION(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&
   a = DataValue((double)15.13001);
   b = DataValue((double)15.13);
   TEST_EQUAL(a!=b,true);
+
+  a = DataValue("hello");
+  b = DataValue(std::string("hello"));
+  TEST_EQUAL(a!=b,false);
 }
 END_SECTION
 
@@ -675,6 +696,23 @@ START_SECTION((void setUnit(const String& unit)))
   a1.setUnit(a1.getUnit());
   TEST_EQUAL(a1.hasUnit(), true)
   TEST_EQUAL(a1.getUnit(), 9)
+}
+END_SECTION
+
+START_SECTION((inline UnitType getUnitType() const))
+{
+  DataValue a("v");
+  TEST_EQUAL(a.getUnitType(), DataValue::UnitType::OTHER)
+}
+END_SECTION
+
+START_SECTION((inline void setUnitType(const UnitType & u))
+{
+  DataValue a("v");
+  a.setUnitType(DataValue::UnitType::MS_ONTOLOGY)
+  TEST_EQUAL(a.getUnitType(), DataValue::UnitType::MS_ONTOLOGY)
+  a.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY)
+  TEST_EQUAL(a.getUnitType(), DataValue::UnitType::UNIT_ONTOLOGY)
 }
 END_SECTION
 
