@@ -115,8 +115,8 @@ public:
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
-      std::vector<MSChromatogram > picked_chroms_;
-      std::vector<MSChromatogram > smoothed_chroms_;
+      std::vector<MSChromatogram > picked_chroms;
+      std::vector<MSChromatogram > smoothed_chroms;
 
       // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -135,8 +135,8 @@ public:
         MSChromatogram picked_chrom, smoothed_chrom;
         picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
         picked_chrom.sortByIntensity();
-        picked_chroms_.push_back(picked_chrom);
-        smoothed_chroms_.push_back(smoothed_chrom);
+        picked_chroms.push_back(picked_chrom);
+        smoothed_chroms.push_back(smoothed_chrom);
       }
 
       // Pick precursor chromatograms
@@ -146,12 +146,11 @@ public:
         {
           SpectrumT picked_chrom, smoothed_chrom;
           SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
-          String native_id = chromatogram.getNativeID();
 
           picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
           picked_chrom.sortByIntensity();
-          picked_chroms_.push_back(picked_chrom);
-          smoothed_chroms_.push_back(smoothed_chrom);
+          picked_chroms.push_back(picked_chrom);
+          smoothed_chroms.push_back(smoothed_chrom);
         }
       }
 
@@ -167,17 +166,17 @@ public:
 
         if (boundary_selection_method_ == "largest")
         {
-          findLargestPeak(picked_chroms_, chr_idx, peak_idx);
+          findLargestPeak(picked_chroms, chr_idx, peak_idx);
         }
         else if (boundary_selection_method_ == "widest")
         {
-          findWidestPeakIndices(picked_chroms_, chr_idx, peak_idx);
+          findWidestPeakIndices(picked_chroms, chr_idx, peak_idx);
         }
 
         if (chr_idx == -1 && peak_idx == -1) break;
 
         // Compute a feature from the individual chromatograms and add non-zero features
-        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, smoothed_chroms_, chr_idx, peak_idx);
+        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
         if (mrm_feature.getIntensity() > 0)
         {
           features.push_back(mrm_feature);
