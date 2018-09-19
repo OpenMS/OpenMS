@@ -269,9 +269,9 @@ private:
      * @param det_intensity_ratio_score The intensity score of the detection transitions for normalization
      * @param det_mi_ratio_score The MI score of the detection transitions for normalization
      * @param write_log_messages Whether to write signal to noise log messages
-     * @value a struct of type OpenSwath_Scores containing either target or decoy values
+     * @value a struct of type OpenSwath_Ind_Scores containing either target or decoy values
     */
-    OpenSwath_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
+    OpenSwath_Ind_Scores scoreIdentification_(MRMTransitionGroupType& transition_group_identification,
                                           OpenSwathScoring& scorer,
                                           const size_t feature_idx,
                                           const std::vector<std::string> & native_ids_detection,

@@ -234,6 +234,8 @@ The extensible %OpenMS library implements common mass spectrometric data process
             - Tool MetaboliteSpectralMatcher
         - Accurate mass search: 
             - Tool AccurateMassSearch
+        - De novo identification:
+            - Tool SiriusAdapter
  
 <br>
 - General:

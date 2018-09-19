@@ -40,6 +40,9 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+using std::ostream;
+using std::map;
+
 using std::ios_base;
 using std::ostringstream;
 using std::ofstream;

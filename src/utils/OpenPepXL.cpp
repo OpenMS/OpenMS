@@ -196,6 +196,7 @@ protected:
 
     PeakFileOptions options;
     options.clearMSLevels();
+    options.addMSLevel(1);
     options.addMSLevel(2);
     f.getOptions() = options;
     f.load(in_mzml, unprocessed_spectra);

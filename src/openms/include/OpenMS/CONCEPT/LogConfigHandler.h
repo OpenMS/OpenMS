@@ -107,7 +107,6 @@ public:
      */
     void configure(const Param & param);
 
-
     /**
       @brief Returns a reference to the registered stream with the name @p stream_name.
 
@@ -115,7 +114,7 @@ public:
 
       @return Reference to the stream.
      */
-    ostream & getStream(const String & stream_name);
+    std::ostream & getStream(const String & stream_name);
 
     /**
       @brief Returns the instance of LogConfigHandler.
@@ -124,6 +123,7 @@ public:
 
     /// Destructor
     virtual ~LogConfigHandler();
+
 protected:
 
     /**

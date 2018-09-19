@@ -493,6 +493,7 @@ set(analysis_executables_list
   PrecursorIonSelectionPreprocessing_test
   PrecursorIonSelection_test
   ProteinInference_test
+  PrecursorPurity_test
   ProtonDistributionModel_test
   ProteinResolver_test
   PSLPFormulation_test
@@ -610,6 +611,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
     OpenSwathScoring_test
+    OpenSwathScores_test
     PeakIntegrator_test
     PeakPickerMRM_test
     MRMTransitionGroupPicker_test
