@@ -105,8 +105,7 @@ namespace OpenMS
     potential_adducts_(),
     map_label_(),
     map_label_inverse_(),
-    enable_intensity_filter_(false),
-    negative_mode_(false)
+    enable_intensity_filter_(false)
   {
     defaults_.setValue("charge_min", 1, "Minimal possible charge");
     defaults_.setValue("charge_max", 10, "Maximal possible charge");
@@ -273,8 +272,7 @@ namespace OpenMS
     potential_adducts_(source.potential_adducts_),
     map_label_(source.map_label_),
     map_label_inverse_(source.map_label_inverse_),
-    enable_intensity_filter_(source.enable_intensity_filter_),
-    negative_mode_(source.negative_mode_)
+    enable_intensity_filter_(source.enable_intensity_filter_)
   {
   }
 
@@ -291,7 +289,6 @@ namespace OpenMS
     map_label_ = source.map_label_;
     map_label_inverse_ = source.map_label_inverse_;
     enable_intensity_filter_ = source.enable_intensity_filter_;
-    negative_mode_ = source.negative_mode_;
     return *this;
   }
 
