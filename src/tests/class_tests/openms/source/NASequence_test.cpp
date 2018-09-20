@@ -494,7 +494,6 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] ConstIterator(const std::vector<const Ribonucleotide*>* vec_ptr, difference_type position)))
 {
-  String result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   NASequence::ConstIterator it = seq.cbegin();
   TEST_EQUAL((*(it+2)).getCode(), "C");
