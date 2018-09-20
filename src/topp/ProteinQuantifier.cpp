@@ -34,7 +34,9 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
+
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -375,6 +377,8 @@ protected:
     Param temp = PeptideAndProteinQuant().getParameters();
     registerFullParam_(temp);
 
+    registerStringOption_("greedy_group_resolution", "<choice>", "false", "Pre-process identifications with greedy resolution of shared peptides based on the protein group probabilities. (Only works with an idXML file given as protein_groups parameter).");
+    setValidStrings_("greedy_group_resolution", ListUtils::create<String>("true,false"));
     registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...", false);
     registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);
     registerTOPPSubsection_("format", "Output formatting options");
@@ -715,6 +719,7 @@ protected:
     String peptide_out = getStringOption_("peptide_out");
     String mztab = getStringOption_("mztab");
     String design_file = getStringOption_("design");
+    bool greedy_group_resolution = getStringOption_("greedy_group_resolution") == "true";
 
     if (out.empty() && peptide_out.empty())
     {
@@ -738,6 +743,12 @@ protected:
          "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
       }
       proteins_ = proteins[0]; // inference data is attached to first ID run
+      if (greedy_group_resolution)
+      {
+        PeptideProteinResolution ppr{};
+        ppr.buildGraph(proteins_, peptides_);
+        ppr.resolveGraph(proteins_, peptides_);
+      }
     }
 
     FileTypes::Type in_type = FileHandler::getType(in);

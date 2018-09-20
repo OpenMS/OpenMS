@@ -59,6 +59,8 @@ namespace OpenMS
    @brief Creates and maintains a boost graph based on the OpenMS ID datastructures
 
    For finding connected components and applying functions to them.
+   Currently assumes that all PeptideIdentifications are from the ProteinID run that is given.
+   Please make sure this is right.
    VERY IMPORTANT NOTE: If you add Visitors here, make sure they do not touch members of the
    underlying ID objects that are responsible for the graph structure. E.g. the (protein/peptide)_hits vectors
    or the lists in ProteinGroups. You can set information like scores or metavalues, though.
@@ -84,7 +86,8 @@ namespace OpenMS
     typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
     typedef boost::graph_traits<Graph>::edge_descriptor edge_t;
     typedef boost::filtered_graph<Graph, boost::function<bool(edge_t)>, boost::function<bool(vertex_t)> > FilteredGraph;
-
+    typedef std::set<IDBoostGraph::vertex_t> ProteinNodeSet;
+    typedef std::set<IDBoostGraph::vertex_t> PeptideNodeSet;
 
     /// Constructor
     IDBoostGraph(ProteinIdentification &proteins, std::vector<PeptideIdentification>& idedSpectra);
@@ -98,6 +101,7 @@ namespace OpenMS
 
     /// Annotate indistinguishable proteins by adding the groups to the underlying
     /// ProteinIdentification::ProteinGroups object. This has no effect on the graph itself.
+    /// @param addSingletons if you want to annotate groups with just one protein entry
     void annotateIndistProteins(bool addSingletons = true) const;
 
 

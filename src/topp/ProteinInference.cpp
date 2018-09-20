@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Andreas Bertsch, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
@@ -40,6 +40,7 @@
 #include <set>
 #include <unordered_set>
 #include <algorithm>
+#include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -105,6 +106,11 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
+    registerStringOption_("annotate_indist_groups", "<choice>", "true",
+        "If you want to annotate indistinguishable protein groups,"
+        " either for reporting or for group based quant. later. Only works with a single ID run in the file.", false);
+    setValidStrings_("annotate_indist_groups", ListUtils::create<String>("true,false"));
+
     addEmptyLine_();
 
     Param algo_with_subsection;
@@ -126,6 +132,21 @@ protected:
     BasicProteinInferenceAlgorithm pi;
     pi.setParameters(getParam_().copy("Algorithm:",true));
     pi.run(pep_ids, prot_ids);
+
+    bool annotate_indist_groups = getStringOption_("annotate_indist_groups") == "true";
+    if (annotate_indist_groups)
+    {
+      if (prot_ids.size() > 1)
+      {
+        throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prot_ids.size());
+      }
+      //TODO you could actually also do the aggregation/inference as well as the resolution
+      // on the Graph structure
+      IDBoostGraph ibg{prot_ids[0], pep_ids};
+      ibg.buildGraph(false);
+      ibg.computeConnectedComponents();
+      ibg.annotateIndistProteins(true);
+    }
 
     // write output
     IdXMLFile().store(out, prot_ids, pep_ids);

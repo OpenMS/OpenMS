@@ -86,8 +86,9 @@ namespace OpenMS
         {
           // assumes protein is present
           auto accToPHit = accession_map.find(std::string(proteinAcc));
-          int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
-          accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
+          //TODO consider/calculate missing digests.
+          //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
+          //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
           IDPointer prot(accToPHit->second);
           vertex_t protV = addVertexWithLookup_(prot, vertex_map);
           boost::add_edge(protV, pepV, g);
@@ -179,12 +180,10 @@ namespace OpenMS
       boost::write_graphviz(std::cout, fg, boost::make_label_writer(labels));
       #endif
 
-      // Cluster peptides with same parents
       //TODO this could be sped up by a good hashing function for sets of uints and using unordered_map
-      map<set<IDBoostGraph::vertex_t>, set<IDBoostGraph::vertex_t> > indistProteins; //find indist proteins
+      map<PeptideNodeSet, ProteinNodeSet > indistProteins; //find indist proteins
 
-      boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(
-          IDBoostGraph::vertex_t)> >::vertex_iterator ui, ui_end;
+      FilteredGraph::vertex_iterator ui, ui_end;
       boost::tie(ui, ui_end) = boost::vertices(fg);
 
       // Cluster proteins
@@ -197,13 +196,12 @@ namespace OpenMS
         {
           //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
           //Or just check rigorously here.
-          set<IDBoostGraph::vertex_t> childPeps;
+          PeptideNodeSet childPeps;
           IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
           boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
           for (; adjIt != adjIt_end; ++adjIt)
           {
-            if (fg[*adjIt].which() ==
-                3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
+            if (fg[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
             {
               childPeps.insert(*adjIt);
             }
@@ -216,7 +214,7 @@ namespace OpenMS
           }
           else
           {
-            indistProteins[childPeps] = std::set<IDBoostGraph::vertex_t>({*ui});
+            indistProteins[childPeps] = ProteinNodeSet({*ui});
           }
         }
       }
@@ -242,12 +240,11 @@ namespace OpenMS
         pg.probability = -1.0;
         proteins_.getIndistinguishableProteins().push_back(pg);
       }
-
     }
   }
 
 
-  /// Do sth on ccs
+  /// Do sth on connected components
   void IDBoostGraph::clusterIndistProteinsAndPeptides()
   {
     if (numCCs_ == 0) {
@@ -281,10 +278,10 @@ namespace OpenMS
         // Cluster peptides with same parents
         //TODO this could be sped up by a good hashing function for sets of uints and using unordered_map
         //TODO actually this version does not need the second set.
-        map< set<IDBoostGraph::vertex_t>, set<IDBoostGraph::vertex_t> > pepClusters; //maps the parent (protein) set to peptides that have the same
-        map< set<IDBoostGraph::vertex_t>, set<IDBoostGraph::vertex_t> > indistProteins; //find indist proteins
+        map< ProteinNodeSet, PeptideNodeSet > pepClusters; //maps the parent (protein) set to peptides that have the same
+        map< PeptideNodeSet, ProteinNodeSet > indistProteins; //find indist proteins
 
-        boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(IDBoostGraph::vertex_t)> >::vertex_iterator ui, ui_end;
+        FilteredGraph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
 
         // Cluster proteins
@@ -297,8 +294,8 @@ namespace OpenMS
           {
             //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
             //Or just check rigorously here.
-            set<IDBoostGraph::vertex_t> childPeps;
-            IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
+            PeptideNodeSet childPeps;
+            FilteredGraph::adjacency_iterator adjIt, adjIt_end;
             boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
             for (; adjIt != adjIt_end; ++adjIt)
             {
@@ -315,7 +312,7 @@ namespace OpenMS
             }
             else
             {
-              indistProteins[childPeps] = std::set<IDBoostGraph::vertex_t>({*ui});
+              indistProteins[childPeps] = ProteinNodeSet({*ui});
             }
           }
         }
@@ -353,7 +350,7 @@ namespace OpenMS
         FilteredGraph fgNew(g,
                             [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
                             [& i, this](vertex_t v) { return componentProperty_[v] == i; });
-        boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(IDBoostGraph::vertex_t)> >::vertex_iterator uiNew, uiNew_end;
+        FilteredGraph::vertex_iterator uiNew, uiNew_end;
         boost::tie(uiNew,uiNew_end) = boost::vertices(fgNew);
 
         for (; uiNew != uiNew_end; ++uiNew)
@@ -364,12 +361,12 @@ namespace OpenMS
           {
             //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
             //Or just check rigorously here.
-            set<IDBoostGraph::vertex_t> parents;
+            ProteinNodeSet parents;
             IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
             boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*uiNew, fgNew);
             for (; adjIt != adjIt_end; ++adjIt)
             {
-              if (fgNew[*adjIt].which() <= 1) //if there are only two types (pep,prot) this check for prot is actually unnecessary
+              if (fgNew[*adjIt].which() <= 1) // Either protein or protein group
               {
                 parents.insert(*adjIt);
               }
@@ -382,7 +379,7 @@ namespace OpenMS
             }
             else
             {
-              pepClusters[parents] = std::set<IDBoostGraph::vertex_t>({*uiNew});
+              pepClusters[parents] = PeptideNodeSet({*uiNew});
             }
           }
         }
