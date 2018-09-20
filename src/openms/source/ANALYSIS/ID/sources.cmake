@@ -6,6 +6,7 @@ set(sources_list
 AccurateMassSearchEngine.cpp
 AhoCorasickAmbiguous.cpp
 AScore.cpp
+BasicProteinInferenceAlgorithm.cpp
 BayesianProteinInferenceAlgorithm.cpp
 ConsensusIDAlgorithm.cpp
 ConsensusIDAlgorithmAverage.cpp

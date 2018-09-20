@@ -6,6 +6,7 @@ set(sources_list_h
 AccurateMassSearchEngine.h
 AhoCorasickAmbiguous.h
 AScore.h
+BasicProteinInferenceAlgorithm.h
 BayesianProteinInferenceAlgorithm.h
 ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
