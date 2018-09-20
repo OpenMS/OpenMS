@@ -72,10 +72,11 @@ using namespace std;
     </table>
 </CENTER>
 
-    This tool counts and aggregates the scores of peptide sequences that match a protein accession.
+    This tool counts and aggregates the scores of peptide sequences that match a protein accession. Only the top PSM for a peptide is used.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
+    @todo Integrate Top x support, integrate parsimony approach from @ref OpenMS::PSProteinInference class
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ProteinInference.cli
     <B>INI file documentation of this tool:</B>
@@ -108,37 +109,38 @@ protected:
     addEmptyLine_();
     //registerIntOption_("min_peptides_per_protein", "<num>", 2, "Minimal number of peptides needed for a protein identification", false);
     //setMinInt_("min_peptides_per_protein", 1);
-
+    registerStringOption_("score_aggregation_method","<method>","maximum","How to aggregate scores of PSM matching to the same protein?", false);
+    setValidStrings_("score_aggregation_method", ListUtils::create<String>("maximum,product,sum"));
     registerFlag_("treat_charge_variants_separately", "If this flag is set, different charge variants of the same peptide sequence count as inidividual evidences.");
     registerFlag_("treat_modification_variants_separately", "If this flag is set, different modification variants of the same peptide sequence count as individual evidences.");
+    registerFlag_("use_shared_peptides", "If this flag is set, shared peptides are used as evidences.");
   }
 
   ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+
+    //TODO IMPORTANT: refactor to use an algorithm class.
     //Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
     bool treat_charge_variants_separately(getFlag_("treat_charge_variants_separately"));
     bool treat_modification_variants_separately(getFlag_("treat_modification_variants_separately"));
     bool use_shared_peptides(getFlag_("use_shared_peptides"));
 
+    String aggMethodString = getStringOption_("score_aggregation_method");
     AggregationMethod aggregation_method = AggregationMethod::MAXIMUM;
 
-    String aggMethodString = "";
-
-    switch (aggregation_method)
+    if (aggMethodString == "maximum")
     {
-      case AggregationMethod::PROD :
-        aggMethodString = "Product";
-        break;
-      case AggregationMethod::SUM :
-        aggMethodString = "Sum";
-        break;
-      case AggregationMethod::MAXIMUM :
-        aggMethodString = "Maximum";
-        break;
-      default:
-        break;
+      aggregation_method = AggregationMethod::MAXIMUM;
+    }
+    else if (aggMethodString == "product")
+    {
+      aggregation_method = AggregationMethod::PROD;
+    }
+    else if (aggMethodString == "sum")
+    {
+      aggregation_method = AggregationMethod::SUM;
     }
 
 
@@ -162,6 +164,7 @@ protected:
       sp.setMetaValue("use_shared_peptides", use_shared_peptides);
       sp.setMetaValue("treat_charge_variants_separately", treat_charge_variants_separately);
       sp.setMetaValue("treat_modification_variants_separately", treat_modification_variants_separately);
+      prot_run.setSearchParameters(sp);
 
       //create Accession to ProteinHit and peptide count map. To have quick access later.
       for (auto& phit : prot_run.getHits())
@@ -173,12 +176,16 @@ protected:
       {
         //skip if it does not belong to run
         if (pep.getIdentifier() != prot_run.getIdentifier()) continue;
+        //make sure that first = best hit
+        pep.sort();
 
-        //skip if shared and skip_shared
-        if (!use_shared_peptides && pep.metaValueExists("protein_references") && pep.getMetaValue("protein_references") == "non-unique") continue;
+        //TODO think about if using any but the best PSM makes sense in such a simple aggregation scheme
+        //for (auto& hit : pep.getHits())
+        //{
+        PeptideHit& hit = pep.getHits()[0];
+          //skip if shared and option not enabled
+          if (!use_shared_peptides && (!hit.metaValueExists("protein_references") || (hit.getMetaValue("protein_references") == "non-unique"))) continue;
 
-        for (auto& hit : pep.getHits())
-        {
           String lookup_seq;
           if (!treat_modification_variants_separately)
           {
@@ -215,7 +222,7 @@ protected:
               current_best_pep_charge_it->second = &hit;
             }
           }
-        }
+        //}
       }
 
       // update protein scores
@@ -254,6 +261,7 @@ protected:
           }
         }
       }
+      //TODO set count as metavalue? Allow count as aggregation method -> protein score?
     }
 
     //TODO Filtering? I think this should be done separate afterwards with IDFilter
