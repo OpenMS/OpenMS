@@ -849,7 +849,7 @@ namespace OpenMS
         optionalAttributeAsString_(value, attributes, s_value);
         String unit_accession = "";
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
-        handleCVParam_(parent_parent_tag, parent_tag, /* attributeAsString_(attributes, s_cvref), */ attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, unit_accession);
+        handleCVParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_accession), attributeAsString_(attributes, s_name), value, unit_accession);
       }
       else if (tag == "userParam")
       {
@@ -857,7 +857,9 @@ namespace OpenMS
         optionalAttributeAsString_(type, attributes, s_type);
         String value = "";
         optionalAttributeAsString_(value, attributes, s_value);
-        handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value);
+        String unit_accession = "";
+        optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
+        handleUserParam_(parent_parent_tag, parent_tag, attributeAsString_(attributes, s_name), type, value, unit_accession);
       }
       else if (tag == "referenceableParamGroup")
       {
@@ -916,7 +918,7 @@ namespace OpenMS
         String ref = attributeAsString_(attributes, s_ref);
         for (Size i = 0; i < ref_param_[ref].size(); ++i)
         {
-          handleCVParam_(parent_parent_tag, parent_tag, /* attributeAsString_(attributes, s_cvref), */ ref_param_[ref][i].accession, ref_param_[ref][i].name, ref_param_[ref][i].value, ref_param_[ref][i].unit_accession);
+          handleCVParam_(parent_parent_tag, parent_tag, ref_param_[ref][i].accession, ref_param_[ref][i].name, ref_param_[ref][i].value, ref_param_[ref][i].unit_accession);
         }
       }
       else if (tag == "scan")
@@ -1278,7 +1280,12 @@ namespace OpenMS
       }
     }
 
-    void MzMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, /* const String & cvref,  */ const String& accession, const String& name, const String& value, const String& unit_accession)
+    void MzMLHandler::handleCVParam_(const String& parent_parent_tag,
+                                     const String& parent_tag,
+                                     const String& accession,
+                                     const String& name,
+                                     const String& value,
+                                     const String& unit_accession)
     {
       // the actual value stored in the CVParam
       // we assume for now that it is a string value, we update the type later on
@@ -1331,57 +1338,57 @@ namespace OpenMS
           {
             switch (term.xref_type)
             {
-            //string value can be anything
-            case ControlledVocabulary::CVTerm::XSD_STRING:
-              break;
+              //string value can be anything
+              case ControlledVocabulary::CVTerm::XSD_STRING:
+                break;
 
-            //int value => try casting
-            case ControlledVocabulary::CVTerm::XSD_INTEGER:
-            case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
-            case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
-            case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
-            case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
-              try
-              {
-                termValue = value.toInt();
-              }
-              catch (Exception::ConversionError&)
-              {
-                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
-                return;
-              }
-              break;
+              //int value => try casting
+              case ControlledVocabulary::CVTerm::XSD_INTEGER:
+              case ControlledVocabulary::CVTerm::XSD_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XSD_POSITIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XSD_NON_NEGATIVE_INTEGER:
+              case ControlledVocabulary::CVTerm::XSD_NON_POSITIVE_INTEGER:
+                try
+                {
+                  termValue = value.toInt();
+                }
+                catch (Exception::ConversionError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
+                  return;
+                }
+                break;
 
-            //double value => try casting
-            case ControlledVocabulary::CVTerm::XSD_DECIMAL:
-              try
-              {
-                termValue = value.toDouble();
-              }
-              catch (Exception::ConversionError&)
-              {
-                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
-                return;
-              }
-              break;
+              //double value => try casting
+              case ControlledVocabulary::CVTerm::XSD_DECIMAL:
+                try
+                {
+                  termValue = value.toDouble();
+                }
+                catch (Exception::ConversionError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
+                  return;
+                }
+                break;
 
-            //date string => try conversion
-            case ControlledVocabulary::CVTerm::XSD_DATE:
-              try
-              {
-                DateTime tmp;
-                tmp.set(value);
-              }
-              catch (Exception::ParseError&)
-              {
-                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
-                return;
-              }
-              break;
+              //date string => try conversion
+              case ControlledVocabulary::CVTerm::XSD_DATE:
+                try
+                {
+                  DateTime tmp;
+                  tmp.set(value);
+                }
+                catch (Exception::ParseError&)
+                {
+                  warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
+                  return;
+                }
+                break;
 
-            default:
-              warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
-              break;
+              default:
+                warning(LOAD, String("The CV term '") + accession + " - " + term.name + "' used in tag '" + parent_tag + "' has the unknown value type '" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type) + "'.");
+                break;
             }
           }
         }
@@ -3103,24 +3110,54 @@ namespace OpenMS
         warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
     }
 
-    void MzMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
+    void MzMLHandler::handleUserParam_(const String& parent_parent_tag,
+                                       const String& parent_tag,
+                                       const String& name,
+                                       const String& type,
+                                       const String& value,
+                                       const String& unit_accession)
     {
       //create a DataValue that contains the data in the right type
       DataValue data_value;
-      //float type
+
+      // float type
       if (type == "xsd:double" || type == "xsd:float")
       {
         data_value = DataValue(value.toDouble());
       }
-      //integer type
-      else if (type == "xsd:byte" || type == "xsd:decimal" || type == "xsd:int" || type == "xsd:integer" || type == "xsd:long" || type == "xsd:negativeInteger" || type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger" || type == "xsd:short" || type == "xsd:unsignedByte" || type == "xsd:unsignedInt" || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
+      // integer type
+      else if (type == "xsd:byte" || type == "xsd:decimal" ||
+               type == "xsd:int" || type == "xsd:integer" ||
+               type == "xsd:long" || type == "xsd:negativeInteger" ||
+               type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" ||
+               type == "xsd:positiveInteger" || type == "xsd:short" ||
+               type == "xsd:unsignedByte" || type == "xsd:unsignedInt"
+               || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
       {
         data_value = DataValue(value.toInt());
       }
-      //everything else is treated as a string
+      // everything else is treated as a string
       else
       {
         data_value = DataValue(value);
+      }
+
+      if (unit_accession != "")
+      {
+        if (unit_accession.hasPrefix("UO:"))
+        {
+          data_value.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          data_value.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+        }
+        else if (unit_accession.hasPrefix("MS:"))
+        {
+          data_value.setUnit(unit_accession.suffix(unit_accession.size() - 3).toInt());
+          data_value.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+        }
+        else
+        {
+          warning(LOAD, String("Unhandled unit '") + unit_accession + "' in tag '" + parent_tag + "'.");
+        }
       }
 
       //find the right MetaInfoInterface
@@ -3361,7 +3398,38 @@ namespace OpenMS
             {
               userParam += "xsd:string";
             }
-            userParam += "\" value=\"" + writeXMLEscape(d.toString()) + "\"/>" + "\n";
+            userParam += "\" value=\"" + writeXMLEscape(d.toString());
+
+            if (d.hasUnit())
+            {
+              //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
+              //
+              // We need to identify the correct CV term for the *unit* by
+              // retrieving the identifier and looking up the term within the
+              // correct ontology in our cv_ object.
+              char s[8];
+              sprintf(s, "%07d", d.getUnit()); // all CV use 7 digit indentifiers padded with zeros
+              String unitstring = String(s);
+              if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
+              {
+                unitstring = "UO:" + unitstring;
+              }
+              else if (d.getUnitType() == DataValue::UnitType::MS_ONTOLOGY)
+              {
+                unitstring = "MS:" + unitstring;
+              }
+              else 
+              {
+                warning(LOAD, String("Unhandled unit ontology '") );
+              }
+
+              ControlledVocabulary::CVTerm unit = cv_.getTerm(unitstring);
+              userParam += "\" unitAccession=\"" + unit.id + "\" unitName=\"" + unit.name + "\" unitCvRef=\"" + unit.id.prefix(2);
+            }
+
+            userParam += "\"/>\n";
+
+
             userParams.push_back(userParam);
           }
         }
