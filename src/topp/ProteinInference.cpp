@@ -28,10 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Andreas Bertsch, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -39,6 +40,7 @@
 #include <set>
 #include <unordered_set>
 #include <algorithm>
+#include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -50,7 +52,7 @@ using namespace std;
 /**
     @page TOPP_ProteinInference ProteinInference
 
-    @brief Computes a protein identification based on the number of identified peptides.
+    @brief Computes a protein identification score based on an aggregation of scores of identified peptides.
 
 <CENTER>
     <table>
@@ -60,7 +62,7 @@ using namespace std;
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines)</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_PeptideIndexer </td>
         </tr>
         <tr>
@@ -72,10 +74,11 @@ using namespace std;
     </table>
 </CENTER>
 
-    This tool counts and aggregates the scores of peptide sequences that match a protein accession.
+    This tool counts and aggregates the scores of peptide sequences that match a protein accession. Only the top PSM for a peptide is used.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
+    @todo Integrate Top x support, integrate parsimony approach from @ref OpenMS::PSProteinInference class
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ProteinInference.cli
     <B>INI file documentation of this tool:</B>
@@ -94,8 +97,6 @@ public:
   {
   }
 
-  enum AggregationMethod {PROD, SUM, MAXIMUM};
-
 protected:
 
   void registerOptionsAndFlags_() override
@@ -105,159 +106,47 @@ protected:
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
 
-    addEmptyLine_();
-    //registerIntOption_("min_peptides_per_protein", "<num>", 2, "Minimal number of peptides needed for a protein identification", false);
-    //setMinInt_("min_peptides_per_protein", 1);
+    registerStringOption_("annotate_indist_groups", "<choice>", "true",
+        "If you want to annotate indistinguishable protein groups,"
+        " either for reporting or for group based quant. later. Only works with a single ID run in the file.", false);
+    setValidStrings_("annotate_indist_groups", ListUtils::create<String>("true,false"));
 
-    registerFlag_("treat_charge_variants_separately", "If this flag is set, different charge variants of the same peptide sequence count as inidividual evidences.");
-    registerFlag_("treat_modification_variants_separately", "If this flag is set, different modification variants of the same peptide sequence count as individual evidences.");
+    addEmptyLine_();
+
+    Param algo_with_subsection;
+    algo_with_subsection.insert("Algorithm:", BasicProteinInferenceAlgorithm().getDefaults());
+    registerFullParam_(algo_with_subsection);
   }
+
 
   ExitCodes main_(int, const char**) override
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    //Size min_peptides_per_protein = getIntOption_("min_peptides_per_protein");
-    bool treat_charge_variants_separately(getFlag_("treat_charge_variants_separately"));
-    bool treat_modification_variants_separately(getFlag_("treat_modification_variants_separately"));
-    bool use_shared_peptides(getFlag_("use_shared_peptides"));
-
-    AggregationMethod aggregation_method = AggregationMethod::MAXIMUM;
-
-    String aggMethodString = "";
-
-    switch (aggregation_method)
-    {
-      case AggregationMethod::PROD :
-        aggMethodString = "Product";
-        break;
-      case AggregationMethod::SUM :
-        aggMethodString = "Sum";
-        break;
-      case AggregationMethod::MAXIMUM :
-        aggMethodString = "Maximum";
-        break;
-      default:
-        break;
-    }
-
 
     // load identifications
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
     IdXMLFile().load(in, prot_ids, pep_ids);
 
-    unordered_map<std::string, map<Int,PeptideHit*>> best_pep{};
+    BasicProteinInferenceAlgorithm pi;
+    pi.setParameters(getParam_().copy("Algorithm:",true));
+    pi.run(pep_ids, prot_ids);
 
-    // iterate over runs
-    unordered_map<std::string, std::pair<ProteinHit*, Size>> acc_to_protein_hitP_and_count;
-
-    for (auto& prot_run : prot_ids)
+    bool annotate_indist_groups = getStringOption_("annotate_indist_groups") == "true";
+    if (annotate_indist_groups)
     {
-      acc_to_protein_hitP_and_count.clear();
-      best_pep.clear();
-
-      ProteinIdentification::SearchParameters sp = prot_run.getSearchParameters();
-      prot_run.setSearchEngine("TOPPProteinInference_" + aggMethodString);
-      sp.setMetaValue("use_shared_peptides", use_shared_peptides);
-      sp.setMetaValue("treat_charge_variants_separately", treat_charge_variants_separately);
-      sp.setMetaValue("treat_modification_variants_separately", treat_modification_variants_separately);
-
-      //create Accession to ProteinHit and peptide count map. To have quick access later.
-      for (auto& phit : prot_run.getHits())
+      if (prot_ids.size() > 1)
       {
-        acc_to_protein_hitP_and_count[phit.getAccession()] = std::make_pair<ProteinHit*, Size>(&phit, 0);
+        throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prot_ids.size());
       }
-
-      for (auto& pep : pep_ids)
-      {
-        //skip if it does not belong to run
-        if (pep.getIdentifier() != prot_run.getIdentifier()) continue;
-
-        //skip if shared and skip_shared
-        if (!use_shared_peptides && pep.metaValueExists("protein_references") && pep.getMetaValue("protein_references") == "non-unique") continue;
-
-        for (auto& hit : pep.getHits())
-        {
-          String lookup_seq;
-          if (!treat_modification_variants_separately)
-          {
-            lookup_seq = hit.getSequence().toUnmodifiedString();
-          }
-          else
-          {
-            lookup_seq = hit.getSequence().toString();
-          }
-
-          int lookup_charge = 0;
-          if (treat_charge_variants_separately)
-          {
-            lookup_charge = hit.getCharge();
-          }
-
-          auto current_best_pep_it = best_pep.find(lookup_seq);
-          if (current_best_pep_it == best_pep.end())
-          {
-            auto& new_entry = best_pep[lookup_seq];
-            new_entry = std::map<Int, PeptideHit*>();
-            new_entry[lookup_charge] = &hit;
-          }
-          else
-          {
-            auto current_best_pep_charge_it = current_best_pep_it->second.find(lookup_charge);
-            if (current_best_pep_charge_it == current_best_pep_it->second.end())
-            {
-              current_best_pep_it->second[lookup_charge] = &hit;
-            }
-            else if ((prot_run.isHigherScoreBetter() && (hit.getScore() > current_best_pep_charge_it->second->getScore())) ||
-                     (!prot_run.isHigherScoreBetter() && (hit.getScore() < current_best_pep_charge_it->second->getScore())))
-            {
-              current_best_pep_charge_it->second = &hit;
-            }
-          }
-        }
-      }
-
-      // update protein scores
-      for (const auto &charge_to_pep_hit_map : best_pep)
-      {
-        // The next line assumes that PeptideHits of different charge states necessarily share the same
-        // protein accessions
-        // TODO this could be done for mods later, too (first hashing AASeq, then the mods)
-        for (const auto &acc : charge_to_pep_hit_map.second.begin()->second->extractProteinAccessionsSet())
-        {
-          for (const auto &pep_hit : charge_to_pep_hit_map.second)
-          {
-            auto prot_count_pair = acc_to_protein_hitP_and_count[acc];
-            ProteinHit* protein = prot_count_pair.first;
-            prot_count_pair.second++;
-
-            double new_score = pep_hit.second->getScore();
-
-            // Note: This requires/works only with Posterior (Error) Probabilities
-            if (!prot_run.isHigherScoreBetter()) new_score = 1. - new_score;
-            switch (aggregation_method)
-            {
-              //TODO for 0 probability peptides we could also multiply a minimum value
-              case AggregationMethod::PROD :
-                if (new_score > 0.0) protein->setScore(protein->getScore() * new_score);
-                break;
-              case AggregationMethod::SUM :
-                protein->setScore(protein->getScore() + new_score);
-                break;
-              case AggregationMethod::MAXIMUM :
-                protein->setScore(max(double(protein->getScore()), new_score));
-                break;
-              default:
-                break;
-            }
-          }
-        }
-      }
+      //TODO you could actually also do the aggregation/inference as well as the resolution
+      // on the Graph structure
+      IDBoostGraph ibg{prot_ids[0], pep_ids};
+      ibg.buildGraph(false);
+      ibg.computeConnectedComponents();
+      ibg.annotateIndistProteins(true);
     }
-
-    //TODO Filtering? I think this should be done separate afterwards with IDFilter
-    //for all protein hits for the id run, only accept proteins that have at least 'min_peptides_per_protein' peptides
 
     // write output
     IdXMLFile().store(out, prot_ids, pep_ids);

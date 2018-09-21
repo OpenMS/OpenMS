@@ -1606,6 +1606,13 @@ add_test("TOPP_LowMemPeakPickerHiResRandomAccess_1" ${TOPP_BIN_PATH}/LowMemPeakP
 add_test("TOPP_LowMemPeakPickerHiResRandomAccess_1_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 LowMemPeakPickerHiRes_RandomAccess_1.tmp -in2 ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_RandomAccess_output.mzML)
 set_tests_properties("TOPP_LowMemPeakPickerHiResRandomAccess_1_out1" PROPERTIES DEPENDS "TOPP_LowMemPeakPickerHiResRandomAccess_1")
 
+#------------------------------------------------------------------------------
+# Basic ProteinInference
+add_test("TOPP_ProteinInference_1" ${TOPP_BIN_PATH}/ProteinInference -test -in ${DATA_DIR_TOPP}/ProteinInference_1_input.mzML -out ProteinInference_1_output.tmp -Algorithm:use_shared_peptides false -Algorithm:skip_count_annotation true)
+add_test("TOPP_ProteinInference_1_out1" ${DIFF} -in1 ProteinInference_1_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinInference_1_output.idXML)
+set_tests_properties("TOPP_ProteinInference_1_out1" PROPERTIES DEPENDS "TOPP_ProteinInference_1")
+
+
 if(WITH_GUI)
   #------------------------------------------------------------------------------
   # Resampler tests

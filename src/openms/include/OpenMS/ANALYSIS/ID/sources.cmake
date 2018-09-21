@@ -6,6 +6,7 @@ set(sources_list_h
 AccurateMassSearchEngine.h
 AhoCorasickAmbiguous.h
 AScore.h
+BasicProteinInference.h
 ConsensusIDAlgorithm.h
 ConsensusIDAlgorithmAverage.h
 ConsensusIDAlgorithmBest.h
@@ -17,6 +18,7 @@ ConsensusIDAlgorithmSimilarity.h
 ConsensusIDAlgorithmWorst.h
 FalseDiscoveryRate.h
 HiddenMarkovModel.h
+IDBoostGraph.h
 IDDecoyProbability.h
 IDConflictResolverAlgorithm.h
 IDMapper.h
