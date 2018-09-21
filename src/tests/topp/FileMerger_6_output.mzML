@@ -14,12 +14,12 @@
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
 		<sourceFileList count="3">
-			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="<TEST_DATA_PATH>">
+			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="file:///home/hr/openmsall/source/OpenMS_trunk/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0e3787759e3b0d2ca8e321527f759879f94a4829" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
-			<sourceFile id="sf_sp_0" name="FileMerger_6_input1.mzML" location="<TEST_DATA_PATH>">
+			<sourceFile id="sf_sp_0" name="FileMerger_6_input1.mzML" location="file:///home/hr/openmsall/source/OpenMS_trunk/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="f5a1cab79a193929ad5b9535e8a792365f5b699b" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -105,7 +105,7 @@
 				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
 				<userParam name="name" type="xsd:string" value="processingMethod"/>
-				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9"/>
+				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
 				<cvParam cvRef="MS" accession="MS:1000530" name="file format conversion" />
@@ -248,11 +248,11 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=0">8726</offset>
-		<offset idRef="spectrum=1">11896</offset>
-		<offset idRef="spectrum=2">15867</offset>
+		<offset idRef="spectrum=0">8817</offset>
+		<offset idRef="spectrum=1">11987</offset>
+		<offset idRef="spectrum=2">15958</offset>
 	</index>
 </indexList>
-<indexListOffset>16706</indexListOffset>
+<indexListOffset>16797</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>
