@@ -67,8 +67,8 @@ namespace OpenMS
   // Generate the MS/MS according to the given probabilistic model
   void SvmTheoreticalSpectrumGeneratorSet::simulate(PeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
-    std::map<Size, SvmTheoreticalSpectrumGenerator>::iterator it = simulators_.find(precursor_charge);
-    if (it != simulators_.end())
+    auto it = simulators_.find(precursor_charge);
+    if (it != std::end(simulators_))
     {
       it->second.simulate(spectrum, peptide, rng, precursor_charge);
     }
@@ -127,12 +127,13 @@ namespace OpenMS
   //return a modifiable reference to the SVM model with given charge. If charge is not supported throw exception
   SvmTheoreticalSpectrumGenerator& SvmTheoreticalSpectrumGeneratorSet::getSvmModel(Size prec_charge)
   {
-    std::map<Size, SvmTheoreticalSpectrumGenerator>::iterator it = simulators_.find(prec_charge);
-    if (it == simulators_.end())
+    auto it = simulators_.find(prec_charge);
+    if (it != std::end(simulators_))
     {
-      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Precursor charge, no Model available", String(prec_charge));
+      return it->second;
     }
-    return it->second;
+
+    throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Precursor charge, no Model available", String(prec_charge));
   }
 
 }
