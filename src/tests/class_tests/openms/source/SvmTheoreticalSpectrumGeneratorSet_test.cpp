@@ -65,8 +65,16 @@ START_SECTION(SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGen
   NOT_TESTABLE //is tested in getSupportedCharges test
 END_SECTION
 
+START_SECTION(SvmTheoreticalSpectrumGeneratorSet(SvmTheoreticalSpectrumGeneratorSet&& source))
+  NOT_TESTABLE
+END_SECTION
+
 START_SECTION(SvmTheoreticalSpectrumGeneratorSet& operator =(const SvmTheoreticalSpectrumGeneratorSet& tsg))
   NOT_TESTABLE //is tested in getSupportedCharges test
+END_SECTION
+
+START_SECTION(SvmTheoreticalSpectrumGeneratorSet& operator =(SvmTheoreticalSpectrumGeneratorSet&& tsg))
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION(~SvmTheoreticalSpectrumGeneratorSet())

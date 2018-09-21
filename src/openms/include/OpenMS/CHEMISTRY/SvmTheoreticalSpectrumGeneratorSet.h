@@ -71,12 +71,19 @@ public:
     /// Copy constructor
     SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet & source);
 
+    /// Move Constructor
+    SvmTheoreticalSpectrumGeneratorSet(SvmTheoreticalSpectrumGeneratorSet&& source) noexcept;
+
     /// Destructor
     virtual ~SvmTheoreticalSpectrumGeneratorSet();
     //@}
 
     /// Assignment operator
     SvmTheoreticalSpectrumGeneratorSet & operator=(const SvmTheoreticalSpectrumGeneratorSet & tsg);
+
+    /// Move Assignment operator
+    SvmTheoreticalSpectrumGeneratorSet & operator=(SvmTheoreticalSpectrumGeneratorSet&& tsg) noexcept;
+
 
     /// Generate the MS/MS according to the model for the given precursor_charge
     void simulate(PeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge);
