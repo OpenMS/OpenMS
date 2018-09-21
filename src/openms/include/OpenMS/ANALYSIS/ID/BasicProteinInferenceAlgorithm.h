@@ -39,6 +39,9 @@
 
 namespace OpenMS
 {
+  /// \brief Algorithm class that implements simple protein inference by aggregation of peptide scores
+  /// It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
+  /// and if you want to use shared peptides.
   class OPENMS_DLLAPI BasicProteinInferenceAlgorithm :
     public DefaultParamHandler,
     public ProgressLogger
@@ -55,6 +58,7 @@ namespace OpenMS
 
     /// main method of BasicProteinInferenceAlgorithm
     /// inputs are not const, since it will get annotated with results
+    /// annotation of protein groups is currently only possible for a single protein ID run
     void run(std::vector<PeptideIdentification> &pep_ids, std::vector<ProteinIdentification> &prot_ids) const;
   };
 } //namespace OpenMS

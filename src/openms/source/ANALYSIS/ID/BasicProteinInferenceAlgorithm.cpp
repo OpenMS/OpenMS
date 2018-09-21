@@ -53,10 +53,11 @@ namespace OpenMS
                        "How to aggregate scores of PSM matching to the same protein?");
     defaults_.setValidStrings("score_aggregation_method", ListUtils::create<String>("maximum,product,sum"));
     defaults_.setValue("treat_charge_variants_separately", "true",
-                       "If this flag is set, different charge variants of the same peptide sequence count as inidividual evidences.");
+                       "If this is true, different charge variants of the same peptide sequence count as inidividual evidences.");
     defaults_.setValue("treat_modification_variants_separately", "true",
-                       "If this flag is set, different modification variants of the same peptide sequence count as individual evidences.");
-    defaults_.setValue("use_shared_peptides", "true", "If this flag is set, shared peptides are used as evidences.");
+                       "If this is true, different modification variants of the same peptide sequence count as individual evidences.");
+    defaults_.setValue("use_shared_peptides", "true", "If this is true, shared peptides are used as evidences.");
+    defaults_.setValue("skip_count_annotation", "false", "If this is true, peptide counts won't be annotated at the proteins.");
     defaultsToParam_();
   }
 
@@ -67,6 +68,7 @@ namespace OpenMS
     bool treat_charge_variants_separately(param_.getValue("treat_charge_variants_separately").toBool());
     bool treat_modification_variants_separately(param_.getValue("treat_modification_variants_separately").toBool());
     bool use_shared_peptides(param_.getValue("use_shared_peptides").toBool());
+    bool skip_count_annotation(param_.getValue("skip_count_annotation").toBool());
 
     String aggMethodString(param_.getValue("score_aggregation_method").toString());
     AggregationMethod aggregation_method = AggregationMethod::MAXIMUM;
@@ -169,12 +171,12 @@ namespace OpenMS
       {
         // The next line assumes that PeptideHits of different charge states necessarily share the same
         // protein accessions
-        // TODO this could be done for mods later, too (first hashing AASeq, then the mods)
+        // TODO this could be done for mods, too (first hashing AASeq, then the mods)
         for (const auto &acc : charge_to_pep_hit_map.second.begin()->second->extractProteinAccessionsSet())
         {
           for (const auto &pep_hit : charge_to_pep_hit_map.second)
           {
-            auto prot_count_pair = acc_to_protein_hitP_and_count[acc];
+            auto& prot_count_pair = acc_to_protein_hitP_and_count[acc];
             ProteinHit *protein = prot_count_pair.first;
             prot_count_pair.second++;
 
@@ -196,13 +198,18 @@ namespace OpenMS
               case AggregationMethod::MAXIMUM :
                 protein->setScore(std::fmax(double(protein->getScore()), new_score));
                 break;
-              default:
-                break;
             }
           }
         }
       }
-      //TODO set count as metavalue? Allow count as aggregation method -> protein score?
+      if (!skip_count_annotation)
+      {
+        for (auto& entry : acc_to_protein_hitP_and_count)
+        {
+          entry.second.first->setMetaValue("nr_found_peptides", entry.second.second);
+        }
+      }
+      //TODO Allow count as aggregation method -> i.e. set as protein score?
     }
 
     //TODO Filtering? I think this should be done separate afterwards with IDFilter
