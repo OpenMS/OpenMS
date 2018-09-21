@@ -35,7 +35,6 @@
 #ifndef OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 #define OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 
-#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
