@@ -61,29 +61,7 @@ namespace OpenMS
   class OPENMS_DLLAPI SvmTheoreticalSpectrumGeneratorSet
   {
 public:
-
-    /** @name Constructors and Destructors
-     */
-    //@{
-    /// Default constructor
-    SvmTheoreticalSpectrumGeneratorSet();
-
-    /// Copy constructor
-    SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet & source);
-
-    /// Move Constructor
-    SvmTheoreticalSpectrumGeneratorSet(SvmTheoreticalSpectrumGeneratorSet&& source) noexcept;
-
-    /// Destructor
-    virtual ~SvmTheoreticalSpectrumGeneratorSet();
-    //@}
-
-    /// Assignment operator
-    SvmTheoreticalSpectrumGeneratorSet & operator=(const SvmTheoreticalSpectrumGeneratorSet & tsg);
-
-    /// Move Assignment operator
-    SvmTheoreticalSpectrumGeneratorSet & operator=(SvmTheoreticalSpectrumGeneratorSet&& tsg) noexcept;
-
+    // Rule of Zero in effect for this class.
 
     /// Generate the MS/MS according to the model for the given precursor_charge
     void simulate(PeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge);

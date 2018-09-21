@@ -37,21 +37,6 @@
 
 namespace OpenMS
 {
-
-  // Default constructor
-  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet() = default;
-  // Copy constructor
-  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet&) = default;
-  // Move constructor
-  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet(SvmTheoreticalSpectrumGeneratorSet&&) noexcept = default;
-  //Destructor
-  SvmTheoreticalSpectrumGeneratorSet::~SvmTheoreticalSpectrumGeneratorSet() = default;
-
-  // Assignment operator
-  SvmTheoreticalSpectrumGeneratorSet& SvmTheoreticalSpectrumGeneratorSet::operator=(const SvmTheoreticalSpectrumGeneratorSet&) = default;
-  // Move Assignment operator
-  SvmTheoreticalSpectrumGeneratorSet& SvmTheoreticalSpectrumGeneratorSet::operator=(SvmTheoreticalSpectrumGeneratorSet&&) noexcept = default;
-
   // Generate the MS/MS according to the given probabilistic model
   void SvmTheoreticalSpectrumGeneratorSet::simulate(PeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
