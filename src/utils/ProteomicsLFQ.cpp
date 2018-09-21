@@ -733,6 +733,8 @@ protected:
       Param ffi_param = getParam_().copy("PeptideQuantification:", true);
       ffi_param.setValue("detect:peak_width", 5.0 * median_fwhm);
       ffi_param.setValue("svm:samples", 10000); // restrict number of samples for training
+      ffi_param.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
+      ffi_param.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
