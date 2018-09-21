@@ -118,11 +118,10 @@ namespace OpenMS
   void SvmTheoreticalSpectrumGeneratorSet::getSupportedCharges(std::set<Size>& charges)
   {
     charges.clear();
-    std::map<Size, SvmTheoreticalSpectrumGenerator>::const_iterator it;
-    for (it = simulators_.begin(); it != simulators_.end(); ++it)
-    {
-      charges.insert(it->first);
-    }
+
+    std::transform(std::begin(simulators_), std::end(simulators_),
+                   std::inserter(charges, std::begin(charges)),
+                   [] (std::pair<Size, SvmTheoreticalSpectrumGenerator> it) { return it.first; });
   }
 
   //return a modifiable reference to the SVM model with given charge. If charge is not supported throw exception
