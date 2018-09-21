@@ -132,7 +132,7 @@ namespace OpenMS
     const int THREE_PRIME_MODIFICATION_INDEX = -2;
 
     // set terminal modifications, if any are specified
-    std::for_each(var_mods_begin, var_mods_end, [&seq, &map_compatibility] (ConstRibonucleotidePtr const & v)
+    std::for_each(var_mods_begin, var_mods_end, [&seq, &map_compatibility, &FIVE_PRIME_MODIFICATION_INDEX, &THREE_PRIME_MODIFICATION_INDEX] (ConstRibonucleotidePtr const & v)
       {
         if (v->getTermSpecificity() == Ribonucleotide::FIVE_PRIME)
         {

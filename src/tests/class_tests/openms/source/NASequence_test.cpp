@@ -539,7 +539,6 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] const ConstIterator operator+(difference_type diff) const))
 {
-  String result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   NASequence::ConstIterator it = seq.begin();
   TEST_EQUAL((*(it+2)).getCode(), "C");
@@ -554,7 +553,6 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] const ConstIterator operator-(difference_type diff) const))
 {
-  String result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   NASequence::ConstIterator it = seq.end();
   TEST_EQUAL((*(it-2)).getCode(), "C");
@@ -563,7 +561,6 @@ END_SECTION
 
 START_SECTION(([NASequence::ConstIterator] bool operator==(const ConstIterator &rhs) const))
 {
-  String result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   NASequence::ConstIterator it = seq.end();
   TEST_EQUAL((it-4 == seq.begin()), true);
@@ -627,7 +624,6 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] Iterator(std::vector<const Ribonucleotide*>* vec_ptr, difference_type position)))
 {
-  String result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   NASequence::Iterator it = seq.begin();
   TEST_EQUAL((*(it+2)).getCode(), "C");
@@ -673,7 +669,6 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] const Iterator operator+(difference_type diff) const))
 {
-  String result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   NASequence::Iterator it = seq.begin();
   TEST_EQUAL((*(it+2)).getCode(), "C");
@@ -688,7 +683,6 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] const Iterator operator-(difference_type diff) const))
 {
-  String result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   NASequence::Iterator it = seq.end();
   TEST_EQUAL((*(it-2)).getCode(), "C");
@@ -697,7 +691,6 @@ END_SECTION
 
 START_SECTION(([NASequence::Iterator] bool operator==(const Iterator& rhs) const))
 {
-  String result[] = {"A","U","C","G"};
   NASequence seq = NASequence::fromString("AUCG");
   NASequence::Iterator it = seq.end();
   TEST_EQUAL((it-4 == seq.begin()), true);
