@@ -86,32 +86,34 @@ namespace OpenMS
       filename = File::find(filename);
     }
 
-    Param sim_param = SvmTheoreticalSpectrumGenerator().getDefaults();
-
     TextFile file(filename);
-    TextFile::ConstIterator it = file.begin();
-
-    if (it == file.end()) return; // no data to load
+    // Boost::empty()
+    if (std::begin(file) == std::end(file)) { return; }// no data to load
 
     // skip header line
-    ++it;
-    // process content
-    for (; it != file.end(); ++it)
+    const auto begin_from_skipped_header = std::next(std::begin(file));
+
+    Param sim_param = SvmTheoreticalSpectrumGenerator().getDefaults();
+
+    const auto process_content = [this, filename, &sim_param] (TextFile::Iterator::value_type i)
     {
-      std::vector<String> spl;
-      it->split(":", spl);
-      Int precursor_charge = spl[0].toInt();
+        std::vector<String> spl;
+        i.split(":", spl);
+        Int precursor_charge = spl[0].toInt();
 
-      if (spl.size() != 2 || precursor_charge < 1)
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *it, " Invalid entry in SVM model File");
-      }
+        if (spl.size() != 2 || precursor_charge < 1)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, i, " Invalid entry in SVM model File");
+        }
 
-      //load the model into the map
-      sim_param.setValue("model_file_name", File::path(filename) + "/" + spl[1]);
-      simulators_[precursor_charge].setParameters(sim_param);
-      simulators_[precursor_charge].load();
-    }
+        //load the model into the map
+        sim_param.setValue("model_file_name", File::path(filename) + "/" + spl[1]);
+        simulators_[precursor_charge].setParameters(sim_param);
+        simulators_[precursor_charge].load();
+    };
+
+    // process content
+    std::for_each(begin_from_skipped_header, std::end(file), process_content);
   }
 
   //Return precursor charges for which a model is contained in the set

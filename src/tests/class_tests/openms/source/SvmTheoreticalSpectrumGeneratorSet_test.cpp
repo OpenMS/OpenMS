@@ -75,7 +75,7 @@ END_SECTION
 
 SvmTheoreticalSpectrumGeneratorSet gen_set;
 
-START_SECTION(void load(String))
+START_SECTION(void load(String filename))
     gen_set.load("examples/simulation/SvmModelSet.model");
     NOT_TESTABLE //is implicitly tested by the following two tests
 END_SECTION

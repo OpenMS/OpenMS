@@ -82,7 +82,7 @@ public:
     void simulate(PeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge);
 
     ///Load a trained Svm and Prob. models
-    void load(String);
+    void load(String filename);
 
     ///Return precursor charges for which a model is contained in the set
     void getSupportedCharges(std::set<Size> & charges);
