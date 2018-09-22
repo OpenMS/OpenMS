@@ -3315,7 +3315,7 @@ namespace OpenMS
           // retrieving the identifier and looking up the term within the
           // correct ontology in our cv_ object.
           char s[8];
-          sprintf(s, "%07d", metaValue.getUnit()); // all CV use 7 digit indentifiers padded with zeros
+          snprintf(s, sizeof(s), "%07d", metaValue.getUnit()); // all CV use 7 digit indentifiers padded with zeros
           String unitstring = String(s);
           if (metaValue.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
           {
@@ -3408,7 +3408,7 @@ namespace OpenMS
               // retrieving the identifier and looking up the term within the
               // correct ontology in our cv_ object.
               char s[8];
-              sprintf(s, "%07d", d.getUnit()); // all CV use 7 digit indentifiers padded with zeros
+              snprintf(s, sizeof(s), "%07d", d.getUnit()); // all CV use 7 digit indentifiers padded with zeros
               String unitstring = String(s);
               if (d.getUnitType() == DataValue::UnitType::UNIT_ONTOLOGY)
               {

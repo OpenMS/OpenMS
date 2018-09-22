@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <QtCore/QString>
