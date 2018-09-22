@@ -706,12 +706,12 @@ START_SECTION((inline UnitType getUnitType() const))
 }
 END_SECTION
 
-START_SECTION((inline void setUnitType(const UnitType & u))
+START_SECTION((inline void setUnitType(const UnitType & u)))
 {
   DataValue a("v");
-  a.setUnitType(DataValue::UnitType::MS_ONTOLOGY)
+  a.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
   TEST_EQUAL(a.getUnitType(), DataValue::UnitType::MS_ONTOLOGY)
-  a.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY)
+  a.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
   TEST_EQUAL(a.getUnitType(), DataValue::UnitType::UNIT_ONTOLOGY)
 }
 END_SECTION
