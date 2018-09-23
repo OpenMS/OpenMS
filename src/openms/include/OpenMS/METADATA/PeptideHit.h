@@ -49,7 +49,7 @@ namespace OpenMS
 
     It contains the fields score, score_type, rank, and sequence.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI PeptideHit :
     public MetaInfoInterface
@@ -237,24 +237,31 @@ public:
 
     /** @name Constructors and Destructor */
     //@{
-    /// default constructor
+
+    /// Default constructor
     PeptideHit();
 
-    /// values constructor
+    /// Values constructor
     PeptideHit(double score,
                UInt rank,
                Int charge,
                const AASequence& sequence);
 
-    /// copy constructor
+    /// Copy constructor
     PeptideHit(const PeptideHit& source);
 
-    /// destructor
+    /// Move constructor
+    PeptideHit(PeptideHit&&);
+
+    /// Destructor
     virtual ~PeptideHit();
     //@}
 
-    /// assignment operator
+    /// Assignment operator
     PeptideHit& operator=(const PeptideHit& source);
+
+    /// Move assignment operator
+    PeptideHit& operator=(PeptideHit&&);
 
     /// Equality operator
     bool operator==(const PeptideHit& rhs) const;

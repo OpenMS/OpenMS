@@ -74,11 +74,16 @@ public:
     /// Copy constructor
     MetaInfo(const MetaInfo& rhs);
 
+    /// Move constructor
+    MetaInfo(MetaInfo&&) = default;
+
     /// Destructor
     ~MetaInfo();
 
     /// Assignment operator
     MetaInfo& operator=(const MetaInfo& rhs);
+    /// Move assignment operator
+    MetaInfo& operator=(MetaInfo&&) & = default;
 
     /// Equality operator
     bool operator==(const MetaInfo& rhs) const;

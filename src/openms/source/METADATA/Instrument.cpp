@@ -71,7 +71,9 @@ namespace OpenMS
   Instrument & Instrument::operator=(const Instrument & source)
   {
     if (&source == this)
+    {
       return *this;
+    }
 
     MetaInfoInterface::operator=(source);
     software_ = source.software_;
@@ -89,17 +91,6 @@ namespace OpenMS
 
   bool Instrument::operator==(const Instrument & rhs) const
   {
-//if (software_ != rhs.software_) cout << "Instrument - " << __LINE__ << endl;
-//if (name_ != rhs.name_) cout << "Instrument - " << __LINE__ << endl;
-//if (vendor_ != rhs.vendor_) cout << "Instrument - " << __LINE__ << endl;
-//if (model_ != rhs.model_) cout << "Instrument - " << __LINE__ << endl;
-//if (customizations_ != rhs.customizations_) cout << "Instrument - " << __LINE__ << endl;
-//if (ion_sources_ != rhs.ion_sources_) cout << "Instrument - " << __LINE__ << endl;
-//if (mass_analyzers_ != rhs.mass_analyzers_) cout << "Instrument - " << __LINE__ << endl;
-//if (ion_detectors_ != rhs.ion_detectors_) cout << "Instrument - " << __LINE__ << endl;
-//if (ion_optics_ != rhs.ion_optics_) cout << "Instrument - " << __LINE__ << endl;
-//if (MetaInfoInterface::operator!=(rhs)) cout << "Instrument - " << __LINE__ << endl;
-
     return software_ == rhs.software_ &&
            name_ == rhs.name_ &&
            vendor_ == rhs.vendor_ &&
@@ -228,3 +219,4 @@ namespace OpenMS
   }
 
 }
+

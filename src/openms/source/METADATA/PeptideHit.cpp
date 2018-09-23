@@ -81,14 +81,24 @@ namespace OpenMS
     }
   }
 
+  // http://thbecker.net/articles/rvalue_references/section_05.html
+  PeptideHit::PeptideHit(PeptideHit&& source) :
+    MetaInfoInterface(std::move(source)), // NOTE: rhs itself is an lvalue
+    sequence_(source.sequence_),
+    score_(source.score_),
+    analysis_results_(source.analysis_results_),
+    rank_(source.rank_),
+    charge_(source.charge_),
+    peptide_evidences_(source.peptide_evidences_),
+    fragment_annotations_(source.fragment_annotations_)
+  {
+    source.analysis_results_ = nullptr;
+  }
+
   // destructor
   PeptideHit::~PeptideHit()
   {
-    if (analysis_results_ != nullptr)
-    {
-      // free memory again
-      delete analysis_results_;
-    }
+    delete analysis_results_;
   }
 
   PeptideHit& PeptideHit::operator=(const PeptideHit& source)
@@ -104,17 +114,38 @@ namespace OpenMS
     analysis_results_ = nullptr;
     if (source.analysis_results_ != nullptr)
     {
-      if (analysis_results_ != nullptr)
-      {
-        // free memory first
-        delete analysis_results_;
-      }
+      // free memory first
+      delete analysis_results_;
       analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
     }
     charge_ = source.charge_;
-    rank_  = source.rank_;
+    rank_ = source.rank_;
     peptide_evidences_ = source.peptide_evidences_;
     fragment_annotations_ = source.fragment_annotations_;
+    return *this;
+  }
+
+  PeptideHit& PeptideHit::operator=(PeptideHit&& source)
+  {
+    if (&source == this)
+    {
+      return *this;
+    }
+
+    MetaInfoInterface::operator=(std::move(source));
+    sequence_ = source.sequence_;
+    score_ = source.score_;
+
+    // free memory and assign rhs memory
+    delete analysis_results_;
+    analysis_results_ = source.analysis_results_;
+    source.analysis_results_ = nullptr;
+
+    charge_ = source.charge_;
+    rank_ = source.rank_;
+    peptide_evidences_ = source.peptide_evidences_;
+    fragment_annotations_ = source.fragment_annotations_;
+
     return *this;
   }
 

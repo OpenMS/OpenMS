@@ -58,20 +58,28 @@ public:
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     DocumentIdentifier();
 
     /// Copy constructor
     DocumentIdentifier(const DocumentIdentifier & source);
 
+    /// Move constructor
+    DocumentIdentifier(DocumentIdentifier&&) = default;
+
+    /// Destructor
+    virtual ~DocumentIdentifier();
+
     /// Assignment operator
     DocumentIdentifier & operator=(const DocumentIdentifier & source);
+
+    /// Move assignment operator
+    DocumentIdentifier& operator=(DocumentIdentifier&&) & = default;
 
     /// Equality operator
     bool operator==(const DocumentIdentifier & rhs) const;
 
-    /// destructor
-    virtual ~DocumentIdentifier();
     //@}
 
     /** @name Acessors

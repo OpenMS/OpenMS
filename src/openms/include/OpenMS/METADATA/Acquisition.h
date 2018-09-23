@@ -54,11 +54,15 @@ public:
     Acquisition();
     /// Copy constructor
     Acquisition(const Acquisition & source);
+    /// Move constructor
+    Acquisition(Acquisition&&) = default;
     /// Destructor
     ~Acquisition();
 
     /// Assignment operator
     Acquisition & operator=(const Acquisition & source);
+    /// Move assignment operator
+    Acquisition& operator=(Acquisition&&) & = default;
 
     /// Equality operator
     bool operator==(const Acquisition & rhs) const;

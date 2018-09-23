@@ -45,7 +45,7 @@ namespace OpenMS
 
     It contains the description of instrument, the settings and the gradient.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI HPLC
   {
@@ -54,11 +54,15 @@ public:
     HPLC();
     /// Copy constructor
     HPLC(const HPLC & source);
+    /// Move constructor
+    HPLC(HPLC&&) = default;
     /// Destructor
     ~HPLC();
 
     /// Assignment operator
     HPLC & operator=(const HPLC & source);
+    /// Move assignment operator
+    HPLC& operator=(HPLC&&) & = default;
 
     /// Equality operator
     bool operator==(const HPLC & source) const;

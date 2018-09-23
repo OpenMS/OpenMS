@@ -36,7 +36,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <numeric>
 
-
 using namespace std;
 
 namespace OpenMS

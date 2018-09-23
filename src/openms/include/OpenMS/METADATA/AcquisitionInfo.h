@@ -61,11 +61,15 @@ public:
     AcquisitionInfo();
     /// Copy constructor
     AcquisitionInfo(const AcquisitionInfo& source);
+    /// Move constructor
+    AcquisitionInfo(AcquisitionInfo&&) = default;
     /// Destructor
     ~AcquisitionInfo();
 
     /// Assignment operator
     AcquisitionInfo& operator=(const AcquisitionInfo& source);
+    /// Move assignment operator
+    AcquisitionInfo& operator=(AcquisitionInfo&&) & = default;
 
     /// Equality operator
     bool operator==(const AcquisitionInfo& rhs) const;

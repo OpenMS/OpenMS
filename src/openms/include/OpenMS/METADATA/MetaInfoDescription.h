@@ -53,11 +53,15 @@ public:
     MetaInfoDescription();
     /// Copy constructor
     MetaInfoDescription(const MetaInfoDescription & source);
+    /// Move constructor
+    MetaInfoDescription(MetaInfoDescription&&) = default;
     /// Destructor
     ~MetaInfoDescription();
 
     /// Assignment operator
     MetaInfoDescription & operator=(const MetaInfoDescription & source);
+    /// Move assignment operator
+    MetaInfoDescription& operator=(MetaInfoDescription&&) & = default;
 
     /// Equality operator
     bool operator==(const MetaInfoDescription & rhs) const;

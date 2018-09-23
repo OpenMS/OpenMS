@@ -50,28 +50,28 @@ public:
     /// Detector type
     enum Type
     {
-      TYPENULL,                                                                 ///< Unknown
-      ELECTRONMULTIPLIER,                                           ///< Electron multiplier
-      PHOTOMULTIPLIER,                                                  ///< Photo multiplier
-      FOCALPLANEARRAY,                                                  ///< Focal plane array
-      FARADAYCUP,                                                           ///< Faraday cup
-      CONVERSIONDYNODEELECTRONMULTIPLIER,           ///< Conversion dynode electron multiplier
-      CONVERSIONDYNODEPHOTOMULTIPLIER,                  ///< Conversion dynode photo multiplier
-      MULTICOLLECTOR,                                                   ///< Multi-collector
-      CHANNELELECTRONMULTIPLIER,                            ///< Channel electron multiplier
-      CHANNELTRON,                                                          ///< channeltron
-      DALYDETECTOR,                                                         ///< daly detector
-      MICROCHANNELPLATEDETECTOR,                            ///< microchannel plate detector
-      ARRAYDETECTOR,                                                    ///< array detector
-      CONVERSIONDYNODE,                                                 ///< conversion dynode
-      DYNODE,                                                                   ///< dynode
-      FOCALPLANECOLLECTOR,                                          ///< focal plane collector
-      IONTOPHOTONDETECTOR,                                          ///< ion-to-photon detector
-      POINTCOLLECTOR,                                                   ///< point collector
-      POSTACCELERATIONDETECTOR,                                 ///< postacceleration detector
-      PHOTODIODEARRAYDETECTOR,                                  ///< photodiode array detector
-      INDUCTIVEDETECTOR,                                            ///< inductive detector
-      ELECTRONMULTIPLIERTUBE,                                   ///< electron multiplier tube
+      TYPENULL,                                  ///< Unknown
+      ELECTRONMULTIPLIER,                        ///< Electron multiplier
+      PHOTOMULTIPLIER,                           ///< Photo multiplier
+      FOCALPLANEARRAY,                           ///< Focal plane array
+      FARADAYCUP,                                ///< Faraday cup
+      CONVERSIONDYNODEELECTRONMULTIPLIER,        ///< Conversion dynode electron multiplier
+      CONVERSIONDYNODEPHOTOMULTIPLIER,           ///< Conversion dynode photo multiplier
+      MULTICOLLECTOR,                            ///< Multi-collector
+      CHANNELELECTRONMULTIPLIER,                 ///< Channel electron multiplier
+      CHANNELTRON,                               ///< channeltron
+      DALYDETECTOR,                              ///< daly detector
+      MICROCHANNELPLATEDETECTOR,                 ///< microchannel plate detector
+      ARRAYDETECTOR,                             ///< array detector
+      CONVERSIONDYNODE,                          ///< conversion dynode
+      DYNODE,                                    ///< dynode
+      FOCALPLANECOLLECTOR,                       ///< focal plane collector
+      IONTOPHOTONDETECTOR,                       ///< ion-to-photon detector
+      POINTCOLLECTOR,                            ///< point collector
+      POSTACCELERATIONDETECTOR,                  ///< postacceleration detector
+      PHOTODIODEARRAYDETECTOR,                   ///< photodiode array detector
+      INDUCTIVEDETECTOR,                         ///< inductive detector
+      ELECTRONMULTIPLIERTUBE,                    ///< electron multiplier tube
       SIZE_OF_TYPE
     };
     /// Names of detector types
@@ -80,11 +80,11 @@ public:
     /// Acquisition mode
     enum AcquisitionMode
     {
-      ACQMODENULL,                          ///< Unknown
-      PULSECOUNTING,                    ///< Pulse counting
-      ADC,                                          ///< Analog-digital converter
-      TDC,                                          ///< Time-digital converter
-      TRANSIENTRECORDER,            ///< Transient recorder
+      ACQMODENULL,             ///< Unknown
+      PULSECOUNTING,           ///< Pulse counting
+      ADC,                     ///< Analog-digital converter
+      TDC,                     ///< Time-digital converter
+      TRANSIENTRECORDER,       ///< Transient recorder
       SIZE_OF_ACQUISITIONMODE
     };
     /// Names of acquisition modes
@@ -94,11 +94,15 @@ public:
     IonDetector();
     /// Copy constructor
     IonDetector(const IonDetector & source);
+    /// Move constructor
+    IonDetector(IonDetector&&) = default;
     /// Destructor
     ~IonDetector();
 
     /// Assignment operator
     IonDetector & operator=(const IonDetector & source);
+    /// Move assignment operator
+    IonDetector& operator=(IonDetector&&) & = default;
 
     /// Equality operator
     bool operator==(const IonDetector & rhs) const;
@@ -134,7 +138,7 @@ public:
         - one ion detector
 
         For more complex instruments, the order should be defined.
-*/
+    */
     Int getOrder() const;
     /// sets the order
     void setOrder(Int order);

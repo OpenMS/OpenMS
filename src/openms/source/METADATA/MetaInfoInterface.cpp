@@ -42,7 +42,6 @@ namespace OpenMS
   MetaInfoInterface::MetaInfoInterface() :
     meta_(nullptr)
   {
-
   }
 
   MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs)
@@ -57,6 +56,13 @@ namespace OpenMS
     }
   }
 
+  MetaInfoInterface::MetaInfoInterface(MetaInfoInterface&& rhs) :
+    meta_(rhs.meta_)
+  {
+    // take ownership
+    rhs.meta_ = nullptr;
+  }
+
   MetaInfoInterface::~MetaInfoInterface()
   {
     delete(meta_);
@@ -65,11 +71,9 @@ namespace OpenMS
   MetaInfoInterface & MetaInfoInterface::operator=(const MetaInfoInterface & rhs)
   {
     if (this == &rhs)
+    {
       return *this;
-
-//      std::cout << meta_ << std::endl;
-//      std::cout << rhs.meta_ << std::endl;
-//      std::cout << " " << std::endl;
+    }
 
     if (rhs.meta_ != nullptr && meta_ != nullptr)
     {
@@ -84,6 +88,21 @@ namespace OpenMS
     {
       meta_ = new MetaInfo(*(rhs.meta_));
     }
+
+    return *this;
+  }
+
+  MetaInfoInterface& MetaInfoInterface::operator=(MetaInfoInterface&& rhs)
+  {
+    if (this == &rhs)
+    {
+      return *this;
+    }
+
+    // free memory and assign rhs memory
+    delete(meta_);
+    meta_ = rhs.meta_;
+    rhs.meta_ = nullptr;
 
     return *this;
   }

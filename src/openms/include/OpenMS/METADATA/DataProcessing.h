@@ -86,11 +86,15 @@ public:
     DataProcessing();
     /// Copy constructor
     DataProcessing(const DataProcessing & source);
+    /// Move constructor
+    DataProcessing(DataProcessing&&) = default;
     /// Destructor
     ~DataProcessing();
 
     /// Assignment operator
     DataProcessing & operator=(const DataProcessing & source);
+    /// Move assignment operator
+    DataProcessing& operator=(DataProcessing&&) & = default;
 
     /// Equality operator
     bool operator==(const DataProcessing & rhs) const;

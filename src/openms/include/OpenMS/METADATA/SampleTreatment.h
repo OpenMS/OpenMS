@@ -52,19 +52,25 @@ namespace OpenMS
     public MetaInfoInterface
   {
 public:
+
     /**
         @brief Constructor.
 
         Use a unique type string for each treatment type
     */
     SampleTreatment(const String & type);
+
     /**
         @brief Copy constructor
 
         @note Do not forget to call it when you derive a class from SampleTreatment!
     */
     SampleTreatment(const SampleTreatment &);
-    /// destructor
+
+    /// Move constructor
+    SampleTreatment(SampleTreatment&&) = default;
+
+    /// Destructor
     virtual ~SampleTreatment();
 
     /**
@@ -74,6 +80,10 @@ public:
     */
     SampleTreatment & operator=(const SampleTreatment &);
 
+    /// Move assignment operator
+    SampleTreatment& operator=(SampleTreatment&&) & = default;
+
+
     /**
         @brief Equality operator
 
@@ -81,7 +91,7 @@ public:
         They check the type and cast the reference to the right type if the type matches.
 
     @note Do not forget to call it when you derive a class from SampleTreatment!
-  */
+    */
     virtual bool operator==(const SampleTreatment & rhs) const;
 
     /**
@@ -89,7 +99,7 @@ public:
 
         The type_ has to be set in the default constructor.
         It is used to determine the kind of sample treatment, when only a pointer to this base class is available.
-        */
+    */
     const String & getType() const;
 
     /// returns the description of the sample treatment

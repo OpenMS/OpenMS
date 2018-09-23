@@ -55,11 +55,15 @@ public:
     Product();
     /// Copy constructor
     Product(const Product & source);
+    /// Move constructor
+    Product(Product&&) = default;
     /// Destructor
     ~Product() override;
 
     /// Assignment operator
     Product & operator=(const Product & source);
+    /// Move assignment operator
+    Product& operator=(Product&&) & = default;
 
     /// Equality operator
     bool operator==(const Product & rhs) const;

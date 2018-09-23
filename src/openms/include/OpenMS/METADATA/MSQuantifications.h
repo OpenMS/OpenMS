@@ -193,8 +193,13 @@ public:
     /// Copy constructor
     MSQuantifications(const MSQuantifications & source);
 
+    /// Move constructor
+    MSQuantifications(MSQuantifications&&) = default;
+
     /// Assignment operator
     MSQuantifications & operator=(const MSQuantifications & source);
+    /// Move assignment operator
+    MSQuantifications& operator=(MSQuantifications&&) & = default;
 
     /// Equality operator
     bool operator==(const MSQuantifications & rhs) const;

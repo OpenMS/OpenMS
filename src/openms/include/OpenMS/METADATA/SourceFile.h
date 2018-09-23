@@ -55,6 +55,7 @@ public:
       MD5, ///< Message-Digest algorithm 5
       SIZE_OF_CHECKSUMTYPE
     };
+
     /// Names of checksum types
     static const std::string NamesOfChecksumType[SIZE_OF_CHECKSUMTYPE];
 
@@ -62,10 +63,15 @@ public:
     SourceFile();
     /// Copy constructor
     SourceFile(const SourceFile& source);
+    /// Move constructor
+    SourceFile(SourceFile&&) = default;
     /// Destructor
     ~SourceFile() override;
+
     /// Assignment operator
     SourceFile& operator=(const SourceFile& source);
+    /// Move assignment operator
+    SourceFile& operator=(SourceFile&&) & = default;
 
     /// Equality operator
     bool operator==(const SourceFile& rhs) const;

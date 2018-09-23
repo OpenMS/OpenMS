@@ -41,9 +41,9 @@ namespace OpenMS
   /**
     @brief Represents a object which can store the information of an analysisXML instance
 
-        //@todo docu (Andreas)
+    //@todo docu (Andreas)
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI IdentificationHit :
     public MetaInfoInterface
@@ -52,14 +52,21 @@ public:
 
     /// @name constructors,destructors,assignment operator
     //@{
-    /// default constructor
+
+    /// Default constructor
     IdentificationHit();
-    /// destructor
+    /// Destructor
     virtual ~IdentificationHit();
-    /// copy constructor
+    /// Copy constructor
     IdentificationHit(const IdentificationHit & source);
-    /// assignment operator
+    /// Move constructor
+    IdentificationHit(IdentificationHit&&) = default;
+
+    /// Assignment operator
     IdentificationHit & operator=(const IdentificationHit & source);
+    /// Move assignment operator
+    IdentificationHit& operator=(IdentificationHit&&) & = default;
+
     /// Equality operator
     bool operator==(const IdentificationHit & rhs) const;
     /// Inequality operator
@@ -124,3 +131,4 @@ protected:
   };
 
 } //namespace OpenMS
+

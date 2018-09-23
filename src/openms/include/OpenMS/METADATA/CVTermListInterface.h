@@ -54,22 +54,27 @@ namespace OpenMS
 
       @ingroup Metadata
   */
-  ///Representation of a CV term used by CVMappings
   class OPENMS_DLLAPI CVTermListInterface :
     public MetaInfoInterface
   {
 
   public:
 
+    // Constructor
     CVTermListInterface();
 
+    /// Copy constructor
     CVTermListInterface(const CVTermListInterface & rhs);
+    /// Move constructor
+    CVTermListInterface(CVTermListInterface&&);
 
     // Destructor (non virtual)
     ~CVTermListInterface();
 
     /// Assignment operator
     CVTermListInterface & operator=(const CVTermListInterface & rhs);
+    /// Move assignment operator
+    CVTermListInterface& operator=(CVTermListInterface&&);
 
     /// equality operator
     bool operator==(const CVTermListInterface& rhs) const;

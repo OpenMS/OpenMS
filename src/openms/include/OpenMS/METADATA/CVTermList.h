@@ -60,11 +60,17 @@ public:
     /// Copy constructor
     CVTermList(const CVTermList& rhs);
 
+    /// Move constructor
+    CVTermList(CVTermList&&) = default;
+
     /// Destructor
     virtual ~CVTermList();
 
     /// Assignment operator
     CVTermList& operator=(const CVTermList& rhs);
+
+    /// Move assignment operator
+    CVTermList& operator=(CVTermList&&) & = default;
 
     /** @name Accessors
     */

@@ -50,22 +50,26 @@ namespace OpenMS
     public SampleTreatment
   {
 public:
-    /// default constructor
+    /// Default constructor
     Digestion();
-    /// copy constructor
+    /// Copy constructor
     Digestion(const Digestion &);
-    /// destructor
+    /// Move constructor
+    Digestion(Digestion&&) = default;
+    /// Destructor
     ~Digestion() override;
 
-    /// assignment operator
+    /// Assignment operator
     Digestion & operator=(const Digestion &);
+    /// Move assignment operator
+    Digestion& operator=(Digestion&&) & = default;
 
     /**
         @brief Equality operator
 
-    Although this operator takes a reference to a SampleTreatment as argument
-    it tests for the equality of Tagging instances!
-  */
+      Although this operator takes a reference to a SampleTreatment as argument
+      it tests for the equality of Tagging instances!
+    */
     bool operator==(const SampleTreatment & rhs) const override;
 
     /// clone method. See SampleTreatment
