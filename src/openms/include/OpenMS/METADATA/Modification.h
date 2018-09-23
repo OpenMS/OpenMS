@@ -68,14 +68,14 @@ public:
     /// Default constructor
     Modification();
     /// Copy constructor
-    Modification(const Modification &);
+    Modification(const Modification &) = default;
     /// Move constructor
     Modification(Modification&&) = default;
     /// Destructor
     ~Modification() override;
 
     /// Assignment operator
-    Modification & operator=(const Modification &);
+    Modification & operator=(const Modification &) = default;
     /// Move assignment operator
     Modification& operator=(Modification&&) & = default;
 

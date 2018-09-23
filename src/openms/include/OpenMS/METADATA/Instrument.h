@@ -90,14 +90,14 @@ public:
     /// Constructor
     Instrument();
     /// Copy constructor
-    Instrument(const Instrument & source);
+    Instrument(const Instrument & source) = default;
     /// Move constructor
     Instrument(Instrument&&) = default;
     /// Destructor
     ~Instrument();
 
     /// Assignment operator
-    Instrument & operator=(const Instrument & source);
+    Instrument & operator=(const Instrument & source) = default;
     /// Move assignment operator
     Instrument& operator=(Instrument&&) & = default;
 

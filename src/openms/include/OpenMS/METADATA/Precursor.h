@@ -87,14 +87,14 @@ public:
     /// Constructor
     Precursor();
     /// Copy constructor
-    Precursor(const Precursor & source);
+    Precursor(const Precursor & source) = default;
     /// Move constructor
     Precursor(Precursor&&) = default;
     /// Destructor
     ~Precursor() override;
 
     /// Assignment operator
-    Precursor & operator=(const Precursor & source);
+    Precursor & operator=(const Precursor & source) = default;
     /// Move assignment operator
     Precursor& operator=(Precursor&&) & = default;
 

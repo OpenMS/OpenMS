@@ -173,6 +173,10 @@ protected:
     double volume_;
     double concentration_;
     std::vector<Sample> subsamples_;
+
+    // note: default move constructor / assignment operator will work on this,
+    // since it will move the whole vector over to the new object who will then
+    // own the memory.
     std::list<SampleTreatment *> treatments_;
 
   };

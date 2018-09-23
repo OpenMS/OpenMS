@@ -78,6 +78,22 @@ START_SECTION(Acquisition(const Acquisition& source))
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 END_SECTION
 
+START_SECTION(Acquisition(Acquisition&&) = default)
+  Acquisition e, empty;
+  e.setIdentifier("Ident");
+
+  Acquisition ef(e);
+  Acquisition ef2(e);
+
+  TEST_EQUAL(ef != empty, true)
+
+  // the move target should be equal, while the move source should be empty
+  Acquisition ef_mv(std::move(ef));
+  TEST_EQUAL(ef_mv == ef2, true)
+  TEST_EQUAL(ef == empty, true)
+  TEST_EQUAL(ef.getIdentifier() == "", true)
+END_SECTION
+
 START_SECTION(Acquisition& operator= (const Acquisition& source))
 	Acquisition tmp,tmp2,tmp3;
 	// assignment of a modified object

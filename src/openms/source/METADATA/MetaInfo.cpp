@@ -41,27 +41,8 @@ namespace OpenMS
 
   MetaInfoRegistry MetaInfo::registry_ = MetaInfoRegistry();
 
-  MetaInfo::MetaInfo()
-  {
-  }
-
-  MetaInfo::MetaInfo(const MetaInfo & rhs)
-  {
-    *this = rhs;
-  }
-
   MetaInfo::~MetaInfo()
   {
-  }
-
-  MetaInfo & MetaInfo::operator=(const MetaInfo & rhs)
-  {
-    if (this == &rhs)
-      return *this;
-
-    index_to_value_ = rhs.index_to_value_;
-
-    return *this;
   }
 
   bool MetaInfo::operator==(const MetaInfo & rhs) const
@@ -175,3 +156,4 @@ namespace OpenMS
   }
 
 } //namespace
+

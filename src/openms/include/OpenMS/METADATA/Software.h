@@ -50,16 +50,16 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    Software();
+    Software() = default;
     /// Copy constructor
-    Software(const Software & source);
+    Software(const Software & source) = default;
     /// Move constructor
     Software(Software&&) = default;
     /// Destructor
     ~Software() override;
 
     /// Assignment operator
-    Software & operator=(const Software & source);
+    Software & operator=(const Software & source) = default;
     /// Move assignment operator
     Software& operator=(Software&&) & = default;
 

@@ -58,14 +58,14 @@ public:
 
         Use a unique type string for each treatment type
     */
-    SampleTreatment(const String & type);
+    explicit SampleTreatment(const String & type);
 
     /**
         @brief Copy constructor
 
         @note Do not forget to call it when you derive a class from SampleTreatment!
     */
-    SampleTreatment(const SampleTreatment &);
+    SampleTreatment(const SampleTreatment &) = default;
 
     /// Move constructor
     SampleTreatment(SampleTreatment&&) = default;
@@ -78,11 +78,10 @@ public:
 
         @note Do not forget to call it when you derive a class from SampleTreatment!
     */
-    SampleTreatment & operator=(const SampleTreatment &);
+    SampleTreatment & operator=(const SampleTreatment &) = default;
 
     /// Move assignment operator
     SampleTreatment& operator=(SampleTreatment&&) & = default;
-
 
     /**
         @brief Equality operator

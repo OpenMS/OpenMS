@@ -44,15 +44,12 @@ namespace OpenMS
   {
   }
 
-  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs)
+  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs) :
+    meta_(nullptr)
   {
     if (rhs.meta_ != nullptr)
     {
       meta_ = new MetaInfo(*(rhs.meta_));
-    }
-    else
-    {
-      meta_ = nullptr;
     }
   }
 
@@ -244,3 +241,4 @@ namespace OpenMS
   }
 
 } //namespace
+

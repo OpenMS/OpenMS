@@ -182,22 +182,23 @@ public:
     //~ QUANT_TYPES experiment_type = MS1LABEL;
 
     /// Constructor
-    MSQuantifications();
+    MSQuantifications() = default;
 
     /// Detailed Constructor
     MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
 
-    /// Destructor
-    ~MSQuantifications() override;
-
     /// Copy constructor
-    MSQuantifications(const MSQuantifications & source);
+    MSQuantifications(const MSQuantifications & source) = default;
 
     /// Move constructor
     MSQuantifications(MSQuantifications&&) = default;
 
+    /// Destructor
+    ~MSQuantifications() override;
+
     /// Assignment operator
-    MSQuantifications & operator=(const MSQuantifications & source);
+    MSQuantifications & operator=(const MSQuantifications & source) = default;
+
     /// Move assignment operator
     MSQuantifications& operator=(MSQuantifications&&) & = default;
 

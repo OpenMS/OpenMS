@@ -53,19 +53,19 @@ public:
     /// Default constructor
     Digestion();
     /// Copy constructor
-    Digestion(const Digestion &);
+    Digestion(const Digestion &) = default;
     /// Move constructor
     Digestion(Digestion&&) = default;
     /// Destructor
     ~Digestion() override;
 
     /// Assignment operator
-    Digestion & operator=(const Digestion &);
+    Digestion & operator=(const Digestion &) = default;
     /// Move assignment operator
     Digestion& operator=(Digestion&&) & = default;
 
     /**
-        @brief Equality operator
+      @brief Equality operator
 
       Although this operator takes a reference to a SampleTreatment as argument
       it tests for the equality of Tagging instances!

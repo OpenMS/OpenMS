@@ -83,16 +83,16 @@ public:
     static const std::string NamesOfProcessingAction[SIZE_OF_PROCESSINGACTION];
 
     /// Constructor
-    DataProcessing();
+    DataProcessing() = default;
     /// Copy constructor
-    DataProcessing(const DataProcessing & source);
+    DataProcessing(const DataProcessing & source) = default;
     /// Move constructor
     DataProcessing(DataProcessing&&) = default;
     /// Destructor
     ~DataProcessing();
 
     /// Assignment operator
-    DataProcessing & operator=(const DataProcessing & source);
+    DataProcessing & operator=(const DataProcessing & source) = default;
     /// Move assignment operator
     DataProcessing& operator=(DataProcessing&&) & = default;
 

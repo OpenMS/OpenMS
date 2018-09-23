@@ -107,7 +107,7 @@ public:
     ProteinHit(double score, UInt rank, String accession, String sequence);
 
     /// Copy constructor
-    ProteinHit(const ProteinHit & source);
+    ProteinHit(const ProteinHit & source) = default;
 
     /// Move constructor
     ProteinHit(ProteinHit&&) = default;
@@ -117,7 +117,7 @@ public:
     //@}
 
     /// Assignment operator
-    ProteinHit & operator=(const ProteinHit & source);
+    ProteinHit & operator=(const ProteinHit & source) = default;
 
     /// Move assignment operator
     ProteinHit& operator=(ProteinHit&&) & = default;

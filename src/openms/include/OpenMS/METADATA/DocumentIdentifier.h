@@ -63,7 +63,7 @@ public:
     DocumentIdentifier();
 
     /// Copy constructor
-    DocumentIdentifier(const DocumentIdentifier & source);
+    DocumentIdentifier(const DocumentIdentifier & source) = default;
 
     /// Move constructor
     DocumentIdentifier(DocumentIdentifier&&) = default;
@@ -72,7 +72,7 @@ public:
     virtual ~DocumentIdentifier();
 
     /// Assignment operator
-    DocumentIdentifier & operator=(const DocumentIdentifier & source);
+    DocumentIdentifier & operator=(const DocumentIdentifier & source) = default;
 
     /// Move assignment operator
     DocumentIdentifier& operator=(DocumentIdentifier&&) & = default;

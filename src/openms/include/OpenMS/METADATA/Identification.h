@@ -58,16 +58,16 @@ public:
     //@{
 
     /// Default constructor
-    Identification();
+    Identification() = default;
     /// Copy constructor
-    Identification(const Identification & source);
+    Identification(const Identification & source) = default;
     /// Move constructor
     Identification(Identification&&) = default;
     /// Destructor
     virtual ~Identification();
 
     /// Assignment operator
-    Identification & operator=(const Identification & source);
+    Identification & operator=(const Identification & source) = default;
     /// Move assignment operator
     Identification& operator=(Identification&&) & = default;
 

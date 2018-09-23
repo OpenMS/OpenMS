@@ -47,9 +47,9 @@ namespace OpenMS
     public MetaInfoInterface
   {
     /// Default constructor
-    ScanWindow();
+    ScanWindow() = default;
     /// Copy constructor
-    ScanWindow(const ScanWindow & source);
+    ScanWindow(const ScanWindow & source) = default;
     /// Move constructor
     ScanWindow(ScanWindow&&) = default;
     /// Destructor
@@ -61,14 +61,14 @@ namespace OpenMS
     bool operator!=(const ScanWindow & source) const;
 
     /// Assignment operator
-    ScanWindow & operator=(const ScanWindow & source);
+    ScanWindow & operator=(const ScanWindow & source) = default;
     /// Move assignment operator
     ScanWindow& operator=(ScanWindow&&) & = default;
 
     /// Begin of the window
-    double begin;
+    double begin = 0.0;
     /// End of the window
-    double end;
+    double end = 0.0;
   };
 
 } // namespace OpenMS

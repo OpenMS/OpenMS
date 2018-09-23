@@ -48,45 +48,9 @@ namespace OpenMS
 
   }
 
-  Instrument::Instrument(const Instrument & source) :
-    MetaInfoInterface(source),
-    name_(source.name_),
-    vendor_(source.vendor_),
-    model_(source.model_),
-    customizations_(source.customizations_),
-    ion_sources_(source.ion_sources_),
-    mass_analyzers_(source.mass_analyzers_),
-    ion_detectors_(source.ion_detectors_),
-    software_(source.software_),
-    ion_optics_(source.ion_optics_)
-  {
-
-  }
-
   Instrument::~Instrument()
   {
 
-  }
-
-  Instrument & Instrument::operator=(const Instrument & source)
-  {
-    if (&source == this)
-    {
-      return *this;
-    }
-
-    MetaInfoInterface::operator=(source);
-    software_ = source.software_;
-    name_ = source.name_;
-    vendor_ = source.vendor_;
-    model_ = source.model_;
-    customizations_ = source.customizations_;
-    ion_sources_ = source.ion_sources_;
-    mass_analyzers_ = source.mass_analyzers_;
-    ion_detectors_ = source.ion_detectors_;
-    ion_optics_ = source.ion_optics_;
-
-    return *this;
   }
 
   bool Instrument::operator==(const Instrument & rhs) const

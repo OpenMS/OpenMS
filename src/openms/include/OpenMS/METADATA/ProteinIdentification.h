@@ -149,14 +149,14 @@ public:
     /// Default constructor
     ProteinIdentification();
     /// Copy constructor
-    ProteinIdentification(const ProteinIdentification& source);
+    ProteinIdentification(const ProteinIdentification& source) = default;
     /// Move constructor
     ProteinIdentification(ProteinIdentification&&) = default;
     /// Destructor
     virtual ~ProteinIdentification();
 
     /// Assignment operator
-    ProteinIdentification& operator=(const ProteinIdentification& source);
+    ProteinIdentification& operator=(const ProteinIdentification& source) = default;
     /// Move assignment operator
     ProteinIdentification& operator=(ProteinIdentification&&) & = default;
 

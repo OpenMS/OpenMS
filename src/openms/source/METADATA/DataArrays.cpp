@@ -32,6 +32,8 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/METADATA/DataArrays.h>
+
 namespace OpenMS
 {
 

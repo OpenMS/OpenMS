@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/Sample.h>
+
 #include <OpenMS/METADATA/SampleTreatment.h>
 
 using namespace std;
@@ -300,3 +301,4 @@ namespace OpenMS
   }
 
 }
+

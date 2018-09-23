@@ -50,16 +50,16 @@ namespace OpenMS
 public:
 
     /// Constructor
-    ContactPerson();
+    ContactPerson() = default;
     /// Copy constructor
-    ContactPerson(const ContactPerson & source);
+    ContactPerson(const ContactPerson & source) = default;
     /// Move constructor
     ContactPerson(ContactPerson&&) = default;
     /// Destructor
-    ~ContactPerson();
+    ~ContactPerson() = default;
 
     /// Assignment operator
-    ContactPerson & operator=(const ContactPerson & source);
+    ContactPerson & operator=(const ContactPerson & source) = default;
     /// Move assignment operator
     ContactPerson& operator=(ContactPerson&&) & = default;
 

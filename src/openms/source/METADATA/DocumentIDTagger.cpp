@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DocumentIDTagger.h>
+
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 
@@ -60,24 +61,8 @@ namespace OpenMS
     pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
 
-  DocumentIDTagger::DocumentIDTagger(const DocumentIDTagger & source) :
-    toolname_(source.toolname_),
-    pool_file_(source.pool_file_)
-  {
-  }
-
   DocumentIDTagger::~DocumentIDTagger()
   {
-  }
-
-  DocumentIDTagger & DocumentIDTagger::operator=(const DocumentIDTagger & source)
-  {
-    if (source == *this)
-      return *this;
-
-    toolname_ = source.toolname_;
-    pool_file_ = source.pool_file_;
-    return *this;
   }
 
   bool DocumentIDTagger::operator==(const DocumentIDTagger & rhs) const
@@ -254,3 +239,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

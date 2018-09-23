@@ -47,7 +47,6 @@ namespace OpenMS
       cvt_ptr_(nullptr)
     {}
 
-
   CVTermListInterface::CVTermListInterface(const CVTermListInterface & rhs) :
     MetaInfoInterface(rhs),
     cvt_ptr_(nullptr)

@@ -50,16 +50,16 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    MetaInfoDescription();
+    MetaInfoDescription() = default;
     /// Copy constructor
-    MetaInfoDescription(const MetaInfoDescription & source);
+    MetaInfoDescription(const MetaInfoDescription & source) = default;
     /// Move constructor
     MetaInfoDescription(MetaInfoDescription&&) = default;
     /// Destructor
     ~MetaInfoDescription();
 
     /// Assignment operator
-    MetaInfoDescription & operator=(const MetaInfoDescription & source);
+    MetaInfoDescription & operator=(const MetaInfoDescription & source) = default;
     /// Move assignment operator
     MetaInfoDescription& operator=(MetaInfoDescription&&) & = default;
 

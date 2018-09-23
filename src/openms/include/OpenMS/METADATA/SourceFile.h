@@ -62,14 +62,14 @@ public:
     /// Constructor
     SourceFile();
     /// Copy constructor
-    SourceFile(const SourceFile& source);
+    SourceFile(const SourceFile& source) = default;
     /// Move constructor
     SourceFile(SourceFile&&) = default;
     /// Destructor
     ~SourceFile() override;
 
     /// Assignment operator
-    SourceFile& operator=(const SourceFile& source);
+    SourceFile& operator=(const SourceFile& source) = default;
     /// Move assignment operator
     SourceFile& operator=(SourceFile&&) & = default;
 
@@ -121,7 +121,7 @@ protected:
     double file_size_;
     String file_type_;
     String checksum_;
-    ChecksumType checksum_type_;
+    ChecksumType checksum_type_ = SourceFile::ChecksumType::UNKNOWN_CHECKSUM;
     String native_id_type_;
     String native_id_type_accession_;
   };

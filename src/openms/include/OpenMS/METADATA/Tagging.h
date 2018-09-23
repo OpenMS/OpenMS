@@ -58,14 +58,14 @@ public:
     /// Default constructor
     Tagging();
     /// Copy constructor
-    Tagging(const Tagging &);
+    Tagging(const Tagging &) = default;
     /// Move constructor
     Tagging(Tagging&&) = default;
     /// Destructor
     ~Tagging() override;
 
     /// Assignment operator
-    Tagging & operator=(const Tagging &);
+    Tagging & operator=(const Tagging &) = default;
     /// Move assignment operator
     Tagging& operator=(Tagging&&) & = default;
 

@@ -67,7 +67,7 @@ public:
     PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after);
 
     /// Copy constructor
-    PeptideEvidence(const PeptideEvidence& source);
+    PeptideEvidence(const PeptideEvidence& source) = default;
 
     /// Move constructor
     PeptideEvidence(PeptideEvidence&&) = default;
@@ -77,7 +77,7 @@ public:
     //@}
 
     /// Assignment operator
-    PeptideEvidence& operator=(const PeptideEvidence& source);
+    PeptideEvidence& operator=(const PeptideEvidence& source) = default;
     /// Move assignment operator
     PeptideEvidence& operator=(PeptideEvidence&&) & = default;
 

@@ -118,8 +118,8 @@ namespace OpenMS
       delete analysis_results_;
       analysis_results_ = new std::vector<PepXMLAnalysisResult>(*source.analysis_results_);
     }
-    charge_ = source.charge_;
     rank_ = source.rank_;
+    charge_ = source.charge_;
     peptide_evidences_ = source.peptide_evidences_;
     fragment_annotations_ = source.fragment_annotations_;
     return *this;
@@ -141,8 +141,8 @@ namespace OpenMS
     analysis_results_ = source.analysis_results_;
     source.analysis_results_ = nullptr;
 
-    charge_ = source.charge_;
     rank_ = source.rank_;
+    charge_ = source.charge_;
     peptide_evidences_ = source.peptide_evidences_;
     fragment_annotations_ = source.fragment_annotations_;
 
