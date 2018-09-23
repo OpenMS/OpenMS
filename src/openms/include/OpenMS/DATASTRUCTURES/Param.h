@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors:  Marc Sturm, Clemens Groepl $
+// $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -83,9 +83,16 @@ public:
       /// Constructor with name, description, value and advanced flag
       ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t = StringList());
       /// Copy constructor
-      ParamEntry(const ParamEntry& other);
+      ParamEntry(const ParamEntry& other) = default;
+      /// Move constructor
+      ParamEntry(ParamEntry&&) = default;
       /// Destructor
       ~ParamEntry();
+
+      /// Assignment operator
+      ParamEntry& operator=(const ParamEntry& rhs) = default;
+      /// Move assignment operator
+      ParamEntry& operator=(ParamEntry&&) & = default;
 
       /// Check if 'value' fulfills restrictions
       bool isValid(String& message) const;
@@ -122,13 +129,23 @@ public:
       ///Iterator for entries
       typedef std::vector<ParamEntry>::const_iterator ConstEntryIterator;
 
-      ///Default constructor
+      /// Default constructor
       ParamNode();
-      ///Constructor with name and description
+      /// Constructor with name and description
       ParamNode(const String& n, const String& d);
+      /// Copy constructor
+      ParamNode(const ParamNode& other) = default;
+      /// Move constructor
+      ParamNode(ParamNode&&) = default;
       /// Destructor
       ~ParamNode();
-      ///Equality operator (name, entries and subnodes are compared)
+
+      /// Assignment operator
+      ParamNode& operator=(const ParamNode& rhs) = default;
+      /// Move assignment operator
+      ParamNode& operator=(ParamNode&&) & = default;
+
+      /// Equality operator (name, entries and subnodes are compared)
       bool operator==(const ParamNode& rhs) const;
 
       /**
@@ -239,13 +256,19 @@ protected:
     Param();
 
     /// Copy constructor
-    Param(const Param& rhs);
+    Param(const Param& rhs) = default;
+
+    /// Move constructor
+    Param(Param&&) = default;
 
     /// Destructor
     ~Param();
 
     /// Assignment operator
-    Param& operator=(const Param& rhs);
+    Param& operator=(const Param& rhs) = default;
+
+    /// Move assignment operator
+    Param& operator=(Param&&) & = default;
 
     /// Equality operator
     bool operator==(const Param& rhs) const;
@@ -307,9 +330,6 @@ protected:
       @return Returns end() if leaf does not exist.
     */
     ParamIterator findNext(const String& leaf, const ParamIterator& start_leaf) const;
-
-
-
     //@}
 
     ///@name Tags handling
@@ -611,6 +631,7 @@ protected:
     //@}
 
 protected:
+
     /**
       @brief Returns a mutable reference to a parameter entry.
 
