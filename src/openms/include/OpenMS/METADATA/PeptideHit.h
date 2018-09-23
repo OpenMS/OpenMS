@@ -222,17 +222,6 @@ public:
           && main_score == rhs.main_score
           && sub_scores == rhs.sub_scores;
       }
-
-      PepXMLAnalysisResult& operator=(const PepXMLAnalysisResult& source)
-      {
-        if (this == &source) return *this;
-        score_type = source.score_type;
-        higher_is_better = source.higher_is_better;
-        main_score = source.main_score;
-        sub_scores = source.sub_scores;
-        return *this;
-      }
-
     };
 
     /** @name Constructors and Destructor */
