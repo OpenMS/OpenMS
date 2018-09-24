@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+
 #include <iostream>
 
 using namespace std;
@@ -45,14 +46,6 @@ namespace OpenMS
     cleavage_regex_(""),
     synonyms_(),
     regex_description_("")
-  {
-  }
-
-  DigestionEnzyme::DigestionEnzyme(const DigestionEnzyme& enzyme) :
-    name_(enzyme.name_),
-    cleavage_regex_(enzyme.cleavage_regex_),
-    synonyms_(enzyme.synonyms_),
-    regex_description_(enzyme.regex_description_)
   {
   }
 
@@ -69,18 +62,6 @@ namespace OpenMS
 
   DigestionEnzyme::~DigestionEnzyme()
   {
-  }
-
-  DigestionEnzyme& DigestionEnzyme::operator=(const DigestionEnzyme& enzyme)
-  {
-    if (this != &enzyme)
-    {
-      name_ = enzyme.name_;
-      cleavage_regex_ = enzyme.cleavage_regex_;
-      synonyms_ = enzyme.synonyms_;
-      regex_description_ = enzyme.regex_description_;
-    }
-    return *this;
   }
 
   void DigestionEnzyme::setName(const String& name)
@@ -189,3 +170,4 @@ namespace OpenMS
   }
 
 }
+

@@ -19,6 +19,7 @@ set(sources_list_h
   MRMTransitionGroupPicker.h
   MasstraceCorrelator.h
   OpenSwathHelper.h
+  OpenSwathScores.h
   OpenSwathScoring.h
   OpenSwathTSVWriter.h
   OpenSwathOSWWriter.h

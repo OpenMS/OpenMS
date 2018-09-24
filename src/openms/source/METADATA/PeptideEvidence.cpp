@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/PeptideEvidence.h>
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
 namespace OpenMS
@@ -53,32 +54,13 @@ namespace OpenMS
   {
   }
 
-  PeptideEvidence::PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after)
-    : accession_(accession),
+  PeptideEvidence::PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after) :
+      accession_(accession),
       start_(start),
       end_(end),
       aa_before_(aa_before),
       aa_after_(aa_after)
   {
-  }
-
-  PeptideEvidence::PeptideEvidence(const PeptideEvidence& rhs)
-  {
-    accession_ = rhs.accession_;
-    start_ = rhs.start_;
-    end_ = rhs.end_;
-    aa_before_ = rhs.aa_before_;
-    aa_after_ = rhs.aa_after_;
-  }
-
-  PeptideEvidence& PeptideEvidence::operator=(const PeptideEvidence& rhs)
-  {
-    accession_ = rhs.accession_;
-    start_ = rhs.start_;
-    end_ = rhs.end_;
-    aa_before_ = rhs.aa_before_;
-    aa_after_ = rhs.aa_after_;
-    return *this;
   }
 
   bool PeptideEvidence::operator==(const PeptideEvidence& rhs) const
@@ -165,3 +147,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

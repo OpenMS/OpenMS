@@ -457,7 +457,6 @@ protected:
         std::vector<BinaryData> data;
         Size default_array_length;
         SpectrumType spectrum;
-        bool skip_data;
       };
 
       /// Vector of spectrum data stored for later parallel processing

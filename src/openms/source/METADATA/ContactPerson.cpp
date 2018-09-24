@@ -39,54 +39,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  ContactPerson::ContactPerson() :
-    MetaInfoInterface(),
-    first_name_(),
-    last_name_(),
-    institution_(),
-    email_(),
-    contact_info_(),
-    url_(),
-    address_()
-  {
-
-  }
-
-  ContactPerson::ContactPerson(const ContactPerson & source) :
-    MetaInfoInterface(source),
-    first_name_(source.first_name_),
-    last_name_(source.last_name_),
-    institution_(source.institution_),
-    email_(source.email_),
-    contact_info_(source.contact_info_),
-    url_(source.url_),
-    address_(source.address_)
-  {
-
-  }
-
-  ContactPerson::~ContactPerson()
-  {
-
-  }
-
-  ContactPerson & ContactPerson::operator=(const ContactPerson & source)
-  {
-    if (&source == this)
-      return *this;
-
-    first_name_ = source.first_name_;
-    last_name_ = source.last_name_;
-    institution_ = source.institution_;
-    email_ = source.email_;
-    contact_info_ = source.contact_info_;
-    url_ = source.url_;
-    address_ = source.address_;
-    MetaInfoInterface::operator=(source);
-
-    return *this;
-  }
-
   bool ContactPerson::operator==(const ContactPerson & rhs) const
   {
     return first_name_ == rhs.first_name_ &&
@@ -197,3 +149,4 @@ namespace OpenMS
   }
 
 }
+

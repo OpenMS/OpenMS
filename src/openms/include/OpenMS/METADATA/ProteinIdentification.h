@@ -51,12 +51,17 @@ namespace OpenMS
 
     The actual peptide hits are stored in PeptideIdentification instances that are part of spectra or features.
 
-    In order to be able to connect the ProteinIdentification and the corresponding peptide identifications, both classes have a string identifier. We recommend using the search engine name and the date as identifier.
-    Setting this identifier is especially important when there are several protein identification runs for a map, i.e. several ProteinIdentification instances.
+    In order to be able to connect the ProteinIdentification and the
+    corresponding peptide identifications, both classes have a string
+    identifier. We recommend using the search engine name and the date as
+    identifier.
+    Setting this identifier is especially important when there are several
+    protein identification runs for a map, i.e. several ProteinIdentification
+    instances.
 
     @todo Add MetaInfoInterface to modifications => update IdXMLFile and ProteinIdentificationVisualizer (Andreas)
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI ProteinIdentification :
     public MetaInfoInterface
@@ -84,7 +89,10 @@ public:
       /*
         @brief Comparison operator (for sorting)
 
-        This operator is intended for sorting protein groups in a "best first" manner. That means higher probabilities are "less" than lower probabilities (!); smaller groups are "less" than larger groups; everything else being equal, accessions are compared lexicographically.
+        This operator is intended for sorting protein groups in a "best first"
+        manner. That means higher probabilities are "less" than lower
+        probabilities (!); smaller groups are "less" than larger groups;
+        everything else being equal, accessions are compared lexicographically.
       */
       bool operator<(const ProteinGroup& rhs) const;
     };
@@ -118,6 +126,17 @@ public:
       Protease digestion_enzyme; ///< The cleavage site information in details (from ProteaseDB)
 
       SearchParameters();
+      /// Copy constructor
+      SearchParameters(const SearchParameters & source) = default;
+      /// Move constructor
+      SearchParameters(SearchParameters&&) = default;
+      /// Destructor
+      ~SearchParameters() = default;
+
+      /// Assignment operator
+      SearchParameters & operator=(const SearchParameters & source) = default;
+      /// Move assignment operator
+      SearchParameters& operator=(SearchParameters&&) & = default;
 
       bool operator==(const SearchParameters& rhs) const;
 
@@ -125,17 +144,22 @@ public:
 
     };
 
-
     /** @name Constructors, destructors, assignment operator <br> */
     //@{
     /// Default constructor
     ProteinIdentification();
+    /// Copy constructor
+    ProteinIdentification(const ProteinIdentification& source) = default;
+    /// Move constructor
+    ProteinIdentification(ProteinIdentification&&) = default;
     /// Destructor
     virtual ~ProteinIdentification();
-    /// Copy constructor
-    ProteinIdentification(const ProteinIdentification& source);
+
     /// Assignment operator
-    ProteinIdentification& operator=(const ProteinIdentification& source);
+    ProteinIdentification& operator=(const ProteinIdentification& source) = default;
+    /// Move assignment operator
+    ProteinIdentification& operator=(ProteinIdentification&&) & = default;
+
     /// Equality operator
     bool operator==(const ProteinIdentification& rhs) const;
     /// Inequality operator
