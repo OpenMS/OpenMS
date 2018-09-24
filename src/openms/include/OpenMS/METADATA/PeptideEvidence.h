@@ -60,21 +60,26 @@ public:
     static const char N_TERMINAL_AA;
     static const char C_TERMINAL_AA;
 
-    /// constructor
+    /// Constructor
     PeptideEvidence();
 
-    /// constructor
+    /// Constructor
     PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after);
 
-    /// copy constructor
-    PeptideEvidence(const PeptideEvidence& source);
+    /// Copy constructor
+    PeptideEvidence(const PeptideEvidence& source) = default;
 
-    /// destructor
+    /// Move constructor
+    PeptideEvidence(PeptideEvidence&&) = default;
+
+    /// Destructor
     ~PeptideEvidence() {}
     //@}
 
-    /// assignment operator
-    PeptideEvidence& operator=(const PeptideEvidence& source);
+    /// Assignment operator
+    PeptideEvidence& operator=(const PeptideEvidence& source) = default;
+    /// Move assignment operator
+    PeptideEvidence& operator=(PeptideEvidence&&) & = default;
 
     /// Equality operator
     bool operator==(const PeptideEvidence& rhs) const;

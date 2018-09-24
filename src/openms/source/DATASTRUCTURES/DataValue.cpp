@@ -261,7 +261,8 @@ namespace OpenMS
     // copy unit if necessary
     if (p.hasUnit())
     {
-      unit_ = p.unit_;
+      //unit_ = p.unit_;
+      setUnit(p.getUnit());
     }
 
     return *this;

@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+
 #include <iostream>
 
 using namespace std;
@@ -50,19 +51,6 @@ namespace OpenMS
     crux_id_(""),
     msgf_id_(-1),
     omssa_id_(-1)
-  {
-  }
-
-  DigestionEnzymeProtein::DigestionEnzymeProtein(const DigestionEnzymeProtein& enzyme) :
-    DigestionEnzyme(enzyme),
-    n_term_gain_(enzyme.n_term_gain_),
-    c_term_gain_(enzyme.c_term_gain_),
-    psi_id_(enzyme.psi_id_),
-    xtandem_id_(enzyme.xtandem_id_),
-    comet_id_(enzyme.comet_id_),
-    crux_id_(enzyme.crux_id_),
-    msgf_id_(enzyme.msgf_id_),
-    omssa_id_(enzyme.omssa_id_)
   {
   }
 
@@ -92,23 +80,6 @@ namespace OpenMS
 
   DigestionEnzymeProtein::~DigestionEnzymeProtein()
   {
-  }
-
-  DigestionEnzymeProtein& DigestionEnzymeProtein::operator=(const DigestionEnzymeProtein& enzyme)
-  {
-    if (this != &enzyme)
-    {
-      DigestionEnzyme::operator=(enzyme);
-      n_term_gain_ = enzyme.n_term_gain_;
-      c_term_gain_ = enzyme.c_term_gain_;
-      psi_id_ = enzyme.psi_id_;
-      xtandem_id_ = enzyme.xtandem_id_;
-      comet_id_ = enzyme.comet_id_;
-      crux_id_ = enzyme.crux_id_;
-      omssa_id_ = enzyme.omssa_id_;
-      msgf_id_ = enzyme.msgf_id_;
-    }
-    return *this;
   }
 
   void DigestionEnzymeProtein::setNTermGain(EmpiricalFormula value)
@@ -281,3 +252,4 @@ namespace OpenMS
   }
 
 }
+

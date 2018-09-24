@@ -74,9 +74,14 @@ public:
     /// destructor
     virtual ~PeptideIdentification();
     /// copy constructor
-    PeptideIdentification(const PeptideIdentification& source);
-    /// assignment operator
-    PeptideIdentification& operator=(const PeptideIdentification& source);
+    PeptideIdentification(const PeptideIdentification& source) = default;
+    /// Move constructor
+    PeptideIdentification(PeptideIdentification&&) = default;
+
+    /// Assignment operator
+    PeptideIdentification& operator=(const PeptideIdentification& source) = default;
+    /// Move assignment operator
+    PeptideIdentification& operator=(PeptideIdentification&&) & = default;
     /// Equality operator
     bool operator==(const PeptideIdentification& rhs) const;
     /// Inequality operator
