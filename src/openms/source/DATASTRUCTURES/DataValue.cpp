@@ -172,7 +172,7 @@ namespace OpenMS
   }
 
   //--------------------------------------------------------------------
-  //                       copy constructor
+  //                   copy and move constructors
   //--------------------------------------------------------------------
   DataValue::DataValue(const DataValue& p) :
     value_type_(p.value_type_),
@@ -198,7 +198,19 @@ namespace OpenMS
     }
   }
 
-  void DataValue::clear_()
+  DataValue::DataValue(DataValue&& rhs) noexcept :
+    value_type_(rhs.value_type_),
+    unit_type_(rhs.unit_type_),
+    unit_(rhs.unit_),
+    data_(rhs.data_)
+  {
+    // clean up rhs 
+    rhs.value_type_ = EMPTY_VALUE;
+    rhs.unit_type_ = OTHER;
+    rhs.unit_ = -1;
+  }
+
+  void DataValue::clear_() noexcept
   {
     if (value_type_ == STRING_LIST)
     {
@@ -223,7 +235,7 @@ namespace OpenMS
   }
 
   //--------------------------------------------------------------------
-  //                      assignment operator
+  //                    copy and move assignment operators
   //--------------------------------------------------------------------
   DataValue& DataValue::operator=(const DataValue& p)
   {
@@ -262,6 +274,33 @@ namespace OpenMS
     value_type_ = p.value_type_;
     unit_type_ = p.unit_type_;
     unit_ = p.unit_;
+
+    return *this;
+  }
+
+  /// Move assignment operator
+  DataValue& DataValue::operator=(DataValue&& rhs) noexcept
+  {
+    std::cout << "DataValue Move assignemnt operator " << std::endl;
+    // Check for self-assignment
+    if (this == &rhs)
+    {
+      return *this;
+    }
+
+    // clean up *this
+    clear_();
+
+    // assign values to *this
+    data_ = rhs.data_;
+    value_type_ = rhs.value_type_;
+    unit_type_ = rhs.unit_type_;
+    unit_ = rhs.unit_;
+
+    // clean up rhs 
+    rhs.value_type_ = EMPTY_VALUE;
+    rhs.unit_type_ = OTHER;
+    rhs.unit_ = -1;
 
     return *this;
   }
