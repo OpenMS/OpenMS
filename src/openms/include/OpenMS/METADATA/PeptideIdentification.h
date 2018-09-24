@@ -108,6 +108,8 @@ public:
     std::vector<PeptideHit>& getHits();
     /// Appends a peptide hit
     void insertHit(const PeptideHit& hit);
+    /// Appends a peptide hit
+    void insertHit(PeptideHit&& hit);
     /// Sets the peptide hits
     void setHits(const std::vector<PeptideHit>& hits);
 

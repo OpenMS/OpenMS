@@ -174,6 +174,8 @@ public:
     std::vector<ProteinHit> & getHits();
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
+    /// Appends a protein hit
+    void insertHit(ProteinHit && input);
 
     /**
         @brief Sets the protein hits

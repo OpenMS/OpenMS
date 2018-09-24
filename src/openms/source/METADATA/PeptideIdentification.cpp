@@ -122,6 +122,11 @@ namespace OpenMS
     hits_.push_back(hit);
   }
 
+  void PeptideIdentification::insertHit(PeptideHit&& hit)
+  {
+    hits_.push_back(std::forward<PeptideHit>(hit));
+  }
+
   void PeptideIdentification::setHits(const std::vector<PeptideHit>& hits)
   {
     hits_ = hits;
