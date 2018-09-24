@@ -110,7 +110,7 @@ public:
     ProteinHit(const ProteinHit & source) = default;
 
     /// Move constructor
-    ProteinHit(ProteinHit&&) = default;
+    ProteinHit(ProteinHit&&) noexcept = default;
 
     /// Destructor
     virtual ~ProteinHit();
@@ -120,7 +120,7 @@ public:
     ProteinHit & operator=(const ProteinHit & source) = default;
 
     /// Move assignment operator
-    ProteinHit& operator=(ProteinHit&&) & = default;
+    ProteinHit& operator=(ProteinHit&&) noexcept = default;
 
     /// Assignment for MetaInfo
     ProteinHit & operator=(const MetaInfoInterface & source);

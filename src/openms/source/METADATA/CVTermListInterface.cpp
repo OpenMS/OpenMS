@@ -57,11 +57,12 @@ namespace OpenMS
     }
   }
 
-  // http://thbecker.net/articles/rvalue_references/section_05.html
+  /// Move constructor
   CVTermListInterface::CVTermListInterface(CVTermListInterface&& rhs) :
     MetaInfoInterface(std::move(rhs)), // NOTE: rhs itself is an lvalue
     cvt_ptr_(rhs.cvt_ptr_)
   {
+    // see http://thbecker.net/articles/rvalue_references/section_05.html
     // take ownership
     rhs.cvt_ptr_ = nullptr;
   }

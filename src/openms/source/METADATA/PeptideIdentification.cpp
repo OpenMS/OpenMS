@@ -52,7 +52,7 @@ namespace OpenMS
   {
   }
 
-  PeptideIdentification::~PeptideIdentification()
+  PeptideIdentification::~PeptideIdentification() noexcept
   {
   }
 

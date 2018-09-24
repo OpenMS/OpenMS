@@ -158,7 +158,7 @@ public:
     /// Assignment operator
     ProteinIdentification& operator=(const ProteinIdentification& source) = default;
     /// Move assignment operator
-    ProteinIdentification& operator=(ProteinIdentification&&) & = default;
+    ProteinIdentification& operator=(ProteinIdentification&&) = default;
 
     /// Equality operator
     bool operator==(const ProteinIdentification& rhs) const;
