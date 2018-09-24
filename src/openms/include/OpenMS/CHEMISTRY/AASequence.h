@@ -397,7 +397,7 @@ protected:
     AASequence& operator=(const AASequence& rhs) = default;
 
     /// Move assignment operator
-    AASequence& operator=(AASequence&&) noexcept = default;
+    AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
 
     /// check if sequence is empty
     bool empty() const;

@@ -120,7 +120,7 @@ public:
     ProteinHit & operator=(const ProteinHit & source) = default;
 
     /// Move assignment operator
-    ProteinHit& operator=(ProteinHit&&) noexcept = default;
+    ProteinHit& operator=(ProteinHit&&) = default; // TODO: add noexcept (gcc 4.8 bug)
 
     /// Assignment for MetaInfo
     ProteinHit & operator=(const MetaInfoInterface & source);

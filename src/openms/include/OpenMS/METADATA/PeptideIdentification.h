@@ -81,7 +81,7 @@ public:
     /// Assignment operator
     PeptideIdentification& operator=(const PeptideIdentification& source) = default;
     /// Move assignment operator
-    PeptideIdentification& operator=(PeptideIdentification&&) noexcept = default;
+    PeptideIdentification& operator=(PeptideIdentification&&) = default; // TODO: add noexcept (gcc 4.8 bug)
     /// Equality operator
     bool operator==(const PeptideIdentification& rhs) const;
     /// Inequality operator
