@@ -323,6 +323,7 @@ protected:
   };
 
   /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
+  /// floats need to be initialized to zero as default
   struct AnnotatedHit
   {
     StringView sequence;
@@ -1951,7 +1952,14 @@ protected:
                   ah.rna_mod_index = rna_mod_index;
                   ah.isotope_error = isotope_error;
 
-                  ah.score = total_loss_score + ah.total_MIC; 
+                  // ah.score = total_loss_score + ah.total_MIC; 
+
+                  ah.score = - 0.491
+                             + 2.079 * (  0.157 * total_loss_score - 1.400)
+                             + 1.215 * ( 19.187 * ah.marker_ions_score  - 0.446)
+                             + 0.514 * (  0.034 * ah.partial_loss_score - 0.760) 
+                             - 3.473 * (322.000 * ah.err                - 1.147)
+                             - 0.901 * (293.000 * ah.pl_err             - 1.533);
 
 #ifdef DEBUG_RNPXLSEARCH
                   LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -2096,8 +2104,15 @@ protected:
                     ah.rna_mod_index = rna_mod_index;
                     ah.isotope_error = isotope_error;
 
-// TODO: currently mainly a tie-breaker!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    ah.score = score + ah.total_MIC; 
+                    // ah.score = score + ah.total_MIC; 
+
+                    ah.score = - 0.491
+                               + 2.079 * (  0.157 * score - 1.400)
+                               + 1.215 * ( 19.187 * ah.marker_ions_score  - 0.446)
+                               + 0.514 * (  0.034 * ah.partial_loss_score - 0.760) 
+                               - 3.473 * (322.000 * ah.err                - 1.147)
+                               - 0.901 * (293.000 * ah.pl_err             - 1.533);
+
 #ifdef DEBUG_RNPXLSEARCH
                     LOG_DEBUG << "best score in pre-score: " << score << endl;
 #endif
@@ -2441,6 +2456,9 @@ protected:
 #ifdef DEBUG_RNPXLSEARCH
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
+  // TODO: cap plss_err
+  float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
+  if (plss_err > ft_da) plss_err = ft_da;
   }
 
 };
