@@ -988,7 +988,6 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
-  // TODO: add MRMAssay compound annotation
   // TODO: see if you can find better solution with less code duplication
   void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {

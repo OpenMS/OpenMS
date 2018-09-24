@@ -392,7 +392,7 @@ protected:
           }
         }
 
-        // TODO: Why would transition spectrum have a size of 0 ??
+        // TODO: Why would transition spectrum have a size of 0 ?
         // check if transition spectrum is empty
         if (transition_spectrum.empty())
         {
@@ -685,27 +685,6 @@ protected:
 
     } //end iteration over all files
 
-    // TODO: See if method of MRMAssay can be used on the TargetedExperiment
-    // filter found transitions
-    // sort by precursor mz
-    // std::sort(v_pts.begin(), v_pts.end(), compare_mz);
-
-    // TODO: add method remove precursor peak
-    // TODO: add method to only use monoisotopic traces (monoisotopic fragments)
-
-    // TODO: add min and max transitions -> transitions with highest intensity
-    // has to be sure that filteres for monoisotopic and precursor beforehand
-    // sort transition highest intensity? - Done first four as max transitions
-
-    // TODO: min transition -> how many transitions are need for an entry in the assay lib
-    // TODO: max transitions -> quantiy with maximum transition 4
-
-    // TODO: New or add Methods to MRMAssay
-    // TODO: add filter for mz in rt range
-
-    // TODO: think about how to filter e.g. precursor intensity
-    // e.g. if same mz and rt -> use the one with higher precursor intensity
-
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;
@@ -723,16 +702,15 @@ protected:
     // use MRMAssay methods for filtering
     MRMAssay assay;
 
+    // TODO: add further filters
+    // TODO: think about if other filters are necessary
+
+    // filter: precursor
+
+    // filter: isotopes (+1/-1 Da)
+
     // filter: min/max transitions
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
-
-    // maybe issue with compoundRef need all transitions of one compound need same reference
-
-    for (Size i = 0; i < t_exp.getTransitions().size(); ++i)
-      {
-        ReactionMonitoringTransition tr = t_exp.getTransitions()[i];
-        std::cout << "compref: " << tr.getCompoundRef() << std::endl;
-      }
 
     // TODO: maybe have to reannotate Transitions
 
