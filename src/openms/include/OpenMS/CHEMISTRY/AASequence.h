@@ -387,7 +387,7 @@ protected:
     AASequence(const AASequence& rhs) = default;
 
     /// Move constructor
-    AASequence(AASequence&&) = default;
+    AASequence(AASequence&&) noexcept = default;
 
     /// Destructor
     virtual ~AASequence();
@@ -397,7 +397,7 @@ protected:
     AASequence& operator=(const AASequence& rhs) = default;
 
     /// Move assignment operator
-    AASequence& operator=(AASequence&&) & = default;
+    AASequence& operator=(AASequence&&) noexcept = default;
 
     /// check if sequence is empty
     bool empty() const;
