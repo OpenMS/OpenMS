@@ -47,8 +47,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
-    MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
+  MultiplexFilteringCentroided::MultiplexFilteringCentroided(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+    MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
   {
   }
 
@@ -56,7 +56,7 @@ namespace OpenMS
   {
     // progress logger
     unsigned progress = 0;
-    startProgress(0, patterns_.size() * exp_picked_.size(), "filtering LC-MS data");
+    startProgress(0, patterns_.size() * exp_centroided_.size(), "filtering LC-MS data");
     
     // list of filter results for each peak pattern
     vector<MultiplexFilteredMSExperiment> filter_results;
@@ -80,7 +80,7 @@ namespace OpenMS
   
       // filter (white) experiment
       // loop over spectra
-      for (MSExperiment::ConstIterator it_rt = exp_picked_white_.begin(); it_rt < exp_picked_white_.end(); ++it_rt)
+      for (MSExperiment::ConstIterator it_rt = exp_centroided_white_.begin(); it_rt < exp_centroided_white_.end(); ++it_rt)
       {
         // skip empty spectra
         if (it_rt->empty())
@@ -91,16 +91,16 @@ namespace OpenMS
         setProgress(++progress);
 
         double rt = it_rt->getRT();
-        MSExperiment::ConstIterator it_rt_band_begin = exp_picked_white_.RTBegin(rt - rt_band_/2);
-        MSExperiment::ConstIterator it_rt_band_end = exp_picked_white_.RTEnd(rt + rt_band_/2);
+        MSExperiment::ConstIterator it_rt_band_begin = exp_centroided_white_.RTBegin(rt - rt_band_/2);
+        MSExperiment::ConstIterator it_rt_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over m/z
         for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping_[it_rt - exp_picked_white_.begin()][it_mz - it_rt->begin()], it_rt - exp_picked_white_.begin());
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[it_rt - exp_centroided_white_.begin()][it_mz - it_rt->begin()], it_rt - exp_centroided_white_.begin());
           
-          if (!(filterPeakPositions_(it_mz, exp_picked_white_.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(it_mz, exp_centroided_white_.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
           {
             continue;
           }
@@ -128,7 +128,7 @@ namespace OpenMS
       // write filtered peaks to debug output
       std::stringstream debug_out;
       debug_out << "filter_result_" << pattern_idx << ".consensusXML";
-      result.writeDebugOutput(exp_picked_, debug_out.str());
+      result.writeDebugOutput(exp_centroided_, debug_out.str());
 #endif
       
       // add results of this pattern to list

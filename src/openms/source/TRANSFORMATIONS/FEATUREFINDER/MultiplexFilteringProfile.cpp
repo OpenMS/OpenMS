@@ -40,7 +40,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-// #define DEBUG
+#define DEBUG
 
 using namespace std;
 using namespace boost::math;
@@ -48,26 +48,26 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
-    MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), boundaries_(boundaries)
+  MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+    MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), boundaries_(boundaries)
   {
     
-    if (exp_profile.size() != exp_picked.size())
+    if (exp_profile.size() != exp_centroided.size())
     {
       stringstream stream;
       stream << "Profile and centroided data do not contain same number of spectra. (";
       stream << exp_profile.size();
       stream << "!=";
-      stream << exp_picked.size();
+      stream << exp_centroided.size();
       stream << ")";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
 
-    if (exp_picked.size() != boundaries.size())
+    if (exp_centroided.size() != boundaries.size())
     {
       stringstream stream;
       stream << "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra. (";
-      stream << exp_picked.size();
+      stream << exp_centroided.size();
       stream << "!=";
       stream << boundaries.size();
       stream << ")";
@@ -123,8 +123,8 @@ namespace OpenMS
       std::vector<SplineSpectrum>::iterator it_rt_profile;
       MSExperiment::ConstIterator it_rt_picked;
       std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-      for (it_rt_profile = exp_spline_profile_.begin(), it_rt_picked = exp_picked_white_.begin(), it_rt_boundaries = boundaries_.begin();
-           it_rt_profile < exp_spline_profile_.end() && it_rt_picked < exp_picked_white_.end() && it_rt_boundaries < boundaries_.end();
+      for (it_rt_profile = exp_spline_profile_.begin(), it_rt_picked = exp_centroided_white_.begin(), it_rt_boundaries = boundaries_.begin();
+           it_rt_profile < exp_spline_profile_.end() && it_rt_picked < exp_centroided_white_.end() && it_rt_boundaries < boundaries_.end();
            ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
       {
         // skip empty spectra
@@ -136,21 +136,21 @@ namespace OpenMS
         setProgress(++progress);
         
         double rt = it_rt_picked->getRT();
-        MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white_.RTBegin(rt - rt_band_/2);
-        MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white_.RTEnd(rt + rt_band_/2);
+        MSExperiment::ConstIterator it_rt_picked_band_begin = exp_centroided_white_.RTBegin(rt - rt_band_/2);
+        MSExperiment::ConstIterator it_rt_picked_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over mz
         for (MSSpectrum::ConstIterator it_mz = it_rt_picked->begin(); it_mz != it_rt_picked->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping_[it_rt_picked - exp_picked_white_.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white_.begin());
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[it_rt_picked - exp_centroided_white_.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_centroided_white_.begin());
           
-          if (!(filterPeakPositions_(it_mz, exp_picked_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(it_mz, exp_centroided_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
           {
             continue;
           }
           
-          size_t mz_idx = exp_picked_mapping_[it_rt_picked - exp_picked_white_.begin()][it_mz - it_rt_picked->begin()];
+          size_t mz_idx = exp_centroided_mapping_[it_rt_picked - exp_centroided_white_.begin()][it_mz - it_rt_picked->begin()];
           double peak_min = (*it_rt_boundaries)[mz_idx].mz_min;
           double peak_max = (*it_rt_boundaries)[mz_idx].mz_max;
           
@@ -175,7 +175,7 @@ namespace OpenMS
               size_t mz_idx = (satellite_it->second).getMZidx();
               
               // find peak itself
-              MSExperiment::ConstIterator it_rt = exp_picked_.begin();
+              MSExperiment::ConstIterator it_rt = exp_centroided_.begin();
               std::advance(it_rt, rt_idx);
               MSSpectrum::ConstIterator it_mz = it_rt->begin();
               std::advance(it_mz, mz_idx);
@@ -227,7 +227,7 @@ namespace OpenMS
       // write filtered peaks to debug output
       std::stringstream debug_out;
       debug_out << "filter_result_" << pattern_idx << ".consensusXML";
-      result.writeDebugOutput(exp_picked_, debug_out.str());
+      result.writeDebugOutput(exp_centroided_, debug_out.str());
 #endif
       
       // add results of this pattern to list
