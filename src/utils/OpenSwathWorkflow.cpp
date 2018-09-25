@@ -263,6 +263,12 @@ using namespace OpenMS;
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Precursor m/z</td>
     </tr>
+    
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> masserror_ppm </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float List </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Pairs of fragment masses (m/z) and their associated error in ppm for all transitions</td>
+    </tr>
 
     <tr>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Intensity </td>

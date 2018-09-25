@@ -692,8 +692,11 @@ namespace OpenMS
         scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
         if (swath_present && su_.use_dia_scores_)
         {
-          scorer.calculateDIAScores(imrmfeature, transition_group_detection.getTransitions(),
-                                    swath_maps, ms1_map_, diascoring_, *pep, scores, drift_lower, drift_upper);
+          std::vector<double> masserror_ppm;
+          scorer.calculateDIAScores(imrmfeature,
+                                    transition_group_detection.getTransitions(),
+                                    swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm, drift_lower, drift_upper);
+          mrmfeature->setMetaValue("masserror_ppm", masserror_ppm);
         }
         if (sonar_present && su_.use_sonar_scores)
         {

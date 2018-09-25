@@ -170,16 +170,21 @@ namespace OpenMS
      * @param diascoring DIA Scoring object to use for scoring
      * @param pep The peptide corresponding to the library transitions
      * @param scores The object to store the result
+     * @param mzerror_ppm m/z and mass error (in ppm) for all transitions
+     * @param im_start ...
+     * @param im_end ...
      *
     */
-    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
-                            const std::vector<TransitionType> & transitions,
-                            std::vector<OpenSwath::SwathMap> swath_maps,
+    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
+                            const std::vector<TransitionType>& transitions,
+                            const std::vector<OpenSwath::SwathMap>& swath_maps,
                             OpenSwath::SpectrumAccessPtr ms1_map,
-                            OpenMS::DIAScoring & diascoring,
+                            OpenMS::DIAScoring& diascoring,
                             const CompoundType& compound,
-                            OpenSwath_Scores & scores, 
-                            double im_start, double im_end);
+                            OpenSwath_Scores& scores,
+                            std::vector<double>& mzerror_ppm,
+                            double im_start,
+                            double im_end);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -193,11 +198,11 @@ namespace OpenMS
      *
     */
     void calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
-                                     OpenMS::DIAScoring & diascoring, 
+                                     OpenMS::DIAScoring& diascoring, 
                                      double precursor_mz, 
                                      double rt, 
                                      const CompoundType& compound, 
-                                     OpenSwath_Scores & scores,
+                                     OpenSwath_Scores& scores,
                                      double drift_lower, double drift_upper);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.

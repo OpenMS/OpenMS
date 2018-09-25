@@ -267,8 +267,8 @@ public:
             {
               PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
                   picked_chroms[k],
-				  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
-				  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
+                  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
+                  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
               if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
               {
                 min_dist = (int)i;
@@ -292,7 +292,7 @@ public:
             if (r > max_right) {max_right = r;}
           }
         }
-      }
+      } // end !use_consensus_
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0); // ensure that we set at least one peak to zero
 
       // Check for minimal peak width -> return empty feature (Intensity zero)
@@ -491,12 +491,12 @@ public:
 
         // for backwards compatibility with TOPP tests
         // Calculate peak shape metrics that will be used for later QC
+        PeakIntegrator::PeakShapeMetrics psm = pi_.calculatePeakShapeMetrics(used_chromatogram, local_left, local_right, peak_apex_int, pa.apex_pos);
+        f.setMetaValue("width_at_50", psm.width_at_50);
         if (compute_peak_shape_metrics_)
         {
-          PeakIntegrator::PeakShapeMetrics psm = pi_.calculatePeakShapeMetrics(used_chromatogram, local_left, local_right, peak_apex_int, pa.apex_pos);
           f.setMetaValue("width_at_5", psm.width_at_5);
           f.setMetaValue("width_at_10", psm.width_at_10);
-          f.setMetaValue("width_at_50", psm.width_at_50);
           f.setMetaValue("start_position_at_5", psm.start_position_at_5);
           f.setMetaValue("start_position_at_10", psm.start_position_at_10);
           f.setMetaValue("start_position_at_50", psm.start_position_at_50);
