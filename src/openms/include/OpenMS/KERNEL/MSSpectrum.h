@@ -144,12 +144,18 @@ public:
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
 
+    /// Move constructor
+    MSSpectrum(MSSpectrum&&) = default;
+
     /// Destructor
     ~MSSpectrum() override
     {}
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);
+
+    /// Move assignment operator
+    MSSpectrum& operator=(MSSpectrum&&) & = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const SpectrumSettings & source);

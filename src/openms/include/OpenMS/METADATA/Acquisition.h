@@ -51,14 +51,18 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    Acquisition();
+    Acquisition() = default;
     /// Copy constructor
-    Acquisition(const Acquisition & source);
+    Acquisition(const Acquisition & source) = default;
+    /// Move constructor
+    Acquisition(Acquisition&&) = default;
     /// Destructor
-    ~Acquisition();
+    ~Acquisition() = default;
 
     /// Assignment operator
-    Acquisition & operator=(const Acquisition & source);
+    Acquisition & operator=(const Acquisition & source) = default;
+    /// Move assignment operator
+    Acquisition& operator=(Acquisition&&) & = default;
 
     /// Equality operator
     bool operator==(const Acquisition & rhs) const;

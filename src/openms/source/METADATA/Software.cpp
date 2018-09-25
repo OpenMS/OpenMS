@@ -39,18 +39,13 @@ using namespace std;
 namespace OpenMS
 {
 
-  Software::Software(const String& name, const String& version) :
-    CVTermList(),
-    name_(name),
-    version_(version)
-  {
-  }
 
   Software::~Software()
   {
   }
 
-  bool Software::operator==(const Software& rhs) const
+
+  bool Software::operator==(const Software & rhs) const
   {
     return CVTermList::operator==(rhs) &&
            name_ == rhs.name_ &&
@@ -88,3 +83,4 @@ namespace OpenMS
   }
 
 }
+

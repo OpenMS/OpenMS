@@ -86,6 +86,10 @@ public:
     //@{
     /// Default constructor
     OPENMS_DLLAPI String();
+    /// Copy constructor
+    OPENMS_DLLAPI String(const String&) = default;
+    /// Move constructor
+    OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
     /// Constructor from Qt QString
@@ -149,6 +153,10 @@ public:
     OPENMS_DLLAPI bool has(Byte byte) const;
     //@}
 
+    /// Assignment operator
+    OPENMS_DLLAPI String& operator=(const String& source) = default;
+    /// Move assignment operator
+    OPENMS_DLLAPI String& operator=(String&&) & = default;
 
     /** @name Accessors
     */

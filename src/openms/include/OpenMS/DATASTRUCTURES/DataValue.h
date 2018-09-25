@@ -62,7 +62,7 @@ public:
     static const DataValue EMPTY;
 
     /// Supported types for DataValue
-    enum DataType
+    enum DataType : unsigned char
     {
       STRING_VALUE, ///< string value
       INT_VALUE, ///< integer value
@@ -71,6 +71,14 @@ public:
       INT_LIST, ///< integer list
       DOUBLE_LIST, ///< double list
       EMPTY_VALUE ///< empty value
+    };
+
+    /// Supported types for DataValue
+    enum UnitType : unsigned char
+    { 
+      UNIT_ONTOLOGY, ///< unit.ontology UO:
+      MS_ONTOLOGY, ///< ms.ontology MS:
+      OTHER ///< undefined ontology
     };
 
     /// @name Constructors and destructors
@@ -116,7 +124,7 @@ public:
     /// copy constructor
     DataValue(const DataValue&);
     /// destructor
-    virtual ~DataValue();
+    ~DataValue();
     //@}
 
     ///@name Cast operators
@@ -253,6 +261,15 @@ public:
     operator unsigned long long() const;
 
     /**
+      @brief Conversion to bool
+
+      Converts the strings 'true' and 'false' to a bool.
+
+      @exception Exception::ConversionError is thrown for non-string parameters and string parameters with values other than 'true' and 'false'.
+    */
+    bool toBool() const;
+
+    /**
       @brief Convert DataValues to char*
 
       If the DataValue contains a string, a pointer to it's char* is returned.
@@ -282,10 +299,11 @@ public:
     DoubleList toDoubleList() const;
     //@}
 
-    ///@name assignment/conversion operators
-    ///These methods are used to assign supported types to DataType.
+    ///@name Assignment operators
+    ///These methods are used to assign supported types directly to a DataValue object.
     //@{
-
+    /// assignment operator
+    DataValue& operator=(const DataValue&);
     /// specific assignment for char* (converted to string)
     DataValue& operator=(const char*);
     /// specific assignment for std::string values
@@ -322,10 +340,9 @@ public:
     DataValue& operator=(const long long);
     /// specific assignment for unsigned long long int values (note: the implementation uses SignedSize)
     DataValue& operator=(const unsigned long long);
-
     //@}
 
-    ///@name conversion operators
+    ///@name Conversion operators
     ///These methods can be used independent of the DataType. If you already know the DataType, you should use a cast operator!
     /// <BR>For conversion of string DataValues to numeric types, first use toString() and then the conversion methods of String.
     //@{
@@ -335,15 +352,6 @@ public:
 
     ///Conversion to QString
     QString toQString() const;
-
-    /**
-      @brief Conversion to bool
-
-      Converts the strings 'true' and 'false' to a bool.
-
-      @exception Exception::ConversionError is thrown for non-string parameters and string parameters with values other than 'true' and 'false'.
-    */
-    bool toBool() const;
     //@}
 
     /// returns the type of value stored
@@ -351,9 +359,6 @@ public:
     {
       return value_type_;
     }
-
-    /// assignment operator
-    DataValue& operator=(const DataValue&);
 
     /**
        @brief Test if the value is empty
@@ -369,17 +374,28 @@ public:
     ///These methods are used when the DataValue has an associated unit.
     //@{
 
+    /// returns the type of value stored
+    inline UnitType getUnitType() const
+    {
+      return unit_type_;
+    }
+
+    inline void setUnitType(const UnitType & u)
+    {
+      unit_type_ = u;
+    }
+
     /// Check if the value has a unit
     inline bool hasUnit() const
     {
-      return unit_ != "";
+      return unit_ != -1;
     }
 
     /// Return the unit associated to this DataValue.
-    const String& getUnit() const;
+    const int32_t & getUnit() const;
 
     /// Sets the unit to the given String.
-    void setUnit(const String& unit);
+    void setUnit(const int32_t & unit);
 
     //@}
 
@@ -403,6 +419,12 @@ protected:
     /// Type of the currently stored value
     DataType value_type_;
 
+    /// Type of the currently stored unit
+    UnitType unit_type_;
+
+    /// The unit of the data value (if it has one) using UO identifier, otherwise -1.
+    int32_t unit_;
+
     /// Space to store the data
     union
     {
@@ -415,8 +437,6 @@ protected:
     } data_;
 
 private:
-    /// The unit of the data value (if it has one), otherwise empty string.
-    String unit_;
 
     /// Clears the current state of the DataValue and release every used memory.
     void clear_();

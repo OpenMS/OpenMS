@@ -68,8 +68,8 @@ void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hu
   // Ensure a unique id is present
   curr_feature.ensureUniqueId();
 
-  // Sum up intensities of the MS2 features
-  if (curr_feature.getMZ() > quantification_cutoff_ && ms_level == "MS2")
+  // Sum up intensities of the features
+  if (curr_feature.getMZ() > quantification_cutoff_)
   {
     total_intensity += curr_feature.getIntensity();
     total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
@@ -306,7 +306,7 @@ namespace OpenMS
     transition_group_identification_decoy = transition_group.subsetDependent(identifying_transitions_decoy);
   }
 
-  OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
+  OpenSwath_Ind_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
                                                                  OpenSwathScoring& scorer,
                                                                  const size_t feature_idx,
                                                                  const std::vector<std::string>& native_ids_detection,
@@ -353,7 +353,7 @@ namespace OpenMS
       }
     }
 
-    OpenSwath_Scores idscores;
+    OpenSwath_Ind_Scores idscores;
     if (native_ids_identification.size() > 0)
     {
       scorer.calculateChromatographicIdScores(idimrmfeature,
@@ -372,7 +372,12 @@ namespace OpenMS
       std::stringstream ind_intensity_ratio;
       std::stringstream ind_mi_ratio;
 
-      std::vector<double> ind_mi_score = ListUtils::create<double>((String)idscores.ind_mi_score,';');
+      std::vector<double> ind_mi_score;
+      if (su_.use_mi_score_)
+      {
+        ind_mi_score = ListUtils::create<double>((String)idscores.ind_mi_score,';');
+      }
+
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         if (i != 0)
@@ -396,15 +401,24 @@ namespace OpenMS
           if (det_intensity_ratio_score > 0) { intensity_ratio = intensity_score / det_intensity_ratio_score; }
           if (intensity_ratio > 1) { intensity_ratio = 1 / intensity_ratio; }
 
+          double total_mi = 0;
+          if (su_.use_total_mi_score_)
+          {
+            total_mi = double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi"));
+          }
+
           double mi_ratio = 0;
-          if (det_mi_ratio_score > 0) { mi_ratio = (ind_mi_score[i] / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi"))) / det_mi_ratio_score; }
-          if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+          if (su_.use_mi_score_ && su_.use_total_mi_score_)
+          {
+            if (det_mi_ratio_score > 0) { mi_ratio = (ind_mi_score[i] / total_mi) / det_mi_ratio_score; }
+            if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+          }
 
           ind_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
           ind_total_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic");
           ind_intensity_score << intensity_score;
           ind_apex_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int");
-          ind_total_mi << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi");
+          ind_total_mi << total_mi;
           ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
           ind_intensity_ratio << intensity_ratio;
           ind_mi_ratio << mi_ratio;
@@ -651,24 +665,23 @@ namespace OpenMS
         std::vector<double> normalized_library_intensity;
         transition_group_detection.getLibraryIntensity(normalized_library_intensity);
         OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
+
         std::vector<std::string> native_ids_detection;
-        std::string precursor_id;
         for (Size i = 0; i < transition_group_detection.size(); i++)
         {
-          native_ids_detection.push_back(transition_group_detection.getTransitions()[i].getNativeID());
+          std::string native_id = transition_group_detection.getTransitions()[i].getNativeID();
+          native_ids_detection.push_back(native_id);
         }
+
+        std::vector<std::string> precursor_ids;
         for (Size i = 0; i < transition_group_detection.getPrecursorChromatograms().size(); i++)
         {
-          // try to identify the correct precursor native id
-          String precursor_chrom_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
-          if (OpenSwathHelper::computePrecursorId(transition_group.getTransitionGroupID(), 0) == precursor_chrom_id)
-          {
-            precursor_id = precursor_chrom_id;
-          }
+          std::string precursor_id = transition_group_detection.getPrecursorChromatograms()[i].getNativeID();
+          precursor_ids.push_back(precursor_id);
         }
 
         OpenSwath_Scores scores;
-        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_id, normalized_library_intensity,
+        scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, precursor_ids, normalized_library_intensity,
                                               signal_noise_estimators, scores);
 
         double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
@@ -700,7 +713,7 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
         {
-          OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, 
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
                                                            sn_win_len_,
@@ -733,7 +746,7 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
         {
-          OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
                                                            sn_win_len_,
@@ -868,12 +881,27 @@ namespace OpenMS
           mrmfeature->addScore("var_manhatt_score", scores.manhatt_score_dia);
           if (su_.use_ms1_correlation)
           {
-            mrmfeature->addScore("var_ms1_xcorr_shape", scores.xcorr_ms1_shape_score);
-            mrmfeature->addScore("var_ms1_xcorr_coelution", scores.xcorr_ms1_coelution_score);
+            if (scores.ms1_xcorr_shape_score > -1)
+            {
+              mrmfeature->addScore("var_ms1_xcorr_shape", scores.ms1_xcorr_shape_score);
+            }
+            if (scores.ms1_xcorr_coelution_score > -1)
+            {
+              mrmfeature->addScore("var_ms1_xcorr_coelution", scores.ms1_xcorr_coelution_score);
+            }
+            mrmfeature->addScore("var_ms1_xcorr_shape_contrast", scores.ms1_xcorr_shape_contrast_score);
+            mrmfeature->addScore("var_ms1_xcorr_shape_combined", scores.ms1_xcorr_shape_combined_score);
+            mrmfeature->addScore("var_ms1_xcorr_coelution_contrast", scores.ms1_xcorr_coelution_contrast_score);
+            mrmfeature->addScore("var_ms1_xcorr_coelution_combined", scores.ms1_xcorr_coelution_combined_score);
           }
           if (su_.use_ms1_mi)
           {
-            mrmfeature->addScore("var_ms1_mi_score", scores.ms1_mi_score);
+            if (scores.ms1_mi_score > -1)
+            {
+              mrmfeature->addScore("var_ms1_mi_score", scores.ms1_mi_score);
+            }
+            mrmfeature->addScore("var_ms1_mi_contrast_score", scores.ms1_mi_contrast_score);
+            mrmfeature->addScore("var_ms1_mi_combined_score", scores.ms1_mi_combined_score);
           }
           if (su_.use_ms1_fullscan)
           {
@@ -949,6 +977,8 @@ namespace OpenMS
       // features and then append all precursor subordinate features)
       std::vector<Feature> allFeatures = mrmfeature->getFeatures();
       double total_intensity = 0, total_peak_apices = 0;
+      double ms1_total_intensity = 0, ms1_total_peak_apices = 0;
+
       for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
       {
         processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
@@ -963,7 +993,7 @@ namespace OpenMS
         {
           curr_feature.setCharge(pep->getChargeState());
         }
-        processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS1");
+        processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, ms1_total_intensity, ms1_total_peak_apices, "MS1");
         if (ms1only)
         {
           total_intensity += curr_feature.getIntensity();
@@ -976,15 +1006,16 @@ namespace OpenMS
       // overwrite the reported intensities with those above the m/z cutoff
       mrmfeature->setIntensity(total_intensity);
       mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);
+      mrmfeature->setMetaValue("ms1_area_intensity", ms1_total_intensity);
+      mrmfeature->setMetaValue("ms1_apex_intensity", ms1_total_peak_apices);
       feature_list.push_back((*mrmfeature));
 
       delete imrmfeature;
       feature_idx++;
     }
 
-    // Order by quality
-    std::sort(feature_list.begin(), feature_list.end(), OpenMS::Feature::OverallQualityLess());
-    std::reverse(feature_list.begin(), feature_list.end());
+    // Order by quality (high to low, via reverse iterator)
+    std::sort(feature_list.rbegin(), feature_list.rend(), OpenMS::Feature::OverallQualityLess());
 
     for (Size i = 0; i < feature_list.size(); i++)
     {

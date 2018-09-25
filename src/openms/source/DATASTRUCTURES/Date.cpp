@@ -40,31 +40,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  Date::Date() :
-    QDate()
-  {
-
-  }
-
-  Date::Date(const Date& date) :
-    QDate(date)
-  {
-  }
 
   Date::Date(const QDate& date) :
     QDate(date)
   {
-  }
-
-  Date& Date::operator=(const Date& source)
-  {
-    if (&source == this)
-    {
-      return *this;
-    }
-    QDate::operator=(source);
-
-    return *this;
   }
 
   void Date::set(const String& date)
@@ -126,3 +105,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

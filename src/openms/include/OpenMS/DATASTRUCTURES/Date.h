@@ -60,14 +60,18 @@ public:
 
         Fills the object with an undefined date: 00/00/0000
     */
-    Date();
+    Date() = default;
     /// Copy constructor
-    Date(const Date& date);
+    Date(const Date& date) = default;
     /// Copy constructor from Qt base class
     Date(const QDate& date);
+    /// Move constructor
+    Date(Date&&) = default;
 
     /// Assignment operator
-    Date& operator=(const Date& source);
+    Date& operator=(const Date& source) = default;
+    /// Move assignment operator
+    Date& operator=(Date&&) & = default;
 
     /**
         @brief sets data from a string

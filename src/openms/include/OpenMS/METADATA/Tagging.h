@@ -55,22 +55,26 @@ public:
     /// Names of isotope variants
     static const std::string NamesOfIsotopeVariant[SIZE_OF_ISOTOPEVARIANT];
 
-    /// default constructor
+    /// Default constructor
     Tagging();
-    /// copy constructor
-    Tagging(const Tagging &);
-    /// destructor
+    /// Copy constructor
+    Tagging(const Tagging &) = default;
+    /// Move constructor
+    Tagging(Tagging&&) = default;
+    /// Destructor
     ~Tagging() override;
 
-    /// assignment operator
-    Tagging & operator=(const Tagging &);
+    /// Assignment operator
+    Tagging & operator=(const Tagging &) = default;
+    /// Move assignment operator
+    Tagging& operator=(Tagging&&) & = default;
 
     /**
         @brief Equality operator
 
-    Although this operator takes a reference to a SampleTreatment as argument
-    it tests for the equality of Tagging instances!
-  */
+        Although this operator takes a reference to a SampleTreatment as argument
+        it tests for the equality of Tagging instances!
+    */
     bool operator==(const SampleTreatment & rhs) const override;
 
     /// clone method. See SampleTreatment
