@@ -281,7 +281,6 @@ namespace OpenMS
   /// Move assignment operator
   DataValue& DataValue::operator=(DataValue&& rhs) noexcept
   {
-    std::cout << "DataValue Move assignemnt operator " << std::endl;
     // Check for self-assignment
     if (this == &rhs)
     {
