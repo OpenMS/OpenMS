@@ -166,16 +166,16 @@ namespace OpenMS
       return peak_area;
     };
 
-    double peak_area(0.0), peak_height(0.0), peak_apex_pos(0.0);
-    ConvexHull2D::PointArrayType hull_points;
+    PeakArea pa;
+    pa.apex_pos = (left + right) / 2; // initial estimate, to avoid apex being outside of [left,right]
     UInt n_points = std::distance(p.PosBegin(left), p.PosEnd(right));
     for (auto it = p.PosBegin(left); it != p.PosEnd(right); ++it)
     {
-      hull_points.push_back(DPosition<2>(it->getPos(), it->getIntensity()));
-      if (peak_height < it->getIntensity())
+      pa.hull_points.push_back(DPosition<2>(it->getPos(), it->getIntensity()));
+      if (pa.height < it->getIntensity())
       {
-        peak_height = it->getIntensity();
-        peak_apex_pos = it->getPos();
+        pa.height = it->getIntensity();
+        pa.apex_pos = it->getPos();
       }
     }
 
@@ -183,7 +183,7 @@ namespace OpenMS
     {
       if (n_points >= 2)
       {
-        peak_area = compute_peak_area_trapezoid(left, right);
+        pa.area = compute_peak_area_trapezoid(left, right);
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_SIMPSON)
@@ -192,13 +192,13 @@ namespace OpenMS
       {
         LOG_WARN << std::endl << "PeakIntegrator::integratePeak:"
           "number of points is 2, falling back to `trapezoid`." << std::endl;
-        peak_area = compute_peak_area_trapezoid(left, right);
+        pa.area = compute_peak_area_trapezoid(left, right);
       }
       else if (n_points > 2)
       {
         if (n_points % 2)
         {
-          peak_area = simpson(p.PosBegin(left), p.PosEnd(right));
+          pa.area = simpson(p.PosBegin(left), p.PosEnd(right));
         }
         else
         {
@@ -218,27 +218,23 @@ namespace OpenMS
           {
             if (area != -1.0)
             {
-              peak_area += area;
+              pa.area += area;
               ++valids;
             }
           }
-          peak_area /= valids;
+          pa.area /= valids;
         }
       }
     }
     else if (integration_type_ == INTEGRATION_TYPE_INTENSITYSUM)
     {
-      peak_area = compute_peak_area_intensity_sum(left, right);
+      pa.area = compute_peak_area_intensity_sum(left, right);
     }
     else
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Please set a valid value for the parameter \"integration_type\".");
     }
-    PeakArea pa;
-    pa.area = peak_area;
-    pa.height = peak_height;
-    pa.apex_pos = peak_apex_pos;
-    pa.hull_points = hull_points;
+    
     return pa;
   }
 
@@ -366,9 +362,9 @@ namespace OpenMS
       }
     }
     // positions at peak heights
-    psm.start_position_at_5 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.05, true);
-    psm.start_position_at_10 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.1, true);
-    psm.start_position_at_50 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex - 1, peak_height, 0.5, true);
+    psm.start_position_at_5 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.05, true);
+    psm.start_position_at_10 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.1, true);
+    psm.start_position_at_50 = findPosAtPeakHeightPercent_(it_PosBegin_l, it_PosEnd_apex, peak_height, 0.5, true);
     psm.end_position_at_5 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.05, false);
     psm.end_position_at_10 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.1, false);
     psm.end_position_at_50 = findPosAtPeakHeightPercent_(it_PosEnd_apex, it_PosEnd_r, peak_height, 0.5, false);
