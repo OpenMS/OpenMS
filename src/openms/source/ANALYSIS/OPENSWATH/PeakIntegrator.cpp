@@ -139,7 +139,7 @@ namespace OpenMS
   template <typename PeakContainerT>
   PeakIntegrator::PeakArea PeakIntegrator::integratePeak_(const PeakContainerT& pc, double left, double right) const
   {
-	OPENMS_PRECONDITION(left < right, "Left peak boundary must be smaller than right boundary!") // otherwise the code below will segfault (due to PosBegin/PosEnd)
+    OPENMS_PRECONDITION(left <= right, "Left peak boundary must be smaller than right boundary!") // otherwise the code below will segfault (due to PosBegin/PosEnd)
     PeakContainerT emg_pc;
     const PeakContainerT& p = EMGPreProcess_(pc, emg_pc, left, right);
 

@@ -437,9 +437,13 @@ namespace OpenMS
   OpenSwath::SpectrumPtr filterByDrift(const OpenSwath::SpectrumPtr input, const double drift_lower, const double drift_upper)
   {
     OPENMS_PRECONDITION(drift_upper > 0, "Cannot filter by drift time if upper value is less or equal to zero");
-    OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
+    //OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
 
-    if (input->getDriftTimeArray() == nullptr) return input;
+    if (input->getDriftTimeArray() == nullptr)
+    {
+      std::cerr << "Warning: Cannot filter by drift time if no drift time is available.\n";
+      return input;
+    }
       
     OpenSwath::SpectrumPtr output(new OpenSwath::Spectrum);
 
