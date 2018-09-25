@@ -129,21 +129,29 @@ public:
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     ResidueModification();
 
-    /// copy constructor
-    ResidueModification(const ResidueModification& modification);
+    /// Copy constructor
+    ResidueModification(const ResidueModification& modification) = default;
 
-    /// destructor
+    /// Move constructor
+    ResidueModification(ResidueModification&&) = default;
+
+    /// Destructor
     virtual ~ResidueModification();
     //@}
 
     /** @name Assignment operator
     */
     //@{
-    /// assignment operator
-    ResidueModification& operator=(const ResidueModification& modification);
+
+    /// Assignment operator
+    ResidueModification& operator=(const ResidueModification& modification) = default;
+
+    /// Move assignment operator
+    ResidueModification& operator=(ResidueModification&&) & = default;
     //@}
 
     /** @name Accessors

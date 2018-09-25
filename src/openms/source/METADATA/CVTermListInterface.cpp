@@ -47,57 +47,79 @@ namespace OpenMS
       cvt_ptr_(nullptr)
     {}
 
-
   CVTermListInterface::CVTermListInterface(const CVTermListInterface & rhs) :
     MetaInfoInterface(rhs),
     cvt_ptr_(nullptr)
   {
-    MetaInfoInterface::operator=(rhs);
-
     if (rhs.cvt_ptr_ != nullptr)
     {
       cvt_ptr_ = new CVTermList(*rhs.cvt_ptr_);
     }
   }
 
-    // Destructor (non virtual)
-    CVTermListInterface::~CVTermListInterface() 
+  // http://thbecker.net/articles/rvalue_references/section_05.html
+  CVTermListInterface::CVTermListInterface(CVTermListInterface&& rhs) :
+    MetaInfoInterface(std::move(rhs)), // NOTE: rhs itself is an lvalue
+    cvt_ptr_(rhs.cvt_ptr_)
+  {
+    // take ownership
+    rhs.cvt_ptr_ = nullptr;
+  }
+
+  CVTermListInterface::~CVTermListInterface() 
+  {
+    delete cvt_ptr_;
+  }
+
+  CVTermListInterface & CVTermListInterface::operator=(const CVTermListInterface & rhs)
+  {
+    if (this != &rhs)
     {
+      MetaInfoInterface::operator=(rhs);
+
       delete cvt_ptr_;
-    }
-
-    CVTermListInterface & CVTermListInterface::operator=(const CVTermListInterface & rhs)
-    {
-      if (this != &rhs)
+      cvt_ptr_ = nullptr;
+      if (rhs.cvt_ptr_ != nullptr)
       {
-        MetaInfoInterface::operator=(rhs);
-
-        delete cvt_ptr_;
-        cvt_ptr_ = nullptr;
-        if (rhs.cvt_ptr_ != nullptr)
-        {
-          cvt_ptr_ = new CVTermList(*rhs.cvt_ptr_);
-        }
+        cvt_ptr_ = new CVTermList(*rhs.cvt_ptr_);
       }
+    }
+    return *this;
+  }
+
+  CVTermListInterface& CVTermListInterface::operator=(CVTermListInterface&& rhs)
+  {
+    if (&rhs == this)
+    {
       return *this;
     }
 
-    bool CVTermListInterface::operator==(const CVTermListInterface& rhs) const
-    {
-      return MetaInfoInterface::operator==(rhs) &&
-             Helpers::cmpPtrSafe<CVTermList*>(cvt_ptr_, rhs.cvt_ptr_);
-    }
+    MetaInfoInterface::operator=(rhs);
 
-    bool CVTermListInterface::operator!=(const CVTermListInterface& rhs) const
-    {
-      return !(*this == rhs);
-    }
+    // free memory and assign rhs memory
+    delete cvt_ptr_;
+    cvt_ptr_ = rhs.cvt_ptr_;
+    rhs.cvt_ptr_ = nullptr;
 
-    void CVTermListInterface::replaceCVTerms(Map<String, std::vector<CVTerm> > & cv_terms)
-    {
-      createIfNotExists_();
-      cvt_ptr_->replaceCVTerms(cv_terms);
-    }
+    return *this;
+  }
+
+  bool CVTermListInterface::operator==(const CVTermListInterface& rhs) const
+  {
+    return MetaInfoInterface::operator==(rhs) &&
+           Helpers::cmpPtrSafe<CVTermList*>(cvt_ptr_, rhs.cvt_ptr_);
+  }
+
+  bool CVTermListInterface::operator!=(const CVTermListInterface& rhs) const
+  {
+    return !(*this == rhs);
+  }
+
+  void CVTermListInterface::replaceCVTerms(Map<String, std::vector<CVTerm> > & cv_terms)
+  {
+    createIfNotExists_();
+    cvt_ptr_->replaceCVTerms(cv_terms);
+  }
 
   void CVTermListInterface::createIfNotExists_()
   {
@@ -174,5 +196,5 @@ namespace OpenMS
     }
   }
 
-
 }
+

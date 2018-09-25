@@ -73,16 +73,16 @@ namespace OpenMS
   class OPENMS_DLLAPI MetaInfoRegistry
   {
 public:
-    ///default constructor
+    /// Default constructor
     MetaInfoRegistry();
 
-    ///copy constructor
+    /// Copy constructor
     MetaInfoRegistry(const MetaInfoRegistry& rhs);
 
-    ///destructor
+    /// Destructor
     ~MetaInfoRegistry();
 
-    ///assignment operator
+    /// Assignment operator
     MetaInfoRegistry& operator=(const MetaInfoRegistry& rhs);
 
     /**

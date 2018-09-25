@@ -40,37 +40,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  Gradient::Gradient() :
-    eluents_(),
-    times_(),
-    percentages_()
-  {
-
-  }
-
-  Gradient::Gradient(const Gradient & source) :
-    eluents_(source.eluents_),
-    times_(source.times_),
-    percentages_(source.percentages_)
-  {
-
-  }
 
   Gradient::~Gradient()
   {
 
-  }
-
-  Gradient & Gradient::operator=(const Gradient & source)
-  {
-    if (source == *this)
-      return *this;
-
-    eluents_ = source.eluents_;
-    times_ = source.times_;
-    percentages_ = source.percentages_;
-
-    return *this;
   }
 
   bool Gradient::operator==(const Gradient & rhs) const

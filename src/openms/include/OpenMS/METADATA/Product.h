@@ -52,14 +52,18 @@ namespace OpenMS
 public:
 
     /// Constructor
-    Product();
+    Product() = default;
     /// Copy constructor
-    Product(const Product & source);
+    Product(const Product & source) = default;
+    /// Move constructor
+    Product(Product&&) = default;
     /// Destructor
-    ~Product() override;
+    ~Product() override = default;
 
     /// Assignment operator
-    Product & operator=(const Product & source);
+    Product & operator=(const Product & source) = default;
+    /// Move assignment operator
+    Product& operator=(Product&&) & = default;
 
     /// Equality operator
     bool operator==(const Product & rhs) const;
@@ -83,9 +87,9 @@ public:
 
 protected:
 
-    double mz_;
-    double window_low_;
-    double window_up_;
+    double mz_ = 0.0;
+    double window_low_ = 0.0;
+    double window_up_ = 0.0;
   };
 } // namespace OpenMS
 

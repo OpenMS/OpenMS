@@ -61,6 +61,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 // preprocessing and filtering
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
@@ -1264,7 +1265,8 @@ protected:
     const RNPxlModificationMassesResult& mm, 
     const vector<ResidueModification>& fixed_modifications, 
     const vector<ResidueModification>& variable_modifications, 
-    Size max_variable_mods_per_peptide)
+    Size max_variable_mods_per_peptide,
+    const vector<PrecursorPurity::PurityScores>& purities)
   {
       // remove all but top n scoring (Note: this is currently necessary as postScoreHits_ might reintroduce nucleotide specific hits for fast scoring)
 #ifdef _OPENMP
@@ -1346,6 +1348,11 @@ protected:
           ph.setMetaValue(String("RNPxl:localization_scores"), ah.localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), ah.best_localization);
 
+          if (!purities.empty())
+          {
+            ph.setMetaValue("precursor_purity", purities[scan_index].signal_proportion);
+          }
+
           ph.setPeakAnnotations(ah.fragment_annotations);
           ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
           ph.setMetaValue("rank", rank);
@@ -1405,6 +1412,7 @@ protected:
        << "RNPxl:pl_Morph"
        << "RNPxl:total_MIC"
        << "RNPxl:RNA_MASS_z0";
+    if (!purities.empty()) feature_set << "precursor_purity";
 
     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
@@ -1655,6 +1663,18 @@ protected:
     PeakMap spectra;
     MzMLFile f;
     f.setLogType(log_type_);
+
+    // load both MS1 and MS2 for precursor purity annotation
+    vector<PrecursorPurity::PurityScores> purities;
+    {
+      PeakMap tmp_spectra;
+      f.load(in_mzml, tmp_spectra);
+      int nMS1 = std::count_if(tmp_spectra.begin(), tmp_spectra.end(), [](MSSpectrum& s){return s.getMSLevel() == 1;});
+      if (nMS1 != 0)
+      {
+        purities = PrecursorPurity::computePrecursorPurities(tmp_spectra, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+      }
+    } // free spectra  
 
     PeakFileOptions options;
     options.clearMSLevels();
@@ -2236,7 +2256,8 @@ protected:
                      report_top_hits, 
                      mm, 
                      fixed_modifications, variable_modifications, 
-                     max_variable_mods_per_peptide);
+                     max_variable_mods_per_peptide,
+                     purities);
     progresslogger.endProgress();
 
     // reindex ids

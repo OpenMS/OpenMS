@@ -47,6 +47,7 @@
 
 namespace OpenMS
 {
+
   /**
       @brief Representation of chromatogram settings, e.g. SRM/MRM chromatograms
 
@@ -83,18 +84,21 @@ public:
     /// Constructor
     ChromatogramSettings();
     /// Copy constructor
-    ChromatogramSettings(const ChromatogramSettings & source);
+    ChromatogramSettings(const ChromatogramSettings & source) = default;
+    /// Move constructor
+    ChromatogramSettings(ChromatogramSettings&&) = default;
     /// Destructor
     virtual ~ChromatogramSettings();
 
     // Assignment operator
-    ChromatogramSettings & operator=(const ChromatogramSettings & source);
+    ChromatogramSettings & operator=(const ChromatogramSettings & source) = default;
+    /// Move assignment operator
+    ChromatogramSettings& operator=(ChromatogramSettings&&) & = default;
 
     /// Equality operator
     bool operator==(const ChromatogramSettings & rhs) const;
     /// Equality operator
     bool operator!=(const ChromatogramSettings & rhs) const;
-
 
     /// returns the native identifier for the spectrum, used by the acquisition software.
     const String & getNativeID() const;
