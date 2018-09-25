@@ -72,6 +72,10 @@ MSSpectrum* nullPointer = nullptr;
 START_SECTION((MSSpectrum()))
   ptr = new MSSpectrum();
   TEST_NOT_EQUAL(ptr, nullPointer)
+
+  // Ensure that MSSpectrum has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(MSSpectrum(std::declval<MSSpectrum&&>())), true)
 END_SECTION
 
 START_SECTION((~MSSpectrum()))

@@ -111,6 +111,9 @@ public:
     {
     }
 
+    /// Move constructor.
+    DRange(DRange&&) noexcept = default;
+
     /// Copy constructor for the base class
     DRange(const Base& range) :
       Base(range)

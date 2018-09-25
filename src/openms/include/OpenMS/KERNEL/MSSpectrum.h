@@ -145,7 +145,7 @@ public:
     MSSpectrum(const MSSpectrum& source);
 
     /// Move constructor
-    MSSpectrum(MSSpectrum&&) = default;
+    MSSpectrum(MSSpectrum&&) noexcept = default;
 
     /// Destructor
     ~MSSpectrum() override

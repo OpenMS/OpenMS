@@ -108,6 +108,9 @@ public:
                 &(coordinate_[0]));
     }
 
+    /// Move constructor
+    DPosition(DPosition&& rhs) noexcept = default;
+
     /// Constructor only for DPosition<2> that takes two Coordinates.
     DPosition(CoordinateType x, CoordinateType y)
     {
