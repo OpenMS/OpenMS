@@ -243,7 +243,7 @@ using namespace OpenMS;
     <tr>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> MC </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
-      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Missed cleavages of the sequence (assuming Trypsin) </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Missed cleavages of the sequence (assuming Trypsin as protease) </td>
     </tr>
 
     <tr>

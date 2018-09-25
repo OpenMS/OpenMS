@@ -960,7 +960,7 @@ namespace OpenMS
       if (pep->isPeptide())
       {
         pep_hit_.setSequence(AASequence::fromString(pep->sequence));
-        mrmfeature->setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()));
+        mrmfeature->setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);
       }
 
       // set protein accession numbers 
