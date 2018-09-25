@@ -53,25 +53,25 @@ RibonucleotideDB* ptr = nullptr;
 RibonucleotideDB* null = nullptr;
 START_SECTION(RibonucleotideDB* getInstance())
 {
-	ptr = RibonucleotideDB::getInstance();
-	TEST_NOT_EQUAL(ptr, null);
+  ptr = RibonucleotideDB::getInstance();
+  TEST_NOT_EQUAL(ptr, null);
 }
 END_SECTION
 
 START_SECTION(virtual ~RibonucleotideDB())
-	NOT_TESTABLE
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION(ConstIterator begin())
 {
-	RibonucleotideDB::ConstIterator it = ptr->begin();
+  RibonucleotideDB::ConstIterator it = ptr->begin();
   TEST_STRING_EQUAL((*it)->getCode(), "m1Am");
 }
 END_SECTION
 
 START_SECTION(ConstIterator end())
 {
-	RibonucleotideDB::ConstIterator it = ptr->end();
+  RibonucleotideDB::ConstIterator it = ptr->end();
   TEST_EQUAL(it != ptr->begin(), true);
 }
 END_SECTION
