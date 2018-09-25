@@ -37,8 +37,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+///////////////////////////
+
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
 
@@ -55,6 +57,8 @@ EmpiricalFormula* e_ptr = nullptr;
 EmpiricalFormula* e_nullPointer = nullptr;
 const ElementDB * db = ElementDB::getInstance();
 
+EmpiricalFormula ef_empty;
+
 START_SECTION(EmpiricalFormula())
   e_ptr = new EmpiricalFormula;
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)
@@ -67,18 +71,33 @@ END_SECTION
 START_SECTION(EmpiricalFormula(const String& rhs))
   e_ptr = new EmpiricalFormula("C4");
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)
-        EmpiricalFormula e0("C5(13)C4H2");
-        EmpiricalFormula e1("C5(13)C4");
-        EmpiricalFormula e2("(12)C5(13)C4");
-        EmpiricalFormula e3("C9");
+  EmpiricalFormula e0("C5(13)C4H2");
+  EmpiricalFormula e1("C5(13)C4");
+  EmpiricalFormula e2("(12)C5(13)C4");
+  EmpiricalFormula e3("C9");
   TEST_REAL_SIMILAR(e1.getMonoWeight(), e2.getMonoWeight())
   TEST_REAL_SIMILAR(e1.getMonoWeight(), 112.013419)
   TEST_REAL_SIMILAR(e2.getMonoWeight(), 112.013419)
 END_SECTION
 
+
 START_SECTION(EmpiricalFormula(const EmpiricalFormula& rhs))
   EmpiricalFormula ef(*e_ptr);
   TEST_EQUAL(ef == *e_ptr, true)
+END_SECTION
+
+START_SECTION(EmpiricalFormula(EmpiricalFormula&&) = default)
+  EmpiricalFormula e = EmpiricalFormula("C4");
+
+  EmpiricalFormula ef(e);
+  EmpiricalFormula ef2(e);
+
+  TEST_NOT_EQUAL(ef, ef_empty)
+
+  // the move target should be equal, while the move source should be empty
+  EmpiricalFormula ef_mv(std::move(ef));
+  TEST_EQUAL(ef_mv, ef2)
+  TEST_EQUAL(ef, ef_empty)
 END_SECTION
 
 START_SECTION((EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge=0)))
@@ -125,6 +144,21 @@ START_SECTION(EmpiricalFormula& operator = (const EmpiricalFormula& rhs))
   TEST_EQUAL(*e_ptr == ef, true)
 END_SECTION
 
+    
+START_SECTION(EmpiricalFormula& operator=(EmpiricalFormula&&) & = default)
+  EmpiricalFormula e = EmpiricalFormula("C4");
+
+  EmpiricalFormula ef(e);
+  EmpiricalFormula ef2(e);
+  TEST_NOT_EQUAL(ef, ef_empty)
+
+  // the move target should be equal, while the move source should be empty
+  EmpiricalFormula ef_mv;
+  ef_mv = std::move(ef);
+  TEST_EQUAL(ef_mv, ef2)
+  TEST_EQUAL(ef, ef_empty)
+END_SECTION
+
 START_SECTION(EmpiricalFormula operator * (const SignedSize& times) const)
   EmpiricalFormula ef("C3H8");
   ef = ef * 3;
@@ -133,6 +167,7 @@ END_SECTION
 
 START_SECTION(EmpiricalFormula& operator += (const EmpiricalFormula& rhs))
   EmpiricalFormula ef("C3");
+  TEST_EQUAL(ef, "C3")
   ef += ef;
   TEST_EQUAL(ef, "C6")
   EmpiricalFormula ef2("C-6H2");

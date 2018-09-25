@@ -10,6 +10,8 @@ from MSChromatogram cimport *
 from ChromatogramPeak cimport *
 from AASequence cimport *
 
+# this class has addons, see the ./addons folder (../addons/OpenSwathDataAccessHelper.pyx)
+
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" namespace "OpenMS":
 
     cdef cppclass OpenSwathDataAccessHelper:
@@ -22,6 +24,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
 
         # Convert an OpenMS Spectrum to an SpectrumPtr
         shared_ptr[OSSpectrum] convertToSpectrumPtr(MSSpectrum spectrum) nogil except + # wrap-ignore
+
+        # Convert an OpenMS Chromatogram to an ChromatogramPtr
+        shared_ptr[OSChromatogram] convertToChromatogramPtr(MSChromatogram chromatogram) nogil except + # wrap-ignore
 
         # Convert a ChromatogramPtr to an OpenMS Chromatogram
         void convertToOpenMSChromatogram(shared_ptr[OSChromatogram] cptr, MSChromatogram & chromatogram) nogil except +

@@ -107,7 +107,7 @@ namespace OpenMS
         sl << String(ma.first + "_" + ma.second[i].first);
       }
     }
-    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "fragment_annotation" << "rank";
+    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H" << "rank";
     return ListUtils::concatenate(sl, separator);
   }
 

@@ -144,8 +144,8 @@
 				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
 				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05" />
-				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9"/>
-				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9"/>
+				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<userParam name="p1" type="xsd:string" value="value1"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
@@ -164,8 +164,8 @@
 				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
 				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05" />
-				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9"/>
-				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9"/>
+				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<userParam name="p1" type="xsd:string" value="value1"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_1_pm_1">
@@ -225,14 +225,14 @@
 				<cvParam cvRef="MS" accession="MS:1000798" name="peak list raw scans" value="16 scans"/>
 				<userParam name="maldi_spot_id" type="xsd:string" value="M0"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription1"/>
-				<userParam name="scan rate" type="xsd:double" value="17.17"/>
+				<userParam name="scan rate" type="xsd:double" value="17.17" unitAccession="MS:1000807" unitName="Th/s" unitCvRef="MS"/>
 				<userParam name="mass resolving power" type="xsd:string" value="4.299"/>
 				<userParam name="mass resolution" type="xsd:string" value="4.3"/>
 				<userParam name="elution time (seconds)" type="xsd:double" value="55.11"/>
 				<userParam name="filter string" type="xsd:string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="3 abc"/>
-				<userParam name="analyzer scan offset" type="xsd:double" value="-4.5"/>
-				<userParam name="dwell time" type="xsd:double" value="123.45"/>
+				<userParam name="analyzer scan offset" type="xsd:double" value="-4.5" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<userParam name="dwell time" type="xsd:double" value="123.45" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
 				<userParam name="mzname" type="xsd:string" value="mzarray1"/>
 				<userParam name="itname" type="xsd:string" value="itarray1"/>
 				<scanList count="2">
@@ -513,16 +513,16 @@
 </mzML>
 <indexList count="2">
 	<index name="spectrum">
-		<offset idRef="index=0">13640</offset>
-		<offset idRef="index=1">17444</offset>
-		<offset idRef="index=2">26016</offset>
-		<offset idRef="index=3">30783</offset>
+		<offset idRef="index=0">13956</offset>
+		<offset idRef="index=1">17935</offset>
+		<offset idRef="index=2">26507</offset>
+		<offset idRef="index=3">31274</offset>
 	</index>
 	<index name="chromatogram">
-		<offset idRef="tic native">32121</offset>
-		<offset idRef="sic native">33500</offset>
+		<offset idRef="tic native">32612</offset>
+		<offset idRef="sic native">33991</offset>
 	</index>
 </indexList>
-<indexListOffset>35081</indexListOffset>
+<indexListOffset>35572</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

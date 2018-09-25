@@ -37,6 +37,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void setName(libcpp_string) nogil except +
 
         Size size() nogil except +
+        void reserve(size_t n) nogil except + 
 
         Peak1D operator[](int) nogil except + # wrap-upper-limit:size()
 

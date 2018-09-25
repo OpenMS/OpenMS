@@ -68,11 +68,13 @@
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="0.00300000001490116"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.023933009041013"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105771125344"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105769338282"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="PrecursorMZ" value="510.05"/>
+			<UserParam type="float" name="ms1_area_intensity" value="12972.2163085938"/>
+			<UserParam type="float" name="ms1_apex_intensity" value="1316.50946044922"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 		<feature id="f_3332699010107892018">
@@ -137,11 +139,13 @@
 			<UserParam type="float" name="rt_score" value="0.300000001490116"/>
 			<UserParam type="float" name="var_norm_rt_score" value="0.00300000001490116"/>
 			<UserParam type="float" name="var_ms1_ppm_diff" value="0.0195308594010019"/>
-			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503417274433"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503417082028"/>
 			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.50000005099749"/>
 			<UserParam type="float" name="main_var_xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="xx_lda_prelim_score" value="0.233234946367855"/>
 			<UserParam type="float" name="PrecursorMZ" value="500.01"/>
+			<UserParam type="float" name="ms1_area_intensity" value="16510.09375"/>
+			<UserParam type="float" name="ms1_apex_intensity" value="1675.55749511719"/>
 			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
 	</featureList>

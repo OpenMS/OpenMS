@@ -58,14 +58,18 @@ private:
 
 public:
     /// Constructor
-    AcquisitionInfo();
+    AcquisitionInfo() = default;
     /// Copy constructor
-    AcquisitionInfo(const AcquisitionInfo& source);
+    AcquisitionInfo(const AcquisitionInfo& source) = default;
+    /// Move constructor
+    AcquisitionInfo(AcquisitionInfo&&) = default;
     /// Destructor
-    ~AcquisitionInfo();
+    ~AcquisitionInfo() = default;
 
     /// Assignment operator
-    AcquisitionInfo& operator=(const AcquisitionInfo& source);
+    AcquisitionInfo& operator=(const AcquisitionInfo& source) = default;
+    /// Move assignment operator
+    AcquisitionInfo& operator=(AcquisitionInfo&&) & = default;
 
     /// Equality operator
     bool operator==(const AcquisitionInfo& rhs) const;

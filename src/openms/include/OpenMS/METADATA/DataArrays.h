@@ -43,23 +43,25 @@ namespace OpenMS
 
     /// Float data array class
     class FloatDataArray :
-    public MetaInfoDescription,
-    public std::vector<float>
-    {};
+      public MetaInfoDescription,
+      public std::vector<float>
+    {
+    };
 
     /// Integer data array class
     class IntegerDataArray :
-    public MetaInfoDescription,
-    public std::vector<Int>
-    {};
+      public MetaInfoDescription,
+      public std::vector<Int>
+    {
+    };
 
     /// String data array class
     class StringDataArray :
-    public MetaInfoDescription,
-    public std::vector<String>
-    {};
+      public MetaInfoDescription,
+      public std::vector<String>
+    {
+    };
 
   }
 } // namespace OpenMS
-
 

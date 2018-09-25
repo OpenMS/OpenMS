@@ -223,12 +223,14 @@ public:
 
     /** @name Identifying transitions
      * 
-     * @brief Transitions used for differentiation between different analyte isomers
+     * @brief Transitions used for differentiation between different analyte isomers (peptidoforms).
      *
      * Identifying transitions represent the set of transitions of an assay
      * that should be used for the independent identification of a candidate
-     * peak group. These transitions will be scored independently of the
-     * detecting transitions.
+     * peak group (often in relation to another analyte isomer or peptidoform). 
+     * These transitions could for example be site-determining transitions in a 
+     * phospho-proteomic DIA experiment. These transitions will be scored independently 
+     * of the detecting transitions.
      *
     */
     //@{

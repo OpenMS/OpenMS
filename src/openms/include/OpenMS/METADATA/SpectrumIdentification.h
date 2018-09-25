@@ -53,14 +53,18 @@ public:
 
     /// @name constructors,destructors,assignment operator
     //@{
-    /// default constructor
-    SpectrumIdentification();
-    /// destructor
+    /// Default constructor
+    SpectrumIdentification() = default;
+    /// Destructor
     virtual ~SpectrumIdentification();
-    /// copy constructor
-    SpectrumIdentification(const SpectrumIdentification & source);
-    /// assignment operator
-    SpectrumIdentification & operator=(const SpectrumIdentification & source);
+    /// Copy constructor
+    SpectrumIdentification(const SpectrumIdentification & source) = default;
+    /// Move constructor
+    SpectrumIdentification(SpectrumIdentification&&) = default;
+    /// Assignment operator
+    SpectrumIdentification & operator=(const SpectrumIdentification & source) = default;
+    /// Move assignment operator
+    SpectrumIdentification& operator=(SpectrumIdentification&&) & = default;
     /// Equality operator
     bool operator==(const SpectrumIdentification & rhs) const;
     /// Inequality operator
@@ -81,8 +85,8 @@ public:
 
 protected:
 
-    String id_;                                                                     ///< Identifier
-    std::vector<IdentificationHit> hits_;               ///< Single peptide hits
+    String id_; ///< Identifier
+    std::vector<IdentificationHit> hits_; ///< Single peptide hits
   };
 
 } //namespace OpenMS

@@ -34,7 +34,6 @@
 
 #include <OpenMS/METADATA/DataProcessing.h>
 
-
 using namespace std;
 
 namespace OpenMS
@@ -63,40 +62,9 @@ namespace OpenMS
     "Conversion to DTA format"
   };
 
-  DataProcessing::DataProcessing() :
-    MetaInfoInterface(),
-    software_(),
-    processing_actions_(),
-    completion_time_()
-  {
-
-  }
-
-  DataProcessing::DataProcessing(const DataProcessing & rhs) :
-    MetaInfoInterface(rhs),
-    software_(rhs.software_),
-    processing_actions_(rhs.processing_actions_),
-    completion_time_(rhs.completion_time_)
-  {
-
-  }
-
   DataProcessing::~DataProcessing()
   {
 
-  }
-
-  DataProcessing & DataProcessing::operator=(const DataProcessing & rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    MetaInfoInterface::operator=(rhs);
-    software_ = rhs.software_;
-    processing_actions_ = rhs.processing_actions_;
-    completion_time_ = rhs.completion_time_;
-
-    return *this;
   }
 
   bool DataProcessing::operator==(const DataProcessing & rhs) const
@@ -153,3 +121,4 @@ namespace OpenMS
   }
 
 }
+

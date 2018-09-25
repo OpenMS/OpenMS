@@ -40,7 +40,7 @@ class TestDIAScoring(unittest.TestCase):
           p_dia.setValue("dia_nr_charges", 4);
           diascoring.setParameters(p_dia);
 
-          a = pyopenms.AASequence.fromString(b"SYVAWDR", True)
+          a = pyopenms.AASequence.fromString(b"SYVAWDR")
 
           bseries_score = 0.0
           yseries_score = 0.0

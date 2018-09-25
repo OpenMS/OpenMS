@@ -62,8 +62,13 @@ public:
     /// Convert a ChromatogramPtr to an OpenMS Chromatogram
     static void convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram);
 
-    static void convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram, const OpenSwath::ChromatogramPtr cptr,
-                                                  double rt_min, double rt_max);
+    /// Convert an OpenMS Chromatogram to an ChromatogramPtr
+    static OpenSwath::ChromatogramPtr convertToChromatogramPtr(const OpenMS::MSChromatogram & chromatogram);
+
+    static void convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram,
+                                                  const OpenSwath::ChromatogramPtr cptr,
+                                                  double rt_min,
+                                                  double rt_max);
 
     /// convert from the OpenMS TargetedExperiment to the LightTargetedExperiment
     static void convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
