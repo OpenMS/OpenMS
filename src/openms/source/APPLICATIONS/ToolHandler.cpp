@@ -215,9 +215,6 @@ namespace OpenMS
     util_map["MultiplexResolver"] = Internal::ToolDescription("MultiplexResolver", util_category);
     util_map["MzMLSplitter"] = Internal::ToolDescription("MzMLSplitter", util_category);
     util_map["NucleicAcidSearchEngine"] = Internal::ToolDescription("NucleicAcidSearchEngine", util_category);
-    util_map["NucleotideID"] = Internal::ToolDescription("NucleotideID", util_category);
-    util_map["NucleotideIDAMSDBCreator"] = Internal::ToolDescription("NucleotideIDAMSDBCreator", util_category);
-    util_map["NucSpectrumGen"] = Internal::ToolDescription("NucSpectrumGen", util_category);
     util_map["OpenPepXL"] = Internal::ToolDescription("OpenPepXL", util_category);
     util_map["OpenPepXLLF"] = Internal::ToolDescription("OpenPepXLLF", util_category);
     util_map["OpenSwathWorkflow"] = Internal::ToolDescription("OpenSwathWorkflow", util_category);
