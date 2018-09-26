@@ -61,7 +61,7 @@ namespace OpenMS
     charge_ = parseFormula_(formula_, formula);
   }
 
-  EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element* element, Int charge)
+  EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge)
   {
     formula_[element] = number;
     charge_ = charge;

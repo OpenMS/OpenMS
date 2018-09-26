@@ -51,6 +51,12 @@ namespace OpenMS
 public:
     /// Constructor
     Software() = default;
+    /// Explicit constructor
+    Software(String name, String version)
+    {
+      name_ = name;
+      version_ = version;
+    }
     /// Copy constructor
     Software(const Software & source) = default;
     /// Move constructor
