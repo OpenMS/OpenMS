@@ -56,7 +56,7 @@ namespace OpenMS
 
   /// Move constructor
   MetaInfoInterface::MetaInfoInterface(MetaInfoInterface&& rhs) noexcept :
-    meta_(rhs.meta_)
+    meta_(std::move(rhs.meta_))
   {
     // take ownership
     rhs.meta_ = nullptr;
