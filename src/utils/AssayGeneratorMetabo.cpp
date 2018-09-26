@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -128,7 +129,7 @@ protected:
     setValidFormats_("in_id", ListUtils::create<String>("featurexml"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("tsv,traML"));
 
     registerStringOption_("method", "<choice>", "highest_intensity", "Method used for assay library construction",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
@@ -546,6 +547,10 @@ protected:
     double transition_threshold = getDoubleOption_("transition_threshold");
     bool use_known_unknowns = getFlag_("use_known_unknowns");
 
+    //-------------------------------------------------------------
+    // input and check
+    //-------------------------------------------------------------
+
     // check size of .mzML & .featureXML input
     if (in.size() != id.size())
     {
@@ -595,6 +600,10 @@ protected:
                                              "Error: Profile data provided but centroided spectra expected. ");
         }
       }
+
+      //-------------------------------------------------------------
+      // Processing
+      //-------------------------------------------------------------
 
       // sort spectra
       spectra.sortSpectra();
@@ -714,7 +723,25 @@ protected:
 
     // TODO: maybe have to reannotate Transitions
 
-    OpenMS::TransitionTSVFile::convertTargetedExperimentToTSV(out.c_str(), t_exp);
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
+
+    String extension = out.substr(out.find_last_of(".") +1);
+
+    if (extension == "tsv")
+    {
+      // validate and write
+      OpenMS::TransitionTSVFile::convertTargetedExperimentToTSV(out.c_str(), t_exp);
+    }
+    else
+    {
+      // validate
+      OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
+      // write traML
+      TraMLFile traml_out;
+      traml_out.store(out,t_exp);
+    }
 
     return EXECUTION_OK;
   }

@@ -997,9 +997,7 @@ namespace OpenMS
 
     Map<String, TransitionVectorType> TransitionsMap;
 
-    // Generate a map of peptides to transitions for easy access
-    std::cout << "transition_size: " << exp.getTransitions().size() << std::endl;
-
+    // Generate a map of compounds to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
     {
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
