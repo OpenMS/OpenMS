@@ -372,7 +372,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="50"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_7804704400743266335_17447818880105247092">
 					<position dim="0">4158.41934073806</position>
@@ -614,7 +614,7 @@
 					<UserParam type="string" name="native_id" value="60351_NSFVSYENFYQNHENAEIR/3_y8"/>
 					<UserParam type="float" name="peak_apex_int" value="90"/>
 					<UserParam type="float" name="total_xic" value="10005"/>
-					<UserParam type="float" name="width_at_50" value="10.2400000000007"/>
+					<UserParam type="float" name="width_at_50" value="6.82000000000062"/>
 				</feature>
 				<feature id="f_3332699010107892018_9126387050458671424">
 					<position dim="0">4187.45739976943</position>
@@ -796,7 +796,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="-3684.45359314271"/>
+					<UserParam type="float" name="width_at_50" value="3.41999999999962"/>
 				</feature>
 				<feature id="f_15916652588957785155_4143272592559840046">
 					<position dim="0">3684.23469288528</position>
@@ -902,7 +902,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_15157403601844400700_12561328592123678330">
 					<position dim="0">3882.9155023706</position>
@@ -947,7 +947,7 @@
 					<UserParam type="string" name="native_id" value="60352_NSFVSYENFYQNHENAEIR/3_y10"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="4746"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="125820"/>
@@ -1053,7 +1053,7 @@
 					<UserParam type="string" name="native_id" value="60352_NSFVSYENFYQNHENAEIR/3_y10"/>
 					<UserParam type="float" name="peak_apex_int" value="30"/>
 					<UserParam type="float" name="total_xic" value="4746"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="125820"/>
@@ -1114,7 +1114,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="-3893.51"/>
+					<UserParam type="float" name="width_at_50" value="3.41999999999962"/>
 				</feature>
 				<feature id="f_474525871221756682_7061025990090747374">
 					<position dim="0">3892.44847729385</position>
@@ -1326,7 +1326,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="6.82000000000016"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_17413765565443951891_15721057298497490036">
 					<position dim="0">3758.94840338826</position>
@@ -1356,7 +1356,7 @@
 					<UserParam type="string" name="native_id" value="60351_NSFVSYENFYQNHENAEIR/3_y8"/>
 					<UserParam type="float" name="peak_apex_int" value="30"/>
 					<UserParam type="float" name="total_xic" value="10005"/>
-					<UserParam type="float" name="width_at_50" value="6.82000000000016"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_17413765565443951891_11422463686885200558">
 					<position dim="0">3758.94840338826</position>
@@ -1689,7 +1689,7 @@
 					<UserParam type="string" name="native_id" value="60352_NSFVSYENFYQNHENAEIR/3_y10"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="4746"/>
-					<UserParam type="float" name="width_at_50" value="0"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="125820"/>
@@ -1962,7 +1962,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="3.41000000000031"/>
+					<UserParam type="float" name="width_at_50" value="0"/>
 				</feature>
 				<feature id="f_14811341817612382122_9693516254110939661">
 					<position dim="0">3768.31720010698</position>
@@ -2098,7 +2098,7 @@
 					<UserParam type="string" name="native_id" value="60351_NSFVSYENFYQNHENAEIR/3_y8"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="10005"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_2684106197423007927_3110306690676341028">
 					<position dim="0">3740.02667111099</position>
@@ -2174,7 +2174,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="-3.40999999999985"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_8119044117483804262_15974525296577096328">
 					<position dim="0">3723.36829859793</position>
@@ -2280,7 +2280,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_17314619952666245179_12855069628258305325">
 					<position dim="0">3939.01914278686</position>
@@ -2492,7 +2492,7 @@
 					<UserParam type="string" name="native_id" value="60349_NSFVSYENFYQNHENAEIR/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="6777"/>
-					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
+					<UserParam type="float" name="width_at_50" value="6.81999999999971"/>
 				</feature>
 				<feature id="f_7898004582401008768_3115030544351500350">
 					<position dim="0">3912.21430941701</position>
@@ -2537,7 +2537,7 @@
 					<UserParam type="string" name="native_id" value="60352_NSFVSYENFYQNHENAEIR/3_y10"/>
 					<UserParam type="float" name="peak_apex_int" value="30"/>
 					<UserParam type="float" name="total_xic" value="4746"/>
-					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
+					<UserParam type="float" name="width_at_50" value="6.81999999999971"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="125820"/>
@@ -2704,7 +2704,7 @@
 					<UserParam type="string" name="native_id" value="61290_GRDNEMYFSDLVNEIQNYLGK/3_b7"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="2270"/>
-					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
+					<UserParam type="float" name="width_at_50" value="6.81999999999971"/>
 				</feature>
 				<feature id="f_15012949867540041090_4052294204879239723">
 					<position dim="0">6622.25541868865</position>
@@ -2780,7 +2780,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
+					<UserParam type="float" name="width_at_50" value="6.81999999999971"/>
 				</feature>
 				<feature id="f_276808963686810837_3725296011092108785">
 					<position dim="0">6821.98524729312</position>
@@ -2810,7 +2810,7 @@
 					<UserParam type="string" name="native_id" value="61290_GRDNEMYFSDLVNEIQNYLGK/3_b7"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="2270"/>
-					<UserParam type="float" name="width_at_50" value="10.2400000000007"/>
+					<UserParam type="float" name="width_at_50" value="6.83000000000084"/>
 				</feature>
 				<feature id="f_276808963686810837_3103608995878612024">
 					<position dim="0">6821.98524729312</position>
@@ -2840,7 +2840,7 @@
 					<UserParam type="string" name="native_id" value="61292_GRDNEMYFSDLVNEIQNYLGK/3_y6"/>
 					<UserParam type="float" name="peak_apex_int" value="100"/>
 					<UserParam type="float" name="total_xic" value="8017"/>
-					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
+					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
 				</feature>
 				<feature id="f_276808963686810837_10409195546240342212">
 					<position dim="0">6821.98524729312</position>
@@ -2886,7 +2886,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_2235225131863392357_17798533385406028685">
 					<position dim="0">6696.41075979352</position>
@@ -2916,7 +2916,7 @@
 					<UserParam type="string" name="native_id" value="61290_GRDNEMYFSDLVNEIQNYLGK/3_b7"/>
 					<UserParam type="float" name="peak_apex_int" value="30"/>
 					<UserParam type="float" name="total_xic" value="2270"/>
-					<UserParam type="float" name="width_at_50" value="23.8999999999996"/>
+					<UserParam type="float" name="width_at_50" value="20.4799999999996"/>
 				</feature>
 				<feature id="f_2235225131863392357_5634796270667792442">
 					<position dim="0">6696.41075979352</position>
@@ -2992,7 +2992,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_12316044051609314127_6330378408783783417">
 					<position dim="0">7111.37472883642</position>
@@ -3022,7 +3022,7 @@
 					<UserParam type="string" name="native_id" value="61290_GRDNEMYFSDLVNEIQNYLGK/3_b7"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="2270"/>
-					<UserParam type="float" name="width_at_50" value="10.25"/>
+					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
 				</feature>
 				<feature id="f_12316044051609314127_8563167430029240731">
 					<position dim="0">7111.37472883642</position>
@@ -3037,7 +3037,7 @@
 					<UserParam type="string" name="native_id" value="61291_GRDNEMYFSDLVNEIQNYLGK/3_b6"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="3103"/>
-					<UserParam type="float" name="width_at_50" value="10.2400000000007"/>
+					<UserParam type="float" name="width_at_50" value="6.83000000000084"/>
 				</feature>
 				<feature id="f_12316044051609314127_17153118873428995855">
 					<position dim="0">7111.37472883642</position>
@@ -3052,7 +3052,7 @@
 					<UserParam type="string" name="native_id" value="61292_GRDNEMYFSDLVNEIQNYLGK/3_y6"/>
 					<UserParam type="float" name="peak_apex_int" value="70"/>
 					<UserParam type="float" name="total_xic" value="8017"/>
-					<UserParam type="float" name="width_at_50" value="10.2400000000007"/>
+					<UserParam type="float" name="width_at_50" value="6.83000000000084"/>
 				</feature>
 				<feature id="f_12316044051609314127_8737956799617760608">
 					<position dim="0">7111.37472883642</position>
@@ -3204,7 +3204,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="6.81999999999971"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_15490049804574065229_5790065978798102656">
 					<position dim="0">6731.93089814842</position>
@@ -3310,7 +3310,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.41999999999916"/>
 				</feature>
 				<feature id="f_17052620940680608488_11486987517808453959">
 					<position dim="0">6658.59750088513</position>
@@ -3325,7 +3325,7 @@
 					<UserParam type="string" name="native_id" value="61289_GRDNEMYFSDLVNEIQNYLGK/3_y9"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="5135"/>
-					<UserParam type="float" name="width_at_50" value="10.2400000000007"/>
+					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
 				</feature>
 				<feature id="f_17052620940680608488_15266089238820240396">
 					<position dim="0">6658.59750088513</position>
@@ -3355,7 +3355,7 @@
 					<UserParam type="string" name="native_id" value="61291_GRDNEMYFSDLVNEIQNYLGK/3_b6"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="3103"/>
-					<UserParam type="float" name="width_at_50" value="10.25"/>
+					<UserParam type="float" name="width_at_50" value="6.83000000000084"/>
 				</feature>
 				<feature id="f_17052620940680608488_17480794184187398956">
 					<position dim="0">6658.59750088513</position>
@@ -3522,7 +3522,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_5156711929824391485_5322749189241434745">
 					<position dim="0">7029.39336750686</position>
@@ -3552,7 +3552,7 @@
 					<UserParam type="string" name="native_id" value="61290_GRDNEMYFSDLVNEIQNYLGK/3_b7"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2270"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_5156711929824391485_12790509195249234965">
 					<position dim="0">7029.39336750686</position>
@@ -3628,7 +3628,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="-7046.73864255702"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_11470839092866542957_9229951951226823321">
 					<position dim="0">7048.18782468438</position>
@@ -3643,7 +3643,7 @@
 					<UserParam type="string" name="native_id" value="61289_GRDNEMYFSDLVNEIQNYLGK/3_y9"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="5135"/>
-					<UserParam type="float" name="width_at_50" value="-7046.73864255702"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_11470839092866542957_5044655372998579004">
 					<position dim="0">7048.18782468438</position>
@@ -3673,7 +3673,7 @@
 					<UserParam type="string" name="native_id" value="61291_GRDNEMYFSDLVNEIQNYLGK/3_b6"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="3103"/>
-					<UserParam type="float" name="width_at_50" value="-7046.73864255702"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_11470839092866542957_4177776976011375854">
 					<position dim="0">7048.18782468438</position>
@@ -3734,7 +3734,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.41999999999916"/>
 				</feature>
 				<feature id="f_13663761038749696507_2527298019381746972">
 					<position dim="0">6865.46173342407</position>
@@ -3749,7 +3749,7 @@
 					<UserParam type="string" name="native_id" value="61289_GRDNEMYFSDLVNEIQNYLGK/3_y9"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="5135"/>
-					<UserParam type="float" name="width_at_50" value="13.6499999999996"/>
+					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
 				</feature>
 				<feature id="f_13663761038749696507_10159193354140608506">
 					<position dim="0">6865.46173342407</position>
@@ -3794,7 +3794,7 @@
 					<UserParam type="string" name="native_id" value="61292_GRDNEMYFSDLVNEIQNYLGK/3_y6"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="8017"/>
-					<UserParam type="float" name="width_at_50" value="17.0700000000006"/>
+					<UserParam type="float" name="width_at_50" value="13.6599999999999"/>
 				</feature>
 				<feature id="f_13663761038749696507_925368203741219696">
 					<position dim="0">6865.46173342407</position>
@@ -3840,7 +3840,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_3109052061041085863_10534409609594510246">
 					<position dim="0">6643.67312893689</position>
@@ -4052,7 +4052,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_15137961832517596447_14356764654261201422">
 					<position dim="0">7072.81274731457</position>
@@ -4188,7 +4188,7 @@
 					<UserParam type="string" name="native_id" value="61290_GRDNEMYFSDLVNEIQNYLGK/3_b7"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="2270"/>
-					<UserParam type="float" name="width_at_50" value="6.81999999999971"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_16437269819074619437_12118934174490584131">
 					<position dim="0">7135.89829723001</position>
@@ -4233,7 +4233,7 @@
 					<UserParam type="string" name="native_id" value="61293_GRDNEMYFSDLVNEIQNYLGK/3_y5"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="5920"/>
-					<UserParam type="float" name="width_at_50" value="6.81999999999971"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="26613"/>
@@ -4294,7 +4294,7 @@
 					<UserParam type="string" name="native_id" value="61290_GRDNEMYFSDLVNEIQNYLGK/3_b7"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2270"/>
-					<UserParam type="float" name="width_at_50" value="3.41000000000076"/>
+					<UserParam type="float" name="width_at_50" value="0"/>
 				</feature>
 				<feature id="f_12959367150092654332_17913703819525749873">
 					<position dim="0">7061.90418372214</position>
@@ -4370,7 +4370,7 @@
 					<UserParam type="string" name="native_id" value="61288_GRDNEMYFSDLVNEIQNYLGK/3_b10"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="2168"/>
-					<UserParam type="float" name="width_at_50" value="10.25"/>
+					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
 				</feature>
 				<feature id="f_4870109536405501088_6546482100771912741">
 					<position dim="0">7012.86329572856</position>
@@ -4385,7 +4385,7 @@
 					<UserParam type="string" name="native_id" value="61289_GRDNEMYFSDLVNEIQNYLGK/3_y9"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="5135"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000084"/>
+					<UserParam type="float" name="width_at_50" value="3.41000000000076"/>
 				</feature>
 				<feature id="f_4870109536405501088_611493635450527389">
 					<position dim="0">7012.86329572856</position>
@@ -4491,7 +4491,7 @@
 					<UserParam type="string" name="native_id" value="61289_GRDNEMYFSDLVNEIQNYLGK/3_y9"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="5135"/>
-					<UserParam type="float" name="width_at_50" value="10.2400000000007"/>
+					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
 				</feature>
 				<feature id="f_11504199178185045470_7063966219209930662">
 					<position dim="0">6900.92442973673</position>
@@ -4521,7 +4521,7 @@
 					<UserParam type="string" name="native_id" value="61291_GRDNEMYFSDLVNEIQNYLGK/3_b6"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="3103"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_11504199178185045470_12626510412820167899">
 					<position dim="0">6900.92442973673</position>
@@ -4551,7 +4551,7 @@
 					<UserParam type="string" name="native_id" value="61293_GRDNEMYFSDLVNEIQNYLGK/3_y5"/>
 					<UserParam type="float" name="peak_apex_int" value="60"/>
 					<UserParam type="float" name="total_xic" value="5920"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="26613"/>
@@ -4627,7 +4627,7 @@
 					<UserParam type="string" name="native_id" value="61291_GRDNEMYFSDLVNEIQNYLGK/3_b6"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="3103"/>
-					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
+					<UserParam type="float" name="width_at_50" value="0"/>
 				</feature>
 				<feature id="f_6780584527845373550_9206404168793008851">
 					<position dim="0">6785.40681683838</position>
@@ -4839,7 +4839,7 @@
 					<UserParam type="string" name="native_id" value="61291_GRDNEMYFSDLVNEIQNYLGK/3_b6"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="3103"/>
-					<UserParam type="float" name="width_at_50" value="-6583.79"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_7207371083159283456_14629045591043354911">
 					<position dim="0">6583.39081226051</position>
@@ -5748,7 +5748,7 @@
 					<UserParam type="string" name="native_id" value="865_KSTPFAAQMAAEAAAK/2_y13"/>
 					<UserParam type="float" name="peak_apex_int" value="50"/>
 					<UserParam type="float" name="total_xic" value="18151"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_4314556777634898838_9462493458134831305">
 					<position dim="0">3211.85582736909</position>
@@ -5899,7 +5899,7 @@
 					<UserParam type="string" name="native_id" value="868_KSTPFAAQMAAEAAAK/2_y7_2"/>
 					<UserParam type="float" name="peak_apex_int" value="150"/>
 					<UserParam type="float" name="total_xic" value="22491"/>
-					<UserParam type="float" name="width_at_50" value="13.6599999999999"/>
+					<UserParam type="float" name="width_at_50" value="10.25"/>
 				</feature>
 				<feature id="f_4426839943702196831_11595921421070804873">
 					<position dim="0">3199.15637184083</position>
@@ -5960,7 +5960,7 @@
 					<UserParam type="string" name="native_id" value="865_KSTPFAAQMAAEAAAK/2_y13"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="18151"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_8571969588491709856_9462057889525570726">
 					<position dim="0">3408.86628437102</position>
@@ -5990,7 +5990,7 @@
 					<UserParam type="string" name="native_id" value="867_KSTPFAAQMAAEAAAK/2_y11"/>
 					<UserParam type="float" name="peak_apex_int" value="90"/>
 					<UserParam type="float" name="total_xic" value="10980"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_8571969588491709856_9980591491151092836">
 					<position dim="0">3408.86628437102</position>
@@ -6626,7 +6626,7 @@
 					<UserParam type="string" name="native_id" value="90581_SSLPDTLMVTHEDINDKTVEGVK/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="620"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_6244178397615412071_1747517360768976839">
 					<position dim="0">3910.79391344845</position>
@@ -6641,7 +6641,7 @@
 					<UserParam type="string" name="native_id" value="90582_SSLPDTLMVTHEDINDKTVEGVK/3_y3"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="4090"/>
-					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
+					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
 				</feature>
 				<feature id="f_6244178397615412071_10959714027095477006">
 					<position dim="0">3910.79391344845</position>
@@ -6671,7 +6671,7 @@
 					<UserParam type="string" name="native_id" value="90584_SSLPDTLMVTHEDINDKTVEGVK/3_y14_2"/>
 					<UserParam type="float" name="peak_apex_int" value="30"/>
 					<UserParam type="float" name="total_xic" value="900"/>
-					<UserParam type="float" name="width_at_50" value="20.48"/>
+					<UserParam type="float" name="width_at_50" value="17.0700000000002"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="14552"/>
@@ -6762,7 +6762,7 @@
 					<UserParam type="string" name="native_id" value="90583_SSLPDTLMVTHEDINDKTVEGVK/3_y4"/>
 					<UserParam type="float" name="peak_apex_int" value="180"/>
 					<UserParam type="float" name="total_xic" value="5547"/>
-					<UserParam type="float" name="width_at_50" value="20.4899999999998"/>
+					<UserParam type="float" name="width_at_50" value="17.0699999999997"/>
 				</feature>
 				<feature id="f_9950936438912456644_15401243200886540351">
 					<position dim="0">3847.35837952256</position>
@@ -6838,7 +6838,7 @@
 					<UserParam type="string" name="native_id" value="90581_SSLPDTLMVTHEDINDKTVEGVK/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="620"/>
-					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
+					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
 				</feature>
 				<feature id="f_2547597046393019773_9424592563888703232">
 					<position dim="0">3791.73442926049</position>
@@ -6914,7 +6914,7 @@
 					<UserParam type="string" name="native_id" value="90579_SSLPDTLMVTHEDINDKTVEGVK/3_y20_3"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="1291"/>
-					<UserParam type="float" name="width_at_50" value="10.2399999999998"/>
+					<UserParam type="float" name="width_at_50" value="6.81999999999971"/>
 				</feature>
 				<feature id="f_17118515683443455458_6825214629304292169">
 					<position dim="0">3884.88110982597</position>
@@ -6944,7 +6944,7 @@
 					<UserParam type="string" name="native_id" value="90581_SSLPDTLMVTHEDINDKTVEGVK/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="620"/>
-					<UserParam type="float" name="width_at_50" value="10.2400000000002"/>
+					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
 				</feature>
 				<feature id="f_17118515683443455458_548437382287807259">
 					<position dim="0">3884.88110982597</position>
@@ -7020,7 +7020,7 @@
 					<UserParam type="string" name="native_id" value="90579_SSLPDTLMVTHEDINDKTVEGVK/3_y20_3"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="1291"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_13916592869622500300_7847663562272838136">
 					<position dim="0">3947.54216636717</position>
@@ -7035,7 +7035,7 @@
 					<UserParam type="string" name="native_id" value="90580_SSLPDTLMVTHEDINDKTVEGVK/3_y20_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2104"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_13916592869622500300_15082330577368273211">
 					<position dim="0">3947.54216636717</position>
@@ -7050,7 +7050,7 @@
 					<UserParam type="string" name="native_id" value="90581_SSLPDTLMVTHEDINDKTVEGVK/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="620"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_13916592869622500300_9335209602461860353">
 					<position dim="0">3947.54216636717</position>
@@ -7095,7 +7095,7 @@
 					<UserParam type="string" name="native_id" value="90584_SSLPDTLMVTHEDINDKTVEGVK/3_y14_2"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="900"/>
-					<UserParam type="float" name="width_at_50" value="6.82999999999993"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 			</subordinate>
 			<UserParam type="float" name="total_xic" value="14552"/>
@@ -7232,7 +7232,7 @@
 					<UserParam type="string" name="native_id" value="90579_SSLPDTLMVTHEDINDKTVEGVK/3_y20_3"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="1291"/>
-					<UserParam type="float" name="width_at_50" value="6.82000000000016"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_8002577509882545576_9482636940408463092">
 					<position dim="0">3755.59744579911</position>
@@ -7247,7 +7247,7 @@
 					<UserParam type="string" name="native_id" value="90580_SSLPDTLMVTHEDINDKTVEGVK/3_y20_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2104"/>
-					<UserParam type="float" name="width_at_50" value="6.82000000000016"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_8002577509882545576_4572324409411873610">
 					<position dim="0">3755.59744579911</position>
@@ -7262,7 +7262,7 @@
 					<UserParam type="string" name="native_id" value="90581_SSLPDTLMVTHEDINDKTVEGVK/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="620"/>
-					<UserParam type="float" name="width_at_50" value="6.82000000000016"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_8002577509882545576_4759584988550355838">
 					<position dim="0">3755.59744579911</position>
@@ -7277,7 +7277,7 @@
 					<UserParam type="string" name="native_id" value="90582_SSLPDTLMVTHEDINDKTVEGVK/3_y3"/>
 					<UserParam type="float" name="peak_apex_int" value="60"/>
 					<UserParam type="float" name="total_xic" value="4090"/>
-					<UserParam type="float" name="width_at_50" value="6.82000000000016"/>
+					<UserParam type="float" name="width_at_50" value="3.40999999999985"/>
 				</feature>
 				<feature id="f_8002577509882545576_16357745513372733051">
 					<position dim="0">3755.59744579911</position>
@@ -7353,7 +7353,7 @@
 					<UserParam type="string" name="native_id" value="90580_SSLPDTLMVTHEDINDKTVEGVK/3_y20_2"/>
 					<UserParam type="float" name="peak_apex_int" value="10"/>
 					<UserParam type="float" name="total_xic" value="2104"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_14868022199306242395_4424849434463425713">
 					<position dim="0">3986.55794113576</position>
@@ -7368,7 +7368,7 @@
 					<UserParam type="string" name="native_id" value="90581_SSLPDTLMVTHEDINDKTVEGVK/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="620"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_14868022199306242395_3198207704187700000">
 					<position dim="0">3986.55794113576</position>
@@ -7383,7 +7383,7 @@
 					<UserParam type="string" name="native_id" value="90582_SSLPDTLMVTHEDINDKTVEGVK/3_y3"/>
 					<UserParam type="float" name="peak_apex_int" value="40"/>
 					<UserParam type="float" name="total_xic" value="4090"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_14868022199306242395_6101244147996623383">
 					<position dim="0">3986.55794113576</position>
@@ -7398,7 +7398,7 @@
 					<UserParam type="string" name="native_id" value="90583_SSLPDTLMVTHEDINDKTVEGVK/3_y4"/>
 					<UserParam type="float" name="peak_apex_int" value="20"/>
 					<UserParam type="float" name="total_xic" value="5547"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_14868022199306242395_14864989295460554943">
 					<position dim="0">3986.55794113576</position>
@@ -7459,7 +7459,7 @@
 					<UserParam type="string" name="native_id" value="90580_SSLPDTLMVTHEDINDKTVEGVK/3_y20_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="2104"/>
-					<UserParam type="float" name="width_at_50" value="3.41000000000031"/>
+					<UserParam type="float" name="width_at_50" value="0"/>
 				</feature>
 				<feature id="f_6439916495748663103_7380627481024949201">
 					<position dim="0">3737.60081601441</position>
@@ -7474,7 +7474,7 @@
 					<UserParam type="string" name="native_id" value="90581_SSLPDTLMVTHEDINDKTVEGVK/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="620"/>
-					<UserParam type="float" name="width_at_50" value="3.41000000000031"/>
+					<UserParam type="float" name="width_at_50" value="0"/>
 				</feature>
 				<feature id="f_6439916495748663103_7778958444401124898">
 					<position dim="0">3737.60081601441</position>
@@ -7580,7 +7580,7 @@
 					<UserParam type="string" name="native_id" value="90581_SSLPDTLMVTHEDINDKTVEGVK/3_y16_2"/>
 					<UserParam type="float" name="peak_apex_int" value="0"/>
 					<UserParam type="float" name="total_xic" value="620"/>
-					<UserParam type="float" name="width_at_50" value="6.83000000000038"/>
+					<UserParam type="float" name="width_at_50" value="3.42000000000007"/>
 				</feature>
 				<feature id="f_6577895467092461988_14923090814818281245">
 					<position dim="0">3937.7346039778</position>
