@@ -200,7 +200,6 @@ namespace OpenMS
 
   void PeptideHit::setSequence(AASequence&& sequence)
   {
-    // std::cout << " set sequence move " << std::endl;
     sequence_ = std::move(sequence);
   }
 
