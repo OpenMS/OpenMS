@@ -98,9 +98,6 @@ class RNPxlSearch :
   // fast or all-shifts scoring mode
   bool fast_scoring_ = true;
 
-  // if localization should be performed
-  bool localization_ = false;
-
   // nucleotides can form cross-link
   set<char> can_xl_;
 
@@ -238,7 +235,6 @@ protected:
 
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
     registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.");
-    registerFlag_("RNPxl:localization", "Use this flag to perform crosslink localization by partial loss scoring as post-analysis.");
     registerFlag_("RNPxl:carbon_labeled_fragments", "Generate fragment shifts assuming full labeling of carbon (e.g. completely labeled U13).");
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
@@ -336,6 +332,7 @@ protected:
     // main score
     float score = 0;
 
+    float total_loss_score = 0;
     // total loss morpheus related subscores
     float MIC = 0;
     float err = 0;
@@ -350,11 +347,11 @@ protected:
     float total_MIC = 0;
 
     // subscores
+    float partial_loss_score = 0;
     float immonium_score = 0;
     float precursor_score = 0;
     float a_ion_score = 0;
     float marker_ions_score = 0;
-    float partial_loss_score = 0;
 
     float best_localization_score = 0;
     String localization_scores;
@@ -1321,11 +1318,12 @@ protected:
           // reannotate much more memory heavy AASequence object
           AASequence fixed_and_variable_modified_peptide = all_modified_peptides[ah.peptide_mod_index]; 
           ph.setScore(ah.score);
-          ph.setMetaValue(String("RNPxl:total_loss_score"), ph.getScore()); // important for Percolator feature set
+          ph.setMetaValue(String("RNPxl:score"), ah.score); // important for Percolator feature set because the PeptideHit score might be overwritten by a q-value
 
           // determine RNA modification from index in map
           std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
           std::advance(mod_combinations_it, ah.rna_mod_index);
+          ph.setMetaValue(String("RNPxl:total_loss_score"), ah.total_loss_score);
           ph.setMetaValue(String("RNPxl:immonium_score"), ah.immonium_score);
           ph.setMetaValue(String("RNPxl:precursor_score"), ah.precursor_score);
           ph.setMetaValue(String("RNPxl:a_ion_score"), ah.a_ion_score);
@@ -1399,6 +1397,7 @@ protected:
     StringList feature_set;
     feature_set
        << "isotope_error"
+       << "RNPxl:score"
        << "RNPxl:total_loss_score"
        << "RNPxl:immonium_score"
        << "RNPxl:precursor_score"
@@ -1621,8 +1620,6 @@ protected:
     Int max_nucleotide_length = getIntOption_("RNPxl:length");
 
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
-
-    localization_ = getFlag_("RNPxl:localization");
 
     // generate all precursor adducts
     RNPxlModificationMassesResult mm;
@@ -1944,6 +1941,7 @@ protected:
                   ah.MIC = tlss_MIC;
                   ah.err = tlss_err;
                   ah.Morph = tlss_Morph;
+                  ah.total_loss_score = total_loss_score;
                   ah.immonium_score = immonium_sub_score;
                   ah.precursor_score = precursor_sub_score;
                   ah.a_ion_score = a_ion_sub_score;
@@ -1952,10 +1950,9 @@ protected:
                   ah.rna_mod_index = rna_mod_index;
                   ah.isotope_error = isotope_error;
 
-                  // ah.score = total_loss_score + ah.total_MIC; 
-
+                  // combined score
                   ah.score = - 0.491
-                             + 2.079 * (  0.157 * total_loss_score - 1.400)
+                             + 2.079 * (  0.157 * ah.total_loss_score - 1.400)
                              + 1.215 * ( 19.187 * ah.marker_ions_score  - 0.446)
                              + 0.514 * (  0.034 * ah.partial_loss_score - 0.760) 
                              - 3.473 * (322.000 * ah.err                - 1.147)
@@ -2085,6 +2082,7 @@ protected:
                     AnnotatedHit ah;
                     ah.sequence = *cit; // copy StringView
                     ah.peptide_mod_index = mod_pep_idx;
+                    ah.total_loss_score = score;
                     ah.MIC = tlss_MIC;
                     ah.err = tlss_err;
                     ah.Morph = tlss_Morph;
@@ -2104,10 +2102,8 @@ protected:
                     ah.rna_mod_index = rna_mod_index;
                     ah.isotope_error = isotope_error;
 
-                    // ah.score = score + ah.total_MIC; 
-
                     ah.score = - 0.491
-                               + 2.079 * (  0.157 * score - 1.400)
+                               + 2.079 * (  0.157 * ah.total_loss_score - 1.400)
                                + 1.215 * ( 19.187 * ah.marker_ions_score  - 0.446)
                                + 0.514 * (  0.034 * ah.partial_loss_score - 0.760) 
                                - 3.473 * (322.000 * ah.err                - 1.147)
@@ -2178,6 +2174,7 @@ protected:
                 AnnotatedHit ah;
                 ah.sequence = *cit; // copy StringView
                 ah.peptide_mod_index = mod_pep_idx;
+                ah.total_loss_score = total_loss_score;
                 ah.MIC = tlss_MIC;
                 ah.err = tlss_err;
                 ah.Morph = tlss_Morph;
@@ -2190,7 +2187,7 @@ protected:
                 ah.rna_mod_index = rna_mod_index;
                 ah.isotope_error = isotope_error;
 
-// TODO: currently mainly a tie-breaker!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                // simple combined score in fast scoring:
                 ah.score = total_loss_score + ah.total_MIC; 
 
 #ifdef DEBUG_RNPXLSEARCH
@@ -2229,40 +2226,40 @@ protected:
     vector<ProteinIdentification> protein_ids;
     progresslogger.startProgress(0, 1, "Post-processing PSMs...");
 
-    if (localization_)
-    {
-      // reload spectra from disc with same settings as before (important to keep same spectrum indices)
-      spectra.clear(true);
-      f.load(in_mzml, spectra);
-      spectra.sortSpectra(true);    
+    // Localization
+    //
 
-      // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
-      preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, true); // no single charge (false), annotate charge (true)
+    // reload spectra from disc with same settings as before (important to keep same spectrum indices)
+    spectra.clear(true);
+    f.load(in_mzml, spectra);
+    spectra.sortSpectra(true);    
 
-      progresslogger.startProgress(0, 1, "localization...");
+    // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
+    preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, true); // no single charge (false), annotate charge (true)
 
-      // create spectrum generator. For convenience we add more peak types here.
-      Param param(total_loss_spectrum_generator.getParameters());
-      param.setValue("add_first_prefix_ion", "true");
-      param.setValue("add_abundant_immonium_ions", "true");
-      param.setValue("add_precursor_peaks", "true");
-      param.setValue("add_metainfo", "true");
-      param.setValue("add_a_ions", "false");
-      param.setValue("add_b_ions", "true");
-      param.setValue("add_c_ions", "false");
-      param.setValue("add_x_ions", "false");
-      param.setValue("add_y_ions", "true");
-      param.setValue("add_z_ions", "false");
-      total_loss_spectrum_generator.setParameters(param);
+    progresslogger.startProgress(0, 1, "localization...");
 
-      postScoreHits_(spectra, 
-                     annotated_hits, 
-                     report_top_hits, 
-                     mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, 
-                     partial_loss_spectrum_generator, 
-                     fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
-                     all_feasible_fragment_adducts);
-    }
+    // create spectrum generator. For convenience we add more peak types here.
+    Param param(total_loss_spectrum_generator.getParameters());
+    param.setValue("add_first_prefix_ion", "true");
+    param.setValue("add_abundant_immonium_ions", "true");
+    param.setValue("add_precursor_peaks", "true");
+    param.setValue("add_metainfo", "true");
+    param.setValue("add_a_ions", "false");
+    param.setValue("add_b_ions", "true");
+    param.setValue("add_c_ions", "false");
+    param.setValue("add_x_ions", "false");
+    param.setValue("add_y_ions", "true");
+    param.setValue("add_z_ions", "false");
+    total_loss_spectrum_generator.setParameters(param);
+
+    postScoreHits_(spectra, 
+                   annotated_hits, 
+                   report_top_hits, 
+                   mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, 
+                   partial_loss_spectrum_generator, 
+                   fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
+                   all_feasible_fragment_adducts);
 
     progresslogger.startProgress(0, 1, "Post-processing and annotation...");
     postProcessHits_(spectra, 
