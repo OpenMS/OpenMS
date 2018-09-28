@@ -212,7 +212,7 @@ namespace OpenMS
             + "\t" + (String)feature_it->getRT()
             + "\t" + "f_" + feature_it->getUniqueId()  // TODO might not be unique!!!
             + "\t" + (String)pep.sequence
-            + "\t" + (String)feature_it->getMetaValue("missedCleavages")
+            + "\t" + (feature_it->metaValueExists("missedCleavages") ? (String)feature_it->getMetaValue("missedCleavages") : "")
             + "\t" + full_peptide_name
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz
