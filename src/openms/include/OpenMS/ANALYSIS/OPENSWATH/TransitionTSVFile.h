@@ -259,11 +259,10 @@ private:
      *
      * @param line The header to be parsed
      * @param delimiter The delimiter which will be determined from the input
-     * @param header The fields of the header
      * @param header_dict The map which maps the fields in the header to their position
      *
     */
-    void getTSVHeader_(const std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
+    void getTSVHeader_(const std::string& line, char& delimiter, std::map<std::string, int>& header_dict) const;
 
     /** @brief Read tab or comma separated input with columns defined by their column headers only
      *
