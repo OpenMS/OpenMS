@@ -199,12 +199,13 @@ namespace OpenMS
   }
 
   DataValue::DataValue(DataValue&& rhs) noexcept :
-    value_type_(rhs.value_type_),
-    unit_type_(rhs.unit_type_),
-    unit_(rhs.unit_),
-    data_(rhs.data_)
+    value_type_(std::move(rhs.value_type_)),
+    unit_type_(std::move(rhs.unit_type_)),
+    unit_(std::move(rhs.unit_)),
+    data_(std::move(rhs.data_))
   {
-    // clean up rhs 
+    // clean up rhs, take ownership of data_
+    // NOTE: value_type_ == EMPTY_VALUE implies data_ is empty and can be reset
     rhs.value_type_ = EMPTY_VALUE;
     rhs.unit_type_ = OTHER;
     rhs.unit_ = -1;
@@ -281,7 +282,6 @@ namespace OpenMS
   /// Move assignment operator
   DataValue& DataValue::operator=(DataValue&& rhs) noexcept
   {
-    std::cout << "DataValue Move assignemnt operator " << std::endl;
     // Check for self-assignment
     if (this == &rhs)
     {
