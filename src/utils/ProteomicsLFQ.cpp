@@ -88,6 +88,19 @@ using namespace std;
 /**
   @page UTILS_ProteomicsLFQ
 
+  // experiments TODO:
+  // - disable mass recalibration
+  // - change summarization to sum instead of max in MSstatsConverter
+  // - change percentage of missingness in ID transfer
+
+
+
+
+
+
+
+
+
   TODO: add test for
 
   ./bin/ProteomicsLFQ \
@@ -440,6 +453,7 @@ protected:
       fl_param.setValue("distance_MZ:unit", "ppm");
       fl_param.setValue("distance_MZ:weight", 5.0);
       fl_param.setValue("distance_intensity:weight", 0.1); 
+      fl_param.setValue("use_identifications", "true"); 
 
 /*      FeatureGroupingAlgorithmKD linker;
       fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
@@ -524,7 +538,7 @@ protected:
   // simple transfer between runs
   // if a peptide has not been quantified in more than min_occurance runs, then take all consensus features that have it identified at least once
   // and transfer the ID with RT of the the consensus feature (the average if we have multiple consensus elements)
-  multimap<Size, PeptideIdentification> transferIDsBetweenFractions_(const ConsensusMap& consensus_fraction, Size min_occurance = 3)
+  multimap<Size, PeptideIdentification> transferIDsBetweenSameFraction_(const ConsensusMap& consensus_fraction, Size min_occurance = 3)
   {
     // determine occurance of ids
     map<pair<String, UInt>, vector<int> > occurance = getPeptideOccurance_(consensus_fraction);
@@ -735,6 +749,7 @@ protected:
       ffi_param.setValue("svm:samples", 10000); // restrict number of samples for training
       ffi_param.setValue("svm:log2_C", DoubleList({-2.0, 5.0, 15.0})); 
       ffi_param.setValue("svm:log2_gamma", DoubleList({-3.0, -1.0, 2.0})); 
+      ffi_param.setValue("svm:min_prob", 0.9); // keep only feature candidates with > 0.9 probability of correctness
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
@@ -872,8 +887,9 @@ protected:
         
       if (getStringOption_("transfer_ids") != "false" )
       {  
-        // TODO: determine minimum occurance from data (e.g., fraction of total runs per fraction, n replicates etc.)
-        multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenFractions_(consensus_fraction, 1); 
+        // needs to occur in >= 50% of all runs for transfer
+        const Size min_occurance = (double) (ms_files.second.size() * 0.5 + 0.5);
+        multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurance); 
         consensus_fraction.clear();
         ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction, transfered_ids);
         if (e != EXECUTION_OK) { return e; }
@@ -1160,7 +1176,15 @@ protected:
     {
       MSstatsFile msstats;
       // TODO: add a helper method to quickly check if experimental design file contain the right columns (and put this at start of tool)
-      msstats.store(out_msstats, consensus, design, StringList(), false, "MSstats_BioReplicate", "MSstats_Condition", "max");
+      msstats.store(
+        out_msstats, 
+        consensus, 
+        design, 
+        StringList(), 
+        false, 
+        "MSstats_BioReplicate", 
+        "MSstats_Condition", 
+        "max");
     }
 
     return EXECUTION_OK;
