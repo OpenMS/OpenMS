@@ -125,14 +125,9 @@ namespace OpenMS
     // Code that uses streambuf this way must be guarded by a sentry object.
     // The sentry object performs various tasks,
     // such as thread synchronization and updating the stream state.
-#ifdef OPENMS_COMPILER_GXX
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-    std::istream::sentry se(is, true);
-#ifdef OPENMS_COMPILER_GXX
-#pragma GCC diagnostic warning "-Wunused-parameter"
-#endif
 
+    // cppcheck-suppress variableScope unreadVariable
+    std::istream::sentry se(is, true);
     std::streambuf* sb = is.rdbuf();
 
     for (;;)
