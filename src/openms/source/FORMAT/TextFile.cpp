@@ -125,19 +125,26 @@ namespace OpenMS
     // Code that uses streambuf this way must be guarded by a sentry object.
     // The sentry object performs various tasks,
     // such as thread synchronization and updating the stream state.
-
+#ifdef OPENMS_COMPILER_GXX
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
     std::istream::sentry se(is, true);
+#ifdef OPENMS_COMPILER_GXX
+#pragma GCC diagnostic warning "-Wunused-parameter"
+#endif
+
     std::streambuf* sb = is.rdbuf();
 
-    for(;;) {
+    for (;;)
+    {
         int c = sb->sbumpc(); // get and advance to next char
         switch (c) {
         case '\n':
             return is;
         case '\r': // consume next '\n' (if any) and return
-            if(sb->sgetc() == '\n') // peek current char
+            if (sb->sgetc() == '\n') // peek current char
             {
-              sb->sbumpc();       // consume it
+              sb->sbumpc(); // consume it
             }
             return is;
         case std::streambuf::traits_type::eof():
