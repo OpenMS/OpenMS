@@ -52,14 +52,14 @@ public:
     /// Constructor
     ContactPerson() = default;
     /// Copy constructor
-    ContactPerson(const ContactPerson & source) = default;
+    ContactPerson(const ContactPerson &) = default;
     /// Move constructor
     ContactPerson(ContactPerson&&) = default;
     /// Destructor
     ~ContactPerson() = default;
 
     /// Assignment operator
-    ContactPerson & operator=(const ContactPerson & source) = default;
+    ContactPerson & operator=(const ContactPerson &) = default;
     /// Move assignment operator
     ContactPerson& operator=(ContactPerson&&) & = default;
 
