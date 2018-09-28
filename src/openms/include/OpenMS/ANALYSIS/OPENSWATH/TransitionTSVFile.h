@@ -201,7 +201,7 @@ protected:
       {}
 
       // By convention, if there is no (metabolic) compound name, it is a peptide 
-      bool isPeptide() 
+      bool isPeptide() const
       {
         return CompoundName.empty();
       }
@@ -305,10 +305,10 @@ private:
     void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value);
 
     /// Populate a new TargetedExperiment::Peptide object from a row in the csv
-    void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
+    void createPeptide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
     /// Populate a new TargetedExperiment::Compound object (a metabolite) from a row in the csv
-    void createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound);
+    void createCompound_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Compound& compound);
 
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
                           int location, const ResidueModification& rmod);

@@ -400,7 +400,7 @@ namespace OpenMS
 
       //// Generate Group IDs
       // SpectraST
-      if (FileTypes::typeToName(filetype) == "mrm")
+      if (filetype == FileTypes::MRM)
       {
         std::vector<String> substrings;
         String(tmp_line[header_dict["SpectraSTFullPeptideName"]]).split("/", substrings);
@@ -654,7 +654,7 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, transition_list.size(), "conversion to internal data representation");
-    for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
+    for (auto tr_it = transition_list.cbegin(); tr_it != transition_list.cend(); ++tr_it)
     {
       OpenSwath::LightTransition transition;
       transition.transition_name  = tr_it->transition_name;
@@ -994,7 +994,7 @@ namespace OpenMS
     retention_times.push_back(retention_time);
   }
 
-  void TransitionTSVFile::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
+  void TransitionTSVFile::createPeptide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
   {
 
     // the following attributes will be stored as meta values (userParam):
@@ -1114,7 +1114,7 @@ namespace OpenMS
                           + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
-  void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound)
+  void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Compound& compound)
   {
 
     // the following attributes will be stored as meta values (userParam):

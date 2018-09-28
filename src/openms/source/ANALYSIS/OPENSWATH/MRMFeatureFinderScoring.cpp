@@ -556,8 +556,8 @@ namespace OpenMS
     OpenSwathScoring scorer;
     scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
 
-	ProteaseDigestion pd;
-	pd.setEnzyme("Trypsin");
+    ProteaseDigestion pd;
+    pd.setEnzyme("Trypsin");
 
     size_t feature_idx = 0;
     // Go through all peak groups (found MRM features) and score them
