@@ -198,6 +198,12 @@ namespace OpenMS
     sequence_ = sequence;
   }
 
+  void PeptideHit::setSequence(AASequence&& sequence)
+  {
+    // std::cout << " set sequence move " << std::endl;
+    sequence_ = std::move(sequence);
+  }
+
   Int PeptideHit::getCharge() const
   {
     return charge_;
@@ -216,6 +222,11 @@ namespace OpenMS
   void PeptideHit::setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences)
   {
     peptide_evidences_ = peptide_evidences;
+  }
+
+  void PeptideHit::setPeptideEvidences(std::vector<PeptideEvidence>&& peptide_evidences)
+  {
+    peptide_evidences_ = std::move(peptide_evidences);
   }
 
   void PeptideHit::addPeptideEvidence(const PeptideEvidence& peptide_evidence)
