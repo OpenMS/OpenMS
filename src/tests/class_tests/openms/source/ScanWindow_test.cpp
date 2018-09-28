@@ -52,6 +52,10 @@ ScanWindow* nullPointer = nullptr;
 START_SECTION((ScanWindow()))
 	ptr = new ScanWindow();
 	TEST_NOT_EQUAL(ptr, nullPointer)
+
+  // Ensure that ScanWindow has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(ScanWindow(std::declval<ScanWindow&&>())), true)
 END_SECTION
 
 START_SECTION((~ScanWindow()))

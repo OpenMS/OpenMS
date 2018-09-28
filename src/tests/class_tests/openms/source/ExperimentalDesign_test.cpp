@@ -65,6 +65,12 @@ START_SECTION(ExperimentalDesign())
 {
   ptr = new ExperimentalDesign();
   TEST_NOT_EQUAL(ptr, null_ptr)
+
+  // Ensure that ExperimentalDesign has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(ExperimentalDesign(std::declval<ExperimentalDesign&&>())), true)
+  TEST_EQUAL(noexcept(ExperimentalDesign::MSFileSection(std::declval<ExperimentalDesign::MSFileSection&&>())), true)
+  TEST_EQUAL(noexcept(ExperimentalDesign::SampleSection(std::declval<ExperimentalDesign::SampleSection&&>())), true)
 }
 END_SECTION
 
