@@ -158,7 +158,7 @@ public:
     /// Assignment operator
     ProteinIdentification& operator=(const ProteinIdentification& source) = default;
     /// Move assignment operator
-    ProteinIdentification& operator=(ProteinIdentification&&) & = default;
+    ProteinIdentification& operator=(ProteinIdentification&&) = default;
 
     /// Equality operator
     bool operator==(const ProteinIdentification& rhs) const;
@@ -174,6 +174,8 @@ public:
     std::vector<ProteinHit> & getHits();
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
+    /// Appends a protein hit
+    void insertHit(ProteinHit && input);
 
     /**
         @brief Sets the protein hits

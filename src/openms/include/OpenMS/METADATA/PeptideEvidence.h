@@ -70,7 +70,7 @@ public:
     PeptideEvidence(const PeptideEvidence& source) = default;
 
     /// Move constructor
-    PeptideEvidence(PeptideEvidence&&) = default;
+    PeptideEvidence(PeptideEvidence&&) noexcept = default;
 
     /// Destructor
     ~PeptideEvidence() {}
@@ -79,7 +79,7 @@ public:
     /// Assignment operator
     PeptideEvidence& operator=(const PeptideEvidence& source) = default;
     /// Move assignment operator
-    PeptideEvidence& operator=(PeptideEvidence&&) & = default;
+    PeptideEvidence& operator=(PeptideEvidence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
 
     /// Equality operator
     bool operator==(const PeptideEvidence& rhs) const;
