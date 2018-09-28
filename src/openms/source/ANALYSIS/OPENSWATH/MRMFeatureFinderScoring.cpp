@@ -1014,9 +1014,8 @@ namespace OpenMS
       feature_idx++;
     }
 
-    // Order by quality
-    std::sort(feature_list.begin(), feature_list.end(), OpenMS::Feature::OverallQualityLess());
-    std::reverse(feature_list.begin(), feature_list.end());
+    // Order by quality (high to low, via reverse iterator)
+    std::sort(feature_list.rbegin(), feature_list.rend(), OpenMS::Feature::OverallQualityLess());
 
     for (Size i = 0; i < feature_list.size(); i++)
     {

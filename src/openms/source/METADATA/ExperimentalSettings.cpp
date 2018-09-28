@@ -39,58 +39,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  ExperimentalSettings::ExperimentalSettings() :
-    MetaInfoInterface(),
-    DocumentIdentifier(),
-    sample_(),
-    source_files_(),
-    contacts_(),
-    instrument_(),
-    hplc_(),
-    datetime_(),
-    comment_(),
-    protein_identifications_(),
-    fraction_identifier_()
-  {
-  }
-
-  ExperimentalSettings::ExperimentalSettings(const ExperimentalSettings & source) :
-    MetaInfoInterface(source),
-    DocumentIdentifier(source),
-    sample_(source.sample_),
-    source_files_(source.source_files_),
-    contacts_(source.contacts_),
-    instrument_(source.instrument_),
-    hplc_(source.hplc_),
-    datetime_(source.datetime_),
-    comment_(source.comment_),
-    protein_identifications_(source.protein_identifications_),
-    fraction_identifier_(source.fraction_identifier_)
-  {
-  }
-
   ExperimentalSettings::~ExperimentalSettings()
   {
-  }
-
-  ExperimentalSettings & ExperimentalSettings::operator=(const ExperimentalSettings & source)
-  {
-    if (&source == this)
-      return *this;
-
-    sample_ = source.sample_;
-    source_files_ = source.source_files_;
-    contacts_ = source.contacts_;
-    instrument_ = source.instrument_;
-    hplc_ = source.hplc_;
-    datetime_ = source.datetime_;
-    comment_ = source.comment_;
-    protein_identifications_ = source.protein_identifications_;
-    fraction_identifier_ = source.fraction_identifier_;
-    MetaInfoInterface::operator=(source);
-    DocumentIdentifier::operator=(source);
-
-    return *this;
   }
 
   bool ExperimentalSettings::operator==(const ExperimentalSettings & rhs) const

@@ -142,7 +142,7 @@ namespace OpenMS
             else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
             {
               aggr_prec_Peak_Area += (String)intensity_char + ";";
-              aggr_Peak_Apex += (String)intensity_apex_char + ";";
+              aggr_prec_Peak_Apex += (String)intensity_apex_char + ";";
               aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
             }
           }
@@ -300,9 +300,9 @@ namespace OpenMS
       return result;
     }
 
-    void OpenSwathTSVWriter::writeLines(std::vector<String> to_output)
+    void OpenSwathTSVWriter::writeLines(const std::vector<String>& to_output)
     {
-      for (Size i = 0; i < to_output.size(); i++) { ofs << to_output[i]; }
+      for (const auto& s : to_output) ofs << s;
     }
 
 }

@@ -538,8 +538,9 @@ namespace OpenMS
         String unitName = XMLString::transcode(param->getAttribute(XMLString::transcode("unitName")));
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
         String type = XMLString::transcode(param->getAttribute(XMLString::transcode("type")));
+
         DataValue dv;
-        dv.setUnit(unitAcc + ":" + unitName);
+
         if (type == "xsd:float" || type == "xsd:double")
         {
           try
@@ -566,6 +567,26 @@ namespace OpenMS
         {
           dv = value;
         }
+
+        // Add unit *after* creating the term
+        if (unitAcc != "")
+        {
+          if (unitAcc.hasPrefix("UO:"))
+          {
+            dv.setUnit(unitAcc.suffix(unitAcc.size() - 3).toInt());
+            dv.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
+          }
+          else if (unitAcc.hasPrefix("MS:"))
+          {
+            dv.setUnit(unitAcc.suffix(unitAcc.size() - 3).toInt());
+            dv.setUnitType(DataValue::UnitType::MS_ONTOLOGY);
+          }
+          else
+          {
+            LOG_WARN << String("Unhandled unit '") + unitAcc + "' in tag '" + name + "'." << endl;
+          }
+        }
+
         return make_pair(name, dv);
       }
       else

@@ -105,6 +105,7 @@ private:
     MetaInfoInterfaceUtils();
     MetaInfoInterfaceUtils(const MetaInfoInterfaceUtils&);
     MetaInfoInterfaceUtils& operator=(MetaInfoInterfaceUtils&);
+    // no Move semantics for utils class
   
   }; // class
 

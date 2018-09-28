@@ -33,9 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
+
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <numeric>
-#include <iostream>
 
 using namespace std;
 
@@ -159,22 +159,6 @@ namespace OpenMS
   {
   }
 
-  ProteinIdentification::ProteinIdentification(const ProteinIdentification& source) :
-    MetaInfoInterface(source),
-    id_(source.id_),
-    search_engine_(source.search_engine_),
-    search_engine_version_(source.search_engine_version_),
-    search_parameters_(source.search_parameters_),
-    date_(source.date_),
-    protein_score_type_(source.protein_score_type_),
-    higher_score_better_(source.higher_score_better_),
-    protein_hits_(source.protein_hits_),
-    protein_groups_(source.protein_groups_),
-    indistinguishable_proteins_(source.indistinguishable_proteins_),
-    protein_significance_threshold_(source.protein_significance_threshold_)
-  {
-  }
-
   ProteinIdentification::~ProteinIdentification()
   {
   }
@@ -276,6 +260,11 @@ namespace OpenMS
     protein_hits_.push_back(protein_hit);
   }
 
+  void ProteinIdentification::insertHit(ProteinHit&& protein_hit)
+  {
+    protein_hits_.push_back(std::forward<ProteinHit>(protein_hit));
+  }
+
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
   {
     if (!s.empty())
@@ -291,27 +280,6 @@ namespace OpenMS
     {
       toFill = this->getMetaValue("spectra_data");
     }
-  }
-
-  ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
-  {
-    if (this == &source)
-    {
-      return *this;
-    }
-    MetaInfoInterface::operator=(source);
-    id_ = source.id_;
-    search_engine_ = source.search_engine_;
-    search_engine_version_ = source.search_engine_version_;
-    search_parameters_ = source.search_parameters_;
-    date_ = source.date_;
-    protein_hits_ = source.protein_hits_;
-    protein_groups_ = source.protein_groups_;
-    indistinguishable_proteins_ = source.indistinguishable_proteins_;
-    protein_score_type_ = source.protein_score_type_;
-    protein_significance_threshold_ = source.protein_significance_threshold_;
-    higher_score_better_ = source.higher_score_better_;
-    return *this;
   }
 
   // Equality operator
@@ -576,3 +544,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

@@ -32,9 +32,9 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
 #include <OpenMS/METADATA/ExperimentalDesign.h>
+
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>

@@ -47,20 +47,24 @@ namespace OpenMS
     It consists of several eluents and timepoints.
     Linear behaviour between timepoints is assumed.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI Gradient
   {
 public:
     /// Constructor
-    Gradient();
+    Gradient() = default;
     /// Copy constructor
-    Gradient(const Gradient & source);
+    Gradient(const Gradient & source) = default;
+    /// Move constructor
+    Gradient(Gradient&&) = default;
     /// Destructor
     ~Gradient();
 
     /// Assignment operator
-    Gradient & operator=(const Gradient & source);
+    Gradient & operator=(const Gradient & source) = default;
+    /// Move assignment operator
+    Gradient& operator=(Gradient&&) & = default;
 
     /// Equality operator
     bool operator==(const Gradient & source) const;
