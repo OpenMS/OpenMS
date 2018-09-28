@@ -62,14 +62,14 @@ public:
     /// Constructor
     SourceFile();
     /// Copy constructor
-    SourceFile(const SourceFile& source) = default;
+    SourceFile(const SourceFile&) = default;
     /// Move constructor
     SourceFile(SourceFile&&) = default;
     /// Destructor
     ~SourceFile() override;
 
     /// Assignment operator
-    SourceFile& operator=(const SourceFile& source) = default;
+    SourceFile& operator=(const SourceFile&) = default;
     /// Move assignment operator
     SourceFile& operator=(SourceFile&&) & = default;
 

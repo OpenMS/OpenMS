@@ -67,7 +67,7 @@ public:
     PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after);
 
     /// Copy constructor
-    PeptideEvidence(const PeptideEvidence& source) = default;
+    PeptideEvidence(const PeptideEvidence&) = default;
 
     /// Move constructor
     PeptideEvidence(PeptideEvidence&&) noexcept = default;
@@ -77,7 +77,7 @@ public:
     //@}
 
     /// Assignment operator
-    PeptideEvidence& operator=(const PeptideEvidence& source) = default;
+    PeptideEvidence& operator=(const PeptideEvidence&) = default;
     /// Move assignment operator
     PeptideEvidence& operator=(PeptideEvidence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
 
