@@ -150,14 +150,14 @@ public:
     /// Constructor
     IonSource();
     /// Copy constructor
-    IonSource(const IonSource & source) = default;
+    IonSource(const IonSource &) = default;
     /// Move constructor
     IonSource(IonSource&&) = default;
     /// Destructor
     ~IonSource();
 
     /// Assignment operator
-    IonSource & operator=(const IonSource & source) = default;
+    IonSource & operator=(const IonSource &) = default;
     /// Move assignment operator
     IonSource& operator=(IonSource&&) & = default;
 

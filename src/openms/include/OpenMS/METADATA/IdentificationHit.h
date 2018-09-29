@@ -56,14 +56,14 @@ public:
     /// Default constructor
     IdentificationHit();
     /// Copy constructor
-    IdentificationHit(const IdentificationHit & source) = default;
+    IdentificationHit(const IdentificationHit &) = default;
     /// Destructor
     virtual ~IdentificationHit();
     /// Move constructor
     IdentificationHit(IdentificationHit&&) = default;
 
     /// Assignment operator
-    IdentificationHit & operator=(const IdentificationHit & source) = default;
+    IdentificationHit & operator=(const IdentificationHit &) = default;
     /// Move assignment operator
     IdentificationHit& operator=(IdentificationHit&&) & = default;
 

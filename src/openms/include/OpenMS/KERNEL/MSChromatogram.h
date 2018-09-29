@@ -130,7 +130,7 @@ public:
     MSChromatogram() = default;
 
     /// Copy constructor
-    MSChromatogram(const MSChromatogram& source) = default;
+    MSChromatogram(const MSChromatogram&) = default;
 
     /// Move constructor
     MSChromatogram(MSChromatogram&&) = default;
