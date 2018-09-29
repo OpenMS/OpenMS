@@ -105,13 +105,13 @@ public:
     {
     }
 
-    /// Copy constructor.
+    /// Copy constructor
     DRange(const DRange& range) :
       Base(range)
     {
     }
 
-    /// Move constructor.
+    /// Move constructor
     DRange(DRange&&) noexcept = default;
 
     /// Copy constructor for the base class
