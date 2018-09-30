@@ -61,7 +61,7 @@ namespace OpenMS
   averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averagine_type)
   {
     // initialise experiment exp_centroided_
-    // Any peaks below the intensity cutoff cannot be relevant and are therefore removed.
+    // Any peaks below the intensity cutoff cannot be relevant. They are therefore removed resulting in reduced memory footprint and runtime.
     // loop over spectra
     for (MSExperiment::ConstIterator it_rt = exp_centroided.begin(); it_rt < exp_centroided.end(); ++it_rt)
     {
@@ -81,6 +81,7 @@ namespace OpenMS
       exp_centroided_.addSpectrum(spectrum);
     }
     exp_centroided_.updateRanges();
+    exp_centroided_.sortSpectra();
     
     // initialise blacklist <blacklist_>
     blacklist_.reserve(exp_centroided_.getNrSpectra());
@@ -109,6 +110,11 @@ namespace OpenMS
       }
     }
     
+  }
+  
+  MSExperiment MultiplexFiltering::getCentroidedExperiment()
+  {
+    return(exp_centroided_);
   }
 
   void MultiplexFiltering::updateWhiteMSExperiment_()
