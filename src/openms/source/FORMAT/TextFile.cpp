@@ -123,11 +123,11 @@ namespace OpenMS
     // The characters in the stream are read one-by-one using a std::streambuf.
     // That is faster than reading them one-by-one using the std::istream.
     // Code that uses streambuf this way must be guarded by a sentry object.
-    // The sentry object performs various tasks,
-    // such as thread synchronization and updating the stream state.
-
-    // cppcheck-suppress variableScope unreadVariable
     std::istream::sentry se(is, true);
+    if (!se)
+    { // the stream has an error
+      return is;
+    }
     std::streambuf* sb = is.rdbuf();
 
     for (;;)
