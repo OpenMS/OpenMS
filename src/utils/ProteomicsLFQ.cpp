@@ -278,8 +278,10 @@ protected:
       double MAD =  Math::MAD(deltaMZs_ppm.begin(), deltaMZs_ppm.end(), median);
       double median_abs = Math::median(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end());
       double MAD_abs = Math::MAD(deltaMZs_ppmabs.begin(), deltaMZs_ppmabs.end(), median_abs);
-      writeLog_("Precursor correction:\n  median = " + String(median) + " ppm  MAD = " + String(MAD)
-                +"\n  median (abs.) = " + String(median_abs) + " ppm  MAD = " + String(MAD_abs));
+      writeLog_("Precursor correction:\n  median        = " 
+        + String(median) + " ppm  MAD = " + String(MAD)
+        + "\n  median (abs.) = " + String(median_abs) 
+        + " ppm  MAD = " + String(MAD_abs));
     }
     return EXECUTION_OK;
   }
@@ -661,6 +663,16 @@ protected:
       const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
       IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
 
+      // delete meta info to free some space
+      for (PeptideIdentification & pid : peptide_ids)
+      {
+        pid.clearMetaInfo();
+        for (PeptideHit & ph : pid.getHits())
+        {
+          ph.clearMetaInfo();
+        }
+      }
+
       if (protein_ids.size() != 1)
       {
         LOG_FATAL_ERROR << "Exactly one protein identification runs must be annotated in " << id_file_abs_path << endl;
@@ -690,7 +702,7 @@ protected:
       const String old_identifier = protein_ids[0].getIdentifier();
       const String new_identifier = old_identifier + "_" + String(fraction_group) + "F" + String(fraction);
       protein_ids[0].setIdentifier(new_identifier);
-      for (auto & p : peptide_ids)
+      for (PeptideIdentification & p : peptide_ids)
       {
         if (p.getIdentifier() == old_identifier)
         {
@@ -899,9 +911,9 @@ protected:
     for (auto & f : frac2ms)
     {
       writeDebug_("Fraction " + String(f.first) + ":", 10);
-      for (const auto & s : f.second)
+      for (const String & s : f.second)
       {
-        writeDebug_("MS file: " + String(s), 10);
+        writeDebug_("MS file: " + s, 10);
       }
     }
 
