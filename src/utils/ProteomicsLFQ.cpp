@@ -377,20 +377,18 @@ protected:
     LOG_INFO << "Using " << seeds.size() << " seeds from untargeted feature extraction." << endl;
   }
 
-  void alignAndLink_(
+
+  // aligns the feature maps 
+  double align_(
     vector<FeatureMap> & feature_maps, 
-    ConsensusMap & consensus_fraction, 
-    const double median_fwhm,
-    const UInt fraction,
-    const StringList & mz_files)
+    vector<TransformationDescription>& transformations
+  )
   {
     if (feature_maps.size() > 1) // do we have several maps to align / link?
     {
       Param ma_param = getParam_().copy("Alignment:", true);
       writeDebug_("Parameters passed to MapAlignmentAlgorithmIdentification algorithm", ma_param, 3);
 
-      vector<TransformationDescription> transformations;
-  
       // Determine reference from data, otherwise a change in order of input files
       // leads to slightly different results
       const int reference_index(-1); // set no reference (determine from data)
@@ -423,8 +421,18 @@ protected:
               { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
       // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
         max_alignment_diff = std::max(max_alignment_diff, 120.0);
+      return max_alignment_diff;
+    }
+    return 0;
+  }
 
-
+  void transform_(
+    vector<FeatureMap>& feature_maps, 
+    vector<TransformationDescription>& transformations
+  )
+  {
+    if (feature_maps.size() > 1 && !transformations.empty())
+    {
       // Apply transformations
       for (Size i = 0; i < feature_maps.size(); ++i)
       {
@@ -437,35 +445,60 @@ protected:
           TransformationXMLFile().store("debug_trafo_" + String(i) + ".trafoXML", transformations[i]);
         }
       }
+    }
+  }
+
+  //-------------------------------------------------------------
+  // Link all features of this fraction
+  //-------------------------------------------------------------
+  void link_(
+    vector<FeatureMap> & feature_maps, 
+    double max_alignment_diff,
+    double median_fwhm,
+    ConsensusMap & consensus_fraction
+  )
+  {
+    Param fl_param = getParam_().copy("Linking:", true);
+    writeDebug_("Parameters passed to FeatureGroupingAlgorithmQT algorithm", fl_param, 3);
+
+    writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
+    // grouping tolerance = max alignment error + median FWHM
+    FeatureGroupingAlgorithmQT linker;
+    fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+    fl_param.setValue("distance_MZ:max_difference", 10.0);
+    fl_param.setValue("distance_MZ:unit", "ppm");
+    fl_param.setValue("distance_MZ:weight", 5.0);
+    fl_param.setValue("distance_intensity:weight", 0.1); 
+    fl_param.setValue("use_identifications", "true"); 
+
+    /*
+    FeatureGroupingAlgorithmKD linker;
+    fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+    fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
+    fl_param.setValue("link:mz_tol", 10.0);
+    fl_param.setValue("mz_unit", "ppm");
+    */
+    linker.setParameters(fl_param);      
+    linker.group(feature_maps, consensus_fraction);
+  }
+
+  void alignAndLink_(
+    vector<FeatureMap> & feature_maps, 
+    ConsensusMap & consensus_fraction,
+    vector<TransformationDescription>& transformations,
+    const double median_fwhm,
+    const UInt fraction,
+    const StringList & mz_files)
+  {
+    if (feature_maps.size() > 1)
+    {
+      double max_alignment_diff = align_(feature_maps, transformations);
+      transform_(feature_maps, transformations);
       addDataProcessing_(consensus_fraction,
-                      getProcessingInfo_(DataProcessing::ALIGNMENT));
-      //-------------------------------------------------------------
-      // Link all features of this fraction
-      //-------------------------------------------------------------
-      Param fl_param = getParam_().copy("Linking:", true);
-      writeDebug_("Parameters passed to FeatureGroupingAlgorithmQT algorithm", fl_param, 3);
-
-      writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
-      // grouping tolerance = max alignment error + median FWHM
-      FeatureGroupingAlgorithmQT linker;
-      fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-      fl_param.setValue("distance_MZ:max_difference", 10.0);
-      fl_param.setValue("distance_MZ:unit", "ppm");
-      fl_param.setValue("distance_MZ:weight", 5.0);
-      fl_param.setValue("distance_intensity:weight", 0.1); 
-      fl_param.setValue("use_identifications", "true"); 
-
-/*      FeatureGroupingAlgorithmKD linker;
-      fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-      fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
-      fl_param.setValue("link:mz_tol", 10.0);
-      fl_param.setValue("mz_unit", "ppm");
-*/      
-      linker.setParameters(fl_param);      
-      linker.group(feature_maps, consensus_fraction);
+        getProcessingInfo_(DataProcessing::ALIGNMENT));
+      link_(feature_maps, max_alignment_diff, median_fwhm, consensus_fraction);
       addDataProcessing_(consensus_fraction,
-                      getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
-
+        getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
     }
     else // only one feature map
     {
@@ -593,10 +626,11 @@ protected:
   }
 
   ExitCodes quantifyFraction_(
-    const pair<unsigned int, std::vector<String> >  & ms_files, 
+    const pair<unsigned int, std::vector<String> > & ms_files, 
     const map<String, String>& mzfile2idfile, 
     double & median_fwhm,
     ConsensusMap & consensus_fraction,
+    vector<TransformationDescription>& transformations,
     const multimap<Size, PeptideIdentification>& transfered_ids)
   {
     vector<FeatureMap> feature_maps;
@@ -686,9 +720,18 @@ protected:
       vector<ProteinIdentification> ext_protein_ids;
       vector<PeptideIdentification> ext_peptide_ids;
 
+      //////////////////////////////////////////////////////
+      // Transfer aligned IDs
+      //////////////////////////////////////////////////////
       if (!transfered_ids.empty())
       {
-        // copy ids for this map to peptide_ids
+        OPENMS_PRECONDITION(!transformations.empty(), "Data has not been aligned.");
+
+        // transform observed IDs and spectra
+        MapAlignmentTransformer::transformRetentionTimes(peptide_ids, transformations[fraction_group - 1]);
+        MapAlignmentTransformer::transformRetentionTimes(ms_centroided, transformations[fraction_group - 1]);
+
+        // copy the (already) aligned, consensus feature derived ids that are to be transferred to this map to peptide_ids
         auto range = transfered_ids.equal_range(fraction_group - 1);
         for (auto it = range.first; it != range.second; ++it)
         {
@@ -765,16 +808,23 @@ protected:
         FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
       }
 
-      // TODO: think about external ids ;) / maybe for technical replicates?
-
       // TODO: free parts of feature map not needed for further processing (e.g., subfeatures...)
       ++fraction_group;
     }
 
     //-------------------------------------------------------------
-    // Align all features of this fraction
+    // Align all features of this fraction (if not already aligned)
     //-------------------------------------------------------------
-    alignAndLink_(feature_maps, consensus_fraction, median_fwhm, ms_files.first, ms_files.second);
+    if (transformations.empty())
+    {
+      alignAndLink_(
+        feature_maps, 
+        consensus_fraction, 
+        transformations,
+        median_fwhm, 
+        ms_files.first, 
+        ms_files.second);
+    }
 
     if (debug_level_ >= 666)
     {
@@ -880,18 +930,38 @@ protected:
 
     for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
     {      
-      ConsensusMap consensus_fraction;
+      ConsensusMap consensus_fraction; // quantitative result for this fraction identifier
 
-      ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction, multimap<Size, PeptideIdentification>());
+      vector<TransformationDescription> transformations; // filled by RT alignment
+
+      ExitCodes e = quantifyFraction_(
+        ms_files, 
+        mzfile2idfile,
+        median_fwhm, 
+        consensus_fraction, 
+        transformations,  // transformations are empty and will be filled by alignment
+        multimap<Size, PeptideIdentification>()
+      );
+
       if (e != EXECUTION_OK) { return e; }
         
-      if (getStringOption_("transfer_ids") != "false" )
+      if (getStringOption_("transfer_ids") != "false")
       {  
         // needs to occur in >= 50% of all runs for transfer
-        const Size min_occurance = (double) (ms_files.second.size() * 0.5 + 0.5);
+        const Size min_occurance = (double) (ms_files.second.size() * 0.5 + 0.5);        
         multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurance); 
         consensus_fraction.clear();
-        ExitCodes e = quantifyFraction_(ms_files, mzfile2idfile, median_fwhm, consensus_fraction, transfered_ids);
+
+        // The transfered IDs were calculated on the aligned data
+        // So we make sure we use the aligned IDs and peak maps in the requantification step
+        ExitCodes e = quantifyFraction_(
+          ms_files, 
+          mzfile2idfile, 
+          median_fwhm, 
+          consensus_fraction, 
+          transformations,  // transformations as determined by alignment
+          transfered_ids
+        );
         if (e != EXECUTION_OK) { return e; }
       }
       consensus.appendColumns(consensus_fraction);  // append consensus map calculated for this fraction number
