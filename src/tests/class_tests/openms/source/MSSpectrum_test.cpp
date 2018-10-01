@@ -55,6 +55,7 @@ class M2 : public RangeManager<1>
 {
    public: 
      M2(M2 &&) = default;
+     virtual void updateRanges() {};
 };
 class M3 : public SpectrumSettings
 {
