@@ -99,6 +99,14 @@ START_SECTION((MSSpectrum()))
   TEST_EQUAL(noexcept(M2(std::declval<M2&&>())), true)
   TEST_EQUAL(noexcept(M3(std::declval<M3&&>())), true)
 
+  TEST_EQUAL(noexcept(InstrumentSettings(std::declval<InstrumentSettings&&>())), true)
+  TEST_EQUAL(noexcept(SourceFile(std::declval<SourceFile&&>())), true)
+  TEST_EQUAL(noexcept(AcquisitionInfo(std::declval<AcquisitionInfo&&>())), true)
+  TEST_EQUAL(noexcept(Precursor(std::declval<Precursor&&>())), true)
+  TEST_EQUAL(noexcept(Product(std::declval<Product&&>())), true)
+  TEST_EQUAL(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())), true)
+  TEST_EQUAL(noexcept(DataProcessing(std::declval<DataProcessing&&>())), true)
+
 END_SECTION
 
 START_SECTION((~MSSpectrum()))
