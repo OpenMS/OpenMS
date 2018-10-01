@@ -46,6 +46,22 @@
 using namespace OpenMS;
 using namespace std;
 
+class M1 : private std::vector<Peak1D>
+{
+   public: 
+     M1(M1 &&) = default;
+};
+class M2 : public RangeManager<1>
+{
+   public: 
+     M2(M2 &&) = default;
+};
+class M3 : public SpectrumSettings
+{
+   public: 
+     M3(M3 &&) = default;
+};
+
 START_TEST(MSSpectrum, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -76,6 +92,12 @@ START_SECTION((MSSpectrum()))
   // Ensure that MSSpectrum has a no-except move constructor (otherwise
   // std::vector is inefficient and will copy instead of move).
   TEST_EQUAL(noexcept(MSSpectrum(std::declval<MSSpectrum&&>())), true)
+
+  // Temporary
+  TEST_EQUAL(noexcept(M1(std::declval<M1&&>())), true)
+  TEST_EQUAL(noexcept(M2(std::declval<M2&&>())), true)
+  TEST_EQUAL(noexcept(M3(std::declval<M3&&>())), true)
+
 END_SECTION
 
 START_SECTION((~MSSpectrum()))
