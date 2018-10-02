@@ -222,7 +222,7 @@ public:
     /**
       @brief Returns a substring where @p n characters were removed from the end of the string.
 
-  If @p n is greater than size(), the result is an empty string.
+      If @p n is greater than size(), the result is an empty string.
 
       @param n Number of characters that will be removed from the end of the string.
      */
@@ -551,7 +551,17 @@ public:
     private:
       const char* begin_;
       Size size_;
-  }; 
-
+  };
 } // namespace OPENMS
+
+namespace std
+{
+  template <> struct hash<OpenMS::String> //hash for String
+  {
+    size_t operator()(const OpenMS::String& s) const
+    {
+      return std::hash<string>()(static_cast<string>(s));
+    }
+  };
+} // namespace std
 
