@@ -32,146 +32,56 @@
 // $Authors: Philippe M. Groarke, Hannes Roest $
 // --------------------------------------------------------------------------
 
+// See https://philippegroarke.com/posts/2018/easy_defensive_programming/
+// https://github.com/p-groarke/defensive_cpp
+
 #pragma once
 #include <type_traits>
 
-#define OPENMS_TEST_DEFAULT_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_default_constructible_v<t>, \
-				#t " : must be default constructible"); \
-		return std::is_default_constructible_v<t>; \
-	}
+namespace OpenMS 
+{
+  // no constexpr lamdas in C++11, therefore we have to use functions
+  namespace Test 
+  {
 
-#define OPENMS_TEST_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_default_constructible_v<t>, \
-				#t " : must be trivially default constructible"); \
-		return std::std::is_trivially_default_constructible_v<t>; \
-	}
+    template <class T>
+    constexpr bool fulfills_rule_of_5()
+    {
+      static_assert(std::is_destructible<T>::value, "T : must be destructible");
+      static_assert(std::is_copy_constructible<T>::value, "T : must be copy constructible");
+      static_assert(std::is_move_constructible<T>::value, "T : must be move constructible");
+      static_assert(std::is_copy_assignable<T>::value, "T : must be copy assignable");
+      static_assert(std::is_move_assignable<T>::value, "T : must be move assignable");
 
-#define OPENMS_TEST_COPY_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_copy_constructible_v<t>, \
-				#t " : must be copy constructible"); \
-		return std::is_copy_constructible_v<t>; \
-	}
+      return std::is_destructible<T>::value &&
+             std::is_copy_constructible<T>::value &&
+             std::is_move_constructible<T>::value &&
+             std::is_copy_assignable<T>::value &&
+             std::is_move_assignable<T>::value;
+    }
 
-#define OPENMS_TEST_NOT_COPY_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(!std::is_copy_constructible_v<t>, \
-				#t " : must not be copy constructible"); \
-		return !std::is_copy_constructible_v<t>; \
-	}
+    template <class T>
+    constexpr bool fulfills_rule_of_6()
+    {
+      static_assert(fulfills_rule_of_5<T>(), "T : must fulfill rule of 5");
+      static_assert(std::is_default_constructible<T>::value, "T : must be default constructible");
 
-#define OPENMS_TEST_TRIVIALLY_COPY_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_copy_constructible_v<t>, \
-				#t " : must be trivially copy constructible"); \
-		return std::is_trivially_copy_constructible_v<t>; \
-	}
+      return fulfills_rule_of_5<T>() &&
+             std::is_default_constructible<T>::value;
+    }
 
-#define OPENMS_TEST_COPY_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(std::is_copy_assignable_v<t>, \
-				#t " : must be copy assignable"); \
-		return std::is_copy_assignable_v<t>; \
-	}
+    template <class T>
+    constexpr bool fulfills_fast_vector()
+    {
+      static_assert( (std::is_trivially_copy_constructible<T>::value && std::is_trivially_destructible<T>::value) ||
+                      std::is_nothrow_move_constructible<T>::value, 
+                      "T : doesn't fulfill fast vector (trivially copy constructible " \
+                        "and trivially destructible, or nothrow move constructible)");
 
-#define OPENMS_TEST_NOT_COPY_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(!std::is_copy_assignable_v<t>, \
-				#t " : must not be copy assignable"); \
-		return !std::is_copy_assignable_v<t>; \
-	}
+      return (std::is_trivially_copy_constructible<T>::value && std::is_trivially_destructible<T>::value) ||
+              std::is_nothrow_move_constructible<T>::value;
+    };
 
-#define OPENMS_TEST_TRIVIALLY_COPY_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_copy_assignable_v<t>, \
-				#t " : must be trivially copy assignable"); \
-		return std::is_trivially_copy_assignable_v<t>; \
-	}
-
-#define OPENMS_TEST_MOVE_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_move_constructible_v<t>, \
-				#t " : must be move constructible"); \
-		return std::is_move_constructible_v<t>; \
-	}
-
-#define OPENMS_TEST_TRIVIALLY_MOVE_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_move_constructible_v<t>, \
-				#t " : must be trivially move constructible"); \
-		return std::is_trivially_move_constructible_v<t>; \
-	}
-
-#define OPENMS_TEST_NOTHROW_MOVE_CONSTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_nothrow_move_constructible_v<t>, \
-				#t " : must be nothrow move constructible"); \
-		return std::is_nothrow_move_constructible_v<t>; \
-	}
-
-#define OPENMS_TEST_MOVE_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(std::is_move_assignable_v<t>, \
-				#t " : must be move assignable"); \
-		return std::is_move_assignable_v<t>; \
-	}
-
-#define OPENMS_TEST_TRIVIALLY_MOVE_ASSIGNABLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_move_assignable_v<t>, \
-				#t " : must be trivially move assignable"); \
-		return std::is_trivially_move_assignable_v<t>; \
-	}
-
-#define OPENMS_TEST_DESTRUCTIBLE(t) \
-	[]() { \
-		static_assert( \
-				std::is_destructible_v<t>, #t " : must be destructible"); \
-		return std::is_destructible_v<t>; \
-	}
-
-#define OPENMS_TEST_TRIVIALLY_DESTRUCTIBLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_destructible_v<t>, \
-				#t " : must be trivially destructible"); \
-		return std::is_trivially_destructible_v<t>; \
-	}
-
-#define OPENMS_TEST_TRIVIALLY_COPYABLE(t) \
-	[]() { \
-		static_assert(std::is_trivially_copyable_v<t>, \
-				#t " : must be trivially copyable"); \
-		return std::is_trivially_copyable_v<t>; \
-	}
-
-#define OPENMS_TEST_FULFILLS_RULE_OF_5(t) \
-	static_assert(OPENMS_TEST_DESTRUCTIBLE(t)() && OPENMS_TEST_COPY_CONSTRUCTIBLE(t)() \
-					&& OPENMS_TEST_MOVE_CONSTRUCTIBLE(t)() && OPENMS_TEST_COPY_ASSIGNABLE(t)() \
-					&& OPENMS_TEST_MOVE_ASSIGNABLE(t)(), \
-			#t " : doesn't fulfill rule of 5")
-
-#define OPENMS_TEST_FULFILLS_RULE_OF_6(t) \
-	static_assert(OPENMS_TEST_DESTRUCTIBLE(t)() && OPENMS_TEST_DEFAULT_CONSTRUCTIBLE(t)() \
-					&& OPENMS_TEST_COPY_CONSTRUCTIBLE(t)() \
-					&& OPENMS_TEST_MOVE_CONSTRUCTIBLE(t)() && OPENMS_TEST_COPY_ASSIGNABLE(t)() \
-					&& OPENMS_TEST_MOVE_ASSIGNABLE(t)(), \
-			#t " : doesn't fulfill rule of 5")
-
-// is_trivially_copyable broken everywhere
-#define OPENMS_TEST_FULFILLS_FAST_VECTOR(t) \
-	static_assert((std::is_trivially_copy_constructible_v< \
-						   t> && std::is_trivially_destructible_v<t>) \
-					|| std::is_nothrow_move_constructible_v<t>, \
-			#t " : doesn't fulfill fast vector (trivially copy constructible " \
-			   "and trivially destructible, or nothrow move constructible)")
-
-#define OPENMS_TEST_FULFILLS_MOVE_ONLY(t) \
-	static_assert(OPENMS_TEST_NOT_COPY_CONSTRUCTIBLE(t)() \
-					&& OPENMS_TEST_MOVE_CONSTRUCTIBLE(t)() \
-					&& OPENMS_TEST_NOT_COPY_ASSIGNABLE(t)() \
-					&& OPENMS_TEST_MOVE_ASSIGNABLE(t)(), \
-			#t " : doesn't fulfill move only")
+  }
+}
 
