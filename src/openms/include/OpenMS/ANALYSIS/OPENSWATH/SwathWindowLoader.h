@@ -70,8 +70,8 @@ namespace OpenMS
        @param swath_maps The list of SWATH maps (assumed to be in the same order as in the file)
        @param do_sort Sort the windows after reading in ascending order
        @param force Force overriding the window boundaries, even if the new boundaries are wider than the data boundaries
-       @throw Exception::IllegalArgument if the number of maps in the file and the provided input maps to not match
-              , or if the new boundaries are outside of the data boundaries (unless force==true)
+       
+       @throw Exception::IllegalArgument if the number of maps in the file and the provided input maps to not match, or if the new boundaries are outside of the data boundaries (unless force==true)
     */
     static void annotateSwathMapsFromFile(const std::string& filename,
                                           std::vector<OpenSwath::SwathMap>& swath_maps,
@@ -90,8 +90,8 @@ namespace OpenMS
       Note that the first line is a header and will be skipped.
      
       @param filename The filename of the tab delimited file
-      @param swath_prec_lower_ The output vector for the window start
-      @param swath_prec_upper_ The output vector for the window end
+      @param swath_prec_lower The output vector for the window start
+      @param swath_prec_upper The output vector for the window end
 
       @throw Exception::InvalidValue if window's start >= end
 
