@@ -56,14 +56,21 @@ public:
 
     /// @name constructors,destructors,assignment operator
     //@{
-    /// default constructor
-    Identification();
-    /// destructor
+
+    /// Default constructor
+    Identification() = default;
+    /// Copy constructor
+    Identification(const Identification & source) = default;
+    /// Move constructor
+    Identification(Identification&&) = default;
+    /// Destructor
     virtual ~Identification();
-    /// copy constructor
-    Identification(const Identification & source);
-    /// assignment operator
-    Identification & operator=(const Identification & source);
+
+    /// Assignment operator
+    Identification & operator=(const Identification & source) = default;
+    /// Move assignment operator
+    Identification& operator=(Identification&&) & = default;
+
     /// Equality operator
     bool operator==(const Identification & rhs) const;
     /// Inequality operator
@@ -89,10 +96,11 @@ public:
     //@}
 protected:
 
-    String id_;                                     ///< Identifier
-    DateTime creation_date_;            ///< Date and time the search was performed
+    String id_; ///< Identifier
+    DateTime creation_date_; ///< Date and time the search was performed
     std::vector<SpectrumIdentification> spectrum_identifications_;
 
   };
 
 } //namespace OpenMS
+

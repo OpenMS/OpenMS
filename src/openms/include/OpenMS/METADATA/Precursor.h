@@ -68,15 +68,15 @@ public:
       PSD,                      ///< Post-source decay
       PD,                       ///< Plasma desorption
       SID,                      ///< Surface-induced dissociation
-      BIRD,                             ///< Blackbody infrared radiative dissociation
-      ECD,                              ///< Electron capture dissociation
-      IMD,                              ///< Infrared multiphoton dissociation
-      SORI,                             ///< Sustained off-resonance irradiation
-      HCID,                             ///< High-energy collision-induced dissociation
-      LCID,                             ///< Low-energy collision-induced dissociation
-      PHD,                              ///< Photodissociation
-      ETD,                              ///< Electron transfer dissociation
-      PQD,                              ///< Pulsed q dissociation
+      BIRD,                     ///< Blackbody infrared radiative dissociation
+      ECD,                      ///< Electron capture dissociation
+      IMD,                      ///< Infrared multiphoton dissociation
+      SORI,                     ///< Sustained off-resonance irradiation
+      HCID,                     ///< High-energy collision-induced dissociation
+      LCID,                     ///< Low-energy collision-induced dissociation
+      PHD,                      ///< Photodissociation
+      ETD,                      ///< Electron transfer dissociation
+      PQD,                      ///< Pulsed q dissociation
       SIZE_OF_ACTIVATIONMETHOD
     };
 
@@ -87,12 +87,16 @@ public:
     /// Constructor
     Precursor();
     /// Copy constructor
-    Precursor(const Precursor & source);
+    Precursor(const Precursor &) = default;
+    /// Move constructor
+    Precursor(Precursor&&) = default;
     /// Destructor
     ~Precursor() override;
 
     /// Assignment operator
-    Precursor & operator=(const Precursor & source);
+    Precursor & operator=(const Precursor &) = default;
+    /// Move assignment operator
+    Precursor& operator=(Precursor&&) & = default;
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;

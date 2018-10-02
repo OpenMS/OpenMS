@@ -69,32 +69,37 @@ public:
     /// ion optics type
     enum IonOpticsType
     {
-      UNKNOWN,                                          ///< unknown
-      MAGNETIC_DEFLECTION,                      ///< magnetic deflection
-      DELAYED_EXTRACTION,                       ///< delayed extraction
-      COLLISION_QUADRUPOLE,                 ///< collision quadrupole
-      SELECTED_ION_FLOW_TUBE,               ///< selected ion flow tube
-      TIME_LAG_FOCUSING,                        ///< time lag focusing
-      REFLECTRON,                                       ///< reflectron
-      EINZEL_LENS,                                      ///< einzel lens
-      FIRST_STABILITY_REGION,               ///< first stability region
-      FRINGING_FIELD,                               ///< fringing field
-      KINETIC_ENERGY_ANALYZER,              ///< kinetic energy analyzer
-      STATIC_FIELD,                                     ///< static field
+      UNKNOWN,                  ///< unknown
+      MAGNETIC_DEFLECTION,      ///< magnetic deflection
+      DELAYED_EXTRACTION,       ///< delayed extraction
+      COLLISION_QUADRUPOLE,     ///< collision quadrupole
+      SELECTED_ION_FLOW_TUBE,   ///< selected ion flow tube
+      TIME_LAG_FOCUSING,        ///< time lag focusing
+      REFLECTRON,               ///< reflectron
+      EINZEL_LENS,              ///< einzel lens
+      FIRST_STABILITY_REGION,   ///< first stability region
+      FRINGING_FIELD,           ///< fringing field
+      KINETIC_ENERGY_ANALYZER,  ///< kinetic energy analyzer
+      STATIC_FIELD,             ///< static field
       SIZE_OF_IONOPTICSTYPE
     };
+
     /// Names of inlet types
     static const std::string NamesOfIonOpticsType[SIZE_OF_IONOPTICSTYPE];
 
     /// Constructor
     Instrument();
     /// Copy constructor
-    Instrument(const Instrument & source);
+    Instrument(const Instrument &) = default;
+    /// Move constructor
+    Instrument(Instrument&&) = default;
     /// Destructor
     ~Instrument();
 
     /// Assignment operator
-    Instrument & operator=(const Instrument & source);
+    Instrument & operator=(const Instrument &) = default;
+    /// Move assignment operator
+    Instrument& operator=(Instrument&&) & = default;
 
     /// Equality operator
     bool operator==(const Instrument & rhs) const;

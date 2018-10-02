@@ -84,6 +84,7 @@ namespace OpenMS
 
   class OPENMS_DLLAPI ExperimentalDesign
   {
+
   public:
     /// MSFileSectionEntry links single quant. values back the MS file
     /// It supports:
@@ -159,7 +160,6 @@ namespace OpenMS
     const ExperimentalDesign::SampleSection& getSampleSection() const;
 
     void setSampleSection(const SampleSection& sample_section);
-
 
     /// return fraction index to file paths (ordered by fraction_group)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;

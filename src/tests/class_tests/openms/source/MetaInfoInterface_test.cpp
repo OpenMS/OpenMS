@@ -36,9 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-
 ///////////////////////////
 
 START_TEST(Example, "$Id$")
@@ -100,7 +98,9 @@ END_SECTION
 
 TOLERANCE_ABSOLUTE(0.001)
 
+// Copy Constructor
 START_SECTION((MetaInfoInterface(const MetaInfoInterface& rhs)))
+{
 	//test if copy worked
 	MetaInfoInterface mi3(mi);
 	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")),double(mi3.getMetaValue("cluster_id")))
@@ -108,9 +108,35 @@ START_SECTION((MetaInfoInterface(const MetaInfoInterface& rhs)))
 	mi3.setMetaValue("cluster_id",11.9);
 	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")),4712.12)
 	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")),11.9)
+}
+END_SECTION
+
+/// Move constructor
+START_SECTION(( MetaInfoInterface(MetaInfoInterface&&) noexcept ))
+{
+  // Ensure that MetaInfoInterface has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(MetaInfoInterface(std::declval<MetaInfoInterface&&>())), true)
+
+	MetaInfoInterface example(mi);
+	MetaInfoInterface mi3(std::move(example));
+
+	// test if move worked
+	TEST_EQUAL(mi3.metaValueExists("cluster_id"), true);
+	TEST_EQUAL(example.metaValueExists("cluster_id"), false);
+	TEST_EQUAL(example.isMetaEmpty(), true);
+
+	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")), double(mi3.getMetaValue("cluster_id")))
+	// test if a deep copy was done
+	mi3.setMetaValue("cluster_id", 11.9);
+	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")), 4712.12)
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")), 11.9)
+
+}
 END_SECTION
 
 START_SECTION((MetaInfoInterface& operator = (const MetaInfoInterface& rhs)))
+{
 	//test if copy worked
 	MetaInfoInterface mi3,mi4;
 	mi3 = mi;
@@ -122,13 +148,59 @@ START_SECTION((MetaInfoInterface& operator = (const MetaInfoInterface& rhs)))
 	//test what happens when left side is not empty
 	mi3 = mi;
 	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")),double(mi.getMetaValue("cluster_id")))
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")), 4712.12)
 	//test if a deep copy was done
 	mi3.setMetaValue("cluster_id",11.9);
 	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")),double(mi.getMetaValue("cluster_id")))
+	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")),4712.12)
 	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")),11.9)
 	//test what happens when source is empty
 	mi3 = mi4;
 	TEST_EQUAL(mi3.isMetaEmpty(),true)
+}
+END_SECTION
+
+START_SECTION((MetaInfoInterface& operator = (MetaInfoInterface&& rhs)))
+{
+  // Ensure that MetaInfoInterface has a no-except move assignment operator.
+  TEST_EQUAL(noexcept(declval<MetaInfoInterface&>() = declval<MetaInfoInterface &&>()), true)
+
+	MetaInfoInterface mi3, mi4;
+	MetaInfoInterface example(mi);
+
+	mi3 = std::move(example);
+
+	// test if move worked
+	TEST_EQUAL(mi3.metaValueExists("cluster_id"), true);
+	TEST_EQUAL(example.metaValueExists("cluster_id"), false);
+	TEST_EQUAL(example.isMetaEmpty(), true);
+
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")), double(mi.getMetaValue("cluster_id")))
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")), 4712.12)
+	// test if a deep copy was done
+	mi3.setMetaValue("cluster_id", 11.9);
+	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")), 4712.12)
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")), 11.9)
+
+	// test what happens when left side is not empty
+	example = mi;
+	mi3 = std::move(example);
+	TEST_EQUAL(mi3.metaValueExists("cluster_id"), true);
+	TEST_EQUAL(example.metaValueExists("cluster_id"), false);
+	TEST_EQUAL(example.isMetaEmpty(), true);
+
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")), double(mi.getMetaValue("cluster_id")))
+	// test if a deep copy was done
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")), 4712.12)
+	mi3.setMetaValue("cluster_id", 11.9);
+	TEST_REAL_SIMILAR(double(mi.getMetaValue("cluster_id")), double(mi.getMetaValue("cluster_id")))
+	TEST_REAL_SIMILAR(double(mi3.getMetaValue("cluster_id")), 11.9)
+
+	// test what happens when source is empty
+	mi3 = std::move(example);
+	TEST_EQUAL(mi3.isMetaEmpty(), true)
+	TEST_EQUAL(example.isMetaEmpty(), true)
+}
 END_SECTION
 
 START_SECTION((void getKeys(std::vector<String>& keys) const))

@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 namespace OpenMS
 {
@@ -166,17 +167,17 @@ namespace OpenMS
   };
 
 
-  void TransitionTSVFile::getTSVHeader_(const std::string& line, char& delimiter,
-                                          std::vector<std::string> header, std::map<std::string, int>& header_dict)
+  void TransitionTSVFile::getTSVHeader_(const std::string& line, char& delimiter, std::map<std::string, int>& header_dict) const
   {
     std::string tmp;
-
+    std::vector<std::string> header;
     int nr_delimiters = 3;
     Size min_header_size = 8;
     const char possibleDelimiters[3] = {',', ';', '\t'};
 
     for (int i = 0; i < nr_delimiters; i++)
     {
+      header.clear();
       std::stringstream lineStream(line);
       delimiter = possibleDelimiters[i];
       while (std::getline(lineStream, tmp, delimiter))
@@ -191,7 +192,6 @@ namespace OpenMS
       {
         break; // found the delimiter, got the correct header
       }
-      header.clear();
     }
 
     for (Size i = 0; i < header.size(); i++)
@@ -222,12 +222,11 @@ namespace OpenMS
 
     // read header
     std::vector<std::string>   tmp_line;
-    std::vector<std::string>   header;
     std::map<std::string, int> header_dict;
     char delimiter = ',';
 
     // SpectraST MRM Files do not have a header
-    if (FileTypes::typeToName(filetype) == "mrm")
+    if (filetype == FileTypes::MRM)
     {
       delimiter = '\t';
 
@@ -248,19 +247,18 @@ namespace OpenMS
     // Read header for TSV input
     else
     {
-      std::getline(data, line);
-
-      getTSVHeader_(line, delimiter, header, header_dict);
+      TextFile::getLine(data, line);
+      getTSVHeader_(line, delimiter, header_dict);
     }
 
     bool spectrast_legacy = false; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
     int cnt = 0;
-    while (std::getline(data, line))
+    while (TextFile::getLine(data, line)) // make sure line endings are handled correctly
     {
       line.push_back(delimiter); // avoid losing last column if it is empty
       std::stringstream lineStream(line);
 
-      while (std::getline(lineStream, tmp, delimiter))
+      while (std::getline(lineStream, tmp, delimiter)) // default getline is fine here, we only want to split the line
       {
         tmp_line.push_back(tmp);
       }
@@ -405,7 +403,7 @@ namespace OpenMS
 
       //// Generate Group IDs
       // SpectraST
-      if (FileTypes::typeToName(filetype) == "mrm")
+      if (filetype == FileTypes::MRM)
       {
         std::vector<String> substrings;
         String(tmp_line[header_dict["SpectraSTFullPeptideName"]]).split("/", substrings);
@@ -659,7 +657,7 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, transition_list.size(), "conversion to internal data representation");
-    for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
+    for (auto tr_it = transition_list.cbegin(); tr_it != transition_list.cend(); ++tr_it)
     {
       OpenSwath::LightTransition transition;
       transition.transition_name  = tr_it->transition_name;
@@ -999,7 +997,7 @@ namespace OpenMS
     retention_times.push_back(retention_time);
   }
 
-  void TransitionTSVFile::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
+  void TransitionTSVFile::createPeptide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
   {
 
     // the following attributes will be stored as meta values (userParam):
@@ -1119,7 +1117,7 @@ namespace OpenMS
                           + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
-  void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound)
+  void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Compound& compound)
   {
 
     // the following attributes will be stored as meta values (userParam):

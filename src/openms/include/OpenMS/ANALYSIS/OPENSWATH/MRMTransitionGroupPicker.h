@@ -115,8 +115,8 @@ public:
       OPENMS_PRECONDITION(transition_group.isInternallyConsistent(), "Consistent state required")
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
-      std::vector<MSChromatogram > picked_chroms_;
-      std::vector<MSChromatogram > smoothed_chroms_;
+      std::vector<MSChromatogram > picked_chroms;
+      std::vector<MSChromatogram > smoothed_chroms;
 
       // Pick fragment ion chromatograms
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -135,8 +135,8 @@ public:
         MSChromatogram picked_chrom, smoothed_chrom;
         picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
         picked_chrom.sortByIntensity();
-        picked_chroms_.push_back(picked_chrom);
-        smoothed_chroms_.push_back(smoothed_chrom);
+        picked_chroms.push_back(picked_chrom);
+        smoothed_chroms.push_back(smoothed_chrom);
       }
 
       // Pick precursor chromatograms
@@ -146,12 +146,11 @@ public:
         {
           SpectrumT picked_chrom, smoothed_chrom;
           SpectrumT& chromatogram = transition_group.getPrecursorChromatograms()[k];
-          String native_id = chromatogram.getNativeID();
 
           picker_.pickChromatogram(chromatogram, picked_chrom, smoothed_chrom);
           picked_chrom.sortByIntensity();
-          picked_chroms_.push_back(picked_chrom);
-          smoothed_chroms_.push_back(smoothed_chrom);
+          picked_chroms.push_back(picked_chrom);
+          smoothed_chroms.push_back(smoothed_chrom);
         }
       }
 
@@ -167,17 +166,17 @@ public:
 
         if (boundary_selection_method_ == "largest")
         {
-          findLargestPeak(picked_chroms_, chr_idx, peak_idx);
+          findLargestPeak(picked_chroms, chr_idx, peak_idx);
         }
         else if (boundary_selection_method_ == "widest")
         {
-          findWidestPeakIndices(picked_chroms_, chr_idx, peak_idx);
+          findWidestPeakIndices(picked_chroms, chr_idx, peak_idx);
         }
 
         if (chr_idx == -1 && peak_idx == -1) break;
 
         // Compute a feature from the individual chromatograms and add non-zero features
-        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, smoothed_chroms_, chr_idx, peak_idx);
+        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
         if (mrm_feature.getIntensity() > 0)
         {
           features.push_back(mrm_feature);
@@ -224,8 +223,8 @@ public:
 
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
-      double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
-      double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
+      double best_left = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][peak_idx];
+      double best_right = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][peak_idx];
       double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
       LOG_DEBUG << "**** Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " <<
         picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
@@ -267,7 +266,9 @@ public:
             for (Size i = 0; i < picked_chroms[k].size(); i++)
             {
               PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
-                picked_chroms[k], picked_chroms[k].getFloatDataArrays()[1][i], picked_chroms[k].getFloatDataArrays()[2][i]); 
+                  picked_chroms[k],
+                  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
+                  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
               if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
               {
                 min_dist = (int)i;
@@ -279,8 +280,8 @@ public:
             double r = best_right;
             if (min_dist >= 0)
             {
-              l = picked_chroms[k].getFloatDataArrays()[1][min_dist];
-              r = picked_chroms[k].getFloatDataArrays()[2][min_dist];
+              l = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][min_dist];
+              r = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][min_dist];
               picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
             }
             
@@ -291,7 +292,7 @@ public:
             if (r > max_right) {max_right = r;}
           }
         }
-      }
+      } // end !use_consensus_
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0); // ensure that we set at least one peak to zero
 
       // Check for minimal peak width -> return empty feature (Intensity zero)
@@ -457,7 +458,7 @@ public:
 
           f.setMetaValue("area_background_level", background);
           f.setMetaValue("noise_background_level", avg_noise_level);
-        }
+        } // end background
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
         f.setIntensity(peak_integral);
@@ -490,12 +491,12 @@ public:
 
         // for backwards compatibility with TOPP tests
         // Calculate peak shape metrics that will be used for later QC
+        PeakIntegrator::PeakShapeMetrics psm = pi_.calculatePeakShapeMetrics(used_chromatogram, local_left, local_right, peak_apex_int, pa.apex_pos);
+        f.setMetaValue("width_at_50", psm.width_at_50);
         if (compute_peak_shape_metrics_)
         {
-          PeakIntegrator::PeakShapeMetrics psm = pi_.calculatePeakShapeMetrics(used_chromatogram, local_left, local_right, peak_apex_int, pa.apex_pos);
           f.setMetaValue("width_at_5", psm.width_at_5);
           f.setMetaValue("width_at_10", psm.width_at_10);
-          f.setMetaValue("width_at_50", psm.width_at_50);
           f.setMetaValue("start_position_at_5", psm.start_position_at_5);
           f.setMetaValue("start_position_at_10", psm.start_position_at_10);
           f.setMetaValue("start_position_at_50", psm.start_position_at_50);
@@ -660,8 +661,8 @@ public:
         {
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
-            //std::cout << "For Chrom " << k << " removing peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[1][i] << " " <<
-            //  picked_chroms[k].getFloatDataArrays()[2][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
+            //std::cout << "For Chrom " << k << " removing peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i] << " " <<
+            //  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
             picked_chroms[k][i].setIntensity(0.0);
           }
         }
@@ -674,13 +675,13 @@ public:
         {
           if (picked_chroms[k][i].getIntensity() <= 0.0) {continue; }
 
-          double left = picked_chroms[k].getFloatDataArrays()[1][i];
-          double right = picked_chroms[k].getFloatDataArrays()[2][i];
+          double left = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i];
+          double right = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i];
           if ((left > best_left && left < best_right)
              || (right > best_left && right < best_right))
           {
-            //std::cout << "= For Chrom " << k << " removing contained peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[1][i] << " " <<
-            //  picked_chroms[k].getFloatDataArrays()[2][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
+            //std::cout << "= For Chrom " << k << " removing contained peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i] << " " <<
+            //  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
             picked_chroms[k][i].setIntensity(0.0);
           }
         }
@@ -839,8 +840,8 @@ protected:
             if (picked_chroms[k][i].getIntensity() > max_int)
             {
               max_int = picked_chroms[k][i].getIntensity() > max_int;
-              l_tmp = picked_chroms[k].getFloatDataArrays()[1][i];
-              r_tmp = picked_chroms[k].getFloatDataArrays()[2][i];
+              l_tmp = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i];
+              r_tmp = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i];
             }
           }
         }
@@ -914,11 +915,11 @@ protected:
         {
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
-            if (picked_chroms[k].getFloatDataArrays()[0][i] > max_int)
+            if (picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][i] > max_int)
             {
-              max_int = picked_chroms[k].getFloatDataArrays()[0][i];
-              left = picked_chroms[k].getFloatDataArrays()[1][i];
-              right = picked_chroms[k].getFloatDataArrays()[2][i];
+              max_int = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][i];
+              left = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i];
+              right = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i];
             }
           }
         }

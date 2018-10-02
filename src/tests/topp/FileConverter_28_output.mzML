@@ -122,8 +122,8 @@
 				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
 				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05" />
-				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9"/>
-				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9"/>
+				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<userParam name="p1" type="xsd:string" value="value1"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
@@ -205,10 +205,10 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tic native">10109</offset>
-		<offset idRef="sic native">11732</offset>
+		<offset idRef="tic native">10267</offset>
+		<offset idRef="sic native">11890</offset>
 	</index>
 </indexList>
-<indexListOffset>13313</indexListOffset>
+<indexListOffset>13471</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

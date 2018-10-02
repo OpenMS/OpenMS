@@ -45,6 +45,7 @@
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <boost/range/adaptor/map.hpp>
 #include <boost/foreach.hpp>
@@ -306,7 +307,7 @@ namespace OpenMS
     transition_group_identification_decoy = transition_group.subsetDependent(identifying_transitions_decoy);
   }
 
-  OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
+  OpenSwath_Ind_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& trgr_ident,
                                                                  OpenSwathScoring& scorer,
                                                                  const size_t feature_idx,
                                                                  const std::vector<std::string>& native_ids_detection,
@@ -353,7 +354,7 @@ namespace OpenMS
       }
     }
 
-    OpenSwath_Scores idscores;
+    OpenSwath_Ind_Scores idscores;
     if (native_ids_identification.size() > 0)
     {
       scorer.calculateChromatographicIdScores(idimrmfeature,
@@ -372,7 +373,12 @@ namespace OpenMS
       std::stringstream ind_intensity_ratio;
       std::stringstream ind_mi_ratio;
 
-      std::vector<double> ind_mi_score = ListUtils::create<double>((String)idscores.ind_mi_score,';');
+      std::vector<double> ind_mi_score;
+      if (su_.use_mi_score_)
+      {
+        ind_mi_score = ListUtils::create<double>((String)idscores.ind_mi_score,';');
+      }
+
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
         if (i != 0)
@@ -396,15 +402,24 @@ namespace OpenMS
           if (det_intensity_ratio_score > 0) { intensity_ratio = intensity_score / det_intensity_ratio_score; }
           if (intensity_ratio > 1) { intensity_ratio = 1 / intensity_ratio; }
 
+          double total_mi = 0;
+          if (su_.use_total_mi_score_)
+          {
+            total_mi = double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi"));
+          }
+
           double mi_ratio = 0;
-          if (det_mi_ratio_score > 0) { mi_ratio = (ind_mi_score[i] / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi"))) / det_mi_ratio_score; }
-          if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+          if (su_.use_mi_score_ && su_.use_total_mi_score_)
+          {
+            if (det_mi_ratio_score > 0) { mi_ratio = (ind_mi_score[i] / total_mi) / det_mi_ratio_score; }
+            if (mi_ratio > 1) { mi_ratio = 1 / mi_ratio; }
+          }
 
           ind_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getIntensity();
           ind_total_area_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic");
           ind_intensity_score << intensity_score;
           ind_apex_intensity << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("peak_apex_int");
-          ind_total_mi << idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_mi");
+          ind_total_mi << total_mi;
           ind_log_intensity << std::log(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity());
           ind_intensity_ratio << intensity_ratio;
           ind_mi_ratio << mi_ratio;
@@ -541,6 +556,9 @@ namespace OpenMS
     OpenSwathScoring scorer;
     scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
 
+    ProteaseDigestion pd;
+    pd.setEnzyme("Trypsin");
+
     size_t feature_idx = 0;
     // Go through all peak groups (found MRM features) and score them
     for (std::vector<MRMFeature>::iterator mrmfeature = transition_group_detection.getFeaturesMuteable().begin();
@@ -641,7 +659,7 @@ namespace OpenMS
         mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
         mrmfeature->setOverallQuality(xx_lda_prescore);
       }
-      else
+      else //!ms1only
       {
 
         ///////////////////////////////////
@@ -674,8 +692,11 @@ namespace OpenMS
         scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
         if (swath_present && su_.use_dia_scores_)
         {
-          scorer.calculateDIAScores(imrmfeature, transition_group_detection.getTransitions(),
-                                    swath_maps, ms1_map_, diascoring_, *pep, scores, drift_lower, drift_upper);
+          std::vector<double> masserror_ppm;
+          scorer.calculateDIAScores(imrmfeature,
+                                    transition_group_detection.getTransitions(),
+                                    swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm, drift_lower, drift_upper);
+          mrmfeature->setMetaValue("masserror_ppm", masserror_ppm);
         }
         if (sonar_present && su_.use_sonar_scores)
         {
@@ -699,7 +720,7 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
         {
-          OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, 
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
                                                            sn_win_len_,
@@ -732,7 +753,7 @@ namespace OpenMS
 
         if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
         {
-          OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
+          OpenSwath_Ind_Scores idscores = scoreIdentification_(transition_group_identification_decoy, 
                                                            scorer, feature_idx,
                                                            native_ids_detection,
                                                            sn_win_len_,
@@ -942,6 +963,7 @@ namespace OpenMS
       if (pep->isPeptide())
       {
         pep_hit_.setSequence(AASequence::fromString(pep->sequence));
+        mrmfeature->setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);
       }
 
       // set protein accession numbers 
@@ -1000,9 +1022,8 @@ namespace OpenMS
       feature_idx++;
     }
 
-    // Order by quality
-    std::sort(feature_list.begin(), feature_list.end(), OpenMS::Feature::OverallQualityLess());
-    std::reverse(feature_list.begin(), feature_list.end());
+    // Order by quality (high to low, via reverse iterator)
+    std::sort(feature_list.rbegin(), feature_list.rend(), OpenMS::Feature::OverallQualityLess());
 
     for (Size i = 0; i < feature_list.size(); i++)
     {

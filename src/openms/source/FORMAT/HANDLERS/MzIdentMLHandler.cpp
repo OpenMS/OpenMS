@@ -1333,7 +1333,8 @@ namespace OpenMS
           if (is_ppxl)
           {
             DataValue rtcv(ert);
-            rtcv.setUnit("second");
+            rtcv.setUnit(10); // id: UO:0000010 name: second
+            rtcv.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
             sii_tmp = sii_tmp.substitute("</SpectrumIdentificationItem>",
                                          "\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n\t\t\t\t</SpectrumIdentificationItem>\n");
             ppxl_specref_2_element[sid] += sii_tmp;
@@ -1363,7 +1364,8 @@ namespace OpenMS
         if (!ert.empty() && ert != "nan" && ert != "NaN" && !is_ppxl)
         {
           DataValue rtcv(ert);
-          rtcv.setUnit("second");
+          rtcv.setUnit(10); // id: UO:0000010 name: second
+          rtcv.setUnitType(DataValue::UnitType::UNIT_ONTOLOGY);
           sidres +=  "\t\t\t\t" + cv_.getTermByName("retention time").toXMLString(cv_ns, rtcv) + "\n";
         }
         if (!is_ppxl)

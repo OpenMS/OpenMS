@@ -563,17 +563,17 @@ namespace OpenMS
         prot_hit_.setCoverage(coverage);
       }
 
-      //sequence
+      // sequence
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "sequence");
-      prot_hit_.setSequence(tmp);
+      prot_hit_.setSequence(std::move(tmp));
 
       last_meta_ = &prot_hit_;
 
-      //insert id and accession to map
+      // insert id and accession to map
       proteinid_to_accession_[attributeAsString_(attributes, "id")] = accession;
     }
-    //PEPTIDES
+    // PEPTIDES
     else if (tag == "PeptideIdentification")
     {
       // check whether a prot id has been given, add "empty" one to list else
@@ -736,7 +736,7 @@ namespace OpenMS
 
       last_meta_ = &pep_hit_;
     }
-    //USERPARAM
+    // USERPARAM
     else if (tag == "UserParam")
     {
       if (last_meta_ == nullptr)
@@ -863,7 +863,7 @@ namespace OpenMS
     }
     else if (tag == "ProteinHit")
     {
-      prot_id_.insertHit(prot_hit_);
+      prot_id_.insertHit(std::move(prot_hit_));
       last_meta_ = &prot_id_;
     }
     //PEPTIDES
@@ -881,7 +881,7 @@ namespace OpenMS
         pep_hit_.addAnalysisResults(current_analysis_result_);
       }
       current_analysis_result_ = PeptideHit::PepXMLAnalysisResult();
-      pep_id_.insertHit(pep_hit_);
+      pep_id_.insertHit(std::move(pep_hit_));
       last_meta_ = &pep_id_;
     }
   }

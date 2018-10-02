@@ -106,7 +106,7 @@ namespace OpenMS
      * @note Only call inside an OpenMP critical section
      *
      */
-    void writeLines(std::vector<String> to_output);
+    void writeLines(const std::vector<String>& to_output);
 
   };
 

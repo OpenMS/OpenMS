@@ -201,8 +201,9 @@ START_SECTION((virtual void test_dia_scores()))
 
   // Mass deviation score
   double ppm_score = 0, ppm_score_weighted = 0;
+  std::vector<double> ppm_errors;
   diascoring.dia_massdiff_score(transition_group.getTransitions(),
-    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
+    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted, ppm_errors);
 
   // Presence of b/y series score
   double bseries_score = 0, yseries_score = 0;
@@ -214,8 +215,15 @@ START_SECTION((virtual void test_dia_scores()))
   TEST_REAL_SIMILAR(isotope_corr, 0.85998565339479)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0599970892071724)
 
-  TEST_REAL_SIMILAR(ppm_score, 1.76388919944981)
+  TEST_REAL_SIMILAR(ppm_score, 1.76388919944981 / 3)
   TEST_REAL_SIMILAR(ppm_score_weighted, 0.484116946070573)
+
+  double ppm_expected[] = {618.30999999999995, 0.17257858483247876, 628.43499999999995, 0.79565530730866774, 628.43499999999995, 0.79565530730866774};
+  for (size_t i = 0; i < ppm_errors.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(ppm_errors[i], ppm_expected[i]);
+  }
+
   TEST_EQUAL(bseries_score, 0)
   TEST_EQUAL(yseries_score, 1)
 

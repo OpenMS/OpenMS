@@ -517,13 +517,13 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
     picked_chrom.push_back(peak);
 
     picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(3);
-    picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
-    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
-    picked_chrom.getFloatDataArrays()[0].push_back(1000.0);
-    picked_chrom.getFloatDataArrays()[1].push_back(left_start);
-    picked_chrom.getFloatDataArrays()[2].push_back(right_end);
+    picked_chrom.getFloatDataArrays().resize(PeakPickerMRM::SIZE_OF_FLOATINDICES);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE].setName("IntegratedIntensity");
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].setName("rightWidth");
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE].push_back(1000.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(left_start);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(right_end);
     picked_chrom.setNativeID(transition_group.getChromatograms()[k].getNativeID());
 
     picked_chroms.push_back(picked_chrom);
@@ -652,13 +652,13 @@ START_SECTION(( void findLargestPeak(std::vector<RichPeakChromatogram> & picked_
     picked_chrom.push_back(peak);
 
     picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(3);
-    picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
-    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
-    picked_chrom.getFloatDataArrays()[0].push_back(1000.0);
-    picked_chrom.getFloatDataArrays()[1].push_back(3100.0);
-    picked_chrom.getFloatDataArrays()[2].push_back(3140.0);
+    picked_chrom.getFloatDataArrays().resize(PeakPickerMRM::SIZE_OF_FLOATINDICES);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE].setName("IntegratedIntensity");
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].setName("rightWidth");
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE].push_back(1000.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(3100.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(3140.0);
 
     picked_chroms.push_back(picked_chrom);
   }
@@ -679,36 +679,36 @@ START_SECTION(void findWidestPeakIndices(const std::vector<MSChromatogram>& pick
   c.push_back(ChromatogramPeak(110.0, 2000.0));
   c.push_back(ChromatogramPeak(150.0, 6000.0));
   c.push_back(ChromatogramPeak(190.0, 2000.0));
-  c.getFloatDataArrays().resize(3);
-  c.getFloatDataArrays()[1].push_back(100.0);
-  c.getFloatDataArrays()[2].push_back(120.0);
-  c.getFloatDataArrays()[1].push_back(120.0);
-  c.getFloatDataArrays()[2].push_back(180.0);
-  c.getFloatDataArrays()[1].push_back(180.0);
-  c.getFloatDataArrays()[2].push_back(200.0);
+  c.getFloatDataArrays().resize(PeakPickerMRM::SIZE_OF_FLOATINDICES);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(100.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(120.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(120.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(180.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(180.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(200.0);
   chromatograms.push_back(c); // chromatogram containing a peak of highest intensity (should be skipped in favor of widest peak)
 
   c.clear(true);
   c.push_back(ChromatogramPeak(150.0, 5500.0)); // lower global intensity, if compared to the previous chromatogram
   c.push_back(ChromatogramPeak(190.0, 2000.0));
-  c.getFloatDataArrays().resize(3);
-  c.getFloatDataArrays()[1].push_back(100.0);
-  c.getFloatDataArrays()[2].push_back(180.0);
-  c.getFloatDataArrays()[1].push_back(180.0);
-  c.getFloatDataArrays()[2].push_back(200.0);
+  c.getFloatDataArrays().resize(PeakPickerMRM::SIZE_OF_FLOATINDICES);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(100.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(180.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(180.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(200.0);
   chromatograms.push_back(c); // chromatogram containing the widest peak (this should be chosen)
 
   c.clear(true);
   c.push_back(ChromatogramPeak(110.0, 2000.0));
   c.push_back(ChromatogramPeak(150.0, 7000.0));
   c.push_back(ChromatogramPeak(190.0, 2000.0));
-  c.getFloatDataArrays().resize(3);
-  c.getFloatDataArrays()[1].push_back(105.0);
-  c.getFloatDataArrays()[2].push_back(115.0);
-  c.getFloatDataArrays()[1].push_back(125.0);
-  c.getFloatDataArrays()[2].push_back(175.0);
-  c.getFloatDataArrays()[1].push_back(185.0);
-  c.getFloatDataArrays()[2].push_back(195.0);
+  c.getFloatDataArrays().resize(PeakPickerMRM::SIZE_OF_FLOATINDICES);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(105.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(115.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(125.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(175.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(185.0);
+  c.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(195.0);
   chromatograms.push_back(c); // just another chromatogram (it won't be chosen, it contains short peaks)
 
   MRMTransitionGroupPicker picker;
@@ -718,8 +718,8 @@ START_SECTION(void findWidestPeakIndices(const std::vector<MSChromatogram>& pick
   TEST_EQUAL(peak_idx, 0); // the point [0] (first) is the apex of the widest peak within the chosen chromatogram
   TEST_REAL_SIMILAR(chromatograms[chr_idx][peak_idx].getRT(), 150.0)
   TEST_REAL_SIMILAR(chromatograms[chr_idx][peak_idx].getIntensity(), 5500.0)
-  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[1][peak_idx], 100.0)
-  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[2][peak_idx], 180.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][peak_idx], 100.0)
+  TEST_REAL_SIMILAR(chromatograms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][peak_idx], 180.0)
 }
 END_SECTION
 
@@ -734,17 +734,17 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
   {
     RichPeakChromatogram picked_chrom;
     picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(3);
-    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
+    picked_chrom.getFloatDataArrays().resize(PeakPickerMRM::SIZE_OF_FLOATINDICES);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].setName("rightWidth");
 
     {
     ChromatogramPeak peak;
     peak.setMZ(3120);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
-    picked_chrom.getFloatDataArrays()[1].push_back(3100.0);
-    picked_chrom.getFloatDataArrays()[2].push_back(3140.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(3100.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(3140.0);
     }
 
     {
@@ -752,8 +752,8 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
     peak.setMZ(3090);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
-    picked_chrom.getFloatDataArrays()[1].push_back(3070.0);
-    picked_chrom.getFloatDataArrays()[2].push_back(3120.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(3070.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(3120.0);
     }
 
     {
@@ -761,8 +761,8 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
     peak.setMZ(3060);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
-    picked_chrom.getFloatDataArrays()[1].push_back(3050.0);
-    picked_chrom.getFloatDataArrays()[2].push_back(3090.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(3050.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(3090.0);
     }
     
     picked_chroms.push_back(picked_chrom);
@@ -772,17 +772,17 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
   {
     RichPeakChromatogram picked_chrom;
     picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(3);
-    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
+    picked_chrom.getFloatDataArrays().resize(PeakPickerMRM::SIZE_OF_FLOATINDICES);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].setName("rightWidth");
 
     {
     ChromatogramPeak peak;
     peak.setMZ(3120);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
-    picked_chrom.getFloatDataArrays()[1].push_back(3100.0);
-    picked_chrom.getFloatDataArrays()[2].push_back(3140.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(3100.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(3140.0);
     }
 
     {
@@ -790,8 +790,8 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
     peak.setMZ(3060);
     peak.setIntensity(default_intensity);
     picked_chrom.push_back(peak);
-    picked_chrom.getFloatDataArrays()[1].push_back(3050.0);
-    picked_chrom.getFloatDataArrays()[2].push_back(3090.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER].push_back(3050.0);
+    picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER].push_back(3090.0);
     }
     
     picked_chroms.push_back(picked_chrom);

@@ -241,6 +241,12 @@ using namespace OpenMS;
     </tr>
 
     <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> MC </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Missed cleavages of the sequence (assuming Trypsin as protease) </td>
+    </tr>
+
+    <tr>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> FullPeptideName </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Full peptide sequence including modifications in Unimod format</td>
@@ -256,6 +262,12 @@ using namespace OpenMS;
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> m/z </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Precursor m/z</td>
+    </tr>
+    
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> masserror_ppm </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float List </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Pairs of fragment masses (m/z) and their associated error in ppm for all transitions</td>
     </tr>
 
     <tr>
