@@ -2346,7 +2346,7 @@ set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_Decoy
 add_test("UTILS_DecoyDatabase_3" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_3.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method shuffle -Decoy:non_shuffle_pattern "KR" -seed 42 -enzyme "Chymotrypsin")
 add_test("UTILS_DecoyDatabase_3_out" ${DIFF} -in1 DecoyDatabase_3.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_3_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_3_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_3")
-add_test("UTILS_DecoyDatabase_4" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out DecoyDatabase_4.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method shuffle -seed 42 )
+add_test("UTILS_DecoyDatabase_4" ${TOPP_BIN_PATH}/DecoyDatabase -test -type RNA -in ${DATA_DIR_TOPP}/DecoyDatabase_4.fasta -out DecoyDatabase_4.fasta.tmp -decoy_string "blabla" -decoy_string_position "prefix" -method reverse -seed 42 )
 add_test("UTILS_DecoyDatabase_4_out" ${DIFF} -in1 DecoyDatabase_4.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_4_out.fasta )
 set_tests_properties("UTILS_DecoyDatabase_4_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_4")
 
