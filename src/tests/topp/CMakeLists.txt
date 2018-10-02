@@ -2458,5 +2458,5 @@ set_tests_properties("UTILS_NucleicAcidSearchEngine_12_out" PROPERTIES DEPENDS "
 #------------------------------------------------------------------------------
 # RNAMassCalculator:
 add_test("UTILS_RNAMassCalculator_1" ${TOPP_BIN_PATH}/RNAMassCalculator -test -in_seq "AUCGGC" -charge -1 -2 -out RNAMassCalculator.tmp)
-add_test("UTILS_RNAMassCalculator_1_out" ${DIFF} -in1 RNAMassCalculator.tmp -in2 RNAMassCalculator_1.txt)
+add_test("UTILS_RNAMassCalculator_1_out" ${DIFF} -in1 RNAMassCalculator.tmp -in2 ${DATA_DIR_TOPP}/RNAMassCalculator_1.txt)
 set_tests_properties("UTILS_RNAMassCalculator_1_out" PROPERTIES DEPENDS "UTILS_RNAMassCalculator_1")
