@@ -106,7 +106,10 @@ START_SECTION((MSSpectrum()))
   TEST_EQUAL(noexcept(Product(std::declval<Product&&>())), true)
   TEST_EQUAL(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())), true)
   TEST_EQUAL(noexcept(DataProcessing(std::declval<DataProcessing&&>())), true)
-
+  TEST_EQUAL(noexcept(CVTermList(std::declval<CVTermList&&>())), true)
+  TEST_EQUAL(noexcept(MetaInfoInterface(std::declval<MetaInfoInterface&&>())), true)
+  TEST_EQUAL(noexcept(Software(std::declval<Software&&>())), true)
+  TEST_EQUAL(noexcept(DateTime(std::declval<DateTime&&>())), true)
 END_SECTION
 
 START_SECTION((~MSSpectrum()))
