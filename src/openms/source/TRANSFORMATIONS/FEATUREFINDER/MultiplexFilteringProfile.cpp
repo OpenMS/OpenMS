@@ -51,6 +51,40 @@ namespace OpenMS
   MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
     MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), boundaries_(boundaries)
   {
+    // initialise peak boundaries
+    // In the MultiplexFiltering() constructor we initialise the centroided experiment exp_centroided_.
+    // (We run a simple intensity filter. Peaks below the intensity cutoff can be discarded right from the start.)
+    // Now we still need to discard boundaries of low intensity peaks, in order to preserve the one-to-one mapping between peaks and boundaries.
+    
+    // loop over spectra and boundaries
+    MSExperiment::ConstIterator it_rt;
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
+    for (it_rt = exp_centroided.begin(), it_rt_boundaries = boundaries.begin();
+         it_rt < exp_centroided.end(), it_rt_boundaries < boundaries.end();
+         ++it_rt, ++it_rt_boundaries)
+    {
+      // new boundaries of a single spectrum
+      std::vector<PeakPickerHiRes::PeakBoundary> boundaries_temp;
+      
+      // loop over m/z peaks and boundaries
+      MSSpectrum::ConstIterator it_mz;
+      std::vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
+      for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
+           it_mz < it_rt->end(), it_mz_boundaries < it_rt_boundaries->end();
+           ++it_mz, ++it_mz_boundaries)
+      {
+        if (it_mz->getIntensity() > intensity_cutoff_)
+        {
+          boundaries_temp.push_back(*it_mz_boundaries);
+        }
+      }
+      
+      boundaries_.push_back(boundaries_temp);
+    }
+
+    
+    
+    
     
     if (exp_profile.size() != exp_centroided.size())
     {
