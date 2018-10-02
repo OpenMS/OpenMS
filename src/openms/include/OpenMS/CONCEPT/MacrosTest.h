@@ -38,10 +38,10 @@
 #pragma once
 #include <type_traits>
 
-namespace OpenMS 
+namespace OpenMS
 {
   // no constexpr lamdas in C++11, therefore we have to use functions
-  namespace Test 
+  namespace Test
   {
 
     template <class T>
@@ -74,7 +74,7 @@ namespace OpenMS
     constexpr bool fulfills_fast_vector()
     {
       static_assert( (std::is_trivially_copy_constructible<T>::value && std::is_trivially_destructible<T>::value) ||
-                      std::is_nothrow_move_constructible<T>::value, 
+                      std::is_nothrow_move_constructible<T>::value,
                       "T : doesn't fulfill fast vector (trivially copy constructible " \
                         "and trivially destructible, or nothrow move constructible)");
 

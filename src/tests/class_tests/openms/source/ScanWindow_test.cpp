@@ -42,6 +42,11 @@
 using namespace OpenMS;
 using namespace std;
 
+static_assert(OpenMS::Test::fulfills_rule_of_5<ScanWindow>(), "Must fulfill rule of 5");
+static_assert(OpenMS::Test::fulfills_rule_of_6<ScanWindow>(), "Must fulfill rule of 6");
+static_assert(OpenMS::Test::fulfills_fast_vector<ScanWindow>(), "Must have fast vector semantics");
+static_assert(std::is_nothrow_move_constructible<ScanWindow>::value, "Must have nothrow move constructible");
+
 START_TEST(ScanWindow, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -52,10 +57,6 @@ ScanWindow* nullPointer = nullptr;
 START_SECTION((ScanWindow()))
 	ptr = new ScanWindow();
 	TEST_NOT_EQUAL(ptr, nullPointer)
-
-  // Ensure that ScanWindow has a no-except move constructor (otherwise
-  // std::vector is inefficient and will copy instead of move).
-  TEST_EQUAL(noexcept(ScanWindow(std::declval<ScanWindow&&>())), true)
 END_SECTION
 
 START_SECTION((~ScanWindow()))

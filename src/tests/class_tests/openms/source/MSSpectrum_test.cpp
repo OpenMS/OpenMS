@@ -46,22 +46,10 @@
 using namespace OpenMS;
 using namespace std;
 
-class M1 : private std::vector<Peak1D>
-{
-   public: 
-     M1(M1 &&) = default;
-};
-class M2 : public RangeManager<1>
-{
-   public: 
-     M2(M2 &&) = default;
-     virtual void updateRanges() {};
-};
-class M3 : public SpectrumSettings
-{
-   public: 
-     M3(M3 &&) = default;
-};
+static_assert(OpenMS::Test::fulfills_rule_of_5<MSSpectrum>(), "Must fulfill rule of 5");
+static_assert(OpenMS::Test::fulfills_rule_of_6<MSSpectrum>(), "Must fulfill rule of 6");
+static_assert(OpenMS::Test::fulfills_fast_vector<MSSpectrum>(), "Must have fast vector semantics");
+static_assert(std::is_nothrow_move_constructible<MSSpectrum>::value, "Must have nothrow move constructible");
 
 START_TEST(MSSpectrum, "$Id$")
 
@@ -80,7 +68,6 @@ Peak1D p3;
 p3.setIntensity(3.0f);
 p3.setMZ(30.0);
 
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -89,27 +76,6 @@ MSSpectrum* nullPointer = nullptr;
 START_SECTION((MSSpectrum()))
   ptr = new MSSpectrum();
   TEST_NOT_EQUAL(ptr, nullPointer)
-
-  // Ensure that MSSpectrum has a no-except move constructor (otherwise
-  // std::vector is inefficient and will copy instead of move).
-  TEST_EQUAL(noexcept(MSSpectrum(std::declval<MSSpectrum&&>())), true)
-
-  // Temporary
-  TEST_EQUAL(noexcept(M1(std::declval<M1&&>())), true)
-  TEST_EQUAL(noexcept(M2(std::declval<M2&&>())), true)
-  TEST_EQUAL(noexcept(M3(std::declval<M3&&>())), true)
-
-  TEST_EQUAL(noexcept(InstrumentSettings(std::declval<InstrumentSettings&&>())), true)
-  TEST_EQUAL(noexcept(SourceFile(std::declval<SourceFile&&>())), true)
-  TEST_EQUAL(noexcept(AcquisitionInfo(std::declval<AcquisitionInfo&&>())), true)
-  TEST_EQUAL(noexcept(Precursor(std::declval<Precursor&&>())), true)
-  TEST_EQUAL(noexcept(Product(std::declval<Product&&>())), true)
-  TEST_EQUAL(noexcept(PeptideIdentification(std::declval<PeptideIdentification&&>())), true)
-  TEST_EQUAL(noexcept(DataProcessing(std::declval<DataProcessing&&>())), true)
-  TEST_EQUAL(noexcept(CVTermList(std::declval<CVTermList&&>())), true)
-  TEST_EQUAL(noexcept(MetaInfoInterface(std::declval<MetaInfoInterface&&>())), true)
-  TEST_EQUAL(noexcept(Software(std::declval<Software&&>())), true)
-  TEST_EQUAL(noexcept(DateTime(std::declval<DateTime&&>())), true)
 END_SECTION
 
 START_SECTION((~MSSpectrum()))
