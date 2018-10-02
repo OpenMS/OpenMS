@@ -171,7 +171,7 @@ protected:
         double precursor_mz;
         double precursor_rt;
         double precursor_int;
-        double transition_quality_score;
+        double transition_quality_score; // here precursor intensity will be used at first, till a better scoring is available
         TargetedExperiment::Compound potential_cmp;
         vector<ReactionMonitoringTransition> potential_rmts;
       };
@@ -711,17 +711,36 @@ protected:
     // use MRMAssay methods for filtering
     MRMAssay assay;
 
+    // additional filter steps:
+
     // TODO: add further filters
     // TODO: think about if other filters are necessary
 
-    // filter: precursor
+    // TODO: how is it done in MRMAssay & isinSWATH
 
-    // filter: isotopes (+1/-1 Da)
+
+    // TODO: filter: precursor
+
+    // TODO: filter: isotopes (+1/-1 Da)
 
     // filter: min/max transitions
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
 
-    // TODO: maybe have to reannotate Transitions
+    // TODO: add "compoundgroup" see ProteinGroup (e.g. with different adducts - give the unique id)
+
+    // TODO: filter duplicate entries (take the one with the highest score/highest intensity precursor)
+    // TODO: but have to check compoundName and adduct! If adduct is different -> get give Compound identifier
+    // TODO: have to save the compound identifiers temporary (e.g. set of pairs: CompoundName:ConmpoundID)
+
+    // TODO: add ID same compound with different adduct for later e.g. quantification/mapping
+
+    // Iterate over targetedExp CompoundNames and find duplictes ? Better way to find duop
+    // for ()
+    // {
+    //   std::cout << "not sure" << std::endl;
+    // }
+
+
 
     //-------------------------------------------------------------
     // writing output
