@@ -72,14 +72,14 @@ namespace OpenMS
       PeakAnnotationSteps peak_annotations;
 
       explicit MoleculeQueryMatch(
-        IdentifiedMoleculeRef identified_molecule_ref,
+        IdentifiedMoleculeRef identified_molecule_ref_tmp,
         DataQueryRef data_query_ref, Int charge = 0,
         const ScoreList& scores = ScoreList(),
         const std::vector<ProcessingStepRef>& processing_step_refs =
         std::vector<ProcessingStepRef>(),
         const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
         ScoredProcessingResult(scores, processing_step_refs),
-        identified_molecule_ref(identified_molecule_ref),
+        identified_molecule_ref(identified_molecule_ref_tmp),
         data_query_ref(data_query_ref), charge(charge),
         peak_annotations(peak_annotations)
       {
