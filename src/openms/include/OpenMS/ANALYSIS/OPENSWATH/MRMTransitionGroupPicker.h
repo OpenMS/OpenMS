@@ -270,7 +270,8 @@ public:
                   picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
                   picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
               if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
-              {
+            { // update best candidate
+              peak_apex_dist_min = std::fabs(pa_tmp.apex_pos - peak_apex);
                 min_dist = (int)i;
               }
             }
