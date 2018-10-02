@@ -384,7 +384,7 @@ protected:
     AASequence();
 
     /// Copy constructor
-    AASequence(const AASequence& rhs) = default;
+    AASequence(const AASequence&) = default;
 
     /// Move constructor
     AASequence(AASequence&&) noexcept = default;
@@ -394,7 +394,7 @@ protected:
     //@}
 
     /// Assignment operator
-    AASequence& operator=(const AASequence& rhs) = default;
+    AASequence& operator=(const AASequence&) = default;
 
     /// Move assignment operator
     AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)

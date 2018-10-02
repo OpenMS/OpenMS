@@ -58,7 +58,7 @@ public:
     CVTermList() = default;
 
     /// Copy constructor
-    CVTermList(const CVTermList& rhs) = default;
+    CVTermList(const CVTermList&) = default;
 
     // note: we implement the move constructor ourselves due to a bug in MSVS
     // 2015/2017 which cannot produce a default move constructor for classes

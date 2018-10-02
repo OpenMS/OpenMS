@@ -257,7 +257,7 @@ namespace OpenMS
     SwathMapMassCorrection::correctMZ(trgrmap_final, swath_maps,
         mz_correction_function, mz_extraction_window, ppm);
 
-    // 9. store transformation, using the selected model
+    // 9. store RT transformation, using the selected model
     TransformationDescription trafo_out;
     trafo_out.setDataPoints(pairs_corrected);
     Param model_params;
@@ -711,7 +711,7 @@ namespace OpenMS
     const std::vector< OpenMS::MSChromatogram > & ms2_chromatograms,
     const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
     const std::vector< OpenSwath::SwathMap >& swath_maps,
-    OpenSwath::LightTargetedExperiment& transition_exp,
+    const OpenSwath::LightTargetedExperiment& transition_exp,
     const Param& feature_finder_param,
     TransformationDescription trafo,
     const double rt_extraction_window,

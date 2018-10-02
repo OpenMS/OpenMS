@@ -85,7 +85,7 @@ public:
     /// Constructor
     DataProcessing() = default;
     /// Copy constructor
-    DataProcessing(const DataProcessing & source) = default;
+    DataProcessing(const DataProcessing &) = default;
 
     // note: we implement the move constructor ourselves due to a bug in MSVS
     // 2015/2017 which cannot produce a default move constructor for classes
@@ -97,7 +97,7 @@ public:
     ~DataProcessing();
 
     /// Assignment operator
-    DataProcessing & operator=(const DataProcessing & source) = default;
+    DataProcessing & operator=(const DataProcessing &) = default;
     /// Move assignment operator
     DataProcessing& operator=(DataProcessing&&) & = default;
 

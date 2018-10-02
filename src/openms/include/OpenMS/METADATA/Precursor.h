@@ -87,7 +87,7 @@ public:
     /// Constructor
     Precursor();
     /// Copy constructor
-    Precursor(const Precursor & source) = default;
+    Precursor(const Precursor &) = default;
 
     // note: we implement the move constructor ourselves due to a bug in MSVS
     // 2015/2017 which cannot produce a default move constructor for classes
@@ -99,7 +99,7 @@ public:
     ~Precursor() override;
 
     /// Assignment operator
-    Precursor & operator=(const Precursor & source) = default;
+    Precursor & operator=(const Precursor &) = default;
     /// Move assignment operator
     Precursor& operator=(Precursor&&) & = default;
 

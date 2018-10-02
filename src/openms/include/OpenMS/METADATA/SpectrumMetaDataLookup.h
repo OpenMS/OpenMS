@@ -179,14 +179,14 @@ namespace OpenMS
       }
 
       /// Copy constructor
-      SpectrumMetaData(const SpectrumMetaData & source) = default;
+      SpectrumMetaData(const SpectrumMetaData &) = default;
       /// Move constructor
       SpectrumMetaData(SpectrumMetaData&&) = default;
       /// Destructor
       ~SpectrumMetaData() = default;
 
       /// Assignment operator
-      SpectrumMetaData & operator=(const SpectrumMetaData & source) = default;
+      SpectrumMetaData & operator=(const SpectrumMetaData &) = default;
       /// Move assignment operator
       SpectrumMetaData& operator=(SpectrumMetaData&&) & = default;
     };

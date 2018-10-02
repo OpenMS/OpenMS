@@ -241,6 +241,12 @@ using namespace OpenMS;
     </tr>
 
     <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> MC </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Int </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Missed cleavages of the sequence (assuming Trypsin as protease) </td>
+    </tr>
+
+    <tr>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> FullPeptideName </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> String </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Full peptide sequence including modifications in Unimod format</td>
@@ -256,6 +262,12 @@ using namespace OpenMS;
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> m/z </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float </td>
       <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Precursor m/z</td>
+    </tr>
+    
+    <tr>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> masserror_ppm </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Float List </td>
+      <td VALIGN="middle" ALIGN = "left" ROWSPAN=1> Pairs of fragment masses (m/z) and their associated error in ppm for all transitions</td>
     </tr>
 
     <tr>
@@ -470,7 +482,7 @@ protected:
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
     // misc options
-    registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
+    registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
     registerFlag_("sonar", "data is scanning SWATH data");
 
     // RT, mz and IM windows
@@ -730,7 +742,6 @@ protected:
       std::vector<double> swath_prec_upper;
       SwathWindowLoader::readSwathWindows(swath_windows_file, swath_prec_lower, swath_prec_upper);
 
-      LOG_INFO << "Read Swath maps file with " << swath_prec_lower.size() << " windows." << std::endl;
       for (Size i = 0; i < swath_prec_lower.size(); i++)
       {
         LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;

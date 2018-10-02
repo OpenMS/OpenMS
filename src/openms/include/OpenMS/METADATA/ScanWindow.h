@@ -49,7 +49,7 @@ namespace OpenMS
     /// Default constructor
     ScanWindow() = default;
     /// Copy constructor
-    ScanWindow(const ScanWindow & source) = default;
+    ScanWindow(const ScanWindow &) = default;
     /// Move constructor
     ScanWindow(ScanWindow&&) = default;
     /// Destructor
@@ -61,7 +61,7 @@ namespace OpenMS
     bool operator!=(const ScanWindow & source) const;
 
     /// Assignment operator
-    ScanWindow & operator=(const ScanWindow & source) = default;
+    ScanWindow & operator=(const ScanWindow &) = default;
     /// Move assignment operator
     ScanWindow& operator=(ScanWindow&&) & = default;
 
