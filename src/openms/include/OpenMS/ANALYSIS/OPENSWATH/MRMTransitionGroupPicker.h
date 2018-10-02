@@ -433,12 +433,7 @@ public:
         {
           double background{0};
           double avg_noise_level{0};
-          if ((peak_integration_ == "smoothed") && smoothed_chroms.size() <= k)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Tried to calculate background estimation without any smoothed chromatograms");
-          }
-          else if (background_subtraction_ == "original")
+          if (background_subtraction_ == "original")
           {
             const double intensity_left = chromatogram.PosBegin(local_left)->getIntensity();
             const double intensity_right = (chromatogram.PosEnd(local_right) - 1)->getIntensity();
