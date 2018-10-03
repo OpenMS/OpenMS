@@ -45,9 +45,6 @@ using namespace std;
 START_TEST(IsoSpec, "$Id$")
 
 /////////////////////////////////////////////////////////////
-// Dummy peak data
-
-/////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
 IsoSpec* ptr = nullptr;
@@ -70,11 +67,6 @@ START_SECTION(( void run(const std::string&) ))
 
   TEST_EQUAL(iso.getMasses().size(), 14)
   TEST_EQUAL(iso.getProbabilities().size(), 14)
-
-  for (auto m : iso.getMasses() )
-    std::cout << " mass " << m << std::endl;
-  for (auto p : iso.getProbabilities() )
-    std::cout << " probability " << p << std::endl;
 }
 END_SECTION
 

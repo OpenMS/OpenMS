@@ -32,10 +32,11 @@
 // $Authors: Hannes Rost $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpec.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 
 namespace OpenMS
 {

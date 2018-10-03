@@ -34,17 +34,8 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpec.h>
 
-#include <cmath>
-#include <iostream>
-#include <cstdlib>
-#include <algorithm>
-#include <limits>
-#include <functional>
-#include <numeric>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <iterator>
-
-#include <OpenMS/CHEMISTRY/Element.h>
-#include <include/OpenMS/CONCEPT/Constants.h>
 
 #include "allocator.cpp"
 #include "dirtyAllocator.cpp"
@@ -59,14 +50,6 @@
 #include "tabulator.cpp"
 
 using namespace std;
-
-/*
-   void * setupIso(int             dimNumber,
-   const int*      isotopeNumbers,
-   const int*      atomCounts,
-   const double*   isotopeMasses,
-   const double*   isotopeProbabilities)
-   */
 
 namespace OpenMS
 {
@@ -86,74 +69,8 @@ namespace OpenMS
   std::vector<double> IsoSpec::getMasses() {return masses_;}
   std::vector<double> IsoSpec::getProbabilities() {return probabilities_;}
 
-  // Setup requires the following input:
-  //    dimNumber = the number of elements (e.g. 3 for H, C, O)
-  //    isotopeNumbers = a vector of how many isotopes each element has, e.g. [2, 2, 3])
-  //    atomCounts = how many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-  //    isotopeMasses = array with a length of sum(isotopeNumbers) and the masses, e.g. [1.00782503227, 2.01410177819, 12, 13.0033548352, 15.9949146202, 16.9991317576, 17.9991596137]
-  //    isotopeProbabilities = array with a length of sum(isotopeNumbers) and the probabilities, e.g. [0.999884, 0.0001157, 0.9892, 0.01078, etc ... ]
-  //
-
-#if 0
-  void IsoSpec::run2(const std::string& formula)
+  void IsoSpec::run_(Iso* iso)
   {
-    Iso* iso = new Iso(formula.c_str());
-
-    double delta = -10;
-    int tabSize = 1000;
-    int hashSize = 1000;
-
-    IsoLayeredGenerator* generator = new IsoLayeredGenerator(std::move(*iso), delta, tabSize, hashSize);
-
-    bool get_masses = true;
-    bool get_probs = true;
-    bool get_lprobs = true;
-    bool get_confs = true;
-
-    Tabulator<IsoLayeredGenerator>* tabulator = new Tabulator<IsoLayeredGenerator>(generator, get_masses, get_probs, get_lprobs, get_confs); 
-
-    masses_.resize(tabulator->confs_no());
-    masses_.assign(tabulator->masses(), tabulator->masses() + tabulator->confs_no());
-
-    probabilities_.resize(tabulator->confs_no());
-    probabilities_.assign(tabulator->probs(), tabulator->masses() + tabulator->confs_no());
-
-    delete generator;
-    delete tabulator;
-  }
-
-  void IsoSpec::run3(const std::string& formula)
-  {
-    Iso* iso = new Iso(formula.c_str());
-
-    int tabSize = 1000;
-    int hashSize = 1000;
-
-    IsoOrderedGenerator* generator = new IsoOrderedGenerator(std::move(*iso), tabSize, hashSize);
-
-    bool get_masses = true;
-    bool get_probs = true;
-    bool get_lprobs = true;
-    bool get_confs = true;
-
-    Tabulator<IsoOrderedGenerator>* tabulator = new Tabulator<IsoOrderedGenerator>(generator, get_masses, get_probs, get_lprobs, get_confs); 
-
-    masses_.resize(tabulator->confs_no());
-    masses_.assign(tabulator->masses(), tabulator->masses() + tabulator->confs_no());
-
-    probabilities_.resize(tabulator->confs_no());
-    probabilities_.assign(tabulator->probs(), tabulator->masses() + tabulator->confs_no());
-
-    delete generator;
-    delete tabulator;
-  }
-
-#endif
-
-  void IsoSpec::run(const std::string& formula)
-  {
-    Iso* iso = new Iso(formula.c_str());
-
     int tabSize = 1000;
     int hashSize = 1000;
 
@@ -180,49 +97,72 @@ namespace OpenMS
     delete tabulator;
   }
 
-  void run(const std::vector<int>& isotopeNr,
-           const std::vector<int>& atomCounts,
-           const std::vector<std::vector<double> >& isotopeMasses,
-           const std::vector<std::vector<double> >& isotopeProbabilities)
+  void IsoSpec::run(const std::string& formula)
   {
+    Iso* iso = new Iso(formula.c_str());
+
+    run_(iso);
+  }
+
+  void IsoSpec::run(const std::vector<int>& isotopeNr,
+                    const std::vector<int>& atomCounts,
+                    const std::vector<std::vector<double> >& isotopeMasses,
+                    const std::vector<std::vector<double> >& isotopeProbabilities)
+  {
+    OPENMS_PRECONDITION(isotopeNr.size() == atomCounts.size(), "Vectors need to be of the same size")
+    OPENMS_PRECONDITION(isotopeNr.size() == isotopeMasses.size(), "Vectors need to be of the same size")
+    OPENMS_PRECONDITION(isotopeNr.size() == isotopeProbabilities.size(), "Vectors need to be of the same size")
+
+    // Setup requires the following input:
+    //    dimNumber = the number of elements (e.g. 3 for H, C, O)
+    //    isotopeNumbers = a vector of how many isotopes each element has, e.g. [2, 2, 3])
+    //    atomCounts = how many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+    //    isotopeMasses = array with a length of sum(isotopeNumbers) and the masses, e.g. [1.00782503227, 2.01410177819, 12, 13.0033548352, 15.9949146202, 16.9991317576, 17.9991596137]
+    //    isotopeProbabilities = array with a length of sum(isotopeNumbers) and the probabilities, e.g. [0.999884, 0.0001157, 0.9892, 0.01078, etc ... ]
+    //
+
     int dimNumber = isotopeNr.size();
-    // assert(isotopeNr.size() == atomCounts.size());
-    // assert(isotopeMasses.size() == isotopeProbabilities.size());
 
+    const double** IM = new const double*[dimNumber];
+    const double** IP = new const double*[dimNumber];
+    for (int i=0; i<dimNumber; i++)
     {
-
-      const double** IM = new const double*[dimNumber];
-      const double** IP = new const double*[dimNumber];
-      for (int i=0; i<dimNumber; i++)
-      {
-          IM[i] = isotopeMasses[i].data();
-          IP[i] = isotopeProbabilities[i].data();
-      }
-
-      Iso* iso = new Iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
-
-      double threshold = 0.01;
-      bool absolute = false;
-      int tabSize = 1000;
-      int hashSize = 1000;
-
-      IsoThresholdGenerator* generator = new IsoThresholdGenerator(std::move(*iso), threshold, absolute, tabSize, hashSize); 
-
-      bool get_masses = true;
-      bool get_probs = true;
-      bool get_lprobs = true;
-      bool get_confs = true;
-
-      Tabulator<IsoThresholdGenerator>* tabulator = new Tabulator<IsoThresholdGenerator>(generator, get_masses, get_probs, get_lprobs, get_confs); 
-
-      const double* masses = tabulator->masses();
-      const double* lprobs = tabulator->lprobs();
-      const double* probs = tabulator->probs();
-      const int* confs = tabulator->confs();
-
-      delete generator;
-      delete tabulator;
+      IM[i] = isotopeMasses[i].data();
+      IP[i] = isotopeProbabilities[i].data();
     }
+
+    Iso* iso = new Iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
+    run_(iso);
+  }
+
+
+  void runLayered(const std::string& formula)
+  {
+    Iso* iso = new Iso(formula.c_str());
+
+    double delta = -10;
+    int tabSize = 1000;
+    int hashSize = 1000;
+
+    IsoLayeredGenerator* generator = new IsoLayeredGenerator(std::move(*iso), delta, tabSize, hashSize);
+    Tabulator<IsoLayeredGenerator>* tabulator = new Tabulator<IsoLayeredGenerator>(generator, true, true, true, true); 
+
+    delete generator;
+    delete tabulator;
+  }
+
+  void runOrdered(const std::string& formula)
+  {
+    Iso* iso = new Iso(formula.c_str());
+
+    int tabSize = 1000;
+    int hashSize = 1000;
+
+    IsoOrderedGenerator* generator = new IsoOrderedGenerator(std::move(*iso), tabSize, hashSize);
+    Tabulator<IsoOrderedGenerator>* tabulator = new Tabulator<IsoOrderedGenerator>(generator, true, true, true, true); 
+
+    delete generator;
+    delete tabulator;
   }
 
 

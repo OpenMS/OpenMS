@@ -34,18 +34,12 @@
 
 #pragma once
 
-#include <cmath>
-#include <iostream>
-#include <cstdlib>
-#include <algorithm>
-#include <limits>
-#include <functional>
-#include <numeric>
+#include <vector>
 
-#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-using namespace std;
+class Iso;
 
 namespace OpenMS
 {
@@ -86,6 +80,17 @@ public:
     std::vector<double> getProbabilities();
 
 protected:
+
+    /**
+      * @brief Internal run function
+      *
+      * Will create a new IsoThresholdGenerator and tabulate probabilities up
+      * to threshold_ which are then stored in the mass and probability
+      * vectors.
+      *
+      **/
+    void run_(Iso* iso);
+
     double threshold_;
     bool absolute_;
     std::vector<double> masses_;
