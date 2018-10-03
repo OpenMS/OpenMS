@@ -78,13 +78,31 @@ namespace OpenMS
   void MetaInfo::setValue(const String & name, const DataValue & value)
   {
     UInt index = registry_.registerName(name); // no-op if name is already registered
-    index_to_value_[index] = value;
+    auto it = index_to_value_.find(index);
+    if ( it != index_to_value.end()) 
+    {
+      it->second = value; 
+    }
+    else
+    {
+      DataValue tmp = value;
+      index_to_value_.insert({index,  tmp});
+    }
   }
 
   void MetaInfo::setValue(UInt index, const DataValue & value)
   {
     // @TODO: check if that index is registered in MetaInfoRegistry?
-    index_to_value_[index] = value;
+    auto it = index_to_value_.find(index);
+    if ( it != index_to_value.end()) 
+    {
+      it->second = value; 
+    }
+    else
+    {
+      DataValue tmp = value;
+      index_to_value_.insert({index,  tmp});
+    }
   }
 
   MetaInfoRegistry & MetaInfo::registry()
