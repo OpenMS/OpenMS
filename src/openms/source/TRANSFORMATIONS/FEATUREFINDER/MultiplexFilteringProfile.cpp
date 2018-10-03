@@ -85,23 +85,8 @@ namespace OpenMS
         }
       }
       
-#ifdef DEBUG
-      size_t number_boundaries = boundaries_temp.size();
-      size_t number_peaks_original = (*it_rt).size();
-      size_t number_removed = number_peaks_original - number_boundaries;
-      double percent_removed = 100 * (double) number_removed / (double) number_peaks_original;
-      LOG_INFO << "In spectrum RT = " << it_rt->getRT() << ", " << number_removed << " peaks (" << percent_removed << "%) were removed.\n";
-#endif
-
       boundaries_.push_back(boundaries_temp);
     }
-
-#ifdef DEBUG
-    // Check consistency of peaks and peak boundaries
-    LOG_INFO << "\nChecking consistency of peaks and peak bounadries.\n";
-#endif
-
-    
     
     if (exp_profile.size() != exp_centroided.size())
     {
