@@ -5,6 +5,7 @@ set(directory source/CHEMISTRY/ISOTOPEDISTRIBUTION)
 ### list all filenames of the directory here
 set(sources_list
   CoarseIsotopePatternGenerator.cpp
+  FineIsotopePatternGenerator.cpp
   IsotopeDistribution.cpp
   IsoSpec.cpp
   IsotopePatternGenerator.cpp

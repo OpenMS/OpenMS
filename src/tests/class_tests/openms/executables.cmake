@@ -362,6 +362,8 @@ set(chemistry_executables_list
   AAIndex_test
   AASequence_test
   CoarseIsotopeDistribution_test
+  FineIsotopeDistribution_test
+  IsoSpec_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
