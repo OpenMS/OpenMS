@@ -248,8 +248,8 @@ public:
     inline void setup_delta(double new_delta) { delta = new_delta; nextLayer(delta); };
     inline bool advanceToNextConfiguration() override final
     {
-        while (not advanceToNextConfiguration_internal())
-            if (not nextLayer(delta))
+        while (!advanceToNextConfiguration_internal())
+            if (!nextLayer(delta))
                 return false;
         std::cout << "Returning conf: " << counter[0] << " " << counter[1] << " " << partialLProbs[0] << std::endl;
         return true;

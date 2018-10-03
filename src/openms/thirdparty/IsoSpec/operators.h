@@ -52,7 +52,7 @@ public:
 
     inline bool operator()(const int* conf1, const int* conf2) const
     {
-        return not memcmp(conf1, conf2, size);
+        return !memcmp(conf1, conf2, size);
     }
 };
 

@@ -60,7 +60,7 @@ SinglePointFunctionalKernel::SinglePointFunctionalKernel() {}
 
 double SinglePointFunctionalKernel::getMass(double bucketStart, double bucketEnd)
 {
-	if(bucketStart <= 0.0 and 0.0 < bucketEnd)
+	if(bucketStart <= 0.0 && 0.0 < bucketEnd)
 		return 1.0;
 	return 0.0;
 }

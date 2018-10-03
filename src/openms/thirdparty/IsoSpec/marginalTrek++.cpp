@@ -90,12 +90,12 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
         modified = false;
         for(int ii = 0; ii<isotopeNo; ii++)
         for(int jj = 0; jj<isotopeNo; jj++)
-            if(ii != jj and res[ii] > 0)
+            if(ii != jj && res[ii] > 0)
         {
             res[ii]--;
             res[jj]++;
             NLP = unnormalized_logProb(res, lprobs, isotopeNo);
-            if(NLP>LP or (NLP==LP and ii>jj))
+            if(NLP>LP || (NLP==LP && ii>jj))
             {
                 modified = true;
             LP = NLP;
@@ -204,7 +204,7 @@ smallest_lprob(other.smallest_lprob)
 
 Marginal::~Marginal()
 {
-    if(not disowned)
+    if(!disowned)
     {
         delete[] atom_masses;
         delete[] atom_lProbs;
@@ -363,12 +363,12 @@ allocator(isotopeNo, tabSize)
         idx++;
         for(unsigned int ii = 0; ii < isotopeNo; ii++ )
             for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-                if( ii != jj and currentConf[jj] > 0)
+                if( ii != jj && currentConf[jj] > 0)
                 {
                     currentConf[ii]++;
                     currentConf[jj]--;
 
-                    if (visited.count(currentConf) == 0 and logProb(currentConf) >= lCutOff)
+                    if (visited.count(currentConf) == 0 && logProb(currentConf) >= lCutOff)
                     {
                         visited.insert(currentConf);
                         configurations.push_back(allocator.makeCopy(currentConf));
@@ -438,7 +438,7 @@ bool LayeredMarginal::extend(double new_threshold)
     double lpc, opc;
 
     Conf currentConf;
-    while(not fringe.empty())
+    while(!fringe.empty())
     {
         currentConf = fringe.back();
         fringe.pop_back();
@@ -453,15 +453,15 @@ bool LayeredMarginal::extend(double new_threshold)
             configurations.push_back(currentConf);
             for(unsigned int ii = 0; ii < isotopeNo; ii++ )
                 for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-                    if( ii != jj and currentConf[jj] > 0 )
+                    if( ii != jj && currentConf[jj] > 0 )
                     {
                         currentConf[ii]++;
                         currentConf[jj]--;
 
                         lpc = logProb(currentConf);
 
-                        if (visited.count(currentConf) == 0 and lpc < current_threshold and
-                            (opc > lpc or (opc == lpc and ii > jj)))
+                        if (visited.count(currentConf) == 0 && lpc < current_threshold &&
+                            (opc > lpc || (opc == lpc && ii > jj)))
                         {
                             Conf nc = allocator.makeCopy(currentConf);
                             visited.insert(nc);

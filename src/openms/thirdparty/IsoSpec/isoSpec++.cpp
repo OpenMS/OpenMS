@@ -111,7 +111,7 @@ inline void Iso::setupMarginals(const double* const * _isotopeMasses, const doub
 
 Iso::~Iso()
 {
-    if(not disowned)
+    if(!disowned)
     {
     if (marginals != nullptr)
         dealloc_table(marginals, dimNumber);
@@ -323,13 +323,13 @@ last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
     {
         counter[ii] = 0;
 
-        if(not marginalResults[ii]->inRange(0))
+        if(!marginalResults[ii]->inRange(0))
             empty = true;
     }
 
     marginalResults[dimNumber-1] = last_marginal;
     counter[dimNumber-1] = last_marginal->getNextConfIdx();
-    if(not last_marginal->inRange(counter[dimNumber-1]))
+    if(!last_marginal->inRange(counter[dimNumber-1]))
         empty = true;
 
 
@@ -338,7 +338,7 @@ last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
         maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
 
-    if(not empty)
+    if(!empty)
     {
         recalc(dimNumber-1);
         counter[0]--;
@@ -433,7 +433,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
                                                         tabSize,
                                                         hashSize);
 
-        if(not marginalResults[ii]->inRange(0))
+        if(!marginalResults[ii]->inRange(0))
             empty = true;
     }
 
@@ -441,7 +441,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
     for(int ii=1; ii<dimNumber-1; ii++)
         maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
-    if(not empty)
+    if(!empty)
     {
         recalc(dimNumber-1);
         counter[0]--;

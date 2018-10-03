@@ -100,7 +100,7 @@ public:
     inline bool probeConfigurationIdx(int idx)
     {
         while(current_count <= idx)
-            if(not add_next_conf())
+            if(!add_next_conf())
                 return false;
         return true;
     }
@@ -171,7 +171,7 @@ public:
     inline unsigned int getNextConfIdxwMass(double mmin, double mmax)
     {
     	unsigned int local = counter.fetch_add(1, std::memory_order_relaxed);
-	while(local < no_confs and (mmin > masses[local] or mmax < masses[local]))
+	while(local < no_confs && (mmin > masses[local] || mmax < masses[local]))
 	    local = counter.fetch_add(1, std::memory_order_relaxed);
 	return local;
     }
