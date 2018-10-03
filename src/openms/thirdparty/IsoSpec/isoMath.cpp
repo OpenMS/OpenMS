@@ -7,19 +7,14 @@
  */
 
 #include <cmath>
-#include <unistd.h>
 #include "isoMath.h"
-
-#ifdef __MINGW32__
-	#include "mman.h"
-#else
-	#include <sys/mman.h>
-#endif
+#include <stdlib.h>
 
 const double pi = 3.14159265358979323846264338328;
 
 // 10M should be enough for everyone, right?
-double* g_lfact_table = reinterpret_cast<double*>(mmap(NULL, sizeof(double)*G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+// double* g_lfact_table = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+double* g_lfact_table = reinterpret_cast<double*>(malloc(sizeof(double)*G_FACT_TABLE_SIZE));
 
 double RationalApproximation(double t)
 {
