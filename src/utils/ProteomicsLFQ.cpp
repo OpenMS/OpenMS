@@ -94,7 +94,8 @@ using namespace std;
   // - change percentage of missingness in ID transfer
 
 
-
+  // TODO:
+  //   check experimental design at startup
 
 
 
@@ -149,8 +150,11 @@ protected:
     registerOutputFile_("out", "<file>", "", "output mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
-    registerOutputFile_("out_msstats", "<file>", "", "output out_msstats file", false, false);
+    registerOutputFile_("out_msstats", "<file>", "", "output MSstats input file", false, false);
     setValidFormats_("out_msstats", ListUtils::create<String>("csv"));
+
+    registerOutputFile_("out_cxml", "<file>", "", "output consensusXML file", false, false);
+    setValidFormats_("out_cxml", ListUtils::create<String>("consensusXML"));
 
     registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
@@ -632,8 +636,8 @@ protected:
     const map<String, String>& mzfile2idfile, 
     double & median_fwhm,
     ConsensusMap & consensus_fraction,
-    vector<TransformationDescription>& transformations,
-    const multimap<Size, PeptideIdentification>& transfered_ids)
+    vector<TransformationDescription> & transformations,
+    const multimap<Size, PeptideIdentification> & transfered_ids)
   {
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
@@ -1234,13 +1238,13 @@ protected:
     proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
 
     consensus.resolveUniqueIdConflicts(); // TODO: find out why this is needed to get proper UIDs in consensus
-    if (debug_level_ >= 666)
+    if (!getStringOption_("out_cxml").empty())
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
       // Note: consensusXML currently doesn't support writing out inference data
       // (they are neverless stored and passed to mzTab for proper export)
-      IdXMLFile().store("debug_ids.idXML", proteins, infered_peptides);
-      ConsensusXMLFile().store("debug_consensus.consensusXML", consensus);
+      //IdXMLFile().store("debug_ids.idXML", proteins, infered_peptides);
+      ConsensusXMLFile().store(getStringOption_("out_cxml"), consensus);
     }
 
     // Fill MzTab with meta data and quants annotated in identification data structure
