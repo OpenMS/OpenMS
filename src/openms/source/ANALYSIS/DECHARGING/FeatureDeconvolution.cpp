@@ -1104,7 +1104,8 @@ namespace OpenMS
         {
           left_charges =  -new_cmp.getPositiveCharges();
           right_charges =  -new_cmp.getNegativeCharges();
-        } else
+        }
+        else
         {
           left_charges = new_cmp.getNegativeCharges();
           right_charges = new_cmp.getPositiveCharges();
