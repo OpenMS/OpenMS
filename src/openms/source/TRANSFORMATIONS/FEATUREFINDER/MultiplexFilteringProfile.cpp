@@ -133,7 +133,7 @@ namespace OpenMS
     // clock for monitoring run time performance
     unsigned int start = clock();
 #endif
-
+    
     // construct navigators for all spline spectra
     std::vector<SplineSpectrum::Navigator> navigators;
     for (std::vector<SplineSpectrum>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
@@ -278,6 +278,11 @@ namespace OpenMS
     endProgress();
 
     return filter_results;
+  }
+  
+  std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > MultiplexFilteringProfile::getPeakBoundaries()
+  {
+    return boundaries_;
   }
 
   bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const

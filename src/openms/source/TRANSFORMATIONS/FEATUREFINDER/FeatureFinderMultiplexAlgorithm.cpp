@@ -771,6 +771,7 @@ namespace OpenMS
       filtering.setLogType(getLogType());
       filter_results = filtering.filter();
       filtering.getCentroidedExperiment().swap(exp_centroid_);
+      filtering.getPeakBoundaries().swap(boundaries_exp_s);
     }
 
     /**
@@ -788,14 +789,14 @@ namespace OpenMS
     {
       // profile data
       MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
-      clustering.setLogType(getLogType());
-      cluster_results = clustering.cluster(filter_results);
+      //clustering.setLogType(getLogType());
+      //cluster_results = clustering.cluster(filter_results);
     }
 
     /**
      * construct feature and consensus maps i.e. the final results
      */
-    if (centroided)
+    /*if (centroided)
     {
       //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
       //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
@@ -883,7 +884,7 @@ namespace OpenMS
 
     // finalize feature map
     feature_map_.sortByPosition();
-    feature_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    feature_map_.applyMemberFunction(&UniqueIdInterface::setUniqueId);*/
   }
   
   FeatureMap& FeatureFinderMultiplexAlgorithm::getFeatureMap()

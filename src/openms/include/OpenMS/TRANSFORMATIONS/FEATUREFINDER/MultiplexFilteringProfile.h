@@ -104,6 +104,11 @@ public:
      */
     std::vector<MultiplexFilteredMSExperiment> filter();
 
+    /**
+     * @brief returns the intensity-filtered peak boundaries
+     */
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > getPeakBoundaries();
+
 private:
     /**
      * @brief averagine filter for profile mode
