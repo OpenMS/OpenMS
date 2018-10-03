@@ -150,6 +150,7 @@ inline int str_to_int(const string& s)
 }
 
 Iso::Iso(const char* formula) :
+allDim(0),
 disowned(false),
 marginals(nullptr),
 modeLProb(0.0)
