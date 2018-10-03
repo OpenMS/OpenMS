@@ -53,22 +53,36 @@ namespace OpenMS
   class OPENMS_DLLAPI IsoSpec
   {
 public:
+    /// Default constructor
     IsoSpec();
+
+    /// Constructor with probability threshold
     IsoSpec(double threshold);
 
-    // Setup requires the following input:
-    //    dimNumber = the number of elements (e.g. 3 for H, C, O)
-    //    isotopeNumbers = a vector of how many isotopes each element has, e.g. [2, 2, 3])
-    //    atomCounts = how many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-    //    isotopeMasses = array with a length of sum(isotopeNumbers) and the masses, e.g. [1.00782503227, 2.01410177819, 12, 13.0033548352, 15.9949146202, 16.9991317576, 17.9991596137]
-    //    isotopeProbabilities = array with a length of sum(isotopeNumbers) and the probabilities, e.g. [0.999884, 0.0001157, 0.9892, 0.01078, etc ... ]
-    //
-    void run(const std::vector<int>&,const std::vector<int>&,const std::vector<double>&,const std::vector<double>&);
-    void run(const std::string&);
-    void run2(const std::string&);
-    void run3(const std::string&);
+    /**
+      * @brief Run the algorithm 
+      *
+      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param isotopeMasses Array with the individual elements isotopic masses 
+      * @param isotopeProbabilities Array with the individual elements isotopic probabilities 
+      *
+      **/
+    void run(const std::vector<int>& isotopeNumbers,
+             const std::vector<int>& atomCounts,
+             const std::vector<std::vector<double> >& isotopeMasses,
+             const std::vector<std::vector<double> >& isotopeProbabilities);
 
+    /**
+      * @brief Run the algorithm on a sum formula 
+      *
+      **/
+    void run(const std::string&);
+
+    /// Get computed masses
     std::vector<double> getMasses();
+
+    /// Get computed probabilities
     std::vector<double> getProbabilities();
 
 protected:

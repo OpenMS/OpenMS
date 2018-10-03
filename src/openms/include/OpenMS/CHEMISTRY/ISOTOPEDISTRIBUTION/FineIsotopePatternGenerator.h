@@ -43,6 +43,23 @@ namespace OpenMS
     * @ingroup Chemistry
     * @brief Isotope pattern generator for fine isotope distributions.
     * 
+    * This algorithm generates theoretical pattern distributions for empirical
+    * formulas with high resolution. The output is a list of pairs containing
+    * isotope probabilities paired with the accurate m/z for the analyte
+    * isotopic composition.
+    *
+    * For example, for a C100 molecule, you will get:
+    *
+    * 1200            : 0.338014274835587
+    * 1201.0033548352 : 0.368628561496735
+    * 1202.0067096704 : 0.198997721076012
+    * 1203.0100645056 : 0.0708935707807541
+    *
+    * One important value to set is the threshold with tells the algorithm how
+    * many isotopic peaks to calculate, e.g. a threshold of 0.01 would only
+    * calculate peaks that contribute at least 1% to the total isotopic
+    * abundance.
+    *
     * See also method run()
     **/
 
@@ -54,7 +71,24 @@ namespace OpenMS
     FineIsotopePatternGenerator() = default;
     FineIsotopePatternGenerator(double threshold) : threshold_(threshold) {}
 
+    /**
+      * @brief Creates an isotope distribution from an empirical sum formula
+      *
+      * Iterates through all elements, convolves them according to the number
+      * of atoms from that element and sums up the result.
+      *
+      **/
     IsotopeDistribution run(const EmpiricalFormula&) const;
+
+    void setThreshold(double threshold)
+    {
+      threshold_ = threshold;
+    }
+
+    double getThreshold()
+    {
+      return threshold_;
+    }
 
  protected:
     double threshold_ = 0.01;

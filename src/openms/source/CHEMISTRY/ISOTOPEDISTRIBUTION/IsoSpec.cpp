@@ -93,6 +93,7 @@ namespace OpenMS
   //    isotopeProbabilities = array with a length of sum(isotopeNumbers) and the probabilities, e.g. [0.999884, 0.0001157, 0.9892, 0.01078, etc ... ]
   //
 
+#if 0
   void IsoSpec::run2(const std::string& formula)
   {
     Iso* iso = new Iso(formula.c_str());
@@ -145,6 +146,8 @@ namespace OpenMS
     delete generator;
     delete tabulator;
   }
+
+#endif
 
   void IsoSpec::run(const std::string& formula)
   {
