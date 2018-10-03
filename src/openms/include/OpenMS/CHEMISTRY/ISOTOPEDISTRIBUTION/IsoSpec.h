@@ -1,0 +1,81 @@
+// --------------------------------------------------------------------------
+//                   OpenMS -- Open-Source Mass Spectrometry
+// --------------------------------------------------------------------------
+// Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+//
+// This software is released under a three-clause BSD license:
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
+// For a full list of authors, refer to the file AUTHORS.
+// --------------------------------------------------------------------------
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+// ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// --------------------------------------------------------------------------
+// $Maintainer: Hannes Rost $
+// $Authors: Hannes Rost $
+// --------------------------------------------------------------------------
+
+#pragma once
+
+#include <cmath>
+#include <iostream>
+#include <cstdlib>
+#include <algorithm>
+#include <limits>
+#include <functional>
+#include <numeric>
+
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CONCEPT/Constants.h>
+
+using namespace std;
+
+namespace OpenMS
+{
+
+  class OPENMS_DLLAPI IsoSpec
+  {
+public:
+    IsoSpec();
+    IsoSpec(double threshold);
+
+    // Setup requires the following input:
+    //    dimNumber = the number of elements (e.g. 3 for H, C, O)
+    //    isotopeNumbers = a vector of how many isotopes each element has, e.g. [2, 2, 3])
+    //    atomCounts = how many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+    //    isotopeMasses = array with a length of sum(isotopeNumbers) and the masses, e.g. [1.00782503227, 2.01410177819, 12, 13.0033548352, 15.9949146202, 16.9991317576, 17.9991596137]
+    //    isotopeProbabilities = array with a length of sum(isotopeNumbers) and the probabilities, e.g. [0.999884, 0.0001157, 0.9892, 0.01078, etc ... ]
+    //
+    void run(const std::vector<int>&,const std::vector<int>&,const std::vector<double>&,const std::vector<double>&);
+    void run(const std::string&);
+    void run2(const std::string&);
+    void run3(const std::string&);
+
+    std::vector<double> getMasses();
+    std::vector<double> getProbabilities();
+
+protected:
+    double threshold_;
+    bool absolute_;
+    std::vector<double> masses_;
+    std::vector<double> probabilities_;
+  };
+}
+

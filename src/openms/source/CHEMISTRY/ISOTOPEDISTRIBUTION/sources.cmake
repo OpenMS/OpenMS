@@ -6,6 +6,7 @@ set(directory source/CHEMISTRY/ISOTOPEDISTRIBUTION)
 set(sources_list
   CoarseIsotopePatternGenerator.cpp
   IsotopeDistribution.cpp
+  IsoSpec.cpp
   IsotopePatternGenerator.cpp
 )
 
