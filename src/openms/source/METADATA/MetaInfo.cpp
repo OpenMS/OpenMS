@@ -92,7 +92,7 @@ namespace OpenMS
     else
     {
       DataValue tmp = value;
-      index_to_value_.insert({index,  tmp});
+      index_to_value_.insert(std::make_pair(index, tmp));
     }
   }
 
