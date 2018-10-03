@@ -41,6 +41,7 @@
 #include <limits>
 #include <functional>
 #include <numeric>
+#include <iterator>
 
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <include/OpenMS/CONCEPT/Constants.h>
@@ -52,9 +53,9 @@
 #include "marginalTrek++.cpp"
 #include "operators.cpp"
 #include "element_tables.cpp"
-#include "misc.cpp"
-#include "spectrum2.cpp"
-#include "cwrapper.cpp"
+// #include "misc.cpp"
+// #include "spectrum2.cpp" // contains unix-specific code
+// #include "cwrapper.cpp"
 #include "tabulator.cpp"
 
 using namespace std;
