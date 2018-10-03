@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <iterator>
+#include <string>
 
 #include "allocator.cpp"
 #include "dirtyAllocator.cpp"
@@ -112,6 +113,15 @@ namespace OpenMS
     OPENMS_PRECONDITION(isotopeNr.size() == atomCounts.size(), "Vectors need to be of the same size")
     OPENMS_PRECONDITION(isotopeNr.size() == isotopeMasses.size(), "Vectors need to be of the same size")
     OPENMS_PRECONDITION(isotopeNr.size() == isotopeProbabilities.size(), "Vectors need to be of the same size")
+
+    // Check that all probabilities are non-zero
+    if (!std::all_of(std::begin(isotopeProbabilities), std::end(isotopeProbabilities), [](std::vector<double> prob){ 
+            return std::all_of(std::begin(prob), std::end(prob), [](double p){return p > 0.0;});
+          })) 
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       std::string("All probabilities need to be larger than zero").c_str());
+    }
 
     // Setup requires the following input:
     //    dimNumber = the number of elements (e.g. 3 for H, C, O)
