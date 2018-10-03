@@ -39,6 +39,9 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpec.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/Element.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -60,16 +63,93 @@ END_SECTION
 
 START_SECTION(( void run(const std::string&) ))
 {
-  double threshold = 0.00001;
+  double threshold = 1e-5;
   bool absolute = false;
   IsoSpec iso(threshold);
   iso.run("C6H12O6");
 
   TEST_EQUAL(iso.getMasses().size(), 14)
   TEST_EQUAL(iso.getProbabilities().size(), 14)
+
+  TEST_REAL_SIMILAR(iso.getMasses()[0], 180.063)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[0], 0.922119)
+
+  // unsorted, the order is different
+  TEST_REAL_SIMILAR(iso.getMasses()[6], 182.068 ) 
+  TEST_REAL_SIMILAR(iso.getProbabilities()[6], 0.0113774 )
+
+  TEST_REAL_SIMILAR(iso.getMasses()[8], 184.07434277234)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[8], 2.02975552383577e-05)
+
+  TEST_REAL_SIMILAR(iso.getMasses()[13], 183.071850239339994459442)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.17268e-05)
 }
 END_SECTION
 
+START_SECTION(( 
+    void run(const std::vector<int>& isotopeNumbers,
+             const std::vector<int>& atomCounts,
+             const std::vector<std::vector<double> >& isotopeMasses,
+             const std::vector<std::vector<double> >& isotopeProbabilities) ))
+{
+
+  EmpiricalFormula ef ("C6H12O6");
+
+  std::vector<int> isotopeNumbers;
+  std::vector<int> atomCounts;
+  std::vector<std::vector<double> > isotopeMasses;
+  std::vector<std::vector<double> > isotopeProbabilities;
+
+  for (auto elem : ef)
+  {
+    atomCounts.push_back( elem.second );
+
+    std::vector<double> masses;
+    std::vector<double> probs;
+    for (auto iso : elem.first->getIsotopeDistribution())
+    {
+      if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
+      masses.push_back(iso.getMZ());
+      probs.push_back(iso.getIntensity());
+    }
+    isotopeNumbers.push_back( masses.size() );
+    isotopeMasses.push_back(masses);
+    isotopeProbabilities.push_back(probs);
+  }
+
+  // ----------------------------------- 
+  // Start
+  // ----------------------------------- 
+  double threshold = 1e-5;
+  bool absolute = false;
+  IsoSpec iso(threshold);
+  iso.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+
+  TEST_EQUAL(iso.getMasses().size(), 14)
+  TEST_EQUAL(iso.getProbabilities().size(), 14)
+
+  TEST_REAL_SIMILAR(iso.getMasses()[0], 180.063)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[0], 0.922633179415611) // 0.922119)
+
+  // unsorted, the order is different
+  TEST_REAL_SIMILAR(iso.getMasses()[2], 182.068 ) 
+  TEST_REAL_SIMILAR(iso.getProbabilities()[2], 0.011376032168236337518973933) // 0.0113774 )
+
+  TEST_REAL_SIMILAR(iso.getMasses()[12], 184.07435438280000994382135) // 184.07434277234)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[12], 1.9961521148266482778097647e-05) // 2.02975552383577e-05)
+
+  TEST_REAL_SIMILAR(iso.getMasses()[13], 183.07345538280000596387254) // 183.071850239339994459442)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.3346748674918047107952959e-05) // 2.17268e-05)
+
+  // TEST exception:
+  // We cannot have zero values as input data
+  isotopeNumbers[0] += 1;
+  isotopeMasses[0].push_back(3.0160492699999998933435563);
+  isotopeProbabilities[0].push_back(0.0);
+  TEST_EXCEPTION(Exception::IllegalArgument, iso.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities));
+
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
