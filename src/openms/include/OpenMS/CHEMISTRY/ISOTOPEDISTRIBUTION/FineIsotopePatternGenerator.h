@@ -39,6 +39,7 @@
 
 namespace OpenMS
 {
+
   /**
     * @ingroup Chemistry
     * @brief Isotope pattern generator for fine isotope distributions.
@@ -55,21 +56,31 @@ namespace OpenMS
     * 1202.0067096704 : 0.198997721076012
     * 1203.0100645056 : 0.0708935707807541
     *
-    * One important value to set is the threshold with tells the algorithm how
-    * many isotopic peaks to calculate, e.g. a threshold of 0.01 would only
-    * calculate peaks that contribute at least 1% to the total isotopic
-    * abundance.
+    * One important value to set is the threshold with tells the algorithm when
+    * to stop calculating isotopic peaks to calculate. Here, a threshold of
+    * 0.01 would mean that the algorithm either stops calculating when any new
+    * peak would be less than 0.01 in height (absolute) or when it would be
+    * less than 0.01 of the highest isotopic peak (relative). 
+    *
+    * The computation is based on the IsoSpec algorithm
+    *
+    * Łącki MK, Startek M, Valkenborg D, Gambin A.
+    * IsoSpec: Hyperfast Fine Structure Calculator.
+    * Anal Chem. 2017 Mar 21;89(6):3272-3277. doi: 10.1021/acs.analchem.6b01459.
     *
     * See also method run()
     **/
-
   class OPENMS_DLLAPI FineIsotopePatternGenerator 
     : public IsotopePatternGenerator
   {
 
  public:
     FineIsotopePatternGenerator() = default;
-    FineIsotopePatternGenerator(double threshold) : threshold_(threshold) {}
+    FineIsotopePatternGenerator(double threshold, bool absolute = false) :
+      threshold_(threshold),
+      absolute_(absolute)
+    {
+    }
 
     /**
       * @brief Creates an isotope distribution from an empirical sum formula
@@ -80,18 +91,33 @@ namespace OpenMS
       **/
     IsotopeDistribution run(const EmpiricalFormula&) const;
 
+    /// Set probability threshold (stop condition)
     void setThreshold(double threshold)
     {
       threshold_ = threshold;
     }
 
+    /// Get probability threshold (stop condition)
     double getThreshold()
     {
       return threshold_;
     }
 
+    /// Set whether threshold is absolute or relative probability
+    void setAbsolute(bool absolute)
+    {
+      absolute_ = absolute;
+    }
+
+    /// Returns whether threshold is absolute or relative probability
+    bool getAbsolute()
+    {
+      return absolute_;
+    }
+
  protected:
     double threshold_ = 0.01;
+    bool absolute_ = false;
 
   };
 

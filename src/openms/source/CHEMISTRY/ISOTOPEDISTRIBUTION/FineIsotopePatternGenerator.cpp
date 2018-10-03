@@ -43,7 +43,7 @@ namespace OpenMS
 
   IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
-    IsoSpec algorithm(threshold_);
+    IsoSpec algorithm(threshold_, absolute_);
 #if 0
     // Use IsoSpec's isotopic tables
     algorithm.run(formula.toString());

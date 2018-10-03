@@ -65,7 +65,7 @@ START_SECTION(( void run(const std::string&) ))
 {
   double threshold = 1e-5;
   bool absolute = false;
-  IsoSpec iso(threshold);
+  IsoSpec iso(threshold, absolute);
   iso.run("C6H12O6");
 
   TEST_EQUAL(iso.getMasses().size(), 14)
@@ -83,6 +83,51 @@ START_SECTION(( void run(const std::string&) ))
 
   TEST_REAL_SIMILAR(iso.getMasses()[13], 183.071850239339994459442)
   TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.17268e-05)
+
+  // human insulin
+  iso.run("C520H817N139O147S8");
+  TEST_EQUAL(iso.getMasses().size(), 5402)
+  TEST_EQUAL(iso.getProbabilities().size(), 5402)
+
+  IsoSpec iso2(0.01, false);
+  iso2.run("C520H817N139O147S8");
+  TEST_EQUAL(iso2.getMasses().size(), 269)
+  TEST_EQUAL(iso2.getProbabilities().size(), 269)
+}
+END_SECTION
+
+START_SECTION(( [EXTRA] void run(const std::string&) ))
+{
+  double threshold = 1e-5;
+  bool absolute = true;
+  IsoSpec iso(threshold, absolute);
+  iso.run("C6H12O6");
+
+  TEST_EQUAL(iso.getMasses().size(), 14)
+  TEST_EQUAL(iso.getProbabilities().size(), 14)
+
+  TEST_REAL_SIMILAR(iso.getMasses()[0], 180.063)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[0], 0.922119)
+
+  // unsorted, the order is different
+  TEST_REAL_SIMILAR(iso.getMasses()[6], 182.068 ) 
+  TEST_REAL_SIMILAR(iso.getProbabilities()[6], 0.0113774 )
+
+  TEST_REAL_SIMILAR(iso.getMasses()[8], 184.07434277234)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[8], 2.02975552383577e-05)
+
+  TEST_REAL_SIMILAR(iso.getMasses()[13], 183.071850239339994459442)
+  TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.17268e-05)
+
+  // human insulin
+  iso.run("C520H817N139O147S8");
+  TEST_EQUAL(iso.getMasses().size(), 1720)
+  TEST_EQUAL(iso.getProbabilities().size(), 1720)
+
+  IsoSpec iso2(0.01, true);
+  iso2.run("C520H817N139O147S8");
+  TEST_EQUAL(iso2.getMasses().size(), 21)
+  TEST_EQUAL(iso2.getProbabilities().size(), 21)
 }
 END_SECTION
 
@@ -120,29 +165,26 @@ START_SECTION((
   // ----------------------------------- 
   // Start
   // ----------------------------------- 
-  double threshold = 1e-5;
-  bool absolute = false;
-  IsoSpec iso(threshold);
-  iso.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+  {
+    double threshold = 1e-5;
+    bool absolute = false;
+    IsoSpec iso(threshold, absolute);
+    iso.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
 
-  TEST_EQUAL(iso.getMasses().size(), 14)
-  TEST_EQUAL(iso.getProbabilities().size(), 14)
+    TEST_EQUAL(iso.getMasses().size(), 14)
+    TEST_EQUAL(iso.getProbabilities().size(), 14)
 
-  TEST_REAL_SIMILAR(iso.getMasses()[0], 180.063)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[0], 0.922633179415611) // 0.922119)
+    TEST_REAL_SIMILAR(iso.getMasses()[0], 180.063)
+    TEST_REAL_SIMILAR(iso.getProbabilities()[0], 0.922633179415611) // 0.922119)
 
-  // unsorted, the order is different
-  TEST_REAL_SIMILAR(iso.getMasses()[2], 182.068 ) 
-  TEST_REAL_SIMILAR(iso.getProbabilities()[2], 0.011376032168236337518973933) // 0.0113774 )
-
-  TEST_REAL_SIMILAR(iso.getMasses()[12], 184.07435438280000994382135) // 184.07434277234)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[12], 1.9961521148266482778097647e-05) // 2.02975552383577e-05)
-
-  TEST_REAL_SIMILAR(iso.getMasses()[13], 183.07345538280000596387254) // 183.071850239339994459442)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.3346748674918047107952959e-05) // 2.17268e-05)
+    TEST_REAL_SIMILAR(iso.getMasses()[13], 183.07345538280000596387254) // 183.071850239339994459442)
+    TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.3346748674918047107952959e-05) // 2.17268e-05)
+  }
 
   // TEST exception:
   // We cannot have zero values as input data
+  double threshold = 1e-5;
+  IsoSpec iso(threshold, false);
   isotopeNumbers[0] += 1;
   isotopeMasses[0].push_back(3.0160492699999998933435563);
   isotopeProbabilities[0].push_back(0.0);

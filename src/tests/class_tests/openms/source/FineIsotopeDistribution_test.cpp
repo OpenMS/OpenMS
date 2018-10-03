@@ -154,7 +154,6 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
 }
 END_SECTION
 
-
 START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
 {
   // human insulin
@@ -253,8 +252,35 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
     }
   }
 }
-
 END_SECTION
+
+START_SECTION(( void setAbsolute(bool absolute) ))
+{
+  FineIsotopePatternGenerator gen;
+  gen.setAbsolute(true);
+  TEST_EQUAL(gen.getAbsolute(), true);
+  gen.setAbsolute(false);
+  TEST_EQUAL(gen.getAbsolute(), false);
+
+  // human insulin
+  EmpiricalFormula ef ("C520H817N139O147S8");
+
+  {
+    FineIsotopePatternGenerator gen;
+    IsotopeDistribution id = gen.run(ef);
+    TEST_EQUAL(id.size(), 267)
+
+    gen.setAbsolute(true);
+    id = gen.run(ef);
+    TEST_EQUAL(id.size(), 21)
+
+    gen.setThreshold(1e-3);
+    id = gen.run(ef);
+    TEST_EQUAL(id.size(), 151)
+  }
+}
+END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

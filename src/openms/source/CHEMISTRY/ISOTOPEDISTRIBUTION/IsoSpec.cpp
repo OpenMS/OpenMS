@@ -55,15 +55,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  IsoSpec::IsoSpec() :
-    threshold_(0.01),
-    absolute_(false)
-  {
-  }
-
-  IsoSpec::IsoSpec(double threshold) :
+  IsoSpec::IsoSpec(double threshold, bool absolute) :
     threshold_(threshold),
-    absolute_(false)
+    absolute_(absolute)
   {
   }
 
@@ -76,13 +70,7 @@ namespace OpenMS
     int hashSize = 1000;
 
     IsoThresholdGenerator* generator = new IsoThresholdGenerator(std::move(*iso), threshold_, absolute_, tabSize, hashSize); 
-
-    bool get_masses = true;
-    bool get_probs = true;
-    bool get_lprobs = true;
-    bool get_confs = true;
-
-    Tabulator<IsoThresholdGenerator>* tabulator = new Tabulator<IsoThresholdGenerator>(generator, get_masses, get_probs, get_lprobs, get_confs); 
+    Tabulator<IsoThresholdGenerator>* tabulator = new Tabulator<IsoThresholdGenerator>(generator, true, true, true, true); 
 
     int size = tabulator->confs_no();
 

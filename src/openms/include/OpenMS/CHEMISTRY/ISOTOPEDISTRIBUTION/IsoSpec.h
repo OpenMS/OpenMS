@@ -44,14 +44,24 @@ class Iso;
 namespace OpenMS
 {
 
+  /**
+    * @brief Interface to the IsoSpec algorithm.
+    * 
+    * Provides an interface to the IsoSpec algorithm
+    *
+    * Łącki MK, Startek M, Valkenborg D, Gambin A.
+    * IsoSpec: Hyperfast Fine Structure Calculator.
+    * Anal Chem. 2017 Mar 21;89(6):3272-3277. doi: 10.1021/acs.analchem.6b01459.
+    *
+    **/
   class OPENMS_DLLAPI IsoSpec
   {
 public:
     /// Default constructor
-    IsoSpec();
+    IsoSpec() = default;
 
     /// Constructor with probability threshold
-    IsoSpec(double threshold);
+    IsoSpec(double threshold, bool absolute);
 
     /**
       * @brief Run the algorithm 
@@ -91,8 +101,9 @@ protected:
       **/
     void run_(Iso* iso);
 
-    double threshold_;
-    bool absolute_;
+    double threshold_ = 0.01;
+    bool absolute_ = false;
+
     std::vector<double> masses_;
     std::vector<double> probabilities_;
   };
