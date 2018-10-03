@@ -85,7 +85,7 @@ namespace OpenMS
   {
     // @TODO: check if that index is registered in MetaInfoRegistry?
     auto it = index_to_value_.find(index);
-    if ( it != index_to_value.end()) 
+    if ( it != index_to_value_.end()) 
     {
       it->second = value; 
     }
