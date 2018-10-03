@@ -72,7 +72,6 @@ include(Dart)
 # ADDRESS_SANITIZER
 # OPENMS_COVERAGE
 #------------------------------------------------------------------------------
-option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
@@ -155,7 +154,7 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# All the multi-threading stuff (OpenMP, CUDA, TBB)
+# All the multi-threading stuff (OpenMP)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
 

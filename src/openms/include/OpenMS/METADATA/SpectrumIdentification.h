@@ -58,11 +58,11 @@ public:
     /// Destructor
     virtual ~SpectrumIdentification();
     /// Copy constructor
-    SpectrumIdentification(const SpectrumIdentification & source) = default;
+    SpectrumIdentification(const SpectrumIdentification &) = default;
     /// Move constructor
     SpectrumIdentification(SpectrumIdentification&&) = default;
     /// Assignment operator
-    SpectrumIdentification & operator=(const SpectrumIdentification & source) = default;
+    SpectrumIdentification & operator=(const SpectrumIdentification &) = default;
     /// Move assignment operator
     SpectrumIdentification& operator=(SpectrumIdentification&&) & = default;
     /// Equality operator

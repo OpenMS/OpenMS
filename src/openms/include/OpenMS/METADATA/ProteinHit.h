@@ -107,7 +107,7 @@ public:
     ProteinHit(double score, UInt rank, String accession, String sequence);
 
     /// Copy constructor
-    ProteinHit(const ProteinHit & source) = default;
+    ProteinHit(const ProteinHit &) = default;
 
     /// Move constructor
     ProteinHit(ProteinHit&&) noexcept = default;
@@ -117,7 +117,7 @@ public:
     //@}
 
     /// Assignment operator
-    ProteinHit & operator=(const ProteinHit & source) = default;
+    ProteinHit & operator=(const ProteinHit &) = default;
 
     /// Move assignment operator
     ProteinHit& operator=(ProteinHit&&) = default; // TODO: add noexcept (gcc 4.8 bug)

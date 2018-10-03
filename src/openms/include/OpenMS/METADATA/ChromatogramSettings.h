@@ -84,14 +84,14 @@ public:
     /// Constructor
     ChromatogramSettings();
     /// Copy constructor
-    ChromatogramSettings(const ChromatogramSettings & source) = default;
+    ChromatogramSettings(const ChromatogramSettings &) = default;
     /// Move constructor
     ChromatogramSettings(ChromatogramSettings&&) = default;
     /// Destructor
     virtual ~ChromatogramSettings();
 
     // Assignment operator
-    ChromatogramSettings & operator=(const ChromatogramSettings & source) = default;
+    ChromatogramSettings & operator=(const ChromatogramSettings &) = default;
     /// Move assignment operator
     ChromatogramSettings& operator=(ChromatogramSettings&&) & = default;
 
