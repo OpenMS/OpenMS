@@ -36,18 +36,47 @@
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpec.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
 
-  IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& f) const
+  IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
     IsoSpec algorithm(threshold_);
-    algorithm.run(f.toString());
+#if 0
+    // Use IsoSpec's isotopic tables
+    algorithm.run(formula.toString());
+#else
+    // Use our own isotopic tables
+    std::vector<int> isotopeNumbers, atomCounts;
+    std::vector<std::vector<double> > isotopeMasses, isotopeProbabilities;
 
+    // Iterate through all elements in the molecular formula
+    for (auto elem : formula)
+    {
+      atomCounts.push_back(elem.second);
+
+      std::vector<double> masses;
+      std::vector<double> probs;
+      for (auto iso : elem.first->getIsotopeDistribution())
+      {
+        if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
+        masses.push_back(iso.getMZ());
+        probs.push_back(iso.getIntensity());
+      }
+
+      // For each element store how many isotopes it has and their masses/probabilities
+      isotopeNumbers.push_back( masses.size() );
+      isotopeMasses.push_back(masses);
+      isotopeProbabilities.push_back(probs);
+    }
+
+    algorithm.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+#endif
+
+    // Store the data in a IsotopeDistribution
     std::vector<Peak1D> c;
-
     for (Size k = 0; k < algorithm.getMasses().size(); k++)
     {
       c.emplace_back( Peak1D(algorithm.getMasses()[k], algorithm.getProbabilities()[k] ) );

@@ -39,6 +39,8 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 ///////////////////////////
 
+#include <OpenMS/CHEMISTRY/Element.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -69,7 +71,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     TEST_EQUAL(id.size(), 3)
 
     TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
-    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922119)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922633) // 0.922119)
 
     TEST_REAL_SIMILAR(id[2].getMZ(), 182.068 ) 
     TEST_REAL_SIMILAR(id[2].getIntensity(), 0.0113774 )
@@ -81,7 +83,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     TEST_EQUAL(id.size(), 14)
 
     TEST_REAL_SIMILAR(id[0].getMZ(), 180.063)
-    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922119)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.922633)
 
     TEST_REAL_SIMILAR(id[4].getMZ(), 182.068 ) 
     TEST_REAL_SIMILAR(id[4].getIntensity(), 0.0113774 )
@@ -96,10 +98,10 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     TEST_EQUAL(id.size(), 104)
 
     gen.setThreshold(1e-25);
-    TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 635)
+    TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 634)
 
     gen.setThreshold(1e-50);
-    TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 1885)
+    TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 1883)
 
     gen.setThreshold(1e-100);
     TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 2548)
@@ -122,9 +124,20 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 14)
 
     gen.setThreshold(1e-20);
-    TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 22)
+    TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 21)
 
+    // These tests dont work on clang++, providing slightly different results
+    // than gcc and MSVS:
+    //
+    // line 130:  TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(),34): got 35, expected 34
+    // line 133:  TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(),46): got 48, expected 46
 #if 0
+    gen.setThreshold(1e-40);
+    TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 34)
+
+    gen.setThreshold(1e-60);
+    TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 46)
+
     gen.setThreshold(1e-100);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 65)
 
@@ -141,6 +154,107 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
 }
 END_SECTION
 
+
+START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
+{
+  // human insulin
+  EmpiricalFormula ef ("C520H817N139O147S8");
+
+  {
+    FineIsotopePatternGenerator gen;
+    IsotopeDistribution id = gen.run(ef);
+    TEST_EQUAL(id.size(), 267)
+
+    gen.setThreshold(1e-5);
+    id = gen.run(ef);
+    TEST_EQUAL(id.size(), 5513)
+  }
+
+  {
+    EmpiricalFormula ef("C222N190O110");
+    FineIsotopePatternGenerator gen;
+    gen.setThreshold(1e-3);
+    IsotopeDistribution id = gen.run(ef);
+
+    TEST_EQUAL(id.size(), 154)
+
+    // int idx = 0; for (const auto ele : id ) std::cout << idx++ << " : " << ele << std::endl;
+
+    TEST_REAL_SIMILAR(id[0].getMZ(), 7084.02466902)
+    TEST_REAL_SIMILAR(id[0].getIntensity(), 0.0348636) // cmp with 0.0349429
+
+    TEST_REAL_SIMILAR(id[1].getMZ(), 7085.0217039152)
+    TEST_REAL_SIMILAR(id[2].getMZ(), 7085.0280238552)
+    TEST_REAL_SIMILAR(id[3].getMZ(), 7085.0288861574)
+
+    TEST_REAL_SIMILAR(id[1].getIntensity() + id[2].getIntensity() + id[3].getIntensity(), 0.109638) // cmp with 0.109888
+
+    TEST_REAL_SIMILAR(id[4].getMZ(), 7086.0187388104)
+    TEST_REAL_SIMILAR(id[9].getMZ(), 7086.0322409926)
+    TEST_REAL_SIMILAR(id[4].getIntensity() +
+                      id[5].getIntensity() +
+                      id[6].getIntensity() +
+                      id[7].getIntensity() +
+                      id[8].getIntensity() +
+                      id[9].getIntensity(), 0.179746) // cmp with 0.180185 -- difference of 0.24%
+
+    TEST_REAL_SIMILAR(id[10].getMZ(), 7087.0157737056)
+    TEST_REAL_SIMILAR(id[19].getMZ(), 7087.0355958278)
+    TEST_REAL_SIMILAR(id[10].getIntensity() +
+                      id[11].getIntensity() +
+                      id[12].getIntensity() +
+                      id[13].getIntensity() +
+                      id[14].getIntensity() +
+                      id[15].getIntensity() +
+                      id[16].getIntensity() +
+                      id[17].getIntensity() +
+                      id[18].getIntensity() +
+                      id[19].getIntensity(),
+                      0.203836) // cmp with 0.204395 -- difference of 0.27%
+
+    // Cmp with CoarseIsotopePatternGenerator:
+    // container.push_back(IsotopeDistribution::MassAbundance(7084, 0.0349429));
+    // container.push_back(IsotopeDistribution::MassAbundance(7085, 0.109888));
+    // container.push_back(IsotopeDistribution::MassAbundance(7086, 0.180185));
+    // container.push_back(IsotopeDistribution::MassAbundance(7087, 0.204395));
+    // container.push_back(IsotopeDistribution::MassAbundance(7088, 0.179765));
+    // container.push_back(IsotopeDistribution::MassAbundance(7089, 0.130358));
+    // container.push_back(IsotopeDistribution::MassAbundance(7090, 0.0809864));
+    // container.push_back(IsotopeDistribution::MassAbundance(7091, 0.0442441));
+    // container.push_back(IsotopeDistribution::MassAbundance(7092, 0.0216593));
+    // container.push_back(IsotopeDistribution::MassAbundance(7093, 0.00963707));
+    // container.push_back(IsotopeDistribution::MassAbundance(7094, 0.0039406));
+  }
+
+  {
+    // test gapped isotope distributions, e.g. bromide 79,81 (missing 80)
+
+    EmpiricalFormula ef("CBr2");
+    FineIsotopePatternGenerator gen;
+    gen.setThreshold(1e-3);
+    IsotopeDistribution id = gen.run(ef);
+
+    // int idx = 0; for (const auto ele : id ) std::cout << idx++ << " : " << ele << std::endl;
+
+    TEST_REAL_SIMILAR(id[0].getMZ(), 169.8366742)
+    TEST_REAL_SIMILAR(id[1].getMZ(), 170.8400292)
+
+    IsotopeDistribution::ContainerType container;
+    container.push_back(IsotopeDistribution::MassAbundance(170, 0.254198270573));
+    container.push_back(IsotopeDistribution::MassAbundance(171, 0.002749339427));
+    container.push_back(IsotopeDistribution::MassAbundance(172, 0.494555798854));
+    container.push_back(IsotopeDistribution::MassAbundance(173, 0.005348981146));
+    container.push_back(IsotopeDistribution::MassAbundance(174, 0.240545930573));
+    container.push_back(IsotopeDistribution::MassAbundance(175, 0.002601679427));
+    for (Size i = 0; i != id.size(); ++i)
+    {
+      TEST_EQUAL(round(id.getContainer()[i].getMZ()), container[i].getMZ())
+      TEST_REAL_SIMILAR(id.getContainer()[i].getIntensity(), container[i].getIntensity())
+    }
+  }
+}
+
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
