@@ -38,17 +38,17 @@
 #include <iterator>
 #include <string>
 
-#include "allocator.cpp"
-#include "dirtyAllocator.cpp"
-#include "isoSpec++.cpp"
-#include "isoMath.cpp"
-#include "marginalTrek++.cpp"
-#include "operators.cpp"
-#include "element_tables.cpp"
+#include "IsoSpec/allocator.cpp"
+#include "IsoSpec/dirtyAllocator.cpp"
+#include "IsoSpec/isoSpec++.cpp"
+#include "IsoSpec/isoMath.cpp"
+#include "IsoSpec/marginalTrek++.cpp"
+#include "IsoSpec/operators.cpp"
+#include "IsoSpec/element_tables.cpp"
 // #include "misc.cpp"
 // #include "spectrum2.cpp" // contains unix-specific code
 // #include "cwrapper.cpp"
-#include "tabulator.cpp"
+#include "IsoSpec/tabulator.cpp"
 
 using namespace std;
 
