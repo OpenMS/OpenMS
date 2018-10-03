@@ -92,6 +92,7 @@ protected:
         mtd_param.insert("", common_param);
         mtd_param.remove("chrom_fwhm");
         mtd_param.setValue("mass_error_ppm", 10.0, "Allowed mass deviation (in ppm).");
+        mtd_param.setValue("max_trace_length", 300.0, "");
         mtdet.setParameters(mtd_param);
         /*
          * defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
@@ -126,13 +127,15 @@ protected:
 
         mfile << "traces={";
         for(int i=0;i<m_traces.size();i++){
-            if(m_traces[i].getMaxIntensity(false) < 1e5)continue;
+            //if(m_traces[i].getMaxIntensity(false) < 1e5)continue;
             ostringstream os;
             for(int j=0;j<m_traces[i].getSize();j++) {
                 //if(m_traces[i][j].getRT() > 320 || m_traces[i][j].getRT() < 280) continue;
                 //if(m_traces[i][j].getMZ() > 880 || m_traces[i][j].getMZ() < 870) continue;
+
                 os << m_traces[i][j].getRT() << "," << m_traces[i][j].getMZ() << "," << m_traces[i][j].getIntensity() << endl;
             }
+
 
             String str = os.str();
             if(str.empty()) continue;
