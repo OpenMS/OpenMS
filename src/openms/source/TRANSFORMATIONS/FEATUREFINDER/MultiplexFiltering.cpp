@@ -68,7 +68,7 @@ namespace OpenMS
       MSSpectrum spectrum;
       spectrum.setRT(it_rt->getRT());
       // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
       {
         if (it_mz->getIntensity() > intensity_cutoff_)
         {
@@ -91,7 +91,7 @@ namespace OpenMS
       std::vector<int> blacklist_spectrum;
       blacklist_spectrum.reserve(it_rt->size());
       // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
       {
         blacklist_spectrum.push_back(-1);
       }
@@ -101,7 +101,7 @@ namespace OpenMS
     // blacklist low-intensity peaks
     for (MSExperiment::ConstIterator it_rt = exp_centroided_.begin(); it_rt < exp_centroided_.end(); ++it_rt)
     {
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
       {
         if (it_mz->getIntensity() < intensity_cutoff_)
         {
@@ -112,7 +112,7 @@ namespace OpenMS
     
   }
   
-  const MSExperiment& MultiplexFiltering::getCentroidedExperiment()
+  MSExperiment& MultiplexFiltering::getCentroidedExperiment()
   {
     return(exp_centroided_);
   }
@@ -132,7 +132,7 @@ namespace OpenMS
       std::map<int, int> mapping_spectrum;
       int count = 0;
       // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
       {
         if (blacklist_[it_rt - exp_centroided_.begin()][it_mz - it_rt->begin()] == -1)
         {

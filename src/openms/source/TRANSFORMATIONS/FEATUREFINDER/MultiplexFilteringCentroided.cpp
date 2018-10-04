@@ -95,7 +95,7 @@ namespace OpenMS
         MSExperiment::ConstIterator it_rt_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over m/z
-        for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+        for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
           MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[it_rt - exp_centroided_white_.begin()][it_mz - it_rt->begin()], it_rt - exp_centroided_white_.begin());

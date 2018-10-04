@@ -70,7 +70,7 @@ namespace OpenMS
       MSSpectrum::ConstIterator it_mz;
       std::vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
       for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
-           it_mz < it_rt->end(), it_mz_boundaries < it_rt_boundaries->end();
+           it_mz != it_rt->end(), it_mz_boundaries != it_rt_boundaries->end();
            ++it_mz, ++it_mz_boundaries)
       {
         if (it_mz->getIntensity() > intensity_cutoff_)
