@@ -51,22 +51,30 @@ namespace OpenMS
     *
     * For example, for a C100 molecule, you will get:
     *
-    * 1200            : 0.338014274835587
-    * 1201.0033548352 : 0.368628561496735
-    * 1202.0067096704 : 0.198997721076012
-    * 1203.0100645056 : 0.0708935707807541
+    * @code
+    *     1200            : 0.338014274835587
+    *     1201.0033548352 : 0.368628561496735
+    *     1202.0067096704 : 0.198997721076012
+    *     1203.0100645056 : 0.0708935707807541
+    * @endcode
     *
     * One important value to set is the threshold with tells the algorithm when
     * to stop calculating isotopic peaks to calculate. Here, a threshold of
     * 0.01 would mean that the algorithm either stops calculating when any new
     * peak would be less than 0.01 in height (absolute) or when it would be
-    * less than 0.01 of the highest isotopic peak (relative). 
+    * less than 0.01 of the highest isotopic peak (relative).
+    *
+    * @note Computation of fine isotope patterns can be slow for large
+    * molecules, if you don't need fine isotope distributions consider using
+    * CoarseIsotopePatternGenerator.
     *
     * The computation is based on the IsoSpec algorithm
     *
+    * @code
     * Łącki MK, Startek M, Valkenborg D, Gambin A.
     * IsoSpec: Hyperfast Fine Structure Calculator.
     * Anal Chem. 2017 Mar 21;89(6):3272-3277. doi: 10.1021/acs.analchem.6b01459.
+    * @endcode
     *
     * See also method run()
     **/
@@ -75,7 +83,20 @@ namespace OpenMS
   {
 
  public:
+
+    /**
+      * @brief Default Constructor
+      *
+      **/
     FineIsotopePatternGenerator() = default;
+
+    /**
+      * @brief Constructor
+      *
+      * @param threshold The probability threshold (see class docu)
+      * @param absolute Whether threshold is absolute or relative (see class docu)
+      *
+      **/
     FineIsotopePatternGenerator(double threshold, bool absolute = false) :
       threshold_(threshold),
       absolute_(absolute)

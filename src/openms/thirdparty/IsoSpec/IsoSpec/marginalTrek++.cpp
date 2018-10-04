@@ -136,10 +136,17 @@ double* getMLogProbs(const double* probs, int isoNo)
 {
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
+
+    // This computes the logarithm of all probabilities and returns them
     double* ret = new double[isoNo];
     for(int i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
+
+        // This looks up the pre-computed log values based on the probability
+        // (presumably to prevent numerical inaccuracy from using std::log).
+        // In case you want to remove internal isotope probabilities, then you
+        // may comment this out.
         for(int j=0; j<NUMBER_OF_ISOTOPIC_ENTRIES; j++)
             if(elem_table_probability[j] == probs[i])
             {

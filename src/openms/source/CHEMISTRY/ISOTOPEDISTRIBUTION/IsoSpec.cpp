@@ -111,16 +111,9 @@ namespace OpenMS
                                        std::string("All probabilities need to be larger than zero").c_str());
     }
 
-    // Setup requires the following input:
-    //    dimNumber = the number of elements (e.g. 3 for H, C, O)
-    //    isotopeNumbers = a vector of how many isotopes each element has, e.g. [2, 2, 3])
-    //    atomCounts = how many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-    //    isotopeMasses = array with a length of sum(isotopeNumbers) and the masses, e.g. [1.00782503227, 2.01410177819, 12, 13.0033548352, 15.9949146202, 16.9991317576, 17.9991596137]
-    //    isotopeProbabilities = array with a length of sum(isotopeNumbers) and the probabilities, e.g. [0.999884, 0.0001157, 0.9892, 0.01078, etc ... ]
-    //
-
     int dimNumber = isotopeNr.size();
 
+    // Convert vector of vector to double**
     const double** IM = new const double*[dimNumber];
     const double** IP = new const double*[dimNumber];
     for (int i=0; i<dimNumber; i++)

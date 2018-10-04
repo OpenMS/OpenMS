@@ -47,11 +47,14 @@ namespace OpenMS
   /**
     * @brief Interface to the IsoSpec algorithm.
     * 
-    * Provides an interface to the IsoSpec algorithm
+    * Provides an interface to the IsoSpec algorithm. Currently only the
+    * "threshold" algorithm is implemented.
     *
+    * @code
     * Łącki MK, Startek M, Valkenborg D, Gambin A.
     * IsoSpec: Hyperfast Fine Structure Calculator.
     * Anal Chem. 2017 Mar 21;89(6):3272-3277. doi: 10.1021/acs.analchem.6b01459.
+    * @endcode
     *
     **/
   class OPENMS_DLLAPI IsoSpec
@@ -60,7 +63,13 @@ public:
     /// Default constructor
     IsoSpec() = default;
 
-    /// Constructor with probability threshold
+    /**
+      * @brief Constructor
+      *
+      * @param threshold The probability threshold
+      * @param absolute Whether threshold is absolute or relative
+      *
+      **/
     IsoSpec(double threshold, bool absolute);
 
     /**

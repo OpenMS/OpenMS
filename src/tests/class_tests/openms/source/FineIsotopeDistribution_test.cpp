@@ -65,6 +65,10 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
   EmpiricalFormula ef ("C6H12O6");
   double threshold = 1e-5;
 
+  // simple way of getting an IsotopeDistribution
+  IsotopeDistribution test_id = ef.getIsotopeDistribution(FineIsotopePatternGenerator());
+  TEST_EQUAL(test_id.size(), 3)
+
   {
     FineIsotopePatternGenerator gen;
     IsotopeDistribution id = gen.run(ef);
@@ -167,6 +171,14 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-5);
     id = gen.run(ef);
     TEST_EQUAL(id.size(), 5513)
+  }
+
+  {
+    IsotopeDistribution id = ef.getIsotopeDistribution(FineIsotopePatternGenerator());
+    TEST_EQUAL(id.size(), 267)
+
+    IsotopeDistribution id2 = ef.getIsotopeDistribution(FineIsotopePatternGenerator(1e-5));
+    TEST_EQUAL(id2.size(), 5513)
   }
 
   {
