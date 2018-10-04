@@ -112,7 +112,7 @@ namespace OpenMS
     
   }
   
-  MSExperiment MultiplexFiltering::getCentroidedExperiment()
+  const MSExperiment& MultiplexFiltering::getCentroidedExperiment()
   {
     return(exp_centroided_);
   }

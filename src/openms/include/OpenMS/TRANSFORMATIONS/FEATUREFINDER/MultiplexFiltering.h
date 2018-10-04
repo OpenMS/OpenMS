@@ -109,7 +109,7 @@ public:
     /**
      * @brief returns the intensity-filtered, centroided spectral data
      */
-    MSExperiment getCentroidedExperiment();
+    const MSExperiment& getCentroidedExperiment();
 
 protected:
     /**

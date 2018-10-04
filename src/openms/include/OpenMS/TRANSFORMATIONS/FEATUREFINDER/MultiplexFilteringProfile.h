@@ -107,7 +107,7 @@ public:
     /**
      * @brief returns the intensity-filtered peak boundaries
      */
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > getPeakBoundaries();
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& getPeakBoundaries();
 
 private:
     /**

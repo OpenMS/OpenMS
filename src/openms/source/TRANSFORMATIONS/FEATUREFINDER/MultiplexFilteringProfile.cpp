@@ -280,7 +280,7 @@ namespace OpenMS
     return filter_results;
   }
   
-  std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > MultiplexFilteringProfile::getPeakBoundaries()
+  std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& MultiplexFilteringProfile::getPeakBoundaries()
   {
     return boundaries_;
   }
