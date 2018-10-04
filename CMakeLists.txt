@@ -318,6 +318,22 @@ SET(CMAKE_MACOSX_RPATH FALSE)
 # macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
 SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
 
+if(UNIX AND NOT APPLE)
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+
+# the RPATH to be used when installing
+SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+
+# don't add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+endif()
+
 #------------------------------------------------------------------------------
 # lib naming when building with msvc & convenience location of build.bat
 if (MSVC)
