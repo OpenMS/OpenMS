@@ -55,7 +55,7 @@ namespace OpenMS
     // In the MultiplexFiltering() constructor we initialise the centroided experiment exp_centroided_.
     // (We run a simple intensity filter. Peaks below the intensity cutoff can be discarded right from the start.)
     // Now we still need to discard boundaries of low intensity peaks, in order to preserve the one-to-one mapping between peaks and boundaries.
-    
+    boundaries_.reserve(boundaries.size());
     // loop over spectra and boundaries
     MSExperiment::ConstIterator it_rt;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
@@ -70,7 +70,7 @@ namespace OpenMS
       MSSpectrum::ConstIterator it_mz;
       std::vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
       for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
-           it_mz != it_rt->end(), it_mz_boundaries != it_rt_boundaries->end();
+           it_mz != it_rt->end() && it_mz_boundaries != it_rt_boundaries->end();
            ++it_mz, ++it_mz_boundaries)
       {
         if (it_mz->getIntensity() > intensity_cutoff_)

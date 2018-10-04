@@ -62,6 +62,7 @@ namespace OpenMS
   {
     // initialise experiment exp_centroided_
     // Any peaks below the intensity cutoff cannot be relevant. They are therefore removed resulting in reduced memory footprint and runtime.
+    exp_centroided_.reserve(exp_centroided.getNrSpectra());
     // loop over spectra
     for (MSExperiment::ConstIterator it_rt = exp_centroided.begin(); it_rt < exp_centroided.end(); ++it_rt)
     {
@@ -78,7 +79,7 @@ namespace OpenMS
           spectrum.push_back(peak);
         }
       }
-      exp_centroided_.addSpectrum(spectrum);
+      exp_centroided_.addSpectrum(std::move(spectrum));
     }
     exp_centroided_.updateRanges();
     exp_centroided_.sortSpectra();
