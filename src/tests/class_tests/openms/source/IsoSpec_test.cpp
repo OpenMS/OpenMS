@@ -67,6 +67,23 @@ expected.push_back(std::make_pair( 183.07390984786002263717819 , 1.5799610569594
 expected.push_back(std::make_pair( 184.07187809544001311223838 , 5.8491247994869661650744336e-05 ));
 expected.push_back(std::make_pair( 184.07434277234000319367624 , 2.0297554674751325817869813e-05 ));
 
+typedef std::pair<double,double> isopair;
+std::vector<isopair> expected_oms;
+expected_oms.push_back(std::make_pair( 180.06339038280000863778696 , 0.92263317941561073798339976    ));
+expected_oms.push_back(std::make_pair( 181.06674538280000774648215 , 0.059873700450778437331944559   ));
+expected_oms.push_back(std::make_pair( 181.06760738279999145561305 , 0.0021087279716237856790062022  ));
+expected_oms.push_back(std::make_pair( 181.06966713090000098418386 , 0.001273380225742650438680581   ));
+expected_oms.push_back(std::make_pair( 182.06764438280001172643097 , 0.011376032168236337518973933   ));
+expected_oms.push_back(std::make_pair( 182.07010038280000685517734 , 0.0016189442373783591386932068  ));
+expected_oms.push_back(std::make_pair( 182.07096238279999056430825 , 0.00013684457672024180033450158 ));
+expected_oms.push_back(std::make_pair( 182.07302213090000009287905 , 8.2635209633747614224076605e-05 ));
+expected_oms.push_back(std::make_pair( 183.07099938280001083512616 , 0.00073824045954083467209472236 ));
+expected_oms.push_back(std::make_pair( 183.07186138279999454425706 , 2.1667113372227351532611078e-05 ));
+expected_oms.push_back(std::make_pair( 183.07345538280000596387254 , 2.3346748674918047107952959e-05 ));
+expected_oms.push_back(std::make_pair( 183.07392113090000407282787 , 1.5700729969000005987024918e-05 ));
+expected_oms.push_back(std::make_pair( 184.07189838280001481507497 , 5.8444185791655326584186775e-05 ));
+expected_oms.push_back(std::make_pair( 184.07435438280000994382135 , 1.9961521148266482778097647e-05 ));
+
 IsoSpec* ptr = nullptr;
 IsoSpec* nullPointer = nullptr;
 START_SECTION((IsoSpec()))
@@ -199,10 +216,10 @@ START_SECTION((
     }
     std::sort(pairs.begin(), pairs.end(),  [](isopair a, isopair b) {return a.first < b.first;});
 
-    for (Size i = 0; i != expected.size(); ++i)
+    for (Size i = 0; i != expected_oms.size(); ++i)
     {
-      TEST_REAL_SIMILAR(pairs[i].first, expected[i].first);
-      TEST_REAL_SIMILAR(pairs[i].second, expected[i].second);
+      TEST_REAL_SIMILAR(pairs[i].first, expected_oms[i].first);
+      TEST_REAL_SIMILAR(pairs[i].second, expected_oms[i].second);
     }
   }
 
