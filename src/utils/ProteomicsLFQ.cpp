@@ -426,7 +426,8 @@ protected:
               [](TrafoStat a, TrafoStat b) 
               { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
       // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
-        max_alignment_diff = std::max(max_alignment_diff, 120.0);
+      LOG_INFO << "Max alignment difference: " << max_alignment_diff << endl;
+      max_alignment_diff = std::max(max_alignment_diff, 120.0);
       return max_alignment_diff;
     }
     return 0;
@@ -459,8 +460,8 @@ protected:
   //-------------------------------------------------------------
   void link_(
     vector<FeatureMap> & feature_maps, 
-    double max_alignment_diff,
     double median_fwhm,
+    double max_alignment_diff,
     ConsensusMap & consensus_fraction
   )
   {
@@ -488,7 +489,9 @@ protected:
     linker.group(feature_maps, consensus_fraction);
   }
 
-  void alignAndLink_(
+  // Align and link.
+  // @return maximum alignment difference observed (to guide linking)
+  double alignAndLink_(
     vector<FeatureMap> & feature_maps, 
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription>& transformations,
@@ -496,13 +499,22 @@ protected:
     const UInt fraction,
     const StringList & mz_files)
   {
+    double max_alignment_diff(0.0);
+
     if (feature_maps.size() > 1)
     {
-      double max_alignment_diff = align_(feature_maps, transformations);
+      max_alignment_diff = align_(feature_maps, transformations);
+
       transform_(feature_maps, transformations);
+
       addDataProcessing_(consensus_fraction,
         getProcessingInfo_(DataProcessing::ALIGNMENT));
-      link_(feature_maps, max_alignment_diff, median_fwhm, consensus_fraction);
+
+      link_(feature_maps, 
+        median_fwhm, 
+        max_alignment_diff, 
+        consensus_fraction);
+
       addDataProcessing_(consensus_fraction,
         getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
     }
@@ -532,6 +544,8 @@ protected:
 
     // sort list of peptide identifications in each consensus feature by map index
     consensus_fraction.sortPeptideIdentificationsByMapIndex();
+
+    return max_alignment_diff;
   }
 
   // determine cooccurance of peptide in different runs
@@ -630,17 +644,20 @@ protected:
     LOG_INFO << "Transfered IDs: " << n_transfered_ids << endl;
     return transfer_ids;
   }
-
+ 
   ExitCodes quantifyFraction_(
     const pair<unsigned int, std::vector<String> > & ms_files, 
     const map<String, String>& mzfile2idfile, 
-    double & median_fwhm,
+    double median_fwhm,
+    const multimap<Size, PeptideIdentification> & transfered_ids,
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription> & transformations,
-    const multimap<Size, PeptideIdentification> & transfered_ids)
+    double& max_alignment_diff)
   {
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
+
+    const bool is_already_aligned = !transformations.empty();
 
     // debug output
     writeDebug_("Processing fraction number: " + String(fraction) + "\nFiles: ",  1);
@@ -680,7 +697,7 @@ protected:
       if (protein_ids.size() != 1)
       {
         LOG_FATAL_ERROR << "Exactly one protein identification runs must be annotated in " << id_file_abs_path << endl;
-        return ExitCodes::INCOMPATIBLE_INPUT_DATA;     
+        return ExitCodes::INCOMPATIBLE_INPUT_DATA;
       }
 
       // annotate experimental design
@@ -741,7 +758,7 @@ protected:
       //////////////////////////////////////////////////////
       if (!transfered_ids.empty())
       {
-        OPENMS_PRECONDITION(!transformations.empty(), "Data has not been aligned.");
+        OPENMS_PRECONDITION(is_already_aligned, "Data has not been aligned.");
 
         // transform observed IDs and spectra
         MapAlignmentTransformer::transformRetentionTimes(peptide_ids, transformations[fraction_group - 1]);
@@ -831,15 +848,22 @@ protected:
     //-------------------------------------------------------------
     // Align all features of this fraction (if not already aligned)
     //-------------------------------------------------------------
-    if (transformations.empty())
+    if (!is_already_aligned)
     {
-      alignAndLink_(
+      max_alignment_diff = alignAndLink_(
         feature_maps, 
         consensus_fraction, 
         transformations,
         median_fwhm, 
         ms_files.first, 
         ms_files.second);
+    }
+    else // Data already aligned. Link with previously determined alignment difference
+    {
+      link_(feature_maps,
+        median_fwhm,
+        max_alignment_diff,
+        consensus_fraction);
     }
 
     if (debug_level_ >= 666)
@@ -856,11 +880,13 @@ protected:
     //-------------------------------------------------------------
     // ConsensusMap normalization (basic)
     //-------------------------------------------------------------
-    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(consensus_fraction, 
+    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(
+      consensus_fraction, 
       ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, 
       "", 
       "");
 
+    // max_alignment_diff returned by reference
     return EXECUTION_OK;
   }
 
@@ -947,22 +973,23 @@ protected:
     for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
     {      
       ConsensusMap consensus_fraction; // quantitative result for this fraction identifier
-
       vector<TransformationDescription> transformations; // filled by RT alignment
+      double max_alignment_diff(0.0);
 
       ExitCodes e = quantifyFraction_(
         ms_files, 
         mzfile2idfile,
         median_fwhm, 
+        multimap<Size, PeptideIdentification>(),
         consensus_fraction, 
-        transformations,  // transformations are empty and will be filled by alignment
-        multimap<Size, PeptideIdentification>()
-      );
+        transformations,  // transformations are empty, will be filled by alignment
+        max_alignment_diff);  // max_alignment_diff not yet determined, will be filled by alignment
 
       if (e != EXECUTION_OK) { return e; }
         
       if (getStringOption_("transfer_ids") != "false")
       {  
+        LOG_INFO << "Transfering identification data between runs of the same fraction." << endl; 
         // needs to occur in >= 50% of all runs for transfer
         const Size min_occurance = (double) (ms_files.second.size() * 0.5 + 0.5);        
         multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurance); 
@@ -974,10 +1001,12 @@ protected:
           ms_files, 
           mzfile2idfile, 
           median_fwhm, 
+          transfered_ids, 
           consensus_fraction, 
           transformations,  // transformations as determined by alignment
-          transfered_ids
-        );
+          max_alignment_diff); // max_alignment_error as determined by alignment
+
+        OPENMS_POSTCONDITION(!consensus_fraction.empty(), "ConsensusMap of fraction empty after ID transfer.!");
         if (e != EXECUTION_OK) { return e; }
       }
       consensus.appendColumns(consensus_fraction);  // append consensus map calculated for this fraction number
@@ -988,7 +1017,7 @@ protected:
 
     if (debug_level_ >= 666)
     {
-      ConsensusXMLFile().store("debug_after normalization.consensusXML", consensus);
+      ConsensusXMLFile().store("debug_after_normalization.consensusXML", consensus);
     }
 
     // TODO: FileMerger merge ids (here? or already earlier? filtered?)

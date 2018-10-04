@@ -170,16 +170,21 @@ namespace OpenMS
      * @param diascoring DIA Scoring object to use for scoring
      * @param pep The peptide corresponding to the library transitions
      * @param scores The object to store the result
+     * @param mzerror_ppm m/z and mass error (in ppm) for all transitions
+     * @param drift_lower Drift time lower extraction boundary
+     * @param drift_upper Drift time upper extraction boundary
      *
     */
-    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
-                            const std::vector<TransitionType> & transitions,
-                            std::vector<OpenSwath::SwathMap> swath_maps,
+    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
+                            const std::vector<TransitionType>& transitions,
+                            const std::vector<OpenSwath::SwathMap>& swath_maps,
                             OpenSwath::SpectrumAccessPtr ms1_map,
-                            OpenMS::DIAScoring & diascoring,
+                            OpenMS::DIAScoring& diascoring,
                             const CompoundType& compound,
-                            OpenSwath_Scores & scores, 
-                            double im_start, double im_end);
+                            OpenSwath_Scores& scores,
+                            std::vector<double>& mzerror_ppm,
+                            double drift_lower,
+                            double drift_upper);
 
     /** @brief Score a single chromatographic feature using the precursor map.
      *
@@ -190,15 +195,18 @@ namespace OpenMS
      * @param precursor_mz The m/z ratio of the precursor
      * @param rt The compound retention time
      * @param scores The object to store the result
+     * @param drift_lower Drift time lower extraction boundary
+     * @param drift_upper Drift time upper extraction boundary
      *
     */
     void calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
-                                     OpenMS::DIAScoring & diascoring, 
+                                     OpenMS::DIAScoring& diascoring, 
                                      double precursor_mz, 
                                      double rt, 
                                      const CompoundType& compound, 
-                                     OpenSwath_Scores & scores,
-                                     double drift_lower, double drift_upper);
+                                     OpenSwath_Scores& scores,
+                                     double drift_lower,
+                                     double drift_upper);
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
      *
@@ -209,6 +217,8 @@ namespace OpenMS
      * @param swath_maps The SWATH-MS (DIA) maps from which to retrieve full MS/MS spectra at the chromatographic peak apices
      * @param diascoring DIA Scoring object to use for scoring
      * @param scores The object to store the result
+     * @param drift_lower Drift time lower extraction boundary
+     * @param drift_upper Drift time upper extraction boundary
      *
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -216,7 +226,8 @@ namespace OpenMS
                               const std::vector<OpenSwath::SwathMap> swath_maps,
                               OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
-                              double drift_lower, double drift_upper);
+                              double drift_lower,
+                              double drift_upper);
 
     /** @brief Computing the normalized library intensities from the transition objects
      *
@@ -229,7 +240,7 @@ namespace OpenMS
     void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
                                             std::vector<double>& normalized_library_intensity);
 
-    /** @brief Prepares a spectrum for DIA analysis
+    /** @brief Prepares a spectrum for DIA analysis (multiple map)
      *
      * This function will sum up (add) the intensities of multiple spectra from
      * multiple swath maps (assuming these are SONAR maps of shifted precursor
@@ -239,14 +250,38 @@ namespace OpenMS
      * @param[in] swath_map The map containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
+     * @param drift_lower Drift time lower extraction boundary
+     * @param drift_upper Drift time upper extraction boundary
      *
      * @return Added up spectrum
      *
     */
     OpenSwath::SpectrumPtr fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
-                                              double RT, int nr_spectra_to_add, const double, const double);
+                                              double RT,
+                                              int nr_spectra_to_add,
+                                              const double drift_lower,
+                                              const double drift_upper);
+    
+    /** @brief Prepares a spectrum for DIA analysis (single map)
+     *
+     * This function will sum up (add) the intensities of multiple spectra a single
+     * swath map (assuming these are regular SWATH / DIA maps) around the given 
+     * retention time and return an "averaged" spectrum which may contain less noise.
+     *
+     * @param[in] swath_map The map containing the spectra
+     * @param[in] RT The target retention time
+     * @param[in] nr_spectra_to_add How many spectra to add up
+     * @param drift_lower Drift time lower extraction boundary
+     * @param drift_upper Drift time upper extraction boundary
+     *
+     * @return Added up spectrum
+     *
+    */
     OpenSwath::SpectrumPtr fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
-                                              double RT, int nr_spectra_to_add, const double, const double);
+                                              double RT,
+                                              int nr_spectra_to_add,
+                                              const double drift_lower,
+                                              const double drift_upper);
 
   protected:
 
@@ -259,12 +294,16 @@ namespace OpenMS
      * @param[in] swath_maps The maps containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
+     * @param drift_lower Drift time lower extraction boundary
+     * @param drift_upper Drift time upper extraction boundary
      *
      * @return Added up spectrum
     */
-    OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
-        double RT, int nr_spectra_to_add, const double, const double);
-
+    OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
+                                            double RT,
+                                            int nr_spectra_to_add,
+                                            const double drift_lower,
+                                            const double drift_upper);
 
   };
 }
