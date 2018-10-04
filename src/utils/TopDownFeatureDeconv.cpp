@@ -92,7 +92,7 @@ protected:
         mtd_param.insert("", common_param);
         mtd_param.remove("chrom_fwhm");
         mtd_param.setValue("mass_error_ppm", 10.0, "Allowed mass deviation (in ppm).");
-        mtd_param.setValue("max_trace_length", 300.0, "");
+        //mtd_param.setValue("max_trace_length", 300.0, "");
         mtdet.setParameters(mtd_param);
         /*
          * defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
