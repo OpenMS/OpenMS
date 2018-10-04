@@ -67,8 +67,7 @@ IsotopeDistribution* nullPointer = nullptr;
 
 START_SECTION(CoarseIsotopePatternGenerator())
 {
-    CoarseIsotopePatternGenerator* ptr = nullptr;
-    ptr = new CoarseIsotopePatternGenerator();
+    CoarseIsotopePatternGenerator* ptr = new CoarseIsotopePatternGenerator();
     Size max_isotope = ptr->getMaxIsotope();
     TEST_EQUAL(max_isotope, 0)
     TEST_EQUAL(ptr->getRoundMasses(), false)
