@@ -495,9 +495,7 @@ protected:
     vector<FeatureMap> & feature_maps, 
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription>& transformations,
-    const double median_fwhm,
-    const UInt fraction,
-    const StringList & mz_files)
+    const double median_fwhm)
   {
     double max_alignment_diff(0.0);
 
@@ -522,28 +520,6 @@ protected:
     {
       MapConversion::convert(0, feature_maps.back(), consensus_fraction);                           
     }
-
-    ////////////////////////////////////////////////////////////
-    // Annotate experimental design in consensus map
-    ////////////////////////////////////////////////////////////
-    Size j(0);
-    // for each MS file (as provided in the experimental design)
-    for (String const & mz_file : mz_files) 
-    {
-      const Size fraction_group = j + 1;
-      consensus_fraction.getColumnHeaders()[j].label = "label-free";
-      consensus_fraction.getColumnHeaders()[j].filename = mz_file;
-      consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
-      consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction", fraction);
-      consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction_group", fraction_group);
-      ++j;
-    }
-
-    // assign unique ids
-    consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-    // sort list of peptide identifications in each consensus feature by map index
-    consensus_fraction.sortPeptideIdentificationsByMapIndex();
 
     return max_alignment_diff;
   }
@@ -854,9 +830,7 @@ protected:
         feature_maps, 
         consensus_fraction, 
         transformations,
-        median_fwhm, 
-        ms_files.first, 
-        ms_files.second);
+        median_fwhm);
     }
     else // Data already aligned. Link with previously determined alignment difference
     {
@@ -865,6 +839,29 @@ protected:
         max_alignment_diff,
         consensus_fraction);
     }
+
+    const StringList & mz_files(ms_files.second);
+    ////////////////////////////////////////////////////////////
+    // Annotate experimental design in consensus map
+    ////////////////////////////////////////////////////////////
+    Size j(0);
+    // for each MS file (as provided in the experimental design)
+    for (String const & mz_file : mz_files) 
+    {
+      const Size fraction_group = j + 1;
+      consensus_fraction.getColumnHeaders()[j].label = "label-free";
+      consensus_fraction.getColumnHeaders()[j].filename = mz_file;
+      consensus_fraction.getColumnHeaders()[j].unique_id = feature_maps[j].getUniqueId();
+      consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction", fraction);
+      consensus_fraction.getColumnHeaders()[j].setMetaValue("fraction_group", fraction_group);
+      ++j;
+    }
+
+    // assign unique ids
+    consensus_fraction.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    // sort list of peptide identifications in each consensus feature by map index
+    consensus_fraction.sortPeptideIdentificationsByMapIndex();
 
     if (debug_level_ >= 666)
     {
