@@ -64,18 +64,19 @@ namespace OpenMS
     // Any peaks below the intensity cutoff cannot be relevant. They are therefore removed resulting in reduced memory footprint and runtime.
     exp_centroided_.reserve(exp_centroided.getNrSpectra());
     // loop over spectra
-    for (MSExperiment::ConstIterator it_rt = exp_centroided.begin(); it_rt < exp_centroided.end(); ++it_rt)
+    //for (MSExperiment::ConstIterator it_rt = exp_centroided.begin(); it_rt < exp_centroided.end(); ++it_rt)
+    for (const auto &it_rt : exp_centroided)
     {
       MSSpectrum spectrum;
-      spectrum.setRT(it_rt->getRT());
+      spectrum.setRT(it_rt.getRT());
       // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
+      for (const auto it_mz : it_rt)
       {
-        if (it_mz->getIntensity() > intensity_cutoff_)
+        if (it_mz.getIntensity() > intensity_cutoff_)
         {
           Peak1D peak;
-          peak.setMZ(it_mz->getMZ());
-          peak.setIntensity(it_mz->getIntensity());
+          peak.setMZ(it_mz.getMZ());
+          peak.setIntensity(it_mz.getIntensity());
           spectrum.push_back(peak);
         }
       }
@@ -87,28 +88,16 @@ namespace OpenMS
     // initialise blacklist <blacklist_>
     blacklist_.reserve(exp_centroided_.getNrSpectra());
     // loop over spectra
-    for (MSExperiment::ConstIterator it_rt = exp_centroided_.begin(); it_rt < exp_centroided_.end(); ++it_rt)
+    for (const auto &it_rt : exp_centroided_)
     {
       std::vector<int> blacklist_spectrum;
-      blacklist_spectrum.reserve(it_rt->size());
+      blacklist_spectrum.reserve(it_rt.size());
       // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
+      for (const auto &it_mz : it_rt)
       {
         blacklist_spectrum.push_back(-1);
       }
       blacklist_.push_back(blacklist_spectrum);
-    }
-    
-    // blacklist low-intensity peaks
-    for (MSExperiment::ConstIterator it_rt = exp_centroided_.begin(); it_rt < exp_centroided_.end(); ++it_rt)
-    {
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
-      {
-        if (it_mz->getIntensity() < intensity_cutoff_)
-        {
-          blacklist_[it_rt - exp_centroided_.begin()][it_mz - it_rt->begin()] = 666;
-        }
-      }
     }
     
   }

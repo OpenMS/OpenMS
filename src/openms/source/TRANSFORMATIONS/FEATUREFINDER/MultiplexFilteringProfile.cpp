@@ -60,7 +60,7 @@ namespace OpenMS
     MSExperiment::ConstIterator it_rt;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
     for (it_rt = exp_centroided.begin(), it_rt_boundaries = boundaries.begin();
-         it_rt < exp_centroided.end(), it_rt_boundaries < boundaries.end();
+         it_rt != exp_centroided.end() && it_rt_boundaries != boundaries.end();
          ++it_rt, ++it_rt_boundaries)
     {
       // new boundaries of a single spectrum
