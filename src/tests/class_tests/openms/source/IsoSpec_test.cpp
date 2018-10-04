@@ -50,6 +50,23 @@ START_TEST(IsoSpec, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+typedef std::pair<double,double> isopair;
+std::vector<isopair> expected;
+expected.push_back(std::make_pair( 180.06338810843999453936704 , 0.92211923150129093684768122    ));
+expected.push_back(std::make_pair( 181.06674294364000843415852 , 0.060338187213731186986365174   ));
+expected.push_back(std::make_pair( 181.06760524584001359471586 , 0.0021130960055518325027557047  ));
+expected.push_back(std::make_pair( 181.06966485435998492903309 , 0.0012805273467946340793660598  ));
+expected.push_back(std::make_pair( 182.06763310194000382580271 , 0.01137744132753025667892377    ));
+expected.push_back(std::make_pair( 182.07009777883999390724057 , 0.0016450768656347837786552146  ));
+expected.push_back(std::make_pair( 182.07096008103999906779791 , 0.00013826886808985885154825446 ));
+expected.push_back(std::make_pair( 182.07301968955999882382457 , 8.3790356109809577852924611e-05 ));
+expected.push_back(std::make_pair( 183.07098793713998929888476 , 0.00074447442519563354536987765 ));
+expected.push_back(std::make_pair( 183.0718502393399944594421  , 2.1726787058638343864448716e-05 ));
+expected.push_back(std::make_pair( 183.07345261403997938032262 , 2.3920974041512910987549237e-05 ));
+expected.push_back(std::make_pair( 183.07390984786002263717819 , 1.5799610569594269005293946e-05 ));
+expected.push_back(std::make_pair( 184.07187809544001311223838 , 5.8491247994869661650744336e-05 ));
+expected.push_back(std::make_pair( 184.07434277234000319367624 , 2.0297554674751325817869813e-05 ));
+
 IsoSpec* ptr = nullptr;
 IsoSpec* nullPointer = nullptr;
 START_SECTION((IsoSpec()))
@@ -71,18 +88,19 @@ START_SECTION(( void run(const std::string&) ))
   TEST_EQUAL(iso.getMasses().size(), 14)
   TEST_EQUAL(iso.getProbabilities().size(), 14)
 
-  TEST_REAL_SIMILAR(iso.getMasses()[0], 180.063)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[0], 0.922119)
+  std::vector<isopair> pairs;
+  // std::cout.precision(26);
+  for (Size k = 0; k < iso.getMasses().size(); k++)
+  {
+    pairs.emplace_back(std::make_pair(iso.getMasses()[k], iso.getProbabilities()[k]));
+  }
+  std::sort(pairs.begin(), pairs.end(),  [](isopair a, isopair b) {return a.first < b.first;});
 
-  // unsorted, the order is different
-  TEST_REAL_SIMILAR(iso.getMasses()[6], 182.068 ) 
-  TEST_REAL_SIMILAR(iso.getProbabilities()[6], 0.0113774 )
-
-  TEST_REAL_SIMILAR(iso.getMasses()[8], 184.07434277234)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[8], 2.02975552383577e-05)
-
-  TEST_REAL_SIMILAR(iso.getMasses()[13], 183.071850239339994459442)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.17268e-05)
+  for (Size i = 0; i != expected.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(pairs[i].first, expected[i].first);
+    TEST_REAL_SIMILAR(pairs[i].second, expected[i].second);
+  }
 
   // human insulin
   iso.run("C520H817N139O147S8");
@@ -106,18 +124,18 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
   TEST_EQUAL(iso.getMasses().size(), 14)
   TEST_EQUAL(iso.getProbabilities().size(), 14)
 
-  TEST_REAL_SIMILAR(iso.getMasses()[0], 180.063)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[0], 0.922119)
+  std::vector<isopair> pairs;
+  for (Size k = 0; k < iso.getMasses().size(); k++)
+  {
+    pairs.emplace_back(std::make_pair(iso.getMasses()[k], iso.getProbabilities()[k]));
+  }
+  std::sort(pairs.begin(), pairs.end(),  [](isopair a, isopair b) {return a.first < b.first;});
 
-  // unsorted, the order is different
-  TEST_REAL_SIMILAR(iso.getMasses()[6], 182.068 ) 
-  TEST_REAL_SIMILAR(iso.getProbabilities()[6], 0.0113774 )
-
-  TEST_REAL_SIMILAR(iso.getMasses()[8], 184.07434277234)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[8], 2.02975552383577e-05)
-
-  TEST_REAL_SIMILAR(iso.getMasses()[13], 183.071850239339994459442)
-  TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.17268e-05)
+  for (Size i = 0; i != expected.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(pairs[i].first, expected[i].first);
+    TEST_REAL_SIMILAR(pairs[i].second, expected[i].second);
+  }
 
   // human insulin
   iso.run("C520H817N139O147S8");
@@ -174,11 +192,18 @@ START_SECTION((
     TEST_EQUAL(iso.getMasses().size(), 14)
     TEST_EQUAL(iso.getProbabilities().size(), 14)
 
-    TEST_REAL_SIMILAR(iso.getMasses()[0], 180.063)
-    TEST_REAL_SIMILAR(iso.getProbabilities()[0], 0.922633179415611) // 0.922119)
+    std::vector<isopair> pairs;
+    for (Size k = 0; k < iso.getMasses().size(); k++)
+    {
+      pairs.emplace_back(std::make_pair(iso.getMasses()[k], iso.getProbabilities()[k]));
+    }
+    std::sort(pairs.begin(), pairs.end(),  [](isopair a, isopair b) {return a.first < b.first;});
 
-    TEST_REAL_SIMILAR(iso.getMasses()[13], 183.07345538280000596387254) // 183.071850239339994459442)
-    TEST_REAL_SIMILAR(iso.getProbabilities()[13], 2.3346748674918047107952959e-05) // 2.17268e-05)
+    for (Size i = 0; i != expected.size(); ++i)
+    {
+      TEST_REAL_SIMILAR(pairs[i].first, expected[i].first);
+      TEST_REAL_SIMILAR(pairs[i].second, expected[i].second);
+    }
   }
 
   // TEST exception:
