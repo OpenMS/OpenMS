@@ -149,7 +149,7 @@ namespace OpenMS
 
     /// Move constructor
     IdentificationData(IdentificationData&& other):
-      current_step_ref_(other.current_step_ref_)
+     current_step_ref_(std::move(other.current_step_ref_) )
     {
       input_files_.swap(other.input_files_);
       processing_software_.swap(other.processing_software_);
