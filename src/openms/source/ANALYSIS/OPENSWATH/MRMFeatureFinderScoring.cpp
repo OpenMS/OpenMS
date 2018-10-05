@@ -184,8 +184,6 @@ namespace OpenMS
                                                std::vector<OpenSwath::SwathMap> swath_maps,
                                                TransitionGroupMapType& transition_group_map)
   {
-    updateMembers_();
-
     //
     // Step 1
     //
@@ -194,9 +192,8 @@ namespace OpenMS
 
     // Store the proteins from the input in the output feature map
     std::vector<ProteinHit> protein_hits;
-    for (Size i = 0; i < transition_exp.getProteins().size(); i++)
+    for (const ProteinType& prot : transition_exp.getProteins())
     {
-      const ProteinType& prot = transition_exp.getProteins()[i];
       ProteinHit prot_hit = ProteinHit();
       prot_hit.setSequence(prot.sequence);
       prot_hit.setAccession(prot.id);
@@ -240,7 +237,7 @@ namespace OpenMS
 
       setProgress(++progress);
       MRMTransitionGroupType& transition_group = trgroup_it->second;
-      if (transition_group.getChromatograms().size() == 0 || transition_group.getTransitions().size() == 0)
+      if (transition_group.getChromatograms().empty() || transition_group.getTransitions().empty())
       {
         continue;
       }

@@ -877,7 +877,7 @@ protected:
     // Set up chromatogram output
     // Either use chrom.mzML or sqlite DB
     ///////////////////////////////////
-    Interfaces::IMSDataConsumer * chromatogramConsumer;
+    Interfaces::IMSDataConsumer* chromatogramConsumer;
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom);
 
     ///////////////////////////////////
