@@ -32,12 +32,36 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-project("OpenMS-3rd-party-libs")
+project("OpenMS-IsoSpec")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-# eol-bspline lib .. note this library will not be compiled
-# but we only expose the sources
-add_subdirectory(eol-bspline)
 
-add_subdirectory(IsoSpec)
+set(_ISOSPEC_SOURCES
+cwrapper.cpp
+allocator.cpp  
+dirtyAllocator.cpp 
+isoSpec++.cpp 
+isoMath.cpp 
+marginalTrek++.cpp 
+operators.cpp
+element_tables.cpp
+misc.cpp
+)
+
+# export include directory
+set(ISOSPEC_INCLUDE_DIRECTORY
+  ${PROJECT_SOURCE_DIR}
+  CACHE
+  INTERNAL "isospec include directories" FORCE
+)
+
+set(ISOSPEC_SOURCES )
+foreach(_file ${_ISOSPEC_SOURCES})
+  # append source files
+  set(
+    ISOSPEC_SOURCES
+    ${ISOSPEC_SOURCES}
+    ${PROJECT_SOURCE_DIR}/IsoSpec/${_file}
+  )
+endforeach()
 

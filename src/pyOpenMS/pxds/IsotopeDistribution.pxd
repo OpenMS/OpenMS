@@ -62,6 +62,21 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
         MASS
         UNDEFINED
 
+cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>" namespace "OpenMS":
+
+    cdef cppclass FineIsotopePatternGenerator:
+
+        FineIsotopePatternGenerator() nogil except + 
+        FineIsotopePatternGenerator(double threshold) nogil except +
+
+        void setThreshold(double threshold) nogil except +
+        double getThreshold() nogil except +
+
+        void setAbsolute(bool absolute) nogil except +
+        bool getAbsolute() nogil except +
+
+        IsotopeDistribution run(EmpiricalFormula) nogil except +
+
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>" namespace "OpenMS":
 
     cdef cppclass CoarseIsotopePatternGenerator:

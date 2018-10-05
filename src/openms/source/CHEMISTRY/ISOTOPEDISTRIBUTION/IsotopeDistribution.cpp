@@ -33,9 +33,10 @@
 // --------------------------------------------------------------------------
 //
 
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -79,10 +80,14 @@ namespace OpenMS
     return *this;
   }
 
-
   void IsotopeDistribution::set(const ContainerType & distribution)
   {
     distribution_ = distribution;
+  }
+
+  void IsotopeDistribution::set(ContainerType && distribution)
+  {
+    distribution_ = std::move(distribution);
   }
 
   const IsotopeDistribution::ContainerType& IsotopeDistribution::getContainer() const
