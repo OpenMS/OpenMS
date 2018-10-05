@@ -126,6 +126,9 @@ namespace OpenMS
 
     Iso* iso = new Iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
     run_(iso);
+    delete iso;
+    delete[] IM;
+    delete[] IP;
   }
 
 
@@ -142,6 +145,7 @@ namespace OpenMS
 
     delete generator;
     delete tabulator;
+    delete iso;
   }
 
   void runOrdered(const std::string& formula)
@@ -156,6 +160,7 @@ namespace OpenMS
 
     delete generator;
     delete tabulator;
+    delete iso;
   }
 
 
