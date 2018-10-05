@@ -80,11 +80,9 @@ namespace OpenMS
     c.reserve( algorithm.getMasses().size() );
     auto mit = algorithm.getMasses().cbegin();
     auto pit = algorithm.getProbabilities().cbegin();
-    while (mit != algorithm.getMasses().end())
+    while (mit != algorithm.getMasses().cend())
     {
-      // c.emplace_back( Peak1D(algorithm.getMasses()[k], algorithm.getProbabilities()[k] ) ); k++;
       c.emplace_back( Peak1D(*mit, *pit) );
-      // c.push_back( Peak1D(*mit, *pit) );
       mit++; pit++;
     }
 

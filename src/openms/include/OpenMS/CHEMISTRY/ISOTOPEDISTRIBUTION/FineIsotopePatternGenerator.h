@@ -67,6 +67,7 @@ namespace OpenMS
     * @note Computation of fine isotope patterns can be slow for large
     * molecules, if you don't need fine isotope distributions consider using
     * CoarseIsotopePatternGenerator.
+    * @note Consider using IsoSpec directly for increased performance.
     *
     * The computation is based on the IsoSpec algorithm
     *
@@ -108,6 +109,10 @@ namespace OpenMS
       *
       * Iterates through all elements, convolves them according to the number
       * of atoms from that element and sums up the result.
+      *
+      * @note The constructed isotope distribution is sorted by m/z which slows
+      * down processing, consider using IsoSpec directly for increased
+      * performance.
       *
       **/
     IsotopeDistribution run(const EmpiricalFormula&) const;
