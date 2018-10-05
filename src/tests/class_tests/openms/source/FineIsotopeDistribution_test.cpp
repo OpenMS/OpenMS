@@ -263,6 +263,56 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
       TEST_REAL_SIMILAR(id.getContainer()[i].getIntensity(), container[i].getIntensity())
     }
   }
+
+#if 0
+  // Do some stress testing of the library...
+  // Stress test takes about 20 seconds
+  int calculated_masses = 0;
+  for (Size k = 0; k < 100; k++)
+  {
+    // human insulin
+    EmpiricalFormula ef (String("C") + (520 + k) +
+                         String("H") + (817 + k) + 
+                         String("N") + (139 + k) +
+                         String("O") + (147 + k) +
+                         String("S") + ( 8  + int(k/5)) ); // Sulfur is hard to do because of the abundant isotope 34
+
+    std::cout << " Working on stress test " << k << " " << ef.toString() << std::endl;
+
+    {
+      FineIsotopePatternGenerator gen;
+      IsotopeDistribution id = gen.run(ef);
+      calculated_masses += id.size();
+
+      gen.setThreshold(1e-5);
+      id = gen.run(ef);
+      calculated_masses += id.size();
+    }
+  }
+  TEST_EQUAL(calculated_masses, 1592882)
+  for (Size k = 0; k < 100; k++)
+  {
+    // human insulin
+    EmpiricalFormula ef (String("C") + (520 + k) +
+                         String("H") + (817 + k) + 
+                         String("N") + (139 + k) +
+                         String("O") + (147 + k) +
+                         String("S") + ( 8  + int(k/5)) ); // Sulfur is hard to do because of the abundant isotope 34
+
+    std::cout << " Working on stress test " << k << " " << ef.toString() << std::endl;
+
+    {
+      FineIsotopePatternGenerator gen;
+      IsotopeDistribution id = gen.run(ef);
+      calculated_masses += id.size();
+
+      gen.setThreshold(1e-5);
+      id = gen.run(ef);
+      calculated_masses += id.size();
+    }
+  }
+  TEST_EQUAL(calculated_masses, 1592882*2) // repeat the test, we should get the same result
+#endif
 }
 END_SECTION
 
