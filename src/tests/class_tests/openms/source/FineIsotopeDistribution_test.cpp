@@ -264,18 +264,19 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
     }
   }
 
+#if 0
   // Do some stress testing of the library...
   // Stress test takes about 20 seconds
-#if 0
+  // there is a significant drop in speed due to copying (and sorting) of data
   int sum = 0;
-  for (Size k = 0; k < 1e5; k++)
+  for (Size k = 0; k < 2e5; k++)
   {
     EmpiricalFormula ef ("C520H817N139O147");
-    FineIsotopePatternGenerator gen;
+    FineIsotopePatternGenerator gen(1e-2, false);
     IsotopeDistribution id = gen.run(ef);
     sum += id.size();
   }
-  TEST_EQUAL(sum, 139*1e5)
+  TEST_EQUAL(sum, 139*2*1e5) // we use OpenMS isotopic tables, we get 139 instead of 140
 
   int calculated_masses = 0;
   for (Size k = 0; k < 100; k++)

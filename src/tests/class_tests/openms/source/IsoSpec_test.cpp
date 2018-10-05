@@ -235,6 +235,25 @@ START_SECTION((
 }
 END_SECTION
 
+#if 0
+START_SECTION(( [STRESSTEST] void run(const std::string&) ))
+{
+  // Do some stress testing of the library...
+  // this is close to the performance of IsoSpec by itself
+  int sum = 0;
+  for (Size k = 0; k < 2e5; k++)
+  {
+    double threshold = 1e-2;
+    bool absolute = false;
+    IsoSpec iso(threshold, absolute);
+    iso.run("C520H817N139O147");
+    sum += iso.getMasses().size();
+  }
+  TEST_EQUAL(sum, 140*2*1e5)
+}
+END_SECTION
+#endif
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
