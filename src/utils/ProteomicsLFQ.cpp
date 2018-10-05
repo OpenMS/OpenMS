@@ -663,7 +663,9 @@ protected:
       // delete meta info to free some space
       for (PeptideIdentification & pid : peptide_ids)
       {
-        pid.clearMetaInfo();
+        // we currently can't clear the PeptideIdentification meta data
+        // because the spectrum_reference is stored in the meta value (which it probably shouldn't)
+        // TODO: pid.clearMetaInfo(); if we move it to the PeptideIdentification structure
         for (PeptideHit & ph : pid.getHits())
         {
           ph.clearMetaInfo();
@@ -711,11 +713,26 @@ protected:
         }
       }
 
-      // reannotate spectrum references
-      SpectrumMetaDataLookup::addMissingSpectrumReferences(
-        peptide_ids, 
-        mz_file_abs_path,
-        true);
+      bool missing_spec_ref(false);
+      for (const PeptideIdentification & pid : peptide_ids)
+      {
+        if (pid.getMetaValue("spectrum_reference").empty()) 
+        {          
+          missing_spec_ref = true;
+          break;
+        }
+      }
+      // reannotate spectrum references if missing
+      if (missing_spec_ref)
+      {
+        LOG_WARN << "The identification files don't contain a meta value with the spectrum native id." << endl;
+        LOG_WARN << "OpenMS will try to reannotate them by matching retention times between id and spectra." << endl;
+
+        SpectrumMetaDataLookup::addMissingSpectrumReferences(
+          peptide_ids, 
+          mz_file_abs_path,
+          true);
+      }
 
       //-------------------------------------------------------------
       // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
@@ -879,7 +896,7 @@ protected:
     //-------------------------------------------------------------
     ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(
       consensus_fraction, 
-      ConsensusMapNormalizerAlgorithmMedian::NM_SHIFT, 
+      ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
       "", 
       "");
 
