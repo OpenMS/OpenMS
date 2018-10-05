@@ -89,8 +89,10 @@ namespace OpenMS
   void IsoSpec::run(const std::string& formula)
   {
     Iso* iso = new Iso(formula.c_str());
-
     run_(iso);
+    // destruction of the Iso data structure itself (ptrs have been handed over
+    // to the generator, however we still need to destroy the struct itself).
+    delete iso;
   }
 
   void IsoSpec::run(const std::vector<int>& isotopeNr,
