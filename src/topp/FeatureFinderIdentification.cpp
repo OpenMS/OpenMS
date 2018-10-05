@@ -268,6 +268,11 @@ protected:
         ffid_algo.getChromatograms().clear(true);
       }
 
+      // annotate mzML file
+      StringList feature_msfile_ref;
+      feature_msfile_ref.push_back(in);
+      features.setPrimaryMSRunPath("file://" + feature_msfile_ref);
+
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
     }
     else
