@@ -57,28 +57,24 @@ namespace OpenMS
     // Now we still need to discard boundaries of low intensity peaks, in order to preserve the one-to-one mapping between peaks and boundaries.
     boundaries_.reserve(boundaries.size());
     // loop over spectra and boundaries
-    MSExperiment::ConstIterator it_rt;
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-    for (it_rt = exp_centroided.begin(), it_rt_boundaries = boundaries.begin();
-         it_rt != exp_centroided.end() && it_rt_boundaries != boundaries.end();
-         ++it_rt, ++it_rt_boundaries)
+    for (const auto &it_rt : exp_centroided)
     {
+      size_t idx_rt = &it_rt - &exp_centroided[0];
+      
       // new boundaries of a single spectrum
       std::vector<PeakPickerHiRes::PeakBoundary> boundaries_temp;
       
       // loop over m/z peaks and boundaries
-      MSSpectrum::ConstIterator it_mz;
-      std::vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
-      for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
-           it_mz != it_rt->end() && it_mz_boundaries != it_rt_boundaries->end();
-           ++it_mz, ++it_mz_boundaries)
+      for (const auto &it_mz : it_rt)
       {
-        if (it_mz->getIntensity() > intensity_cutoff_)
+        size_t idx_mz = &it_mz - &it_rt[0];
+        
+        if (it_mz.getIntensity() > intensity_cutoff_)
         {
-          boundaries_temp.push_back(*it_mz_boundaries);
+          boundaries_temp.push_back(boundaries[idx_rt][idx_mz]);
 
           // Check consistency of peaks and their peak boundaries, i.e. check that the peak lies in the boundary interval.
-          if (((*it_mz_boundaries).mz_min > it_mz->getMZ()) || (it_mz->getMZ() > (*it_mz_boundaries).mz_max))
+          if (boundaries[idx_rt][idx_mz].mz_min > it_mz.getMZ() || it_mz.getMZ() > boundaries[idx_rt][idx_mz].mz_max)
           {
             throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
           }
@@ -203,7 +199,6 @@ namespace OpenMS
             std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile;
 
             // construct the set of spline-interpolated satellites for this specific mz_profile
-            //for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites.begin(); satellite_it != satellites.end(); ++satellite_it)
             for (const auto &satellite_it : satellites)
             {
               // find indices of the peak

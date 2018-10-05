@@ -80,25 +80,27 @@ namespace OpenMS
   
       // filter (white) experiment
       // loop over spectra
-      for (MSExperiment::ConstIterator it_rt = exp_centroided_white_.begin(); it_rt < exp_centroided_white_.end(); ++it_rt)
+      for (const auto &it_rt : exp_centroided_white_)
       {
         // skip empty spectra
-        if (it_rt->empty())
+        if (it_rt.empty())
         {
           continue;
         }
 
         setProgress(++progress);
 
-        double rt = it_rt->getRT();
+        double rt = it_rt.getRT();
+        size_t idx_rt = &it_rt - &exp_centroided_white_[0];
+        
         MSExperiment::ConstIterator it_rt_band_begin = exp_centroided_white_.RTBegin(rt - rt_band_/2);
         MSExperiment::ConstIterator it_rt_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over m/z
-        for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
+        for (MSSpectrum::ConstIterator it_mz = it_rt.begin(); it_mz != it_rt.end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[it_rt - exp_centroided_white_.begin()][it_mz - it_rt->begin()], it_rt - exp_centroided_white_.begin());
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][it_mz - it_rt.begin()], idx_rt);
           
           if (!(filterPeakPositions_(it_mz, exp_centroided_white_.begin(), it_rt_band_begin, it_rt_band_end, pattern, peak)))
           {
