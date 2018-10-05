@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -80,6 +81,8 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
   std::vector<int> features(old_spectrum.size(), -1);
   int feature_number = 0;
 
+  std::vector<unsigned int> extensions;
+
   for (unsigned int current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
   {
     const double current_mz = old_spectrum[current_peak].getMZ();
@@ -93,32 +96,27 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
       if (features[current_peak] == -1) // only process peaks which have no assigned feature number
       {
         bool has_min_isopeaks = true;
-        std::vector<unsigned int> extensions;
-        for (unsigned int i = 0; i < max_isopeaks; ++i)
+        const double tolerance_dalton = fragment_unit_ppm ? Math::ppmToMass(fragment_tolerance, current_mz) : fragment_tolerance;
+        extensions.clear();
+        extensions.push_back(current_peak);
+        for (unsigned int i = 1; i < max_isopeaks; ++i)
         {
           const double expected_mz = current_mz + static_cast<double>(i) * Constants::C13C12_MASSDIFF_U / static_cast<double>(q);
-          const unsigned int p = old_spectrum.findNearest(expected_mz);
-          const double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * expected_mz * 1e-6 : fragment_tolerance;
-          const double distance_to_closest = fabs(old_spectrum[p].getMZ() - expected_mz);
-          if (distance_to_closest > tolerance_dalton) // test for missing peak
+          const int p = old_spectrum.findNearest(expected_mz, tolerance_dalton);
+          if (p == -1) // test for missing peak
           {
-            if (i < min_isopeaks) { has_min_isopeaks = false;}
+            has_min_isopeaks = (i >= min_isopeaks);
             break;
           }
           else
           {
             // Possible improvement: include proper averagine model filtering. for now start at the second peak to test hypothesis
             // Note: this is a common approach used in several other search engines
-            unsigned int n_extensions = extensions.size();
-            if (n_extensions != 0)
+            if (old_spectrum[p].getIntensity() > old_spectrum[extensions.back()].getIntensity())
             {
-              if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
-              {
-                if (i < min_isopeaks) { has_min_isopeaks = false; }
-               break;
-              }
+              has_min_isopeaks = (i >= min_isopeaks);
+              break;
             }
-
             // averagine check passed
             extensions.push_back(p);
           }
