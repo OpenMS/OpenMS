@@ -11,6 +11,6 @@ cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
 
         MSstatsFile() nogil except +
         
-        store(String & filename, ConsensusMap & consensus_map, ExperimentalDesign & design, 
+        void store(String & filename, ConsensusMap & consensus_map, ExperimentalDesign & design, 
           StringList & reannotate_filenames, bool is_isotope_label_type, 
           String & bioreplicate, String & condition, String & retention_time_summarization_method) nogil except +
