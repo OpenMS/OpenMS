@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
@@ -40,7 +42,38 @@ namespace OpenMS
 
   MRMFeatureScheduler::~MRMFeatureScheduler() {}
 
-  // TODO I guess we are supposed to use setParameters()
-  void MRMFeatureScheduler::schedule_MRMFeatures_qmip() {}
-  void MRMFeatureScheduler::schedule_MRMFeatures_score() {}
+  FeatureMap MRMFeatureScheduler::schedule_MRMFeatures(MRMFeatureSelector& feature_selector, FeatureMap& features) {
+    int nn_thresholds[] = {2, 4, 6, 4};
+    bool locality_weights[] = {false, true, true, true};
+    bool select_transition_groups[] = {true, true, true, true};
+    int segment_window_lengths[] = {12, 24, 48, -1};
+    int segment_step_lengths[] = {2, 6, 12, -1};
+    bool select_highest_counts[] = {false, false, false, false};
+    String variable_types[] = {"continous", "continous", "continous", "continous"};
+    double optimal_thresholds[] = {0.5, 0.5, 0.5, 0.5};
+    FeatureMap optimal_features = features;
+    for (size_t i = 0; i < 2; ++i) {
+      feature_selector.setNNThreshold(nn_thresholds[i]);
+      feature_selector.setLocalityWeight(locality_weights[i]);
+      feature_selector.setSelectTransitionGroup(select_transition_groups[i]);
+      feature_selector.setSegmentWindowLength(segment_window_lengths[i]);
+      feature_selector.setSegmentStepLength(segment_step_lengths[i]);
+      feature_selector.setSelectHighestCount(select_highest_counts[i]);
+      feature_selector.setVariableType(variable_types[i]);
+      feature_selector.setOptimalThreshold(optimal_thresholds[i]);
+      optimal_features = feature_selector.select_MRMFeature(optimal_features);
+      std::cout << "optimal_features " << optimal_features.size() << std::endl;
+    }
+    return optimal_features;
+  }
+
+  FeatureMap MRMFeatureScheduler::schedule_MRMFeaturesQMIP(FeatureMap& features) {
+    MRMFeatureSelectorQMIP feature_selector;
+    return schedule_MRMFeatures(feature_selector, features);
+  }
+
+  FeatureMap MRMFeatureScheduler::schedule_MRMFeatures_score(FeatureMap& features) {
+    MRMFeatureSelectorScore feature_selector;
+    return schedule_MRMFeatures(feature_selector, features);
+  }
 }

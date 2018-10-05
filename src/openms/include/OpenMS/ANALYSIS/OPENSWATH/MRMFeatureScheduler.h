@@ -37,6 +37,8 @@
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <map>
 #include <vector>
 
@@ -48,12 +50,9 @@ public:
     MRMFeatureScheduler();
     virtual ~MRMFeatureScheduler();
 
-    void schedule_MRMFeatures_qmip();
-    void schedule_MRMFeatures_score();
-
-private:
-    std::vector<Param> select_params_;
-    std::vector<std::map<std::string,double>> select_score_weights_;
+    FeatureMap schedule_MRMFeatures(MRMFeatureSelector& feature_selector, FeatureMap& features);
+    FeatureMap schedule_MRMFeaturesQMIP(FeatureMap& features);
+    FeatureMap schedule_MRMFeatures_score(FeatureMap& features);
   };
 }
 

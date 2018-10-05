@@ -100,7 +100,7 @@ public:
 
     enum Type
     {
-      UNBOUNDED = 1,
+      UNBOUNDED = 1, 
       LOWER_BOUND_ONLY,
       UPPER_BOUND_ONLY,
       DOUBLE_BOUNDED,

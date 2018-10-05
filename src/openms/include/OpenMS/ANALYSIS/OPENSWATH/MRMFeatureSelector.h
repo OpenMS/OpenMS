@@ -58,7 +58,9 @@ public:
       std::map< String, std::vector<Feature> > feature_name_map
     )=0;
     FeatureMap select_MRMFeature(FeatureMap& features);
-    double make_score(Feature& feature);
+    virtual double make_score(Feature& feature)=0;
+
+    String remove_spaces(String str);
 
     void setNNThreshold(const double& nn_threshold);
     double getNNThreshold() const;
@@ -98,7 +100,7 @@ private:
     bool   select_highest_count_;
     String variable_type_;
     double optimal_threshold_;
-    Int _addVariable(LPWrapper& problem, String& name, double lb, double ub, double obj);
+    Int _addVariable(LPWrapper& problem, String& name, bool bounded, double obj);
     void _addConstraint(LPWrapper& problem, size_t size, Int *indices_array, double *values_array, String name, double lb, double ub, LPWrapper::Type param);
   };
 
@@ -109,6 +111,7 @@ public:
       std::vector<std::pair<double, String>> time_to_name, 
       std::map< String, std::vector<Feature> > feature_name_map
     );
+    double make_score(Feature& feature);
   };
 
   class OPENMS_DLLAPI MRMFeatureSelectorScore : public MRMFeatureSelector
@@ -118,6 +121,7 @@ public:
       std::vector<std::pair<double, String>> time_to_name, 
       std::map< String, std::vector<Feature> > feature_name_map
     );
+    double make_score(Feature& feature);
   };
 }
 

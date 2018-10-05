@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/MRMFeatureQCFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
@@ -150,20 +151,6 @@ END_SECTION
 
 START_SECTION(select_MRMFeature())
 {
-        //   select_transition_groups = True
-        // segment_window_length = -1
-        // segment_step_length = -1
-        // select_highest_count = False
-        // variable_type = 'integer'
-        // optimal_threshold = 0.5
-    // double nn_threshold_;
-    // bool   locality_weight_;
-    // bool   select_transition_group_;
-    // double segment_window_length_;
-    // double segment_step_length_;
-    // bool   select_highest_count_;
-    // String variable_type_;
-    // double optimal_threshold_;
   ptr->setSelectTransitionGroup(true);
   ptr->setSegmentWindowLength(-1);
   ptr->setSegmentWindowLength(-1);
@@ -180,24 +167,42 @@ START_SECTION(select_MRMFeature())
 }
 END_SECTION
 
+
+START_SECTION(remove_spaces())
+{
+  TEST_EQUAL(ptr->remove_spaces("h e ll o"), "hello");
+  TEST_EQUAL(ptr->remove_spaces("hello"), "hello");
+  TEST_EQUAL(ptr->remove_spaces(""), "");
+  TEST_EQUAL(ptr->remove_spaces("A    B"), "AB");
+}
+END_SECTION
+
 delete ptr;
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+MRMFeatureScheduler* ptrQMIP = 0;
+ptrQMIP = new MRMFeatureScheduler();
 
-// MRMFeatureSelectorQMIP* ptrQMIP = 0;
-// ptrQMIP = new MRMFeatureSelectorQMIP();
-
-// START_SECTION(select_MRMFeatureQMIP())
-// {
-//   FeatureMap output_selected = ptrQMIP->select_MRMFeature(feature_map);
-//   TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);
-//   TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");
-//   TEST_EQUAL(output_selected[0].getSubordinates()[0].getRT(), 15.8944563381195);
-//   TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 1080.0);
-//   TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "oxa.oxa_1.Heavy");
-//   TEST_EQUAL(output_selected[50].getSubordinates()[0].getRT(), 13.4963475631714);
-// }
-// END_SECTION
+START_SECTION(schedule_MRMFeaturesQMIP())
+{
+  FeatureMap output_selected = ptrQMIP->schedule_MRMFeaturesQMIP(feature_map);
+  size_t c=0;
+  for (FeatureMap::iterator it = output_selected.begin(); it != output_selected.end(); ++it) {
+    ++c;
+    for (std::vector<Feature>::const_iterator sub_it = it->getSubordinates().begin();
+            sub_it != it->getSubordinates().end(); ++sub_it) {
+      std::cout << sub_it->getMetaValue("peak_apex_int") << std::endl;
+      std::cout << sub_it->getMetaValue("native_id") << std::endl;
+      std::cout << sub_it->getRT() << std::endl;
+    }
+  }
+  std::cout << c << " TOTAL" << std::endl;
+  TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);
+  TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");
+  TEST_EQUAL(output_selected[0].getSubordinates()[0].getRT(), 15.8944563381195);
+  TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 1080.0);
+  TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "oxa.oxa_1.Heavy");
+  TEST_EQUAL(output_selected[50].getSubordinates()[0].getRT(), 13.4963475631714);
+}
+END_SECTION
 
 END_TEST

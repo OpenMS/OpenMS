@@ -50,11 +50,15 @@ namespace OpenMS
 
   MRMFeatureSelector::~MRMFeatureSelector() {}
 
-  Int MRMFeatureSelector::_addVariable(LPWrapper& problem, String& name, double lb=0., double ub=1., double obj=1.) {
+  Int MRMFeatureSelector::_addVariable(LPWrapper& problem, String& name, bool bounded=true, double obj=1.) {
     Int index = problem.addColumn();
-    problem.setColumnBounds(index, lb, ub, LPWrapper::DOUBLE_BOUNDED);
+    if (bounded) {
+      problem.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
+    } else {
+      problem.setColumnBounds(index, 0, 1, LPWrapper::UNBOUNDED);
+    }
     problem.setColumnName(index, name);
-    problem.setColumnType(index, LPWrapper::INTEGER);
+    problem.setColumnType(index, LPWrapper::CONTINUOUS);
     problem.setObjective(index, obj);
     return index;
   }
@@ -79,7 +83,7 @@ namespace OpenMS
       for (size_t i=0; i < feature_row1.size(); ++i) {
         String name1 = time_to_name[cnt1].second + "_" + (String)feature_row1[i].getUniqueId();
         if (variables.find(name1) == variables.end()) {
-            constraints.push_back(_addVariable(problem, name1, 0., 1., make_score(feature_row1[i])));
+            constraints.push_back(_addVariable(problem, name1, true, make_score(feature_row1[i])));
             variables.insert(name1);
         }
       }
@@ -100,6 +104,12 @@ namespace OpenMS
     return result;
   }
 
+  String MRMFeatureSelector::remove_spaces(String str) {
+    String::iterator end_pos = std::remove(str.begin(), str.end(), ' ');
+    str.erase(end_pos, str.end());
+    return str;
+  }
+
   std::vector<String> MRMFeatureSelectorQMIP::optimize(
       std::vector<std::pair<double, String>> time_to_name, 
       std::map< String, std::vector<Feature> > feature_name_map
@@ -109,28 +119,33 @@ namespace OpenMS
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
     for (size_t cnt1=0; cnt1 < time_to_name.size(); ++cnt1) {
+      size_t start_iter = std::max((int)cnt1 - (int)nn_threshold_, 0);
+      size_t stop_iter = std::min((int)cnt1 + (int)nn_threshold_ + 1, (int)time_to_name.size());
       std::vector<Int> constraints;
       std::vector<Feature> feature_row1 = feature_name_map[time_to_name[cnt1].second];
       for (size_t i=0; i < feature_row1.size(); ++i) {
         String name1 = time_to_name[cnt1].second + "_" + (String)feature_row1[i].getUniqueId();
         if (variables.find(name1) == variables.end()) {
-            constraints.push_back(_addVariable(problem, name1));
+            constraints.push_back(_addVariable(problem, name1, true, 0));
             variables.insert(name1);
+        } else {
+            constraints.push_back(problem.getColumnIndex(name1));
         }
-        // TODO: nearest neighbours, not all the components
-        for (size_t cnt2=0; cnt2 < time_to_name.size(); ++cnt2) {
+        for (size_t cnt2 = start_iter; cnt2 < stop_iter; ++cnt2) {
           if (cnt1 == cnt2) continue;
           std::vector<Feature> feature_row2 = feature_name_map[time_to_name[cnt2].second];
           for (size_t j=0; j < feature_row2.size(); ++j) {
             String name2 = time_to_name[cnt2].second + "_" + (String)feature_row2[j].getUniqueId();
             if (variables.find(name2) == variables.end()) {
-                _addVariable(problem, name2);
+                _addVariable(problem, name2, true, 0);
                 variables.insert(name2);
             }
+            double locality_weight = 1.0;
+            if (locality_weight_) locality_weight = 1.0/(nn_threshold_ - std::abs((int)start_iter + (int)cnt2 - (int)cnt1) + 1);
             String var_qp_name = time_to_name[cnt1].second + "_" + (String)i + "-" + time_to_name[cnt2].second + "_" + (String)j;
             String var_abs_name = var_qp_name + "-ABS";
-            Int index_var_qp = _addVariable(problem, var_qp_name);
-            Int index_var_abs = _addVariable(problem, var_abs_name, -1000., 1000.);
+            Int index_var_qp = _addVariable(problem, var_qp_name, true, 0);
+            Int index_var_abs = _addVariable(problem, var_abs_name, false, 1);
             Int index1 = problem.getColumnIndex(name1);
             Int index2 = problem.getColumnIndex(name2);
             Int indices1[] = {index1, index_var_qp};
@@ -144,8 +159,7 @@ namespace OpenMS
             Int indices_abs[] = {index_var_abs, index_var_qp};
             double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
             double tr_delta = feature_row1[i].getRT() - feature_row2[j].getRT();
-            double score = make_score(feature_row1[i]) * make_score(feature_row2[j]) * (tr_delta - tr_delta_expected);
-            std::cout << "score " << score << std::endl;
+            double score = locality_weight*make_score(feature_row1[i]) * make_score(feature_row2[j]) * (tr_delta - tr_delta_expected);
             double values_abs_plus[] = {-1., score};
             _addConstraint(problem, 2, indices_abs, values_abs_plus, var_qp_name + "-obj+", -1., 0., LPWrapper::UPPER_BOUND_ONLY);
             double values_abs_minus[] = {-1., -score};
@@ -159,12 +173,19 @@ namespace OpenMS
     LPWrapper::SolverParam param;
     problem.solve(param);
     std::vector<String> result;
+    String name;
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c) {
-      if (problem.getColumnValue(c) > getOptimalThreshold()) {
-        result.push_back(problem.getColumnName(c));
+      name = problem.getColumnName(c);
+      if ((problem.getColumnValue(c) - getOptimalThreshold()) > 1e-06  && variables.find(name) != variables.end()) {
+        result.push_back(name);
+        std::cout << name << " " << problem.getColumnValue(c) << std::endl;
       }
     }
     std::cout << problem.getObjectiveValue() << std::endl;
+    problem.writeProblem("/home/svegal/problemX.mps", LPWrapper::FORMAT_MPS);
+    std::cout << "COLUMNS " << problem.getNumberOfColumns() << std::endl;
+    std::cout << "ROWS " << problem.getNumberOfRows() << std::endl;
+    std::cout << "FILTERED " << result.size() << std::endl;
     std::cout << "=======END OPTIMIZE TR========" << std::endl;
     return result;
   }
@@ -179,7 +200,10 @@ namespace OpenMS
     std::map< String, std::vector<Feature> > feature_name_map;
     size_t feature_count = 0;
     for (FeatureMap::iterator it = features.begin(); it != features.end(); ++it) {
-      String component_group_name = it->getMetaValue("PeptideRef").toString();
+      String component_group_name = remove_spaces(it->getMetaValue("PeptideRef").toString());
+      if (component_group_name.size() > 100) {
+        std::cout << "ATTENTION " << component_group_name << std::endl;
+      }
       double assay_retention_time = it->getMetaValue("assay_rt");
       if (names.find(component_group_name) == names.end()) {
         time_to_name.push_back(std::make_pair(assay_retention_time, component_group_name));
@@ -193,7 +217,7 @@ namespace OpenMS
       if (!getSelectTransitionGroup()) {
         for (std::vector<Feature>::const_iterator sub_it = it->getSubordinates().begin();
             sub_it != it->getSubordinates().end(); ++sub_it) {
-          String component_name = sub_it->getMetaValue("native_id").toString();
+          String component_name = remove_spaces(sub_it->getMetaValue("native_id").toString());
           if (names.find(component_name) != names.end()) {
             time_to_name.push_back(std::make_pair(assay_retention_time, component_name));
             names.insert(component_name);
@@ -209,14 +233,17 @@ namespace OpenMS
     std::cout << feature_count << " features detected" << std::endl;
     sort(time_to_name.begin(), time_to_name.end());
     double window_length = getSegmentWindowLength();
-    double step_length = getSegmentWindowLength();
+    double step_length = getSegmentStepLength();
     if (window_length == -1 && step_length == -1) {
       window_length = time_to_name.size();
       step_length = time_to_name.size();
     }
-    size_t n_segments = std::ceil(time_to_name.size() / step_length) ;
-    std::cout << n_segments << " SEGMENTS" << std::endl;
+    size_t n_segments = std::ceil(time_to_name.size() / step_length);
     std::vector<String> result_names;
+    std::cout << "time_to_name " << time_to_name.size() << std::endl;
+    std::cout << "window_length " << window_length << std::endl;
+    std::cout << "step_length " << step_length << std::endl;
+    std::cout << "SGMENTS " << n_segments << std::endl;
     for (size_t i=0; i < n_segments; ++i) {
       size_t start = step_length*i;
       size_t end = std::min(start + window_length, (double)time_to_name.size());
@@ -225,6 +252,7 @@ namespace OpenMS
       result_names.insert(result_names.end(), result.begin(), result.end());
     }
     std::unordered_set<std::string> result_names_set(result_names.begin(), result_names.end());
+    std::cout << "Filtered " << result_names_set.size() << " features" << std::endl;
     FeatureMap features_filtered;
     for (FeatureMap::iterator it = features.begin(); it != features.end(); ++it) {
       std::vector<Feature> subordinates_filtered;
@@ -249,7 +277,7 @@ namespace OpenMS
     return features_filtered;
   }
 
-  double MRMFeatureSelector::make_score(
+  double MRMFeatureSelectorScore::make_score(
     Feature& feature
   )
   {
@@ -258,7 +286,17 @@ namespace OpenMS
     if (peak_apices_sum <= 0.) peak_apices_sum = 1.;
     if (sn_ratio <= 0.) sn_ratio = 1.;
     return peak_apices_sum*sn_ratio;
-    // return pow(std::log((double)feature.getMetaValue("sn_ratio")), -1)*pow(std::log((double)feature.getMetaValue("peak_apices_sum")), -1);
+  }
+
+  double MRMFeatureSelectorQMIP::make_score(
+    Feature& feature
+  )
+  {
+    double peak_apices_sum = pow(std::log10((double)feature.getMetaValue("peak_apices_sum")), -1);
+    double sn_ratio = pow(std::log((double)feature.getMetaValue("sn_ratio")), -1);
+    if (peak_apices_sum <= 0.) peak_apices_sum = 1.;
+    if (sn_ratio <= 0.) sn_ratio = 1.;
+    return pow(peak_apices_sum*sn_ratio, 0.5);
   }
 
   void MRMFeatureSelector::setNNThreshold(const double& nn_threshold)
