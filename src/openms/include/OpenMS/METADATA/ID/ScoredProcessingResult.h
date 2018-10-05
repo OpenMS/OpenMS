@@ -87,7 +87,6 @@ namespace OpenMS
 
         return *this;
       }
-
       std::pair<double, bool> getScore(ScoreTypeRef score_ref) const
       {
         // give priority to "later" scores in the list:

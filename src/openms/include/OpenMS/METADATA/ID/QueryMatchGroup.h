@@ -79,6 +79,19 @@ namespace OpenMS
         }
         return true;
       }
+
+      bool operator==(const QueryMatchGroup rhs) const
+      {
+        if (rhs.query_match_refs == query_match_refs && rhs.processing_step_refs == processing_step_refs && rhs.scores == scores)
+          return true;
+        else
+          return false;
+      }
+
+      bool operator!=(const QueryMatchGroup& rhs) const
+      {
+        return !operator==(rhs);
+      }
     };
 
     typedef boost::multi_index_container<
