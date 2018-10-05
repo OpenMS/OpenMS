@@ -64,20 +64,16 @@ namespace OpenMS
     // Any peaks below the intensity cutoff cannot be relevant. They are therefore removed resulting in reduced memory footprint and runtime.
     exp_centroided_.reserve(exp_centroided.getNrSpectra());
     // loop over spectra
-    //for (MSExperiment::ConstIterator it_rt = exp_centroided.begin(); it_rt < exp_centroided.end(); ++it_rt)
     for (const auto &it_rt : exp_centroided)
     {
       MSSpectrum spectrum;
       spectrum.setRT(it_rt.getRT());
       // loop over m/z
-      for (const auto it_mz : it_rt)
+      for (const auto &it_mz : it_rt)
       {
         if (it_mz.getIntensity() > intensity_cutoff_)
         {
-          Peak1D peak;
-          peak.setMZ(it_mz.getMZ());
-          peak.setIntensity(it_mz.getIntensity());
-          spectrum.push_back(peak);
+          spectrum.push_back(it_mz);
         }
       }
       exp_centroided_.addSpectrum(std::move(spectrum));
