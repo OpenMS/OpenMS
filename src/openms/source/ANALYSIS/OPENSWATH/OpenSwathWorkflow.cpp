@@ -520,8 +520,10 @@ namespace OpenMS
           //
           // We should avoid oversubscribing the CPUs, therefore we use integer division.
           // -- see https://docs.oracle.com/cd/E19059-01/stud.10/819-0501/2_nested.html
+#ifdef _OPENMP
           int outer_thread_nr = omp_get_thread_num();
           omp_set_num_threads(std::max(1, total_nr_threads / threads_outer_loop_) );
+#endif
 #pragma omp parallel for schedule(dynamic, 1)
           for (SignedSize pep_idx = 0; pep_idx <= nr_batches; pep_idx++)
           {
