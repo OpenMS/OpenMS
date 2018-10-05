@@ -110,24 +110,21 @@ namespace OpenMS
     exp_centroided_mapping_.clear();
     
     // loop over spectra
-    for (MSExperiment::ConstIterator it_rt = exp_centroided_.begin(); it_rt < exp_centroided_.end(); ++it_rt)
+    for (const auto &it_rt : exp_centroided_)
     {
       MSSpectrum spectrum_picked_white;
-      spectrum_picked_white.setRT(it_rt->getRT());
+      spectrum_picked_white.setRT(it_rt.getRT());
       
       std::map<int, int> mapping_spectrum;
       int count = 0;
       // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
+      for (const auto &it_mz : it_rt)
       {
-        if (blacklist_[it_rt - exp_centroided_.begin()][it_mz - it_rt->begin()] == -1)
+        if (blacklist_[&it_rt - &exp_centroided_[0]][&it_mz - &it_rt[0]] == -1)
         {
-          Peak1D peak;
-          peak.setMZ(it_mz->getMZ());
-          peak.setIntensity(it_mz->getIntensity());
-          spectrum_picked_white.push_back(peak);
+          spectrum_picked_white.push_back(it_mz);
           
-          mapping_spectrum[count] = it_mz - it_rt->begin();
+          mapping_spectrum[count] = &it_mz - &it_rt[0];
           ++count;
         }
       }
