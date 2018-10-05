@@ -100,7 +100,7 @@ namespace OpenMS
   
   MSExperiment& MultiplexFiltering::getCentroidedExperiment()
   {
-    return(exp_centroided_);
+    return exp_centroided_;
   }
 
   void MultiplexFiltering::updateWhiteMSExperiment_()
