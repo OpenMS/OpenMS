@@ -264,9 +264,19 @@ START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
     }
   }
 
-#if 0
   // Do some stress testing of the library...
   // Stress test takes about 20 seconds
+#if 0
+  int sum = 0;
+  for (Size k = 0; k < 1e5; k++)
+  {
+    EmpiricalFormula ef ("C520H817N139O147");
+    FineIsotopePatternGenerator gen;
+    IsotopeDistribution id = gen.run(ef);
+    sum += id.size();
+  }
+  TEST_EQUAL(sum, 139*1e5)
+
   int calculated_masses = 0;
   for (Size k = 0; k < 100; k++)
   {
