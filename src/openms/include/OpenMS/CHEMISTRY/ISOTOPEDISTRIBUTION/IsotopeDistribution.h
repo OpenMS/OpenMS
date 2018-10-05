@@ -112,6 +112,8 @@ public:
     /// overwrites the container which holds the distribution using @p distribution
     void set(const ContainerType & distribution);
 
+    void set(ContainerType && distribution);
+
     /// returns the container which holds the distribution
     const ContainerType & getContainer() const;
 

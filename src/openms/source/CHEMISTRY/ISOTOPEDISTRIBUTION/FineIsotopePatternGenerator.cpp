@@ -77,13 +77,19 @@ namespace OpenMS
 
     // Store the data in a IsotopeDistribution
     std::vector<Peak1D> c;
-    for (Size k = 0; k < algorithm.getMasses().size(); k++)
+    c.reserve( algorithm.getMasses().size() );
+    auto mit = algorithm.getMasses().cbegin();
+    auto pit = algorithm.getProbabilities().cbegin();
+    while (mit != algorithm.getMasses().end())
     {
-      c.emplace_back( Peak1D(algorithm.getMasses()[k], algorithm.getProbabilities()[k] ) );
+      // c.emplace_back( Peak1D(algorithm.getMasses()[k], algorithm.getProbabilities()[k] ) ); k++;
+      c.emplace_back( Peak1D(*mit, *pit) );
+      // c.push_back( Peak1D(*mit, *pit) );
+      mit++; pit++;
     }
 
     IsotopeDistribution result;
-    result.set(c);
+    result.set(std::move(c));
     result.sortByMass();
     return result;
   }

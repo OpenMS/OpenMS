@@ -80,10 +80,14 @@ namespace OpenMS
     return *this;
   }
 
-
   void IsotopeDistribution::set(const ContainerType & distribution)
   {
     distribution_ = distribution;
+  }
+
+  void IsotopeDistribution::set(ContainerType && distribution)
+  {
+    distribution_ = std::move(distribution);
   }
 
   const IsotopeDistribution::ContainerType& IsotopeDistribution::getContainer() const
