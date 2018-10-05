@@ -35,21 +35,21 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 
 namespace OpenMS
 {
 
 // static
-void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra, 
-                      double fragment_tolerance, 
-      				        bool fragment_unit_ppm, 
-                      int min_charge, 
-					            int max_charge,
-                      bool keep_only_deisotoped, 
-                      unsigned int min_isopeaks, 
-      				        unsigned int max_isopeaks, 
+void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
+                      double fragment_tolerance,
+                      bool fragment_unit_ppm,
+                      int min_charge,
+                      int max_charge,
+                      bool keep_only_deisotoped,
+                      unsigned int min_isopeaks,
+                      unsigned int max_isopeaks,
                       bool make_single_charged,
                       bool annotate_charge)
 {
@@ -100,15 +100,15 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
           const unsigned int p = old_spectrum.findNearest(expected_mz);
           const double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * expected_mz * 1e-6 : fragment_tolerance;
           const double distance_to_closest = fabs(old_spectrum[p].getMZ() - expected_mz);
-	        if (distance_to_closest > tolerance_dalton) // test for missing peak
+          if (distance_to_closest > tolerance_dalton) // test for missing peak
           {
             if (i < min_isopeaks) { has_min_isopeaks = false;}
-	          break;
+            break;
           }
           else
           {
             // Possible improvement: include proper averagine model filtering. for now start at the second peak to test hypothesis
-	          // Note: this is a common approach used in several other search engines
+            // Note: this is a common approach used in several other search engines
             unsigned int n_extensions = extensions.size();
             if (n_extensions != 0)
             {
@@ -116,7 +116,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
               {
                 if (i < min_isopeaks) { has_min_isopeaks = false; }
                break;
-	            }
+              }
             }
 
             // averagine check passed
@@ -126,7 +126,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
 
         if (has_min_isopeaks)
         {
-	        // std::cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << std::endl;
+          // std::cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << std::endl;
           mono_isotopic_peak[current_peak] = q;
           for (unsigned int i = 0; i != extensions.size(); ++i)
           {

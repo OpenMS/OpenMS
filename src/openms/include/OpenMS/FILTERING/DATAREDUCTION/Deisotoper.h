@@ -59,18 +59,18 @@ class OPENMS_DLLAPI Deisotoper
    * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
    * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
    * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
-   * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
+   *        Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
    */
-  static void deisotopeAndSingleCharge(MSSpectrum & spectra, 
-            double fragment_tolerance, 
-					  bool fragment_unit_ppm, 
-            int min_charge = 1, 
-					  int max_charge = 3,
-            bool keep_only_deisotoped = false, 
-            unsigned int min_isopeaks = 3, 
-					  unsigned int max_isopeaks = 10, 
+  static void deisotopeAndSingleCharge(MSSpectrum& spectra,
+            double fragment_tolerance,
+            bool fragment_unit_ppm,
+            int min_charge = 1,
+            int max_charge = 3,
+            bool keep_only_deisotoped = false,
+            unsigned int min_isopeaks = 3,
+            unsigned int max_isopeaks = 10,
             bool make_single_charged = true,
-             bool annotate_charge = false);
+            bool annotate_charge = false);
 };
 
 }
