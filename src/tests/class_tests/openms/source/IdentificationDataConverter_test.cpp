@@ -70,6 +70,9 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
 
   TEST_EQUAL(peptides_in.size(), peptides_out.size());
   TEST_EQUAL(proteins_in.size(), proteins_out.size());
+  //TEST_EQUAL(proteins_in == proteins_out, true);
+  //TEST_EQUAL(peptides_in == peptides_out, true);
+
 
   String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
   // NEW_TMP_FILE(filename);
