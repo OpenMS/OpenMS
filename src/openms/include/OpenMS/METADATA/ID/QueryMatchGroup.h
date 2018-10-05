@@ -62,7 +62,7 @@ namespace OpenMS
         for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
              ++it)
         {
-          if ((*it)->identified_molecule_ref != ref) return false;
+          if (!((*it)->identified_molecule_ref == ref)) return false;
         }
         return true;
       }
