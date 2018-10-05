@@ -61,8 +61,8 @@ namespace OpenMS
   {
   }
 
-  std::vector<double> IsoSpec::getMasses() {return masses_;}
-  std::vector<double> IsoSpec::getProbabilities() {return probabilities_;}
+  const std::vector<double>& IsoSpec::getMasses() {return masses_;}
+  const std::vector<double>& IsoSpec::getProbabilities() {return probabilities_;}
 
   void IsoSpec::run_(Iso* iso)
   {

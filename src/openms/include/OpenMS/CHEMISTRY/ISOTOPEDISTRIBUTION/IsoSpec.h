@@ -93,10 +93,10 @@ public:
     void run(const std::string&);
 
     /// Get computed masses
-    std::vector<double> getMasses();
+    const std::vector<double>& getMasses();
 
     /// Get computed probabilities
-    std::vector<double> getProbabilities();
+    const std::vector<double>& getProbabilities();
 
 protected:
 
