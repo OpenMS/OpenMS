@@ -333,7 +333,9 @@ last_marginal(static_cast<SyncMarginal*>(PMs[dimNumber-1]))
         empty = true;
 
 
-    maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+    if(dimNumber > 1)
+        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+
     for(int ii=1; ii<dimNumber-1; ii++)
         maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
@@ -437,7 +439,9 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
             empty = true;
     }
 
-    maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+    if(dimNumber > 1)
+        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+
     for(int ii=1; ii<dimNumber-1; ii++)
         maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
@@ -638,7 +642,9 @@ delta(_delta)
         final_cutoff += marginalResults[ii]->getSmallestLProb();
     }
 
-    maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+    if(dimNumber > 1)
+        maxConfsLPSum[0] = marginalResults[0]->getModeLProb();
+
     for(int ii=1; ii<dimNumber-1; ii++)
         maxConfsLPSum[ii] = maxConfsLPSum[ii-1] + marginalResults[ii]->getModeLProb();
 
