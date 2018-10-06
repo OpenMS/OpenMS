@@ -39,6 +39,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <OpenMS/KERNEL/Peak1D.h>
+
 class Iso;
 
 namespace OpenMS
@@ -81,7 +83,7 @@ public:
       * @param isotopeProbabilities Array with the individual elements isotopic probabilities 
       *
       **/
-    void run(const std::vector<int>& isotopeNumbers,
+    std::vector<Peak1D> run(const std::vector<int>& isotopeNumbers,
              const std::vector<int>& atomCounts,
              const std::vector<std::vector<double> >& isotopeMasses,
              const std::vector<std::vector<double> >& isotopeProbabilities);
@@ -90,13 +92,7 @@ public:
       * @brief Run the algorithm on a sum formula 
       *
       **/
-    void run(const std::string&);
-
-    /// Get computed masses
-    const std::vector<double>& getMasses();
-
-    /// Get computed probabilities
-    const std::vector<double>& getProbabilities();
+    std::vector<Peak1D> run(const std::string&);
 
 protected:
 
@@ -108,13 +104,11 @@ protected:
       * vectors.
       *
       **/
-    void run_(Iso* iso);
+    std::vector<Peak1D> run_(Iso& iso);
 
     double threshold_ = 0.01;
     bool absolute_ = false;
 
-    std::vector<double> masses_;
-    std::vector<double> probabilities_;
   };
 }
 
