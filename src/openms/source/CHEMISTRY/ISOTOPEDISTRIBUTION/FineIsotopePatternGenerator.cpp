@@ -46,7 +46,8 @@ namespace OpenMS
     IsoSpec algorithm(threshold_, absolute_);
 #if 0
     // Use IsoSpec's isotopic tables
-    algorithm.run(formula.toString());
+    IsotopeDistribution result;
+    result.set(algorithm.run(formula.toString()));
 #else
     // Use our own isotopic tables
     std::vector<int> isotopeNumbers, atomCounts;
@@ -72,22 +73,11 @@ namespace OpenMS
       isotopeProbabilities.push_back(probs);
     }
 
-    algorithm.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+    // Store the data in a IsotopeDistribution
+    IsotopeDistribution result;
+    result.set(algorithm.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities));
 #endif
 
-    // Store the data in a IsotopeDistribution
-    std::vector<Peak1D> c;
-    c.reserve( algorithm.getMasses().size() );
-    auto mit = algorithm.getMasses().cbegin();
-    auto pit = algorithm.getProbabilities().cbegin();
-    while (mit != algorithm.getMasses().cend())
-    {
-      c.emplace_back( Peak1D(*mit, *pit) );
-      mit++; pit++;
-    }
-
-    IsotopeDistribution result;
-    result.set(std::move(c));
     result.sortByMass();
     return result;
   }

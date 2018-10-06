@@ -35,6 +35,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpec.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <iterator>
 #include <string>
 
@@ -61,41 +62,30 @@ namespace OpenMS
   {
   }
 
-  const std::vector<double>& IsoSpec::getMasses() {return masses_;}
-  const std::vector<double>& IsoSpec::getProbabilities() {return probabilities_;}
-
-  void IsoSpec::run_(Iso* iso)
+  std::vector<Peak1D> IsoSpec::run_(Iso& iso)
   {
     int tabSize = 1000;
     int hashSize = 1000;
 
-    IsoThresholdGenerator* generator = new IsoThresholdGenerator(std::move(*iso), threshold_, absolute_, tabSize, hashSize); 
-    Tabulator<IsoThresholdGenerator>* tabulator = new Tabulator<IsoThresholdGenerator>(generator, true, true, true, true); 
+    IsoThresholdGenerator generator(std::move(iso), threshold_, absolute_, tabSize, hashSize); 
 
-    int size = tabulator->confs_no();
+    std::vector<Peak1D> distribution;
 
-    masses_.clear();
-    masses_.reserve(size);
-    copy(&tabulator->masses()[0], &tabulator->masses()[size], back_inserter(masses_));
+    while(generator.advanceToNextConfiguration())
+        distribution.emplace_back(Peak1D(generator.mass(), generator.eprob()));
 
-    probabilities_.clear();
-    probabilities_.reserve(size);
-    copy(&tabulator->probs()[0], &tabulator->probs()[size], back_inserter(probabilities_));
-
-    delete generator;
-    delete tabulator;
+    return distribution;
   }
 
-  void IsoSpec::run(const std::string& formula)
+  std::vector<Peak1D> IsoSpec::run(const std::string& formula)
   {
-    Iso* iso = new Iso(formula.c_str());
-    run_(iso);
+    Iso iso(formula.c_str());
+    return run_(iso);
     // destruction of the Iso data structure itself (ptrs have been handed over
     // to the generator, however we still need to destroy the struct itself).
-    delete iso;
   }
 
-  void IsoSpec::run(const std::vector<int>& isotopeNr,
+  std::vector<Peak1D> IsoSpec::run(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities)
@@ -124,9 +114,8 @@ namespace OpenMS
       IP[i] = isotopeProbabilities[i].data();
     }
 
-    Iso* iso = new Iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
-    run_(iso);
-    delete iso;
+    Iso iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
+    return run_(iso);
     delete[] IM;
     delete[] IP;
   }
