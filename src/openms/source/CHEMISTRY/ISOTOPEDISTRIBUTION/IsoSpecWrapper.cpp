@@ -110,9 +110,10 @@ namespace OpenMS
     }
 
     Iso iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
+    
     delete[] IM;
     delete[] IP;
-
+    
     return run_(iso);
   }
 
