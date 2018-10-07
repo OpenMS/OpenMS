@@ -358,8 +358,11 @@ allocator(isotopeNo, tabSize)
     Conf currentConf = allocator.makeCopy(mode_conf);
     if(logProb(currentConf) >= lCutOff)
     {
-        configurations.push_back(allocator.makeCopy(currentConf));
-        visited.insert(currentConf);
+        // create a copy and store a ptr to the *same* copy in both structures
+        // (save some space and time)
+        auto tmp = allocator.makeCopy(currentConf);
+        configurations.push_back(tmp);
+        visited.insert(tmp);
     }
 
     unsigned int idx = 0;
@@ -377,8 +380,12 @@ allocator(isotopeNo, tabSize)
 
                     if (visited.count(currentConf) == 0 && logProb(currentConf) >= lCutOff)
                     {
-                        visited.insert(currentConf);
-                        configurations.push_back(allocator.makeCopy(currentConf));
+                        // create a copy and store a ptr to the *same* copy in
+                        // both structures (save some space and time)
+                        auto tmp = allocator.makeCopy(currentConf);
+                        visited.insert(tmp);
+                        configurations.push_back(tmp);
+                        // std::cout << " V: "; for (auto it : visited) std::cout << it << " "; std::cout << std::endl;
                     }
 
                     currentConf[ii]--;

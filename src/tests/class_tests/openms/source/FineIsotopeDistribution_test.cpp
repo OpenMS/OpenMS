@@ -130,12 +130,6 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-20);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 21)
 
-    // These tests dont work on clang++, providing slightly different results
-    // than gcc and MSVS:
-    //
-    // line 130:  TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(),34): got 35, expected 34
-    // line 133:  TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(),46): got 48, expected 46
-#if 0
     gen.setThreshold(1e-40);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 34)
 
@@ -153,7 +147,6 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
 
     gen.setThreshold(1e-1000);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
-#endif
   }
 }
 END_SECTION
