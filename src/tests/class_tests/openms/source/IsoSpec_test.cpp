@@ -224,8 +224,8 @@ START_SECTION(( [STRESSTEST] void run(const std::string&) ))
     double threshold = 1e-2;
     bool absolute = false;
     IsoSpec iso(threshold, absolute);
-    iso.run("C520H817N139O147");
-    sum += iso.getMasses().size();
+    auto res = iso.run("C520H817N139O147");
+    sum += res.size();
   }
   TEST_EQUAL(sum, 140*2*1e5)
 }
