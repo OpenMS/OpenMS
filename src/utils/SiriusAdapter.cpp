@@ -120,6 +120,52 @@ protected:
     return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
   }
 
+// https://stackoverflow.com/questions/2536524/copy-directory-using-qt
+bool copyDirectoryFiles(const QString &fromDir, const QString &toDir, bool coverFileIfExist)
+{
+  QDir sourceDir(fromDir);
+  QDir targetDir(toDir);
+  
+  // make directory if not present 
+  if(!targetDir.exists())
+  {    
+    if(!targetDir.mkdir(targetDir.absolutePath()))
+    { 
+       return false;
+    }
+  }
+
+  // copy folder recurively
+  QFileInfoList fileInfoList = sourceDir.entryInfoList();
+  foreach(QFileInfo fileInfo, fileInfoList)
+  {
+    if(fileInfo.fileName() == "." || fileInfo.fileName() == "..")
+    {
+      continue;
+    }
+    if(fileInfo.isDir())
+    {
+      if(!copyDirectoryFiles(fileInfo.filePath(), targetDir.filePath(fileInfo.fileName()), coverFileIfExist)) 
+      {
+        return false;
+      }
+    }
+    else
+    {  
+      if(coverFileIfExist && targetDir.exists(fileInfo.fileName()))
+      {
+        targetDir.remove(fileInfo.fileName());
+      }
+      if(!QFile::copy(fileInfo.filePath(), targetDir.filePath(fileInfo.fileName())))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("executable", "<executable>", "",
@@ -420,14 +466,8 @@ protected:
       QDir sw_dir(sirius_workspace_directory.toQString());
       sirius_workspace_directory = String(sw_dir.absolutePath());
       
-      // try to create directory if not present
-      if (!sw_dir.exists())
-      {
-        sw_dir.mkpath(sirius_workspace_directory.toQString());
-      }
-      
       // move tmp folder to new location
-      std::rename(tmp_dir.toStdString().c_str(), sirius_workspace_directory.c_str());
+      copyDirectoryFiles(tmp_dir, sirius_workspace_directory.toQString(), true);
       LOG_WARN << "Sirius Workspace was moved to " << sirius_workspace_directory << std::endl;
     }
    
@@ -437,7 +477,6 @@ protected:
       QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
       LOG_WARN << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
     }
-
 
     // clean tmp directory if debug level < 2 
     // if out_ms and sirius_workspace_directoy is set - the files/folders have already be moved to 
