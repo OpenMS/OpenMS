@@ -101,7 +101,7 @@ namespace OpenMS
     {
       return 0;
     }
-    return distribution_[distribution_.size() - 1].getMZ();
+    return std::max_element(begin(), end(), MassAbundance::MZLess())->getMZ();
   }
 
   Peak1D::CoordinateType IsotopeDistribution::getMin() const
@@ -110,7 +110,7 @@ namespace OpenMS
     {
       return 0;
     }
-    return distribution_[0].getMZ();
+    return std::min_element(begin(), end(), MassAbundance::MZLess())->getMZ();
   }
 
   Peak1D IsotopeDistribution::getMostAbundant() const
