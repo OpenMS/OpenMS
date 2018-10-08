@@ -50,10 +50,10 @@ class OPENMS_DLLAPI Deisotoper
   /* @brief Detect isotopic clusters in a fragment spectrum.
 
    * @param [spectra] Input spectra (sorted by m/z)
-   * @param [min_charge] The minimum charge considered
-   * @param [max_charge] The maximum charge considered
    * @param [fragment_tolerance] The tolerance used to match isotopic peaks
    * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
+   * @param [min_charge] The minimum charge considered
+   * @param [max_charge] The maximum charge considered
    * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
    * @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
    * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
