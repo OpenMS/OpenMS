@@ -188,7 +188,10 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
 
   // The output file of the MSstats converter (TODO Change to CSV file once store for CSV files has been implemented)
   TextFile csv_out;
-  csv_out.addLine(String(rt_summarization_manual ? "RetentionTime,": "") + "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," + String(has_fraction ? "Fraction,": "") + "Intensity");
+  csv_out.addLine(
+    String(rt_summarization_manual ? "RetentionTime,": "") + 
+    "ProteinName,PeptideSequence,PrecursorCharge,FragmentIon,ProductCharge,IsotopeLabelType,Condition,BioReplicate,Run," +
+    String(has_fraction ? "Fraction,": "") + "Intensity");
 
   // Regex definition for fragment ions
   boost::regex regex_msstats_FragmentIon("[abcxyz][0-9]+");
@@ -301,7 +304,7 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
                       sampleSection.getFactorValue(sample, condition),
                       sampleSection.getFactorValue(sample, bioreplicate),
                       String(run),
-                      (has_fraction ? delim + String(fraction) : "")
+                      (has_fraction ? String(fraction) : "")
               );
               pair<Intensity, Coordinate> intensity_retention_time = make_pair(intensity, retention_time);
               peptideseq_to_prefix_to_intensities[sequence][prefix].insert(intensity_retention_time);
