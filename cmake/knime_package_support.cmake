@@ -49,6 +49,12 @@ set(PAYLOAD_BIN_PATH ${PAYLOAD_PATH}/bin)
 set(PAYLOAD_LIB_PATH ${PAYLOAD_PATH}/lib)
 set(PAYLOAD_SHARE_PATH ${PAYLOAD_PATH}/share)
 
+# Find Qt5 includes for pyOpenMS
+find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
+get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
+exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
+
 # script directory
 set(SCRIPT_DIRECTORY ${PROJECT_SOURCE_DIR}/cmake/knime/)
 
@@ -87,10 +93,6 @@ set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
 list(REMOVE_ITEM CTD_executables OpenMSInfo ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
-
-## we have to find again so the target variables are reloaded (on linux)
-set(PACKAGE_QT_COMPONENTS "${OpenMS_QT_COMPONENTS};${OpenMS_GUI_QT_COMPONENTS}")
-find_package(Qt5 COMPONENTS ${PACKAGE_QT_COMPONENTS}) 
 
 # pseudo-ctd target
 add_custom_target(
@@ -195,7 +197,7 @@ if (APPLE) ## On APPLE use our script because the executables need to be relinke
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH}
   )
-else()
+elseif(WIN32)
   ## Assemble common required libraries for win and lnx
   ## Note that we do not need the QT plugins or QTGui libraries since we do not include GUI tools here.
   foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
@@ -211,6 +213,13 @@ else()
 		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::${KNIME_TOOLS_QT5_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
 	)
   endforeach()
+else()
+    foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo SuperHirn)
+        add_custom_command(
+            TARGET prepare_knime_payload_libs POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
+        )
+    endforeach()
 endif()
 
 if(WIN32) ## Add dynamic libraries if you linked to them.
