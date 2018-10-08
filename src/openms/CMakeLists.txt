@@ -153,6 +153,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${INCLUDES_FROM_SYSTEM}
                                      ${Qt5Core_INCLUDE_DIRS}
                                      ${Qt5Network_INCLUDE_DIRS}
+                                     ${JSON_INCLUDE_DIRECTORY}
                                      LINK_LIBRARIES OpenSwathAlgo 
                                      ${OPENMS_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
