@@ -1,3 +1,12 @@
+<<<<<<< HEAD
+=======
+from libcpp cimport bool
+from Types cimport *
+from String cimport *
+from ConsensusMap cimport *
+from ExperimentalDesign cimport *
+from StringList cimport *
+>>>>>>> upstream/develop
 
 cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
 
@@ -5,6 +14,6 @@ cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
 
         MSstatsFile() nogil except +
         
-        store(const String& filename, ConsensusMap& consensus_map, const ExperimentalDesign& design, 
-          const StringList& reannotate_filenames, const bool is_isotope_label_type, 
-          const String& bioreplicate, const String& condition, const String& retention_time_summarization_method)) nogil except+
+        void store(String & filename, ConsensusMap & consensus_map, ExperimentalDesign & design, 
+          StringList & reannotate_filenames, bool is_isotope_label_type, 
+          String & bioreplicate, String & condition, String & retention_time_summarization_method) nogil except +

@@ -281,6 +281,7 @@ set(filtering_executables_list
   ComplementFilter_test
   ComplementMarker_test
   DataFilters_test
+  Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FilterFunctor_test
@@ -363,6 +364,8 @@ set(chemistry_executables_list
   AAIndex_test
   AASequence_test
   CoarseIsotopeDistribution_test
+  FineIsotopeDistribution_test
+  IsoSpec_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
@@ -502,7 +505,6 @@ set(analysis_executables_list
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
-  RNPxlDeisotoper_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test

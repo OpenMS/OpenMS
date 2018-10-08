@@ -42,7 +42,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegressionWithoutIntercept.h>
@@ -693,11 +692,7 @@ namespace OpenMS
     exp.sortSpectra();
     
     // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-    if (spectrum_type == SpectrumSettings::UNKNOWN)
-    {
-      spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
-    }
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType(true);
 
     bool centroided;
     if (param_.getValue("algorithm:spectrum_type") == "automatic")

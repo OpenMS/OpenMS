@@ -44,3 +44,5 @@ add_subdirectory(eol-bspline)
 # evergreen Bayesian inference library (0.9)
 # from TODO
 add_subdirectory(evergreen)
+add_subdirectory(IsoSpec)
+

@@ -716,7 +716,7 @@ protected:
       bool missing_spec_ref(false);
       for (const PeptideIdentification & pid : peptide_ids)
       {
-        if (pid.getMetaValue("spectrum_reference").empty()) 
+        if (pid.getMetaValue("spectrum_reference").toString().empty()) 
         {          
           missing_spec_ref = true;
           break;

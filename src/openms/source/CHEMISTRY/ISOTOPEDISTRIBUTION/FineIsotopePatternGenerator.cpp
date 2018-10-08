@@ -28,50 +28,68 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Hannes Rost $
+// $Authors: Hannes Rost $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpec.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 namespace OpenMS
 {
 
-class MSSpectrum;
+  IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
+  {
+    IsoSpec algorithm(threshold_, absolute_);
+#if 0
+    // Use IsoSpec's isotopic tables
+    algorithm.run(formula.toString());
+#else
+    // Use our own isotopic tables
+    std::vector<int> isotopeNumbers, atomCounts;
+    std::vector<std::vector<double> > isotopeMasses, isotopeProbabilities;
 
-class OPENMS_DLLAPI Deisotoper
-{
-  public:
+    // Iterate through all elements in the molecular formula
+    for (auto elem : formula)
+    {
+      atomCounts.push_back(elem.second);
 
-  /* @brief Detect isotopic clusters in a fragment spectrum.
+      std::vector<double> masses;
+      std::vector<double> probs;
+      for (auto iso : elem.first->getIsotopeDistribution())
+      {
+        if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
+        masses.push_back(iso.getMZ());
+        probs.push_back(iso.getIntensity());
+      }
 
-   * @param [spectra] Input spectra (sorted by m/z)
-   * @param [min_charge] The minimum charge considered
-   * @param [max_charge] The maximum charge considered
-   * @param [fragment_tolerance] The tolerance used to match isotopic peaks
-   * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
-   * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
-   * @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
-   * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
-   * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
-   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
-   * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
-   */
-  static void deisotopeAndSingleCharge(MSSpectrum & spectra, 
-            double fragment_tolerance, 
-					  bool fragment_unit_ppm, 
-            int min_charge = 1, 
-					  int max_charge = 3,
-            bool keep_only_deisotoped = false, 
-            unsigned int min_isopeaks = 3, 
-					  unsigned int max_isopeaks = 10, 
-            bool make_single_charged = true,
-             bool annotate_charge = false);
-};
+      // For each element store how many isotopes it has and their masses/probabilities
+      isotopeNumbers.push_back( masses.size() );
+      isotopeMasses.push_back(masses);
+      isotopeProbabilities.push_back(probs);
+    }
+
+    algorithm.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+#endif
+
+    // Store the data in a IsotopeDistribution
+    std::vector<Peak1D> c;
+    c.reserve( algorithm.getMasses().size() );
+    auto mit = algorithm.getMasses().cbegin();
+    auto pit = algorithm.getProbabilities().cbegin();
+    while (mit != algorithm.getMasses().cend())
+    {
+      c.emplace_back( Peak1D(*mit, *pit) );
+      mit++; pit++;
+    }
+
+    IsotopeDistribution result;
+    result.set(std::move(c));
+    result.sortByMass();
+    return result;
+  }
 
 }
-

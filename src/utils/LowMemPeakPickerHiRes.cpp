@@ -35,7 +35,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -191,7 +190,7 @@ protected:
     // We could check with the first spectrum that we process whether it fulfills the requirements
     //check for peak type (profile data required)
     /*
-    if (!ms_exp_raw.empty() && PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(), ms_exp_raw[0].end()) == SpectrumSettings::CENTROID)
+    if (!ms_exp_raw.empty() && ms_exp_raw[0].getType(true) == SpectrumSettings::CENTROID)
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
