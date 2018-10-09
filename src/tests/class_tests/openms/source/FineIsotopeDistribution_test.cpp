@@ -159,8 +159,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
   }
 
   {
-    std::string formula = "C31H64";
-    formula = "C100H202";
+    std::string formula = "C100H202";
     FineIsotopePatternGenerator gen;
     gen.setThreshold(1e-2);
     IsotopeDistribution id = gen.run(EmpiricalFormula(formula));
