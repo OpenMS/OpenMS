@@ -24,6 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
         void invert() nogil except +
 
         void getDeviations(libcpp_vector[double]& diffs, bool do_apply, bool do_sort) nogil except +
+        TransformationStatistics getStatistics() nogil except +
 
         # NAMESPACE # void printSummary(std::ostream & os) nogil except +
 
