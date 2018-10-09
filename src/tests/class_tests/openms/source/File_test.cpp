@@ -169,6 +169,22 @@ START_SECTION((static bool isDirectory(const String& path)))
   TEST_EQUAL(File::isDirectory(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")),false)
 END_SECTION
 
+// make source directory and copy it to new location
+// check copy function and if file exists in target path
+START_SECTION(static bool copyDirRecursively(const QString &fromDir, const QString &toDir, bool overwrite_existing = true))
+  String source_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
+  String target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/"; 
+  QDir sdir;
+  TEST_EQUAL(sdir.mkpath(source_name.toQString()), true);
+  TextFile tf;
+  tf.store(source_name + "test.txt");
+  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(),true),true)
+  TEST_EQUAL(File::exists(target_name + "test.txt"), true)
+  // remove temporary directories after testing
+  File::removeDirRecursively(source_name);
+  File::removeDirRecursively(target_name);
+END_SECTION
+
 START_SECTION(static bool removeDirRecursively(const String &dir_name))
   QDir d;
   String dirname = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";

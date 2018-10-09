@@ -120,52 +120,6 @@ protected:
     return (SiriusMzTabWriter::extract_scan_index(i) < SiriusMzTabWriter::extract_scan_index(j));
   }
 
-// https://stackoverflow.com/questions/2536524/copy-directory-using-qt
-bool copyDirectoryFiles(const QString &fromDir, const QString &toDir, bool coverFileIfExist)
-{
-  QDir sourceDir(fromDir);
-  QDir targetDir(toDir);
-  
-  // make directory if not present 
-  if(!targetDir.exists())
-  {    
-    if(!targetDir.mkdir(targetDir.absolutePath()))
-    { 
-       return false;
-    }
-  }
-
-  // copy folder recurively
-  QFileInfoList fileInfoList = sourceDir.entryInfoList();
-  foreach(QFileInfo fileInfo, fileInfoList)
-  {
-    if(fileInfo.fileName() == "." || fileInfo.fileName() == "..")
-    {
-      continue;
-    }
-    if(fileInfo.isDir())
-    {
-      if(!copyDirectoryFiles(fileInfo.filePath(), targetDir.filePath(fileInfo.fileName()), coverFileIfExist)) 
-      {
-        return false;
-      }
-    }
-    else
-    {  
-      if(coverFileIfExist && targetDir.exists(fileInfo.fileName()))
-      {
-        targetDir.remove(fileInfo.fileName());
-      }
-      if(!QFile::copy(fileInfo.filePath(), targetDir.filePath(fileInfo.fileName())))
-      {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("executable", "<executable>", "",
@@ -467,7 +421,7 @@ bool copyDirectoryFiles(const QString &fromDir, const QString &toDir, bool cover
       sirius_workspace_directory = String(sw_dir.absolutePath());
       
       // move tmp folder to new location
-      copyDirectoryFiles(tmp_dir, sirius_workspace_directory.toQString(), true);
+      File::copyDirRecursively(tmp_dir, sirius_workspace_directory.toQString());
       LOG_WARN << "Sirius Workspace was moved to " << sirius_workspace_directory << std::endl;
     }
    
@@ -479,9 +433,7 @@ bool copyDirectoryFiles(const QString &fromDir, const QString &toDir, bool cover
     }
 
     // clean tmp directory if debug level < 2 
-    // if out_ms and sirius_workspace_directoy is set - the files/folders have already be moved to 
-    // the designated location
-    if (debug_level_ >= 2 && out_ms.empty() && sirius_workspace_directory.empty())
+    if (debug_level_ >= 2)
     {
       writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
     }
