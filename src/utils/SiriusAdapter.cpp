@@ -424,11 +424,11 @@ protected:
       bool copy_status = File::copyDirRecursively(tmp_dir, sirius_workspace_directory.toQString());
       if (copy_status)
       { 
-        LOG_WARN << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
+        LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
       }
       else
       {
-        LOG_WARN << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run SiriusAdapter with debug >= 2." << std::endl;
+        LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run SiriusAdapter with debug >= 2." << std::endl;
       }
     }
    
@@ -436,7 +436,7 @@ protected:
     if (!out_ms.empty())
     {  
       QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
-      LOG_WARN << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
+      LOG_INFO << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
     }
 
     // clean tmp directory if debug level < 2 
