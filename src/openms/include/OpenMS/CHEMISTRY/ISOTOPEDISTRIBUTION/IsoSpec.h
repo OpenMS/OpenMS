@@ -41,7 +41,10 @@
 
 #include <OpenMS/KERNEL/Peak1D.h>
 
-class Iso;
+namespace IsoSpec
+{
+    class Iso;
+}
 
 namespace OpenMS
 {
@@ -59,11 +62,11 @@ namespace OpenMS
     * @endcode
     *
     **/
-  class OPENMS_DLLAPI IsoSpec
+  class OPENMS_DLLAPI IsoSpecWrapper
   {
 public:
     /// Default constructor
-    IsoSpec() = default;
+    IsoSpecWrapper() = default;
 
     /**
       * @brief Constructor
@@ -72,7 +75,7 @@ public:
       * @param absolute Whether threshold is absolute or relative
       *
       **/
-    IsoSpec(double threshold, bool absolute);
+    IsoSpecWrapper(double threshold, bool absolute);
 
     /**
       * @brief Run the algorithm 
@@ -104,7 +107,7 @@ protected:
       * vectors.
       *
       **/
-    std::vector<Peak1D> run_(Iso& iso);
+    std::vector<Peak1D> run_(IsoSpec::Iso& iso);
 
     double threshold_ = 0.01;
     bool absolute_ = false;
