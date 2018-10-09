@@ -32,7 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpec.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/Peak1D.h>
