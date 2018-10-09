@@ -55,11 +55,18 @@
 
 namespace OpenMS
 {
+  /**
+      @brief Representation of spectrum identification results and associated data.
+
+      This class provides capabilities for storing spectrum identification results for different types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
+
+      @ingroup Metadata
+  */
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   public:
 
-    // types:
+    // typescript:
     using MoleculeType = IdentificationDataInternal::MoleculeType;
     using MassType = IdentificationDataInternal::MassType;
 
@@ -278,9 +285,9 @@ namespace OpenMS
       return query_match_groups_;
     }
 
+    /// Add a score to a molecule-query match (e.g. PSM)
     void addScore(QueryMatchRef match_ref, ScoreTypeRef score_ref,
                   double value);
-
 
     /*!
       @brief Set a data processing step that will apply to all subsequent "register..." calls.
