@@ -424,7 +424,7 @@ protected:
       bool copy_status = File::copyDirRecursively(tmp_dir, sirius_workspace_directory.toQString());
       if (copy_status)
       { 
-        LOG_WARN << "Sirius Workspace was successfully moved to " << sirius_workspace_directory << std::endl;
+        LOG_WARN << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
       }
       else
       {

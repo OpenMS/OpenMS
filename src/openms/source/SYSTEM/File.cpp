@@ -143,9 +143,15 @@ namespace OpenMS
   // https://stackoverflow.com/questions/2536524/copy-directory-using-qt
   bool File::copyDirRecursively(const QString &fromDir, const QString &toDir, bool overwrite_existing)
   {
+    if (fromDir == toDir)
+    {
+      LOG_ERROR << "Error: Could not copy  " << fromDir.toStdString() << " to " << toDir.toStdString() << ". Same path given." << std::endl;;  
+      return false;
+    }
+
     QDir sourceDir(fromDir);
     QDir targetDir(toDir);
-  
+
     // make directory if not present 
     if (!targetDir.exists())
     {

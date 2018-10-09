@@ -83,9 +83,9 @@ public:
     static bool rename(const String& from, const String& to, bool overwrite_existing = true, bool verbose = true);
 
     /**
-       @brief Copy directory recuresively
+       @brief Copy directory recursively
        
-       Copies a source directory to a new target directory (recusrive).
+       Copies a source directory to a new target directory (recursive).
        
        @param fromDir Source directory
        @param toDir Target directory

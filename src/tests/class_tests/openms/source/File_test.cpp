@@ -172,16 +172,14 @@ END_SECTION
 // make source directory and copy it to new location
 // check copy function and if file exists in target path
 START_SECTION(static bool copyDirRecursively(const QString &fromDir, const QString &toDir, bool overwrite_existing = true))
-  String source_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/";
-  String target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/" + File::getUniqueName() + "/"; 
+  String source_name = OPENMS_GET_TEST_DATA_PATH("XMassFile_test");
+  String target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/"; 
   QDir sdir;
-  TEST_EQUAL(sdir.mkpath(source_name.toQString()), true);
-  TextFile tf;
-  tf.store(source_name + "test.txt");
+  TEST_EQUAL(sdir.mkpath(source_name.toQString()), true)
+  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),source_name.toQString(),true),false)
   TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(),true),true)
-  TEST_EQUAL(File::exists(target_name + "test.txt"), true)
+  TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"), true);
   // remove temporary directories after testing
-  File::removeDirRecursively(source_name);
   File::removeDirRecursively(target_name);
 END_SECTION
 
