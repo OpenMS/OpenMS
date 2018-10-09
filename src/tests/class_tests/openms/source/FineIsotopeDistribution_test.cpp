@@ -130,12 +130,6 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-20);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 21)
 
-    // These tests dont work on clang++, providing slightly different results
-    // than gcc and MSVS:
-    //
-    // line 130:  TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(),34): got 35, expected 34
-    // line 133:  TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(),46): got 48, expected 46
-
     gen.setThreshold(1e-40);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 34)
 
@@ -148,12 +142,61 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-150);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 86)
 
+    gen.setThreshold(1e-196);
+    TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 100)
+
+    gen.setThreshold(1e-198);
+    TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
+
     gen.setThreshold(1e-250);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
 
     gen.setThreshold(1e-1000);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
 
+    TEST_REAL_SIMILAR(gen.run(EmpiricalFormula("C100"))[100].getIntensity(), 8.67e-198) // note: Intensity is only float, so nothing beyond 1e-38
+    TEST_REAL_SIMILAR(gen.run(EmpiricalFormula("C100"))[100].getMZ(), 1300.3355000000001)
+  }
+
+  {
+    std::string formula = "C100H202";
+    FineIsotopePatternGenerator gen;
+    gen.setThreshold(1e-2);
+    IsotopeDistribution id = gen.run(EmpiricalFormula(formula));
+    TEST_EQUAL(id.size(), 9)
+
+    gen.setThreshold(1e-5);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 21)
+
+    gen.setThreshold(1e-10);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 50)
+
+    gen.setThreshold(1e-20);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 131)
+
+    gen.setThreshold(1e-40);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 368)
+
+    gen.setThreshold(1e-60);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 677)
+
+    gen.setThreshold(1e-100);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 1474)
+
+    gen.setThreshold(1e-150);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 2743)
+
+    gen.setThreshold(1e-250);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 5726)
+
+    gen.setThreshold(1e-320);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 7687)
+
+    gen.setThreshold(1e-350);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
+
+    gen.setThreshold(1e-1000);
+    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
   }
 }
 END_SECTION

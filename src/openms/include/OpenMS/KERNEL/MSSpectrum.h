@@ -467,6 +467,20 @@ public:
     */
     MSSpectrum& select(const std::vector<Size>& indices);
 
+
+    /**
+      @brief Determine if spectrum is profile or centroided using up to three layers of information.
+
+      First, the SpectrumSettings are inquired and the type is returned unless it is unknown.
+      Second, all data processing entries are searched for a centroiding step.
+      If that is unsuccessful as well and @p query_data is true, the data is fed into PeakTypeEstimator().
+
+      @param [query_data] If SpectrumSettings and DataProcessing information are not sufficient, should the data be queried? (potentially expensive)
+      @return The spectrum type (centroided, profile or unknown)
+    */
+    SpectrumSettings::SpectrumType getType(const bool query_data) const;
+    using SpectrumSettings::getType; // expose base class function
+
 protected:
 
     /// Retention time
