@@ -16,6 +16,9 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
 
         void insert(double mass, float intensity) nogil except +
 
+        libcpp_vector[Peak1D].iterator begin() nogil except +  # wrap-iter-begin:__iter__(Peak1D)
+        libcpp_vector[Peak1D].iterator end()   nogil except +  # wrap-iter-end:__iter__(Peak1D)
+
         # returns the container which holds the distribution
         libcpp_vector[ Peak1D ]& getContainer() nogil except +
 
@@ -66,6 +69,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenera
 
         FineIsotopePatternGenerator() nogil except + 
         FineIsotopePatternGenerator(double threshold) nogil except +
+        FineIsotopePatternGenerator(double threshold, bool absolute) nogil except +
 
         void setThreshold(double threshold) nogil except +
         double getThreshold() nogil except +
