@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -39,6 +39,8 @@
 #include "misc.h"
 
 
+namespace IsoSpec
+{
 
 
 Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
@@ -114,7 +116,7 @@ Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* prob
 
 
 
-#ifndef BUILDING_R
+#if !ISOSPEC_BUILDING_R
 void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim)
 {
     for(int i=0; i<std::get<3>(results); i++){
@@ -136,18 +138,11 @@ double* getMLogProbs(const double* probs, int isoNo)
 {
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
-
-    // This computes the logarithm of all probabilities and returns them
     double* ret = new double[isoNo];
     for(int i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
-
-        // This looks up the pre-computed log values based on the probability
-        // (presumably to prevent numerical inaccuracy from using std::log).
-        // In case you want to remove internal isotope probabilities, then you
-        // may comment this out.
-        for(int j=0; j<NUMBER_OF_ISOTOPIC_ENTRIES; j++)
+        for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
             if(elem_table_probability[j] == probs[i])
             {
                 ret[i] = elem_table_log_probability[j];
@@ -186,7 +181,7 @@ mode_mass(mass(mode_conf, atom_masses, isotopeNo)),
 mode_eprob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {
-    if(G_FACT_TABLE_SIZE-1 <= atomCnt)
+    if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
     {
         std::cerr << "Subisotopologue too large..." << std::endl;
         std::abort();
@@ -528,4 +523,6 @@ bool LayeredMarginal::extend(double new_threshold)
     return true;
 }
 
+
+} // namespace IsoSpec
 

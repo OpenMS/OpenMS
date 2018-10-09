@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,16 +14,15 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef OPERATORS_HPP
-#define OPERATORS_HPP
+#pragma once
 
 #include <string.h>
 #include "conf.h"
 #include "isoMath.h"
 #include "misc.h"
 
-
+namespace IsoSpec
+{
 
 class KeyHasher
 {
@@ -112,4 +111,5 @@ public:
 	inline bool operator()(unsigned int i, unsigned int j) { return tbl[i] < tbl[j]; };
 };
 
-#endif
+} // namespace IsoSpec
+

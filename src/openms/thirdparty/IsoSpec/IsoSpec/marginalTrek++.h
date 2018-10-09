@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,9 +14,8 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#pragma once
 
-#ifndef MARGINALTREK_HPP
-#define MARGINALTREK_HPP
 #include <tuple>
 #include <unordered_map>
 #include <queue>
@@ -26,6 +25,9 @@
 #include "operators.h"
 #include "summator.h"
 
+
+namespace IsoSpec
+{
 
 Conf initialConfigure(int atomCnt, int isotopeNo, const double* probs);
 
@@ -208,4 +210,5 @@ public:
 
 };
 
-#endif
+} // namespace IsoSpec
+

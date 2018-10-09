@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -15,7 +15,6 @@
  */
 
 
-
 #include "misc.h"
 #include "lang.h"
 #include <stdlib.h>
@@ -23,6 +22,8 @@
 #define mswap(x, y) swapspace = x; x = y; y=swapspace;
 
 
+namespace IsoSpec
+{
 
 void* quickselect(void** array, int n, int start, int end)
 {
@@ -35,7 +36,7 @@ void* quickselect(void** array, int n, int start, int end)
     {
         // Partition part
         int len = end - start;
-#ifdef BUILDING_R
+#if ISOSPEC_BUILDING_R
         int pivot = len/2 + start;
 #else
 	int pivot = rand() % len + start;
@@ -63,4 +64,6 @@ void* quickselect(void** array, int n, int start, int end)
             start = loweridx+1;
     };
 }
+
+} // namespace IsoSpec
 
