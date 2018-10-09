@@ -52,17 +52,18 @@
 #include "IsoSpec/tabulator.cpp"
 
 using namespace std;
+using namespace IsoSpec;
 
 namespace OpenMS
 {
 
-  IsoSpec::IsoSpec(double threshold, bool absolute) :
+  IsoSpecWrapper::IsoSpecWrapper(double threshold, bool absolute) :
     threshold_(threshold),
     absolute_(absolute)
   {
   }
 
-  std::vector<Peak1D> IsoSpec::run_(Iso& iso)
+  std::vector<Peak1D> IsoSpecWrapper::run_(Iso& iso)
   {
     int tabSize = 1000;
     int hashSize = 1000;
@@ -77,7 +78,7 @@ namespace OpenMS
     return distribution;
   }
 
-  std::vector<Peak1D> IsoSpec::run(const std::string& formula)
+  std::vector<Peak1D> IsoSpecWrapper::run(const std::string& formula)
   {
     Iso iso(formula.c_str());
     return run_(iso);
@@ -85,7 +86,7 @@ namespace OpenMS
     // to the generator, however we still need to destroy the struct itself).
   }
 
-  std::vector<Peak1D> IsoSpec::run(const std::vector<int>& isotopeNr,
+  std::vector<Peak1D> IsoSpecWrapper::run(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities)
