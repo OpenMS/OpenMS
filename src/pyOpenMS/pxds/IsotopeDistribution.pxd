@@ -49,9 +49,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
         void trimIntensities(double cutoff) nogil except +
         void sortByIntensity() nogil except +
         void sortByMass() nogil except +
-        bool isNormalized() nogil except +
         double averageMass() nogil except +
-        bool isConvolutionUnit() nogil except +
 
 cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" namespace "OpenMS::IsotopeDistribution":
     
