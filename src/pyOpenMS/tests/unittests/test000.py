@@ -334,6 +334,46 @@ def testIsotopeDistribution():
     ins.trimLeft(6.0)
     ins.trimRight(8.0)
 
+    ins.clear()
+    ins.insert(1, 2)
+    ins.insert(6, 5)
+
+    assert ins.size() == 2
+
+    for p in ins:
+        print(p)
+
+@report
+def testFineIsotopePatternGenerator():
+    """
+    @tests: FineIsotopePatternGenerator
+    """
+
+    iso = pyopenms.FineIsotopePatternGenerator()
+    iso.setThreshold(1e-5)
+    iso.setAbsolute(True)
+    assert iso.getAbsolute() 
+
+    methanol = pyopenms.EmpiricalFormula("CH3OH")
+    water = pyopenms.EmpiricalFormula("H2O")
+    mw = methanol + water
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20))
+    assert len(iso_dist.getContainer()) == 56
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200))
+    assert len(iso_dist.getContainer()) == 84
+
+    c100 = pyopenms.EmpiricalFormula("C100")
+    iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200))
+    assert len(iso_dist.getContainer()) == 101
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False)).size() == 6
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True)).size() == 5
+
+    iso = pyopenms.FineIsotopePatternGenerator(1e-5)
+    isod = iso.run(methanol)
+    assert len(isod.getContainer()) == 6
+    assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
+    assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
+
 @report
 def testCoarseIsotopePatternGenerator():
     """
