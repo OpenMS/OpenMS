@@ -98,7 +98,7 @@ START_SECTION((ProcessingSoftwareRef registerDataProcessingSoftware(const Softwa
   Software sw("Tool", "1.0");
   sw_ref = data.registerDataProcessingSoftware(sw);
   TEST_EQUAL(data.getDataProcessingSoftware().size(), 1);
-  TEST_EQUAL(*sw_ref == sw, true); // "TEST_EQUAL(*sw_ref, sw)" doesn't compile
+  TEST_EQUAL(*sw_ref == sw, true); // "TEST_EQUAL(*sw_ref, sw)" doesn't compile - same below
 }
 END_SECTION
 
@@ -117,7 +117,7 @@ START_SECTION((SearchParamRef registerDBSearchParam(const DBSearchParam& param))
   param.fragment_mass_tolerance = 2;
   param_ref = data.registerDBSearchParam(param);
   TEST_EQUAL(data.getDBSearchParams().size(), 1);
-  TEST_EQUAL(*param_ref == param, true); // "TEST_EQUAL(*param_ref, param)" doesn't compile
+  TEST_EQUAL(*param_ref == param, true);
 }
 END_SECTION
 
@@ -134,7 +134,7 @@ START_SECTION((ProcessingStepRef registerDataProcessingStep(const DataProcessing
   IdentificationData::DataProcessingStep step(sw_ref, file_refs);
   step_ref = data.registerDataProcessingStep(step);
   TEST_EQUAL(data.getDataProcessingSteps().size(), 1);
-  TEST_EQUAL(*step_ref == step, true); // "TEST_EQUAL(*step_ref, step)" doesn't compile
+  TEST_EQUAL(*step_ref == step, true);
 }
 END_SECTION
 
@@ -150,7 +150,7 @@ START_SECTION((ProcessingStepRef registerDataProcessingStep(const DataProcessing
   IdentificationData::DataProcessingStep step(sw_ref);
   step_ref = data.registerDataProcessingStep(step, param_ref);
   TEST_EQUAL(data.getDataProcessingSteps().size(), 2);
-  TEST_EQUAL(*step_ref == step, true); // "TEST_EQUAL(*step_ref, step)" doesn't compile
+  TEST_EQUAL(*step_ref == step, true);
   TEST_EQUAL(data.getDBSearchSteps().size(), 1);
   TEST_EQUAL(data.getDBSearchSteps().at(step_ref), param_ref);
 }
@@ -168,7 +168,7 @@ START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
   IdentificationData::ScoreType score("test_score", true, sw_ref);
   score_ref = data.registerScoreType(score);
   TEST_EQUAL(data.getScoreTypes().size(), 1);
-  TEST_EQUAL(*score_ref == score, true); // "TEST_EQUAL(*score_ref, score)" doesn't compile
+  TEST_EQUAL(*score_ref == score, true);
 }
 END_SECTION
 
@@ -184,7 +184,7 @@ START_SECTION((DataQueryRef registerDataQuery(const DataQuery& query)))
   IdentificationData::DataQuery query("spectrum_1", file_ref, 100.0, 1000.0);
   query_ref = data.registerDataQuery(query);
   TEST_EQUAL(data.getDataQueries().size(), 1);
-  TEST_EQUAL(*query_ref == query, true); // "TEST_EQUAL(*query_ref, query)" doesn't compile
+  TEST_EQUAL(*query_ref == query, true);
 }
 END_SECTION
 
@@ -206,12 +206,12 @@ START_SECTION((ParentMoleculeRef registerParentMolecule(const ParentMolecule& pa
   protein.accession = "protein_1";
   protein_ref = data.registerParentMolecule(protein);
   TEST_EQUAL(data.getParentMolecules().size(), 1);
-  TEST_EQUAL(*protein_ref == protein, true); // "TEST_EQUAL(*parent_ref, parent)" doesn't compile
+  TEST_EQUAL(*protein_ref == protein, true);
   IdentificationData::ParentMolecule rna("rna_1",
                                          IdentificationData::MoleculeType::RNA);
   rna_ref = data.registerParentMolecule(rna);
   TEST_EQUAL(data.getParentMolecules().size(), 2);
-  TEST_EQUAL(*rna_ref == rna, true); // "TEST_EQUAL(*parent_ref, parent)" doesn't compile
+  TEST_EQUAL(*rna_ref == rna, true);
 }
 END_SECTION
 
@@ -256,14 +256,14 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPe
   peptide.sequence = AASequence::fromString("TEST");
   peptide_ref = data.registerIdentifiedPeptide(peptide);
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
-  TEST_EQUAL(*peptide_ref == peptide, true); // "TEST_EQUAL(*peptide_ref, peptide)" doesn't compile
+  TEST_EQUAL(*peptide_ref == peptide, true);
 
   // peptide with protein reference:
   peptide.sequence = AASequence::fromString("PEPTIDE");
   peptide.parent_matches[protein_ref];
   peptide_ref = data.registerIdentifiedPeptide(peptide);
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
-  TEST_EQUAL(*peptide_ref == peptide, true); // "TEST_EQUAL(*peptide_ref, peptide)" doesn't compile
+  TEST_EQUAL(*peptide_ref == peptide, true);
 
   // registering a peptide with RNA reference doesn't work:
   peptide.parent_matches[rna_ref];
@@ -279,7 +279,7 @@ START_SECTION((const IdentifiedPeptides& getIdentifiedOligos() const))
 }
 END_SECTION
 
-START_SECTION((IdentifiedPeptideRef registerIdentifiedOligo(const IdentifiedOligo& oligo)))
+START_SECTION((IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo& oligo)))
 {
   IdentificationData::IdentifiedOligo oligo(NASequence::fromString(""));
   // can't register an oligo without a sequence:
@@ -291,14 +291,14 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedOligo(const IdentifiedOlig
   oligo.sequence = NASequence::fromString("ACGU");
   oligo_ref = data.registerIdentifiedOligo(oligo);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
-  TEST_EQUAL(*oligo_ref == oligo, true); // "TEST_EQUAL(*oligo_ref, oligo)" doesn't compile
+  TEST_EQUAL(*oligo_ref == oligo, true);
 
-  // oligo with protein reference:
+  // oligo with RNA reference:
   oligo.sequence = NASequence::fromString("UGCA");
   oligo.parent_matches[rna_ref];
   oligo_ref = data.registerIdentifiedOligo(oligo);
   TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
-  TEST_EQUAL(*oligo_ref == oligo, true); // "TEST_EQUAL(*oligo_ref, oligo)" doesn't compile
+  TEST_EQUAL(*oligo_ref == oligo, true);
 
   // registering an oligo with protein reference doesn't work:
   oligo.parent_matches[protein_ref];
@@ -314,7 +314,7 @@ START_SECTION((const IdentifiedPeptides& getIdentifiedCompounds() const))
 }
 END_SECTION
 
-START_SECTION((IdentifiedPeptideRef registerIdentifiedCompound(const IdentifiedCompound& compound)))
+START_SECTION((IdentifiedCompoundRef registerIdentifiedCompound(const IdentifiedCompound& compound)))
 {
   IdentificationData::IdentifiedCompound compound("");
   // can't register a compound without identifier:
@@ -327,7 +327,7 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedCompound(const IdentifiedC
                                                     "ethanol");
   compound_ref = data.registerIdentifiedCompound(compound);
   TEST_EQUAL(data.getIdentifiedCompounds().size(), 1);
-  TEST_EQUAL(*compound_ref == compound, true); // "TEST_EQUAL(*compound_ref, compound)" doesn't compile
+  TEST_EQUAL(*compound_ref == compound, true);
 }
 END_SECTION
 
@@ -344,19 +344,19 @@ START_SECTION((QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch
   IdentificationData::MoleculeQueryMatch match(peptide_ref, query_ref, 3);
   match_ref1 = data.registerMoleculeQueryMatch(match);
   TEST_EQUAL(data.getMoleculeQueryMatches().size(), 1);
-  TEST_EQUAL(*match_ref1 == match, true); // "TEST_EQUAL(*match_ref1, match)" doesn't compile
+  TEST_EQUAL(*match_ref1 == match, true);
 
   // match with an oligo:
   match = IdentificationData::MoleculeQueryMatch(oligo_ref, query_ref, 2);
   match_ref2 = data.registerMoleculeQueryMatch(match);
   TEST_EQUAL(data.getMoleculeQueryMatches().size(), 2);
-  TEST_EQUAL(*match_ref2 == match, true); // "TEST_EQUAL(*match_ref2, match)" doesn't compile
+  TEST_EQUAL(*match_ref2 == match, true);
 
   // match with a compound:
   match = IdentificationData::MoleculeQueryMatch(compound_ref, query_ref, 1);
   match_ref3 = data.registerMoleculeQueryMatch(match);
   TEST_EQUAL(data.getMoleculeQueryMatches().size(), 3);
-  TEST_EQUAL(*match_ref3 == match, true); // "TEST_EQUAL(*match_ref3, match)" doesn't compile
+  TEST_EQUAL(*match_ref3 == match, true);
 }
 END_SECTION
 
@@ -377,6 +377,74 @@ START_SECTION((MatchGroupRef registerQueryMatchGroup(const QueryMatchGroup& grou
   data.registerQueryMatchGroup(group);
   TEST_EQUAL(data.getQueryMatchGroups().size(), 1);
   TEST_EQUAL(*data.getQueryMatchGroups().begin() == group, true);
+}
+END_SECTION
+
+START_SECTION((void addScore(QueryMatchRef match_ref, ScoreTypeRef score_ref, double value)))
+{
+  TEST_EQUAL(match_ref1->scores.empty(), true);
+  data.addScore(match_ref1, score_ref, 100.0);
+  TEST_EQUAL(match_ref1->scores.size(), 1);
+  TEST_EQUAL(match_ref1->scores[0].first, score_ref);
+  TEST_EQUAL(match_ref1->scores[0].second, 100.0);
+}
+END_SECTION
+
+START_SECTION((ProcessingStepRef getCurrentProcessingStep()))
+{
+  TEST_EQUAL(data.getCurrentProcessingStep() == data.getDataProcessingSteps().end(), true);
+  // tested further below
+}
+END_SECTION
+
+START_SECTION((void setCurrentProcessingStep(ProcessingStepRef step_ref)))
+{
+  data.setCurrentProcessingStep(step_ref);
+  TEST_EQUAL(data.getCurrentProcessingStep() == step_ref, true);
+  // registering new data automatically adds the processing step:
+  IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("EDIT"));
+  peptide.parent_matches[protein_ref];
+  peptide_ref = data.registerIdentifiedPeptide(peptide);
+  TEST_EQUAL(peptide_ref->processing_step_refs.size(), 1);
+  TEST_EQUAL(peptide_ref->processing_step_refs[0] == step_ref, true);
+}
+END_SECTION
+
+START_SECTION((void clearCurrentProcessingStep()))
+{
+  data.clearCurrentProcessingStep();
+  TEST_EQUAL(data.getCurrentProcessingStep() == data.getDataProcessingSteps().end(), true);
+}
+END_SECTION
+
+START_SECTION((vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef score_ref) const))
+{
+
+}
+END_SECTION
+
+START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const))
+{
+  // non-existent score:
+  TEST_EQUAL(data.findScoreType("fake_score").second, false);
+  // registered score:
+  auto result = data.findScoreType("test_score");
+  TEST_EQUAL(result.first == score_ref, true);
+  TEST_EQUAL(result.second, true);
+}
+END_SECTION
+
+START_SECTION((result<ScoreTypeRef, bool> findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const))
+{
+  Software sw("Other");
+  IdentificationData::ProcessingSoftwareRef other_ref = data.registerDataProcessingSoftware(sw);
+  // no such score register for this software:
+  auto result = data.findScoreType("test_score", other_ref);
+  TEST_EQUAL(result.second, false);
+  // valid combination:
+  result = data.findScoreType("test_score", sw_ref);
+  TEST_EQUAL(result.first == score_ref, true);
+  TEST_EQUAL(result.second, true);
 }
 END_SECTION
 
