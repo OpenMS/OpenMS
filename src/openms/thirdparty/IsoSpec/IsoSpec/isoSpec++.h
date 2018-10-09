@@ -1,5 +1,5 @@
 /*
-*   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+*   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
 *
 *   This file is part of IsoSpec.
 *
@@ -14,9 +14,7 @@
 *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
 */
 
-
-#ifndef ISOSPEC_PLUS_PLUS_HPP
-#define ISOSPEC_PLUS_PLUS_HPP
+#pragma once
 
 #include <tuple>
 #include <unordered_map>
@@ -29,12 +27,14 @@
 #include "marginalTrek++.h"
 
 
-#ifdef BUILDING_R
+#if ISOSPEC_BUILDING_R
 #include <Rcpp.h>
 using namespace Rcpp;
-#endif /* BUILDING_R */
+#endif /* ISOSPEC_BUILDING_R */
 
 
+namespace IsoSpec
+{
 
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize);
 
@@ -81,7 +81,7 @@ public:
 };
 
 // Be very absolutely safe vs. false-sharing cache lines between threads...
-#define PADDING 64
+#define ISOSPEC_PADDING 64
 
 class IsoGenerator : public Iso
 {
@@ -286,12 +286,14 @@ private:
 
 
 
-#ifndef BUILDING_R
+#if !ISOSPEC_BUILDING_R
 
 void printConfigurations(
     const   std::tuple<double*,double*,int*,int>& results,
     int     dimNumber,
     int*    isotopeNumbers
 );
-#endif
-#endif /* ISOSPEC_PLUS_PLUS_HPP */
+#endif /* !ISOSPEC_BUILDING_R */
+
+} // namespace IsoSpec
+

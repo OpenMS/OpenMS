@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,6 +14,8 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+namespace IsoSpec
+{
 
 #include "operators.h"
 
@@ -33,4 +35,6 @@ ConfOrderMarginalDescending::ConfOrderMarginalDescending(const double* _logProbs
 : logProbs(_logProbs), dim(_dim)
 {}
 
+
+} // namespace IsoSpec
 
