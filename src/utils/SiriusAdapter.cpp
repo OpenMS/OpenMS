@@ -421,8 +421,15 @@ protected:
       sirius_workspace_directory = String(sw_dir.absolutePath());
       
       // move tmp folder to new location
-      File::copyDirRecursively(tmp_dir, sirius_workspace_directory.toQString());
-      LOG_WARN << "Sirius Workspace was moved to " << sirius_workspace_directory << std::endl;
+      bool copy_status = File::copyDirRecursively(tmp_dir, sirius_workspace_directory.toQString());
+      if (copy_status)
+      { 
+        LOG_WARN << "Sirius Workspace was successfully moved to " << sirius_workspace_directory << std::endl;
+      }
+      else
+      {
+        LOG_WARN << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run SiriusAdapter with debug >= 2." << std::endl;
+      }
     }
    
     // should the ms file be retained (non-converter mode)
