@@ -1,9 +1,13 @@
-#ifndef __TABULATOR_H__
-#define __TABULATOR_H__
+#pragma once
+
+#include <stdlib.h>
 
 #include "isoSpec++.h"
 
-#define INIT_TABLE_SIZE 1024
+#define ISOSPEC_INIT_TABLE_SIZE 1024
+
+namespace IsoSpec
+{
 
 template <typename T> class Tabulator
 {
@@ -12,7 +16,7 @@ private:
     double* _lprobs;
     double* _probs;
     int*    _confs;
-    int     _confs_no;
+    size_t  _confs_no;
 public:
     Tabulator(T* generator,
               bool get_masses, bool get_probs,
@@ -24,7 +28,7 @@ public:
     inline double*   lprobs()   { return _lprobs; };
     inline double*   probs()    { return _probs; };
     inline int*      confs()    { return _confs; };
-    inline int       confs_no() { return _confs_no; };
+    inline size_t    confs_no() { return _confs_no; };
 };
 
 void reallocate(double **array, int new_size){
@@ -33,27 +37,29 @@ void reallocate(double **array, int new_size){
     }
 }
 
-// MAKE A TEMPLATE OUT OF THAT SHIT, to accept any type of generator.
 template <typename T> Tabulator<T>::Tabulator(T* generator,
                      bool get_masses, bool get_probs,
                      bool get_lprobs, bool get_confs  )
 {
-    int current_size = INIT_TABLE_SIZE;
+    size_t current_size = ISOSPEC_INIT_TABLE_SIZE;
     int confs_tbl_idx = 0;
     _confs_no = 0;
 
     const int allDimSizeOfInt = sizeof(int)*generator->getAllDim();
 
-    _masses = get_masses ? (double *) malloc(INIT_TABLE_SIZE * sizeof(double)) : nullptr;
-    _lprobs = get_lprobs ? (double *) malloc(INIT_TABLE_SIZE * sizeof(double)) : nullptr;
-    _probs  = get_probs  ? (double *) malloc(INIT_TABLE_SIZE * sizeof(double)) : nullptr;
-    _confs  = get_confs  ? (int *)    malloc(INIT_TABLE_SIZE * allDimSizeOfInt): nullptr;
+    _masses = get_masses ? (double *) malloc(ISOSPEC_INIT_TABLE_SIZE * sizeof(double)) : nullptr;
+    _lprobs = get_lprobs ? (double *) malloc(ISOSPEC_INIT_TABLE_SIZE * sizeof(double)) : nullptr;
+    _probs  = get_probs  ? (double *) malloc(ISOSPEC_INIT_TABLE_SIZE * sizeof(double)) : nullptr;
+    _confs  = get_confs  ? (int *)    malloc(ISOSPEC_INIT_TABLE_SIZE * allDimSizeOfInt): nullptr;
 
 
     while(generator->advanceToNextConfiguration()){
         if( _confs_no == current_size )
         {
             current_size *= 2;
+
+	    // FIXME: Handle overflow gracefully here. It definitely could happen for people still stuck on 32 bits...
+
             reallocate(&_masses, current_size * sizeof(double));
             reallocate(&_lprobs, current_size * sizeof(double));
             reallocate(&_probs,  current_size * sizeof(double));
@@ -91,4 +97,5 @@ template <typename T> Tabulator<T>::~Tabulator()
     if( _confs  != nullptr ) free(_confs);
 }
 
-#endif  // __TABULATOR_H__
+} // namespace IsoSpec
+

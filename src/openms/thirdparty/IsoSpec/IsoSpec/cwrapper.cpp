@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -26,6 +26,7 @@
 #include "isoSpec++.h"
 #include "tabulator.h"
 
+using namespace IsoSpec;
 
 extern "C"
 {

@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,15 +14,16 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef MISC_HPP
-#define MISC_HPP
+#pragma once
 
 #include <iostream>
 #include <tuple>
 #include <vector>
 #include <fenv.h>
 #include "isoMath.h"
+
+namespace IsoSpec
+{
 
 inline double combinedSum(
     const int* conf, const std::vector<double>** valuesContainer, int dimNumber
@@ -128,6 +129,5 @@ template<typename T> void dealloc_table(T* tbl, int dim)
     delete[] tbl;
 }
 
+} // namespace IsoSpec
 
-
-#endif
