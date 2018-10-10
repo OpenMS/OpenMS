@@ -480,6 +480,9 @@ class DoxygenXMLFile(object):
                 if declaration.find("operator=(") != -1:
                     # assignment operator, cannot be overriden in Python
                     continue
+                if mdef.definition.find("static") != -1:
+                    methods += "        # TODO: static # %s nogil except +\n" % declaration
+                    continue
                 methods += "        %s nogil except +\n" % declaration
 
         # Build up the whole file
@@ -617,6 +620,7 @@ class DoxygenCppFunction(object):
         return_type = "".join(c_return_type)
         return_type = return_type.replace("&", "")
         return_type = return_type.replace("const", "")
+        return_type = return_type.strip()
         cpp_def = return_type + " " + function_name + arguments
 
         # Handle comments
