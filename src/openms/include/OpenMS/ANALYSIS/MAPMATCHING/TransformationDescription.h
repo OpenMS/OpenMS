@@ -70,14 +70,30 @@ public:
      */ 
     struct TransformationStatistics
     {
+      TransformationStatistics& operator=(const TransformationStatistics& rhs)
+      {
+        if (this == &rhs)
+          return *this;
+
+        // percents = rhs.precents; // const, cannot be assigned
+        xmin = rhs.xmin;
+        xmax = rhs.xmax;
+        ymin = rhs.ymin;
+        ymax = rhs.ymax;
+        percentiles_before = rhs.percentiles_before;
+        percentiles_after = rhs.percentiles_after;
+
+        return *this;
+      }
+
       const std::vector<Size> percents = {100, 99, 95, 90, 75, 50, 25};
-      double xmin = 0; //< smallest x value before transformation
-      double xmax = 0; //< largest x value before transformation
-      double ymin = 0; //< smallest y value before transformation
-      double ymax = 0; //< largest y value before transformation
+      double xmin = 0; ///< smallest x value before transformation
+      double xmax = 0; ///< largest x value before transformation
+      double ymin = 0; ///< smallest y value before transformation
+      double ymax = 0; ///< largest y value before transformation
       
-      std::map<Size, double> percentiles_before; //< percentiles of x/y deviations before transformation 
-      std::map<Size, double> percentiles_after; //< percentiles of x/y deviations after transformation
+      std::map<Size, double> percentiles_before; ///< percentiles of x/y deviations before transformation
+      std::map<Size, double> percentiles_after; ///< percentiles of x/y deviations after transformation
     };
     
 
