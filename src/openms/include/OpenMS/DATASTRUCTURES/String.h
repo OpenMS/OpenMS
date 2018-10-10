@@ -525,7 +525,7 @@ public:
     }
 
     /// boost hash
-    std::size_t hash_value(String const& s)
+    std::size_t hash_value(String const& s) const
     {
       return std::hash<std::string>()(static_cast<std::string>(s));
     }
@@ -564,7 +564,7 @@ namespace std
 {
   template <> struct hash<OpenMS::String> //hash for String
   {
-    size_t operator()(const OpenMS::String& s) const
+    size_t hash_value(const OpenMS::String& s) const
     {
       return std::hash<string>()(static_cast<string>(s));
     }
