@@ -524,6 +524,12 @@ public:
       return false;
     }
 
+    /// boost hash
+    std::size_t hash_value(String const& s)
+    {
+      return std::hash<std::string>()(static_cast<std::string>(s));
+    }
+
     /// create view that references a substring of the original string
     inline StringView substr(Size start, Size length) const
     {
