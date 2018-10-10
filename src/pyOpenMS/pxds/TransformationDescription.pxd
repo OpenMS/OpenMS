@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
         TransformationDescription(TransformationDescription) nogil except + # wrap-ignore
         libcpp_vector[TM_DataPoint] getDataPoints() nogil except +
         void setDataPoints(libcpp_vector[TM_DataPoint]& data) nogil except +
-        # void setDataPoints(libcpp_vector[libcpp_pair[double,double]]& data) nogil except +
+        void setDataPoints(libcpp_vector[libcpp_pair[double,double]]& data) nogil except +
         double apply(double) nogil except +
 
         void fitModel(String model_type, Param params)  nogil except +
