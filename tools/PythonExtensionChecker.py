@@ -1191,6 +1191,10 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         # Parse the pxd files corresponding to this doxygen XML file
         try:
+            # Raise a (dummy) exception to actually produce a PXD file for a
+            # specific class if requested by the user.
+            if len(generate_pxd) > 0:
+                raise PXDFileParseError ("dummy")
             pxd_class = PXDFile.parse_multiple_files(pxdfiles, comp_name)
             pxdfile = pxd_class.pxdfile
         except PXDFileParseError as e:
