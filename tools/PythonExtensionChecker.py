@@ -482,7 +482,7 @@ class DoxygenXMLFile(object):
         res  = DoxygenCppFunction.generate_imports(imports_needed) # add default cimport
         res += includes
         res += cldef
-        if default_ctor:
+        if not default_ctor:
             res += "        %s() nogil except +\n" % comp_name.split("::")[-1]
         if not copy_ctor:
             res += "        %s(%s) nogil except + #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
