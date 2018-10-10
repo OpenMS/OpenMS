@@ -453,7 +453,7 @@ class DoxygenXMLFile(object):
                     enum += '        %s\n' % val.get_name()
 
             if mdef.kind == "variable" and mdef.prot == "public":
-                print ("var", mdef.name)
+                # print ("var", mdef.name)
                 # cannot wrap const member variables
                 if mdef.definition.find("const") == -1:
                     methods += "        %s\n" % mdef.format_definition_for_cython(False)
