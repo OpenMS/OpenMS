@@ -18,34 +18,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
         MetaboliteSpectralMatching(MetaboliteSpectralMatching) nogil except + 
 
         void run(MSExperiment & exp, MSExperiment & speclib, MzTab & mz_tab) nogil except +
-
-# COMMENT: wrap static methods
-cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace"OpenMS::MetaboliteSpectralMatching":
-        
-        # static members        
-        # double computeHyperScore(double fragment_mass_error,
-        #                          bool fragment_mass_tolerance_unit_ppm,
-        #                          MSSpectrum exp_spectrum,
-        #                          MSSpectrum db_spectrum) nogil except +  # wrap-attach:MetaboliteSpectralMatching
-        # 
-        # double computeHyperScore(double fragment_mass_error,
-        #                          bool fragment_mass_tolerance_unit_ppm,
-        #                          MSSpectrum exp_spectrum,
-        #                          MSSpectrum db_spectrum,
-        #                          double mz_lower_bound) nogil except + # wrap-attach:MetaboliteSpectralMatching
-        # 
-        # double computeHyperScore(double fragment_mass_error,
-        #                          bool fragment_mass_tolerance_unit_ppm,
-        #                          MSSpectrum exp_spectrum,
-        #                          MSSpectrum db_spectrum,
-        #                          libcpp_vector[PeptideHit_PeakAnnotation]& annotations) nogil except + 
-        #     
-        double computeHyperScore(double fragment_mass_error,
-                                 bool fragment_mass_tolerance_unit_ppm,
-                                 MSSpectrum exp_spectrum,
-                                 MSSpectrum db_spectrum,
-                                 libcpp_vector[PeptideHit_PeakAnnotation]& annotations,
-                                 double mz_lower_bound) nogil except + # wrap-attach:MetaboliteSpectralMatching
         
     cdef cppclass SpectralMatch:
 
@@ -94,3 +66,31 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace"O
         String getPrecursorAdduct() nogil except +
         void setPrecursorAdduct(String)nogil except +
 
+# COMMENT: wrap static methods
+cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace"OpenMS::MetaboliteSpectralMatching":
+        
+        # static members        
+        # double computeHyperScore(double fragment_mass_error,
+        #                          bool fragment_mass_tolerance_unit_ppm,
+        #                          MSSpectrum exp_spectrum,
+        #                          MSSpectrum db_spectrum) nogil except +  # wrap-attach:MetaboliteSpectralMatching
+        # 
+        # double computeHyperScore(double fragment_mass_error,
+        #                          bool fragment_mass_tolerance_unit_ppm,
+        #                          MSSpectrum exp_spectrum,
+        #                          MSSpectrum db_spectrum,
+        #                          double mz_lower_bound) nogil except + # wrap-attach:MetaboliteSpectralMatching
+        # 
+        # double computeHyperScore(double fragment_mass_error,
+        #                          bool fragment_mass_tolerance_unit_ppm,
+        #                          MSSpectrum exp_spectrum,
+        #                          MSSpectrum db_spectrum,
+        #                          libcpp_vector[PeptideHit_PeakAnnotation]& annotations) nogil except + 
+        #     
+        double computeHyperScore(double fragment_mass_error,
+                                 bool fragment_mass_tolerance_unit_ppm,
+                                 MSSpectrum exp_spectrum,
+                                 MSSpectrum db_spectrum,
+                                 libcpp_vector[PeptideHit_PeakAnnotation]& annotations,
+                                 double mz_lower_bound) nogil except + # wrap-attach:MetaboliteSpectralMatching
+        
