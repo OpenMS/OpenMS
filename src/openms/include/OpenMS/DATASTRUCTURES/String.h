@@ -564,7 +564,7 @@ namespace std
 {
   template <> struct hash<OpenMS::String> //hash for String
   {
-    size_t hash_value(const OpenMS::String& s) const
+    std::size_t operator()( OpenMS::String const& s) const
     {
       return std::hash<string>()(static_cast<string>(s));
     }

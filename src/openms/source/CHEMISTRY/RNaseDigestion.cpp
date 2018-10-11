@@ -35,7 +35,6 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 using namespace std;
 
