@@ -55,18 +55,45 @@
 
 namespace OpenMS
 {
-  /**
-      @brief Representation of spectrum identification results and associated data.
+  /*!
+    @brief Representation of spectrum identification results and associated data.
 
-      This class provides capabilities for storing spectrum identification results for different types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
+    This class provides capabilities for storing spectrum identification results from different types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
+    The class design has the following goals:
+    - Provide one structure for storing all relevant data for spectrum identification results.
+    - Store data non-redundantly.
+    - Ensure consistency (e.g. no conflicting information; no "dangling references").
+    - Allow convenient and efficient querying.
+    - Support different types of experiments, as mentioned above, in one common framework.
 
-      @ingroup Metadata
+    The following important subordinate classes are provided to represent different types of data:
+    <table>
+    <tr><th>Class <th>Represents <th>Key <th>Proteomics example <th>Corresponding legacy class
+    <tr><td>DataProcessingStep <td>Information about a data processing step that was applied (e.g. input files, software used, parameters) <td>Combined information <td>Mascot search <td>ProteinIdentification
+    <tr><td>DataQuery <td>A search query (with identifier, RT, m/z), i.e. an MS2 spectrum or feature (for accurate mass search) <td>Identifier <td>MS2 spectrum <td>PeptideIdentification
+    <tr><td>ParentMolecule <td>An entry in a FASTA file with associated information (sequence, coverage, etc.) <td>Accession <td>Protein <td>ProteinHit
+    <tr><td>IdentifiedPeptide/-Oligo/-Compound <td>An identified molecule of the respective type <td>Sequence (or identifier for a compound) <td>Peptide <td>PeptideHit
+    <tr><td>MoleculeQueryMatch <td>A match between a query (DataQuery) and identified molecule (Identified...) <td>Combination of query and molecule references <td>Peptide-spectrum match (PSM) <td>PeptideIdentification/PeptideHit
+    </table>
+
+    To populate an IdentificationData instance with data, "register..." functions are used.
+    These functions return "references" (implemented as iterators) that can be used to refer to stored data items and thus form connections.
+    For example, a protein can be stored using registerParentMolecule, which returns a corresponding reference.
+    This reference can be used to build an IdentifiedPeptide object that references the protein.
+    An identified peptide referencing a protein can only be registered if that protein has been registered already, to ensure data consistency.
+    Given the identified peptide, information about the associated protein can be retrieved efficiently by simply dereferencing the reference.
+
+    To ensure non-redundancy, many data types have a "key" (see table above) to which a uniqueness constraint applies.
+    This means only one item of such a type with a given key can be stored in an IdentificationData object.
+    If items with an existing key are registered subsequently, attempts are made to merge new information (e.g. additional scores) into the existing entry.
+
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   public:
 
-    // typescript:
+    // type definitions:
     using MoleculeType = IdentificationDataInternal::MoleculeType;
     using MassType = IdentificationDataInternal::MassType;
 
