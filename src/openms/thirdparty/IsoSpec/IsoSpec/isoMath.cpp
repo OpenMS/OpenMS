@@ -8,17 +8,9 @@
 
 #include <cmath>
 #include "isoMath.h"
-
-#if defined(__unix__) || defined(__unix) || \
-        (defined(__APPLE__) && defined(__MACH__))
-#include <sys/mman.h>
-#define ISOSPEC_GOT_MMAP 1
-#elif defined(__MINGW32__) || defined(_WIN32)
-#include "mman.h"
-#define ISOSPEC_GOT_MMAP 1
-#else
 #include <stdlib.h>     /* malloc, free, rand */
-#endif
+
+#undef ISOSPEC_GOT_MMAP // for OpenMS we dont want to use mmap
 
 namespace IsoSpec
 {
