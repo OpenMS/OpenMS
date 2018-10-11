@@ -46,10 +46,6 @@
 #include "IsoSpec/marginalTrek++.cpp"
 #include "IsoSpec/operators.cpp"
 #include "IsoSpec/element_tables.cpp"
-// #include "misc.cpp"
-// #include "spectrum2.cpp" // contains unix-specific code
-// #include "cwrapper.cpp"
-#include "IsoSpec/tabulator.cpp"
 
 using namespace std;
 using namespace IsoSpec;
@@ -120,7 +116,7 @@ namespace OpenMS
     return run_(iso);
   }
 
-
+#if 0
   void runLayered(const std::string& formula)
   {
     Iso* iso = new Iso(formula.c_str());
@@ -151,7 +147,7 @@ namespace OpenMS
     delete tabulator;
     delete iso;
   }
-
+#endif
 
 }
 
