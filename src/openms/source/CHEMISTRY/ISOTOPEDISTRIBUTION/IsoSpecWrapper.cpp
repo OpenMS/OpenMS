@@ -82,8 +82,6 @@ namespace OpenMS
   {
     Iso iso(formula.c_str());
     return run_(iso);
-    // destruction of the Iso data structure itself (ptrs have been handed over
-    // to the generator, however we still need to destroy the struct itself).
   }
 
   std::vector<Peak1D> IsoSpecWrapper::run(const std::vector<int>& isotopeNr,
