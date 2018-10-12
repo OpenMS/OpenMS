@@ -121,6 +121,8 @@ namespace OpenMS
   Threading:
   This tool support multiple threads (@p threads option) to speed up computation, at the cost of little extra memory.
 
+  @TODO Implement option to keep/update old ProteinHits. Useful for reindexing and adding missing peptides.
+  Is it possible to only index the proteins present, or does it always look up in the whole database?
 */
 
  class OPENMS_DLLAPI PeptideIndexing :
@@ -270,10 +272,12 @@ public:
         return DATABASE_EMPTY;
       }
 
+      bool update_existing_ = true;
+
       if (pep_ids.empty()) // Aho-Corasick requires non-empty input; but we allow this case, since the TOPP tool should not crash when encountering a bad raw file (with no PSMs)
       {
         LOG_WARN << "Warning: An empty set of peptide identifications was provided. Output will be empty as well." << std::endl;
-        if (!keep_unreferenced_proteins_)
+        if (!keep_unreferenced_proteins_ || update_existing_)
         {
           //TODO is this really expected when you set this flag??
           // delete only protein hits, not whole ID runs incl. meta data:
@@ -631,28 +635,38 @@ public:
         std::vector<ProteinHit>& phits = prot_ids[run_idx].getHits();
         {
           // go through existing protein hits and count orphaned proteins (with no peptide hits)
-          std::vector<ProteinHit> orphaned_hits;
+          std::vector<ProteinHit> takeover_hits;
           for (std::vector<ProteinHit>::iterator p_hit = phits.begin(); p_hit != phits.end(); ++p_hit)
           {
             const String& acc = p_hit->getAccession();
-            if (!acc_to_prot.has(acc)) // acc_to_prot only contains found proteins from this current tool run!
+            auto acc_it = acc_to_prot.find(acc);
+            if (acc_it == acc_to_prot.end()) // acc_to_prot only contains found proteins from this current tool run!
             { // old hit is orphaned
               ++stats_orphaned_proteins;
               if (keep_unreferenced_proteins_)
               {
                 //TODO is this correct?? Can't we still infer Target-Decoy from the accession?
                 p_hit->setMetaValue("target_decoy", "");
-                orphaned_hits.push_back(*p_hit);
+                takeover_hits.emplace_back(std::move(*p_hit));
               }
             }
+            else if (update_existing_)
+            {
+              //TODO update p_hit with infos (like in the loop below) e.g. factor out as func
+              takeover_hits.emplace_back(std::move(*p_hit));
+              masterset.erase(acc_it->second);
+            }
           }
+
           // only keep orphaned hits (if any)
-          phits = orphaned_hits;
+          phits = std::move(takeover_hits);
         }
 
         // add new protein hits
         FASTAFile::FASTAEntry fe;
         phits.reserve(phits.size() + masterset.size());
+        //TODO This only goes through the non-orphaned ones. Maybe we want to annotate orphaned ones
+        // with sequence etc. too
         for (std::set<Size>::const_iterator it = masterset.begin(); it != masterset.end(); ++it)
         {
           ProteinHit hit;
@@ -673,7 +687,10 @@ public:
             {
               std::vector<std::pair<Size,Size>> tempDigests{};
               enzyme.digestUnmodified(fe.sequence, tempDigests);
-              if (annotate_nr_theoretical_peptides_) hit.setMetaValue("maxNrTheoreticalDigests", tempDigests.size());
+              if (annotate_nr_theoretical_peptides_)
+              {
+                hit.setMetaValue("maxNrTheoreticalDigests", tempDigests.size());
+              }
               if (add_missing_peptides_)
               {
                 for (const auto& pepStartLength : tempDigests)
@@ -708,6 +725,8 @@ public:
 
                     ModifiedPeptideGenerator::applyFixedModifications(modifications.begin(), modifications.end(), pep);
 
+                    //TODO keep track of added missing peptides (e.g in unordered set) -> if already present
+                    // check if same run and only add another PeptideEvidence
                     //TODO pick the most common charge or add all charges. But in case of all, we should add missing
                     // charges for present peptides, too.
                     pi.setMZ(pep.getMonoWeight(Residue::Full, 1));
@@ -719,6 +738,10 @@ public:
                     pi.setBaseName("putative"); //putative
 
                     PeptideHit ph;
+                    //TODO add more charge states??
+                    //TODO set target decoy annotation for pep?
+
+                    ph.setCharge(1);
                     PeptideEvidence pe;
                     pe.setStart(pepStartLength.first);
                     Size end = pepStartLength.first + pepStartLength.second - 1;

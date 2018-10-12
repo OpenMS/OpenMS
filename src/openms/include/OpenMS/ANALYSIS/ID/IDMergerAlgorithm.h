@@ -58,6 +58,7 @@ namespace OpenMS
     /// i.e. might occur in several PeptideIdentifications afterwards
     /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
     void mergeAllIDRuns(ConsensusMap& cmap) const;
+    void mergeAllIDRuns(std::vector<ProteinIdentification>& protRuns, std::vector<PeptideIdentification>& pepIDs) const;
 
     /// Takes a ConsensusMap and a mapping between ConsensusMap column index (map index) and
     /// the new ProteinIdentificationRun index and merges them. If you know the number of resulting
@@ -79,7 +80,7 @@ namespace OpenMS
     /// Checks consistency of search engines and settings across runs before merging.
     /// @return a merged RunDescription about what to put in the new runs
     /// @throws BaseException for disagreeing settings
-    bool checkOldRunConsistency_(const ConsensusMap& cmap) const;
+    bool checkOldRunConsistency_(const std::vector<ProteinIdentification> protRuns, String experiment_type) const;
 
 
   };

@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <map>
 #include <unordered_map>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -53,7 +54,7 @@ namespace OpenMS
                        "How to aggregate scores of PSM matching to the same protein?");
     defaults_.setValidStrings("score_aggregation_method", ListUtils::create<String>("maximum,product,sum"));
     defaults_.setValue("treat_charge_variants_separately", "true",
-                       "If this is true, different charge variants of the same peptide sequence count as inidividual evidences.");
+                       "If this is true, different charge variants of the same peptide sequence count as individual evidences.");
     defaults_.setValue("treat_modification_variants_separately", "true",
                        "If this is true, different modification variants of the same peptide sequence count as individual evidences.");
     defaults_.setValue("use_shared_peptides", "true", "If this is true, shared peptides are used as evidences.");
@@ -104,15 +105,19 @@ namespace OpenMS
       prot_run.setSearchParameters(sp);
 
       //create Accession to ProteinHit and peptide count map. To have quick access later.
+      //assumes that every protein only occurs once otherwise picks the last
       for (auto &phit : prot_run.getHits())
       {
-        acc_to_protein_hitP_and_count[phit.getAccession()] = std::make_pair<ProteinHit *, Size>(&phit, 0);
+        acc_to_protein_hitP_and_count[phit.getAccession()] = std::make_pair<ProteinHit*, Size>(&phit, 0);
       }
 
       for (auto &pep : pep_ids)
       {
         //skip if it does not belong to run
         if (pep.getIdentifier() != prot_run.getIdentifier())
+          continue;
+        //skip if no hits (which almost could be considered and error or warning.
+        if (pep.getHits().empty())
           continue;
         //make sure that first = best hit
         pep.sort();
@@ -176,9 +181,15 @@ namespace OpenMS
         {
           for (const auto &pep_hit : charge_to_pep_hit_map.second)
           {
-            auto& prot_count_pair = acc_to_protein_hitP_and_count[acc];
-            ProteinHit *protein = prot_count_pair.first;
-            prot_count_pair.second++;
+            auto prot_count_pair_it = acc_to_protein_hitP_and_count.find(std::string(acc));
+            if (prot_count_pair_it == acc_to_protein_hitP_and_count.end())
+            {
+              std::cout << "Warning, skipping pep that maps to a non existent protein accession. " << pep_hit.second->getSequence().toUnmodifiedString() << std::endl;
+              continue; // very weird, has an accession that was not in the proteins loaded in the beginning
+            }
+
+            ProteinHit *protein = prot_count_pair_it->second.first;
+            prot_count_pair_it->second.second++;
 
             double new_score = pep_hit.second->getScore();
 
@@ -187,7 +198,9 @@ namespace OpenMS
               new_score = 1. - new_score;
             switch (aggregation_method)
             {
+              //TODO for product we have to start at score = 1!
               //TODO for 0 probability peptides we could also multiply a minimum value
+              //TODO Why are protein scores just floats???
               case AggregationMethod::PROD :
                 if (new_score > 0.0)
                   protein->setScore(protein->getScore() * new_score);
