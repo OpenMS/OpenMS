@@ -209,104 +209,171 @@ namespace OpenMS
       query_match_lookup_.swap(other.query_match_lookup_);
     }
 
+    /*!
+      @brief Register an input file
+      @return Reference to the registered file
+    */
     InputFileRef registerInputFile(const String& file);
 
+    /*!
+      @brief Register data processing software
+      @return Reference to the registered software
+    */
     ProcessingSoftwareRef registerDataProcessingSoftware(
       const Software& software);
 
+    /*!
+      @brief Register database search parameters
+      @return Reference to the registered search parameters
+    */
     SearchParamRef registerDBSearchParam(const DBSearchParam& param);
 
+    /*!
+      @brief Register a data processing step
+      @return Reference to the registered processing step
+    */
     ProcessingStepRef registerDataProcessingStep(const DataProcessingStep&
                                                  step);
 
+    /*!
+      @brief Register a database search step with associated parameters
+      @return Reference to the registered processing step
+    */
     ProcessingStepRef registerDataProcessingStep(
       const DataProcessingStep& step, SearchParamRef search_ref);
 
+    /*!
+      @brief Register a score type
+      @return Reference to the registered score type
+    */
     ScoreTypeRef registerScoreType(const ScoreType& score);
 
+    /*!
+      @brief Register a data query (e.g. MS2 spectrum or feature)
+      @return Reference to the registered data query
+    */
     DataQueryRef registerDataQuery(const DataQuery& query);
 
+    /*!
+      @brief Register a parent molecule (e.g. protein or intact RNA)
+      @return Reference to the registered parent molecule
+    */
     ParentMoleculeRef registerParentMolecule(const ParentMolecule& parent);
 
+    /// Register a grouping of parent molecules (e.g. protein inference result)
     void registerParentMoleculeGrouping(const ParentMoleculeGrouping& grouping);
 
+    /*!
+      @brief Register an identified peptide
+      @return Reference to the registered peptide
+    */
     IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPeptide&
                                                    peptide);
 
+    /*!
+      @brief Register an identified compound (small molecule)
+      @return Reference to the registered compound
+    */
     IdentifiedCompoundRef registerIdentifiedCompound(const IdentifiedCompound&
                                                      compound);
 
+    /*!
+      @brief Register an identified RNA oligonucleotide
+      @return Reference to the registered oligonucleotide
+    */
     IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo& oligo);
 
+    /*!
+      @brief Register a molecule-query match (e.g. peptide-spectrum match)
+      @return Reference to the registered molecule-query match
+    */
     QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch& match);
 
+    /*!
+      @brief Register a group of associated molecule-query matches
+      @return Reference to the registered group of matches
+    */
     MatchGroupRef registerQueryMatchGroup(const QueryMatchGroup& group);
 
+    /// Return the registered input files (immutable)
     const InputFiles& getInputFiles() const
     {
       return input_files_;
     }
 
+    /// Return the registered data processing software (immutable)
     const DataProcessingSoftware& getDataProcessingSoftware() const
     {
       return processing_software_;
     }
 
+    /// Return the registered data processing steps (immutable)
     const DataProcessingSteps& getDataProcessingSteps() const
     {
       return processing_steps_;
     }
 
+    /// Return the registered database search parameters (immutable)
     const DBSearchParams& getDBSearchParams() const
     {
       return db_search_params_;
     }
 
+    /// Return the registered database search steps (immutable)
     const DBSearchSteps& getDBSearchSteps() const
     {
       return db_search_steps_;
     }
 
+    /// Return the registered score types (immutable)
     const ScoreTypes& getScoreTypes() const
     {
       return score_types_;
     }
 
+    /// Return the registered data queries (immutable)
     const DataQueries& getDataQueries() const
     {
       return data_queries_;
     }
 
+    /// Return the registered parent molecules (immutable)
     const ParentMolecules& getParentMolecules() const
     {
       return parent_molecules_;
     }
 
+    /// Return the registered parent molecule groupings (immutable)
     const ParentMoleculeGroupings& getParentMoleculeGroupings() const
     {
       return parent_molecule_groupings_;
     }
 
+    /// Return the registered identified peptides (immutable)
     const IdentifiedPeptides& getIdentifiedPeptides() const
     {
       return identified_peptides_;
     }
 
+    /// Return the registered compounds (immutable)
     const IdentifiedCompounds& getIdentifiedCompounds() const
     {
       return identified_compounds_;
     }
 
+    /// Return the registered identified oligonucleotides (immutable)
     const IdentifiedOligos& getIdentifiedOligos() const
     {
       return identified_oligos_;
     }
 
+    /// Return the registered molecule-query matches (immutable)
     const MoleculeQueryMatches& getMoleculeQueryMatches() const
     {
       return query_matches_;
     }
 
+    /// Return the registered groups of molecule-query matches (immutable)
     const QueryMatchGroups& getQueryMatchGroups() const
     {
       return query_match_groups_;
@@ -336,11 +403,20 @@ namespace OpenMS
     /// Cancel the effect of @ref setCurrentProcessingStep().
     void clearCurrentProcessingStep();
 
+    /// Return the best match for each data query, according to a given score type
     std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
 
+    /*!
+      @brief Look up a score type by name
+      @return A pair: 1. Reference to the score type, if found; 2. Boolean indicating success or failure
+    */
     std::pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const;
 
+    /*!
+      @brief Look up a score type by name and associated software
+      @return A pair: 1. Reference to the score type, if found; 2. Boolean indicating success or failure
+    */
     std::pair<ScoreTypeRef, bool> findScoreType(
       const String& score_name, ProcessingSoftwareRef software_ref) const;
 
@@ -348,7 +424,7 @@ namespace OpenMS
     void calculateCoverages(bool check_molecule_length = false);
 
     /*!
-      @brief Clean up the data structure are filtering parts of it
+      @brief Clean up the data structure after filtering parts of it
 
       Make sure there are no invalid references or "orphan" data entries.
     */
@@ -408,7 +484,7 @@ namespace OpenMS
                              MoleculeType expected_type);
 
     /*!
-      Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
+      @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
 
       The validity of the processing step reference cannot be checked here!
     */
@@ -433,7 +509,7 @@ namespace OpenMS
     };
 
     /*!
-      Helper functor for adding scores to elements in a @t boost::multi_index_container structure
+      @brief Helper functor for adding scores to elements in a @t boost::multi_index_container structure
 
       The validity of the score type reference cannot be checked here!
     */
@@ -459,6 +535,11 @@ namespace OpenMS
       double value;
     };
 
+    /*!
+      @brief Helper functor for removing invalid parent matches from elements in a @t boost::multi_index_container structure
+
+      Used during filtering, to update parent matches after parents have been removed.
+    */
     template <typename ElementType>
     struct ModifyMultiIndexRemoveParentMatches
     {
