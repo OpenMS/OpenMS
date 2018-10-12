@@ -436,7 +436,7 @@ END_SECTION
 
 START_SECTION((result<ScoreTypeRef, bool> findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const))
 {
-  Software sw("Other");
+  Software sw("Other","1.0");
   IdentificationData::ProcessingSoftwareRef other_ref = data.registerDataProcessingSoftware(sw);
   // no such score register for this software:
   auto result = data.findScoreType("test_score", other_ref);
