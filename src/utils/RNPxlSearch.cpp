@@ -1951,12 +1951,12 @@ protected:
                   ah.isotope_error = isotope_error;
 
                   // combined score
-                  ah.score = - 0.491
-                             + 2.079 * (  0.157 * ah.total_loss_score - 1.400)
-                             + 1.215 * ( 19.187 * ah.marker_ions_score  - 0.446)
-                             + 0.514 * (  0.034 * ah.partial_loss_score - 0.760) 
-                             - 3.473 * (322.000 * ah.err                - 1.147)
-                             - 0.901 * (293.000 * ah.pl_err             - 1.533);
+                  ah.score = + 2.493
+                             + 7.239 * (  0.058 * ah.total_loss_score   - 0.900)
+                             + 1.381 * ( 26.965 * ah.marker_ions_score  - 0.300)
+                             + 1.178 * (  0.043 * ah.partial_loss_score - 0.472) 
+                             - 1.934 * (300.828 * ah.err                - 1.774)
+                             - 0.358 * (240.441 * ah.pl_err             - 1.316);
 
 #ifdef DEBUG_RNPXLSEARCH
                   LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -2102,12 +2102,12 @@ protected:
                     ah.rna_mod_index = rna_mod_index;
                     ah.isotope_error = isotope_error;
 
-                    ah.score = - 0.491
-                               + 2.079 * (  0.157 * ah.total_loss_score - 1.400)
-                               + 1.215 * ( 19.187 * ah.marker_ions_score  - 0.446)
-                               + 0.514 * (  0.034 * ah.partial_loss_score - 0.760) 
-                               - 3.473 * (322.000 * ah.err                - 1.147)
-                               - 0.901 * (293.000 * ah.pl_err             - 1.533);
+                    ah.score = + 2.493
+                               + 7.239 * (  0.058 * ah.total_loss_score   - 0.900)
+                               + 1.381 * ( 26.965 * ah.marker_ions_score  - 0.300)
+                               + 1.178 * (  0.043 * ah.partial_loss_score - 0.472) 
+                               - 1.934 * (300.828 * ah.err                - 1.774)
+                               - 0.358 * (240.441 * ah.pl_err             - 1.316);
 
 #ifdef DEBUG_RNPXLSEARCH
                     LOG_DEBUG << "best score in pre-score: " << score << endl;
