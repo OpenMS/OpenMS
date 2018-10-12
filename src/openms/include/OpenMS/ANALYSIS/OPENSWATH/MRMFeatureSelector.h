@@ -44,6 +44,9 @@
 
 namespace OpenMS
 {
+  const String s_continuous = "continuous";
+  const String s_integer = "integer";
+
   class OPENMS_DLLAPI MRMFeatureSelector :
     public DefaultParamHandler
   {
@@ -53,12 +56,13 @@ public:
     MRMFeatureSelector();
     virtual ~MRMFeatureSelector();
 
-    virtual std::vector<String> optimize(
-      std::vector<std::pair<double, String>> time_to_name, 
-      std::map< String, std::vector<Feature> > feature_name_map
+    virtual void optimize(
+      const std::vector<std::pair<double, String>>& time_to_name, 
+      const std::map< String, std::vector<Feature> >& feature_name_map,
+      std::vector<String>& result
     )=0;
-    FeatureMap select_MRMFeature(FeatureMap& features);
-    virtual double make_score(Feature& feature)=0;
+    void select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered);
+    virtual double make_score(const Feature& feature)=0;
 
     String remove_spaces(String str);
 
@@ -87,6 +91,7 @@ public:
     double getOptimalThreshold() const;
 
     void getDefaultParameters(Param& params);
+    void setParameters(const Param& params);
 
 protected:
     void updateMembers_(); /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
@@ -107,21 +112,23 @@ private:
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
   {
 public:
-    std::vector<String> optimize(
-      std::vector<std::pair<double, String>> time_to_name, 
-      std::map< String, std::vector<Feature> > feature_name_map
+    void optimize(
+      const std::vector<std::pair<double, String>>& time_to_name, 
+      const std::map< String, std::vector<Feature> >& feature_name_map,
+      std::vector<String>& result
     );
-    double make_score(Feature& feature);
+    double make_score(const Feature& feature);
   };
 
   class OPENMS_DLLAPI MRMFeatureSelectorScore : public MRMFeatureSelector
   {
 public:
-    std::vector<String> optimize(
-      std::vector<std::pair<double, String>> time_to_name, 
-      std::map< String, std::vector<Feature> > feature_name_map
+    void optimize(
+      const std::vector<std::pair<double, String>>& time_to_name, 
+      const std::map< String, std::vector<Feature> >& feature_name_map,
+      std::vector<String>& result
     );
-    double make_score(Feature& feature);
+    double make_score(const Feature& feature);
   };
 }
 
