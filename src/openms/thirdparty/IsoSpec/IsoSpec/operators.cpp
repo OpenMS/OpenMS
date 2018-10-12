@@ -14,9 +14,6 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-namespace IsoSpec
-{
-
 #include "operators.h"
 
 namespace IsoSpec
