@@ -41,8 +41,8 @@
       <ITEM name="Name" value="RNase_MC1" type="string" />
       <ITEM name="RegEx" value="(?&lt;=U)" type="string" />
       <ITEM name="RegExDescription" value="RNase MC1 cuts before U." type="string" />
-      <ITEM name="CutsAfter" value=".*" type="string" />
-      <ITEM name="CutsBefore" value="U|Y(?!m)" type="string" />
+      <ITEM name="CutsAfter" value=".*(?!m)$" type="string" />
+      <ITEM name="CutsBefore" value="U|Y" type="string" />
       <ITEM name="ThreePrimeGain" value="p" type="string" />
       <ITEM name="FivePrimeGain" value="" type="string" />
     </NODE>
