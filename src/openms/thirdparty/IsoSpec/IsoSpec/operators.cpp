@@ -14,10 +14,10 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
+#include "operators.h"
+
 namespace IsoSpec
 {
-
-#include "operators.h"
 
 KeyHasher::KeyHasher(int _dim)
 : dim(_dim)
