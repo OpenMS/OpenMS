@@ -89,10 +89,10 @@ public:
        
        @param fromDir Source directory
        @param toDir Target directory
-       @param overwrite_existing Delete existing target, before copying 
+       @param overwrite_existing Overwrites file if already present in target directory and appears in the source directory
        @return True on success
     */
-    static bool copyDirRecursively(const QString &fromDir, const QString &toDir, bool overwrite_existing = true);
+    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, bool overwrite_existing = true);
 
     /**
       @brief Removes a file (if it exists).

@@ -141,51 +141,50 @@ namespace OpenMS
   }
 
   // https://stackoverflow.com/questions/2536524/copy-directory-using-qt
-  bool File::copyDirRecursively(const QString &fromDir, const QString &toDir, bool overwrite_existing)
+  bool File::copyDirRecursively(const QString &from_dir, const QString &to_dir, bool overwrite_existing)
   {
   
-    QDir sourceDir(fromDir);
-    QDir targetDir(toDir);
+    QDir source_dir(from_dir);
+    QDir target_dir(to_dir);
 
-    QString canonical_sourceDir = sourceDir.canonicalPath();
-    QString canonical_targetDir = targetDir.canonicalPath();
+    QString canonical_source_dir = source_dir.canonicalPath();
+    QString canonical_target_dir = target_dir.canonicalPath();
    
     // check canonical path  
-    if (canonical_sourceDir == canonical_targetDir)
+    if (canonical_source_dir == canonical_target_dir)
     {
-      LOG_ERROR << "Error: Could not copy  " << fromDir.toStdString() << " to " << toDir.toStdString() << ". Same path given." << std::endl;;  
+      LOG_ERROR << "Error: Could not copy  " << from_dir.toStdString() << " to " << to_dir.toStdString() << ". Same path given." << std::endl;;  
       return false;
     }
 
-
     // make directory if not present 
-    if (!targetDir.exists())
+    if (!target_dir.exists())
     {
-      targetDir.mkpath(toDir);
+      target_dir.mkpath(to_dir);
     }
   
     // copy folder recurively
-    QFileInfoList fileInfoList = sourceDir.entryInfoList();
-    foreach(QFileInfo fileInfo, fileInfoList)
+    QFileInfoList file_list = source_dir.entryInfoList();
+    for (QFileInfo& entry : file_list)   
     {
-      if (fileInfo.fileName() == "." || fileInfo.fileName() == "..")
+      if (entry.fileName() == "." || entry.fileName() == "..")
       {
         continue;
       }
-      if (fileInfo.isDir())
+      if (entry.isDir())
       {
-        if (!copyDirRecursively(fileInfo.filePath(), targetDir.filePath(fileInfo.fileName()), overwrite_existing))
+        if (!copyDirRecursively(entry.filePath(), target_dir.filePath(entry.fileName()), overwrite_existing))
         {
           return false;
         }
       }
       else
       {
-        if (overwrite_existing && targetDir.exists(fileInfo.fileName()))
+        if (overwrite_existing && target_dir.exists(entry.fileName()))
         {
-          targetDir.remove(fileInfo.fileName());
+          target_dir.remove(entry.fileName());
         }
-        if (!QFile::copy(fileInfo.filePath(), targetDir.filePath(fileInfo.fileName())))
+        if (!QFile::copy(entry.filePath(), target_dir.filePath(entry.fileName())))
         {
           return false;
         }
