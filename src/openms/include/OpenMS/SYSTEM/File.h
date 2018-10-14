@@ -86,13 +86,13 @@ public:
        @brief Copy directory recursively
        
        Copies a source directory to a new target directory (recursive).
-       
-       @param fromDir Source directory
-       @param toDir Target directory
-       @param overwrite_existing Overwrites file if already present in target directory and appears in the source directory
+       If the target directory already exists, files will be added.
+       @param from_dir Source directory
+       @param to_dir Target directory
+       @param overwrite_existing Overwrites files in target directory if already present
        @return True on success
     */
-    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, bool overwrite_existing = true);
+    static bool copyDirRecursively(const QString& from_dir, const QString& to_dir, bool overwrite_existing = true);
 
     /**
       @brief Removes a file (if it exists).
