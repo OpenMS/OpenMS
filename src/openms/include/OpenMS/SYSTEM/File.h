@@ -87,6 +87,9 @@ public:
        
        Copies a source directory to a new target directory (recursive).
        If the target directory already exists, files will be added.
+       If files already exist in the target, the copy will fail when processing the first duplicate (i.e. return false).
+       To avoid this, specify @p overwrite_existing = true.
+       
        @param from_dir Source directory
        @param to_dir Target directory
        @param overwrite_existing Overwrites files in target directory if already present
