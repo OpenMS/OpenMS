@@ -49,7 +49,7 @@ set(PAYLOAD_BIN_PATH ${PAYLOAD_PATH}/bin)
 set(PAYLOAD_LIB_PATH ${PAYLOAD_PATH}/lib)
 set(PAYLOAD_SHARE_PATH ${PAYLOAD_PATH}/share)
 
-# Find Qt5 includes for pyOpenMS
+# Find Qt5 includes for KNIME packaging
 find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 exec_program(${QT_QMAKE_EXECUTABLE} ARGS "-query QT_INSTALL_LIBS" OUTPUT_VARIABLE QT_INSTALL_LIBS)
