@@ -40,13 +40,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  const Size IdentificationData::MoleculeParentMatch::UNKNOWN_POSITION =
-    Size(-1);
-  const char IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR = 'X';
-  const char IdentificationData::MoleculeParentMatch::LEFT_TERMINUS = '[';
-  const char IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS = ']';
-
-
   void IdentificationData::checkScoreTypes_(const ScoreList& scores)
   {
     for (const pair<ScoreTypeRef, double>& score_pair : scores)
@@ -488,8 +481,8 @@ namespace OpenMS
     // aggregate molecule-parent matches by parent:
     struct ParentData
     {
-      Size length;
-      double coverage;
+      Size length = 0;
+      double coverage = 0.0;
       vector<pair<Size, Size>> fragments;
     };
     map<ParentMoleculeRef, ParentData> parent_info;

@@ -54,10 +54,10 @@ namespace OpenMS
       // String instead of char so modified residues can be represented:
       String left_neighbor, right_neighbor; // neighboring sequence elements
 
-      static const Size UNKNOWN_POSITION; // = Size(-1)
-      static const char UNKNOWN_NEIGHBOR; // = 'X'
-      static const char LEFT_TERMINUS; // = '['
-      static const char RIGHT_TERMINUS; // = ']'
+      static const Size UNKNOWN_POSITION = Size(-1);
+      static const char UNKNOWN_NEIGHBOR = 'X';
+      static const char LEFT_TERMINUS = '[';
+      static const char RIGHT_TERMINUS = ']';
 
       explicit MoleculeParentMatch(Size start_pos = UNKNOWN_POSITION,
                                    Size end_pos = UNKNOWN_POSITION,
