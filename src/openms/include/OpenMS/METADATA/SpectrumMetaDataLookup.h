@@ -45,6 +45,7 @@
 
 namespace OpenMS
 {
+
   /**
     @brief Helper class for looking up spectrum meta data
 
@@ -176,6 +177,18 @@ namespace OpenMS
         precursor_charge(0), ms_level(0), scan_number(-1), native_id("")
       {
       }
+
+      /// Copy constructor
+      SpectrumMetaData(const SpectrumMetaData &) = default;
+      /// Move constructor
+      SpectrumMetaData(SpectrumMetaData&&) = default;
+      /// Destructor
+      ~SpectrumMetaData() = default;
+
+      /// Assignment operator
+      SpectrumMetaData & operator=(const SpectrumMetaData &) = default;
+      /// Move assignment operator
+      SpectrumMetaData& operator=(SpectrumMetaData&&) & = default;
     };
 
     /// Constructor

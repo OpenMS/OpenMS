@@ -4,6 +4,7 @@ set(directory include/OpenMS/FILTERING/DATAREDUCTION)
 ### list all header files of the directory here
 set(sources_list_h
 DataFilters.h
+Deisotoper.h
 ElutionPeakDetection.h
 FeatureFindingMetabo.h
 IsotopeDistributionCache.h

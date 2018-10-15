@@ -39,36 +39,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  AcquisitionInfo::AcquisitionInfo() :
-    vector<Acquisition>(),
-    MetaInfoInterface()
-  {
-  }
-
-  AcquisitionInfo::AcquisitionInfo(const AcquisitionInfo & source) :
-    vector<Acquisition>(source),
-    MetaInfoInterface(source),
-    method_of_combination_(source.method_of_combination_)
-  {
-
-  }
-
-  AcquisitionInfo::~AcquisitionInfo()
-  {
-  }
-
-  AcquisitionInfo & AcquisitionInfo::operator=(const AcquisitionInfo & source)
-  {
-    if (&source == this)
-      return *this;
-
-    vector<Acquisition>::operator=(source);
-    MetaInfoInterface::operator=(source);
-    method_of_combination_ = source.method_of_combination_;
-
-    return *this;
-  }
-
   bool AcquisitionInfo::operator==(const AcquisitionInfo & rhs) const
   {
     return method_of_combination_ == rhs.method_of_combination_ &&
@@ -92,3 +62,4 @@ namespace OpenMS
   }
 
 }
+

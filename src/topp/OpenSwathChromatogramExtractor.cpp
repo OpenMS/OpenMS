@@ -95,7 +95,7 @@ using namespace OpenMS;
   TraML transitions, returning as many chromatograms as input transitions were
   provided -- while for MS1 data it will extract at the precursor ion @a m/z.
 
-  The input assay library or transition list is proved through the @p -tr flag
+  The input assay library or transition list is provided via the @p -tr flag
   and needs to be in TraML format.  More information about the input filetype
   can be found in @ref OpenMS::TraMLFile "TraML".
 
@@ -246,9 +246,7 @@ protected:
 
     // Do parallelization over the different input files
     // Only in OpenMP 3.0 are unsigned loop variables allowed
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
       boost::shared_ptr<PeakMap > exp(new PeakMap);
@@ -272,14 +270,12 @@ protected:
         transition_exp_used = targeted_exp;
       }
 
-#ifdef _OPENMP
-#pragma omp critical (OpenSwathChromatogramExtractor_metadata)
-#endif
       // after loading the first file, copy the meta data from that experiment
       // this may happen *after* chromatograms were already added to the
       // output, thus we do NOT fill the experiment here but rather store all
       // the chromatograms in the "chromatograms" array and store them in
       // out_exp afterwards.
+#pragma omp critical (OpenSwathChromatogramExtractor_metadata)
       if (i == 0) 
       {
         out_exp = *exp;
@@ -313,9 +309,7 @@ protected:
         extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
             mz_extraction_window, ppm, im_window, extraction_function);
 
-#ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)
-#endif
         {
           // Remove potential meta value indicating cached data
           SpectrumSettings exp_settings = (*exp)[0];

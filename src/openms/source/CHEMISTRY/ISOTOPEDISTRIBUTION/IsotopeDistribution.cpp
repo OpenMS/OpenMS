@@ -31,11 +31,11 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
-//
+
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -55,22 +55,12 @@ using namespace std;
 namespace OpenMS
 {
   
-  
   IsotopeDistribution::IsotopeDistribution()
   {
     distribution_.push_back(Peak1D(0, 1));
   }
 
-  IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & id) :
-    distribution_(id.distribution_)
-  {}
-
-  IsotopeDistribution::~IsotopeDistribution()
-  {
-  }
-
-  IsotopeDistribution& IsotopeDistribution::operator= 
-  (const IsotopeDistribution & iso)
+  IsotopeDistribution& IsotopeDistribution::operator=(const IsotopeDistribution & iso)
   {
     if (this != &iso)
     {
@@ -79,10 +69,14 @@ namespace OpenMS
     return *this;
   }
 
-
   void IsotopeDistribution::set(const ContainerType & distribution)
   {
     distribution_ = distribution;
+  }
+
+  void IsotopeDistribution::set(ContainerType && distribution)
+  {
+    distribution_ = std::move(distribution);
   }
 
   const IsotopeDistribution::ContainerType& IsotopeDistribution::getContainer() const
@@ -96,7 +90,7 @@ namespace OpenMS
     {
       return 0;
     }
-    return distribution_[distribution_.size() - 1].getMZ();
+    return std::max_element(begin(), end(), MassAbundance::MZLess())->getMZ();
   }
 
   Peak1D::CoordinateType IsotopeDistribution::getMin() const
@@ -105,16 +99,16 @@ namespace OpenMS
     {
       return 0;
     }
-    return distribution_[0].getMZ();
+    return std::min_element(begin(), end(), MassAbundance::MZLess())->getMZ();
   }
 
   Peak1D IsotopeDistribution::getMostAbundant() const
   {
-      if (distribution_.empty())
-      {
-          return Peak1D(0, 1);
-      }
-      return *std::max_element(begin(), end(), MassAbundance::IntensityLess());
+    if (distribution_.empty())
+    {
+        return Peak1D(0, 1);
+    }
+    return *std::max_element(begin(), end(), MassAbundance::IntensityLess());
   }
 
   Size IsotopeDistribution::size() const
@@ -168,7 +162,6 @@ namespace OpenMS
     for_each(distribution_.begin(), distribution_.end(), lambda);
   }
 
-
   bool IsotopeDistribution::operator==(const IsotopeDistribution & isotope_distribution) const
   {
     return distribution_ == isotope_distribution.distribution_;
@@ -199,7 +192,6 @@ namespace OpenMS
 
     return false;
   }
-
 
   bool IsotopeDistribution::operator!=(const IsotopeDistribution & isotope_distribution) const
   {
@@ -248,19 +240,6 @@ namespace OpenMS
         break;
       }
     }
-  }
-
-  bool IsotopeDistribution::isNormalized() const
-  {
-    return distribution_.front().getIntensity() == 1.0 && 
-      is_sorted(distribution_.begin(), distribution_.end(),[](const MassAbundance& fr1, const MassAbundance& fr2){
-          return fr1.getIntensity() > fr2.getIntensity();
-        });
-  }
-
-  bool IsotopeDistribution::isConvolutionUnit() const
-  { 
-    return distribution_.size() == 1  && distribution_.front().getMZ() == 0.0;
   }
 
   double IsotopeDistribution::averageMass() const

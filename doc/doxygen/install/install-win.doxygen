@@ -218,16 +218,17 @@
       <li>Call CMake to create the build system
         \code
         cd <path_to_OpenMS_build>
-        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT5_prefix> -G "<generator>" "<path_to_OpenMS>"
+        cmake -D OPENMS_CONTRIB_LIBS="<path_to_contrib_build>" -D CMAKE_PREFIX_PATH=<path_to_QT5_prefix> -G "<generator>" -T host=x64 "<path_to_OpenMS>"
         \endcode
 
         The CMAKE_PREFIX_PATH should hold the path to your Qt5 build directory (see example below). Note that it is NOT the main Qt5 directory, but the subfolder which is named after the toolchain it was build with (e.g. "5.6/msvc2015_64").
         The choice of <tt>&lt;generator&gt;</tt> depends on your system. Type <tt>cmake</tt> to see a list of available generators.
         @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
+        The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
         Example:
         \code
         cd c:\dev\OpenMS_Win64
-        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 15 2017 Win64" ..\OpenMS
+        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 15 2017 Win64" -T host=x64 ..\OpenMS
         \endcode
     </ol>
 

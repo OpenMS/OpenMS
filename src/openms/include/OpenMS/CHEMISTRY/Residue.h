@@ -177,27 +177,35 @@ public:
     /** @name Constructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     Residue();
 
-    /// copy constructor
-    Residue(const Residue& residue);
+    /// Copy constructor
+    Residue(const Residue&) = default;
 
-    /// detailed constructor
+    /// Move constructor
+    Residue(Residue&&) = default;
+
+    /// Detailed constructor
     Residue(const String& name,
             const String& three_letter_code,
             const String& one_letter_code,
             const EmpiricalFormula& formula);
 
-    /// destructor
+    /// Destructor
     virtual ~Residue();
     //@}
 
     /** @name Assignment
      */
     //@{
-    /// assignment operator
-    Residue& operator=(const Residue& residue);
+
+    /// Assignment operator
+    Residue& operator=(const Residue&) = default;
+
+    /// Move assignment operator
+    Residue& operator=(Residue&&) & = default;
     //@}
 
     /** @name Accessors

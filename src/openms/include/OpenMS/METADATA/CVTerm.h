@@ -39,24 +39,25 @@
 
 namespace OpenMS
 {
+
   /**
       @brief Representation of controlled vocabulary term
 
       This class simply stores a CV term, its value and unit if necessary.
 
+      Representation of a CV term used by CVMappings
+
       @ingroup Metadata
   */
-  ///Representation of a CV term used by CVMappings
   class OPENMS_DLLAPI CVTerm
   {
 public:
 
-
     struct Unit
     {
-      Unit()
-      {
-      }
+
+      /// Default constructor
+      Unit() = default;
 
       Unit(const String & p_accession, const String & p_name, const String & p_cv_ref) :
         accession(p_accession),
@@ -65,27 +66,21 @@ public:
       {
       }
 
-      Unit(const Unit & rhs) :
-        accession(rhs.accession),
-        name(rhs.name),
-        cv_ref(rhs.cv_ref)
-      {
-      }
+      /// Copy constructor
+      Unit(const Unit &) = default;
+      
+      /// Move constructor
+      Unit(Unit&&) = default;
 
+      /// Destructor
       virtual ~Unit()
       {
       }
 
-      Unit & operator=(const Unit & rhs)
-      {
-        if (this != &rhs)
-        {
-          accession = rhs.accession;
-          name = rhs.name;
-          cv_ref = rhs.cv_ref;
-        }
-        return *this;
-      }
+      /// Assignment operator
+      Unit & operator=(const Unit &) = default;
+      /// Move assignment operator
+      Unit& operator=(Unit&&) & = default;
 
       bool operator==(const Unit & rhs) const
       {
@@ -104,21 +99,26 @@ public:
       String cv_ref;
     };
 
-
     /// Default constructor
-    CVTerm();
+    CVTerm() = default;
 
     /// Detailed constructor
     CVTerm(const String & accession, const String & name, const String & cv_identifier_ref, const String & value, const Unit & unit);
 
     /// Copy constructor
-    CVTerm(const CVTerm & rhs);
+    CVTerm(const CVTerm &) = default;
+
+    /// Move constructor
+    CVTerm(CVTerm&&) = default;
 
     /// Destructor
     virtual ~CVTerm();
 
     /// Assignment operator
-    CVTerm & operator=(const CVTerm & rhs);
+    CVTerm & operator=(const CVTerm &) = default;
+
+    /// Move assignment operator
+    CVTerm& operator=(CVTerm&&) & = default;
 
     /** @name Accessors
     */

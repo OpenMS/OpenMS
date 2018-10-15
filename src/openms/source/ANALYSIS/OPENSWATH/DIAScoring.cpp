@@ -46,6 +46,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h> // getPPM
 
 #include <numeric>
 #include <algorithm>
@@ -147,19 +148,23 @@ namespace OpenMS
     diaIsotopeScoresSub_(transitions, spectrum, intensities, isotope_corr, isotope_overlap);
   }
 
-  void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
+  void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions,
+                                      SpectrumPtrType spectrum,
                                       const std::vector<double>& normalized_library_intensity,
-                                      double& ppm_score, double& ppm_score_weighted)
+                                      double& ppm_score,
+	                                    double& ppm_score_weighted,
+                                      std::vector<double>& diff_ppm)
   {
     ppm_score = 0;
     ppm_score_weighted = 0;
-    double mz, intensity;
+    diff_ppm.clear();
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
-      const TransitionType* transition = &transitions[k];
+      const TransitionType& transition = transitions[k];
       // Calculate the difference of the theoretical mass and the actually measured mass
-      double left(transition->getProductMZ()), right(transition->getProductMZ());
+      double left(transition.getProductMZ()), right(transition.getProductMZ());
       adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      double mz, intensity;
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Continue if no signal was found - we therefore don't make a statement
@@ -169,13 +174,18 @@ namespace OpenMS
         continue;
       }
 
-      double diff_ppm = std::fabs(mz - transition->getProductMZ()) * 1000000 / transition->getProductMZ();
-      ppm_score += diff_ppm;
-      ppm_score_weighted += diff_ppm * normalized_library_intensity[k];
+      double ppm = Math::getPPM(mz, transition.getProductMZ());
+      diff_ppm.push_back(transition.getProductMZ());
+      diff_ppm.push_back(ppm);
+      ppm_score += std::fabs(ppm);
+      ppm_score_weighted += std::fabs(ppm) * normalized_library_intensity[k];
 #ifdef MRMSCORING_TESTING
       std::cout << " weighted int of the peak is " << mz << " diff is in ppm " << diff_ppm << " thus append " << diff_ppm * diff_ppm << " or weighted " << diff_ppm * normalized_library_intensity[k] << std::endl;
 #endif
     }
+
+    // FEATURE we should not punish so much when one transition is missing!
+    ppm_score /= transitions.size();
   }
 
   bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
