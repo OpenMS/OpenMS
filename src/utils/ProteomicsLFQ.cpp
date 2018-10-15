@@ -92,7 +92,7 @@ using namespace std;
   // - disable mass recalibration
   // - change summarization to sum instead of max in MSstatsConverter
   // - change percentage of missingness in ID transfer
-
+  // - check how we + MSstats handle modified versions of a peptide
 
   // TODO:
   //   check experimental design at startup
