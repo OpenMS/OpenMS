@@ -32,19 +32,63 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-project("OpenMS-3rd-party-libs")
+project("OpenMS-json")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-## Note these libraries will not be compiled
-## but we only expose their sources
 
-# eol-bspline lib
-add_subdirectory(eol-bspline)
+set(_JSON_SOURCES
+adl_serializer.hpp
+detail
+detail/conversions
+detail/conversions/from_json.hpp
+detail/conversions/to_chars.hpp
+detail/conversions/to_json.hpp
+detail/exceptions.hpp
+detail/input
+detail/input/binary_reader.hpp
+detail/input/input_adapters.hpp
+detail/input/json_sax.hpp
+detail/input/lexer.hpp
+detail/input/parser.hpp
+detail/iterators
+detail/iterators/internal_iterator.hpp
+detail/iterators/iteration_proxy.hpp
+detail/iterators/iter_impl.hpp
+detail/iterators/json_reverse_iterator.hpp
+detail/iterators/primitive_iterator.hpp
+detail/json_pointer.hpp
+detail/json_ref.hpp
+detail/macro_scope.hpp
+detail/macro_unscope.hpp
+detail/meta
+detail/meta/cpp_future.hpp
+detail/meta/detected.hpp
+detail/meta/is_sax.hpp
+detail/meta/type_traits.hpp
+detail/meta/void_t.hpp
+detail/output
+detail/output/binary_writer.hpp
+detail/output/output_adapters.hpp
+detail/output/serializer.hpp
+detail/value_t.hpp
+json.hpp
+json_fwd.hpp
+)
 
-# evergreen Bayesian inference library (0.9)
-# from TODO
-add_subdirectory(evergreen)
-add_subdirectory(IsoSpec)
+# export include directory
+set(JSON_INCLUDE_DIRECTORY
+  ${PROJECT_SOURCE_DIR}
+  CACHE
+  INTERNAL "json include directories" FORCE
+)
 
-add_subdirectory(json)
+set(JSON_SOURCES )
+foreach(_file ${_JSON_SOURCES})
+  # append source files
+  set(
+    JSON_SOURCES
+    ${JSON_SOURCES}
+    ${PROJECT_SOURCE_DIR}/nlohmann/${_file}
+  )
+endforeach()
 
