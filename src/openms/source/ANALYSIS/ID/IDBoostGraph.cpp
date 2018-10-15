@@ -149,22 +149,20 @@ namespace OpenMS
   }*/
 
   /// Do sth on ccs
-  void IDBoostGraph::applyFunctorOnCCs(std::function<void(FilteredGraph&)> functor)
+  void IDBoostGraph::applyFunctorOnCCs(std::function<void(Graph&)> functor)
   {
-    if (numCCs_ == 0) {
+    if (ccs_.empty()) {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
     }
 
+    int i = 0;
     #pragma omp parallel for
-    for (unsigned int i = 0; i < numCCs_; ++i)
+    for (Graph& fg : ccs_)
     {
-      FilteredGraph fg(g,
-                       [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
-                       [& i, this](vertex_t v) { return componentProperty_[v] == i; });
 
       #ifdef INFERENCE_DEBUG
-      std::cout << "Printing cc " << i << std::endl;
-      printFilteredGraph(std::cout, fg);
+      std::cout << "Printing cc " << ++i << std::endl;
+      printGraph(std::cout, fg);
       #endif
 
       functor(fg);
@@ -173,96 +171,112 @@ namespace OpenMS
 
   void IDBoostGraph::annotateIndistProteins(bool addSingletons) const
   {
-    if (ccs_.size() == 0) {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
+    if (ccs_.empty() && boost::num_vertices(g) == 0)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Graph empty. Build it first.");
     }
 
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
-    pl.startProgress(0, numCCs_, "Annotating indistinguishable proteins...");
-    int i = 0;
 
-    #pragma omp parallel for
-    for (const Graph& fg : ccs_)
+    if (ccs_.empty())
     {
-
-      #ifdef INFERENCE_DEBUG
-      std::cout << "Printing cc " << i << std::endl;
-      printGraph(std::cout, fg);
-      #endif
-
-      //TODO this could be sped up by a good hashing function for sets of uints and using unordered_map
-      unordered_map<PeptideNodeSet, ProteinNodeSet, MyUIntSetHasher > indistProteins; //find indist proteins
-
-      Graph::vertex_iterator ui, ui_end;
-      boost::tie(ui, ui_end) = boost::vertices(fg);
-
-      // Cluster proteins
-      for (; ui != ui_end; ++ui)
-      {
-        IDBoostGraph::IDPointer curr_idObj = fg[*ui];
-        //TODO introduce an enum for the types to make it more clear.
-        //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
-        if (curr_idObj.which() == 0) //protein: find indist. ones
-        {
-          //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
-          //Or just check rigorously here.
-          PeptideNodeSet childPeps;
-          GraphConst::adjacency_iterator adjIt, adjIt_end;
-          boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
-          for (; adjIt != adjIt_end; ++adjIt)
-          {
-            if (fg[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
-            {
-              childPeps.insert(*adjIt);
-            }
-          }
-
-          auto clusterIt = indistProteins.find(childPeps);
-          if (clusterIt != indistProteins.end())
-          {
-            clusterIt->second.insert(*ui);
-          }
-          else
-          {
-            indistProteins[childPeps] = ProteinNodeSet({*ui});
-          }
-        }
-      }
-
-      // add the protein groups to the underlying ProteinGroup data structure only
-      for (auto const &pepsToGrps : indistProteins)
-      {
-        if (pepsToGrps.second.size() <= 1 && !addSingletons)
-        {
-          continue;
-        }
-
-        ProteinIdentification::ProteinGroup pg{};
-
-        pg.probability = -1.0;
-        for (auto const &proteinVID : pepsToGrps.second)
-        {
-          ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
-          pg.accessions.push_back(proteinPtr->getAccession());
-
-          // the following sets the score of the group to the max
-          // this might make not much sense if there was no inference yet -> score = 0
-          // And one might also want to use other scoring systems
-          // Anyway, without prior or add. info, all indist. proteins should have the same
-          // score
-          double oldscore = proteinPtr->getScore();
-          if (oldscore > pg.probability)
-          {
-            pg.probability = oldscore;
-          }
-        }
-
-        proteins_.getIndistinguishableProteins().push_back(pg);
-      }
-      pl.setProgress(++i);
+      pl.startProgress(0, 1, "Annotating indistinguishable proteins...");
+      annotateIndistProteins_(g, addSingletons);
+      pl.nextProgress();
+      pl.endProgress();
     }
-    pl.endProgress();
+    else
+    {
+      int i = 0;
+
+      #pragma omp parallel for
+      for (const Graph& fg : ccs_)
+      {
+
+        #ifdef INFERENCE_DEBUG
+        std::cout << "Printing cc " << i << std::endl;
+        printGraph(std::cout, fg);
+        #endif
+
+        annotateIndistProteins_(fg, addSingletons);
+        pl.setProgress(++i);
+      }
+      pl.endProgress();
+    }
+  }
+
+  void IDBoostGraph::annotateIndistProteins_(const Graph& fg, bool addSingletons) const
+  {
+    //TODO evaluate hashing performance on sets
+    unordered_map<PeptideNodeSet, ProteinNodeSet, MyUIntSetHasher > indistProteins; //find indist proteins
+
+    Graph::vertex_iterator ui, ui_end;
+    boost::tie(ui, ui_end) = boost::vertices(fg);
+
+    // Cluster proteins
+    for (; ui != ui_end; ++ui)
+    {
+      IDBoostGraph::IDPointer curr_idObj = fg[*ui];
+      //TODO introduce an enum for the types to make it more clear.
+      //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+      if (curr_idObj.which() == 0) //protein: find indist. ones
+      {
+        //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
+        //Or just check rigorously here.
+        PeptideNodeSet childPeps;
+        GraphConst::adjacency_iterator adjIt, adjIt_end;
+        boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
+        for (; adjIt != adjIt_end; ++adjIt)
+        {
+          if (fg[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
+          {
+            childPeps.insert(*adjIt);
+          }
+        }
+
+        auto clusterIt = indistProteins.find(childPeps);
+        if (clusterIt != indistProteins.end())
+        {
+          clusterIt->second.insert(*ui);
+        }
+        else
+        {
+          indistProteins[childPeps] = ProteinNodeSet({*ui});
+        }
+      }
+    }
+
+    // add the protein groups to the underlying ProteinGroup data structure only
+    for (auto const &pepsToGrps : indistProteins)
+    {
+      if (pepsToGrps.second.size() <= 1 && !addSingletons)
+      {
+        continue;
+      }
+
+      ProteinIdentification::ProteinGroup pg{};
+
+      pg.probability = -1.0;
+      for (auto const &proteinVID : pepsToGrps.second)
+      {
+        ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
+        pg.accessions.push_back(proteinPtr->getAccession());
+
+        // the following sets the score of the group to the max
+        // this might make not much sense if there was no inference yet -> score = 0
+        // And one might also want to use other scoring systems
+        // Anyway, without prior or add. info, all indist. proteins should have the same
+        // score
+        double oldscore = proteinPtr->getScore();
+        if (oldscore > pg.probability)
+        {
+          pg.probability = oldscore;
+        }
+      }
+
+      proteins_.getIndistinguishableProteins().push_back(pg);
+    }
   }
 
 
@@ -442,24 +456,9 @@ namespace OpenMS
   //TODO we should probably rename it to splitCC now. Add logging and timing?
   void IDBoostGraph::computeConnectedComponents()
   {
-    /*componentProperty_.resize(num_vertices(g));
-    numCCs_ = boost::connected_components(g, &componentProperty_[0]);
-
-    /// new: this splits the graph and puts the subgraphs into a vector
-    for (unsigned int c = 0; c <= numCCs_; ++c)
-    {
-      ccs_.emplace_back();
-      //[& i, this](edge_t e) { return componentProperty_[e.m_source] == i; }
-      boost::copy_graph(FilteredGraph(g,
-          [c, this](edge_t e) { return componentProperty_.at(e.m_source) == c; },
-          [c, this](vertex_t v) { return componentProperty_.at(v) == c; }),
-              ccs_.back());
-    }
-    componentProperty_.clear();
-    g.clear();*/
     auto vis = dfs_ccsplit_visitor(ccs_);
     boost::depth_first_search(g, visitor(vis));
-    std::cout << "Found " << ccs_.size() << "CCs" << std::endl;
+    LOG_INFO << "Found " << ccs_.size() << "CCs" << std::endl;
     g.clear();
   }
 

@@ -120,6 +120,10 @@ protected:
 
     addEmptyLine_();
 
+    Param merger_with_subsection;
+    merger_with_subsection.insert("Merging:", IDMergerAlgorithm().getDefaults());
+    registerFullParam_(merger_with_subsection);
+
     Param algo_with_subsection;
     algo_with_subsection.insert("Algorithm:", BasicProteinInferenceAlgorithm().getDefaults());
     registerFullParam_(algo_with_subsection);
@@ -171,6 +175,7 @@ protected:
       IDBoostGraph ibg{prot_ids[0], pep_ids};
       ibg.buildGraph(false);
       sw.start();
+      //TODO allow computation without splitting into components. Might be worthwhile in some cases
       std::cout << "Splitting into connected components..." << std::endl;
       ibg.computeConnectedComponents();
       std::cout << "Splitting into connected components took " << sw.toString() << std::endl;

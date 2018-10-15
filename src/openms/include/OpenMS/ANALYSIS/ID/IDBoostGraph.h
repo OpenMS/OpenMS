@@ -104,7 +104,7 @@ namespace OpenMS
     IDBoostGraph(ProteinIdentification &proteins, std::vector<PeptideIdentification>& idedSpectra);
 
     /// Do sth on connected components (your functor object has to inherit from std::function)
-    void applyFunctorOnCCs(std::function<void(FilteredGraph &)> functor);
+    void applyFunctorOnCCs(std::function<void(Graph &)> functor);
 
     /// Add intermediate nodes to the graph that represent indist. protein groups and peptides with the same parents
     /// this will save computation time and oscillations later on.
@@ -167,7 +167,7 @@ namespace OpenMS
 
       OpenMS::String operator()(const PeptideHit* pep) const
       {
-        return pep->getSequence().toUnmodifiedString();
+        return pep->getSequence().toString() + "_" + pep->getCharge();
       }
 
       OpenMS::String operator()(const ProteinHit* prot) const
@@ -247,7 +247,7 @@ namespace OpenMS
 
     };
 
-    /// Compute connected component on the static graph. Needs to be recomputed if graph is changed.
+    /// Splits the initialized graph into connected components and clears it.
     void computeConnectedComponents();
 
     /// Initialize and store the graph
@@ -271,25 +271,28 @@ namespace OpenMS
     static ProteinGroup staticPG;
 
     //GraphConst gconst;
+
+    /// underlying protein identification object
+    //TODO for consensusXML this probably needs to become a vector.
     ProteinIdentification& proteins_;
+    /// underlying peptide identifications
     std::vector<PeptideIdentification>& idedSpectra_;
 
     /// a visitor that creates labels based on the node type (e.g. for printing)
     LabelVisitor lv_;
-
-    /// the connected component property for every node in the graph
-    std::vector<unsigned int> componentProperty_;
-    /// the number of connected components to be used as a counter.
-    unsigned int numCCs_ = 0;
 
     /// helper function to add a vertex if it is not present yet, otherwise return the present one
     /// needs a temporary filled vertex_map that is modifiable
     vertex_t addVertexWithLookup_(IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
     //vertex_t addVertexWithLookup_(IDPointerConst& ptr, std::unordered_map<IDPointerConst, vertex_t, boost::hash<IDPointerConst>>& vertex_map);
 
+
+    /// internal function to annotate the underlying ID structures based on the given Graph
+    void annotateIndistProteins_(const Graph& fg, bool addSingletons) const;
+
     void printFilteredGraph(std::ostream& out, const FilteredGraph& fg) const;
     void printGraph(std::ostream& out, const Graph& fg) const;
-    //void printSubGraph(std::ostream& out, SubGraph& fg) const;
+
   };
 
 } //namespace OpenMS

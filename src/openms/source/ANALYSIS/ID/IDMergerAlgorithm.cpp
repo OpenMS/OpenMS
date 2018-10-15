@@ -41,9 +41,13 @@ using namespace std;
 namespace OpenMS
 {
   IDMergerAlgorithm::IDMergerAlgorithm() :
-    IDMergerAlgorithm::DefaultParamHandler("ConsensusIDAlgorithm")
+    IDMergerAlgorithm::DefaultParamHandler("IDMergerAlgorithm")
     {
-
+      defaults_.setValue("annotate_origin",
+                         "true",
+                         "If true, adds a map_index MetaValue to the PeptideIDs to annotate the IDRun they came from.");
+      defaults_.setValidStrings("annotate_origin", ListUtils::create<String>("true,false"));
+      defaultsToParam_();
     }
 
   //merge proteins across fractions and replicates
@@ -501,7 +505,7 @@ namespace OpenMS
     //Without any exp. design we assume label-free for checking mods
     checkOldRunConsistency_(protRuns, "label-free");
 
-    bool annotate_origin = true;
+    bool annotate_origin(param_.getValue("annotate_origin").toBool());
 
     ProteinIdentification newProtIDRun;
     //TODO better ID?
@@ -552,7 +556,10 @@ namespace OpenMS
         }
 
         pid.setIdentifier(newProtIDRun.getIdentifier());
-        if (annotate_origin) pid.setBaseName()
+
+        //TODO think about a better way to annotate the originating run.
+        // this is borrowed from consensusXML where map_index is used.
+        if (annotate_origin) pid.setMetaValue("map_index", oldProtRunIdx);
 
         for (auto& phit : pid.getHits())
         {

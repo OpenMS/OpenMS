@@ -59,11 +59,11 @@ namespace OpenMS
 
     /// A function object to pass into the IDBoostGraph class to perform algorithms on
     /// connected components
-    class FilteredGraphInferenceFunctor;
+    class GraphInferenceFunctor;
 
     /// Deprecated: A function object to pass into the IDBoostGraph class to perform algorithms on
     /// connected components and on the fly finding groups (no preannotation needed)
-    class FilteredGraphInferenceFunctorNoGroups;
+    class GraphInferenceFunctorNoGroups;
 
     /// A function object to pass into the GridSearch;
     struct GridSearchEvaluator;

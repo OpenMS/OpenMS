@@ -47,17 +47,17 @@ using namespace std;
 namespace OpenMS
 {
   /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
-  class BayesianProteinInferenceAlgorithm::FilteredGraphInferenceFunctor :
-      public std::function<void(IDBoostGraph::FilteredGraph&)>
+  class BayesianProteinInferenceAlgorithm::GraphInferenceFunctor :
+      public std::function<void(IDBoostGraph::Graph&)>
   {
   public:
     const Param& param_;
 
-    explicit FilteredGraphInferenceFunctor(const Param& param):
+    explicit GraphInferenceFunctor(const Param& param):
         param_(param)
     {}
 
-    void operator() (IDBoostGraph::FilteredGraph& fg) {
+    void operator() (IDBoostGraph::Graph& fg) {
       //------------------ Now actual inference ------------------- //
       // Skip cc without peptide or protein
       //TODO this currently does not work because we do not filter edges I think
@@ -71,7 +71,7 @@ namespace OpenMS
                                                  1.0); // the p used for marginalization: 1 = sum product, inf = max product
         BetheInferenceGraphBuilder<unsigned long> bigb;
 
-        boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(IDBoostGraph::vertex_t)> >::vertex_iterator ui, ui_end;
+        IDBoostGraph::Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
 
         // Store the IDs of the nodes for which you want the posteriors in the end (usually at least proteins)
@@ -86,7 +86,7 @@ namespace OpenMS
 
         for (; ui != ui_end; ++ui)
         {
-          IDBoostGraph::FilteredGraph::adjacency_iterator nbIt, nbIt_end;
+          IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
           boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
           in.clear();
@@ -181,7 +181,7 @@ namespace OpenMS
       param_.setValue("model_parameters:prot_prior", gamma);
       param_.setValue("model_parameters:pep_emission", alpha);
       param_.setValue("model_parameters:pep_spurious_emission", beta);
-      ibg_.applyFunctorOnCCs(FilteredGraphInferenceFunctor(const_cast<const Param&>(param_)));
+      ibg_.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
       FalseDiscoveryRate fdr;
       return fdr.applyEvaluateProteinIDs(prots_);
     }

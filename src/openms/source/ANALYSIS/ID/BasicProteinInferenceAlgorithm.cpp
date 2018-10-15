@@ -105,7 +105,7 @@ namespace OpenMS
       prot_run.setSearchParameters(sp);
 
       //create Accession to ProteinHit and peptide count map. To have quick access later.
-      //assumes that every protein only occurs once otherwise picks the last
+      //If a protein occurs in multiple runs, it picks the last
       for (auto &phit : prot_run.getHits())
       {
         acc_to_protein_hitP_and_count[phit.getAccession()] = std::make_pair<ProteinHit*, Size>(&phit, 0);
@@ -122,7 +122,7 @@ namespace OpenMS
         //make sure that first = best hit
         pep.sort();
 
-        //TODO think about if using any but the best PSM makes sense in such a simple aggregation scheme
+        //TODO think about if using any but the best PSM per spectrum makes sense in such a simple aggregation scheme
         //for (auto& hit : pep.getHits())
         //{
         PeptideHit &hit = pep.getHits()[0];
