@@ -7,7 +7,7 @@ get_prerequisites(${DEPS} DEPENDENCIES 0 1 "${BIN_DIR}" "${LOOKUP_DIRS}" "\$ORIG
 
 foreach(DEPENDENCY_FILE ${DEPENDENCIES})
   ## Skip things like glibc, gomp, stdcpp
-  if (NOT DEPENDENCY_FILE MATCHES "^/lib/.*" AND NOT DEPENDENCY_FILE MATCHES "libstdc\\+\\+")
+  if (DEPENDENCY_FILE MATCHES "libz" OR DEPENDENCY_FILE MATCHES "libbz" OR NOT DEPENDENCY_FILE MATCHES "^/lib/.*" AND NOT DEPENDENCY_FILE MATCHES "libstdc\\+\\+")
   gp_resolve_item(${DEPS} "${DEPENDENCY_FILE}" "" "${LOOKUP_DIRS}" resolved_file)
   
   get_filename_component(resolved_file_nosymlink ${resolved_file} REALPATH)
