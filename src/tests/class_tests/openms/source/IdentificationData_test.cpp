@@ -83,6 +83,9 @@ START_SECTION((InputFileRef registerInputFile(const String& file)))
   file_ref = data.registerInputFile(file);
   TEST_EQUAL(data.getInputFiles().size(), 1);
   TEST_STRING_EQUAL(*file_ref, file);
+  // re-registering doesn't lead to redundant entries:
+  data.registerInputFile(file);
+  TEST_EQUAL(data.getInputFiles().size(), 1);
 }
 END_SECTION
 
@@ -99,6 +102,9 @@ START_SECTION((ProcessingSoftwareRef registerDataProcessingSoftware(const Softwa
   sw_ref = data.registerDataProcessingSoftware(sw);
   TEST_EQUAL(data.getDataProcessingSoftware().size(), 1);
   TEST_EQUAL(*sw_ref == sw, true); // "TEST_EQUAL(*sw_ref, sw)" doesn't compile - same below
+  // re-registering doesn't lead to redundant entries:
+  data.registerDataProcessingSoftware(sw);
+  TEST_EQUAL(data.getDataProcessingSoftware().size(), 1);
 }
 END_SECTION
 
@@ -118,6 +124,9 @@ START_SECTION((SearchParamRef registerDBSearchParam(const DBSearchParam& param))
   param_ref = data.registerDBSearchParam(param);
   TEST_EQUAL(data.getDBSearchParams().size(), 1);
   TEST_EQUAL(*param_ref == param, true);
+  // re-registering doesn't lead to redundant entries:
+  data.registerDBSearchParam(param);
+  TEST_EQUAL(data.getDBSearchParams().size(), 1);
 }
 END_SECTION
 
@@ -135,6 +144,9 @@ START_SECTION((ProcessingStepRef registerDataProcessingStep(const DataProcessing
   step_ref = data.registerDataProcessingStep(step);
   TEST_EQUAL(data.getDataProcessingSteps().size(), 1);
   TEST_EQUAL(*step_ref == step, true);
+  // re-registering doesn't lead to redundant entries:
+  data.registerDataProcessingStep(step);
+  TEST_EQUAL(data.getDataProcessingSteps().size(), 1);
 }
 END_SECTION
 
@@ -153,6 +165,10 @@ START_SECTION((ProcessingStepRef registerDataProcessingStep(const DataProcessing
   TEST_EQUAL(*step_ref == step, true);
   TEST_EQUAL(data.getDBSearchSteps().size(), 1);
   TEST_EQUAL(data.getDBSearchSteps().at(step_ref), param_ref);
+  // re-registering doesn't lead to redundant entries:
+  data.registerDataProcessingStep(step, param_ref);
+  TEST_EQUAL(data.getDataProcessingSteps().size(), 2);
+  TEST_EQUAL(data.getDBSearchSteps().size(), 1);
 }
 END_SECTION
 
@@ -169,6 +185,9 @@ START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
   score_ref = data.registerScoreType(score);
   TEST_EQUAL(data.getScoreTypes().size(), 1);
   TEST_EQUAL(*score_ref == score, true);
+  // re-registering doesn't lead to redundant entries:
+  data.registerScoreType(score);
+  TEST_EQUAL(data.getScoreTypes().size(), 1);
 }
 END_SECTION
 
@@ -185,6 +204,9 @@ START_SECTION((DataQueryRef registerDataQuery(const DataQuery& query)))
   query_ref = data.registerDataQuery(query);
   TEST_EQUAL(data.getDataQueries().size(), 1);
   TEST_EQUAL(*query_ref == query, true);
+  // re-registering doesn't lead to redundant entries:
+  data.registerDataQuery(query);
+  TEST_EQUAL(data.getDataQueries().size(), 1);
 }
 END_SECTION
 
@@ -204,14 +226,19 @@ START_SECTION((ParentMoleculeRef registerParentMolecule(const ParentMolecule& pa
   TEST_EQUAL(data.getParentMolecules().empty(), true);
 
   protein.accession = "protein_1";
+  protein.sequence = "TESTPEPTIDEAAA";
   protein_ref = data.registerParentMolecule(protein);
   TEST_EQUAL(data.getParentMolecules().size(), 1);
   TEST_EQUAL(*protein_ref == protein, true);
+
   IdentificationData::ParentMolecule rna("rna_1",
                                          IdentificationData::MoleculeType::RNA);
   rna_ref = data.registerParentMolecule(rna);
   TEST_EQUAL(data.getParentMolecules().size(), 2);
   TEST_EQUAL(*rna_ref == rna, true);
+  // re-registering doesn't lead to redundant entries:
+  data.registerParentMolecule(rna);
+  TEST_EQUAL(data.getParentMolecules().size(), 2);
 }
 END_SECTION
 
@@ -260,10 +287,15 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPe
 
   // peptide with protein reference:
   peptide.sequence = AASequence::fromString("PEPTIDE");
-  peptide.parent_matches[protein_ref];
+  peptide.parent_matches[protein_ref].insert(IdentificationData::
+                                             MoleculeParentMatch(4, 10));
   peptide_ref = data.registerIdentifiedPeptide(peptide);
   TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
   TEST_EQUAL(*peptide_ref == peptide, true);
+
+  // re-registering doesn't lead to redundant entries:
+  data.registerIdentifiedPeptide(peptide);
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 2);
 
   // registering a peptide with RNA reference doesn't work:
   peptide.parent_matches[rna_ref];
@@ -300,6 +332,10 @@ START_SECTION((IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo&
   TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
   TEST_EQUAL(*oligo_ref == oligo, true);
 
+  // re-registering doesn't lead to redundant entries:
+  data.registerIdentifiedOligo(oligo);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
+
   // registering an oligo with protein reference doesn't work:
   oligo.parent_matches[protein_ref];
   TEST_EXCEPTION(Exception::IllegalArgument,
@@ -328,6 +364,10 @@ START_SECTION((IdentifiedCompoundRef registerIdentifiedCompound(const Identified
   compound_ref = data.registerIdentifiedCompound(compound);
   TEST_EQUAL(data.getIdentifiedCompounds().size(), 1);
   TEST_EQUAL(*compound_ref == compound, true);
+
+  // re-registering doesn't lead to redundant entries:
+  data.registerIdentifiedCompound(compound);
+  TEST_EQUAL(data.getIdentifiedCompounds().size(), 1);
 }
 END_SECTION
 
@@ -357,6 +397,10 @@ START_SECTION((QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch
   match_ref3 = data.registerMoleculeQueryMatch(match);
   TEST_EQUAL(data.getMoleculeQueryMatches().size(), 3);
   TEST_EQUAL(*match_ref3 == match, true);
+
+  // re-registering doesn't lead to redundant entries:
+  data.registerMoleculeQueryMatch(match);
+  TEST_EQUAL(data.getMoleculeQueryMatches().size(), 3);
 }
 END_SECTION
 
@@ -387,6 +431,11 @@ START_SECTION((void addScore(QueryMatchRef match_ref, ScoreTypeRef score_ref, do
   TEST_EQUAL(match_ref1->scores.size(), 1);
   TEST_EQUAL(match_ref1->scores[0].first, score_ref);
   TEST_EQUAL(match_ref1->scores[0].second, 100.0);
+  TEST_EQUAL(match_ref2->scores.empty(), true);
+  data.addScore(match_ref2, score_ref, 200.0);
+  TEST_EQUAL(match_ref2->scores.size(), 1);
+  TEST_EQUAL(match_ref2->scores[0].first, score_ref);
+  TEST_EQUAL(match_ref2->scores[0].second, 200.0);
 }
 END_SECTION
 
@@ -419,7 +468,9 @@ END_SECTION
 
 START_SECTION((vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef score_ref) const))
 {
-
+  vector<IdentificationData::QueryMatchRef> result = data.getBestMatchPerQuery(score_ref);
+  TEST_EQUAL(result.size(), 1);
+  TEST_EQUAL(result[0] == match_ref2, true);
 }
 END_SECTION
 
@@ -434,7 +485,7 @@ START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name) 
 }
 END_SECTION
 
-START_SECTION((result<ScoreTypeRef, bool> findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const))
+START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const))
 {
   Software sw("Other","1.0");
   IdentificationData::ProcessingSoftwareRef other_ref = data.registerDataProcessingSoftware(sw);
@@ -448,6 +499,45 @@ START_SECTION((result<ScoreTypeRef, bool> findScoreType(const String& score_name
 }
 END_SECTION
 
+START_SECTION((void calculateCoverages(bool check_molecule_length = false)))
+{
+  TEST_EQUAL(protein_ref->coverage, 0.0);
+  data.calculateCoverages();
+  TEST_REAL_SIMILAR(protein_ref->coverage, 0.5);
+  // partially overlapping peptide:
+  IdentificationData::IdentifiedPeptide peptide(AASequence::
+                                                fromString("TESTPEP"));
+  peptide.parent_matches[protein_ref].insert(IdentificationData::
+                                             MoleculeParentMatch(0, 6));
+  data.registerIdentifiedPeptide(peptide);
+  data.calculateCoverages();
+  TEST_REAL_SIMILAR(protein_ref->coverage, 11.0/14.0);
+}
+END_SECTION
+
+START_SECTION((void cleanup(bool require_query_match = true, bool require_identified_sequence = true, bool require_parent_match = true, bool require_parent_group = false, bool require_match_group = false)))
+{
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 4);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 2);
+  data.cleanup(false);
+  // identified peptide/oligo without parent match is removed:
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 3);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
+  data.cleanup();
+  // identified peptides without query matches are removed:
+  TEST_EQUAL(data.getIdentifiedPeptides().size(), 1);
+  TEST_EQUAL(data.getIdentifiedOligos().size(), 1);
+}
+END_SECTION
+
+START_SECTION((static bool isBetterScore(double first, double second, bool higher_better)))
+{
+  TEST_EQUAL(IdentificationData::isBetterScore(2.0, 1.0, true), true);
+  TEST_EQUAL(IdentificationData::isBetterScore(2.0, 1.0, false), false);
+  TEST_EQUAL(IdentificationData::isBetterScore(-2.0, 1.0, true), false);
+  TEST_EQUAL(IdentificationData::isBetterScore(-2.0, 1.0, false), true);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
