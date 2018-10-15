@@ -404,6 +404,7 @@ namespace OpenMS
     void clearCurrentProcessingStep();
 
     /// Return the best match for each data query, according to a given score type
+    // @TODO: this currently doesn't take molecule type into account - shoud it?
     std::vector<QueryMatchRef> getBestMatchPerQuery(ScoreTypeRef
                                                     score_ref) const;
 
@@ -427,6 +428,12 @@ namespace OpenMS
       @brief Clean up the data structure after filtering parts of it
 
       Make sure there are no invalid references or "orphan" data entries.
+
+      @param require_query_match Remove identified molecules and data queries that aren't part of molecule-query matches?
+      @param require_identified_sequence Remove parent molecules (proteins/RNAs) that aren't referenced by identified peptides/oligonucleotides?
+      @param require_parent_match Remove identified peptides/oligonucleotides that don't reference a parent molecule (protein/RNA)?
+      @param require_parent_group Remove parent molecules that aren't part of parent molecule groups?
+      @param require_match_group Remove molecule-query matches that aren't part of match groups?
     */
     void cleanup(bool require_query_match = true,
                  bool require_identified_sequence = true,
