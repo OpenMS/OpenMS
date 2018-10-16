@@ -173,16 +173,16 @@ namespace OpenMS
     bool isModified() const;
 
   protected:
-    String name_; //< full name
-    String code_; //< short name
-    String new_code_; //< Modomics code
-    String html_code_; //< RNAMods code
-    EmpiricalFormula formula_; //< sum formula
-    char origin_; //< character of unmodified version of ribonucleotide
-    double mono_mass_; //< monoisotopic mass
-    double avg_mass_; //< average mass
-    enum TermSpecificity term_spec_; //< terminal specificity
-    EmpiricalFormula baseloss_formula_; //< sum formula after loss of the nucleobase
+    String name_; ///< full name
+    String code_; ///< short name
+    String new_code_; ///< Modomics code
+    String html_code_; ///< RNAMods code
+    EmpiricalFormula formula_; ///< sum formula
+    char origin_; ///< character of unmodified version of ribonucleotide
+    double mono_mass_; ///< monoisotopic mass
+    double avg_mass_; ///< average mass
+    enum TermSpecificity term_spec_; ///< terminal specificity
+    EmpiricalFormula baseloss_formula_; ///< sum formula after loss of the nucleobase
   };
 
   /// Stream output operator
