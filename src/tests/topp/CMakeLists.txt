@@ -2053,31 +2053,13 @@ add_test("TOPP_IDPosteriorErrorProbability_8_out1" ${DIFF} -in1 IDPosteriorError
 set_tests_properties("TOPP_IDPosteriorErrorProbability_8_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_8")
 
 #------------------------------------------------------------------------------
-# ProteinResolver tests
-### TODO test for idXML
-add_test("TOPP_ProteinResolver_1" ${TOPP_BIN_PATH}/ProteinResolver -test -in ${DATA_DIR_TOPP}/ProteinResolver_1_input.consensusXML -fasta ${DATA_DIR_TOPP}/ProteinResolver_1_input.fasta -protein_groups ProteinResolver_1_output1.tmp -peptide_table ProteinResolver_1_output2.tmp -protein_table ProteinResolver_1_output3.tmp)
-add_test("TOPP_ProteinResolver_1_out1" ${DIFF} -in1 ProteinResolver_1_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_1_output1.txt)
-set_tests_properties("TOPP_ProteinResolver_1_out1" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
-add_test("TOPP_ProteinResolver_1_out2" ${DIFF} -in1 ProteinResolver_1_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_1_output2.txt)
-set_tests_properties("TOPP_ProteinResolver_1_out2" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
-add_test("TOPP_ProteinResolver_1_out3" ${DIFF} -in1 ProteinResolver_1_output3.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_1_output3.txt)
-set_tests_properties("TOPP_ProteinResolver_1_out3" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
-#add_test("TOPP_ProteinResolver_2" ${TOPP_BIN_PATH}/ProteinResolver -test -in ${DATA_DIR_TOPP}/ProteinResolver_2_input.consensusXML -fasta ${DATA_DIR_TOPP}/ProteinResolver_2_input.fasta -design ${DATA_DIR_TOPP}/ProteinResolver_2_input.txt -protein_groups ProteinResolver_2_output1.tmp -peptide_table ProteinResolver_2_output2.tmp -protein_table ProteinResolver_2_output3.tmp)
-#add_test("TOPP_ProteinResolver_2_out1" ${DIFF} -in1 ProteinResolver_2_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_2_output1.txt)
-#set_tests_properties("TOPP_ProteinResolver_1_out1" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
-#add_test("TOPP_ProteinResolver_2_out2" ${DIFF} -in1 ProteinResolver_2_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_2_output2.txt)
-#set_tests_properties("TOPP_ProteinResolver_1_out1" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
-#add_test("TOPP_ProteinResolver_2_out3" ${DIFF} -in1 ProteinResolver_2_output3.tmp -in2 ${DATA_DIR_TOPP}/ProteinResolver_2_output3.txt)
-#set_tests_properties("TOPP_ProteinResolver_1_out1" PROPERTIES DEPENDS "TOPP_ProteinResolver_1")
-
-#------------------------------------------------------------------------------
 # ProteinQuantifier tests
 add_test("TOPP_ProteinQuantifier_1" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_1_output1.tmp -peptide_out ProteinQuantifier_1_output2.tmp)
 add_test("TOPP_ProteinQuantifier_1_out1" ${DIFF} -in1 ProteinQuantifier_1_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_1_output1.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_1_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
 add_test("TOPP_ProteinQuantifier_1_out2" ${DIFF} -in1 ProteinQuantifier_1_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_1_output2.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_1_out2" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_1")
-add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top 2 -include_all -filter_charge -average sum)
+add_test("TOPP_ProteinQuantifier_2" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -out ProteinQuantifier_2_output1.tmp -peptide_out ProteinQuantifier_2_output2.tmp -top 2 -include_all -best_charge_and_fraction -average sum)
 add_test("TOPP_ProteinQuantifier_2_out1" ${DIFF} -in1 ProteinQuantifier_2_output1.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output1.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_2_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_2")
 add_test("TOPP_ProteinQuantifier_2_out2" ${DIFF} -in1 ProteinQuantifier_2_output2.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_2_output2.txt -whitelist "computed from file" )
@@ -2107,13 +2089,6 @@ set_tests_properties("TOPP_ProteinQuantifier_8_out1" PROPERTIES DEPENDS "TOPP_Pr
 add_test("TOPP_ProteinQuantifier_9" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_9_output.tmp -top 3 -include_all -consensus:fix_peptides -average sum)
 add_test("TOPP_ProteinQuantifier_9_out1" ${DIFF} -in1 ProteinQuantifier_9_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_9_output.txt -whitelist "computed from file" )
 set_tests_properties("TOPP_ProteinQuantifier_9_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_9")
-# mzTab output:
-#add_test("TOPP_ProteinQuantifier_10" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -mzTab_out ProteinQuantifier_10_output.tmp -top 0 -average sum)
-#add_test("TOPP_ProteinQuantifier_10_out1" ${DIFF} -in1 ProteinQuantifier_10_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_10_output.mzTab)
-#set_tests_properties("TOPP_ProteinQuantifier_10_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_10")
-#add_test("TOPP_ProteinQuantifier_11" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.featureXML -mzTab_out ProteinQuantifier_11_output.tmp -top 0 -average sum -filter_charge)
-#add_test("TOPP_ProteinQuantifier_11_out1" ${DIFF} -in1 ProteinQuantifier_11_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_11_output.mzTab)
-#set_tests_properties("TOPP_ProteinQuantifier_11_out1" PROPERTIES DEPENDS "TOPP_ProteinQuantifier_11")
 #ratios
 add_test("TOPP_ProteinQuantifier_12" ${TOPP_BIN_PATH}/ProteinQuantifier -test -in ${DATA_DIR_TOPP}/ProteinQuantifier_input.consensusXML -out ProteinQuantifier_12_output.tmp -top 3 -include_all -consensus:fix_peptides -average sum -ratios)
 add_test("TOPP_ProteinQuantifier_12_out1" ${DIFF} -in1 ProteinQuantifier_12_output.tmp -in2 ${DATA_DIR_TOPP}/ProteinQuantifier_12_output.txt -whitelist "computed from file" )
@@ -2202,15 +2177,15 @@ set_tests_properties("TOPP_PeptideIndexer_14_out" PROPERTIES DEPENDS "TOPP_Pepti
 #------------------------------------------------------------------------------
 # MzTabExporter tests
 add_test("TOPP_MzTabExporter_1" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_1_input.consensusXML -out MzTabExporter_1_output.tmp)
-add_test("TOPP_MzTabExporter_1_out" ${DIFF} -in1 MzTabExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_1_output.mzTab)
+add_test("TOPP_MzTabExporter_1_out" ${DIFF} -in1 MzTabExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_1_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752")
 set_tests_properties("TOPP_MzTabExporter_1_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_1")
 
 add_test("TOPP_MzTabExporter_2" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_2_input.idXML -out MzTabExporter_2_output.tmp)
-add_test("TOPP_MzTabExporter_2_out" ${DIFF} -in1 MzTabExporter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_2_output.mzTab)
+add_test("TOPP_MzTabExporter_2_out" ${DIFF} -in1 MzTabExporter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_2_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752")
 set_tests_properties("TOPP_MzTabExporter_2_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_2")
 
 add_test("TOPP_MzTabExporter_3" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_3_input.featureXML -out MzTabExporter_3_output.tmp)
-add_test("TOPP_MzTabExporter_3_out" ${DIFF} -in1 MzTabExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_3_output.mzTab -whitelist "MTD\turi[1]")
+add_test("TOPP_MzTabExporter_3_out" ${DIFF} -in1 MzTabExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_3_output.mzTab -whitelist "MTD\turi[1]" -whitelist "MTD\turi[1]" "MS:1000752")
 set_tests_properties("TOPP_MzTabExporter_3_out" PROPERTIES DEPENDS "TOPP_MzTabExporter_3")
 
 ## Tests for TOPPAS/ExecutePipeline are in ./src/tests/TOPPAS/...

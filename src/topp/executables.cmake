@@ -80,7 +80,6 @@ PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
-ProteinResolver
 PTModel
 PTPredict
 RTModel

@@ -498,11 +498,9 @@ set(analysis_executables_list
   ProteinInference_test
   PrecursorPurity_test
   ProtonDistributionModel_test
-  ProteinResolver_test
   PSLPFormulation_test
   PSProteinInference_test
   QTClusterFinder_test
-  QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test

@@ -38,6 +38,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+#include <OpenMS/METADATA/DataArrays.h>
+
 #include <set>
 
 namespace OpenMS
@@ -73,8 +75,19 @@ public:
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
     */
-    struct OPENMS_DLLAPI ProteinGroup
+    class OPENMS_DLLAPI ProteinGroup
     {
+      public:
+      /// Float data array vector type
+      typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
+      typedef std::vector<FloatDataArray> FloatDataArrays;
+      /// String data array vector type
+      typedef OpenMS::DataArrays::StringDataArray StringDataArray ;
+      typedef std::vector<StringDataArray> StringDataArrays;
+      /// Integer data array vector type
+      typedef OpenMS::DataArrays::IntegerDataArray IntegerDataArray ;
+      typedef std::vector<IntegerDataArray> IntegerDataArrays;
+
       /// Probability of this group
       double probability;
 
@@ -95,6 +108,103 @@ public:
         everything else being equal, accessions are compared lexicographically.
       */
       bool operator<(const ProteinGroup& rhs) const;
+
+
+      /// Float data arrays
+      /**
+      @name data array methods
+
+      These methods are used to annotate protein group meta information.
+
+      These statements should help you chose which approach to use
+        - Access to meta info arrays is slower than to a member variable
+        - Access to meta info arrays is faster than to a %MetaInfoInterface
+        - Meta info arrays are stored when using mzML format for storing
+      */
+
+    //@{
+      /// Returns a const reference to the float meta data arrays
+      const FloatDataArrays& getFloatDataArrays() const;
+
+      /// Returns a mutable reference to the float meta data arrays
+      FloatDataArrays& getFloatDataArrays()
+      {
+        return float_data_arrays_;
+      }
+
+      /// Sets the float meta data arrays
+      void setFloatDataArrays(const FloatDataArrays& fda);
+
+      /// Returns a const reference to the string meta data arrays
+      const StringDataArrays& getStringDataArrays() const;
+ 
+      /// Returns a mutable reference to the string meta data arrays
+      StringDataArrays& getStringDataArrays();
+
+      /// Sets the string meta data arrays
+      void setStringDataArrays(const StringDataArrays& sda);
+
+      /// Returns a const reference to the integer meta data arrays
+      const IntegerDataArrays& getIntegerDataArrays() const;
+
+      /// Returns a mutable reference to the integer meta data arrays
+      IntegerDataArrays& getIntegerDataArrays();
+
+      /// Sets the integer meta data arrays
+      void setIntegerDataArrays(const IntegerDataArrays& ida);
+
+      /// Returns a mutable reference to the first integer meta data array with the given name
+      inline IntegerDataArray& getIntegerDataArrayByName(String name)
+      {
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a mutable reference to the first string meta data array with the given name
+      inline StringDataArray& getStringDataArrayByName(String name)
+      {
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+          [&name](const StringDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a mutable reference to the first float meta data array with the given name
+      inline FloatDataArray& getFloatDataArrayByName(String name)
+      {
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+          [&name](const FloatDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first integer meta data array with the given name
+      inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
+      {
+        return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
+          [&name](const IntegerDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first string meta data array with the given name
+      inline const StringDataArray& getStringDataArrayByName(String name) const
+      {
+        return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
+          [&name](const StringDataArray& da) { return da.getName() == name; } );
+      }
+
+      /// Returns a const reference to the first float meta data array with the given name
+      inline const FloatDataArray& getFloatDataArrayByName(String name) const
+      {
+        return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
+          [&name](const FloatDataArray& da) { return da.getName() == name; } );
+      }
+
+    private:
+      /// Float data arrays
+      FloatDataArrays float_data_arrays_;
+
+      /// String data arrays
+      StringDataArrays string_data_arrays_;
+
+      /// Integer data arrays
+      IntegerDataArrays integer_data_arrays_;
+
     };
 
     /// Peak mass type

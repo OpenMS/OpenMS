@@ -113,7 +113,6 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   map<String, Size> psm_custom_opt_columns;
   map<String, Size> smallmolecule_custom_opt_columns;
 
-  Size count_study_variable_assay_refs = 0;
   Size count_study_variable_description = 0;
   Size count_ms_run_location = 0;
 
@@ -633,30 +632,44 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         mz_tab_metadata.cv[n].url = p;
       }
       else if (meta_key.hasPrefix("assay[") && meta_key_fields[1] == "ms_run_ref")
-      {
+      {               
         Int n = meta_key_fields[0].substitute("assay[", "").substitute("]","").trim().toInt();
-        MzTabString p;
-        p.fromCellString(cells[2]);
-        mz_tab_metadata.assay[n].ms_run_ref = p;
+        String s = cells[2];
+        s.substitute("ms_run[","").substitute("]","");
+        vector<String> ms_run;
+        s.split(',', ms_run);
+        for (auto a : ms_run)
+        {
+          a.trim();
+          mz_tab_metadata.assay[n].ms_run_ref.push_back(a.toInt());
+        }
       }
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "assay_refs")
       {
         Int n = meta_key_fields[0].substitute("study_variable[", "").substitute("]","").trim().toInt();
         String s = cells[2];
         s.substitute("assay[","").substitute("]","");
-        MzTabIntegerList p;
-        p.fromCellString(s);
-        mz_tab_metadata.study_variable[n].assay_refs = p;
-        count_study_variable_assay_refs++;
+        vector<String> assays;
+        s.split(',', assays);
+        for (auto a : assays)
+        {
+          a.trim();
+          mz_tab_metadata.study_variable[n].assay_refs.push_back(a.toInt());
+        }
       }
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "sample_refs")
       {
         Int n = meta_key_fields[0].substitute("study_variable[", "").substitute("]","").trim().toInt();
         String s = cells[2];
         s.substitute("sample[","").substitute("]","");
-        MzTabIntegerList p;
-        p.fromCellString(s);
-        mz_tab_metadata.study_variable[n].sample_refs = p;
+
+        vector<String> assays;
+        s.split(',', assays);
+        for (auto a : assays)
+        {
+          a.trim();
+          mz_tab_metadata.study_variable[n].sample_refs.push_back(a.toInt());
+        }
       }
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "description")
       {
@@ -1870,8 +1883,17 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
       sl.push_back(s);
     }
 
-    String s = "MTD\tassay[" + String(it->first) + String("]-ms_run_ref\t") + amd.ms_run_ref.toCellString();
-    sl.push_back(s);
+    if (!amd.ms_run_ref.empty())
+    {
+      String s = "MTD\tassay[" + String(it->first) + "]-ms_run_ref\t";
+      bool first(true);
+      for (auto const & a : amd.ms_run_ref)
+      {
+        if (!first) { s += ","; } else { first = false; }
+        s += "ms_run[" + String(a) + "]";
+      }
+      sl.push_back(s);
+    }
   }
 
 
@@ -1879,36 +1901,27 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
   {
     const MzTabStudyVariableMetaData & smd = it->second;
 
-    if (!smd.assay_refs.isNull())
+    if (!smd.assay_refs.empty())
     {
-      vector<MzTabInteger> refs = smd.assay_refs.get();
-      String assay_ref;
-      for (Size i = 0; i != refs.size(); ++i)
+      String s = "MTD\tstudy_variable[" + String(it->first) + "]-assay_refs\t";
+      bool first(true);
+      for (auto const & a : smd.assay_refs)
       {
-        assay_ref += String("assay[") + refs[i].toCellString() + String("]");
-        if (i != refs.size() - 1)
-        {
-          assay_ref += ", ";
-        }
+        if (!first) { s += ","; } else { first = false; }
+        s += "assay[" + String(a) + "]";
       }
-
-      String s = "MTD\tstudy_variable[" + String(it->first) + "]-assay_refs\t" + assay_ref;
       sl.push_back(s);
     }
 
-    if (!smd.sample_refs.isNull())
+    if (!smd.sample_refs.empty())
     {
-      vector<MzTabInteger> refs = smd.sample_refs.get();
-      String sample_ref;
-      for (Size i = 0; i != refs.size(); ++i)
+      String s = "MTD\tstudy_variable[" + String(it->first) + String("]-sample_refs\t");
+      bool first(true);
+      for (auto const & a : smd.sample_refs)
       {
-        sample_ref += String("sample[") + refs[i].toCellString() + String("]");
-        if (i != refs.size() - 1)
-        {
-          sample_ref += ", ";
-        }
+        if (!first) { s += ","; } else { first = false; }
+        s += "sample[" + String(a) + "]";
       }
-      String s = "MTD\tstudy_variable[" + String(it->first) + String("]-sample_refs\t") + sample_ref;
       sl.push_back(s);
     }
 
@@ -2304,17 +2317,13 @@ String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& 
   s.push_back(row.database_version.toCellString());
   s.push_back(row.search_engine.toCellString());
 
-  for (map<Size, MzTabDouble>::const_iterator it = row.best_search_engine_score.begin(); it != row.best_search_engine_score.end(); ++it)
-  {
-    s.push_back(it->second.toCellString());
-  }
+  // best score(s)
+  for (auto const & bs : row.best_search_engine_score) { s.push_back(bs.second.toCellString()); }
 
-  for (map<Size, map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  // run-level best score(s)
+  for (auto const & bsrun : row.search_engine_score_ms_run)
   {
-    for (map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
-    {
-      s.push_back(sit->second.toCellString());
-    }
+    for (auto const & bs : bsrun.second) { s.push_back(bs.second.toCellString()); }
   }
 
   if (store_peptide_reliability_)
@@ -2606,7 +2615,6 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   }
 
   StringList out;
-
   generateMzTabMetaDataSection_(mz_tab.getMetaData(), out);
   bool complete = (mz_tab.getMetaData().mz_tab_mode.toCellString() == "Complete");
   Size ms_runs = mz_tab.getMetaData().ms_run.size();
@@ -2649,13 +2657,11 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
         }
       }
 
-      if (has_ms_run_level_scores)
-      {
-        search_ms_runs = ms_runs;
-      }
+      if (has_ms_run_level_scores) { search_ms_runs = ms_runs; }
     }
     Size n_search_engine_score = peptide_section[0].search_engine_score_ms_run.size();
     Size n_best_search_engine_score = mz_tab.getMetaData().peptide_search_engine_score.size();
+
     out.push_back(generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getPeptideOptionalColumnNames()));
     generateMzTabPeptideSection_(mz_tab.getPeptideSectionRows(), out, mz_tab.getPeptideOptionalColumnNames());
   }
