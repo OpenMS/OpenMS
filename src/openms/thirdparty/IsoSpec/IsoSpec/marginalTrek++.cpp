@@ -26,10 +26,11 @@
 #include <utility>
 #include <iostream>
 #include <string.h>
+#include <string>
 #include <limits>
 #include <cstdlib>
 #include <fenv.h>
-#include "lang.h"
+#include "platform.h"
 #include "marginalTrek++.h"
 #include "conf.h"
 #include "allocator.h"
@@ -42,16 +43,28 @@
 namespace IsoSpec
 {
 
+//! Find one of the most probable subisotopologues.
+/*!
+    The algorithm uses the hill-climbing algorithm.
+    It starts from a subisotopologue close to the mean of the underlying multinomial distribution.
+    There might be more than one modes, in case of which this function will return only one of them, close to the mean.
 
+    \param atomCnt
+
+*/
 Conf initialConfigure(const int atomCnt, const int isotopeNo, const double* probs, const double* lprobs)
 {
+    /*!
+    Here we perform hill climbing to the mode of the marginal distribution (the subisotopologue distribution).
+    We start from the point close to the mean of the underlying multinomial distribution.
+    */
     Conf res = new int[isotopeNo];
 
+    // This approximates the mode (heuristics: the mean is close to the mode).
     for(int i = 0; i < isotopeNo; ++i )
-    {
         res[i] = int( atomCnt * probs[i] ) + 1;
-    }
 
+    // The number of assigned atoms above.
     int s = 0;
 
     for(int i = 0; i < isotopeNo; ++i) s += res[i];
@@ -136,9 +149,16 @@ void printMarginal( const std::tuple<double*,double*,int*,int>& results, int dim
 
 double* getMLogProbs(const double* probs, int isoNo)
 {
+    /*!
+    Here we order the processor to round the numbers up rather than down.
+    Rounding down could result in the algorithm falling in an infinite loop
+    because of the numerical instability of summing. 
+    */
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
     double* ret = new double[isoNo];
+
+    // here we change the table of probabilities and log it.
     for(int i = 0; i < isoNo; i++)
     {
         ret[i] = log(probs[i]);
@@ -155,6 +175,7 @@ double* getMLogProbs(const double* probs, int isoNo)
 
 double get_loggamma_nominator(int x)
 {
+    // calculate log gamma of the nominator calculated in the binomial exression.
     int curr_method = fegetround();
     fesetround(FE_UPWARD);
     double ret = lgamma(x+1);
@@ -182,12 +203,10 @@ mode_eprob(exp(mode_lprob)),
 smallest_lprob(atomCnt * *std::min_element(atom_lProbs, atom_lProbs+isotopeNo))
 {
     if(ISOSPEC_G_FACT_TABLE_SIZE-1 <= atomCnt)
-    {
-        std::cerr << "Subisotopologue too large..." << std::endl;
-        std::abort();
-    }
+        throw std::length_error("Subisotopologue too large, size limit (that is, the maximum number of atoms of a single element in a molecule) is: " + std::to_string(ISOSPEC_G_FACT_TABLE_SIZE-1));
 }
 
+// the move-constructor: used in the specialization of the marginal.
 Marginal::Marginal(Marginal&& other) :
 disowned(other.disowned),
 isotopeNo(other.isotopeNo),
@@ -233,7 +252,7 @@ double Marginal::getHeaviestConfMass() const
     return ret_mass*atomCnt;
 }
 
-
+// this is roughly an equivalent of IsoSpec-Threshold-Generator
 MarginalTrek::MarginalTrek(
     Marginal&& m,
     int tabSize,
@@ -265,6 +284,10 @@ allocator(isotopeNo, tabSize)
 
 bool MarginalTrek::add_next_conf()
 {
+    /*!
+    Add next configuration.
+    If visited all, return false.
+    */
     if(pq.size() < 1) return false;
 
     Conf topConf = pq.top();
@@ -275,7 +298,7 @@ bool MarginalTrek::add_next_conf()
     _confs.push_back(topConf);
     _conf_masses.push_back(mass(topConf, atom_masses, isotopeNo));
     double logprob = logProb(topConf);
-    _conf_probs.push_back(logprob);
+    _conf_lprobs.push_back(logprob);
 
 
     totalProb.add( exp( logprob ) );
@@ -311,9 +334,9 @@ int MarginalTrek::processUntilCutoff(double cutoff)
 {
     Summator s;
     int last_idx = -1;
-    for(unsigned int i=0; i<_conf_probs.size(); i++)
+    for(unsigned int i=0; i<_conf_lprobs.size(); i++)
     {
-        s.add(_conf_probs[i]);
+        s.add(_conf_lprobs[i]);
         if(s.get() >= cutoff)
         {
             last_idx = i;
@@ -324,7 +347,7 @@ int MarginalTrek::processUntilCutoff(double cutoff)
         return last_idx;
 
     while(totalProb.get() < cutoff && add_next_conf()) {}
-    return _conf_probs.size();
+    return _conf_lprobs.size();
 }
 
 
@@ -389,6 +412,8 @@ allocator(isotopeNo, tabSize)
                 }
     }
 
+    // orderMarginal defines the order of configurations (compares their logprobs)
+    // akin to key in Python sort.
     if(sort)
         std::sort(configurations.begin(), configurations.end(), orderMarginal);
 
@@ -421,107 +446,6 @@ PrecalculatedMarginal::~PrecalculatedMarginal()
 }
 
 
-
-LayeredMarginal::LayeredMarginal(Marginal&& m, int tabSize, int _hashSize)
-: Marginal(std::move(m)), current_threshold(1.0), allocator(isotopeNo, tabSize), sorted_up_to_idx(0),
-equalizer(isotopeNo), keyHasher(isotopeNo), orderMarginal(atom_lProbs, isotopeNo), hashSize(_hashSize)
-{
-    fringe.push_back(mode_conf);
-    lProbs.push_back(std::numeric_limits<double>::infinity());
-    lProbs.push_back(-std::numeric_limits<double>::infinity());
-    guarded_lProbs = lProbs.data()+1;
-}
-
-bool LayeredMarginal::extend(double new_threshold)
-{
-    if(fringe.empty())
-        return false;
-
-    // TODO: Make sorting optional (controlled by argument?)
-    std::vector<Conf> new_fringe;
-    std::unordered_set<Conf,KeyHasher,ConfEqual> visited(hashSize,keyHasher,equalizer);
-
-    for(unsigned int ii = 0; ii<fringe.size(); ii++)
-        visited.insert(fringe[ii]);
-
-    double lpc, opc;
-
-    Conf currentConf;
-    while(!fringe.empty())
-    {
-        currentConf = fringe.back();
-        fringe.pop_back();
-
-        opc = logProb(currentConf);
-
-        if(opc < new_threshold)
-            new_fringe.push_back(currentConf);
-
-        else
-        {
-            configurations.push_back(currentConf);
-            for(unsigned int ii = 0; ii < isotopeNo; ii++ )
-                for(unsigned int jj = 0; jj < isotopeNo; jj++ )
-                    if( ii != jj && currentConf[jj] > 0 )
-                    {
-                        currentConf[ii]++;
-                        currentConf[jj]--;
-
-                        lpc = logProb(currentConf);
-
-                        if (visited.count(currentConf) == 0 && lpc < current_threshold &&
-                            (opc > lpc || (opc == lpc && ii > jj)))
-                        {
-                            Conf nc = allocator.makeCopy(currentConf);
-                            visited.insert(nc);
-                            if(lpc >= new_threshold)
-                                fringe.push_back(nc);
-                            else
-                                new_fringe.push_back(nc);
-                        }
-
-                        currentConf[ii]--;
-                        currentConf[jj]++;
-
-                    }
-        }
-    }
-
-    current_threshold = new_threshold;
-    fringe.swap(new_fringe);
-
-    std::sort(configurations.begin()+sorted_up_to_idx, configurations.end(), orderMarginal);
-
-    std::cout << "Marginal: lProbs.size(): " << lProbs.size() << std::endl;
-    std::cout << "Marginal: configurations.size(): " << configurations.size() << std::endl;
-
-    std::cout << "Marginal: guardian: " << lProbs[lProbs.size()-1] << std::endl;
-
-    lProbs.pop_back(); // The guardian...
-
-    for(unsigned int ii=sorted_up_to_idx; ii < configurations.size(); ii++)
-    {
-        std::cout << "Marginal: looped" << std::endl;
-        lProbs.push_back(logProb(configurations[ii]));
-        eProbs.push_back(exp(lProbs.back()));
-        masses.push_back(mass(configurations[ii], atom_masses, isotopeNo));
-    }
-
-    lProbs.push_back(-std::numeric_limits<double>::infinity()); // Restore guardian
-
-    sorted_up_to_idx = configurations.size();
-    guarded_lProbs = lProbs.data()+1;
-
-    printVector(lProbs);
-    printVector(configurations);
-    printVector(masses);
-
-    std::cout << "Marginal: extended to: " << lProbs.size() << " threshold: " << new_threshold << std::endl;
-    std::cout << "Marginal: configurations extended to: " << configurations.size() << " threshold: " << new_threshold << std::endl;
-
-
-    return true;
-}
 
 
 } // namespace IsoSpec

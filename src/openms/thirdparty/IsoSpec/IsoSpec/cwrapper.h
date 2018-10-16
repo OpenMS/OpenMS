@@ -64,7 +64,8 @@ C_HEADERS(IsoThresholdGenerator)
 
 //______________________________________________________LAYERED GENERATOR
 void* setupIsoLayeredGenerator(void* iso,
-                               double _delta,
+                               double _target_coverage,
+                               double _percentage_to_expand,
                                int _tabSize,
                                int _hashSize);
 C_HEADERS(IsoLayeredGenerator)
