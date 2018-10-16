@@ -96,7 +96,7 @@ namespace OpenMS
     return resulting_spectrum;
   }
 
-  PeakMap OPXLSpectrumProcessingAlgorithms::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, bool deisotope, bool labeled)
+  PeakMap OPXLSpectrumProcessingAlgorithms::preprocessSpectra(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, Size peptide_min_size, Int min_precursor_charge, Int max_precursor_charge, vector<Size>& discarded_spectra, bool deisotope, bool labeled)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -111,15 +111,27 @@ namespace OpenMS
     LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
 
     PeakMap filtered_spectra;
+    Size MS2_counter(0);
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
+    // TODO does not work multithreaded because of the MS2_counter, find an alternative or keep single threaded
+// #ifdef _OPENMP
+// #pragma omp parallel for
+// #endif
     for (SignedSize exp_index = 0; exp_index < static_cast<SignedSize>(exp.size()); ++exp_index)
     {
-      vector<Precursor> precursor = exp[exp_index].getPrecursors();
       // for labeled experiments, the pairs of heavy and light spectra are linked by spectra indices from the consensusXML, so the returned number of spectra has to be equal to the input
-      bool process_this_spectrum = labeled;
+      bool process_this_spectrum(labeled);
+      if (exp[exp_index].getMSLevel() != 2)
+      {
+        continue;
+      }
+      else // MSLevel 2
+      {
+        MS2_counter++;
+      }
+
+      vector<Precursor> precursor = exp[exp_index].getPrecursors();
+
       if (precursor.size() == 1 && exp[exp_index].size() >= peptide_min_size * 2)
       {
         int precursor_charge = precursor[0].getCharge();
@@ -131,6 +143,10 @@ namespace OpenMS
 
       if (!process_this_spectrum)
       {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+        discarded_spectra.push_back(MS2_counter-1);
         continue;
       }
       exp[exp_index].sortByPosition();
@@ -147,9 +163,15 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-          {
-            filtered_spectra.addSpectrum(deisotoped);
-          }
+          filtered_spectra.addSpectrum(deisotoped);
+
+        }
+        else
+        {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+          discarded_spectra.push_back(MS2_counter-1);
         }
       }
       else
@@ -169,9 +191,14 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-          {
-            filtered_spectra.addSpectrum(filtered);
-          }
+          filtered_spectra.addSpectrum(filtered);
+        }
+        else
+        {
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+          discarded_spectra.push_back(MS2_counter-1);
         }
       }
     }

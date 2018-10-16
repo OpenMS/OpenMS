@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
         OPXL_PreprocessedPairSpectra() nogil except + # wrap-ignore
         OPXL_PreprocessedPairSpectra(Size size) nogil except +
 
-
         MSExperiment spectra_linear_peaks
         MSExperiment spectra_xlink_peaks
         MSExperiment spectra_all_peaks
+

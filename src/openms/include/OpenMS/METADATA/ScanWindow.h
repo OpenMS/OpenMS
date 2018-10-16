@@ -46,21 +46,29 @@ namespace OpenMS
   struct OPENMS_DLLAPI ScanWindow :
     public MetaInfoInterface
   {
-    ///Default constructor
-    ScanWindow();
-    ///Copy constructor
-    ScanWindow(const ScanWindow & source);
-    ///Equality operator
-    bool operator==(const ScanWindow & source) const;
-    ///Equality operator
-    bool operator!=(const ScanWindow & source) const;
-    ///Assignment operator
-    ScanWindow & operator=(const ScanWindow & source);
+    /// Default constructor
+    ScanWindow() = default;
+    /// Copy constructor
+    ScanWindow(const ScanWindow & source) = default;
+    /// Move constructor
+    ScanWindow(ScanWindow&&) = default;
+    /// Destructor
+    ~ScanWindow() {}
 
-    ///Begin of the window
-    double begin;
-    ///End of the window
-    double end;
+    /// Equality operator
+    bool operator==(const ScanWindow & source) const;
+    /// Equality operator
+    bool operator!=(const ScanWindow & source) const;
+
+    /// Assignment operator
+    ScanWindow & operator=(const ScanWindow & source) = default;
+    /// Move assignment operator
+    ScanWindow& operator=(ScanWindow&&) & = default;
+
+    /// Begin of the window
+    double begin = 0.0;
+    /// End of the window
+    double end = 0.0;
   };
 
 } // namespace OpenMS

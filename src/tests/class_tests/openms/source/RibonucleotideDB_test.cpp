@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,25 +53,25 @@ RibonucleotideDB* ptr = nullptr;
 RibonucleotideDB* null = nullptr;
 START_SECTION(RibonucleotideDB* getInstance())
 {
-	ptr = RibonucleotideDB::getInstance();
-	TEST_NOT_EQUAL(ptr, null);
+  ptr = RibonucleotideDB::getInstance();
+  TEST_NOT_EQUAL(ptr, null);
 }
 END_SECTION
 
 START_SECTION(virtual ~RibonucleotideDB())
-	NOT_TESTABLE
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION(ConstIterator begin())
 {
-	RibonucleotideDB::ConstIterator it = ptr->begin();
+  RibonucleotideDB::ConstIterator it = ptr->begin();
   TEST_STRING_EQUAL((*it)->getCode(), "m1Am");
 }
 END_SECTION
 
 START_SECTION(ConstIterator end())
 {
-	RibonucleotideDB::ConstIterator it = ptr->end();
+  RibonucleotideDB::ConstIterator it = ptr->end();
   TEST_EQUAL(it != ptr->begin(), true);
 }
 END_SECTION

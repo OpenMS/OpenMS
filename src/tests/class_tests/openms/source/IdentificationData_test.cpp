@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -487,7 +487,7 @@ END_SECTION
 
 START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const))
 {
-  Software sw("Other");
+  Software sw("Other","1.0");
   IdentificationData::ProcessingSoftwareRef other_ref = data.registerDataProcessingSoftware(sw);
   // no such score register for this software:
   auto result = data.findScoreType("test_score", other_ref);

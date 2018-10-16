@@ -185,8 +185,14 @@ public:
     /// Copy constructor
     MSExperiment(const MSExperiment & source);
 
+    /// Move constructor
+    MSExperiment(MSExperiment&&) = default;
+
     /// Assignment operator
     MSExperiment & operator=(const MSExperiment & source);
+
+    /// Move assignment operator
+    MSExperiment& operator=(MSExperiment&&) & = default;
 
     /// Assignment operator
     MSExperiment & operator=(const ExperimentalSettings & source);
@@ -479,6 +485,11 @@ public:
     /// adds a spectrum to the list
     void addSpectrum(const MSSpectrum& spectrum);
 
+    void addSpectrum(MSSpectrum&& spectrum)
+    {
+      spectra_.push_back(std::forward<MSSpectrum>(spectrum));
+    }
+
     /// returns the spectrum list
     const std::vector<MSSpectrum>& getSpectra() const;
 
@@ -490,6 +501,11 @@ public:
 
     /// adds a chromatogram to the list
     void addChromatogram(const MSChromatogram& chromatogram);
+
+    void addChromatogram(MSChromatogram&& chrom)
+    {
+      chromatograms_.push_back(std::forward<MSChromatogram>(chrom));
+    }
 
     /// returns the chromatogram list
     const std::vector<MSChromatogram>& getChromatograms() const;

@@ -23,6 +23,7 @@ IDMapper.h
 IDRipper.h
 MetaboliteSpectralMatching.h
 PeptideProteinResolution.h
+PrecursorPurity.h
 ProtonDistributionModel.h
 PeptideIndexing.h
 PercolatorFeatureSetHelper.h
@@ -39,4 +40,3 @@ endforeach(i)
 source_group("Header Files\\OpenMS\\ANALYSIS\\ID" FILES ${sources_h})
 
 set(OpenMS_sources_h ${OpenMS_sources_h} ${sources_h})
-

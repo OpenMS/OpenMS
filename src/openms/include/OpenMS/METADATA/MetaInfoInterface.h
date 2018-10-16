@@ -60,11 +60,15 @@ public:
     MetaInfoInterface();
     /// Copy constructor
     MetaInfoInterface(const MetaInfoInterface& rhs);
+    /// Move constructor
+    MetaInfoInterface(MetaInfoInterface&&);
     /// Destructor
     ~MetaInfoInterface();
 
     /// Assignment operator
     MetaInfoInterface& operator=(const MetaInfoInterface& rhs);
+    /// Move assignment operator
+    MetaInfoInterface& operator=(MetaInfoInterface&&);
 
     /// Equality operator
     bool operator==(const MetaInfoInterface& rhs) const;

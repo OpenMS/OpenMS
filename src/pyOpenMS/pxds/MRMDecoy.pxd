@@ -30,3 +30,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
                             bool enable_specific_losses,
                             bool enable_unspecific_losses,
                             int round_decPow) nogil except +
+
+        libcpp_vector[size_t] findFixedResidues(const libcpp_string & sequence,
+                                                bool keepN,
+                                                bool keepC,
+                                                const String & keep_const_pattern) nogil except +
+

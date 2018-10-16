@@ -38,10 +38,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // CV term implementation
-  CVTerm::CVTerm()
-  {
-  }
 
   CVTerm::CVTerm(const String& accession, const String& name, const String& cv_identifier_ref, const String& value, const Unit& unit) :
     accession_(accession),
@@ -52,33 +48,11 @@ namespace OpenMS
   {
   }
 
-  CVTerm::CVTerm(const CVTerm& rhs) :
-    accession_(rhs.accession_),
-    name_(rhs.name_),
-    cv_identifier_ref_(rhs.cv_identifier_ref_),
-    unit_(rhs.unit_),
-    value_(rhs.value_)
-  {
-  }
-
   CVTerm::~CVTerm()
   {
   }
 
-  CVTerm& CVTerm::operator=(const CVTerm& rhs)
-  {
-    if (this != &rhs)
-    {
-      accession_ = rhs.accession_;
-      name_ = rhs.name_;
-      cv_identifier_ref_ = rhs.cv_identifier_ref_;
-      unit_ = rhs.unit_;
-      value_ = rhs.value_;
-    }
-    return *this;
-  }
-
-  bool CVTerm::operator==(const CVTerm& rhs) const
+  bool CVTerm::operator==(const CVTerm & rhs) const
   {
     return accession_ == rhs.accession_ &&
            name_ == rhs.name_ &&
@@ -153,3 +127,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

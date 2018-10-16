@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,27 +52,27 @@ namespace OpenMS
 
   public:
     enum NASFragmentType
-    {                 // NB: Not all fragments types are valid for all residue types, this class should probably get split
-      Full = 0,       // with N-terminus and C-terminus
-      Internal,       // internal, without any termini
-      FivePrime,      // only 5' terminus
-      ThreePrime,     // only 3' terminus
-      AIon,           // MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           // MS:1001224 N-terminus up to the peptide bond
-      CIon,           // MS:1001231 N-terminus up to the amide/C-alpha bond
-      XIon,           // MS:1001228 amide/C-alpha bond up to the C-terminus
-      YIon,           // MS:1001220 peptide bond up to the C-terminus
-      ZIon,           // MS:1001230 C-alpha/carbonyl carbon bond
-      Precursor,      // MS:1001523 Precursor ion
-      BIonMinusH20,   // MS:1001222 b ion without water
-      YIonMinusH20,   // MS:1001223 y ion without water
-      BIonMinusNH3,   // MS:1001232 b ion without ammonia
-      YIonMinusNH3,   // MS:1001233 y ion without ammonia
-      NonIdentified,  // MS:1001240 Non-identified ion
-      Unannotated,    // no stored annotation
-      WIon,           // W ion, added for nucleic acid support
-      AminusB,        // A ion with base loss, added for nucleic acid support
-      DIon,           // D ion, added for nucleic acid support
+    {                 //< NB: Not all fragments types are valid for all residue types, this class should probably get split
+      Full = 0,       //< with N-terminus and C-terminus
+      Internal,       //< internal, without any termini
+      FivePrime,      //< only 5' terminus
+      ThreePrime,     //< only 3' terminus
+      AIon,           //< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           //< MS:1001224 N-terminus up to the peptide bond
+      CIon,           //< MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           //< MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           //< MS:1001220 peptide bond up to the C-terminus
+      ZIon,           //< MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor,      //< MS:1001523 Precursor ion
+      BIonMinusH20,   //< MS:1001222 b ion without water
+      YIonMinusH20,   //< MS:1001223 y ion without water
+      BIonMinusNH3,   //< MS:1001232 b ion without ammonia
+      YIonMinusNH3,   //< MS:1001233 y ion without ammonia
+      NonIdentified,  //< MS:1001240 Non-identified ion
+      Unannotated,    //< no stored annotation
+      WIon,           //< W ion, added for nucleic acid support
+      AminusB,        //< A ion with base loss, added for nucleic acid support
+      DIon,           //< D ion, added for nucleic acid support
       SizeOfNASFragmentType
     };
 

@@ -105,8 +105,7 @@ namespace OpenMS
     potential_adducts_(),
     map_label_(),
     map_label_inverse_(),
-    enable_intensity_filter_(false),
-    negative_mode_(false)
+    enable_intensity_filter_(false)
   {
     defaults_.setValue("charge_min", 1, "Minimal possible charge");
     defaults_.setValue("charge_max", 10, "Maximal possible charge");
@@ -214,25 +213,29 @@ namespace OpenMS
       if (pos_charge > 0 && neg_charge > 0)
       {
         String error = "FeatureDeconvolution::potential_adducts mixes charges for an adduct!";
-      }else if (pos_charge > 0)
+      }
+      else if (pos_charge > 0)
       {
         EmpiricalFormula ef(adduct[0]);
         ef -= EmpiricalFormula("H" + String(pos_charge));
         ef.setCharge(pos_charge); // effectively subtract electron masses
         potential_adducts_.push_back(Adduct((Int)pos_charge, 1, ef.getMonoWeight(), adduct[0], log(prob), rt_shift, label));
-      }else if (neg_charge > 0)
+      }
+      else if (neg_charge > 0)
       {
         if (adduct[0] == "H-1")
         {
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, -Constants::PROTON_MASS_U, adduct[0], log(prob), rt_shift,label));
-        }else        
+        }
+        else
         {
           EmpiricalFormula ef(adduct[0]);
           ef.setCharge(0);//ensures we get without additional protons, now just add electron masses
           potential_adducts_.push_back(Adduct((Int)-neg_charge, 1, ef.getMonoWeight() + Constants::ELECTRON_MASS_U * neg_charge, adduct[0], log(prob), rt_shift, label));
         }        
-      }else//pos,neg == 0
-      {//in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
+      }
+      else//pos,neg == 0
+      { //in principle no change because pos_charge 0 and ef.getMonoWeight() only adds for nonzero charges
         EmpiricalFormula ef(adduct[0]);
         ef -= EmpiricalFormula("H" + String(pos_charge));
         ef.setCharge(pos_charge); // effectively subtract electron masses
@@ -273,8 +276,7 @@ namespace OpenMS
     potential_adducts_(source.potential_adducts_),
     map_label_(source.map_label_),
     map_label_inverse_(source.map_label_inverse_),
-    enable_intensity_filter_(source.enable_intensity_filter_),
-    negative_mode_(source.negative_mode_)
+    enable_intensity_filter_(source.enable_intensity_filter_)
   {
   }
 
@@ -291,7 +293,6 @@ namespace OpenMS
     map_label_ = source.map_label_;
     map_label_inverse_ = source.map_label_inverse_;
     enable_intensity_filter_ = source.enable_intensity_filter_;
-    negative_mode_ = source.negative_mode_;
     return *this;
   }
 
@@ -347,7 +348,8 @@ namespace OpenMS
       //for negative mode, the default adduct should be deprotonation (added by the user)
       default_adduct = Adduct(-1, 1, -Constants::PROTON_MASS_U, "H-1", log(1.0),0);
     // e^(log prob_H)*e^(log prob_Na) = *e^(log prob_Na) * *e^(log prob_Na)
-    }else
+    }
+    else
     {
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0),0);
     }
@@ -472,7 +474,8 @@ namespace OpenMS
                 {
                   left_charges = -md_s->getPositiveCharges();
                   right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)                                
-                }else
+                }
+                else
                 {
                   left_charges = md_s->getNegativeCharges();//for positive mode neutral switches still have to fulfill requirement that they have at most charge as each side
                   right_charges = md_s->getPositiveCharges();                   
@@ -495,7 +498,8 @@ namespace OpenMS
                   {
                     left_charges = -cmp.getPositiveCharges();
                     right_charges = -cmp.getNegativeCharges();                                   
-                  }else
+                  }
+                  else
                   {
                     left_charges = cmp.getNegativeCharges();
                     right_charges = cmp.getPositiveCharges();                   
@@ -1056,7 +1060,8 @@ namespace OpenMS
     if (is_neg)
     {
       default_adduct = Adduct(-1, 1, -Constants::PROTON_MASS_U, "H-1", log(1.0),0);
-    }else
+    }
+    else
     {
       default_adduct = Adduct(1, 1, Constants::PROTON_MASS_U, "H1", log(1.0), 0);    
     }
@@ -1099,7 +1104,8 @@ namespace OpenMS
         {
           left_charges =  -new_cmp.getPositiveCharges();
           right_charges =  -new_cmp.getNegativeCharges();
-        }else
+        }
+        else
         {
           left_charges = new_cmp.getNegativeCharges();
           right_charges = new_cmp.getPositiveCharges();
@@ -1129,7 +1135,8 @@ namespace OpenMS
             {
               left_charge =  -new_cmp.getPositiveCharges();
               right_charge =  -new_cmp.getNegativeCharges();
-            }else
+            }
+            else
             {
               left_charge = new_cmp.getNegativeCharges();
               right_charge = new_cmp.getPositiveCharges();
@@ -1148,7 +1155,8 @@ namespace OpenMS
             }
           }
 
-        }else // have nonzero modulo.SHOULD NOT HAPPEN FOR DEFAULT CHARGE 1/-1 !!
+        }
+        else // have nonzero modulo.SHOULD NOT HAPPEN FOR DEFAULT CHARGE 1/-1 !!
         {
           throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "FeatureDeconvolution::inferMoreEdges_(): Modulo returns leftover charge!", String(new_cmp.getNegativeCharges()));
         }
