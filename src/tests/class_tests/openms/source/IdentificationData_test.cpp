@@ -304,7 +304,7 @@ START_SECTION((IdentifiedPeptideRef registerIdentifiedPeptide(const IdentifiedPe
 }
 END_SECTION
 
-START_SECTION((const IdentifiedPeptides& getIdentifiedOligos() const))
+START_SECTION((const IdentifiedOligos& getIdentifiedOligos() const))
 {
   TEST_EQUAL(data.getIdentifiedOligos().empty(), true);
   // tested further below
@@ -343,7 +343,7 @@ START_SECTION((IdentifiedOligoRef registerIdentifiedOligo(const IdentifiedOligo&
 }
 END_SECTION
 
-START_SECTION((const IdentifiedPeptides& getIdentifiedCompounds() const))
+START_SECTION((const IdentifiedCompounds& getIdentifiedCompounds() const))
 {
   TEST_EQUAL(data.getIdentifiedCompounds().empty(), true);
   // tested further below
@@ -404,7 +404,7 @@ START_SECTION((QueryMatchRef registerMoleculeQueryMatch(const MoleculeQueryMatch
 }
 END_SECTION
 
-START_SECTION((const MoleculeQueryMatches& getQueryMatchGroups() const))
+START_SECTION((const QueryMatchGroups& getQueryMatchGroups() const))
 {
   TEST_EQUAL(data.getQueryMatchGroups().empty(), true);
   // tested further below

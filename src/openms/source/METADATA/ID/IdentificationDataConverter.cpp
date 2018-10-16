@@ -363,8 +363,14 @@ namespace OpenMS
           evidence.setProteinAccession(parent_ref->accession);
           evidence.setStart(parent_match.start_pos);
           evidence.setEnd(parent_match.end_pos);
-          evidence.setAABefore(parent_match.left_neighbor[0]);
-          evidence.setAAAfter(parent_match.right_neighbor[0]);
+          if (!parent_match.left_neighbor.empty())
+          {
+            evidence.setAABefore(parent_match.left_neighbor[0]);
+          }
+          if (!parent_match.right_neighbor.empty())
+          {
+            evidence.setAAAfter(parent_match.right_neighbor[0]);
+          }
           hit.addPeptideEvidence(evidence);
         }
       }
@@ -411,21 +417,21 @@ namespace OpenMS
     }
 
     set<IdentificationData::ProcessingStepRef> steps;
-    for (auto psm_it = psm_data.begin(); psm_it != psm_data.end(); ++psm_it)
+    for (const auto& psm : psm_data)
     {
-      const IdentificationData::DataQuery& query = *psm_it->first.first;
+      const IdentificationData::DataQuery& query = *psm.first.first;
       PeptideIdentification peptide;
       static_cast<MetaInfoInterface&>(peptide) = query;
       peptide.setRT(query.rt);
       peptide.setMZ(query.mz);
       peptide.setMetaValue("spectrum_reference", query.data_id);
-      peptide.setHits(psm_it->second.first);
-      const IdentificationData::ScoreType& score_type = *psm_it->second.second;
+      peptide.setHits(psm.second.first);
+      const IdentificationData::ScoreType& score_type = *psm.second.second;
       peptide.setScoreType(score_type.name);
       peptide.setHigherScoreBetter(score_type.higher_better);
-      peptide.setIdentifier(String(Size(&(*psm_it->first.second))));
+      peptide.setIdentifier(String(Size(&(*psm.first.second))));
       peptides.push_back(peptide);
-      steps.insert(psm_it->first.second);
+      steps.insert(psm.first.second);
     }
 
     map<IdentificationData::ProcessingStepRef,
