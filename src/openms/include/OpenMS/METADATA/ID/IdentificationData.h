@@ -48,8 +48,6 @@
 #include <OpenMS/METADATA/ID/QueryMatchGroup.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 #include <OpenMS/FORMAT/MzTab.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <boost/unordered_set.hpp>
 
