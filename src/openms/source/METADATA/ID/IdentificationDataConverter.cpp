@@ -363,8 +363,14 @@ namespace OpenMS
           evidence.setProteinAccession(parent_ref->accession);
           evidence.setStart(parent_match.start_pos);
           evidence.setEnd(parent_match.end_pos);
-          evidence.setAABefore(parent_match.left_neighbor[0]);
-          evidence.setAAAfter(parent_match.right_neighbor[0]);
+          if (!parent_match.left_neighbor.empty())
+          {
+            evidence.setAABefore(parent_match.left_neighbor[0]);
+          }
+          if (!parent_match.right_neighbor.empty())
+          {
+            evidence.setAAAfter(parent_match.right_neighbor[0]);
+          }
           hit.addPeptideEvidence(evidence);
         }
       }
