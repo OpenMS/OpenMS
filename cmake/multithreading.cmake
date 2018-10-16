@@ -57,15 +57,22 @@ endif()
 #------------------------------------------------------------------------------
 # OpenMP
 #------------------------------------------------------------------------------
+message(STATUS "OpenMP support requested: ${MT_ENABLE_OPENMP}")
+
 if (MT_ENABLE_OPENMP)
 	find_package(OpenMP)
 endif()
-message(STATUS "OpenMP: ${MT_ENABLE_OPENMP}")
 
 if (OPENMP_FOUND)
-  # do NOT use add_definitions() here, because RC.exe on windows will fail
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-	if (NOT MSVC)
-		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
-	endif()
+  # For CMake < 3.9, we need to make the OpenMP target ourselves
+  # from https://cliutils.gitlab.io/modern-cmake/chapters/packages/OpenMP.html
+  if(NOT TARGET OpenMP::OpenMP_CXX)
+    find_package(Threads REQUIRED)
+    add_library(OpenMP::OpenMP_CXX IMPORTED INTERFACE)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
+    # Only works if the same flag is passed to the linker; use CMake 3.9+ otherwise (Intel, AppleClang)
+    set_property(TARGET OpenMP::OpenMP_CXX
+                 PROPERTY INTERFACE_LINK_LIBRARIES ${OpenMP_CXX_FLAGS} Threads::Threads)
+  endif()
 endif()

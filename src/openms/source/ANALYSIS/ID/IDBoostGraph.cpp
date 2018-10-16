@@ -40,6 +40,9 @@
 #include <boost/graph/connected_components.hpp>
 
 #include <ostream>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #define INFERENCE_DEBUG
 
@@ -157,15 +160,15 @@ namespace OpenMS
 
     int i = 0;
     #pragma omp parallel for
-    for (Graph& fg : ccs_)
+    for (auto g_it = ccs_.begin() ; g_it < ccs_.end(); ++g_it)
     {
-
       #ifdef INFERENCE_DEBUG
+      std::cout << omp_get_thread_num() << std::endl;
       std::cout << "Printing cc " << ++i << std::endl;
-      printGraph(std::cout, fg);
+      printGraph(std::cout, *g_it);
       #endif
 
-      functor(fg);
+      functor(*g_it);
     }
   }
 
@@ -191,15 +194,16 @@ namespace OpenMS
       int i = 0;
 
       #pragma omp parallel for
-      for (const Graph& fg : ccs_)
+      for (auto g_it = ccs_.begin() ; g_it < ccs_.end(); ++g_it)
       {
 
         #ifdef INFERENCE_DEBUG
+        std::cout << omp_get_thread_num() << std::endl;
         std::cout << "Printing cc " << i << std::endl;
-        printGraph(std::cout, fg);
+        printGraph(std::cout, *g_it);
         #endif
 
-        annotateIndistProteins_(fg, addSingletons);
+        annotateIndistProteins_(*g_it, addSingletons);
         pl.setProgress(++i);
       }
       pl.endProgress();

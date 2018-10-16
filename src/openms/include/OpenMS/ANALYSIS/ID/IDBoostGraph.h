@@ -116,6 +116,7 @@ namespace OpenMS
     void annotateIndistProteins(bool addSingletons = true) const;
 
 
+    /// A boost dfs visitor that copies connected components into a vector of graphs
     class dfs_ccsplit_visitor:
       public boost::default_dfs_visitor
         {
@@ -156,6 +157,7 @@ namespace OpenMS
 
         Graphs& gs;
         vertex_t curr_v, next_v;
+        /// A mapping from old node id to new node id to not duplicate existing ones in the new graph
         std::map<vertex_t, vertex_t> m;
       };
 
@@ -187,32 +189,39 @@ namespace OpenMS
 
     };
 
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address. For debug
+    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type prints the address.
+    /// For debugging purposes only
+    template<class CharT>
     class PrintAddressVisitor:
         public boost::static_visitor<>
     {
     public:
 
+      explicit PrintAddressVisitor(std::basic_ostream<CharT> stream):
+       stream(stream)
+      {}
+
       void operator()(PeptideHit* pep) const
       {
-        std::cout << pep->getSequence().toUnmodifiedString() << ": " << pep << std::endl;
+        stream << pep->getSequence().toUnmodifiedString() << ": " << pep << std::endl;
       }
 
       void operator()(ProteinHit* prot) const
       {
-        std::cout << prot->getAccession() << ": " << prot << std::endl;
+        stream << prot->getAccession() << ": " << prot << std::endl;
       }
 
       void operator()(const ProteinGroup* /*protgrp*/) const
       {
-        std::cout << "PG" << std::endl;
+        stream << "PG" << std::endl;
       }
 
       void operator()(const PeptideCluster* /*pc*/) const
       {
-        std::cout << "PepClust" << std::endl;
+        stream << "PepClust" << std::endl;
       }
 
+      std::basic_ostream<CharT> stream;
     };
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type sets the posterior
@@ -229,7 +238,9 @@ namespace OpenMS
 
       void operator()(ProteinHit* prot, double posterior) const
       {
+        #ifdef INFERENCE_DEBUG
         std::cout << "set score " << posterior << " for " << prot->getAccession() << std::endl;
+        #endif
         prot->setScore(posterior);
       }
 

@@ -110,6 +110,11 @@ endif()
 if (TBB_FOUND)
  list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
+
+if (OpenMP_CXX_FOUND)
+	list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
+endif()
+
 if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
@@ -162,7 +167,7 @@ openms_add_library(TARGET_NAME OpenMS
 									 		OpenSwathAlgo
 									 		${OPENMS_DEP_LIBRARIES}
 									 DLL_EXPORT_PATH "OpenMS/")
-                   
+
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
 # here
