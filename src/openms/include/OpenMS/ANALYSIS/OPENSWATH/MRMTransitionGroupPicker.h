@@ -258,60 +258,62 @@ public:
         // Use the closest peak for the current peak. Note that we will only set the closest peak
         // per chromatogram to zero, so if there are two peaks for some transitions, we will get
         // to them later. If there is no peak, then we transfer transition boundaries from "master" peak.
+        for (Size k = 0; k < picked_chroms.size(); k++)
         {
-          for (Size k = 0; k < picked_chroms.size(); k++)
+          double peak_apex_dist_min = std::numeric_limits<double>::max();
+          int min_dist = -1;
+          for (Size i = 0; i < picked_chroms[k].size(); i++)
           {
-            double peak_apex_dist_min = 1e6;
-            int min_dist = -1;
-            for (Size i = 0; i < picked_chroms[k].size(); i++)
-            {
-              PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
-                  picked_chroms[k],
-                  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
-                  picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
-              if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
-              {
-                min_dist = (int)i;
-              }
+            PeakIntegrator::PeakArea pa_tmp = pi_.integratePeak(  // get the peak apex
+                picked_chroms[k],
+                picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][i], 
+                picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][i]); 
+            if (pa_tmp.apex_pos > 0.0 && std::fabs(pa_tmp.apex_pos - peak_apex) < peak_apex_dist_min)
+            { // update best candidate
+              peak_apex_dist_min = std::fabs(pa_tmp.apex_pos - peak_apex);
+              min_dist = (int)i;
             }
-            
-            // Select master peak boundaries, or in the case we found at least one peak, the local peak boundaries 
-            double l = best_left;
-            double r = best_right;
-            if (min_dist >= 0)
-            {
-              l = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][min_dist];
-              r = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][min_dist];
-              picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
-            }
-            
-            left_edges.push_back(l);
-            right_edges.push_back(r);
-            // ensure we remember the overall maxima / minima
-            if (l < min_left) {min_left = l;}
-            if (r > max_right) {max_right = r;}
           }
+            
+          // Select master peak boundaries, or in the case we found at least one peak, the local peak boundaries 
+          double l = best_left;
+          double r = best_right;
+          if (min_dist >= 0)
+          {
+            l = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][min_dist];
+            r = picked_chroms[k].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][min_dist];
+            picked_chroms[k][min_dist].setIntensity(0.0); // only remove one peak per transition
+          }
+            
+          left_edges.push_back(l);
+          right_edges.push_back(r);
+          // ensure we remember the overall maxima / minima
+          if (l < min_left) {min_left = l;}
+          if (r > max_right) {max_right = r;}
         }
       } // end !use_consensus_
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0); // ensure that we set at least one peak to zero
 
       // Check for minimal peak width -> return empty feature (Intensity zero)
-      if (use_consensus_ && min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) 
+      if (use_consensus_)
       {
-        return mrmFeature;
-      }
-
-      if (use_consensus_ && compute_peak_quality_)
-      {
-        String outlier = "none";
-        double qual = computeQuality_(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
-        if (qual < min_qual_) 
+        if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) 
         {
           return mrmFeature;
         }
-        mrmFeature.setMetaValue("potentialOutlier", outlier);
-        mrmFeature.setMetaValue("initialPeakQuality", qual);
-        mrmFeature.setOverallQuality(qual);
+
+        if (compute_peak_quality_)
+        {
+          String outlier = "none";
+          double qual = computeQuality_(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
+          if (qual < min_qual_) 
+          {
+            return mrmFeature;
+          }
+          mrmFeature.setMetaValue("potentialOutlier", outlier);
+          mrmFeature.setMetaValue("initialPeakQuality", qual);
+          mrmFeature.setOverallQuality(qual);
+        }
       }
 
       // Prepare linear resampling of all the chromatograms, here creating the
@@ -402,15 +404,14 @@ public:
         if (peak_integration_ == "original")
         {
           used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, local_left, local_right);
-          // const SpectrumT& used_chromatogram = chromatogram; // instead of resampling
         }
-        else if (peak_integration_ == "smoothed" && smoothed_chroms.size() <= k)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Tried to calculate peak area and height without any smoothed chromatograms");
-        }        
         else if (peak_integration_ == "smoothed")
         {
+          if (smoothed_chroms.size() <= k) 
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                             "Tried to calculate peak area and height without any smoothed chromatograms");
+          }
           used_chromatogram = resampleChromatogram_(smoothed_chroms[k], master_peak_container, local_left, local_right);
         }
         else
@@ -432,12 +433,7 @@ public:
         {
           double background{0};
           double avg_noise_level{0};
-          if ((peak_integration_ == "smoothed") && smoothed_chroms.size() <= k)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              "Tried to calculate background estimation without any smoothed chromatograms");
-          }
-          else if (background_subtraction_ == "original")
+          if (background_subtraction_ == "original")
           {
             const double intensity_left = chromatogram.PosBegin(local_left)->getIntensity();
             const double intensity_right = (chromatogram.PosEnd(local_right) - 1)->getIntensity();

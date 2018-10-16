@@ -482,7 +482,7 @@ protected:
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
     // misc options
-    registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
+    registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
     registerFlag_("sonar", "data is scanning SWATH data");
 
     // RT, mz and IM windows
@@ -742,7 +742,6 @@ protected:
       std::vector<double> swath_prec_upper;
       SwathWindowLoader::readSwathWindows(swath_windows_file, swath_prec_lower, swath_prec_upper);
 
-      LOG_INFO << "Read Swath maps file with " << swath_prec_lower.size() << " windows." << std::endl;
       for (Size i = 0; i < swath_prec_lower.size(); i++)
       {
         LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
@@ -878,7 +877,7 @@ protected:
     // Set up chromatogram output
     // Either use chrom.mzML or sqlite DB
     ///////////////////////////////////
-    Interfaces::IMSDataConsumer * chromatogramConsumer;
+    Interfaces::IMSDataConsumer* chromatogramConsumer;
     prepareChromOutput(&chromatogramConsumer, exp_meta, transition_exp, out_chrom);
 
     ///////////////////////////////////
