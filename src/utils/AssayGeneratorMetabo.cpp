@@ -436,7 +436,6 @@ protected:
           cmp.id = String(transition_group_counter) + "_" + description + "_" + file_counter;
           cmp.setMetaValue("CompoundName", description);
         }
-        // smiles to supported in AccurateMassSearch
         cmp.smiles_string = "NA";
         if (sumformula == "UNKNOWN")
         {
@@ -453,7 +452,10 @@ protected:
         }
         else
         {
-          adduct = ListUtils::concatenate(v_adduct, ",");
+          // TODO: if this is concatenated -> Elements are not read correctly e.g. "02,"
+          // In this case use only the first sumformula of the element maybe safe the other ones someware else
+          //adduct = ListUtils::concatenate(v_adduct, ",");
+          adduct = v_adduct[0];
           cmp.setMetaValue("Adducts", adduct);
         }
 
