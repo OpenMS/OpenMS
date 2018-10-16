@@ -240,7 +240,7 @@ public:
     PeptideHit(const PeptideHit& source);
 
     /// Move constructor
-    PeptideHit(PeptideHit&&);
+    PeptideHit(PeptideHit&&) noexcept;
 
     /// Destructor
     virtual ~PeptideHit();
@@ -250,7 +250,7 @@ public:
     PeptideHit& operator=(const PeptideHit& source);
 
     /// Move assignment operator
-    PeptideHit& operator=(PeptideHit&&);
+    PeptideHit& operator=(PeptideHit&&) noexcept;
 
     /// Equality operator
     bool operator==(const PeptideHit& rhs) const;

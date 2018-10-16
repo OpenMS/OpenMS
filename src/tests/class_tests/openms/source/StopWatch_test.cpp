@@ -178,7 +178,7 @@ START_SECTION((double getCPUTime() const ))
 
   TEST_EQUAL(s.getCPUTime() > 0.1, true) // waiting costs CPU time... just not sure how much...
   TEST_EQUAL(s.getClockTime() > 2, true) // and must consume wall time
-  TEST_EQUAL(s.getClockTime() < 4, true)
+  TEST_EQUAL(s.getClockTime() < 10, true) // be a bit more loose if e.g. a VM is busy
   TEST_EQUAL(s.getUserTime() > 0.1, true) //  and some user time
   TEST_EQUAL(s.getUserTime() < 4, true)
   TEST_EQUAL(s.getSystemTime() < 3, true) // and usually quite few system time

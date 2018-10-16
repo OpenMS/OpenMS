@@ -67,7 +67,7 @@ public:
       }
 
       /// Copy constructor
-      Unit(const Unit & rhs) = default;
+      Unit(const Unit &) = default;
       
       /// Move constructor
       Unit(Unit&&) = default;
@@ -78,7 +78,7 @@ public:
       }
 
       /// Assignment operator
-      Unit & operator=(const Unit & source) = default;
+      Unit & operator=(const Unit &) = default;
       /// Move assignment operator
       Unit& operator=(Unit&&) & = default;
 
@@ -106,7 +106,7 @@ public:
     CVTerm(const String & accession, const String & name, const String & cv_identifier_ref, const String & value, const Unit & unit);
 
     /// Copy constructor
-    CVTerm(const CVTerm & rhs) = default;
+    CVTerm(const CVTerm &) = default;
 
     /// Move constructor
     CVTerm(CVTerm&&) = default;
@@ -115,7 +115,7 @@ public:
     virtual ~CVTerm();
 
     /// Assignment operator
-    CVTerm & operator=(const CVTerm & rhs) = default;
+    CVTerm & operator=(const CVTerm &) = default;
 
     /// Move assignment operator
     CVTerm& operator=(CVTerm&&) & = default;

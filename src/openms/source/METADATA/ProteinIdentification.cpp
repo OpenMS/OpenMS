@@ -220,6 +220,11 @@ namespace OpenMS
     protein_hits_.push_back(protein_hit);
   }
 
+  void ProteinIdentification::insertHit(ProteinHit&& protein_hit)
+  {
+    protein_hits_.push_back(std::forward<ProteinHit>(protein_hit));
+  }
+
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
   {
     if (!s.empty())

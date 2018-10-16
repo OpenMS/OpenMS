@@ -42,7 +42,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegressionWithoutIntercept.h>
@@ -691,11 +690,7 @@ namespace OpenMS
     exp.sortSpectra();
     
     // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-    if (spectrum_type == SpectrumSettings::UNKNOWN)
-    {
-      spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
-    }
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType(true);
 
     bool centroided;
     if (param_.getValue("algorithm:spectrum_type") == "automatic")
@@ -742,7 +737,7 @@ namespace OpenMS
     }
 
     /**
-     * filter for peak patterns
+     * generate peak patterns for subsequent filtering step
      */
     MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(param_.getValue("algorithm:labels"), param_.getValue("algorithm:missed_cleavages"), label_mass_shift_);
     if (param_.getValue("algorithm:knock_out") == "true")
@@ -755,54 +750,53 @@ namespace OpenMS
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
     
-    std::vector<MultiplexFilteredMSExperiment> filter_results;
     if (centroided)
     {
       // centroided data
+      
+      /**
+       * filter for peak patterns
+       */
       MultiplexFilteringCentroided filtering(exp_centroid_, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), param_.getValue("algorithm:averagine_similarity_scaling"), param_.getValue("algorithm:averagine_type"));
       filtering.setLogType(getLogType());
-      filter_results = filtering.filter();
-    }
-    else
-    {
-      // profile data
-      MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), param_.getValue("algorithm:averagine_similarity_scaling"), param_.getValue("algorithm:averagine_type"));
-      filtering.setLogType(getLogType());
-      filter_results = filtering.filter();
-    }
-
-    /**
-     * cluster filter results
-     */
-    std::vector<std::map<int, GridBasedCluster> > cluster_results;
-    if (centroided)
-    {
-      // centroided data
+      std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+      
+      /**
+       * cluster filter results
+       */
       MultiplexClustering clustering(exp_centroid_, param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
       clustering.setLogType(getLogType());
-      cluster_results = clustering.cluster(filter_results);
-    }
-    else
-    {
-      // profile data
-      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
-      clustering.setLogType(getLogType());
-      cluster_results = clustering.cluster(filter_results);
-    }
+      std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
-    /**
-     * construct feature and consensus maps i.e. the final results
-     */
-    if (centroided)
-    {
-      //consensus_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
-      //feature_map.setPrimaryMSRunPath(exp_centroid_.getPrimaryMSRunPath());
+      /**
+       * construct feature and consensus maps i.e. the final results
+       */
+      filtering.getCentroidedExperiment().swap(exp_centroid_);
       generateMapsCentroided_(patterns, filter_results, cluster_results);
     }
     else
     {
-      //consensus_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
-      //feature_map.setPrimaryMSRunPath(exp_profile_.getPrimaryMSRunPath());
+      // profile data
+      
+      /**
+       * filter for peak patterns
+       */
+      MultiplexFilteringProfile filtering(exp_profile_, exp_centroid_, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, param_.getValue("algorithm:intensity_cutoff"), param_.getValue("algorithm:rt_band"), param_.getValue("algorithm:mz_tolerance"), (param_.getValue("algorithm:mz_unit") == "ppm"), param_.getValue("algorithm:peptide_similarity"), param_.getValue("algorithm:averagine_similarity"), param_.getValue("algorithm:averagine_similarity_scaling"), param_.getValue("algorithm:averagine_type"));
+      filtering.setLogType(getLogType());
+      std::vector<MultiplexFilteredMSExperiment> filter_results = filtering.filter();
+      
+      /**
+       * cluster filter results
+       */
+      MultiplexClustering clustering(exp_profile_, exp_centroid_, boundaries_exp_s, param_.getValue("algorithm:rt_typical"), static_cast<double>(param_.getValue("algorithm:rt_min")));
+      clustering.setLogType(getLogType());
+      std::vector<std::map<int, GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
+      
+      /**
+       * construct feature and consensus maps i.e. the final results
+       */
+      filtering.getCentroidedExperiment().swap(exp_centroid_);
+      filtering.getPeakBoundaries().swap(boundaries_exp_s);
       generateMapsProfile_(patterns, filter_results, cluster_results);
     }
 

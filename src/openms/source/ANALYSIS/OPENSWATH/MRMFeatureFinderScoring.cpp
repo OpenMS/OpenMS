@@ -45,6 +45,7 @@
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 
 #include <boost/range/adaptor/map.hpp>
 #include <boost/foreach.hpp>
@@ -183,8 +184,6 @@ namespace OpenMS
                                                std::vector<OpenSwath::SwathMap> swath_maps,
                                                TransitionGroupMapType& transition_group_map)
   {
-    updateMembers_();
-
     //
     // Step 1
     //
@@ -193,9 +192,8 @@ namespace OpenMS
 
     // Store the proteins from the input in the output feature map
     std::vector<ProteinHit> protein_hits;
-    for (Size i = 0; i < transition_exp.getProteins().size(); i++)
+    for (const ProteinType& prot : transition_exp.getProteins())
     {
-      const ProteinType& prot = transition_exp.getProteins()[i];
       ProteinHit prot_hit = ProteinHit();
       prot_hit.setSequence(prot.sequence);
       prot_hit.setAccession(prot.id);
@@ -239,7 +237,7 @@ namespace OpenMS
 
       setProgress(++progress);
       MRMTransitionGroupType& transition_group = trgroup_it->second;
-      if (transition_group.getChromatograms().size() == 0 || transition_group.getTransitions().size() == 0)
+      if (transition_group.getChromatograms().empty() || transition_group.getTransitions().empty())
       {
         continue;
       }
@@ -555,6 +553,9 @@ namespace OpenMS
     OpenSwathScoring scorer;
     scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
 
+    ProteaseDigestion pd;
+    pd.setEnzyme("Trypsin");
+
     size_t feature_idx = 0;
     // Go through all peak groups (found MRM features) and score them
     for (std::vector<MRMFeature>::iterator mrmfeature = transition_group_detection.getFeaturesMuteable().begin();
@@ -655,7 +656,7 @@ namespace OpenMS
         mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
         mrmfeature->setOverallQuality(xx_lda_prescore);
       }
-      else
+      else //!ms1only
       {
 
         ///////////////////////////////////
@@ -688,8 +689,11 @@ namespace OpenMS
         scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
         if (swath_present && su_.use_dia_scores_)
         {
-          scorer.calculateDIAScores(imrmfeature, transition_group_detection.getTransitions(),
-                                    swath_maps, ms1_map_, diascoring_, *pep, scores, drift_lower, drift_upper);
+          std::vector<double> masserror_ppm;
+          scorer.calculateDIAScores(imrmfeature,
+                                    transition_group_detection.getTransitions(),
+                                    swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm, drift_lower, drift_upper);
+          mrmfeature->setMetaValue("masserror_ppm", masserror_ppm);
         }
         if (sonar_present && su_.use_sonar_scores)
         {
@@ -956,6 +960,7 @@ namespace OpenMS
       if (pep->isPeptide())
       {
         pep_hit_.setSequence(AASequence::fromString(pep->sequence));
+        mrmfeature->setMetaValue("missedCleavages", pd.peptideCount(pep_hit_.getSequence()) - 1);
       }
 
       // set protein accession numbers 

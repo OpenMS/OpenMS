@@ -34,7 +34,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -135,7 +134,7 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
     // check for peak type (raw data required)
-    if (PeakTypeEstimator().estimateType(ms_exp[0].begin(), ms_exp[0].end()) == SpectrumSettings::CENTROID)
+    if (ms_exp[0].getType(true) == SpectrumSettings::CENTROID)
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not raw data!");
     }

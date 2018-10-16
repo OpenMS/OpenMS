@@ -83,8 +83,12 @@ public:
 
     /// @name Constructors and destructors
     //@{
-    /// default constructor
+    /// Default constructor
     DataValue();
+    /// Copy constructor
+    DataValue(const DataValue&);
+    /// Move constructor
+    DataValue(DataValue&&) noexcept;
     /// specific constructor for char* (converted to string)
     DataValue(const char*);
     /// specific constructor for std::string values
@@ -121,9 +125,7 @@ public:
     DataValue(long long);
     /// specific constructor for unsigned long long int values (note: the implementation uses SignedSize)
     DataValue(unsigned long long);
-    /// copy constructor
-    DataValue(const DataValue&);
-    /// destructor
+    /// Destructor
     ~DataValue();
     //@}
 
@@ -302,8 +304,10 @@ public:
     ///@name Assignment operators
     ///These methods are used to assign supported types directly to a DataValue object.
     //@{
-    /// assignment operator
+    /// Assignment operator
     DataValue& operator=(const DataValue&);
+    /// Move assignment operator
+    DataValue& operator=(DataValue&&) noexcept;
     /// specific assignment for char* (converted to string)
     DataValue& operator=(const char*);
     /// specific assignment for std::string values
@@ -439,7 +443,7 @@ protected:
 private:
 
     /// Clears the current state of the DataValue and release every used memory.
-    void clear_();
+    void clear_() noexcept;
   };
 }
 

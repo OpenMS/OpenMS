@@ -83,14 +83,14 @@ public:
       /// Constructor with name, description, value and advanced flag
       ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t = StringList());
       /// Copy constructor
-      ParamEntry(const ParamEntry& other) = default;
+      ParamEntry(const ParamEntry&) = default;
       /// Move constructor
       ParamEntry(ParamEntry&&) = default;
       /// Destructor
       ~ParamEntry();
 
       /// Assignment operator
-      ParamEntry& operator=(const ParamEntry& rhs) = default;
+      ParamEntry& operator=(const ParamEntry&) = default;
       /// Move assignment operator
       ParamEntry& operator=(ParamEntry&&) & = default;
 
@@ -134,14 +134,14 @@ public:
       /// Constructor with name and description
       ParamNode(const String& n, const String& d);
       /// Copy constructor
-      ParamNode(const ParamNode& other) = default;
+      ParamNode(const ParamNode&) = default;
       /// Move constructor
       ParamNode(ParamNode&&) = default;
       /// Destructor
       ~ParamNode();
 
       /// Assignment operator
-      ParamNode& operator=(const ParamNode& rhs) = default;
+      ParamNode& operator=(const ParamNode&) = default;
       /// Move assignment operator
       ParamNode& operator=(ParamNode&&) & = default;
 
@@ -256,7 +256,7 @@ protected:
     Param();
 
     /// Copy constructor
-    Param(const Param& rhs) = default;
+    Param(const Param&) = default;
 
     /// Move constructor
     Param(Param&&) = default;
@@ -265,7 +265,7 @@ protected:
     ~Param();
 
     /// Assignment operator
-    Param& operator=(const Param& rhs) = default;
+    Param& operator=(const Param&) = default;
 
     /// Move assignment operator
     Param& operator=(Param&&) & = default;

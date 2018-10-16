@@ -51,6 +51,7 @@ MS2File.h
 MSNumpressCoder.h
 MSPFile.h
 MSPGenericFile.h
+MSstatsFile.h
 MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
