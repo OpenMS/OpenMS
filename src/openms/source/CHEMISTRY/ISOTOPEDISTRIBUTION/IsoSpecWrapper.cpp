@@ -39,6 +39,10 @@
 #include <iterator>
 #include <string>
 
+// Override IsoSpec's use of mmap whenever it is available
+#define ISOSPEC_TEST_GOT_SYSTEM_MMAN false
+#define ISOSPEC_TEST_GOT_MMAN false
+
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
 #include "IsoSpec/isoSpec++.cpp"
@@ -46,6 +50,7 @@
 #include "IsoSpec/marginalTrek++.cpp"
 #include "IsoSpec/operators.cpp"
 #include "IsoSpec/element_tables.cpp"
+#include "IsoSpec/misc.cpp"
 
 using namespace std;
 using namespace IsoSpec;

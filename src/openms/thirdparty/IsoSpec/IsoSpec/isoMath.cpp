@@ -8,9 +8,7 @@
 
 #include <cmath>
 #include "isoMath.h"
-#include <stdlib.h>     /* malloc, free, rand */
-
-#undef ISOSPEC_GOT_MMAP // for OpenMS we dont want to use mmap
+#include "platform.h"
 
 namespace IsoSpec
 {
@@ -18,7 +16,7 @@ namespace IsoSpec
 const double pi = 3.14159265358979323846264338328;
 
 // 10M should be enough for everyone, right?
-# if defined(ISOSPEC_GOT_MMAP)
+# if ISOSPEC_GOT_MMAN
 double* g_lfact_table = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*ISOSPEC_G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
 #else
 double* g_lfact_table = reinterpret_cast<double*>(calloc(ISOSPEC_G_FACT_TABLE_SIZE, sizeof(double)));

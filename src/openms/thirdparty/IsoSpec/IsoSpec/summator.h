@@ -114,21 +114,6 @@ public:
     }
 };
 
-class ThreadSummator
-{
-    // Trivial but thread-safe summator
-    std::atomic<double> sum;
-public:
-    inline void add(double what)
-    {
-        double previous = sum.load(std::memory_order_relaxed);
-        while(!sum.compare_exchange_weak(previous, previous+what, std::memory_order_relaxed)) {};
-    }
-    inline double get()
-    {
-        return sum.load(std::memory_order_relaxed);
-    }
-};
 
 } // namespace IsoSpec
 
