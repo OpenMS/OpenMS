@@ -103,7 +103,7 @@ public:
     EmpiricalFormula();
 
     /// Copy constructor
-    EmpiricalFormula(const EmpiricalFormula& rhs) = default;
+    EmpiricalFormula(const EmpiricalFormula&) = default;
 
     /// Move constructor
     EmpiricalFormula(EmpiricalFormula&&) = default;
@@ -214,7 +214,7 @@ public:
     //@{
 
     /// Assignment operator
-    EmpiricalFormula& operator=(const EmpiricalFormula& rhs) = default;
+    EmpiricalFormula& operator=(const EmpiricalFormula&) = default;
 
     /// Move assignment operator
     EmpiricalFormula& operator=(EmpiricalFormula&&) & = default;

@@ -384,20 +384,20 @@ protected:
     AASequence();
 
     /// Copy constructor
-    AASequence(const AASequence& rhs) = default;
+    AASequence(const AASequence&) = default;
 
     /// Move constructor
-    AASequence(AASequence&&) = default;
+    AASequence(AASequence&&) noexcept = default;
 
     /// Destructor
     virtual ~AASequence();
     //@}
 
     /// Assignment operator
-    AASequence& operator=(const AASequence& rhs) = default;
+    AASequence& operator=(const AASequence&) = default;
 
     /// Move assignment operator
-    AASequence& operator=(AASequence&&) & = default;
+    AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
 
     /// check if sequence is empty
     bool empty() const;

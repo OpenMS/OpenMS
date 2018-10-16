@@ -81,17 +81,18 @@ namespace OpenMS
     }
   }
 
-  // http://thbecker.net/articles/rvalue_references/section_05.html
-  PeptideHit::PeptideHit(PeptideHit&& source) :
+  /// Move constructor
+  PeptideHit::PeptideHit(PeptideHit&& source) noexcept :
     MetaInfoInterface(std::move(source)), // NOTE: rhs itself is an lvalue
-    sequence_(source.sequence_),
-    score_(source.score_),
-    analysis_results_(source.analysis_results_),
-    rank_(source.rank_),
-    charge_(source.charge_),
-    peptide_evidences_(source.peptide_evidences_),
-    fragment_annotations_(source.fragment_annotations_)
+    sequence_(std::move(source.sequence_)),
+    score_(std::move(source.score_)),
+    analysis_results_(std::move(source.analysis_results_)),
+    rank_(std::move(source.rank_)),
+    charge_(std::move(source.charge_)),
+    peptide_evidences_(std::move(source.peptide_evidences_)),
+    fragment_annotations_(std::move(source.fragment_annotations_))
   {
+    // see http://thbecker.net/articles/rvalue_references/section_05.html
     source.analysis_results_ = nullptr;
   }
 
@@ -125,7 +126,7 @@ namespace OpenMS
     return *this;
   }
 
-  PeptideHit& PeptideHit::operator=(PeptideHit&& source)
+  PeptideHit& PeptideHit::operator=(PeptideHit&& source) noexcept
   {
     if (&source == this)
     {

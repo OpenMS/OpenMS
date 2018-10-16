@@ -57,7 +57,7 @@ namespace OpenMS
     */
     //@{
     /// Copy constructor
-    DigestionEnzyme(const DigestionEnzyme& enzyme) = default;
+    DigestionEnzyme(const DigestionEnzyme&) = default;
 
     /// Move constructor
     DigestionEnzyme(DigestionEnzyme&&) = default;
@@ -76,7 +76,7 @@ namespace OpenMS
      */
     //@{
     /// Assignment operator
-    DigestionEnzyme& operator=(const DigestionEnzyme& enzyme) = default;
+    DigestionEnzyme& operator=(const DigestionEnzyme&) = default;
 
     /// Move assignment operator
     DigestionEnzyme& operator=(DigestionEnzyme&&) & = default;
