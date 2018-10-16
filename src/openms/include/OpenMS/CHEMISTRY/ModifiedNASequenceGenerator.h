@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Hendrik Weisser, Sam Wein $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_CHEMISTRY_MODIFIEDNASEQUENCEGENERATOR_H

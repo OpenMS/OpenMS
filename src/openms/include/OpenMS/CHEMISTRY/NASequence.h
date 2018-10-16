@@ -345,23 +345,23 @@ namespace OpenMS
      * Default constructors and assignment operators.
      */
     NASequence() = default; /// default constructor
-    NASequence(const NASequence&) = default; // Copy constructor
-    NASequence(NASequence&&) = default; // Move constructor
-    NASequence& operator=(const NASequence&) & = default;  // Copy assignment operator
-    NASequence& operator=(NASequence&&) & = default; // Move assignment operator
+    NASequence(const NASequence&) = default; ///< Copy constructor
+    NASequence(NASequence&&) = default; ///< Move constructor
+    NASequence& operator=(const NASequence&) & = default;  ///< Copy assignment operator
+    NASequence& operator=(NASequence&&) & = default; ///< Move assignment operator
 
     /// full constructor
     NASequence(std::vector<const Ribonucleotide*> s,
                const RibonucleotideChainEnd* five_prime,
                const RibonucleotideChainEnd* three_prime);
 
-    virtual ~NASequence() = default; // destructor
+    virtual ~NASequence() = default; /// destructor
 
-    bool operator==(const NASequence& rhs) const; // element-wise equality
-    bool operator!=(const NASequence& rhs) const; // not quality
-    bool operator<(const NASequence& rhs) const; // less operator
+    bool operator==(const NASequence& rhs) const; ///< element-wise equality
+    bool operator!=(const NASequence& rhs) const; ///< not quality
+    bool operator<(const NASequence& rhs) const; ///< less operator
 
-    // getter / setter for sequence
+    /// getter / setter for sequence
     void setSequence(const std::vector<const Ribonucleotide*>& seq);
 
     const std::vector<const Ribonucleotide*>& getSequence() const
@@ -374,7 +374,7 @@ namespace OpenMS
       return seq_;
     }
 
-    // getter / setter for ribonucleotide elements (easily wrapped using pyOpenMS)
+    /// getter / setter for ribonucleotide elements (easily wrapped using pyOpenMS)
     void set(size_t index, const Ribonucleotide* r);
 
     const Ribonucleotide* get(size_t index)
@@ -382,7 +382,7 @@ namespace OpenMS
       return seq_[index];
     }
 
-    // getter / setter for sequence elements (C++ container style)
+    /// getter / setter for sequence elements (C++ container style)
     inline const Ribonucleotide*& operator[](size_t index)
     {
       return seq_[index];
@@ -397,7 +397,7 @@ namespace OpenMS
     size_t size() const;
     void clear();
 
-    // 5' and 3' modifications
+    /// 5' and 3' modifications
     bool hasFivePrimeMod() const;
     void setFivePrimeMod(const RibonucleotideChainEnd* r);
     const RibonucleotideChainEnd* getFivePrimeMod() const;
@@ -405,7 +405,7 @@ namespace OpenMS
     void setThreePrimeMod(const RibonucleotideChainEnd* r);
     const RibonucleotideChainEnd* getThreePrimeMod() const;
 
-    // iterators
+    /// iterators
     inline Iterator begin()
     {
       return Iterator(&seq_, 0);
@@ -436,7 +436,7 @@ namespace OpenMS
       return ConstIterator(&seq_, (Int) seq_.size());
     }
 
-    // utility functions
+    /// utility functions
     double getMonoWeight(NASFragmentType type = Full, Int charge = 0) const;
     double getAverageWeight(NASFragmentType type = Full, Int charge = 0) const;
     EmpiricalFormula getFormula(NASFragmentType type = Full, Int charge = 0) const;
