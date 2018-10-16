@@ -256,6 +256,63 @@ namespace OpenMS
       return ret;
     }
 
+    vector<vector<pair<String, unsigned>>> ExperimentalDesign::getSampleWOReplicatesToMSFilesMapping() const
+    {
+      const auto& facset = sample_section_.getFactors();
+      set<String> nonRepFacs{};
+
+      for (const String& fac : facset)
+      {
+        if (fac != "Sample" && !fac.hasSubstring("replicate") && !fac.hasSubstring("Replicate"))
+        {
+          nonRepFacs.insert(fac);
+        }
+      }
+
+      map<vector<String>, set<Size> > rowContent2RowIdx;
+      for (unsigned u : sample_section_.getSamples())
+      {
+
+        std::vector<String> valuesToHash{};
+        for (const String& fac : nonRepFacs)
+        {
+          valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
+        }
+        if (rowContent2RowIdx.find(valuesToHash) != rowContent2RowIdx.end())
+        {
+          rowContent2RowIdx[valuesToHash].insert(u);
+        }
+        else
+        {
+          rowContent2RowIdx[valuesToHash] = set<Size>{u};
+        }
+      }
+
+      const auto& pathLab2Sample = getPathLabelToSampleMapping(false);
+      vector<vector<pair<String, unsigned>>> res{rowContent2RowIdx.size()};
+      Size s(0);
+      // ["1","2","1"] -> sample [1, 3]
+      for (const auto& rcri : rowContent2RowIdx)
+      {
+        //sample 1
+        for (const auto& ri : rcri.second)
+        {
+          // [foo, 1] -> sample 1
+          for (const auto& pl2Sample : pathLab2Sample)
+          {
+            // sample 1 == sample 1
+            if (pl2Sample.second == ri)
+            {
+              // res[0] -> [[foo, 1],...]
+              res[s].emplace_back(pl2Sample.first);
+            }
+          }
+        }
+        ++s;
+      }
+      return res;
+    }
+
     map<pair<String, unsigned>, unsigned> ExperimentalDesign::pathLabelMapper_(
             const bool basename,
             unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry &entry)) const
@@ -524,7 +581,7 @@ namespace OpenMS
     return columnname_to_columnindex_.find(factor) != columnname_to_columnindex_.end();
   }
 
-  String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor)
+  String ExperimentalDesign::SampleSection::getFactorValue(const unsigned sample, const String &factor) const
   {
    if (! hasSample(sample))
    {
@@ -542,8 +599,21 @@ namespace OpenMS
                 OPENMS_PRETTY_FUNCTION,
                 "Factor " + factor + " is not present in the Experimental Design");
    }
-   StringList sample_row = content_[sample_to_rowindex_[sample]];
-   const Size col_index = columnname_to_columnindex_[factor];
+   const StringList& sample_row = content_.at(sample_to_rowindex_.at(sample));
+   const Size col_index = columnname_to_columnindex_.at(factor);
    return sample_row[col_index];
+  }
+
+  Size ExperimentalDesign::SampleSection::getFactorColIdx(const String &factor) const
+  {
+    if (! hasFactor(factor))
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Factor " + factor + " is not present in the Experimental Design");
+    }
+    return columnname_to_columnindex_.at(factor);
   }
 }

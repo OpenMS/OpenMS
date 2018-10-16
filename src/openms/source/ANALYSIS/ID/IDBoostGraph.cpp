@@ -33,13 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <boost/graph/copy.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/connected_components.hpp>
 
 #include <ostream>
 
-#define INFERENCE_DEBUG
+//#define INFERENCE_DEBUG
 
 using namespace OpenMS;
 using namespace std;
@@ -47,6 +49,15 @@ using namespace std;
 //TODO go through the vectors and see if we can preallocate some.
 namespace OpenMS
 {
+  struct MyUIntSetHasher
+  {
+  public:
+    size_t operator()(const set<unsigned long>& s) const
+        {
+          return boost::hash_range(s.begin(), s.end());
+        }
+  };
+
   IDBoostGraph::PeptideCluster IDBoostGraph::staticPC{};
   IDBoostGraph::ProteinGroup IDBoostGraph::staticPG{};
 
@@ -66,13 +77,14 @@ namespace OpenMS
 
     unordered_map<string, ProteinHit*> accession_map{};
 
-    auto protIt = proteins_.getHits().begin();
-    auto protItEnd = proteins_.getHits().end();
-    for (; protIt != protItEnd; ++protIt)
+    for (auto &prot : proteins_.getHits())
     {
-      accession_map[string(protIt->getAccession())] = &(*protIt);
+      accession_map[prot.getAccession()] = &prot;
     }
 
+    ProgressLogger pl;
+    pl.setLogType(ProgressLogger::CMD);
+    pl.startProgress(0,idedSpectra_.size(), "Building graph...");
     for (auto & spectrum : idedSpectra_)
     {
       //TODO add psm nodes here if using all psms
@@ -86,6 +98,11 @@ namespace OpenMS
         {
           // assumes protein is present
           auto accToPHit = accession_map.find(std::string(proteinAcc));
+          if (accToPHit == accession_map.end())
+          {
+            std::cout << "Warning: Building graph: skipping pep that maps to a non existent protein accession.";
+            continue;
+          }
           //TODO consider/calculate missing digests.
           //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
           //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
@@ -94,7 +111,9 @@ namespace OpenMS
           boost::add_edge(protV, pepV, g);
         }
       }
+      pl.nextProgress();
     }
+    pl.endProgress();
   }
 
 /* Const version
@@ -130,127 +149,146 @@ namespace OpenMS
   }*/
 
   /// Do sth on ccs
-  void IDBoostGraph::applyFunctorOnCCs(std::function<void(FilteredGraph&)> functor)
+  void IDBoostGraph::applyFunctorOnCCs(std::function<void(Graph&)> functor)
   {
-    if (numCCs_ == 0) {
+    if (ccs_.empty()) {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
     }
-    for (unsigned int i = 0; i < numCCs_; ++i)
+
+    int i = 0;
+    #pragma omp parallel for
+    for (Graph& fg : ccs_)
     {
-      FilteredGraph fg(g,
-                       [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
-                       [& i, this](vertex_t v) { return componentProperty_[v] == i; });
 
       #ifdef INFERENCE_DEBUG
-      // TODO make function for writing graph?
-      // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
-      LabelVisitor lv;
-      auto labels = boost::make_transform_value_property_map([lv](IDPointer &p) { return boost::apply_visitor(lv, p); },
-                                                             boost::get(boost::vertex_bundle, fg));
-      std::cout << "Printing cc " << i << std::endl;
-      //boost::print_graph(fg);
-      boost::write_graphviz(std::cout, fg, boost::make_label_writer(labels));
+      std::cout << "Printing cc " << ++i << std::endl;
+      printGraph(std::cout, fg);
       #endif
 
       functor(fg);
     }
   }
 
-  /// Do sth on ccs
   void IDBoostGraph::annotateIndistProteins(bool addSingletons) const
   {
-    if (numCCs_ == 0) {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
+    if (ccs_.empty() && boost::num_vertices(g) == 0)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Graph empty. Build it first.");
     }
 
-    for (unsigned int i = 0; i < numCCs_; ++i)
+    ProgressLogger pl;
+    pl.setLogType(ProgressLogger::CMD);
+
+    if (ccs_.empty())
     {
-      FilteredGraph fg(g,
-                       [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
-                       [& i, this](vertex_t v) { return componentProperty_[v] == i; });
+      pl.startProgress(0, 1, "Annotating indistinguishable proteins...");
+      annotateIndistProteins_(g, addSingletons);
+      pl.nextProgress();
+      pl.endProgress();
+    }
+    else
+    {
+      int i = 0;
 
-      #ifdef INFERENCE_DEBUG
-      // TODO make function for writing graph?
-      // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
-      LabelVisitor lv;
-      auto labels = boost::make_transform_value_property_map([lv](IDPointer &p) { return boost::apply_visitor(lv, p); },
-                                                             boost::get(boost::vertex_bundle, fg));
-      std::cout << "Printing cc " << i << std::endl;
-      //boost::print_graph(fg);
-      boost::write_graphviz(std::cout, fg, boost::make_label_writer(labels));
-      #endif
-
-      //TODO this could be sped up by a good hashing function for sets of uints and using unordered_map
-      map<PeptideNodeSet, ProteinNodeSet > indistProteins; //find indist proteins
-
-      FilteredGraph::vertex_iterator ui, ui_end;
-      boost::tie(ui, ui_end) = boost::vertices(fg);
-
-      // Cluster proteins
-      for (; ui != ui_end; ++ui)
+      #pragma omp parallel for
+      for (const Graph& fg : ccs_)
       {
-        IDBoostGraph::IDPointer curr_idObj = fg[*ui];
-        //TODO introduce an enum for the types to make it more clear.
-        //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
-        if (curr_idObj.which() == 0) //protein: find indist. ones
-        {
-          //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
-          //Or just check rigorously here.
-          PeptideNodeSet childPeps;
-          IDBoostGraph::FilteredGraph::adjacency_iterator adjIt, adjIt_end;
-          boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
-          for (; adjIt != adjIt_end; ++adjIt)
-          {
-            if (fg[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
-            {
-              childPeps.insert(*adjIt);
-            }
-          }
 
-          auto clusterIt = indistProteins.find(childPeps);
-          if (clusterIt != indistProteins.end())
+        #ifdef INFERENCE_DEBUG
+        std::cout << "Printing cc " << i << std::endl;
+        printGraph(std::cout, fg);
+        #endif
+
+        annotateIndistProteins_(fg, addSingletons);
+        pl.setProgress(++i);
+      }
+      pl.endProgress();
+    }
+  }
+
+  void IDBoostGraph::annotateIndistProteins_(const Graph& fg, bool addSingletons) const
+  {
+    //TODO evaluate hashing performance on sets
+    unordered_map<PeptideNodeSet, ProteinNodeSet, MyUIntSetHasher > indistProteins; //find indist proteins
+
+    Graph::vertex_iterator ui, ui_end;
+    boost::tie(ui, ui_end) = boost::vertices(fg);
+
+    // Cluster proteins
+    for (; ui != ui_end; ++ui)
+    {
+      IDBoostGraph::IDPointer curr_idObj = fg[*ui];
+      //TODO introduce an enum for the types to make it more clear.
+      //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+      if (curr_idObj.which() == 0) //protein: find indist. ones
+      {
+        //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
+        //Or just check rigorously here.
+        PeptideNodeSet childPeps;
+        GraphConst::adjacency_iterator adjIt, adjIt_end;
+        boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
+        for (; adjIt != adjIt_end; ++adjIt)
+        {
+          if (fg[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
           {
-            clusterIt->second.insert(*ui);
+            childPeps.insert(*adjIt);
           }
-          else
-          {
-            indistProteins[childPeps] = ProteinNodeSet({*ui});
-          }
+        }
+
+        auto clusterIt = indistProteins.find(childPeps);
+        if (clusterIt != indistProteins.end())
+        {
+          clusterIt->second.insert(*ui);
+        }
+        else
+        {
+          indistProteins[childPeps] = ProteinNodeSet({*ui});
+        }
+      }
+    }
+
+    // add the protein groups to the underlying ProteinGroup data structure only
+    for (auto const &pepsToGrps : indistProteins)
+    {
+      if (pepsToGrps.second.size() <= 1 && !addSingletons)
+      {
+        continue;
+      }
+
+      ProteinIdentification::ProteinGroup pg{};
+
+      pg.probability = -1.0;
+      for (auto const &proteinVID : pepsToGrps.second)
+      {
+        ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
+        pg.accessions.push_back(proteinPtr->getAccession());
+
+        // the following sets the score of the group to the max
+        // this might make not much sense if there was no inference yet -> score = 0
+        // And one might also want to use other scoring systems
+        // Anyway, without prior or add. info, all indist. proteins should have the same
+        // score
+        double oldscore = proteinPtr->getScore();
+        if (oldscore > pg.probability)
+        {
+          pg.probability = oldscore;
         }
       }
 
-      // add the protein groups to the underlying ProteinGroup datastructure only
-      // and edges from the groups to the proteins for quick access
-      for (auto const &pepsToGrps : indistProteins)
-      {
-        if (pepsToGrps.second.size() <= 1 && !addSingletons)
-        {
-          continue;
-        }
-
-        ProteinIdentification::ProteinGroup pg{};
-
-        for (auto const &proteinVID : pepsToGrps.second)
-        {
-          ProteinHit *proteinPtr = boost::get<ProteinHit*>(fg[proteinVID]);
-          pg.accessions.push_back(proteinPtr->getAccession());
-        }
-        //Without any inference we set the probability to -1
-        //TODO think about adding a simple aggregation scheme (e.g. max or product or normalized sum)
-        pg.probability = -1.0;
-        proteins_.getIndistinguishableProteins().push_back(pg);
-      }
+      proteins_.getIndistinguishableProteins().push_back(pg);
     }
   }
 
 
-  /// Do sth on connected components
   void IDBoostGraph::clusterIndistProteinsAndPeptides()
+  {}
+ /* void IDBoostGraph::clusterIndistProteinsAndPeptides()
   {
     if (numCCs_ == 0) {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
     }
 
+    #pragma omp parallel for
     for (unsigned int i = 0; i < numCCs_; ++i)
     {
       FilteredGraph fg(g,
@@ -258,15 +296,8 @@ namespace OpenMS
                        [& i, this](vertex_t v) { return componentProperty_[v] == i; });
 
       #ifdef INFERENCE_DEBUG
-      // TODO make function for writing graph?
-      // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
-      LabelVisitor lv;
-      auto labels = boost::make_transform_value_property_map([lv](IDPointer &p) { return boost::apply_visitor(lv, p); },
-                                                             boost::get(boost::vertex_bundle, fg));
       std::cout << "Printing cc " << i << std::endl;
-      //boost::print_graph(fg);
-
-      boost::write_graphviz(std::cout, fg, boost::make_label_writer(labels));
+      printFilteredGraph(std::cout, fg);
       #endif
 
       // Skip cc without peptide or protein
@@ -278,8 +309,8 @@ namespace OpenMS
         // Cluster peptides with same parents
         //TODO this could be sped up by a good hashing function for sets of uints and using unordered_map
         //TODO actually this version does not need the second set.
-        map< ProteinNodeSet, PeptideNodeSet > pepClusters; //maps the parent (protein) set to peptides that have the same
-        map< PeptideNodeSet, ProteinNodeSet > indistProteins; //find indist proteins
+        unordered_map< ProteinNodeSet, PeptideNodeSet, MyUIntSetHasher > pepClusters; //maps the parent (protein) set to peptides that have the same
+        unordered_map< PeptideNodeSet, ProteinNodeSet, MyUIntSetHasher > indistProteins; //find indist proteins
 
         FilteredGraph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
@@ -346,7 +377,8 @@ namespace OpenMS
         }
 
 
-        // Refilter graph and cluster peptides (TODO check if refiltering is actually necessary)
+        // Create new filtering view and cluster peptides (TODO check if refiltering is actually necessary)
+        // We won't come around resetting the iterators though, so not much saved.
         FilteredGraph fgNew(g,
                             [& i, this](edge_t e) { return componentProperty_[e.m_source] == i; },
                             [& i, this](vertex_t v) { return componentProperty_[v] == i; });
@@ -408,13 +440,8 @@ namespace OpenMS
 
 
         #ifdef INFERENCE_DEBUG
-        // TODO make function for writing graph?
-        // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
-        auto labelsNew = boost::make_transform_value_property_map([lv](IDPointer &p) { return boost::apply_visitor(lv, p); },
-                                                               boost::get(boost::vertex_bundle, fgNew));
-        std::cout << "Printing cc after clustering" << i << std::endl;
-        //boost::print_graph(fg);
-        boost::write_graphviz(std::cout, fgNew, boost::make_label_writer(labelsNew));
+        std::cout << "Printing cc " << i << "with intermediate nodes." << std::endl;
+        printFilteredGraph(std::cout, fgNew);
         #endif
 
       }
@@ -423,13 +450,16 @@ namespace OpenMS
         std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
       }
     }
-  }
+  }*/
 
 
+  //TODO we should probably rename it to splitCC now. Add logging and timing?
   void IDBoostGraph::computeConnectedComponents()
   {
-    componentProperty_.resize(num_vertices(g));
-    numCCs_ = boost::connected_components(g, &componentProperty_[0]);
+    auto vis = dfs_ccsplit_visitor(ccs_);
+    boost::depth_first_search(g, visitor(vis));
+    LOG_INFO << "Found " << ccs_.size() << "CCs" << std::endl;
+    g.clear();
   }
 
   IDBoostGraph::vertex_t IDBoostGraph::addVertexWithLookup_(IDPointer& ptr, unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map)
@@ -447,6 +477,26 @@ namespace OpenMS
       g[v] = ptr;
     }
     return v;
+  }
+
+  void IDBoostGraph::printFilteredGraph(std::ostream& out, const FilteredGraph& fg) const
+  {
+    // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
+    //TODO Is passing "this" to lambda bad? How can I pass private members then?
+    auto labels = boost::make_transform_value_property_map([this](const IDPointer &p) { return boost::apply_visitor(lv_, p); },
+                                                           boost::get(boost::vertex_bundle, fg));
+    //boost::print_graph(fg);
+    boost::write_graphviz(out, fg, boost::make_label_writer(labels));
+  }
+
+  void IDBoostGraph::printGraph(std::ostream& out, const Graph& fg) const
+  {
+    // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.
+    //TODO Is passing "this" to lambda bad? How can I pass private members then?
+    auto labels = boost::make_transform_value_property_map([this](const IDPointer &p) { return boost::apply_visitor(lv_, p); },
+                                                           boost::get(boost::vertex_bundle, fg));
+    //boost::print_graph(fg);
+    boost::write_graphviz(out, fg, boost::make_label_writer(labels));
   }
 
 /* Const version

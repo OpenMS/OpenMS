@@ -127,7 +127,10 @@ namespace OpenMS
       bool hasFactor(const String &factor) const;
 
       // Returns value of factor for given sample and factor name
-      String getFactorValue(unsigned sample, const String &factor);
+      String getFactorValue(unsigned sample, const String &factor) const;
+
+      // Returns column index of factor
+      Size getFactorColIdx( const String &factor) const;
 
     private:
 
@@ -163,6 +166,10 @@ namespace OpenMS
 
     /// return fraction index to file paths (ordered by fraction_group)
     std::map<unsigned int, std::vector<String> > getFractionToMSFilesMapping() const;
+
+    /// return vector of filepath/label combinations that share the same conditions after removing
+    /// replicate columns in the sample section (e.g. for merging across replicates)
+    std::vector<std::vector<std::pair<String, unsigned>>> getSampleWOReplicatesToMSFilesMapping() const;
 
    /*
     *   The (Path, Label) tuples in the experimental design have to be unique, so we can map them

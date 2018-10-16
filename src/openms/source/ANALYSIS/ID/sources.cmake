@@ -21,6 +21,7 @@ HiddenMarkovModel.cpp
 IDBoostGraph.cpp
 IDConflictResolverAlgorithm.cpp
 IDMapper.cpp
+IDMergerAlgorithm.cpp
 IDRipper.cpp
 IDDecoyProbability.cpp
 MetaboliteSpectralMatching.cpp

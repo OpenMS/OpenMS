@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 #define OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 
+//#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -45,7 +46,10 @@
 
 #include <boost/function.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
+#include <boost/graph/subgraph.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/variant.hpp>
 #include <boost/variant/detail/hash_variant.hpp>
@@ -72,6 +76,8 @@ namespace OpenMS
   public:
 
     BOOST_STRONG_TYPEDEF(char, PeptideCluster)
+
+    // TODO make a double out of it and store the posterior
     BOOST_STRONG_TYPEDEF(char, ProteinGroup)
 
     //typedefs
@@ -79,9 +85,15 @@ namespace OpenMS
 
     typedef boost::variant<ProteinHit*, ProteinGroup*, PeptideCluster*, PeptideHit*> IDPointer;
     typedef boost::variant<const ProteinHit*, const ProteinGroup*, const PeptideCluster*, const PeptideHit*> IDPointerConst;
-    //TODO check the impact of different datastructures to store nodes/edges (maybe also use directed graph?)
+    //TODO check the impact of different data structures to store nodes/edges
+    // Directed graphs would make the internal computations much easier (less in/out edge checking) but boost
+    // does not allow computation of "non-strongly" connected components for directed graphs, which is what we would
+    // need
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
-    typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointerConst> GraphConst;
+    typedef boost::subgraph<boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer>> SubGraph;
+    typedef std::vector<Graph> Graphs;
+    typedef std::vector<SubGraph> SubGraphs;
+    typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> GraphConst;
     typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
     typedef boost::graph_traits<Graph>::edge_descriptor edge_t;
     typedef boost::filtered_graph<Graph, boost::function<bool(edge_t)>, boost::function<bool(vertex_t)> > FilteredGraph;
@@ -91,8 +103,8 @@ namespace OpenMS
     /// Constructor
     IDBoostGraph(ProteinIdentification &proteins, std::vector<PeptideIdentification>& idedSpectra);
 
-    /// Do sth on connected components
-    void applyFunctorOnCCs(std::function<void(FilteredGraph &)> functor);
+    /// Do sth on connected components (your functor object has to inherit from std::function)
+    void applyFunctorOnCCs(std::function<void(Graph &)> functor);
 
     /// Add intermediate nodes to the graph that represent indist. protein groups and peptides with the same parents
     /// this will save computation time and oscillations later on.
@@ -104,6 +116,49 @@ namespace OpenMS
     void annotateIndistProteins(bool addSingletons = true) const;
 
 
+    class dfs_ccsplit_visitor:
+      public boost::default_dfs_visitor
+        {
+        public:
+        dfs_ccsplit_visitor(Graphs& vgs)
+            :  gs(vgs), curr_v(0), next_v(0), m()
+            {}
+
+        template < typename Vertex, typename Graph >
+        void start_vertex(Vertex u, const Graph & tg)
+        {
+          gs.emplace_back();
+          next_v = boost::add_vertex(tg[u], gs.back());
+          m[u] = next_v;
+        }
+
+        template < typename Vertex, typename Graph >
+        void discover_vertex(Vertex /*u*/, const Graph & /*tg*/)
+        {
+          curr_v = next_v;
+        }
+
+        template < typename Edge, typename Graph >
+        void examine_edge(Edge e, const Graph & tg)
+        {
+          if (m.find(e.m_target) == m.end())
+          {
+            next_v = boost::add_vertex(tg[e.m_target], gs.back());
+            m[e.m_target] = next_v;
+          }
+          else
+          {
+            next_v = m[e.m_target];
+          }
+
+          boost::add_edge(m[e.m_source], next_v, gs.back());
+        }
+
+        Graphs& gs;
+        vertex_t curr_v, next_v;
+        std::map<vertex_t, vertex_t> m;
+      };
+
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
     class LabelVisitor:
         public boost::static_visitor<OpenMS::String>
@@ -112,7 +167,7 @@ namespace OpenMS
 
       OpenMS::String operator()(const PeptideHit* pep) const
       {
-        return pep->getSequence().toUnmodifiedString();
+        return pep->getSequence().toString() + "_" + pep->getCharge();
       }
 
       OpenMS::String operator()(const ProteinHit* prot) const
@@ -148,7 +203,7 @@ namespace OpenMS
         std::cout << prot->getAccession() << ": " << prot << std::endl;
       }
 
-      void operator()(const ProteinGroup* protgrp) const
+      void operator()(const ProteinGroup* /*protgrp*/) const
       {
         std::cout << "PG" << std::endl;
       }
@@ -181,7 +236,8 @@ namespace OpenMS
       void operator()(ProteinGroup* /*protgrp*/, double /*posterior*/) const
       {
         // do nothing
-        //protgrp->probability = posterior;
+        // TODO we could store posterior here
+        // protgrp->probability = posterior;
       }
 
       void operator()(const PeptideCluster* /*pc*/, double /*posterior*/) const
@@ -191,53 +247,7 @@ namespace OpenMS
 
     };
 
-    /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a random
-    /// variable or "Dependency" to add into the InferenceGraph
-    /*class DependencyVisitor:
-        public boost::static_visitor<Dependency>
-    {
-    public:
-      const MessagePasserFactory& mpf;
-
-      DependencyVisitor(const MessagePasserFactory& mpf):
-      mpf(mpf)
-      {}
-
-      Dependency operator()(const PeptideHit* pep, const std::vector<vertex_t>& neighbors, const FilteredGraph& fg) const
-      {
-        std::vector<IDBoostGraph::vertex_t> incoming{};
-        for (const auto& nb : neighbors)
-        {
-          if (fg[nb].which() <= 2)
-          {
-            incoming.push_back(nb);
-          }
-        }
-        if (incoming.size() != 1)
-        {
-          std::cerr << "Incoming nodes for pep are more than 1. Sth went wrong." << std::endl;
-        }
-        return mpf.createPeptideEvidenceFactor()
-      }
-
-      Dependency operator()(const ProteinHit* prot, const std::vector<vertex_t>& neighbors, const FilteredGraph& fg) const
-      {
-        return prot->getAccession();
-      }
-
-      Dependency operator()(const PeptideCluster* pc, const std::vector<vertex_t>& neighbors, const FilteredGraph& fg) const
-      {
-        return pep->getSequence().toUnmodifiedString();
-      }
-
-      Dependency operator()(const ProteinGroup* pg, const std::vector<vertex_t>& neighbors, const FilteredGraph& fg) const
-      {
-        return prot->getAccession();
-      }
-
-    };*/
-
-    /// Compute connected component on the static graph. Needs to be recomputed if graph is changed.
+    /// Splits the initialized graph into connected components and clears it.
     void computeConnectedComponents();
 
     /// Initialize and store the graph
@@ -246,10 +256,14 @@ namespace OpenMS
     /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_all_psms If all or just the FIRST psm should be used
     void buildGraph(bool use_all_psms);
-    //void buildGraph(const ProteinIdentification& protein, const std::vector<PeptideIdentification>& peptides);
 
   private:
+
+    /// the initial boost Graph
     Graph g;
+
+    /// the Graph split into connected components
+    Graphs ccs_;
 
     /// static objects created from a hard typedef to differentiate between different types of nodes.
     /// they will be reused throughout the graph when necessary
@@ -257,21 +271,29 @@ namespace OpenMS
     static ProteinGroup staticPG;
 
     //GraphConst gconst;
+
+    /// underlying protein identification object
+    //TODO for consensusXML this probably needs to become a vector.
     ProteinIdentification& proteins_;
+    /// underlying peptide identifications
     std::vector<PeptideIdentification>& idedSpectra_;
 
-    /// the connected component property for every node in the graph
-    std::vector<unsigned int> componentProperty_;
-    /// the number of connected components to be used as a counter.
-    unsigned int numCCs_ = 0;
+    /// a visitor that creates labels based on the node type (e.g. for printing)
+    LabelVisitor lv_;
 
     /// helper function to add a vertex if it is not present yet, otherwise return the present one
     /// needs a temporary filled vertex_map that is modifiable
     vertex_t addVertexWithLookup_(IDPointer& ptr, std::unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>>& vertex_map);
     //vertex_t addVertexWithLookup_(IDPointerConst& ptr, std::unordered_map<IDPointerConst, vertex_t, boost::hash<IDPointerConst>>& vertex_map);
+
+
+    /// internal function to annotate the underlying ID structures based on the given Graph
+    void annotateIndistProteins_(const Graph& fg, bool addSingletons) const;
+
+    void printFilteredGraph(std::ostream& out, const FilteredGraph& fg) const;
+    void printGraph(std::ostream& out, const Graph& fg) const;
+
   };
-
-
 
 } //namespace OpenMS
 
