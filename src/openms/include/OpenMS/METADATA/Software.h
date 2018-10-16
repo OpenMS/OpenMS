@@ -50,24 +50,14 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    Software() = default;
-    /// Explicit constructor
-    Software(String name, String version)
-    {
-      name_ = name;
-      version_ = version;
-    }
+    explicit Software(const String& name = "", const String& version = "");
     /// Copy constructor
-    Software(const Software & source) = default;
-    /// Move constructor
-    Software(Software&&) = default;
+    Software(const Software& source) = default;
     /// Destructor
     ~Software() override;
 
     /// Assignment operator
-    Software & operator=(const Software & source) = default;
-    /// Move assignment operator
-    Software& operator=(Software&&) & = default;
+    Software& operator=(const Software& source) = default;
 
     /// Equality operator
     bool operator==(const Software& rhs) const;
