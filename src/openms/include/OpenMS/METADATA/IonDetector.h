@@ -93,14 +93,14 @@ public:
     /// Constructor
     IonDetector();
     /// Copy constructor
-    IonDetector(const IonDetector & source) = default;
+    IonDetector(const IonDetector &) = default;
     /// Move constructor
     IonDetector(IonDetector&&) = default;
     /// Destructor
     ~IonDetector();
 
     /// Assignment operator
-    IonDetector & operator=(const IonDetector & source) = default;
+    IonDetector & operator=(const IonDetector &) = default;
     /// Move assignment operator
     IonDetector& operator=(IonDetector&&) & = default;
 

@@ -75,14 +75,14 @@ public:
     /// Constructor
     InstrumentSettings();
     /// Copy constructor
-    InstrumentSettings(const InstrumentSettings & source) = default;
+    InstrumentSettings(const InstrumentSettings &) = default;
     /// Move constructor
     InstrumentSettings(InstrumentSettings&&) = default;
     /// Destructor
     ~InstrumentSettings();
 
     /// Assignment operator
-    InstrumentSettings & operator=(const InstrumentSettings & source) = default;
+    InstrumentSettings & operator=(const InstrumentSettings &) = default;
     /// Move assignment operator
     InstrumentSettings& operator=(InstrumentSettings&&) & = default;
 

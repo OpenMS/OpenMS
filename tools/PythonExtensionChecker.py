@@ -454,7 +454,11 @@ class DoxygenXMLFile(object):
 
             if mdef.kind == "variable" and mdef.prot == "public":
                 # print ("var", mdef.name)
-                methods += "        %s\n" % mdef.format_definition_for_cython(False)
+                # cannot wrap const member variables
+                if mdef.definition.find("const") == -1:
+                    methods += "        %s\n" % mdef.format_definition_for_cython(False)
+                else:
+                    methods += "        # const # %s\n" % mdef.format_definition_for_cython(False)
             elif mdef.kind == "function" and mdef.prot == "public":
                 if mdef.definition == mdef.name:
                     # Means we have a constructor
@@ -476,13 +480,16 @@ class DoxygenXMLFile(object):
                 if declaration.find("operator=(") != -1:
                     # assignment operator, cannot be overriden in Python
                     continue
+                if mdef.definition.find("static") != -1:
+                    methods += "        # TODO: static # %s nogil except +\n" % declaration
+                    continue
                 methods += "        %s nogil except +\n" % declaration
 
         # Build up the whole file
         res  = DoxygenCppFunction.generate_imports(imports_needed) # add default cimport
         res += includes
         res += cldef
-        if default_ctor:
+        if not default_ctor:
             res += "        %s() nogil except +\n" % comp_name.split("::")[-1]
         if not copy_ctor:
             res += "        %s(%s) nogil except + #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
@@ -613,6 +620,7 @@ class DoxygenCppFunction(object):
         return_type = "".join(c_return_type)
         return_type = return_type.replace("&", "")
         return_type = return_type.replace("const", "")
+        return_type = return_type.strip()
         cpp_def = return_type + " " + function_name + arguments
 
         # Handle comments
@@ -1187,6 +1195,10 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         # Parse the pxd files corresponding to this doxygen XML file
         try:
+            # Raise a (dummy) exception to actually produce a PXD file for a
+            # specific class if requested by the user.
+            if len(generate_pxd) > 0:
+                raise PXDFileParseError ("dummy")
             pxd_class = PXDFile.parse_multiple_files(pxdfiles, comp_name)
             pxdfile = pxd_class.pxdfile
         except PXDFileParseError as e:

@@ -42,6 +42,23 @@
 using namespace OpenMS;
 using namespace std;
 
+class PeakIntegratorTest : PeakIntegrator
+{
+  public:
+  // make protected member public
+  template <typename PeakContainerConstIteratorT>
+  double findPosAtPeakHeightPercent(
+      PeakContainerConstIteratorT it_left,  // must not be past the end
+      PeakContainerConstIteratorT it_right, // might be past the end
+      PeakContainerConstIteratorT it_end,   // definitely past-the-end
+      const double peak_height,
+      const double percent,
+      const bool is_left_half)
+    {
+      return findPosAtPeakHeightPercent_(it_left, it_right, it_end, peak_height, percent, is_left_half);
+    }
+};
+
 START_TEST(PeakIntegrator, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -922,6 +939,28 @@ START_SECTION(PeakShapeMetrics calculatePeakShapeMetrics(
   psm = ptr->calculatePeakShapeMetrics(spectrum, spec_left_few_it, spec_right_few_it, pa.height, pa.apex_pos);
   TEST_REAL_SIMILAR(psm.start_position_at_5, left_few)
   TEST_REAL_SIMILAR(psm.end_position_at_5, right_few)
+}
+END_SECTION
+
+START_SECTION([EXTRA]  template <typename PeakContainerConstIteratorT> double findPosAtPeakHeightPercent_(...))
+{
+  PeakIntegratorTest pit;
+  double pos = pit.findPosAtPeakHeightPercent(spectrum.begin(), spectrum.end(), spectrum.end(), 0.0, 0.0, true);
+  TEST_EQUAL(pos, spectrum[0].getPos()); // find first non-zero peak
+
+  pos = pit.findPosAtPeakHeightPercent(spectrum.begin(), spectrum.end(), spectrum.end(), 0.0, 0.0, false);
+  TEST_EQUAL(pos, spectrum.back().getPos()); // find non-zero peak from end
+
+  // corner cases: just a single point in range
+  pos = pit.findPosAtPeakHeightPercent(spectrum.begin(), spectrum.begin() + 1, spectrum.begin() + 1, 0.0, 0.0, false);
+  TEST_EQUAL(pos, spectrum[0].getPos()); // return the only peak there is
+  pos = pit.findPosAtPeakHeightPercent(spectrum.begin(), spectrum.begin() + 1, spectrum.begin() + 1, 0.0, 0.0, true);
+  TEST_EQUAL(pos, spectrum[0].getPos()); // return the only peak there is
+
+
+  // corner cases: empty range
+  TEST_EXCEPTION(Exception::InvalidRange, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, false))
+  TEST_EXCEPTION(Exception::InvalidRange, pit.findPosAtPeakHeightPercent(spectrum.end(), spectrum.end(), spectrum.end(), 0.0, 0.0, true))
 }
 END_SECTION
 

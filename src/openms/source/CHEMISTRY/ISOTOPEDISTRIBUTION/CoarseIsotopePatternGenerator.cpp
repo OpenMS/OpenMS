@@ -102,7 +102,7 @@ namespace OpenMS
     for (; it != formula.end(); ++it)
     {
       IsotopeDistribution tmp = it->first->getIsotopeDistribution();
-      result.set(convolve_(result.getContainer(), 
+      result.set(convolve_(result.getContainer(),
                            convolvePow_(tmp.getContainer(), it->second)));
     }
 
