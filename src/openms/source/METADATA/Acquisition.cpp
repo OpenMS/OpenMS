@@ -38,32 +38,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  Acquisition::Acquisition() :
-    MetaInfoInterface(),
-    identifier_()
-  {
-  }
-
-  Acquisition::Acquisition(const Acquisition & source) :
-    MetaInfoInterface(source),
-    identifier_(source.identifier_)
-  {
-  }
-
-  Acquisition::~Acquisition()
-  {
-  }
-
-  Acquisition & Acquisition::operator=(const Acquisition & source)
-  {
-    if (&source == this)
-      return *this;
-
-    identifier_ = source.identifier_;
-    MetaInfoInterface::operator=(source);
-
-    return *this;
-  }
 
   bool Acquisition::operator==(const Acquisition & rhs) const
   {
@@ -86,3 +60,4 @@ namespace OpenMS
   }
 
 }
+

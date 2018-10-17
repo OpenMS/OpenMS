@@ -40,7 +40,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-// #define DEBUG
+//#define DEBUG
 
 using namespace std;
 using namespace boost::math;
@@ -48,26 +48,58 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
-    MultiplexFiltering(exp_picked, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type), boundaries_(boundaries)
+  MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
+    MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
   {
+    // initialise peak boundaries
+    // In the MultiplexFiltering() constructor we initialise the centroided experiment exp_centroided_.
+    // (We run a simple intensity filter. Peaks below the intensity cutoff can be discarded right from the start.)
+    // Now we still need to discard boundaries of low intensity peaks, in order to preserve the one-to-one mapping between peaks and boundaries.
+    boundaries_.reserve(boundaries.size());
+    // loop over spectra and boundaries
+    for (const auto &it_rt : exp_centroided)
+    {
+      size_t idx_rt = &it_rt - &exp_centroided[0];
+      
+      // new boundaries of a single spectrum
+      std::vector<PeakPickerHiRes::PeakBoundary> boundaries_temp;
+      
+      // loop over m/z peaks and boundaries
+      for (const auto &it_mz : it_rt)
+      {
+        size_t idx_mz = &it_mz - &it_rt[0];
+        
+        if (it_mz.getIntensity() > intensity_cutoff_)
+        {
+          boundaries_temp.push_back(boundaries[idx_rt][idx_mz]);
+
+          // Check consistency of peaks and their peak boundaries, i.e. check that the peak lies in the boundary interval.
+          if (boundaries[idx_rt][idx_mz].mz_min > it_mz.getMZ() || it_mz.getMZ() > boundaries[idx_rt][idx_mz].mz_max)
+          {
+            throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+          }
+        }
+      }
+      
+      boundaries_.push_back(boundaries_temp);
+    }
     
-    if (exp_profile.size() != exp_picked.size())
+    if (exp_profile.size() != exp_centroided.size())
     {
       stringstream stream;
       stream << "Profile and centroided data do not contain same number of spectra. (";
       stream << exp_profile.size();
       stream << "!=";
-      stream << exp_picked.size();
+      stream << exp_centroided.size();
       stream << ")";
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
     }
 
-    if (exp_picked.size() != boundaries.size())
+    if (exp_centroided.size() != boundaries.size())
     {
       stringstream stream;
       stream << "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra. (";
-      stream << exp_picked.size();
+      stream << exp_centroided.size();
       stream << "!=";
       stream << boundaries.size();
       stream << ")";
@@ -97,7 +129,7 @@ namespace OpenMS
     // clock for monitoring run time performance
     unsigned int start = clock();
 #endif
-
+    
     // construct navigators for all spline spectra
     std::vector<SplineSpectrum::Navigator> navigators;
     for (std::vector<SplineSpectrum>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
@@ -117,42 +149,41 @@ namespace OpenMS
 
       // update white experiment
       updateWhiteMSExperiment_();
-
+      
       // loop over spectra
       // loop simultaneously over RT in the spline interpolated profile and (white) centroided experiment (including peak boundaries)
-      std::vector<SplineSpectrum>::iterator it_rt_profile;
-      MSExperiment::ConstIterator it_rt_picked;
-      std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-      for (it_rt_profile = exp_spline_profile_.begin(), it_rt_picked = exp_picked_white_.begin(), it_rt_boundaries = boundaries_.begin();
-           it_rt_profile < exp_spline_profile_.end() && it_rt_picked < exp_picked_white_.end() && it_rt_boundaries < boundaries_.end();
-           ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
+      for (const auto &it_rt : exp_centroided_white_)
       {
+        // retention time
+        double rt = it_rt.getRT();
+        // spectral index in exp_centroided_white_, boundaries_ and exp_spline_profile_
+        size_t idx_rt = &it_rt - &exp_centroided_white_[0];
+        
         // skip empty spectra
-        if ((*it_rt_profile).size() == 0 || (*it_rt_picked).size() == 0 || (*it_rt_boundaries).size() == 0)
+        if (it_rt.size() == 0 || boundaries_[idx_rt].size() == 0 || exp_spline_profile_[idx_rt].size() == 0)
         {
           continue;
         }
         
         setProgress(++progress);
         
-        double rt = it_rt_picked->getRT();
-        MSExperiment::ConstIterator it_rt_picked_band_begin = exp_picked_white_.RTBegin(rt - rt_band_/2);
-        MSExperiment::ConstIterator it_rt_picked_band_end = exp_picked_white_.RTEnd(rt + rt_band_/2);
+        MSExperiment::ConstIterator it_rt_picked_band_begin = exp_centroided_white_.RTBegin(rt - rt_band_/2);
+        MSExperiment::ConstIterator it_rt_picked_band_end = exp_centroided_white_.RTEnd(rt + rt_band_/2);
         
         // loop over mz
-        for (MSSpectrum::ConstIterator it_mz = it_rt_picked->begin(); it_mz != it_rt_picked->end(); ++it_mz)
+        for (MSSpectrum::ConstIterator it_mz = it_rt.begin(); it_mz != it_rt.end(); ++it_mz)
         {
           double mz = it_mz->getMZ();
-          MultiplexFilteredPeak peak(mz, rt, exp_picked_mapping_[it_rt_picked - exp_picked_white_.begin()][it_mz - it_rt_picked->begin()], it_rt_picked - exp_picked_white_.begin());
+          MultiplexFilteredPeak peak(mz, rt, exp_centroided_mapping_[idx_rt][it_mz - it_rt.begin()], idx_rt);
           
-          if (!(filterPeakPositions_(it_mz, exp_picked_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
+          if (!(filterPeakPositions_(it_mz, exp_centroided_white_.begin(), it_rt_picked_band_begin, it_rt_picked_band_end, pattern, peak)))
           {
             continue;
           }
           
-          size_t mz_idx = exp_picked_mapping_[it_rt_picked - exp_picked_white_.begin()][it_mz - it_rt_picked->begin()];
-          double peak_min = (*it_rt_boundaries)[mz_idx].mz_min;
-          double peak_max = (*it_rt_boundaries)[mz_idx].mz_max;
+          size_t mz_idx = exp_centroided_mapping_[idx_rt][it_mz - it_rt.begin()];
+          double peak_min = boundaries_[idx_rt][mz_idx].mz_min;
+          double peak_max = boundaries_[idx_rt][mz_idx].mz_max;
           
           //double rt_peak = peak.getRT();
           double mz_peak = peak.getMZ();
@@ -160,7 +191,7 @@ namespace OpenMS
           std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data around the peak i.e. from peak boundary to peak boundary.
-          for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigators[it_rt_profile - exp_spline_profile_.begin()].getNextMz(mz_profile))
+          for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigators[idx_rt].getNextMz(mz_profile))
           {
             // determine m/z shift relative to the centroided peak at which the profile data will be sampled
             double mz_shift = mz_profile - mz_peak;
@@ -168,14 +199,14 @@ namespace OpenMS
             std::multimap<size_t, MultiplexSatelliteProfile > satellites_profile;
 
             // construct the set of spline-interpolated satellites for this specific mz_profile
-            for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites.begin(); satellite_it != satellites.end(); ++satellite_it)
+            for (const auto &satellite_it : satellites)
             {
               // find indices of the peak
-              size_t rt_idx = (satellite_it->second).getRTidx();
-              size_t mz_idx = (satellite_it->second).getMZidx();
+              size_t rt_idx = (satellite_it.second).getRTidx();
+              size_t mz_idx = (satellite_it.second).getMZidx();
               
               // find peak itself
-              MSExperiment::ConstIterator it_rt = exp_picked_.begin();
+              MSExperiment::ConstIterator it_rt = exp_centroided_.begin();
               std::advance(it_rt, rt_idx);
               MSSpectrum::ConstIterator it_mz = it_rt->begin();
               std::advance(it_mz, mz_idx);
@@ -187,7 +218,7 @@ namespace OpenMS
               double mz = mz_satellite + mz_shift;
               double intensity = navigators[rt_idx].eval(mz);
               
-              satellites_profile.insert(std::make_pair(satellite_it->first, MultiplexSatelliteProfile(rt_satellite, mz, intensity)));
+              satellites_profile.insert(std::make_pair(satellite_it.first, MultiplexSatelliteProfile(rt_satellite, mz, intensity)));
             }
             
             if (!(filterAveragineModel_(pattern, peak, satellites_profile)))
@@ -205,9 +236,9 @@ namespace OpenMS
              */
             
             // add the satellite data points to the peak
-            for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator it = satellites_profile.begin(); it != satellites_profile.end(); ++it)
+            for (const auto &it : satellites_profile)
             {
-              peak.addSatelliteProfile(it->second, it->first);
+              peak.addSatelliteProfile(it.second, it.first);
             }
             
           }
@@ -227,7 +258,7 @@ namespace OpenMS
       // write filtered peaks to debug output
       std::stringstream debug_out;
       debug_out << "filter_result_" << pattern_idx << ".consensusXML";
-      result.writeDebugOutput(exp_picked_, debug_out.str());
+      result.writeDebugOutput(exp_centroided_, debug_out.str());
 #endif
       
       // add results of this pattern to list
@@ -242,6 +273,11 @@ namespace OpenMS
     endProgress();
 
     return filter_results;
+  }
+  
+  std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& MultiplexFilteringProfile::getPeakBoundaries()
+  {
+    return boundaries_;
   }
 
   bool MultiplexFilteringProfile::filterAveragineModel_(const MultiplexIsotopicPeakPattern& pattern, const MultiplexFilteredPeak& peak, const std::multimap<size_t, MultiplexSatelliteProfile >& satellites_profile) const

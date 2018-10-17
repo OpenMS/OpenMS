@@ -57,6 +57,7 @@ namespace OpenMS
   {
     public:
       static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides,
+                                                                     StringList nt_groups,
                                                                      std::set<char> can_xl,
                                                                      StringList mappings,
                                                                      StringList modifications,

@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 
 using namespace std;
@@ -812,11 +813,11 @@ namespace OpenMS
       ph_alpha.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
       ph_alpha.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
 
-      ph_alpha.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
-      ph_alpha.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
-      ph_alpha.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
-      ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
-      ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
+      // ph_alpha.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
+      // ph_alpha.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
+      // ph_alpha.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
+      // ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
+      // ph_alpha.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
 
       ph_alpha.setMetaValue("ppm_error_abs_sum_linear_alpha", top_csms_spectrum[i].ppm_error_abs_sum_linear_alpha);
       ph_alpha.setMetaValue("ppm_error_abs_sum_linear_beta", top_csms_spectrum[i].ppm_error_abs_sum_linear_beta);
@@ -828,6 +829,12 @@ namespace OpenMS
       ph_alpha.setMetaValue("ppm_error_abs_sum_alpha", top_csms_spectrum[i].ppm_error_abs_sum_alpha);
       ph_alpha.setMetaValue("ppm_error_abs_sum_beta", top_csms_spectrum[i].ppm_error_abs_sum_beta);
       ph_alpha.setMetaValue("ppm_error_abs_sum", top_csms_spectrum[i].ppm_error_abs_sum);
+
+      ph_alpha.setMetaValue("precursor_total_intensity", top_csms_spectrum[i].precursor_total_intensity);
+      ph_alpha.setMetaValue("precursor_target_intensity", top_csms_spectrum[i].precursor_target_intensity);
+      ph_alpha.setMetaValue("precursor_signal_proportion", top_csms_spectrum[i].precursor_signal_proportion);
+      ph_alpha.setMetaValue("precursor_target_peak_count", top_csms_spectrum[i].precursor_target_peak_count);
+      ph_alpha.setMetaValue("precursor_residual_peak_count", top_csms_spectrum[i].precursor_residual_peak_count);
 
       ph_alpha.setMetaValue("selected", "false");
 
@@ -874,6 +881,34 @@ namespace OpenMS
         ph_beta.setMetaValue("OpenXQuest:log_occupancy_beta", top_csms_spectrum[i].log_occupancy_beta);
         ph_beta.setMetaValue("selected", "false");
 
+        ph_beta.setMetaValue("matched_xlink_alpha",top_csms_spectrum[i].matched_xlink_alpha);
+        ph_beta.setMetaValue("matched_xlink_beta",top_csms_spectrum[i].matched_xlink_beta);
+        ph_beta.setMetaValue("matched_linear_alpha",top_csms_spectrum[i].matched_linear_alpha);
+        ph_beta.setMetaValue("matched_linear_beta",top_csms_spectrum[i].matched_linear_beta);
+
+        // ph_beta.setMetaValue("num_iso_peaks_mean", top_csms_spectrum[i].num_iso_peaks_mean);
+        // ph_beta.setMetaValue("num_iso_peaks_mean_linear_alpha", top_csms_spectrum[i].num_iso_peaks_mean_linear_alpha);
+        // ph_beta.setMetaValue("num_iso_peaks_mean_linear_beta", top_csms_spectrum[i].num_iso_peaks_mean_linear_beta);
+        // ph_beta.setMetaValue("num_iso_peaks_mean_xlinks_alpha", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_alpha);
+        // ph_beta.setMetaValue("num_iso_peaks_mean_xlinks_beta", top_csms_spectrum[i].num_iso_peaks_mean_xlinks_beta);
+
+        ph_beta.setMetaValue("ppm_error_abs_sum_linear_alpha", top_csms_spectrum[i].ppm_error_abs_sum_linear_alpha);
+        ph_beta.setMetaValue("ppm_error_abs_sum_linear_beta", top_csms_spectrum[i].ppm_error_abs_sum_linear_beta);
+        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks_alpha", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_alpha);
+        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks_beta", top_csms_spectrum[i].ppm_error_abs_sum_xlinks_beta);
+
+        ph_beta.setMetaValue("ppm_error_abs_sum_linear", top_csms_spectrum[i].ppm_error_abs_sum_linear);
+        ph_beta.setMetaValue("ppm_error_abs_sum_xlinks", top_csms_spectrum[i].ppm_error_abs_sum_xlinks);
+        ph_beta.setMetaValue("ppm_error_abs_sum_alpha", top_csms_spectrum[i].ppm_error_abs_sum_alpha);
+        ph_beta.setMetaValue("ppm_error_abs_sum_beta", top_csms_spectrum[i].ppm_error_abs_sum_beta);
+        ph_beta.setMetaValue("ppm_error_abs_sum", top_csms_spectrum[i].ppm_error_abs_sum);
+
+        ph_beta.setMetaValue("precursor_total_intensity", top_csms_spectrum[i].precursor_total_intensity);
+        ph_beta.setMetaValue("precursor_target_intensity", top_csms_spectrum[i].precursor_target_intensity);
+        ph_beta.setMetaValue("precursor_signal_proportion", top_csms_spectrum[i].precursor_signal_proportion);
+        ph_beta.setMetaValue("precursor_target_peak_count", top_csms_spectrum[i].precursor_target_peak_count);
+        ph_beta.setMetaValue("precursor_residual_peak_count", top_csms_spectrum[i].precursor_residual_peak_count);
+
         phs.push_back(ph_alpha);
         phs.push_back(ph_beta);
       }
@@ -900,7 +935,7 @@ namespace OpenMS
       peptide_id.setScoreType("OpenXQuest:combined score");
 
 #ifdef _OPENMP
-#pragma omp critical (peptides_ids_access)
+#pragma omp critical (all_top_csms_access)
 #endif
       {
         peptide_ids.push_back(peptide_id);
@@ -977,4 +1012,110 @@ namespace OpenMS
       }
     }
   }
+
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name)
+  {
+    // determine candidates
+    std::vector< OPXLDataStructs::XLPrecursor > candidates;
+
+    std::vector< double > spectrum_precursor_vector;
+    std::vector< double > allowed_error_vector;
+
+    for (int correction_mass : precursor_correction_steps)
+    {
+      double allowed_error = 0;
+
+      double corrected_precursor_mass = precursor_mass - (static_cast<double>(correction_mass) * Constants::C13C12_MASSDIFF_U);
+
+      if (precursor_mass_tolerance_unit_ppm) // ppm
+      {
+        allowed_error = corrected_precursor_mass * precursor_mass_tolerance * 1e-6;
+      }
+      else // Dalton
+      {
+        allowed_error = precursor_mass_tolerance;
+      }
+
+      spectrum_precursor_vector.push_back(corrected_precursor_mass);
+      allowed_error_vector.push_back(allowed_error);
+
+    } // end correction mass loop
+
+    std::vector< int > precursor_correction_positions;
+    candidates = OPXLHelper::enumerateCrossLinksAndMasses(filtered_peptide_masses, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursor_vector, precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+
+    vector< int > precursor_corrections;
+    for (Size pc = 0; pc < precursor_correction_positions.size(); ++pc)
+    {
+      precursor_corrections.push_back(precursor_correction_steps[precursor_correction_positions[pc]]);
+    }
+    vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
+    return cross_link_candidates;
+  }
+
+  double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge)
+  {
+    // Error calculation
+    double weight = csm.cross_link.alpha.getMonoWeight();
+    if (csm.cross_link.getType() == OPXLDataStructs::CROSS)
+    {
+      weight += csm.cross_link.beta.getMonoWeight() + csm.cross_link.cross_linker_mass;
+    }
+    else
+    {
+      weight += csm.cross_link.cross_linker_mass;
+    }
+    double precursor_mass = (precursor_mz * static_cast<double>(precursor_charge)) - (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)
+                              - (static_cast<double>(csm.precursor_correction) * Constants::C13C12_MASSDIFF_U);
+    double error = precursor_mass - weight;
+    double rel_error = (error / precursor_mass) / 1e-6;
+    return rel_error;
+  }
+
+  void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta)
+  {
+    csm.num_iso_peaks_mean = Math::mean(num_iso_peaks_array.begin(), num_iso_peaks_array.end());
+
+    vector< double > iso_peaks_linear_alpha;
+    vector< double > iso_peaks_linear_beta;
+    vector< double > iso_peaks_xlinks_alpha;
+    vector< double > iso_peaks_xlinks_beta;
+
+    if (!matched_spec_linear_alpha.empty())
+    {
+      for (auto match : matched_spec_linear_alpha)
+      {
+        iso_peaks_linear_alpha.push_back(num_iso_peaks_array[match.second]);
+      }
+      csm.num_iso_peaks_mean_linear_alpha = Math::mean(iso_peaks_linear_alpha.begin(), iso_peaks_linear_alpha.end());
+    }
+
+    if (!matched_spec_linear_beta.empty())
+    {
+      for (auto match : matched_spec_linear_beta)
+      {
+        iso_peaks_linear_beta.push_back(num_iso_peaks_array[match.second]);
+      }
+      csm.num_iso_peaks_mean_linear_beta = Math::mean(iso_peaks_linear_beta.begin(), iso_peaks_linear_beta.end());
+    }
+
+    if (!matched_spec_xlinks_alpha.empty())
+    {
+      for (auto match : matched_spec_xlinks_alpha)
+      {
+        iso_peaks_xlinks_alpha.push_back(num_iso_peaks_array[match.second]);
+      }
+      csm.num_iso_peaks_mean_xlinks_alpha = Math::mean(iso_peaks_xlinks_alpha.begin(), iso_peaks_xlinks_alpha.end());
+    }
+
+    if (!matched_spec_xlinks_beta.empty())
+    {
+      for (auto match : matched_spec_xlinks_beta)
+      {
+        iso_peaks_xlinks_beta.push_back(num_iso_peaks_array[match.second]);
+      }
+      csm.num_iso_peaks_mean_xlinks_beta = Math::mean(iso_peaks_xlinks_beta.begin(), iso_peaks_xlinks_beta.end());
+    }
+  }
+
 }

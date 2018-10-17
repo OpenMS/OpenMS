@@ -11,6 +11,7 @@ TransitionTSVFile.cpp
 TransitionPQPFile.cpp
 SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
+OpenSwathScores.cpp
 OpenSwathScoring.cpp
 OpenSwathTSVWriter.cpp
 OpenSwathOSWWriter.cpp

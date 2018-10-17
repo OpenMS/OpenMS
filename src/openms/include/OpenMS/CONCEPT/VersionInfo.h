@@ -111,7 +111,7 @@ public:
     /**
       @brief Return the revision number from revision control system, e.g. git.
 
-      On released versions of OpenMS (not from SVN), the result is "exported".
+      On released versions of OpenMS, the result is "exported".
       The result can be possibly be "" on some platforms, which means that
       revision info is unavailable.  You should check for both cases in your
       code.
@@ -124,7 +124,7 @@ public:
     /**
       @brief Return the branch name from revision control system, e.g. git.
 
-      On released versions of OpenMS (not from SVN), the result is "exported".
+      On released versions of OpenMS the result is "exported".
       The result can be possibly be "" on some platforms, which means that
       revision info is unavailable.  You should check for both cases in your
       code.

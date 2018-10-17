@@ -80,12 +80,16 @@ public:
     /// Constructor
     SpectrumSettings();
     /// Copy constructor
-    SpectrumSettings(const SpectrumSettings & source);
+    SpectrumSettings(const SpectrumSettings &) = default;
+    /// Move constructor
+    SpectrumSettings(SpectrumSettings&&) = default;
     /// Destructor
     ~SpectrumSettings();
 
     // Assignment operator
-    SpectrumSettings & operator=(const SpectrumSettings & source);
+    SpectrumSettings & operator=(const SpectrumSettings &) = default;
+    /// Move assignment operator
+    SpectrumSettings& operator=(SpectrumSettings&&) & = default;
 
     /// Equality operator
     bool operator==(const SpectrumSettings & rhs) const;

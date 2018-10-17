@@ -1136,6 +1136,47 @@ START_SECTION((Size findNearest(CoordinateType mz, CoordinateType left_tolerance
   TEST_EQUAL(tmp2.findNearest(427.3, 1.0, 1.0), -1);
 END_SECTION
 
+START_SECTION( SpectrumSettings::SpectrumType MSSpectrum::getType(const bool query_data) const)
+  
+  // test empty spectrum
+  MSSpectrum edit;
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::UNKNOWN);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::UNKNOWN);
+
+  // easiest: type is explicitly given
+  edit.setType(SpectrumSettings::PROFILE);
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::PROFILE);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::PROFILE);
+
+  // second easiest: type is given in data processing
+  DataProcessing dp;
+  dp.setProcessingActions( { DataProcessing::PEAK_PICKING } );
+  boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
+  edit.getDataProcessing().push_back(dp_);
+  // still profile, since DP is only checked when type is unknown
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::PROFILE);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::PROFILE);
+  edit.setType(SpectrumSettings::UNKNOWN);
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::CENTROID);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::CENTROID);
+
+  // third case: estimation from data
+  edit.getDataProcessing().clear();
+  // too few points
+  edit.push_back( { 100.0, 1.0 } );
+  edit.push_back( { 200.0, 1.0 } );
+  edit.push_back( { 300.0, 1.0 } );
+  edit.push_back( { 400.0, 1.0 } );
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::UNKNOWN);
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::UNKNOWN);
+  edit.push_back( { 500.0, 1.0 } );
+  edit.push_back( { 600.0, 1.0 } );
+  TEST_EQUAL(edit.getType(false), SpectrumSettings::UNKNOWN); // data is not inspected
+  TEST_EQUAL(edit.getType(true), SpectrumSettings::CENTROID);
+
+
+END_SECTION
+
 START_SECTION(void clear(bool clear_meta_data))
   MSSpectrum edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);

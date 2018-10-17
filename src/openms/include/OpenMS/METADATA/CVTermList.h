@@ -55,16 +55,22 @@ namespace OpenMS
 public:
 
     /// Defaults constructor
-    CVTermList();
+    CVTermList() = default;
 
     /// Copy constructor
-    CVTermList(const CVTermList& rhs);
+    CVTermList(const CVTermList&) = default;
+
+    /// Move constructor
+    CVTermList(CVTermList&&) = default;
 
     /// Destructor
     virtual ~CVTermList();
 
     /// Assignment operator
-    CVTermList& operator=(const CVTermList& rhs);
+    CVTermList& operator=(const CVTermList&) = default;
+
+    /// Move assignment operator
+    CVTermList& operator=(CVTermList&&) & = default;
 
     /** @name Accessors
     */

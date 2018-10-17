@@ -38,20 +38,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  //--------------------------- ScanWindow ----------------------------
-  ScanWindow::ScanWindow() :
-    MetaInfoInterface(),
-    begin(0.0),
-    end(0.0)
-  {
-  }
-
-  ScanWindow::ScanWindow(const ScanWindow & source) :
-    MetaInfoInterface(source),
-    begin(source.begin),
-    end(source.end)
-  {
-  }
 
   bool ScanWindow::operator==(const ScanWindow & source) const
   {
@@ -65,16 +51,5 @@ namespace OpenMS
     return !(operator==(source));
   }
 
-  ScanWindow & ScanWindow::operator=(const ScanWindow & source)
-  {
-    if (&source == this)
-      return *this;
-
-    MetaInfoInterface::operator=(source);
-    begin = source.begin;
-    end = source.end;
-
-    return *this;
-  }
-
 }
+

@@ -7,6 +7,7 @@ import copy
 import os
 
 from pyopenms import String as s
+import numpy as np
 
 print(b"IMPORTED b", pyopenms.__file__)
 
@@ -196,15 +197,18 @@ def testAASequence():
     aas += aas
 
     aas.__doc__
-    aas = pyopenms.AASequence.fromString(b"DFPIANGER", True)
+    aas = pyopenms.AASequence.fromString(b"DFPIANGER")
     assert aas.getCTerminalModificationName() == b""
     assert aas.getNTerminalModificationName() == b""
     aas.setCTerminalModification(b"")
     aas.setNTerminalModification(b"")
     assert aas.toString() == b"DFPIANGER"
     assert aas.toUnmodifiedString() == b"DFPIANGER"
+    aas = pyopenms.AASequence.fromStringPermissive(b"DFPIANGER", True)
+    assert aas.toString() == b"DFPIANGER"
+    assert aas.toUnmodifiedString() == b"DFPIANGER"
 
-    seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER", True)
+    seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
     assert seq.toString() == b"PEPTIDESEKUEM(Oxidation)CER"
     assert seq.toUnmodifiedString() == b"PEPTIDESEKUEMCER"
     assert seq.toBracketString() == b"PEPTIDESEKUEM[147]CER"
@@ -330,6 +334,46 @@ def testIsotopeDistribution():
     ins.trimLeft(6.0)
     ins.trimRight(8.0)
 
+    ins.clear()
+    ins.insert(1, 2)
+    ins.insert(6, 5)
+
+    assert ins.size() == 2
+
+    for p in ins:
+        print(p)
+
+@report
+def testFineIsotopePatternGenerator():
+    """
+    @tests: FineIsotopePatternGenerator
+    """
+
+    iso = pyopenms.FineIsotopePatternGenerator()
+    iso.setThreshold(1e-5)
+    iso.setAbsolute(True)
+    assert iso.getAbsolute() 
+
+    methanol = pyopenms.EmpiricalFormula("CH3OH")
+    water = pyopenms.EmpiricalFormula("H2O")
+    mw = methanol + water
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-20))
+    assert len(iso_dist.getContainer()) == 56
+    iso_dist = mw.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200))
+    assert len(iso_dist.getContainer()) == 84
+
+    c100 = pyopenms.EmpiricalFormula("C100")
+    iso_dist = c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-200))
+    assert len(iso_dist.getContainer()) == 101
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, False)).size() == 6
+    assert c100.getIsotopeDistribution(pyopenms.FineIsotopePatternGenerator(1e-2, True)).size() == 5
+
+    iso = pyopenms.FineIsotopePatternGenerator(1e-5)
+    isod = iso.run(methanol)
+    assert len(isod.getContainer()) == 6
+    assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
+    assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
+
 @report
 def testCoarseIsotopePatternGenerator():
     """
@@ -356,7 +400,7 @@ def testCoarseIsotopePatternGenerator():
     iso = pyopenms.CoarseIsotopePatternGenerator(10)
     isod = iso.run(methanol)
     assert len(isod.getContainer()) == 10, len(isod.getContainer()) 
-    assert isod.getContainer()[0].getMZ() == 32.0, isod.getContainer()[0].getMZ()
+    assert abs(isod.getContainer()[0].getMZ() - 32.0262151276) < 1e-5
     assert isod.getContainer()[0].getIntensity() - 0.986442089081 < 1e-5
     
 @report
@@ -2926,8 +2970,8 @@ def testMSSpectrum():
     p = pyopenms.Peak1D()
     p.setMZ(1000.0)
     p.setIntensity(200.0)
-
     spec.push_back(p)
+
     assert spec.size() == 1
     assert spec[0] == p
 
@@ -2951,9 +2995,78 @@ def testMSSpectrum():
     assert mz0 == mz
     assert ii0 == ii
 
-    assert int(spec.isSorted()) in  (0,1)
+    assert int(spec.isSorted()) in (0,1)
 
+    spec.clear(False)
+    p = pyopenms.Peak1D()
+    p.setMZ(1000.0)
+    p.setIntensity(200.0)
+    spec.push_back(p)
+    p = pyopenms.Peak1D()
+    p.setMZ(2000.0)
+    p.setIntensity(400.0)
+    spec.push_back(p)
+
+    mz, ii = spec.get_peaks()
+    assert spec[0].getMZ() == 1000.0
+    assert spec[1].getMZ() == 2000.0
+    assert spec[0].getIntensity() == 200.0
+    assert spec[1].getIntensity() == 400.0
+    assert mz[0] == 1000.0
+    assert mz[1] == 2000.0
+    assert ii[0] == 200.0
+    assert ii[1] == 400.0
+
+    spec.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    spec.set_peaks( [data_mz,data_i] )
+
+    mz, ii = spec.get_peaks()
+    assert spec[0].getMZ() == 5.0
+    assert spec[1].getMZ() == 8.0
+    assert spec[0].getIntensity() == 50.0
+    assert spec[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
+
+    # Fast
+    spec.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float64)
+    spec.set_peaks( [data_mz,data_i] )
+
+    mz, ii = spec.get_peaks()
+    assert spec[0].getMZ() == 5.0
+    assert spec[1].getMZ() == 8.0
+    assert spec[0].getIntensity() == 50.0
+    assert spec[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
+
+    # Slow
+    spec.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float32)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    spec.set_peaks( [data_mz,data_i] )
+
+    mz, ii = spec.get_peaks()
+    assert spec[0].getMZ() == 5.0
+    assert spec[1].getMZ() == 8.0
+    assert spec[0].getIntensity() == 50.0
+    assert spec[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
+
+    ###################################
     # get data arrays
+    ###################################
     assert len(spec.getStringDataArrays()) == 0
     string_da = [ pyopenms.StringDataArray() ]
     string_da[0].push_back("hello")
@@ -2965,8 +3078,9 @@ def testMSSpectrum():
     assert spec.getStringDataArrays()[0][0] == b"hello"
     assert spec.getStringDataArrays()[1][0] == b"other"
 
+
+    spec = pyopenms.MSSpectrum()
     assert len(spec.getIntegerDataArrays()) == 0
-    # int_da = [ [5, 6], [8] ]
     int_da = [ pyopenms.IntegerDataArray() ]
     int_da[0].push_back(5)
     int_da[0].push_back(6)
@@ -2977,17 +3091,37 @@ def testMSSpectrum():
     assert spec.getIntegerDataArrays()[0][0] == 5
     assert spec.getIntegerDataArrays()[1][0] == 8
 
+    spec = pyopenms.MSSpectrum()
+    data = np.array( [5, 8, 42] ).astype(np.intc)
+    int_da = [ pyopenms.IntegerDataArray() ]
+    int_da[0].set_data(data)
+    spec.setIntegerDataArrays( int_da )
+    assert len(spec.getIntegerDataArrays()) == 1
+    assert spec.getIntegerDataArrays()[0][0] == 5
+    assert spec.getIntegerDataArrays()[0][2] == 42
+    assert len(int_da[0].get_data() ) == 3
+
+    spec = pyopenms.MSSpectrum()
     assert len(spec.getFloatDataArrays()) == 0
-    # int_da = [ [5, 6], [8] ]
-    int_da = [ pyopenms.FloatDataArray() ]
-    int_da[0].push_back(5.0)
-    int_da[0].push_back(6.0)
-    int_da.append( pyopenms.FloatDataArray() )
-    int_da[1].push_back(8.0)
-    spec.setFloatDataArrays( int_da )
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].push_back(5.0)
+    f_da[0].push_back(6.0)
+    f_da.append( pyopenms.FloatDataArray() )
+    f_da[1].push_back(8.0)
+    spec.setFloatDataArrays( f_da )
     assert len(spec.getFloatDataArrays()) == 2.0
     assert spec.getFloatDataArrays()[0][0] == 5.0
-    assert spec.getIntegerDataArrays()[1][0] == 8
+    assert spec.getFloatDataArrays()[1][0] == 8.0
+
+    spec = pyopenms.MSSpectrum()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    spec.setFloatDataArrays( f_da )
+    assert len(spec.getFloatDataArrays()) == 1
+    assert spec.getFloatDataArrays()[0][0] == 5.0
+    assert spec.getFloatDataArrays()[0][2] == 42.0
+    assert len(f_da[0].get_data() ) == 3
 
 @report
 def testStringDataArray():
@@ -3037,6 +3171,11 @@ def testIntegerDataArray():
     da[2] = 3
     assert da.size() == 3
 
+    q = da.get_data()
+    q = np.append(q, 4).astype(np.intc)
+    da.set_data(q)
+    assert da.size() == 4
+
 @report
 def testFloatDataArray():
     """
@@ -3060,6 +3199,11 @@ def testFloatDataArray():
     da[1] = 2.0
     da[2] = 3.0
     assert da.size() == 3
+
+    q = da.get_data()
+    q = np.append(q, 4.0).astype(np.float32)
+    da.set_data(q)
+    assert da.size() == 4
 
 @report
 def testMSChromatogram():
@@ -3110,6 +3254,73 @@ def testMSChromatogram():
     assert ii0 == ii
 
     assert int(chrom.isSorted()) in  (0,1)
+
+    chrom.clear(False)
+    p = pyopenms.ChromatogramPeak()
+    p.setRT(1000.0)
+    p.setIntensity(200.0)
+    chrom.push_back(p)
+    p = pyopenms.ChromatogramPeak()
+    p.setRT(2000.0)
+    p.setIntensity(400.0)
+    chrom.push_back(p)
+
+    mz, ii = chrom.get_peaks()
+    assert chrom[0].getRT() == 1000.0
+    assert chrom[1].getRT() == 2000.0
+    assert chrom[0].getIntensity() == 200.0
+    assert chrom[1].getIntensity() == 400.0
+    assert mz[0] == 1000.0
+    assert mz[1] == 2000.0
+    assert ii[0] == 200.0
+    assert ii[1] == 400.0
+
+    chrom.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    chrom.set_peaks( [data_mz,data_i] )
+
+    mz, ii = chrom.get_peaks()
+    assert chrom[0].getRT() == 5.0
+    assert chrom[1].getRT() == 8.0
+    assert chrom[0].getIntensity() == 50.0
+    assert chrom[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
+
+    # Fast
+    chrom.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float64)
+    chrom.set_peaks( [data_mz,data_i] )
+
+    mz, ii = chrom.get_peaks()
+    assert chrom[0].getRT() == 5.0
+    assert chrom[1].getRT() == 8.0
+    assert chrom[0].getIntensity() == 50.0
+    assert chrom[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
+
+    # Slow
+    chrom.clear(False)
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float32)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    chrom.set_peaks( [data_mz,data_i] )
+
+    mz, ii = chrom.get_peaks()
+    assert chrom[0].getRT() == 5.0
+    assert chrom[1].getRT() == 8.0
+    assert chrom[0].getIntensity() == 50.0
+    assert chrom[1].getIntensity() == 80.0
+    assert mz[0] == 5.0
+    assert mz[1] == 8.0
+    assert ii[0] == 50.0
+    assert ii[1] == 80.0
 
 @report
 def testMRMFeature():
@@ -3665,7 +3876,7 @@ def testPeptideHit():
     assert ph == ph
     assert not ph != ph
 
-    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
+    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A"))
     _testMetaInfoInterface(ph)
 
     assert len(ph.getPeptideEvidences()) == 0
@@ -3690,7 +3901,7 @@ def testPeptideHit():
     assert ph.getScore() == 2.0
     ph.setRank(30)
     assert ph.getRank() == 30
-    ph.setSequence(pyopenms.AASequence.fromString(b"AAA", True))
+    ph.setSequence(pyopenms.AASequence.fromString(b"AAA"))
     assert ph.getSequence().toString() == b"AAA"
 
     assert ph == ph
@@ -3766,7 +3977,7 @@ def testPeptideIdentification():
     pe = pyopenms.PeptideEvidence()
     pe.setProteinAccession(b'B_id')
 
-    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
+    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A"))
     ph.addPeptideEvidence(pe)
     pi.insertHit(ph)
     phx, = pi.getHits()
@@ -4964,3 +5175,4 @@ def testString():
     pystr1 = pyopenms.String(u"bläh")
     pystr2 = pyopenms.String(u"bläh")
     assert(pystr1 == pystr2)
+

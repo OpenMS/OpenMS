@@ -39,34 +39,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  Software::Software() :
-    CVTermList(),
-    name_(),
-    version_()
-  {
-  }
-
-  Software::Software(const Software & rhs) :
-    CVTermList(rhs),
-    name_(rhs.name_),
-    version_(rhs.version_)
-  {
-  }
-
   Software::~Software()
   {
-  }
-
-  Software & Software::operator=(const Software & rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    CVTermList::operator=(rhs);
-    name_ = rhs.name_;
-    version_ = rhs.version_;
-
-    return *this;
   }
 
   bool Software::operator==(const Software & rhs) const
@@ -102,3 +76,4 @@ namespace OpenMS
   }
 
 }
+

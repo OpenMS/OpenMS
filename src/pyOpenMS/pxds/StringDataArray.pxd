@@ -12,6 +12,9 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
     cdef cppclass StringDataArray(MetaInfoDescription):
         # wrap-inherits:
         #  MetaInfoDescription
+        #
+        # wrap-doc:
+        #   The representation of extra string data attached to a spectrum or chromatogram.
 
         StringDataArray() nogil except +
         StringDataArray(StringDataArray) nogil except + #wrap-ignore

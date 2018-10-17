@@ -52,43 +52,8 @@ namespace OpenMS
   {
   }
 
-  PeptideIdentification::PeptideIdentification(const PeptideIdentification& rhs) :
-    MetaInfoInterface(rhs),
-    id_(rhs.id_),
-    hits_(rhs.hits_),
-    significance_threshold_(rhs.significance_threshold_),
-    score_type_(rhs.score_type_),
-    higher_score_better_(rhs.higher_score_better_),
-    base_name_(rhs.base_name_),
-    mz_(rhs.mz_),
-    rt_(rhs.rt_)
+  PeptideIdentification::~PeptideIdentification() noexcept
   {
-    setExperimentLabel( rhs.getExperimentLabel() );
-  }
-
-  PeptideIdentification::~PeptideIdentification()
-  {
-  }
-
-  PeptideIdentification& PeptideIdentification::operator=(const PeptideIdentification& rhs)
-  {
-    if (this == &rhs)
-    {
-      return *this;
-    }
-
-    MetaInfoInterface::operator=(rhs);
-    id_ = rhs.id_;
-    hits_ = rhs.hits_;
-    significance_threshold_ = rhs.significance_threshold_;
-    score_type_ = rhs.score_type_;
-    higher_score_better_ = rhs.higher_score_better_;
-    setExperimentLabel( rhs.getExperimentLabel() );
-    base_name_ = rhs.base_name_;
-    mz_ = rhs.mz_;
-    rt_ = rhs.rt_;
-
-    return *this;
   }
 
   // Equality operator
@@ -155,6 +120,11 @@ namespace OpenMS
   void PeptideIdentification::insertHit(const PeptideHit& hit)
   {
     hits_.push_back(hit);
+  }
+
+  void PeptideIdentification::insertHit(PeptideHit&& hit)
+  {
+    hits_.push_back(std::forward<PeptideHit>(hit));
   }
 
   void PeptideIdentification::setHits(const std::vector<PeptideHit>& hits)
@@ -301,3 +271,4 @@ namespace OpenMS
   }
   
 } // namespace OpenMS
+

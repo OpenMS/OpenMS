@@ -29,15 +29,16 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # exact number of sulfurs, and approximate elemental stoichiometry
         bool estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P) nogil except +
 
-
-        #  Computes the isotope distribution of an empirical formula using the CoarseIsotopePatternGenerator method
+        # Computes the isotope distribution of an empirical formula using the CoarseIsotopePatternGenerator or the FineIsotopePatternGenerator method
         IsotopeDistribution getIsotopeDistribution(CoarseIsotopePatternGenerator) nogil except +
+        IsotopeDistribution getIsotopeDistribution(FineIsotopePatternGenerator) nogil except +
 
-        # @brief returns the fragment isotope distribution of this conditioned
+        # returns the fragment isotope distribution of this conditioned
         # on a precursor formula and a list of isolated precursor isotopes.
-        # @param precursor: the empirical formula of the precursor
-        # @param precursor_isotopes: the set of precursor isotopes that were isolated
-        IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
+        # precursor: the empirical formula of the precursor
+        # precursor_isotopes: the set of precursor isotopes that were isolated
+        # method: the method that will be used for the calculation of the IsotopeDistribution
+        IsotopeDistribution getConditionalFragmentIsotopeDist(EmpiricalFormula& precursor, libcpp_set[ unsigned int ]& precursor_isotopes, CoarseIsotopePatternGenerator method) nogil except +
 
         # returns the number of atoms
         # doesnt work!
@@ -84,4 +85,5 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         EmpiricalFormula iadd(EmpiricalFormula)   nogil except + # wrap-as:operator+=
         # EmpiricalFormula iminus(EmpiricalFormula)   nogil except + # wrap-as:operator-=
 
-
+        double calculateTheoreticalIsotopesNumber() nogil except +
+        

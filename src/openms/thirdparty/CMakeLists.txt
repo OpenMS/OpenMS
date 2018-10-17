@@ -38,3 +38,8 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 # eol-bspline lib .. note this library will not be compiled
 # but we only expose the sources
 add_subdirectory(eol-bspline)
+
+add_subdirectory(IsoSpec)
+
+add_subdirectory(json)
+

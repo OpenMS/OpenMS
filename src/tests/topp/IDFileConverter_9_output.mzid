@@ -203,7 +203,7 @@
 					<cvParam accession="MS:1001143" cvRef="PSI-MS" name="PSM-level search engine specific statistic"/>
 					<userParam name="MOWSE" unitName="xsd:double" value="1.4"/>
 				</SpectrumIdentificationItem>
-				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="1234.5" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="1234.5" unitAccession="UO:0000010" unitCvRef="UO"/>
 			</SpectrumIdentificationResult>
 			<SpectrumIdentificationResult spectraData_ref="SDAT_15004869347769368353" spectrumID="MZ:nan@RT:nan" id="SIR_8119044117483804262">
 				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="PEP_3023658190814908261" calculatedMassToCharge="634.838928386321" experimentalMassToCharge="nan" chargeState="2" id="SII_7898004582401008768">

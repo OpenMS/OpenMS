@@ -21,6 +21,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
 
         libcpp_pair[double, double] estimateRTRange(LightTargetedExperiment exp) nogil except +
 
+        String computePrecursorId(const String & transition_group_id, int isotope) nogil except +
+
         # static std::map<std::string, double> simpleFindBestFeature(
         #     OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
         #     bool useQualCutoff = false, double qualCutoff = 0.0);

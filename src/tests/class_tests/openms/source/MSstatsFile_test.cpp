@@ -28,50 +28,26 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Lukas Heumos $
+// $Authors: Lukas Heumos $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/FORMAT/MSstatsFile.h>
 
-namespace OpenMS
+using namespace OpenMS;
+
+START_TEST(MSstatsFile, "$Id$")
+
+START_SECTION(void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &consensus_map,
+                                const OpenMS::ExperimentalDesign& design, const StringList& reannotate_filenames,
+                                const bool is_isotope_label_type, const String& bioreplicate, const String& condition,
+                                const String& retention_time_summarization_method))
 {
-
-class MSSpectrum;
-
-class OPENMS_DLLAPI Deisotoper
-{
-  public:
-
-  /* @brief Detect isotopic clusters in a fragment spectrum.
-
-   * @param [spectra] Input spectra (sorted by m/z)
-   * @param [min_charge] The minimum charge considered
-   * @param [max_charge] The maximum charge considered
-   * @param [fragment_tolerance] The tolerance used to match isotopic peaks
-   * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
-   * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
-   * @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
-   * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
-   * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
-   * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
-   * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
-   */
-  static void deisotopeAndSingleCharge(MSSpectrum & spectra, 
-            double fragment_tolerance, 
-					  bool fragment_unit_ppm, 
-            int min_charge = 1, 
-					  int max_charge = 3,
-            bool keep_only_deisotoped = false, 
-            unsigned int min_isopeaks = 3, 
-					  unsigned int max_isopeaks = 10, 
-            bool make_single_charged = true,
-             bool annotate_charge = false);
-};
-
+  // tested via MSstatsConverter tool
 }
+END_SECTION
 
+END_TEST
