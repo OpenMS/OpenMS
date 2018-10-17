@@ -100,8 +100,8 @@ public:
        @param option Specify the copy option (OVERWRITE, SKIP, CANCEL)
        @return True on success
     */
-    enum copy_options {OVERWRITE,SKIP,CANCEL};
-    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::copy_options option = OVERWRITE);
+    enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
+    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
     /**
       @brief Removes a file (if it exists).
