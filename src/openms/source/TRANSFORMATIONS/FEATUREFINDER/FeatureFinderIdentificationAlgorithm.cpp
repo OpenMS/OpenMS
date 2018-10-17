@@ -375,12 +375,11 @@ namespace OpenMS
               << " chromatogram(s)." << endl;
 
     LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    Log_info.remove(cout); // suppress status output from OpenSWATH
+    // suppress status output from OpenSWATH, unless in debug mode:
+    if (debug_level_ < 1) Log_info.remove(cout);
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    Log_info.insert(cout);
-    cout << "Found " << features.size() << " feature candidates in total."
-         << endl;
+    if (debug_level_ < 1) Log_info.insert(cout); // revert logging change
     LOG_INFO << "Found " << features.size() << " feature candidates in total."
              << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
