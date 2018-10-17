@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATURESELECTOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATURESELECTOR_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
@@ -131,5 +130,3 @@ public:
     double make_score(const Feature& feature);
   };
 }
-
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMFEATURESELECTOR_H
