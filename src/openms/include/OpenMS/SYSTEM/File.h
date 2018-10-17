@@ -92,7 +92,8 @@ public:
        @param overwrite_existing Overwrites file if already present in target directory and appears in the source directory
        @return True on success
     */
-    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, bool overwrite_existing = true);
+    enum copy_options {OVERWRITE,SKIP,CANCEL};
+    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::copy_options option = OVERWRITE);
 
     /**
       @brief Removes a file (if it exists).
