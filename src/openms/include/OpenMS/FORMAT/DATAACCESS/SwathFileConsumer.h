@@ -605,7 +605,7 @@ protected:
 
     void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
-      // only use swath_maps_ to count how many we have already added
+      // only use swath_consumers_ to count how many we have already added
       while (swath_consumers_.size() <= swath_nr)
       {
         addNewSwathMap_();

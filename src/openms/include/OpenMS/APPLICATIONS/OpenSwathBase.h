@@ -81,19 +81,6 @@
 
 
 
-//-------------------------------------------------------------
-// Doxygen docu
-//-------------------------------------------------------------
-
-/**
-    @page TOPP_MapAlignerBase MapAlignerBase
-
-    @brief Base class for different MapAligner TOPP tools.
-*/
-
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
-
 namespace OpenMS
 {
 
