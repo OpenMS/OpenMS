@@ -900,7 +900,7 @@ namespace OpenMS
       peptide_id.setScoreType("OpenXQuest:combined score");
 
 #ifdef _OPENMP
-#pragma omp critical (peptides_ids_access)
+#pragma omp critical (all_top_csms_access)
 #endif
       {
         peptide_ids.push_back(peptide_id);
