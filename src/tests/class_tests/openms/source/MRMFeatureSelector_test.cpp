@@ -75,16 +75,16 @@ END_SECTION
 START_SECTION(getParameters().getValue("nn_threshold"))
 {
   MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getParameters().getValue("nn_threshold"), 4.0)
+  TEST_REAL_SIMILAR(ptr->getParameters().getValue("nn_threshold"), 4.0)
 }
 END_SECTION
 
 START_SECTION(setNNThreshold())
 {
   MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getNNThreshold(), 4.0)
+  TEST_REAL_SIMILAR(ptr->getNNThreshold(), 4.0)
   ptr->setNNThreshold(5.0);
-  TEST_EQUAL(ptr->getNNThreshold(), 5.0)
+  TEST_REAL_SIMILAR(ptr->getNNThreshold(), 5.0)
 }
 END_SECTION
 
@@ -109,18 +109,18 @@ END_SECTION
 START_SECTION(getSegmentWindowLength())
 {
   MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getSegmentWindowLength(), 8.0)
+  TEST_REAL_SIMILAR(ptr->getSegmentWindowLength(), 8.0)
   ptr->setSegmentWindowLength(7.0);
-  TEST_EQUAL(ptr->getSegmentWindowLength(), 7.0)
+  TEST_REAL_SIMILAR(ptr->getSegmentWindowLength(), 7.0)
 }
 END_SECTION
 
 START_SECTION(getSegmentStepLength())
 {
   MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getSegmentStepLength(), 4.0)
+  TEST_REAL_SIMILAR(ptr->getSegmentStepLength(), 4.0)
   ptr->setSegmentStepLength(3.0);
-  TEST_EQUAL(ptr->getSegmentStepLength(), 3.0)
+  TEST_REAL_SIMILAR(ptr->getSegmentStepLength(), 3.0)
 }
 END_SECTION
 
@@ -136,18 +136,18 @@ END_SECTION
 START_SECTION(getVariableType())
 {
   MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getVariableType(), "continuous")
+  TEST_STRING_EQUAL(ptr->getVariableType(), "continuous")
   ptr->setVariableType("integer");
-  TEST_EQUAL(ptr->getVariableType(), "integer")
+  TEST_STRING_EQUAL(ptr->getVariableType(), "integer")
 }
 END_SECTION
 
 START_SECTION(getOptimalThreshold())
 {
   MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getOptimalThreshold(), 0.5)
+  TEST_REAL_SIMILAR(ptr->getOptimalThreshold(), 0.5)
   ptr->setOptimalThreshold(0.6);
-  TEST_EQUAL(ptr->getOptimalThreshold(), 0.6)
+  TEST_REAL_SIMILAR(ptr->getOptimalThreshold(), 0.6)
 }
 END_SECTION
 
@@ -172,12 +172,12 @@ START_SECTION(select_MRMFeature())
   FeatureMap output_selected;
   ptr->select_MRMFeature(feature_map, output_selected);
   std::cout << output_selected.size() << std::endl;
-  TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);
-  TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
-  TEST_EQUAL(output_selected[0].getSubordinates()[0].getRT(), 17.2147079447428);
-  TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);
-  TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id").toString(), "f1p.f1p_1.Heavy");
-  TEST_EQUAL(output_selected[50].getSubordinates()[0].getRT(), 13.4859151489258);
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);                             // TODO: fails
+  TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 17.2147079447428);                                      // TODO: fails
+  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);                            // TODO: fails
+  TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id").toString(), "f1p.f1p_1.Heavy");
+  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 13.4859151489258);                                     // TODO: fails
 }
 END_SECTION
 
@@ -185,10 +185,10 @@ END_SECTION
 START_SECTION(remove_spaces())
 {
   MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->remove_spaces("h e ll o"), "hello");
-  TEST_EQUAL(ptr->remove_spaces("hello"), "hello");
-  TEST_EQUAL(ptr->remove_spaces(""), "");
-  TEST_EQUAL(ptr->remove_spaces("A    B"), "AB");
+  TEST_STRING_EQUAL(ptr->remove_spaces("h e ll o"), "hello");
+  TEST_STRING_EQUAL(ptr->remove_spaces("hello"), "hello");
+  TEST_STRING_EQUAL(ptr->remove_spaces(""), "");
+  TEST_STRING_EQUAL(ptr->remove_spaces("A    B"), "AB");
 }
 END_SECTION
 
@@ -221,12 +221,12 @@ START_SECTION(schedule_MRMFeaturesQMIP())
   FeatureMap output_selected;
   ptrQMIP->schedule_MRMFeaturesQMIP(feature_map, output_selected);
 
-  TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);
-  TEST_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");
-  TEST_EQUAL(output_selected[0].getSubordinates()[0].getRT(), 15.8944563381195);
-  // TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 1080.0);
-  // TEST_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "oxa.oxa_1.Heavy");
-  // TEST_EQUAL(output_selected[50].getSubordinates()[0].getRT(), 13.4963475631714);
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);                     // TODO: fails
+  TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");            // TODO: fails
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 15.8944563381195);                                   // TODO: fails
+  // TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 1080.0);
+  // TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "oxa.oxa_1.Heavy");
+  // TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 13.4963475631714);
 }
 END_SECTION
 
