@@ -145,6 +145,7 @@ namespace OpenMS
   {
     bool overwrite_existing = true;
     bool skip_existing = false;
+    
     switch (option)
     {
       case CANCEL: overwrite_existing = false; break;
@@ -173,7 +174,7 @@ namespace OpenMS
   
     // copy folder recurively
     QFileInfoList file_list = source_dir.entryInfoList();
-    for (QFileInfo& entry : file_list)   
+    for (const QFileInfo& entry : file_list)   
     {
       if (entry.fileName() == "." || entry.fileName() == "..")
       {

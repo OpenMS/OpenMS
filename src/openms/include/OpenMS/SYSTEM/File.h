@@ -86,10 +86,18 @@ public:
        @brief Copy directory recursively
        
        Copies a source directory to a new target directory (recursive).
+       If the target directory already exists, files will be added.
+       If files already exist in the target, the copy will fail when processing the first duplicate (i.e. return false).
+       To avoid this, specify @p overwrite_existing = true.
        
-       @param fromDir Source directory
-       @param toDir Target directory
-       @param overwrite_existing Overwrites file if already present in target directory and appears in the source directory
+       Copy options: 
+       OVERWRITE: Overwrite the file in the target directory if it already exists.
+       SKIP: Skip the file in the target directory if it already exists.
+       CANCEL: Cancel the copy process if file already exists in target directory - return false.
+
+       @param from_dir Source directory
+       @param to_dir Target directory
+       @param option Specify the copy option (OVERWRITE, SKIP, CANCEL)
        @return True on success
     */
     enum copy_options {OVERWRITE,SKIP,CANCEL};
