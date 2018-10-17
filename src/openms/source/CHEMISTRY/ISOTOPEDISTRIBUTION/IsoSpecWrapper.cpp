@@ -40,8 +40,8 @@
 #include <string>
 
 // Override IsoSpec's use of mmap whenever it is available
-#define ISOSPEC_TEST_GOT_SYSTEM_MMAN false
-#define ISOSPEC_TEST_GOT_MMAN false
+#define ISOSPEC_GOT_SYSTEM_MMAN false
+#define ISOSPEC_GOT_MMAN false
 
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
