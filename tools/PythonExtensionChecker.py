@@ -679,7 +679,9 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
 
         # Handle const
-        # cpp_def = cpp_def.replace("const ", "")
+        cpp_def = cpp_def.replace("const String", "constXXXString")
+        cpp_def = cpp_def.replace("const ", "")
+        cpp_def = cpp_def.replace("constXXXString", "const String")
 
         # Alert the user to potential problems and comment out potential
         # dangerous things (raw pointers, iterators)
