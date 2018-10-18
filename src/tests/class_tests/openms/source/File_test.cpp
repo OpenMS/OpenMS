@@ -183,7 +183,7 @@ START_SECTION(static bool copyDirRecursively(const QString &fromDir, const QStri
   // overwrite file content 
   std::ofstream ow_ofs;
   ow_ofs.open(target_name + "/pdata/1/proc");
-  ow_ofs << "\n This line can be used to test the overwrite option \n";
+  ow_ofs << "This line can be used to test the overwrite option";
   ow_ofs.close();
   // check file size 
   std::ifstream infile;
@@ -191,21 +191,21 @@ START_SECTION(static bool copyDirRecursively(const QString &fromDir, const QStri
   infile.seekg(0,infile.end);
   long file_size = infile.tellg();
   infile.close();
-  TEST_EQUAL(file_size , 54)
+  TEST_EQUAL(file_size,50)
   // test option skip
   TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::SKIP),true)
   infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   file_size = infile.tellg();
   infile.close();
-  TEST_EQUAL(file_size , 54)
+  TEST_EQUAL(file_size,50)
   // test option overwrite
   TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::OVERWRITE),true)
   infile.open(target_name + "/pdata/1/proc"); 
   infile.seekg(0,infile.end);
   file_size = infile.tellg();
   infile.close();
-  TEST_EQUAL(file_size , 3558)
+  TEST_EQUAL(file_size,3558)
   // test option cancel 
   TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::CANCEL),false)
   // remove temporary directory after testing
