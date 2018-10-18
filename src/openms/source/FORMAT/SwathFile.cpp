@@ -175,6 +175,7 @@ namespace OpenMS
     }
     else if (readoptions == "split")
     {
+      // WARNING: swath_maps will only contain a single MS1 swath
       dataConsumer = std::make_shared<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
       MzMLFile().transform(file, dataConsumer.get());
     }

@@ -542,6 +542,9 @@ protected:
    * map) objects of MSDataCachedConsumer which can consume the spectra and
    * write them to disk immediately.
    *
+   * Warning: only the MS1 swathmap will be available then calling retrieveSwathMaps()
+   *          for downstream use.
+   *
    */
   class OPENMS_DLLAPI MzMLSwathFileConsumer :
     public FullSwathFileConsumer
@@ -552,7 +555,7 @@ public:
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
-    MzMLSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+    MzMLSwathFileConsumer(const String& cachedir, const String& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
       ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
@@ -562,7 +565,7 @@ public:
     {}
 
     MzMLSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
-            String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+            const String& cachedir, const String& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
       ms1_consumer_(nullptr),
       swath_consumers_(),
@@ -621,7 +624,7 @@ protected:
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
       ms1_consumer_->getOptions().setCompression(true);
       boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
-      // ms1_map_ = exp;
+      ms1_map_ = exp;
     }
 
     void consumeMS1Spectrum_(MapType::SpectrumType& s) override
@@ -631,7 +634,7 @@ protected:
         addMS1Map_();
       }
       ms1_consumer_->consumeSpectrum(s);
-      s.clear(false);
+      ms1_map_->addSpectrum(s); // keep spectrum in memory
     }
 
     void ensureMapsAreFilled_() override

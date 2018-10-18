@@ -45,6 +45,7 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
@@ -481,6 +482,11 @@ protected:
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
+    // additional QC data
+    registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1)", false, true);
+    setValidFormats_("out_qc", ListUtils::create<String>("json"));
+    
+
     // misc options
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
     registerFlag_("sonar", "data is scanning SWATH data");
@@ -666,6 +672,9 @@ protected:
     String out_tsv = getStringOption_("out_tsv");
     String out_osw = getStringOption_("out_osw");
 
+    String out_qc = getStringOption_("out_qc");
+
+
     String irt_tr_file = getStringOption_("tr_irt");
     String nonlinear_irt_tr_file = getStringOption_("tr_irt_nonlinear");
     String trafo_in = getStringOption_("rt_norm");
@@ -820,6 +829,13 @@ protected:
                         sort_swath_maps, sonar))
     {
       return PARSE_ERROR;
+    }
+
+    // collect some QC data
+    if (!out_qc.empty())
+    {
+      auto cd = OpenSwath::SwathQC::getChargeDistribution(swath_maps, 1, 30, 0.04);
+      OpenSwath::SwathQC::storeJSON(out_qc, cd);
     }
 
     ///////////////////////////////////
