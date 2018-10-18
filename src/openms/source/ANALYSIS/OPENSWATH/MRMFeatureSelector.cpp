@@ -50,23 +50,45 @@ namespace OpenMS
 
   MRMFeatureSelector::~MRMFeatureSelector() {}
 
-  Int MRMFeatureSelector::_addVariable(LPWrapper& problem, String& name, bool bounded=true, double obj=1.) {
+  Int MRMFeatureSelector::_addVariable(
+    LPWrapper& problem,
+    const String& name,
+    const bool bounded,
+    const double obj
+  ) const
+  {
     Int index = problem.addColumn();
+
     if (bounded) {
       problem.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
     } else {
       problem.setColumnBounds(index, 0, 1, LPWrapper::UNBOUNDED);
     }
+
     problem.setColumnName(index, name);
-    if (getVariableType() == s_integer) problem.setColumnType(index, LPWrapper::INTEGER);
-    else if (getVariableType() == s_continuous) problem.setColumnType(index, LPWrapper::CONTINUOUS);
+
+    if (getVariableType() == s_integer) {
+      problem.setColumnType(index, LPWrapper::INTEGER);
+    } else if (getVariableType() == s_continuous) {
+      problem.setColumnType(index, LPWrapper::CONTINUOUS);
+    } else {
+      throw "Variable type not supported\n";
+    }
+
     problem.setObjective(index, obj);
     return index;
   }
 
-  void MRMFeatureSelector::_addConstraint(LPWrapper& problem, size_t size, Int *indices_array, double *values_array, String name, double lb, double ub, LPWrapper::Type param) {
-    std::vector<Int> indices(indices_array, indices_array + size);
-    std::vector<double> values(values_array, values_array + size);
+  void MRMFeatureSelector::_addConstraint(
+    LPWrapper& problem,
+    std::vector<Int>& indices,
+    std::vector<double>& values,
+    const String& name,
+    const double lb,
+    const double ub,
+    const LPWrapper::Type param
+  ) const
+  {
     problem.addRow(indices, values, name, lb, ub, param);
   }
 
@@ -89,7 +111,7 @@ namespace OpenMS
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.);
-      _addConstraint(problem, constraints.size(), &constraints[0], &constraints_values[0], time_to_name[cnt1].second + "_constraint", 1., 1., LPWrapper::DOUBLE_BOUNDED);
+      _addConstraint(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
@@ -103,7 +125,7 @@ namespace OpenMS
   String MRMFeatureSelector::remove_spaces(String str) {
     String::iterator end_pos = std::remove(str.begin(), str.end(), ' ');
     str.erase(end_pos, str.end());
-    return str;
+    return std::move(str);
   }
 
   void MRMFeatureSelectorQMIP::optimize(
@@ -144,34 +166,34 @@ namespace OpenMS
             Int index_var_abs = _addVariable(problem, var_abs_name, false, 1);
             Int index1 = problem.getColumnIndex(name1);
             Int index2 = problem.getColumnIndex(name2);
-            Int indices1[] = {index1, index_var_qp};
-            double values[] = {1., -1.};
-            _addConstraint(problem, 2, indices1, values, var_qp_name + "-QP1", 0., 1., LPWrapper::LOWER_BOUND_ONLY);
-            Int indices2[] = {index2, index_var_qp};
-            _addConstraint(problem, 2, indices2, values, var_qp_name + "-QP2", 0., 1., LPWrapper::LOWER_BOUND_ONLY);
-            Int indices3[] = {index1, index2, index_var_qp};
-            double values3[] = {1., 1., -1};
-            _addConstraint(problem, 3, indices3, values3, var_qp_name + "-QP3", 0., 1., LPWrapper::UPPER_BOUND_ONLY);
-            Int indices_abs[] = {index_var_abs, index_var_qp};
+            std::vector<Int> indices1 = {index1, index_var_qp};
+            std::vector<double> values = {1.0, -1.0};
+            _addConstraint(problem, indices1, values, var_qp_name + "-QP1", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
+            std::vector<Int> indices2 = {index2, index_var_qp};
+            _addConstraint(problem, indices2, values, var_qp_name + "-QP2", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
+            std::vector<Int> indices3 = {index1, index2, index_var_qp};
+            std::vector<double> values3 = {1.0, 1.0, -1.0};
+            _addConstraint(problem, indices3, values3, var_qp_name + "-QP3", 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY);
+            std::vector<Int> indices_abs = {index_var_abs, index_var_qp};
             double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
             double tr_delta = feature_row1[i].getRT() - feature_row2[j].getRT();
-            double score = locality_weight*make_score(feature_row1[i]) * make_score(feature_row2[j]) * (tr_delta - tr_delta_expected);
-            double values_abs_plus[] = {-1., score};
-            _addConstraint(problem, 2, indices_abs, values_abs_plus, var_qp_name + "-obj+", -1., 0., LPWrapper::UPPER_BOUND_ONLY);
-            double values_abs_minus[] = {-1., -score};
-            _addConstraint(problem, 2, indices_abs, values_abs_minus, var_qp_name + "-obj-", -1., 0., LPWrapper::UPPER_BOUND_ONLY);
+            double score = locality_weight * make_score(feature_row1[i]) * make_score(feature_row2[j]) * (tr_delta - tr_delta_expected);
+            std::vector<double> values_abs_plus = {-1.0, score};
+            _addConstraint(problem, indices_abs, values_abs_plus, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
+            std::vector<double> values_abs_minus = {-1.0, -score};
+            _addConstraint(problem, indices_abs, values_abs_minus, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
           }
         }
       }
-      std::vector<double> constraints_values(constraints.size(), 1.);
-      _addConstraint(problem, constraints.size(), &constraints[0], &constraints_values[0], time_to_name[cnt1].second + "_constraint", 1., 1., LPWrapper::DOUBLE_BOUNDED);
+      std::vector<double> constraints_values(constraints.size(), 1.0);
+      _addConstraint(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
     String name;
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c) {
       name = problem.getColumnName(c);
-      if ((problem.getColumnValue(c) - getOptimalThreshold()) > 1e-06  && variables.find(name) != variables.end()) {
+      if ((problem.getColumnValue(c) - getOptimalThreshold()) > 1e-06 && variables.find(name) != variables.end()) {
         result.push_back(name);
       }
     }
@@ -273,7 +295,7 @@ namespace OpenMS
     return pow(peak_apices_sum*sn_ratio, 0.5);
   }
 
-  void MRMFeatureSelector::setNNThreshold(const double& nn_threshold)
+  void MRMFeatureSelector::setNNThreshold(const double nn_threshold)
   {
     nn_threshold_ = nn_threshold;
   }
@@ -283,7 +305,7 @@ namespace OpenMS
     return nn_threshold_;
   }
 
-  void MRMFeatureSelector::setLocalityWeight(const bool& locality_weight)
+  void MRMFeatureSelector::setLocalityWeight(const bool locality_weight)
   {
     locality_weight_ = locality_weight;
   }
@@ -293,7 +315,7 @@ namespace OpenMS
     return locality_weight_;
   }
 
-  void MRMFeatureSelector::setSelectTransitionGroup(const bool& select_transition_group)
+  void MRMFeatureSelector::setSelectTransitionGroup(const bool select_transition_group)
   {
     select_transition_group_ = select_transition_group;
   }
@@ -303,7 +325,7 @@ namespace OpenMS
     return select_transition_group_;
   }
 
-  void MRMFeatureSelector::setSegmentWindowLength(const double& segment_window_length)
+  void MRMFeatureSelector::setSegmentWindowLength(const double segment_window_length)
   {
     segment_window_length_ = segment_window_length;
   }
@@ -313,7 +335,7 @@ namespace OpenMS
     return segment_window_length_;
   }
 
-  void MRMFeatureSelector::setSegmentStepLength(const double& segment_step_length)
+  void MRMFeatureSelector::setSegmentStepLength(const double segment_step_length)
   {
     segment_step_length_ = segment_step_length;
   }
@@ -323,7 +345,7 @@ namespace OpenMS
     return segment_step_length_;
   }
 
-  void MRMFeatureSelector::setSelectHighestCount(const bool& select_highest_count)
+  void MRMFeatureSelector::setSelectHighestCount(const bool select_highest_count)
   {
     select_highest_count_ = select_highest_count;
   }
@@ -343,7 +365,7 @@ namespace OpenMS
     return variable_type_;
   }
 
-  void MRMFeatureSelector::setOptimalThreshold(const double& optimal_threshold)
+  void MRMFeatureSelector::setOptimalThreshold(const double optimal_threshold)
   {
     optimal_threshold_ = optimal_threshold;
   }
@@ -376,7 +398,7 @@ namespace OpenMS
     segment_window_length_ = (double)params.getValue("segment_window_length");
     segment_step_length_ = (double)params.getValue("segment_step_length");
     select_highest_count_ = params.getValue("select_highest_count").toBool();
-    variable_type_ = (String)params.getValue("variable_type");
+    variable_type_ = params.getValue("variable_type").toString();
     optimal_threshold_ = (double)params.getValue("optimal_threshold");
   }
 

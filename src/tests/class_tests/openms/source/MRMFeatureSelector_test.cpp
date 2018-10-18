@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
-// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -55,99 +55,98 @@ START_TEST(MRMFeatureSelector, "$Id$")
 /////////////////////////////////////////////////////////////
 
 const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1.featureXML");
+MRMFeatureSelectorScore* ptr = nullptr;
+MRMFeatureSelectorScore* null_ptr = nullptr;
 
 START_SECTION(MRMFeatureSelectorScore())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  MRMFeatureSelectorScore* null_ptr = 0;
+  ptr = new MRMFeatureSelectorScore();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
 START_SECTION(~MRMFeatureSelectorScore())
 {
-  MRMFeatureSelectorScore* ptr = 0;
   delete ptr;
 }
 END_SECTION
 
-
 START_SECTION(getParameters().getValue("nn_threshold"))
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_REAL_SIMILAR(ptr->getParameters().getValue("nn_threshold"), 4.0)
+  MRMFeatureSelectorScore selectorScore;
+  TEST_REAL_SIMILAR(selectorScore.getParameters().getValue("nn_threshold"), 4.0)
 }
 END_SECTION
 
 START_SECTION(setNNThreshold())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_REAL_SIMILAR(ptr->getNNThreshold(), 4.0)
-  ptr->setNNThreshold(5.0);
-  TEST_REAL_SIMILAR(ptr->getNNThreshold(), 5.0)
+  MRMFeatureSelectorScore selectorScore;
+  TEST_REAL_SIMILAR(selectorScore.getNNThreshold(), 4.0)
+  selectorScore.setNNThreshold(5.0);
+  TEST_REAL_SIMILAR(selectorScore.getNNThreshold(), 5.0)
 }
 END_SECTION
 
 START_SECTION(getLocalityWeight())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getLocalityWeight(), false)
-  ptr->setLocalityWeight(true);
-  TEST_EQUAL(ptr->getLocalityWeight(), true)
+  MRMFeatureSelectorScore selectorScore;
+  TEST_EQUAL(selectorScore.getLocalityWeight(), false)
+  selectorScore.setLocalityWeight(true);
+  TEST_EQUAL(selectorScore.getLocalityWeight(), true)
 }
 END_SECTION
 
 START_SECTION(getSelectTransitionGroup())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getSelectTransitionGroup(), true)
-  ptr->setSelectTransitionGroup(false);
-  TEST_EQUAL(ptr->getSelectTransitionGroup(), false)
+  MRMFeatureSelectorScore selectorScore;
+  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), true)
+  selectorScore.setSelectTransitionGroup(false);
+  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), false)
 }
 END_SECTION
 
 START_SECTION(getSegmentWindowLength())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_REAL_SIMILAR(ptr->getSegmentWindowLength(), 8.0)
-  ptr->setSegmentWindowLength(7.0);
-  TEST_REAL_SIMILAR(ptr->getSegmentWindowLength(), 7.0)
+  MRMFeatureSelectorScore selectorScore;
+  TEST_REAL_SIMILAR(selectorScore.getSegmentWindowLength(), 8.0)
+  selectorScore.setSegmentWindowLength(7.0);
+  TEST_REAL_SIMILAR(selectorScore.getSegmentWindowLength(), 7.0)
 }
 END_SECTION
 
 START_SECTION(getSegmentStepLength())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_REAL_SIMILAR(ptr->getSegmentStepLength(), 4.0)
-  ptr->setSegmentStepLength(3.0);
-  TEST_REAL_SIMILAR(ptr->getSegmentStepLength(), 3.0)
+  MRMFeatureSelectorScore selectorScore;
+  TEST_REAL_SIMILAR(selectorScore.getSegmentStepLength(), 4.0)
+  selectorScore.setSegmentStepLength(3.0);
+  TEST_REAL_SIMILAR(selectorScore.getSegmentStepLength(), 3.0)
 }
 END_SECTION
 
 START_SECTION(getSelectHighestCount())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_EQUAL(ptr->getSelectHighestCount(), false)
-  ptr->setSelectHighestCount(true);
-  TEST_EQUAL(ptr->getSelectHighestCount(), true)
+  MRMFeatureSelectorScore selectorScore;
+  TEST_EQUAL(selectorScore.getSelectHighestCount(), false)
+  selectorScore.setSelectHighestCount(true);
+  TEST_EQUAL(selectorScore.getSelectHighestCount(), true)
 }
 END_SECTION
 
 START_SECTION(getVariableType())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_STRING_EQUAL(ptr->getVariableType(), "continuous")
-  ptr->setVariableType("integer");
-  TEST_STRING_EQUAL(ptr->getVariableType(), "integer")
+  MRMFeatureSelectorScore selectorScore;
+  TEST_STRING_EQUAL(selectorScore.getVariableType(), "continuous")
+  selectorScore.setVariableType("integer");
+  TEST_STRING_EQUAL(selectorScore.getVariableType(), "integer")
 }
 END_SECTION
 
 START_SECTION(getOptimalThreshold())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_REAL_SIMILAR(ptr->getOptimalThreshold(), 0.5)
-  ptr->setOptimalThreshold(0.6);
-  TEST_REAL_SIMILAR(ptr->getOptimalThreshold(), 0.6)
+  MRMFeatureSelectorScore selectorScore;
+  TEST_REAL_SIMILAR(selectorScore.getOptimalThreshold(), 0.5)
+  selectorScore.setOptimalThreshold(0.6);
+  TEST_REAL_SIMILAR(selectorScore.getOptimalThreshold(), 0.6)
 }
 END_SECTION
 
@@ -156,7 +155,7 @@ START_SECTION(select_MRMFeature())
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
+  MRMFeatureSelectorScore selectoreScore;
 
   Param param;
   param.setValue("nn_threshold", 4);
@@ -167,10 +166,10 @@ START_SECTION(select_MRMFeature())
   param.setValue("select_highest_count", "false");
   param.setValue("variable_type", s_integer);
   param.setValue("optimal_threshold", 1.0);
-  ptr->setParameters(param);
+  selectoreScore.setParameters(param);
 
   FeatureMap output_selected;
-  ptr->select_MRMFeature(feature_map, output_selected);
+  selectoreScore.select_MRMFeature(feature_map, output_selected);
   std::cout << output_selected.size() << std::endl;
   TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);                             // TODO: fails
   TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
@@ -184,11 +183,11 @@ END_SECTION
 
 START_SECTION(remove_spaces())
 {
-  MRMFeatureSelectorScore* ptr = new MRMFeatureSelectorScore();
-  TEST_STRING_EQUAL(ptr->remove_spaces("h e ll o"), "hello");
-  TEST_STRING_EQUAL(ptr->remove_spaces("hello"), "hello");
-  TEST_STRING_EQUAL(ptr->remove_spaces(""), "");
-  TEST_STRING_EQUAL(ptr->remove_spaces("A    B"), "AB");
+  MRMFeatureSelectorScore selectorScore;
+  TEST_STRING_EQUAL(selectorScore.remove_spaces("h e ll o"), "hello");
+  TEST_STRING_EQUAL(selectorScore.remove_spaces("hello"), "hello");
+  TEST_STRING_EQUAL(selectorScore.remove_spaces(""), "");
+  TEST_STRING_EQUAL(selectorScore.remove_spaces("A    B"), "AB");
 }
 END_SECTION
 

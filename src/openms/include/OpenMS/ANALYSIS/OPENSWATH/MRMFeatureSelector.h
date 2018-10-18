@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
-// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -65,28 +65,28 @@ public:
 
     String remove_spaces(String str);
 
-    void setNNThreshold(const double& nn_threshold);
+    void setNNThreshold(const double nn_threshold);
     double getNNThreshold() const;
 
-    void setLocalityWeight(const bool& locality_weight);
+    void setLocalityWeight(const bool locality_weight);
     bool getLocalityWeight() const;
 
-    void setSelectTransitionGroup(const bool& select_transition_group);
+    void setSelectTransitionGroup(const bool select_transition_group);
     bool getSelectTransitionGroup() const;
 
-    void setSegmentWindowLength(const double& segment_window_length);
+    void setSegmentWindowLength(const double segment_window_length);
     double getSegmentWindowLength() const;
 
-    void setSegmentStepLength(const double& segment_step_length);
+    void setSegmentStepLength(const double segment_step_length);
     double getSegmentStepLength() const;
 
-    void setSelectHighestCount(const bool& select_highest_count);
+    void setSelectHighestCount(const bool select_highest_count);
     bool getSelectHighestCount() const;
 
     void setVariableType(const String& variable_type);
     String getVariableType() const;
 
-    void setOptimalThreshold(const double& optimal_threshold);
+    void setOptimalThreshold(const double optimal_threshold);
     double getOptimalThreshold() const;
 
     void getDefaultParameters(Param& params);
@@ -104,8 +104,18 @@ private:
     bool   select_highest_count_;
     String variable_type_;
     double optimal_threshold_;
-    Int _addVariable(LPWrapper& problem, String& name, bool bounded, double obj);
-    void _addConstraint(LPWrapper& problem, size_t size, Int *indices_array, double *values_array, String name, double lb, double ub, LPWrapper::Type param);
+
+    Int _addVariable(LPWrapper& problem, const String& name, const bool bounded = true, const double obj = 1.0) const;
+
+    void _addConstraint(
+      LPWrapper& problem,
+      std::vector<Int>& indices,
+      std::vector<double>& values,
+      const String& name,
+      const double lb,
+      const double ub,
+      const LPWrapper::Type param
+    ) const;
   };
 
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
