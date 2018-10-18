@@ -130,7 +130,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
             true_cppname = '"%s::%s"' % (comp_name, mdef.get_name())
             enumr  = "\n"
             enumr += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
-            enumr += "    \n"
+            enumr += "\n"
             enumr += '    cdef enum %s %s:\n' % (mdef.get_name(), true_cppname)
             for val in mdef.get_enumvalue():
                 enumr += "        %s\n" % val.get_name()
@@ -410,7 +410,7 @@ class DoxygenXMLFile(object):
         preferred_classname = comp_name.split("::")[-1]
         cldef  = "\n"
         cldef += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
-        cldef += "    \n"
+        cldef += "\n"
 
         inherit_txt = ""
         true_cppname = '"%s"' % comp_name
@@ -423,6 +423,10 @@ class DoxygenXMLFile(object):
         else:
             targs = [p.get_declname() for p in compound.templateparamlist.get_param()]
             cldef += '    cdef cppclass %s[%s]%s:\n' % (preferred_classname, ",".join(targs), inherit_txt)
+        cldef += '        #\n'
+        cldef += '        # wrap-doc:\n'
+        cldef += '        #     ADD PYTHON DOCUMENTATION HERE\n'
+        cldef += '        #\n'
         if len(parent_classes) > 0:
             cldef += '        # wrap-inherits:\n'
         for p in parent_classes:
@@ -440,6 +444,7 @@ class DoxygenXMLFile(object):
         default_ctor = False
         copy_ctor = False
         enum = ""
+        static_methods = ""
         imports_needed = {}
         for mdef in dfile.iterMemberDef():
             if mdef.kind == "enum" and mdef.prot == "public":
@@ -482,6 +487,7 @@ class DoxygenXMLFile(object):
                     continue
                 if mdef.definition.find("static") != -1:
                     methods += "        # TODO: static # %s nogil except +\n" % declaration
+                    static_methods += "        %s nogil except + # wrap-attach:%s\n" % (declaration, preferred_classname)
                     continue
                 methods += "        %s nogil except +\n" % declaration
 
@@ -498,6 +504,14 @@ class DoxygenXMLFile(object):
         res += methods
         res += enum
         res += "\n"
+        if len(static_methods) > 0:
+            res += "\n"
+            res += "# COMMENT: wrap static methods\n"
+            res += 'cdef extern from "<%s>" namespace "%s::%s":\n' % (internal_file_name, namespace, preferred_classname)
+            res += "\n"
+            res += static_methods
+            res += "\n"
+
         return res
 
     def iterMemberDef(self):
