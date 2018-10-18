@@ -172,25 +172,42 @@ END_SECTION
 // make source directory and copy it to new location
 // check copy function and if file exists in target path
 START_SECTION(static bool copyDirRecursively(const QString &fromDir, const QString &toDir,File::CopyOptions option = CopyOptions::OVERWRITE))
+  // folder OpenMS/src/tests/class_tests/openms/data/XMassFile_test 
   String source_name = OPENMS_GET_TEST_DATA_PATH("XMassFile_test");
   String target_name = File::getTempDirectory() + "/" + File::getUniqueName() + "/"; 
-  QDir sdir;
-  TEST_EQUAL(sdir.mkpath(source_name.toQString()), true)
   // test canonical path
   TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),source_name.toQString()),false)
-  // test copy overwrite default
+  // test default
   TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString()),true)
   TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"),true);
-  File::removeDirRecursively(target_name);
-  // test copy overwrite 
-  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::OVERWRITE),true)
-  TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"),true);
-  // test copy skip - should run completley but skip everything
+  // overwrite file content 
+  std::ofstream ow_ofs;
+  ow_ofs.open(target_name + "/pdata/1/proc");
+  ow_ofs << "\n This line can be used to test the overwrite option \n";
+  ow_ofs.close();
+  // check file size 
+  std::ifstream infile;
+  infile.open(target_name + "/pdata/1/proc"); 
+  infile.seekg(0,infile.end);
+  long file_size = infile.tellg();
+  infile.close();
+  TEST_EQUAL(file_size , 54)
+  // test option skip
   TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::SKIP),true)
-  TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"),true);
-  // test copy cancel - file/directory already there - cancel 
+  infile.open(target_name + "/pdata/1/proc"); 
+  infile.seekg(0,infile.end);
+  file_size = infile.tellg();
+  infile.close();
+  TEST_EQUAL(file_size , 54)
+  // test option overwrite
+  TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::OVERWRITE),true)
+  infile.open(target_name + "/pdata/1/proc"); 
+  infile.seekg(0,infile.end);
+  file_size = infile.tellg();
+  infile.close();
+  TEST_EQUAL(file_size , 3558)
+  // test option cancel 
   TEST_EQUAL(File::copyDirRecursively(source_name.toQString(),target_name.toQString(), File::CopyOptions::CANCEL),false)
-  TEST_EQUAL(File::exists(target_name + "/pdata/1/proc"),true);
   // remove temporary directory after testing
   File::removeDirRecursively(target_name);
 END_SECTION

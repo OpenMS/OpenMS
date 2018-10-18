@@ -143,16 +143,6 @@ namespace OpenMS
   // https://stackoverflow.com/questions/2536524/copy-directory-using-qt
   bool File::copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option)
   {
-    bool overwrite_existing = true;
-    bool skip_existing = false;
-    
-    switch (option)
-    {
-      case CopyOptions::CANCEL: overwrite_existing = false; break;
-      case CopyOptions::SKIP: skip_existing = true; overwrite_existing = false; break;  
-      case CopyOptions::OVERWRITE: break;
-    }   
- 
     QDir source_dir(from_dir);
     QDir target_dir(to_dir);
 
@@ -189,14 +179,18 @@ namespace OpenMS
       }
       else
       {
-        if (skip_existing && target_dir.exists(entry.fileName()))
+        if (target_dir.exists(entry.fileName()))
         {
-          LOG_INFO << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl; 
-          continue;
-        }
-        if (overwrite_existing && target_dir.exists(entry.fileName()))
-        {
-          target_dir.remove(entry.fileName());
+          switch (option)
+            {
+              case CopyOptions::CANCEL: 
+                return false;
+              case CopyOptions::SKIP: 
+                LOG_WARN << "The file " << entry.fileName().toStdString() << " was skipped." << std::endl; 
+                continue;
+              case CopyOptions::OVERWRITE:
+                target_dir.remove(entry.fileName());
+            }
         }
         if (!QFile::copy(entry.filePath(), target_dir.filePath(entry.fileName())))
         {

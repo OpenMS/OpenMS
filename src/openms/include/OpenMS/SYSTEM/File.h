@@ -87,10 +87,8 @@ public:
        
        Copies a source directory to a new target directory (recursive).
        If the target directory already exists, files will be added.
-       If files already exist in the target, the copy will fail when processing the first duplicate (i.e. return false).
-       To avoid this, specify @p overwrite_existing = true.
+       If files from the source already exist in the target, @p option allows for the following behaviour:
        
-       Copy options: 
        OVERWRITE: Overwrite the file in the target directory if it already exists.
        SKIP: Skip the file in the target directory if it already exists.
        CANCEL: Cancel the copy process if file already exists in target directory - return false.
