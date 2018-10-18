@@ -43,9 +43,6 @@
 
 namespace OpenMS
 {
-  const String s_continuous = "continuous";
-  const String s_integer = "integer";
-
   class OPENMS_DLLAPI MRMFeatureSelector :
     public DefaultParamHandler
   {
@@ -54,6 +51,9 @@ namespace OpenMS
 public:
     MRMFeatureSelector();
     virtual ~MRMFeatureSelector();
+
+    static constexpr const char* s_continuous = "continuous";
+    static constexpr const char* s_integer = "integer";
 
     virtual void optimize(
       const std::vector<std::pair<double, String>>& time_to_name, 

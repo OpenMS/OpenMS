@@ -152,9 +152,12 @@ END_SECTION
 
 START_SECTION(select_MRMFeature())
 {
+  const char* s_integer = MRMFeatureSelector::s_integer;
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
+  TEST_EQUAL(feature_map.size(), 703);
+
   MRMFeatureSelectorScore selectoreScore;
 
   Param param;
@@ -170,13 +173,13 @@ START_SECTION(select_MRMFeature())
 
   FeatureMap output_selected;
   selectoreScore.select_MRMFeature(feature_map, output_selected);
-  std::cout << output_selected.size() << std::endl;
-  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);                             // TODO: fails
+  TEST_EQUAL(output_selected.size(), 117);
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 286.0);                        // NOTE: same result as python, but assert failing
   TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
-  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 17.2147079447428);                                      // TODO: fails
-  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 0.0);                            // TODO: fails
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 16.7592102584839);                                   // NOTE: same result as python, but assert failing
+  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 391.5);                       // NOTE: same result as python, but assert failing
   TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id").toString(), "f1p.f1p_1.Heavy");
-  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 13.4859151489258);                                     // TODO: fails
+  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 8.53021852213542);                                  // NOTE: same result as python, but assert failing
 }
 END_SECTION
 
@@ -193,6 +196,7 @@ END_SECTION
 
 START_SECTION(schedule_MRMFeaturesQMIP())
 {
+  const char* s_continuous = MRMFeatureSelector::s_continuous;
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
