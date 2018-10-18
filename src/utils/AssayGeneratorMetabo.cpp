@@ -443,7 +443,9 @@ protected:
         }
         else
         {
-          sumformula = ListUtils::concatenate(v_sumformula, ",");
+          // In this case use only the first sumformula of the element maybe safe the other ones someware else
+          // sumformula = ListUtils::concatenate(v_sumformula, ",");
+          sumformula = v_sumformula[0];
           cmp.molecular_formula = sumformula;
         }
         if (adduct == "UNKNOWN")
