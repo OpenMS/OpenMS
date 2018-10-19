@@ -659,7 +659,9 @@ protected:
     const multimap<Size, PeptideIdentification> & transfered_ids,
     ConsensusMap & consensus_fraction,
     vector<TransformationDescription> & transformations,
-    double& max_alignment_diff)
+    double& max_alignment_diff,
+    set<String>& fixed_modifications,
+    set<String>& variable_modifications)
   {
     vector<FeatureMap> feature_maps;
     const Size fraction = ms_files.first;
@@ -690,6 +692,15 @@ protected:
       const String& mz_file_abs_path = File::absolutePath(mz_file);
       const String& id_file_abs_path = File::absolutePath(mzfile2idfile.at(mz_file_abs_path));
       IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
+
+      // add to the (global) set of fixed and variable modifications
+      for (auto & p : protein_ids)
+      {
+        const vector<String>& var_mods = p.getSearchParameters().variable_modifications;
+        const vector<String>& fixed_mods = p.getSearchParameters().fixed_modifications;
+        std::copy(var_mods.begin(), var_mods.end(), std::inserter(variable_modifications, variable_modifications.begin())); 
+        std::copy(fixed_mods.begin(), fixed_mods.end(), std::inserter(fixed_modifications, fixed_modifications.end())); 
+      }
 
       // delete meta info to free some space
       for (PeptideIdentification & pid : peptide_ids)
@@ -853,9 +864,14 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-      ffi.run(peptide_ids, 
+      auto peptide_ids_no_mods = peptide_ids;
+      IDFilter::removePeptidesWithMatchingModifications(peptide_ids_no_mods, variable_modifications);
+      auto ext_peptide_ids_no_mods = ext_peptide_ids;
+      IDFilter::removePeptidesWithMatchingModifications(ext_peptide_ids_no_mods, variable_modifications);
+
+      ffi.run(peptide_ids_no_mods, 
         protein_ids, 
-        ext_peptide_ids, 
+        ext_peptide_ids_no_mods, 
         ext_protein_ids, 
         feature_maps.back(), 
         seeds);
@@ -950,6 +966,19 @@ protected:
     String design_file = getStringOption_("design");
     String in_db = getStringOption_("fasta");
 
+    // TODO: move these checks to TOPPBase?
+    for (auto & s : in) 
+    { 
+      if (!File::exists(s)) 
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s);
+    }
+
+    for (auto & s : in_ids) 
+    { 
+      if (!File::exists(s)) 
+        throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, s);
+    }
+
     // Validate parameters
     if (in.size() != in_ids.size())
     {
@@ -997,6 +1026,26 @@ protected:
     // In the future, we could warn or reorder them based on the annotated primaryMSRunPath in the ID file.
     map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
 
+    // check if mzMLs in experimental design match to mzMLs passed as in parameter
+    for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
+    {      
+      for (String const & mz_file : ms_files.second)
+      { 
+        const String& mz_file_abs_path = File::absolutePath(mz_file);
+        if (mzfile2idfile.find(mz_file_abs_path) == mzfile2idfile.end())
+        {
+          LOG_FATAL_ERROR << "MzML file in experimental design file '"
+            << mz_file_abs_path << "'not passed as 'in' parameter.\n" 
+            << "Note: relative paths in the experimental design file "
+            << "are resolved relative to the design file path. \n"
+            << "Use absolute paths or make sure the design file is in "
+            << "the same path as the mzML files."
+            << endl;
+          throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mz_file_abs_path);
+        }
+      }
+    }
+
     Param pep_param = getParam_().copy("Posterior Error Probability:", true);
     writeDebug_("Parameters passed to PEP algorithm", pep_param, 3);
 
@@ -1015,6 +1064,7 @@ protected:
     ConsensusMap consensus;
     double median_fwhm(0);
 
+    set<String> fixed_modifications, variable_modifications;
     for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
     {      
       ConsensusMap consensus_fraction; // quantitative result for this fraction identifier
@@ -1028,7 +1078,9 @@ protected:
         multimap<Size, PeptideIdentification>(),
         consensus_fraction, 
         transformations,  // transformations are empty, will be filled by alignment
-        max_alignment_diff);  // max_alignment_diff not yet determined, will be filled by alignment
+        max_alignment_diff,  // max_alignment_diff not yet determined, will be filled by alignment
+        fixed_modifications, 
+        variable_modifications);
 
       if (e != EXECUTION_OK) { return e; }
         
@@ -1049,7 +1101,9 @@ protected:
           transfered_ids, 
           consensus_fraction, 
           transformations,  // transformations as determined by alignment
-          max_alignment_diff); // max_alignment_error as determined by alignment
+          max_alignment_diff, // max_alignment_error as determined by alignment
+          fixed_modifications,
+          variable_modifications);
 
         OPENMS_POSTCONDITION(!consensus_fraction.empty(), "ConsensusMap of fraction empty after ID transfer.!");
         if (e != EXECUTION_OK) { return e; }
@@ -1177,8 +1231,7 @@ protected:
       infered_protein_groups[0].computeCoverage(infered_peptides);
 
       // determine observed modifications (exclude fixed mods)
-      StringList fixed_mods = {"Carbamidomethyl"};  // TODO: read from search settings, make specific to amino acid (site)
-      infered_protein_groups[0].computeModifications(infered_peptides, fixed_mods);
+      infered_protein_groups[0].computeModifications(infered_peptides, StringList(fixed_modifications.begin(), fixed_modifications.end()));
 
       /////////////////////////////////////////
       // annotate some mzTab related protein statistics
@@ -1336,6 +1389,9 @@ protected:
     {
       MSstatsFile msstats;
       // TODO: add a helper method to quickly check if experimental design file contain the right columns (and put this at start of tool)
+
+      // Remove modified peptides
+
       msstats.store(
         out_msstats, 
         consensus, 

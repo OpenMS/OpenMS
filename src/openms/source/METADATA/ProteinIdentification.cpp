@@ -408,7 +408,7 @@ namespace OpenMS
     const std::vector<PeptideIdentification>& pep_ids, 
     const StringList & skip_modifications)
   {
-    //map protein accession to observed position,modifications pairs
+    // map protein accession to observed position,modifications pairs
     map<String, set<pair<Size, ResidueModification>>> prot2mod;
 
     for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
@@ -430,8 +430,9 @@ namespace OpenMS
           if (aas.hasNTerminalModification())
           {
             const ResidueModification * res_mod = aas.getNTerminalModification();
-            // skip mod?
-            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+            // skip mod if Id, e.g. 'Carbamidomethyl' or full id e.g., 'Carbamidomethyl (C)' match.
+            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+             && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
             {
               for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
               {
@@ -448,7 +449,8 @@ namespace OpenMS
             {
               const ResidueModification * res_mod = aas[ai].getModification();
 
-              if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+              if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+               && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
               {
                 for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
                 {
@@ -464,7 +466,8 @@ namespace OpenMS
           {
             const ResidueModification * res_mod = aas.getCTerminalModification();
             // skip mod?
-            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+             && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
             {
               for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
               {
