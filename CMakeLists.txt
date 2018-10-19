@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.0.2 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 project("OpenMS_host")
 
 #------------------------------------------------------------------------------
@@ -323,7 +323,14 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
-SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+if (ENABLE_PREPARE_KNIME_PACKAGE)
+  ## Since we rely on copying instead of "installing" for KNIME packaging
+  ## we need to do it during building already.
+  ## In this case, make sure that QT is in a system path if you want to test it locally.
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+else()
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+endif()
 
 # the RPATH to be used when installing
 SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")

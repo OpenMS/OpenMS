@@ -57,7 +57,7 @@ public:
     /// Retrieve path of current executable (useful to find other TOPP tools)
     /// The returned path is either just an EMPTY string if the call to system subroutines failed
     /// or the complete path including a trailing "/", to enable usage of this function as
-    ///  File::getExecutablePath() + "mytool"
+    /// File::getExecutablePath() + "mytool"
     static String getExecutablePath();
 
     /// Method used to test if a @p file exists.
@@ -81,6 +81,25 @@ public:
        @return True on success
     */
     static bool rename(const String& from, const String& to, bool overwrite_existing = true, bool verbose = true);
+
+    /**
+       @brief Copy directory recursively
+       
+       Copies a source directory to a new target directory (recursive).
+       If the target directory already exists, files will be added.
+       If files from the source already exist in the target, @p option allows for the following behaviour:
+       
+       OVERWRITE: Overwrite the file in the target directory if it already exists.
+       SKIP: Skip the file in the target directory if it already exists.
+       CANCEL: Cancel the copy process if file already exists in target directory - return false.
+
+       @param from_dir Source directory
+       @param to_dir Target directory
+       @param option Specify the copy option (OVERWRITE, SKIP, CANCEL)
+       @return True on success
+    */
+    enum class CopyOptions {OVERWRITE,SKIP,CANCEL};
+    static bool copyDirRecursively(const QString &from_dir, const QString &to_dir, File::CopyOptions option = CopyOptions::OVERWRITE);
 
     /**
       @brief Removes a file (if it exists).
