@@ -864,14 +864,9 @@ protected:
       ffi.setParameters(ffi_param);
       writeDebug_("Parameters passed to FeatureFinderIdentification algorithm", ffi_param, 3);
 
-      auto peptide_ids_no_mods = peptide_ids;
-      IDFilter::removePeptidesWithMatchingModifications(peptide_ids_no_mods, variable_modifications);
-      auto ext_peptide_ids_no_mods = ext_peptide_ids;
-      IDFilter::removePeptidesWithMatchingModifications(ext_peptide_ids_no_mods, variable_modifications);
-
-      ffi.run(peptide_ids_no_mods, 
+      ffi.run(peptide_ids, 
         protein_ids, 
-        ext_peptide_ids_no_mods, 
+        ext_peptide_ids, 
         ext_protein_ids, 
         feature_maps.back(), 
         seeds);
