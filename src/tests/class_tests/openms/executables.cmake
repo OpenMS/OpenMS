@@ -10,6 +10,7 @@ set(concept_executables_list
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
+  Multithreading_test
   UniqueIdGenerator_test
   UniqueIdIndexer_test
   UniqueIdInterface_test
