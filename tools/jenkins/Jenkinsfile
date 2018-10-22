@@ -53,9 +53,10 @@ pipeline {
                     }
                     post {
                         always{
+                            //TODO evaluate if it makes sense to ignore some test results (e.g. mark them optional)
                             xunit (
                                 thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
-                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml') ]
+                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
                             )
                         }
                     }
@@ -82,7 +83,7 @@ pipeline {
                         always{
                             xunit (
                                 thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
-                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml') ]
+                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
                             )
                         }
                     }
@@ -90,6 +91,13 @@ pipeline {
             }
         }
         stage('Deploy') {
+            when {
+                // so we do not allocate an agent unnecessarily
+                beforeAgent = true
+                //When switching to multibranch pipeline, use the following
+                // branch 'test/Jenkinsfile'
+                expression { env.BRANCH_NAME == 'test/Jenkinsfile' }
+            }
             steps {
                 unstash 'testresult-win'
                 unstash 'testresult-mac'
