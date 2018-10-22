@@ -51,9 +51,6 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <fstream>
-#ifdef _OPENMP
-  #include <omp.h>
-#endif
 
 using namespace OpenMS;
 using namespace std;
@@ -228,18 +225,8 @@ protected:
     bool ion_tree = getFlag_("ion_tree");
     bool most_intense_ms2 = getFlag_("most_intense_ms2");
    
-    
-    // if OpenMP is not available threads will not be set and SIRIUS will use all available cpus as per default
-    #ifdef _OPENMP
-      int threads = getIntOption_("threads");
-      int num_procs = omp_get_num_procs();
+    int threads = getIntOption_("threads");
       
-      // check if number of threads are available
-      if (threads > num_procs)
-      {
-        threads = num_procs;
-      }
-    #endif
     //-------------------------------------------------------------
     // Determination of the Executable
     //-------------------------------------------------------------
@@ -343,13 +330,10 @@ protected:
                    << "--ppm-max" << ppm_max
                    << "--compound-timeout" << compound_timeout
                    << "--tree-timeout" << tree_timeout
+                   << "--processors" << QString::number(threads) 
                    << "--quiet"
                    << "--output" << out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
 
-    // check OpenMP
-    #ifdef _OPENMP
-       process_params << "--processors" << QString::number(threads); 
-    #endif
     // add flags 
     if (no_recalibration)
     {
