@@ -48,6 +48,11 @@ pipeline {
                            steps {
                                echo 'test'
                                sh 'less test.txt'
+                               step([$class: 'XUnitBuilder',
+                                thresholds: [[$class: 'FailedThreshold', failureThreshold: '0']],
+                                tools: [
+                                        [$class: 'CTestType', pattern: 'tools/jenkins/Test.xml'],
+                                         ]])
                            }
                        }
                     }
@@ -68,7 +73,7 @@ pipeline {
                                echo 'test'
                                sh 'less test.txt'
                                step([$class: 'XUnitBuilder',
-                                thresholds: [[$class: 'FailedThreshold', unstableThreshold: '0']],
+                                thresholds: [[$class: 'FailedThreshold', failureThreshold: '0']],
                                 tools: [
                                         [$class: 'CTestType', pattern: 'tools/jenkins/Test.xml'],
                                          ]])
