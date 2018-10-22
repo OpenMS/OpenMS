@@ -55,7 +55,7 @@ pipeline {
                         always{
                             xunit (
                                 thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
-                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml') ])
+                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml') ]
                             )
                         }
                     }
@@ -82,7 +82,7 @@ pipeline {
                         always{
                             xunit (
                                 thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
-                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml') ])
+                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml') ]
                             )
                         }
                     }
