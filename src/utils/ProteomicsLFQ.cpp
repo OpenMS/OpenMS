@@ -936,11 +936,14 @@ protected:
     //-------------------------------------------------------------
     // ConsensusMap normalization (basic)
     //-------------------------------------------------------------
-    ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(
-      consensus_fraction, 
-      ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
-      "", 
-      "");
+    if (getStringOption_("out_msstats").empty())  // only normalize if no MSstats output is generated
+    {
+      ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(
+        consensus_fraction, 
+        ConsensusMapNormalizerAlgorithmMedian::NM_SCALE, 
+        "", 
+        "");
+    }
 
     // max_alignment_diff returned by reference
     return EXECUTION_OK;
