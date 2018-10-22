@@ -67,7 +67,8 @@ void* setupIsoLayeredGenerator(void* iso,
                                double _target_coverage,
                                double _percentage_to_expand,
                                int _tabSize,
-                               int _hashSize);
+                               int _hashSize,
+                               bool _do_trim);
 C_HEADERS(IsoLayeredGenerator)
 
 //______________________________________________________ORDERED GENERATOR

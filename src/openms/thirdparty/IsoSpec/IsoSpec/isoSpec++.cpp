@@ -31,6 +31,7 @@
 #include <string>
 #include <limits>
 #include <assert.h>
+#include <ctype.h>
 #include "platform.h"
 #include "conf.h"
 #include "dirtyAllocator.h"
@@ -142,16 +143,6 @@ double Iso::getHeaviestPeakMass() const
 
 
 
-inline int str_to_int(const string& s)
-{
-    char* endptr[1];
-    const char* c_s = s.c_str();
-    int ret = (int) strtol(c_s, endptr, 10);
-    if (c_s == endptr[0])
-        throw invalid_argument("Invalid formula");
-    return ret;
-}
-
 Iso::Iso(const char* formula) :
 disowned(false),
 allDim(0),
@@ -169,34 +160,36 @@ modeLProb(0.0)
 unsigned int parse_formula(const char* formula, std::vector<const double*>& isotope_masses, std::vector<const double*>& isotope_probabilities, int** isotopeNumbers, int** atomCounts, unsigned int* confSize)
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
-    string cpp_formula(formula);
-    int last_modeswitch = 0;
-    int mode = 0;
-    int pos = 0;
+    size_t slen = strlen(formula);
     std::vector<string> elements;
     std::vector<int> numbers;
-    while(formula[pos] != '\0')
+
+    if(slen == 0)
+        throw invalid_argument("Invalid formula: can't be empty");
+
+    if(!isdigit(formula[slen-1]))
+        throw invalid_argument("Invalid formula: every element must be followed by a number - write H2O1 and not H2O for water");
+
+    for(size_t ii=0; ii<slen; ii++)
+        if(!isdigit(formula[ii]) && !isalpha(formula[ii]))
+            throw invalid_argument("Ivalid formula: contains invalid (non-digit, non-alpha) character");
+
+    size_t position = 0;
+    size_t elem_end = 0;
+    size_t digit_end = 0;
+
+    while(position < slen)
     {
-        if(isdigit(formula[pos]) && mode == 0)
-        {
-            elements.push_back(cpp_formula.substr(last_modeswitch, pos-last_modeswitch));
-            last_modeswitch = pos;
-            mode = 1;
-        }
-        else if(isalpha(formula[pos]) && mode == 1)
-        {
-            numbers.push_back(str_to_int(cpp_formula.substr(last_modeswitch, pos-last_modeswitch)));
-            last_modeswitch = pos;
-            mode = 0;
-        }
-        pos++;
+        elem_end = position;
+        while(isalpha(formula[elem_end]))
+            elem_end++;
+        digit_end = elem_end;
+        while(isdigit(formula[digit_end]))
+            digit_end++;
+        elements.push_back(std::string(&formula[position], elem_end-position));
+        numbers.push_back(atoi(&formula[elem_end]));
+        position = digit_end;
     }
-
-    numbers.push_back(str_to_int(cpp_formula.substr(last_modeswitch, pos)));
-
-
-    if(elements.size() != numbers.size())
-        throw invalid_argument("Invalid formula");
 
     std::vector<int> element_indexes;
 
@@ -313,18 +306,23 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 
     if(reorder_marginals)
     {
-//        memcpy(marginalResults, marginalResultsUnsorted, dimNumber * sizeof(PrecalculatedMarginal*));
         OrderMarginalsBySizeDecresing comparator(marginalResultsUnsorted);
-        marginalOrder = new int[dimNumber];
+        int* tmpMarginalOrder = new int[dimNumber];
 
         for(int ii=0; ii<dimNumber; ii++)
-            marginalOrder[ii] = ii;
+            tmpMarginalOrder[ii] = ii;
 
-        std::sort(marginalOrder, marginalOrder + dimNumber, comparator);
+        std::sort(tmpMarginalOrder, tmpMarginalOrder + dimNumber, comparator);
         marginalResults = new PrecalculatedMarginal*[dimNumber];
         
         for(int ii=0; ii<dimNumber; ii++)
-            marginalResults[ii] = marginalResultsUnsorted[marginalOrder[ii]];
+            marginalResults[ii] = marginalResultsUnsorted[tmpMarginalOrder[ii]];
+
+        marginalOrder = new int[dimNumber];
+        for(int ii = 0; ii<dimNumber; ii++)
+            marginalOrder[tmpMarginalOrder[ii]] = ii;
+
+        delete[] tmpMarginalOrder;
 
     }
     else
@@ -352,7 +350,10 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
         counter[0]--;
     }
     else
+    {
         terminate_search();
+        lcfmsv = std::numeric_limits<double>::infinity();
+    }
 
     lProbs_ptr--;
 
@@ -362,7 +363,12 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
 void IsoThresholdGenerator::terminate_search()
 {
     for(int ii=0; ii<dimNumber; ii++)
-        counter[ii] = marginalResults[ii]->get_no_confs();
+    {
+        counter[ii] = marginalResults[ii]->get_no_confs()-1;
+        partialLProbs[ii] = -std::numeric_limits<double>::infinity();
+    }
+    partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();
+    lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs();
 }
 
 size_t IsoThresholdGenerator::count_confs()
@@ -581,7 +587,8 @@ generator_position(-1)
 
     lprobThr = (*reinterpret_cast<double*>(topConf));
 
-    while(advanceToNextLayer()) {};
+    if(targetCoverage > 0.0)
+        while(advanceToNextLayer()) {};
 }
 
 
@@ -619,18 +626,12 @@ bool IsoLayeredGenerator::advanceToNextLayer()
 
         if(top_lprob >= lprobThr)
         {
-#ifdef DEBUG
-            hits += 1;
-#endif /* DEBUG */
             newaccepted.push_back(topConf);
             accepted_in_this_layer++;
             prob_in_this_layer.add(exp(top_lprob));
         }
         else
         {
-#ifdef DEBUG
-            moves += 1;
-#endif /* DEBUG */
             next->push_back(topConf);
             continue;
         }
@@ -680,58 +681,16 @@ bool IsoLayeredGenerator::advanceToNextLayer()
     {
         if(prob_in_this_layer.get() < targetCoverage)
         {
-#ifdef DEBUG
-            Summator testDupa(prob_in_this_layer);
-            for (std::vector<void*>::iterator it = next->begin(); it != next->end(); it++) {
-                testDupa.add(exp(getLProb(*it)));
-            }
-            std::cout << "Prob(Layer) = " << prob_in_this_layer.get() << std::endl;
-            std::cout << "Prob(Layer)+Prob(Fringe) = " << testDupa.get() << std::endl;
-            std::cout << "Layers = " << layers << std::endl;
-            std::cout << std::endl;
-#endif /* DEBUG */
-
-        // // This was an attempt to merge two methods: layered and layered_estimating
-        // // that does not work so good as predicted.
-//             if( estimateThresholds and ( prob_in_this_layer.get() >= targetCoverage*.99 ) ){
-//                 estimateThresholds = false;
-//                 percentageToExpand = .25; // The ratio of one rectangle to the rectangle.
-// #ifdef DEBUG
-//                 std::cout << "We switch!" << std::endl;
-// #endif /* DEBUG */
-//             }
-
-#ifdef DEBUG
-                std::cout << "percentageToExpand = " << percentageToExpand << std::endl;
-#endif /* DEBUG */
-
             std::vector<void*>* nnew = current;
             nnew->clear();
             current = next;
             next = nnew;
             int howmany = floor(current->size()*percentageToExpand);
-            if(estimateThresholds){
-                // Screw numeric correctness, ARRRRRRR!!! Well, this is an estimate anyway, doesn't have to be that precise
-                // lprobThr += log((1.0-targetCoverage))+log1p((percentageToExpand-1.0)/layers) - log(1.0-prob_in_this_layer.get());
-                lprobThr += log(1.0-targetCoverage) + log(1.0-(1.0-percentageToExpand)/pow(layers, 2.0)) - log(1.0 -prob_in_this_layer.get());
-                if(lprobThr > maxFringeLprob){
-                    lprobThr = maxFringeLprob;
-                    estimateThresholds = false;
-                    percentageToExpand = .3;
-#ifdef DEBUG
-                    std::cout << "We switch to other method because density estimates where higher than max on fringe." << std::endl;
-#endif /* DEBUG */
-                    lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
-                }
-            } else
-                lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
+            lprobThr = getLProb(quickselect(current->data(), howmany, 0, current->size()));
             totalProb = prob_in_this_layer;
         }
         else
         {
-#ifdef DEBUG
-            std::cerr << "No. layers: " << layers << "  hits: " << hits << "    misses: " << moves << " miss ratio: " << static_cast<double>(moves) / static_cast<double>(hits) << std::endl;
-#endif /* DEBUG */
             delete next;
             next = nullptr;
             delete current;
@@ -787,11 +746,7 @@ bool IsoLayeredGenerator::advanceToNextLayer()
                     else
                         end = loweridx;
                 }
-            int accend = newaccepted.size()-accepted_in_this_layer+start+1;
-    #ifdef DEBUG
-                std::cerr << "Last layer size: " << accepted_in_this_layer << " Total size: " << newaccepted.size() << "    Total size after trimming: " << accend << " No. trimmed: " << -start-1+accepted_in_this_layer
-            << "    Trimmed to left ratio: " << static_cast<double>(-start-1+accepted_in_this_layer) / static_cast<double>(accend) << std::endl;
-    #endif /* DEBUG */
+                int accend = newaccepted.size()-accepted_in_this_layer+start+1;
 
                 totalProb = qsprob;
                 newaccepted.resize(accend);
