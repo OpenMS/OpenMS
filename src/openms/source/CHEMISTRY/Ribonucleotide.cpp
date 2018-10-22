@@ -51,7 +51,7 @@ namespace OpenMS
   Ribonucleotide::Ribonucleotide(
     const String& name, const String& code, const String& new_code,
     const String& html_code, const EmpiricalFormula& formula, char origin,
-    double mono_mass, double avg_mass, enum TermSpecificity term_spec,
+    double mono_mass, double avg_mass, enum TermSpecificityNuc term_spec,
     const EmpiricalFormula& baseloss_formula):
     name_(name), code_(code), new_code_(new_code), html_code_(html_code),
     formula_(formula), origin_(origin), mono_mass_(mono_mass),
@@ -158,12 +158,12 @@ namespace OpenMS
     formula_ = formula;
   }
 
-  enum Ribonucleotide::TermSpecificity Ribonucleotide::getTermSpecificity() const
+  enum Ribonucleotide::TermSpecificityNuc Ribonucleotide::getTermSpecificity() const
   {
     return term_spec_;
   }
 
-  void Ribonucleotide::setTermSpecificity(enum TermSpecificity term_spec)
+  void Ribonucleotide::setTermSpecificity(enum TermSpecificityNuc term_spec)
   {
     if (term_spec == NUMBER_OF_TERM_SPECIFICITY)
     {

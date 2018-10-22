@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
         libcpp_vector[ const Ribonucleotide * ] getSequence() nogil except +
 
-        Ribonucleotide * operator[](size_t index) nogil except +
+        #Ribonucleotide * operator[](size_t index) nogil except +
 
 
 
@@ -55,7 +55,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
         const RibonucleotideChainEnd * getThreePrimeMod() nogil except +
 
         # returns the residue at position index
-        Ribonucleotide * get(Size index) nogil except +
+        #Ribonucleotide * get(Size index) nogil except +
 
         # set the residue at position index
         void set(size_t index, const Ribonucleotide * r) nogil except +

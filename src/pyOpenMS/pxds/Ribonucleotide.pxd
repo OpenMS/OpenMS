@@ -6,7 +6,7 @@ from EmpiricalFormula cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS::Ribonucleotide":
 
-    cdef enum TermSpecificity:
+    cdef enum TermSpecificityNuc:
       # wrap-attach:
       # Ribonucleotide
       ANYWHERE = 0,
@@ -33,7 +33,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
                 char origin,
                 double mono_mass,
                 double avg_mass,
-                TermSpecificity term_spec,
+                TermSpecificityNuc term_spec,
                 EmpiricalFormula baseloss_formula) nogil except +
 
  
@@ -86,10 +86,10 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
         String getHTMLCode() nogil except +
 
         # Set the terminal specificity
-        void setTermSpecificity(TermSpecificity term_spec) nogil except +
+        #void setTermSpecificity(TermSpecificityNuc term_spec) nogil except +
 
         # Get the terminal specificity
-        TermSpecificity getTermSpecificity() nogil except +
+        TermSpecificityNuc getTermSpecificity() nogil except +
 
         # Get sum formula after loss of the nucleobase
         EmpiricalFormula getBaselossFormula() nogil except +
