@@ -48,17 +48,12 @@ pipeline {
                            steps {
                                echo 'test'
                                sh 'less test.txt'
-                           }
-                       }
-                    }
-                    post {
-                        always{
-                            //TODO evaluate if it makes sense to ignore some test results (e.g. mark them optional)
-                            xunit (
+                               xunit (
                                 thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
                                 tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
-                            )
-                        }
+                                )
+                           }
+                       }
                     }
                 }
                 stage('PyOpenMS') {
@@ -77,15 +72,11 @@ pipeline {
                                echo 'test'
                                sh 'less test.txt'
                            }
-                       }
-                    }
-                    post {
-                        always{
-                            xunit (
+                           xunit (
                                 thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
                                 tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
-                            )
-                        }
+                           )
+                       }
                     }
                 }
             }
