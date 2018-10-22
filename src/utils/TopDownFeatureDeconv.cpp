@@ -94,57 +94,13 @@ protected:
         mtd_param.setValue("mass_error_ppm", 10.0, "Allowed mass deviation (in ppm).");
         mtd_param.setValue("max_trace_length", 300.0, "");
         mtdet.setParameters(mtd_param);
-        /*
-         * defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
-    defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
-    defaults_.setValue("chrom_peak_snr", 3.0, "Minimum intensity above noise_threshold_int (signal-to-noise) a peak should have to be considered an apex.");
 
-    defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
-    defaults_.setValidStrings("reestimate_mt_sd", ListUtils::create<String>("true,false"));
+        mtdet.run(map, m_traces);  // m_traces : output of this function
 
-    defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data.");
-    defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
-
-    // advanced parameters
-    defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("trace_termination_criterion", ListUtils::create<String>("outlier,sample_rate"));
-    defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", ListUtils::create<String>("advanced"));
-
-    defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_trace_length", -1.0, "Maximum expected length of a mass trace (in seconds). Set to a negative value to disable maximal length check during mass trace detection.", ListUtils::create<String>("advanced"));
-         * */
-
-       // MSExperiment::ConstAreaIterator start = map.areaBeginConst(10, 11, 1000,1100);
-       // MSExperiment::ConstAreaIterator end = map.areaBeginConst(20, 21, 1000,1100);
-
-        //mtdet.run(start, end, m_traces);
-        mtdet.run(map, m_traces);
-
-        ofstream mfile;
-        mfile.open ("/Users/kyowonjeong/Documents/A4B/matlab/masstrace.m");
-       // myfile << "Writing this to a file.\n";
-
-        mfile << "traces={";
-        for(int i=0;i<m_traces.size();i++){
-            //if(m_traces[i].getMaxIntensity(false) < 1e5)continue;
-            ostringstream os;
-            for(int j=0;j<m_traces[i].getSize();j++) {
-                //if(m_traces[i][j].getRT() > 320 || m_traces[i][j].getRT() < 280) continue;
-                //if(m_traces[i][j].getMZ() > 880 || m_traces[i][j].getMZ() < 870) continue;
-
-                os << m_traces[i][j].getRT() << "," << m_traces[i][j].getMZ() << "," << m_traces[i][j].getIntensity() << endl;
-            }
-
-
-            String str = os.str();
-            if(str.empty()) continue;
-            mfile << "[" << str <<  "];" << endl;
-
-        }
-        mfile << "};" << endl;
-
-        mfile.close();
+        //-------------------------------------------------------------
+        // calculate interval
+        //-------------------------------------------------------------
+        generateInterval(m_traces);
 
 
         //m_traces[0][0].getPosition()
@@ -154,6 +110,49 @@ protected:
         //-------------------------------------------------------------
         // writing output
         //-------------------------------------------------------------
+        // write masstrace results in file
+        /*
+        ofstream mfile;
+        mfile.open ("/Users/jeek/Documents/A4B/matlab/masstrace.m");
+
+        mfile << "traces={";
+        for(int i=0;i<m_traces.size();i++){
+            //if(m_traces[i].getMaxIntensity(false) < 1e5)continue;
+            ostringstream os;
+            for(int j=0;j<m_traces[i].getSize();j++) {
+                os << m_traces[i][j].getRT() << "," << m_traces[i][j].getMZ() << "," << m_traces[i][j].getIntensity() << endl;
+            }
+            String str = os.str();
+            if(str.empty()) continue;
+            mfile << "[" << str <<  "];" << endl;
+
+        }
+        mfile << "};" << endl;
+        mfile.close();
+        */
+    }
+
+    void generateInterval(std::vector<MassTrace>& m_traces)
+    {
+        // input : MS1 (map), m_traces
+        // output : interval set (RTs, RTe) -> m_traces?
+        // param : deltaRT, N
+        float rw_wndw_size = 0.01; // delatRT
+        int N = 5;
+
+        cout << m_traces[0].findMaxByIntPeak() << endl;
+        cout << m_traces[0][m_traces[0].findMaxByIntPeak()] << endl;
+        for(int j = 0; j<m_traces[0].getSize(); j++){
+            cout << m_traces[0][j].getRT() << "," << m_traces[0][j].getMZ() << "," << m_traces[0][j].getIntensity() << endl;
+        }
+
+        // find apexes
+
+
+//    for (const auto &trace : m_traces) {
+//        trace.getCentroidRT()
+//    }
+
     }
 };
 
