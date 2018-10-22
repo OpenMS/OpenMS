@@ -19,7 +19,12 @@
 #include <cmath>
 #include <fenv.h>
 
+#if !defined(ISOSPEC_G_FACT_TABLE_SIZE)
+// 10M should be enough for anyone, right?
+// Actually, yes. If anyone tries to input a molecule that has more than 10M atoms, 
+// he deserves to get an exception thrown in his face.
 #define ISOSPEC_G_FACT_TABLE_SIZE 1024*1024*10
+#endif
 
 namespace IsoSpec
 {
