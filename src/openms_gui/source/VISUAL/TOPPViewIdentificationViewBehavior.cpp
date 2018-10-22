@@ -1059,9 +1059,8 @@ namespace OpenMS
         }
       }
 
-      //tv_->updateLayerBar();
-      tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
       tv_->updateLayerBar();
+      tv_->getSpectraIdentificationViewWidget()->ignore_update = false;
     }
   }
 
