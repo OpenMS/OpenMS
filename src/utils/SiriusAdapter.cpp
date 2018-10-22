@@ -167,7 +167,7 @@ protected:
     registerIntOption_("compound_timeout", "<num>", 10, "Time out in seconds per compound. To disable the timeout set the value to 0", false);
     registerIntOption_("tree_timeout", "<num>", 0, "Time out in seconds per fragmentation tree computation.", false);
     registerIntOption_("top_n_hits", "<num>", 10, "The number of top hits for each compound written to the CSI:FingerID output", false);
-
+    registerIntOption_("processors", "<num>", -1, "Number of cpu cores to use. If set to -1 Sirius uses all available cores.", false);
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("ion_tree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
@@ -220,6 +220,7 @@ protected:
     const Size candidates = getIntOption_("candidates");
     const QString compound_timeout = QString::number(getIntOption_("compound_timeout"));
     const QString tree_timeout = QString::number(getIntOption_("tree_timeout"));
+    const QString processors = QString::number(getIntOption_("processors"));
 
     bool auto_charge = getFlag_("auto_charge");
     bool no_recalibration = getFlag_("no_recalibration");
@@ -333,6 +334,10 @@ protected:
                    << "--output" << out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
 
     // add flags
+    if (processors != QString::number(-1))
+    {
+      process_params << "--processors" << processors;
+    } 
     if (no_recalibration)
     {
       process_params << "--no-recalibration";
