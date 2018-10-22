@@ -48,13 +48,16 @@ pipeline {
                            steps {
                                echo 'test'
                                sh 'less test.txt'
-                               step([$class: 'XUnitBuilder',
-                                thresholds: [[$class: 'FailedThreshold', failureThreshold: '0']],
-                                tools: [
-                                        [$class: 'CTestType', pattern: 'tools/jenkins/Test.xml'],
-                                         ]])
                            }
                        }
+                    }
+                    post {
+                        always{
+                            xunit (
+                                thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
+                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml') ])
+                            )
+                        }
                     }
                 }
                 stage('PyOpenMS') {
@@ -72,13 +75,16 @@ pipeline {
                            steps {
                                echo 'test'
                                sh 'less test.txt'
-                               step([$class: 'XUnitBuilder',
-                                thresholds: [[$class: 'FailedThreshold', failureThreshold: '0']],
-                                tools: [
-                                        [$class: 'CTestType', pattern: 'tools/jenkins/Test.xml'],
-                                         ]])
                            }
                        }
+                    }
+                    post {
+                        always{
+                            xunit (
+                                thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
+                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml') ])
+                            )
+                        }
                     }
                 }
             }
