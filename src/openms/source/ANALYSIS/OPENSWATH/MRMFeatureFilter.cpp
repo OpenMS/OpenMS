@@ -54,29 +54,33 @@ namespace OpenMS
   MRMFeatureFilter::MRMFeatureFilter() :
     DefaultParamHandler("MRMFeatureFilter")
   {
-    defaults_.setValue("flag_or_filter", "flag", "Flag or Filter (i.e., remove) Components or transitions that do not pass the QC.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("flag_or_filter", ListUtils::create<String>("flag,filter"));
-    
-    //TODO:  future implementation for QcML reporting
-    defaults_.setValue("report_xic", "false", "Embed an image of the XIC in the QC report.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("report_xic", ListUtils::create<String>("true,false"));
-
-    //TODO:  future implementation for QcML reporting
-    defaults_.setValue("report_tic", "false", "Embed an image of the TIC in the QC report.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("report_tic", ListUtils::create<String>("true,false"));
-
-    // write defaults into Param object param_
-    defaultsToParam_();
-    updateMembers_();
+    getDefaultParameters(defaults_);
+    defaultsToParam_(); // write defaults into Param object param_
   }
 
   MRMFeatureFilter::~MRMFeatureFilter()
   {
   }
 
+  void MRMFeatureFilter::getDefaultParameters(Param& params) const
+  {
+    params.clear();
+
+    params.setValue("flag_or_filter", "flag", "Flag or Filter (i.e., remove) Components or transitions that do not pass the QC.", ListUtils::create<String>("advanced"));
+    params.setValidStrings("flag_or_filter", ListUtils::create<String>("flag,filter"));
+
+    //TODO: future implementation for QcML reporting
+    params.setValue("report_xic", "false", "Embed an image of the XIC in the QC report.", ListUtils::create<String>("advanced"));
+    params.setValidStrings("report_xic", ListUtils::create<String>("true,false"));
+
+    //TODO: future implementation for QcML reporting
+    params.setValue("report_tic", "false", "Embed an image of the TIC in the QC report.", ListUtils::create<String>("advanced"));
+    params.setValidStrings("report_tic", ListUtils::create<String>("true,false"));
+  }
+
   void MRMFeatureFilter::updateMembers_()
   {
-    flag_or_filter_ = (String)param_.getValue("flag_or_filter");
+    flag_or_filter_ = param_.getValue("flag_or_filter").toString();
     report_xic_ = param_.getValue("report_xic").toBool();
     report_tic_ = param_.getValue("report_tic").toBool();
   }

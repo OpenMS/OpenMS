@@ -72,6 +72,8 @@ public:
     ~MRMFeatureFilter() override;
     //@}
 
+    void getDefaultParameters(Param& params) const;
+
     /// Synchronize members with param class
     void updateMembers_() override;
 
