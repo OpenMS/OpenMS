@@ -93,7 +93,7 @@ pipeline {
         stage('Deploy') {
             when {
                 // so we do not allocate an agent unnecessarily
-                beforeAgent = true
+                beforeAgent true
                 //When switching to multibranch pipeline, use the following
                 // branch 'test/Jenkinsfile'
                 expression { env.BRANCH_NAME == 'test/Jenkinsfile' }
