@@ -11,9 +11,6 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
     ctypedef Ribonucleotide RibonucleotideChainEnd
 
     cdef cppclass NASequence "OpenMS::NASequence":
-
-
-
         # wrap-hash:
         #   toString().c_str()
         #
