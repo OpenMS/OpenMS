@@ -53,16 +53,13 @@ pipeline {
                     }
                     post {
                         always{
-                            //TODO evaluate if it makes sense to ignore some test results (e.g. mark them optional)
-                            xunit (
-                                thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
-                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
-                            )
-                        }
-                    }
-                    post {
-                        failure{
-                            echo 'failed'
+                            catchError {
+                                //TODO evaluate if it makes sense to ignore some test results (e.g. mark them optional)
+                                xunit (
+                                    thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
+                                    tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
+                                )
+                            }
                         }
                     }
                 }
@@ -86,10 +83,13 @@ pipeline {
                     }
                     post {
                         always{
+                            catchError {
+                                //TODO evaluate if it makes sense to ignore some test results (e.g. mark them optional)
                                 xunit (
                                     thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
                                     tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
                                 )
+                            }
                         }
                     }
                     post {
