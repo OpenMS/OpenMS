@@ -21,9 +21,9 @@ pipeline {
                                sh 'less wintest.txt'
                            }
                            post {
-                            always {
-                                stash includes: 'wintest.txt', name: 'testresult-win'
-                            }
+                                always {
+                                    stash includes: 'wintest.txt', name: 'testresult-win'
+                                }
                            }
                        }
                     }
@@ -39,9 +39,9 @@ pipeline {
                                sh 'echo bar > test.txt'
                            }
                            post {
-                            always {
-                                stash includes: 'test.txt', name: 'testresult-mac'
-                            }
+                                always {
+                                    stash includes: 'test.txt', name: 'testresult-mac'
+                                }
                            }
                        }
                        stage("mac test") {
@@ -90,11 +90,6 @@ pipeline {
                                     tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
                                 )
                             }
-                        }
-                    }
-                    post {
-                        failure{
-                            echo 'failed'
                         }
                     }
                 }
