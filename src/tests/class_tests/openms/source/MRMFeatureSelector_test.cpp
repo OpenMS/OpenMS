@@ -224,6 +224,8 @@ START_SECTION(schedule_MRMFeaturesQMIP())
   FeatureMap output_selected;
   ptrQMIP->schedule_MRMFeaturesQMIP(feature_map, output_selected);
 
+  TEST_EQUAL(output_selected.size(), 49);
+
   TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);                     // TODO: fails
   TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");            // TODO: fails
   TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 15.8944563381195);                                   // TODO: fails
