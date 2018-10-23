@@ -337,6 +337,8 @@ namespace OpenMS
               removeGraphicalPeakAnnotations_(spectrum_index);
               removeTheoreticalSpectrumLayer_();
 
+              // return if no active 1D widget is present
+              if (widget_1D == nullptr) { return; }
               // update current PeptideHit with the synchronized one
               widget_1D->canvas()->activateSpectrum(spectrum_index);
               const vector<PeptideIdentification>& pis2 = current_layer.getCurrentSpectrum().getPeptideIdentifications();
