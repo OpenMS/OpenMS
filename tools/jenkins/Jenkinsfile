@@ -53,13 +53,12 @@ pipeline {
                     }
                     post {
                         always{
-                            catchError {
-                                //TODO evaluate if it makes sense to ignore some test results (e.g. mark them optional)
-                                xunit (
-                                    thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
-                                    tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
-                                )
-                            }
+                            //TODO figure out how to show the failure of a step correctly.  Only the overall build is marked failed
+                            //TODO evaluate if it makes sense to ignore some test results (e.g. mark them optional)
+                            xunit (
+                                thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
+                                tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
+                            )
                         }
                     }
                 }
