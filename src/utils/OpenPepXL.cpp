@@ -290,6 +290,8 @@ protected:
       DataArrays::FloatDataArray dummy_array;
       DataArrays::IntegerDataArray dummy_charges;
       OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_fragments_without_shift, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, spectrum_light, spectrum_heavy, dummy_charges, dummy_charges, dummy_array, 0.3);
+
+#pragma omp critical (LOG_DEBUG_access)
       LOG_DEBUG << " heavy_light comparison, matching peaks without shift: " << matched_fragments_without_shift.size() << endl;
 
       // transform by m/z difference between unlabeled and labeled cross-link to make heavy and light comparable.
@@ -357,6 +359,7 @@ protected:
         }
         spectrum_heavy_to_light.getIntegerDataArrays().push_back(spectrum_heavy_to_light_charges);
 
+#pragma omp critical (LOG_DEBUG_access)
         LOG_DEBUG << "Spectrum heavy to light: " << spectrum_heavy_to_light.size() << endl;
 
         // align peaks from light spectrum with shifted peaks from heavy spectrum
@@ -369,6 +372,7 @@ protected:
           dummy_array.clear();
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_fragments_with_shift, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, spectrum_light, spectrum_heavy_to_light, dummy_charges, dummy_charges, dummy_array, 0.3);
 
+#pragma omp critical (LOG_DEBUG_access)
           LOG_DEBUG << "matched with shift: " << matched_fragments_with_shift.size() << endl;
 
           // fill xlink_peaks spectrum with matched peaks from the light spectrum and add the currently considered charge
@@ -390,6 +394,7 @@ protected:
         }
       }
 
+#pragma omp critical (LOG_DEBUG_access)
       LOG_DEBUG << "done shifting peaks, total xlink peaks: " << xlink_peaks.size() << endl;
 
       // generate linear peaks spectrum, include charges determined through deisotoping in preprocessing
@@ -418,9 +423,11 @@ protected:
           linear_peaks.getIntegerDataArrays()[1].push_back(spectrum_light_iso_peaks[matched_fragments_without_shift[i].first]);
         }
       }
+#pragma omp critical (LOG_DEBUG_access)
       LOG_DEBUG << "done creating linear ion spectrum, total linear peaks: " << linear_peaks.size() << endl;
 
 #ifdef DEBUG_OPENPEPXL
+#pragma omp critical (LOG_DEBUG_access)
         LOG_DEBUG << "Peaks to match: " << linear_peaks.size() << endl;
 #endif
 
@@ -441,6 +448,7 @@ protected:
       xlink_peaks.sortByPosition();
       all_peaks.sortByPosition();
 
+#pragma omp critical (LOG_DEBUG_access)
       LOG_DEBUG << "paired up, linear peaks: " << linear_peaks.size() << " | xlink peaks: " << xlink_peaks.size() << " | all peaks: " << all_peaks.size() << endl;
 
 #ifdef _OPENMP
@@ -453,8 +461,11 @@ protected:
       }
 
 #ifdef DEBUG_OPENPEPXL
-        LOG_DEBUG << "spctrum_linear_peaks: " << preprocessed_pair_spectra.spectra_linear_peaks[pair_index].size() << endl;
-        LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
+#pragma omp critical (LOG_DEBUG_access)
+        {
+          LOG_DEBUG << "spectrum_linear_peaks: " << preprocessed_pair_spectra.spectra_linear_peaks[pair_index].size() << endl;
+          LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
+        }
 #endif
 
     }
@@ -766,6 +777,8 @@ protected:
     {
       Size scan_index = spectrum_pairs[pair_index].first;
       Size scan_index_heavy = spectrum_pairs[pair_index].second;
+
+#pragma omp critical (LOG_DEBUG_access)
       LOG_DEBUG << "Scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
       const PeakSpectrum& spectrum_light = spectra[scan_index];
       const double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
@@ -773,7 +786,7 @@ protected:
       const double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
 
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (cout_access)
 #endif
       {
         spectrum_counter++;
@@ -828,7 +841,7 @@ protected:
       vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass_light, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
 
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (cout_access)
 #endif
       cout << "Pair number: " << spectrum_counter << " |\tNumber of peaks in light spectrum: " << spectrum_light.size() << " |\tNumber of candidates: " << candidates.size() << endl;
 
@@ -842,6 +855,7 @@ protected:
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
         double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
 
+#pragma omp critical (LOG_DEBUG_access)
         LOG_DEBUG << "Pair: " << cross_link_candidate.alpha.toString() << "-" << cross_link_candidate.beta.toString() << " matched to light spectrum " << scan_index << "\t and heavy spectrum " << scan_index_heavy
               << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
 
@@ -931,16 +945,18 @@ protected:
           OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks, fragment_mass_tolerance_unit_ppm, theoretical_spec_xlinks_beta, xlink_peaks, theo_charges_beta, exp_charges, ppm_error_array_xlinks_beta);
         }
 
-
         // Pre-Score calculations
         Size matched_alpha_count = matched_spec_linear_alpha.size() + matched_spec_xlinks_alpha.size();
         Size theor_alpha_count = theoretical_spec_linear_alpha.size() + theoretical_spec_xlinks_alpha.size();
         Size matched_beta_count = matched_spec_linear_beta.size() + matched_spec_xlinks_beta.size();
         Size theor_beta_count = theoretical_spec_linear_beta.size() + theoretical_spec_xlinks_beta.size();
 
-        LOG_DEBUG << "matched peaks: " << matched_alpha_count + matched_beta_count << endl;
-        LOG_DEBUG << "theoretical peaks: " << theor_alpha_count + theor_beta_count << endl;
-        LOG_DEBUG << "exp peaks: " << all_peaks.size() << endl;
+#pragma omp critical (LOG_DEBUG_access)
+        {
+          LOG_DEBUG << "matched peaks: " << matched_alpha_count + matched_beta_count << endl;
+          LOG_DEBUG << "theoretical peaks: " << theor_alpha_count + theor_beta_count << endl;
+          LOG_DEBUG << "exp peaks: " << all_peaks.size() << endl;
+        }
 
         if (matched_alpha_count + matched_beta_count > 0)
         {
@@ -1293,13 +1309,16 @@ protected:
           }
 
           // write fragment annotations
+#pragma omp critical (LOG_DEBUG_access)
           LOG_DEBUG << "Start writing annotations" << endl;
-          vector<PeptideHit::PeakAnnotation> frag_annotations;
 
+          vector<PeptideHit::PeakAnnotation> frag_annotations;
           OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_linear_alpha, theoretical_spec_linear_alpha, linear_peaks);
           OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_linear_beta, theoretical_spec_linear_beta, linear_peaks);
           OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_xlinks_alpha, theoretical_spec_xlinks_alpha, xlink_peaks);
           OPXLHelper::buildFragmentAnnotations(frag_annotations, matched_spec_xlinks_beta, theoretical_spec_xlinks_beta, xlink_peaks);
+
+#pragma omp critical (LOG_DEBUG_access)
           LOG_DEBUG << "End writing fragment annotations, size: " << frag_annotations.size() << endl;
 
           // make annotations unique
@@ -1343,9 +1362,9 @@ protected:
       {
         OPXLHelper::buildPeptideIDs(peptide_ids, top_csms_spectrum, all_top_csms, all_top_csms_current_index, spectra, scan_index, scan_index_heavy);
       }
-
+#pragma omp critical (LOG_DEBUG_access)
       LOG_DEBUG << "Next Spectrum #############################################" << endl;
-    }
+    } // end of parallel for-loop
     // end of matching / scoring
     progresslogger.endProgress();
 
