@@ -949,7 +949,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (Size index = 0; index < digest.size(); ++index)
+    for (Int index = 0; index < digest.size(); ++index) // use "Int" for OpenMP
     {
       IF_MASTERTHREAD
       {
