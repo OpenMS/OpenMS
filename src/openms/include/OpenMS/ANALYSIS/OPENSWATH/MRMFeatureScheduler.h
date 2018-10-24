@@ -54,21 +54,21 @@ public:
     void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features);
     void schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features);
 
-    void setNNThresholds(const std::vector<double>& nn_thresholds);
+    void setNNThresholds(const std::vector<Int>& nn_thresholds);
     void setLocalityWeights(const std::vector<String>& locality_weights);
     void setSelectTransitionGroups(const std::vector<String>& select_transition_groups);
-    void setSegmentWindowLengths(const std::vector<double>& segment_window_lengths);
-    void setSegmentStepLengths(const std::vector<double>& segment_step_lengths);
+    void setSegmentWindowLengths(const std::vector<Int>& segment_window_lengths);
+    void setSegmentStepLengths(const std::vector<Int>& segment_step_lengths);
     void setSelectHighestCounts(const std::vector<String>& select_highest_counts);
     void setVariableTypes(const std::vector<String>& variable_types);
     void setOptimalThresholds(const std::vector<double>& optimal_thresholds);
 
 private:
-    std::vector<double> nn_thresholds_;
+    std::vector<Int> nn_thresholds_;
     std::vector<String> locality_weights_;
     std::vector<String> select_transition_groups_;
-    std::vector<double> segment_window_lengths_;
-    std::vector<double> segment_step_lengths_;
+    std::vector<Int> segment_window_lengths_;
+    std::vector<Int> segment_step_lengths_;
     std::vector<String> select_highest_counts_;
     std::vector<String> variable_types_;
     std::vector<double> optimal_thresholds_;

@@ -138,8 +138,8 @@ namespace OpenMS
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
     for (size_t cnt1 = 0; cnt1 < time_to_name.size(); ++cnt1) {
-      const size_t start_iter = std::max((int)cnt1 - (int)nn_threshold_, 0);
-      const size_t stop_iter = std::min((int)cnt1 + (int)nn_threshold_ + 1, (int)time_to_name.size());
+      const size_t start_iter = std::max(cnt1 - nn_threshold_, 0ul);
+      const size_t stop_iter = std::min(cnt1 + nn_threshold_ + 1, time_to_name.size());
       std::vector<Int> constraints;
       const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
       for (size_t i = 0; i < feature_row1.size(); ++i) {
@@ -161,7 +161,7 @@ namespace OpenMS
                 variables.insert(name2);
             }
             double locality_weight = 1.0;
-            if (locality_weight_) {
+            if (getLocalityWeight() == "true") {
               locality_weight = 1.0 / (nn_threshold_ - std::abs((int)start_iter + (int)cnt2 - (int)cnt1) + 1);
             }
             const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
@@ -218,7 +218,7 @@ namespace OpenMS
         feature_name_map[component_group_name] = std::vector<Feature>();
       }
       feature_name_map[component_group_name].push_back(feature);
-      if (getSelectTransitionGroup()) {
+      if (getSelectTransitionGroup() == "true") {
         continue;
       }
       for (const Feature& subordinate : feature.getSubordinates()) {
@@ -253,7 +253,7 @@ namespace OpenMS
     for (const Feature& feature : features) {
       std::vector<Feature> subordinates_filtered;
       for (const Feature& subordinate : feature.getSubordinates()) {
-        const String feature_name = getSelectTransitionGroup()
+        const String feature_name = getSelectTransitionGroup() == "true"
           ? feature.getMetaValue("PeptideRef").toString() + "_" + String(feature.getUniqueId())
           : subordinate.getMetaValue("native_id").toString() + "_" + String(subordinate.getUniqueId());
 
@@ -291,62 +291,62 @@ namespace OpenMS
     return pow(peak_apices_sum*sn_ratio, 0.5);
   }
 
-  void MRMFeatureSelector::setNNThreshold(const double nn_threshold)
+  void MRMFeatureSelector::setNNThreshold(const Int nn_threshold)
   {
     nn_threshold_ = nn_threshold;
   }
 
-  double MRMFeatureSelector::getNNThreshold() const
+  Int MRMFeatureSelector::getNNThreshold() const
   {
     return nn_threshold_;
   }
 
-  void MRMFeatureSelector::setLocalityWeight(const bool locality_weight)
+  void MRMFeatureSelector::setLocalityWeight(const String locality_weight)
   {
     locality_weight_ = locality_weight;
   }
 
-  bool MRMFeatureSelector::getLocalityWeight() const
+  String MRMFeatureSelector::getLocalityWeight() const
   {
     return locality_weight_;
   }
 
-  void MRMFeatureSelector::setSelectTransitionGroup(const bool select_transition_group)
+  void MRMFeatureSelector::setSelectTransitionGroup(const String select_transition_group)
   {
     select_transition_group_ = select_transition_group;
   }
 
-  bool MRMFeatureSelector::getSelectTransitionGroup() const
+  String MRMFeatureSelector::getSelectTransitionGroup() const
   {
     return select_transition_group_;
   }
 
-  void MRMFeatureSelector::setSegmentWindowLength(const double segment_window_length)
+  void MRMFeatureSelector::setSegmentWindowLength(const Int segment_window_length)
   {
     segment_window_length_ = segment_window_length;
   }
 
-  double MRMFeatureSelector::getSegmentWindowLength() const
+  Int MRMFeatureSelector::getSegmentWindowLength() const
   {
     return segment_window_length_;
   }
 
-  void MRMFeatureSelector::setSegmentStepLength(const double segment_step_length)
+  void MRMFeatureSelector::setSegmentStepLength(const Int segment_step_length)
   {
     segment_step_length_ = segment_step_length;
   }
 
-  double MRMFeatureSelector::getSegmentStepLength() const
+  Int MRMFeatureSelector::getSegmentStepLength() const
   {
     return segment_step_length_;
   }
 
-  void MRMFeatureSelector::setSelectHighestCount(const bool select_highest_count)
+  void MRMFeatureSelector::setSelectHighestCount(const String select_highest_count)
   {
     select_highest_count_ = select_highest_count;
   }
 
-  bool MRMFeatureSelector::getSelectHighestCount() const
+  String MRMFeatureSelector::getSelectHighestCount() const
   {
     return select_highest_count_;
   }
@@ -376,30 +376,25 @@ namespace OpenMS
     params.clear();
     // TODO Adjust defaults
     // TODO set limits on parameters
-    params.setValue("nn_threshold", 4.0);
+    params.setValue("nn_threshold", 4);
     params.setValue("locality_weight", "false");
     params.setValue("select_transition_group", "true");
-    params.setValue("segment_window_length", 8.0);
-    params.setValue("segment_step_length", 4.0);
+    params.setValue("segment_window_length", 8);
+    params.setValue("segment_step_length", 4);
     params.setValue("select_highest_count", "false");
     params.setValue("variable_type", s_continuous);
     params.setValue("optimal_threshold", 0.5);
   }
 
-  void MRMFeatureSelector::setParameters(const Param& params)
-  {
-    nn_threshold_ = (double)params.getValue("nn_threshold");
-    locality_weight_ = params.getValue("locality_weight").toBool();
-    select_transition_group_ = params.getValue("select_transition_group").toBool();
-    segment_window_length_ = (double)params.getValue("segment_window_length");
-    segment_step_length_ = (double)params.getValue("segment_step_length");
-    select_highest_count_ = params.getValue("select_highest_count").toBool();
-    variable_type_ = params.getValue("variable_type").toString();
-    optimal_threshold_ = (double)params.getValue("optimal_threshold");
-  }
-
   void MRMFeatureSelector::updateMembers_()
   {
-    setParameters(param_);
+    nn_threshold_ = (Int)param_.getValue("nn_threshold");
+    locality_weight_ = param_.getValue("locality_weight").toString();
+    select_transition_group_ = param_.getValue("select_transition_group").toString();
+    segment_window_length_ = (Int)param_.getValue("segment_window_length");
+    segment_step_length_ = (Int)param_.getValue("segment_step_length");
+    select_highest_count_ = param_.getValue("select_highest_count").toString();
+    variable_type_ = param_.getValue("variable_type").toString();
+    optimal_threshold_ = (double)param_.getValue("optimal_threshold");
   }
 }

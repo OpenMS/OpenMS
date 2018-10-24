@@ -65,23 +65,23 @@ public:
 
     String remove_spaces(String str);
 
-    void setNNThreshold(const double nn_threshold);
-    double getNNThreshold() const;
+    void setNNThreshold(const Int nn_threshold);
+    Int getNNThreshold() const;
 
-    void setLocalityWeight(const bool locality_weight);
-    bool getLocalityWeight() const;
+    void setLocalityWeight(const String locality_weight);
+    String getLocalityWeight() const;
 
-    void setSelectTransitionGroup(const bool select_transition_group);
-    bool getSelectTransitionGroup() const;
+    void setSelectTransitionGroup(const String select_transition_group);
+    String getSelectTransitionGroup() const;
 
-    void setSegmentWindowLength(const double segment_window_length);
-    double getSegmentWindowLength() const;
+    void setSegmentWindowLength(const Int segment_window_length);
+    Int getSegmentWindowLength() const;
 
-    void setSegmentStepLength(const double segment_step_length);
-    double getSegmentStepLength() const;
+    void setSegmentStepLength(const Int segment_step_length);
+    Int getSegmentStepLength() const;
 
-    void setSelectHighestCount(const bool select_highest_count);
-    bool getSelectHighestCount() const;
+    void setSelectHighestCount(const String select_highest_count);
+    String getSelectHighestCount() const;
 
     void setVariableType(const String& variable_type);
     String getVariableType() const;
@@ -90,18 +90,17 @@ public:
     double getOptimalThreshold() const;
 
     void getDefaultParameters(Param& params);
-    void setParameters(const Param& params);
 
 protected:
     void updateMembers_(); /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
 
 private:
-    double nn_threshold_;
-    bool   locality_weight_;
-    bool   select_transition_group_;
-    double segment_window_length_;
-    double segment_step_length_;
-    bool   select_highest_count_;
+    Int    nn_threshold_;
+    String locality_weight_;
+    String select_transition_group_;
+    Int    segment_window_length_;
+    Int    segment_step_length_;
+    String select_highest_count_;
     String variable_type_;
     double optimal_threshold_;
 

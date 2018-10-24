@@ -71,7 +71,7 @@ namespace OpenMS
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
 
-  void MRMFeatureScheduler::setNNThresholds(const std::vector<double>& nn_thresholds)
+  void MRMFeatureScheduler::setNNThresholds(const std::vector<Int>& nn_thresholds)
   {
     nn_thresholds_ = nn_thresholds;
   }
@@ -86,12 +86,12 @@ namespace OpenMS
     select_transition_groups_ = select_transition_groups;
   }
 
-  void MRMFeatureScheduler::setSegmentWindowLengths(const std::vector<double>& segment_window_lengths)
+  void MRMFeatureScheduler::setSegmentWindowLengths(const std::vector<Int>& segment_window_lengths)
   {
     segment_window_lengths_ = segment_window_lengths;
   }
 
-  void MRMFeatureScheduler::setSegmentStepLengths(const std::vector<double>& segment_step_lengths)
+  void MRMFeatureScheduler::setSegmentStepLengths(const std::vector<Int>& segment_step_lengths)
   {
     segment_step_lengths_ = segment_step_lengths;
   }

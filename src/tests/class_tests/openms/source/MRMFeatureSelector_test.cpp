@@ -71,64 +71,57 @@ START_SECTION(~MRMFeatureSelectorScore())
 }
 END_SECTION
 
-START_SECTION(getParameters().getValue("nn_threshold"))
-{
-  MRMFeatureSelectorScore selectorScore;
-  TEST_REAL_SIMILAR(selectorScore.getParameters().getValue("nn_threshold"), 4.0)
-}
-END_SECTION
-
 START_SECTION(setNNThreshold())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_REAL_SIMILAR(selectorScore.getNNThreshold(), 4.0)
-  selectorScore.setNNThreshold(5.0);
-  TEST_REAL_SIMILAR(selectorScore.getNNThreshold(), 5.0)
+  TEST_EQUAL(selectorScore.getNNThreshold(), 4)
+  selectorScore.setNNThreshold(5);
+  TEST_EQUAL(selectorScore.getNNThreshold(), 5)
 }
 END_SECTION
 
 START_SECTION(getLocalityWeight())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getLocalityWeight(), false)
-  selectorScore.setLocalityWeight(true);
-  TEST_EQUAL(selectorScore.getLocalityWeight(), true)
+  TEST_EQUAL(selectorScore.getLocalityWeight(), "false")
+  selectorScore.setLocalityWeight("true");
+  TEST_EQUAL(selectorScore.getLocalityWeight(), "true")
 }
 END_SECTION
 
 START_SECTION(getSelectTransitionGroup())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), true)
-  selectorScore.setSelectTransitionGroup(false);
-  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), false)
+  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), "true")
+  selectorScore.setSelectTransitionGroup("false");
+  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), "false")
 }
 END_SECTION
 
 START_SECTION(getSegmentWindowLength())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_REAL_SIMILAR(selectorScore.getSegmentWindowLength(), 8.0)
-  selectorScore.setSegmentWindowLength(7.0);
-  TEST_REAL_SIMILAR(selectorScore.getSegmentWindowLength(), 7.0)
+  TEST_EQUAL(selectorScore.getSegmentWindowLength(), 8)
+  selectorScore.setSegmentWindowLength(7);
+  TEST_EQUAL(selectorScore.getSegmentWindowLength(), 7)
 }
 END_SECTION
 
 START_SECTION(getSegmentStepLength())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_REAL_SIMILAR(selectorScore.getSegmentStepLength(), 4.0)
-  selectorScore.setSegmentStepLength(3.0);
-  TEST_REAL_SIMILAR(selectorScore.getSegmentStepLength(), 3.0)
+  TEST_EQUAL(selectorScore.getSegmentStepLength(), 4)
+  selectorScore.setSegmentStepLength(3);
+  TEST_EQUAL(selectorScore.getSegmentStepLength(), 3)
 }
 END_SECTION
 
 START_SECTION(getSelectHighestCount())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getSelectHighestCount(), false)
-  selectorScore.setSelectHighestCount(true);
-  TEST_EQUAL(selectorScore.getSelectHighestCount(), true)
+  TEST_EQUAL(selectorScore.getSelectHighestCount(), "false")
+  selectorScore.setSelectHighestCount("true");
+  TEST_EQUAL(selectorScore.getSelectHighestCount(), "true")
 }
 END_SECTION
 
@@ -183,7 +176,6 @@ START_SECTION(select_MRMFeature())
 }
 END_SECTION
 
-
 START_SECTION(remove_spaces())
 {
   MRMFeatureSelectorScore selectorScore;
@@ -201,28 +193,28 @@ START_SECTION(schedule_MRMFeaturesQMIP())
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
 
-  MRMFeatureScheduler* ptrQMIP = new MRMFeatureScheduler();
+  MRMFeatureScheduler scheduler;
 
-  std::vector<double> nn_thresholds {4, 4};
-  std::vector<String>   locality_weights {"false", "false", "false", "true"};
-  std::vector<String>   select_transition_groups {"true", "true", "true", "true"};
-  std::vector<double> segment_window_lengths {8, -1};
-  std::vector<double> segment_step_lengths {4, -1};
-  std::vector<String>   select_highest_counts {"false", "false", "false", "false"};
+  std::vector<Int>    nn_thresholds {4, 4};
+  std::vector<String> locality_weights {"false", "false", "false", "true"};
+  std::vector<String> select_transition_groups {"true", "true", "true", "true"};
+  std::vector<Int>    segment_window_lengths {8, -1};
+  std::vector<Int>    segment_step_lengths {4, -1};
+  std::vector<String> select_highest_counts {"false", "false", "false", "false"};
   std::vector<String> variable_types {s_continuous, s_continuous, s_continuous, s_continuous};
   std::vector<double> optimal_thresholds {0.5, 0.5, 0.5, 0.5};
 
-  ptrQMIP->setNNThresholds(nn_thresholds);
-  ptrQMIP->setLocalityWeights(locality_weights);
-  ptrQMIP->setSelectTransitionGroups(select_transition_groups);
-  ptrQMIP->setSegmentWindowLengths(segment_window_lengths);
-  ptrQMIP->setSegmentStepLengths(segment_step_lengths);
-  ptrQMIP->setSelectHighestCounts(select_highest_counts);
-  ptrQMIP->setVariableTypes(variable_types);
-  ptrQMIP->setOptimalThresholds(optimal_thresholds);
+  scheduler.setNNThresholds(nn_thresholds);
+  scheduler.setLocalityWeights(locality_weights);
+  scheduler.setSelectTransitionGroups(select_transition_groups);
+  scheduler.setSegmentWindowLengths(segment_window_lengths);
+  scheduler.setSegmentStepLengths(segment_step_lengths);
+  scheduler.setSelectHighestCounts(select_highest_counts);
+  scheduler.setVariableTypes(variable_types);
+  scheduler.setOptimalThresholds(optimal_thresholds);
 
   FeatureMap output_selected;
-  ptrQMIP->schedule_MRMFeaturesQMIP(feature_map, output_selected);
+  scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
 
   TEST_EQUAL(output_selected.size(), 49);                                                                      // TODO: fails
   TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);          // TODO: fails
