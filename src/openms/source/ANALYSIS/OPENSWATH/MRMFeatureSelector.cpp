@@ -129,58 +129,62 @@ namespace OpenMS
   }
 
   void MRMFeatureSelectorQMIP::optimize(
-      const std::vector<std::pair<double, String>>& time_to_name, 
-      const std::map< String, std::vector<Feature> >& feature_name_map,
-      std::vector<String>& result
-  ) {
+    const std::vector<std::pair<double, String>>& time_to_name,
+    const std::map< String, std::vector<Feature> >& feature_name_map,
+    std::vector<String>& result
+  )
+  {
     std::unordered_set<std::string> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
-    for (size_t cnt1=0; cnt1 < time_to_name.size(); ++cnt1) {
-      size_t start_iter = std::max((int)cnt1 - (int)nn_threshold_, 0);
-      size_t stop_iter = std::min((int)cnt1 + (int)nn_threshold_ + 1, (int)time_to_name.size());
+    for (size_t cnt1 = 0; cnt1 < time_to_name.size(); ++cnt1) {
+      const size_t start_iter = std::max((int)cnt1 - (int)nn_threshold_, 0);
+      const size_t stop_iter = std::min((int)cnt1 + (int)nn_threshold_ + 1, (int)time_to_name.size());
       std::vector<Int> constraints;
       const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
-      for (size_t i=0; i < feature_row1.size(); ++i) {
-        String name1 = time_to_name[cnt1].second + "_" + (String)feature_row1[i].getUniqueId();
-        if (variables.find(name1) == variables.end()) {
+      for (size_t i = 0; i < feature_row1.size(); ++i) {
+        const String name1 = time_to_name[cnt1].second + "_" + (String)feature_row1[i].getUniqueId();
+        if (variables.count(name1) == 0) {
             constraints.push_back(_addVariable(problem, name1, true, 0));
             variables.insert(name1);
         } else {
             constraints.push_back(problem.getColumnIndex(name1));
         }
         for (size_t cnt2 = start_iter; cnt2 < stop_iter; ++cnt2) {
-          if (cnt1 == cnt2) continue;
+          if (cnt1 == cnt2)
+            continue;
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
-          for (size_t j=0; j < feature_row2.size(); ++j) {
-            String name2 = time_to_name[cnt2].second + "_" + (String)feature_row2[j].getUniqueId();
-            if (variables.find(name2) == variables.end()) {
+          for (size_t j = 0; j < feature_row2.size(); ++j) {
+            const String name2 = time_to_name[cnt2].second + "_" + (String)feature_row2[j].getUniqueId();
+            if (variables.count(name2) == 0) {
                 _addVariable(problem, name2, true, 0);
                 variables.insert(name2);
             }
             double locality_weight = 1.0;
-            if (locality_weight_) locality_weight = 1.0/(nn_threshold_ - std::abs((int)start_iter + (int)cnt2 - (int)cnt1) + 1);
-            String var_qp_name = time_to_name[cnt1].second + "_" + (String)i + "-" + time_to_name[cnt2].second + "_" + (String)j;
-            String var_abs_name = var_qp_name + "-ABS";
-            Int index_var_qp = _addVariable(problem, var_qp_name, true, 0);
-            Int index_var_abs = _addVariable(problem, var_abs_name, false, 1);
-            Int index1 = problem.getColumnIndex(name1);
-            Int index2 = problem.getColumnIndex(name2);
-            std::vector<Int> indices1 = {index1, index_var_qp};
-            std::vector<double> values = {1.0, -1.0};
-            _addConstraint(problem, indices1, values, var_qp_name + "-QP1", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
-            std::vector<Int> indices2 = {index2, index_var_qp};
-            _addConstraint(problem, indices2, values, var_qp_name + "-QP2", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
-            std::vector<Int> indices3 = {index1, index2, index_var_qp};
-            std::vector<double> values3 = {1.0, 1.0, -1.0};
-            _addConstraint(problem, indices3, values3, var_qp_name + "-QP3", 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY);
-            std::vector<Int> indices_abs = {index_var_abs, index_var_qp};
-            double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
-            double tr_delta = feature_row1[i].getRT() - feature_row2[j].getRT();
-            double score = locality_weight * make_score(feature_row1[i]) * make_score(feature_row2[j]) * (tr_delta - tr_delta_expected);
+            if (locality_weight_) {
+              locality_weight = 1.0 / (nn_threshold_ - std::abs((int)start_iter + (int)cnt2 - (int)cnt1) + 1);
+            }
+            const String var_qp_name = time_to_name[cnt1].second + "_" + (String)i + "-" + time_to_name[cnt2].second + "_" + (String)j;
+            const String var_abs_name = var_qp_name + "-ABS";
+            const Int index_var_qp = _addVariable(problem, var_qp_name, true, 0);
+            const Int index_var_abs = _addVariable(problem, var_abs_name, false, 1);
+            const Int index1 = problem.getColumnIndex(name1);
+            const Int index2 = problem.getColumnIndex(name2);
+            std::vector<Int>    indices1 = {index1, index_var_qp};
+            std::vector<Int>    indices2 = {index2, index_var_qp};
+            std::vector<double> values   = {1.0, -1.0};
+            std::vector<Int>    indices3 = {index1, index2, index_var_qp};
+            std::vector<double> values3  = {1.0, 1.0, -1.0};
+            std::vector<Int>    indices_abs = {index_var_abs, index_var_qp};
+            const double tr_delta          = feature_row1[i].getRT() - feature_row2[j].getRT();
+            const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
+            const double score = locality_weight * make_score(feature_row1[i]) * make_score(feature_row2[j]) * (tr_delta - tr_delta_expected);
             std::vector<double> values_abs_plus = {-1.0, score};
-            _addConstraint(problem, indices_abs, values_abs_plus, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
             std::vector<double> values_abs_minus = {-1.0, -score};
+            _addConstraint(problem, indices1, values, var_qp_name + "-QP1", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
+            _addConstraint(problem, indices2, values, var_qp_name + "-QP2", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
+            _addConstraint(problem, indices3, values3, var_qp_name + "-QP3", 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY);
+            _addConstraint(problem, indices_abs, values_abs_plus, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
             _addConstraint(problem, indices_abs, values_abs_minus, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
           }
         }
@@ -190,10 +194,9 @@ namespace OpenMS
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
-    String name;
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c) {
-      name = problem.getColumnName(c);
-      if ((problem.getColumnValue(c) - getOptimalThreshold()) > 1e-06 && variables.find(name) != variables.end()) {
+      const String name = problem.getColumnName(c);
+      if ((problem.getColumnValue(c) - getOptimalThreshold()) > 1e-06 && variables.count(name)) {
         result.push_back(name);
       }
     }
