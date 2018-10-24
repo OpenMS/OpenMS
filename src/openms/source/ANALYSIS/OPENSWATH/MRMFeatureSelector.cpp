@@ -237,36 +237,32 @@ namespace OpenMS
     double window_length = getSegmentWindowLength();
     double step_length = getSegmentStepLength();
     if (window_length == -1 && step_length == -1) {
-      window_length = time_to_name.size();
-      step_length = time_to_name.size();
+      window_length = step_length = time_to_name.size();
     }
-    size_t n_segments = std::ceil(time_to_name.size() / step_length);
+    const size_t n_segments = std::ceil(time_to_name.size() / step_length);
     std::vector<String> result_names;
-    for (size_t i=0; i < n_segments; ++i) {
-      size_t start = step_length*i;
-      size_t end = std::min(start + window_length, (double)time_to_name.size());
-      std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
+    for (size_t i = 0; i < n_segments; ++i) {
+      const size_t start = step_length * i;
+      const size_t end = std::min(start + window_length, (double)time_to_name.size());
+      const std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
       std::vector<String> result;
       optimize(time_slice, feature_name_map, result);
       result_names.insert(result_names.end(), result.begin(), result.end());
     }
-    std::unordered_set<std::string> result_names_set(result_names.begin(), result_names.end());
-    for (FeatureMap::const_iterator it = features.begin(); it != features.end(); ++it) {
+    const std::unordered_set<std::string> result_names_set(result_names.begin(), result_names.end());
+    for (const Feature& feature : features) {
       std::vector<Feature> subordinates_filtered;
-      String feature_name;
-      for (std::vector<Feature>::const_iterator sub_it = it->getSubordinates().begin();
-          sub_it != it->getSubordinates().end(); ++sub_it) {
-        if (getSelectTransitionGroup()) {
-          feature_name = it->getMetaValue("PeptideRef").toString() + "_" + it->getUniqueId();
-        } else {
-          feature_name = sub_it->getMetaValue("native_id").toString() + "_" + sub_it->getUniqueId();
-        }
-        if (result_names_set.find(feature_name) != result_names_set.end()) {
-          subordinates_filtered.push_back(*sub_it);
+      for (const Feature& subordinate : feature.getSubordinates()) {
+        const String feature_name = getSelectTransitionGroup()
+          ? feature.getMetaValue("PeptideRef").toString() + "_" + feature.getUniqueId()
+          : subordinate.getMetaValue("native_id").toString() + "_" + subordinate.getUniqueId();
+
+        if (result_names_set.count(feature_name)) {
+          subordinates_filtered.push_back(subordinate);
         }
       }
-      if (!subordinates_filtered.empty()) {
-        Feature feature_filtered(*it);
+      if (subordinates_filtered.size()) {
+        Feature feature_filtered(feature);
         feature_filtered.setSubordinates(subordinates_filtered);
         features_filtered.push_back(feature_filtered);
       }
