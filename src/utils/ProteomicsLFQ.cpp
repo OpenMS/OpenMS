@@ -206,6 +206,7 @@ protected:
     Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
     //Param pi_defaults = ProteinInferenceAlgorithmXX().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
+    pq_defaults.setValue("include_all", "true"); // overwrite default so we export everything (important for copying back MSstats results)
 
     Param combined;
     combined.insert("Centroiding:", pp_defaults);
