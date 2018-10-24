@@ -46,6 +46,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
 
@@ -217,9 +218,15 @@ using namespace OpenMS;
     vector<ResidueModification> fixed_modifications = OPXLHelper::getModificationsFromStringList(fixedModNames_);
     vector<ResidueModification> variable_modifications = OPXLHelper::getModificationsFromStringList(varModNames_);
 
+    // Precursor Purity precalculation
+    progresslogger.startProgress(0, 1, "Computing precursor purities...");
+    vector<PrecursorPurity::PurityScores> precursor_purities = PrecursorPurity::computePrecursorPurities(unprocessed_spectra, precursor_mass_tolerance_, precursor_mass_tolerance_unit_ppm_);
+    progresslogger.endProgress();
+
     // preprocess spectra (filter out 0 values, sort by position)
     progresslogger.startProgress(0, 1, "Filtering spectra...");
-    spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, peptide_min_size_, min_precursor_charge_, max_precursor_charge_, deisotope, true);
+    vector<Size> discarded_spectra;
+    spectra = OPXLSpectrumProcessingAlgorithms::preprocessSpectra(unprocessed_spectra, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, peptide_min_size_, min_precursor_charge_, max_precursor_charge_, discarded_spectra, deisotope, true);
     progresslogger.endProgress();
 
     ProteaseDigestion digestor;
@@ -702,12 +709,15 @@ using namespace OpenMS;
           csm.scan_index_light = scan_index;
           csm.scan_index_heavy = scan_index_heavy;
 
-          // default values to avoid too many "else {var = 0}" in the code below
-          csm.num_iso_peaks_mean = 0;
-          csm.num_iso_peaks_mean_linear_alpha = 0;
-          csm.num_iso_peaks_mean_linear_beta = 0;
-          csm.num_iso_peaks_mean_xlinks_alpha = 0;
-          csm.num_iso_peaks_mean_xlinks_beta = 0;
+          // TODO combine light and heavy values?
+          if (precursor_purities.size() > scan_index)
+          {
+            csm.precursor_total_intensity = precursor_purities[scan_index].total_intensity;
+            csm.precursor_target_intensity = precursor_purities[scan_index].target_intensity;
+            csm.precursor_signal_proportion = precursor_purities[scan_index].signal_proportion;
+            csm.precursor_target_peak_count = precursor_purities[scan_index].target_peak_count;
+            csm.precursor_residual_peak_count = precursor_purities[scan_index].residual_peak_count;
+          }
 
           // num_iso_peaks array from deisotoping
           if (deisotope)
@@ -768,17 +778,6 @@ using namespace OpenMS;
               }
             }
           }
-
-          csm.ppm_error_abs_sum_linear_alpha = 0;
-          csm.ppm_error_abs_sum_linear_beta = 0;
-          csm.ppm_error_abs_sum_xlinks_alpha = 0;
-          csm.ppm_error_abs_sum_xlinks_beta = 0;
-
-          csm.ppm_error_abs_sum_linear = 0;
-          csm.ppm_error_abs_sum_xlinks = 0;
-          csm.ppm_error_abs_sum_alpha = 0;
-          csm.ppm_error_abs_sum_beta = 0;
-          csm.ppm_error_abs_sum = 0;
 
           if (ppm_error_array_linear_alpha.size() > 0)
           {

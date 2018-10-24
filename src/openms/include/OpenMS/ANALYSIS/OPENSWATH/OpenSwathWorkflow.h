@@ -103,18 +103,48 @@ namespace OpenMS
 
 protected:
 
-    explicit OpenSwathWorkflowBase(bool use_ms1_traces) :
-      use_ms1_traces_(use_ms1_traces)
+    /** @brief Default constructor
+     *
+     *  Will not use any ms1 traces and use all threads in the outer loop.
+     *
+     **/
+    OpenSwathWorkflowBase() :
+      use_ms1_traces_(false),
+      use_ms1_ion_mobility_(false),
+      threads_outer_loop_(-1)
     {
     }
 
-    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility) :
+    /** @brief Constructor
+     *
+     *  @param use_ms1_traces Whether to use MS1 data
+     *  @param threads_outer_loop How many threads should be used for the outer
+     *  loop (-1 will use all threads in the outer loop)
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     *
+     **/
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
-      use_ms1_ion_mobility_(use_ms1_ion_mobility)
+      use_ms1_ion_mobility_(use_ms1_ion_mobility),
+      threads_outer_loop_(threads_outer_loop)
     {
     }
 
     /** @brief Perform MS1 extraction and store result in ms1_chromatograms
+     *
+     *
+     * @param swath_maps The raw data (swath maps)
+     * @param ms1_chromatograms Output vector for MS1 chromatograms
+     * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
+     * @param cp Parameter set for the chromatogram extraction
+     * @param transition_exp The set of assays to be extracted and scored
+     * @param trafo_inverse Inverse transformation function
+     * @param load_into_memory Whether to cache the current SWATH map in memory
+     * @param ms1only If true, will only score on MS1 level and ignore MS2 level
      *
     */
     void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
@@ -167,32 +197,59 @@ protected:
 
     /// Whether to use ion mobility extraction on MS1 traces
     bool use_ms1_ion_mobility_;
-  };
 
-  /** @brief Simple OpenSwathWorkflow to perform RT and m/z correction based on a set of known peptides
+    /** @brief How many threads should be used for the outer loop
+     *
+     *  @note A value of -1 will use all threads in the outer loop
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     **/
+    int threads_outer_loop_;
+
+};
+
+  /**
+   * @brief Execute all steps for retention time and m/z calibration of SWATH-MS data
+   *
+   * Uses a set of robust calibrant peptides (e.g. iRT peptides, common
+   * calibrants) perform RT and m/z correction in SWATH-MS data. Currently
+   * supports (non-)linear correction of RT against library RT as well
+   * as (non-)linear correction of m/z error as a function of m/z.
+   * 
+   * @note The relevant algorithms are implemented in MRMRTNormalizer for RT
+   * calibration and SwathMapMassCorrection for m/z calibration.
+   *
+   * The overall execution flow in this class is as follows (see performRTNormalization() function):
+   *   - Extract chromatograms across the whole RT range using simpleExtractChromatograms_()
+   *   - Compute calibration functions for RT and m/z using doDataNormalization_()
    *
   */
-  class OPENMS_DLLAPI OpenSwathRetentionTimeNormalization :
+  class OPENMS_DLLAPI OpenSwathCalibrationWorkflow :
     public OpenSwathWorkflowBase
   {
   public:
 
-    OpenSwathRetentionTimeNormalization() :
-      OpenSwathWorkflowBase(false)
+    OpenSwathCalibrationWorkflow() :
+      OpenSwathWorkflowBase()
     {
     }
 
-    explicit OpenSwathRetentionTimeNormalization(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces)
+    explicit OpenSwathCalibrationWorkflow(bool use_ms1_traces) :
+      OpenSwathWorkflowBase(use_ms1_traces, false, -1)
     {
     }
 
     /** @brief Perform RT and m/z correction of the input data using RT-normalization peptides.
      *
-     * This function extracts the RT normalization chromatograms and then uses
-     * the chromatograms to find features (in RTNormalization).  If desired,
-     * also m/z correction is performed using the lock masses of the given
-     * peptides. Therefore, swath_maps may be changed in this function.
+     * This function extracts the RT normalization chromatograms using
+     * simpleExtractChromatograms_() and then uses the chromatograms to find
+     * features (in doDataNormalization_()).  If desired, also m/z correction
+     * is performed using the lock masses of the given peptides. The provided
+     * raw data (swath_maps) are therefore not constant but may be changed in
+     * this function.
      *
      * @param irt_transitions A set of transitions used for the RT normalization peptides
      * @param swath_maps The raw data (swath maps)
@@ -205,6 +262,8 @@ protected:
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
      *        iRT chromatograms will be stored in this file)
+     * @param sonar Whether the data is SONAR data
+     * @param load_into_memory Whether to cache the current SWATH map in memory
      *
     */
     TransformationDescription performRTNormalization(const OpenSwath::LightTargetedExperiment & irt_transitions,
@@ -222,22 +281,39 @@ protected:
 
   public:
 
-    /** @brief Perform RT and m/z correction using the MRMFeatureFinderScoring
+    /** @brief Perform retention time and m/z calibration
+     *
+     * Uses MRMRTNormalizer for RT calibration and SwathMapMassCorrection for m/z calibration.
+     *
+     * The overall execution flow is as follows:
+     *   - Estimate the retention time range of the iRT peptides over all assays (see OpenSwathHelper::estimateRTRange())
+     *   - Store the peptide retention times in an intermediate map
+     *   - Pick input chromatograms to identify RT pairs from the input data
+     *   using MRMFeatureFinderScoring, which will be used without the RT
+     *   scoring enabled
+     *   - Find most likely correct feature for each compound (see OpenSwathHelper::simpleFindBestFeature())
+     *   - Perform the outlier detection (see MRMRTNormalizer)
+     *   - Check whether the found peptides fulfill the binned coverage criteria set by the user.
+     *   - Select the "correct" peaks for m/z correction (e.g. remove those not
+     *   part of the linear regression)
+     *   - Perform m/z calibration (see SwathMapMassCorrection)
+     *   - Store transformation, using the selected model
      *
      * @param transition_exp_ The transitions for the normalization peptides
      * @param chromatograms The extracted chromatograms
      * @param min_rsq Minimal R^2 value that is expected for the RT regression
      * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
-     * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
+     * @param default_ffparam Parameter set for the feature finding in chromatographic dimension
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      * @param swath_maps The raw data for the m/z correction
      * @param mz_correction_function If correction in m/z is desired, which function should be used
+     * @param mz_extraction_window Extraction window for calibration in Da or ppm (e.g. 50ppm means extraction +/- 25ppm)
+     * @param ppm Whether the extraction window is given in ppm or Da
      *
-     * @note: feature_finder_param are copied because they are changed here.
-     * @note: This function is based on the algorithm inside the OpenSwathRTNormalizer tool
+     * @note This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
     */
-    TransformationDescription RTNormalization(const OpenSwath::LightTargetedExperiment& transition_exp_,
+    TransformationDescription doDataNormalization_(const OpenSwath::LightTargetedExperiment& transition_exp_,
       const std::vector< OpenMS::MSChromatogram >& chromatograms,
       double min_rsq,
       double min_coverage,
@@ -248,24 +324,57 @@ protected:
       double mz_extraction_window,
       bool ppm);
 
-    /// Simple method to extract chromatograms (for the RT-normalization peptides)
-    void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                    const OpenSwath::LightTargetedExperiment & irt_transitions,
-                                    std::vector< OpenMS::MSChromatogram > & chromatograms,
-                                    const TransformationDescription& trafo,
-                                    const ChromExtractParams & cp,
-                                    bool sonar,
-                                    bool load_into_memory);
+    /** @brief Simple method to extract chromatograms (for the RT-normalization peptides)
+     *
+     * @param swath_maps The raw data (swath maps)
+     * @param irt_transitions A set of transitions used for the RT normalization peptides
+     * @param chromatograms The extracted chromatograms (output)
+     * @param trafo Transformation description for RT normalization
+     * @param cp Parameter set for the chromatogram extraction
+     * @param load_into_memory Whether to cache the current SWATH map in memory
+     * @param sonar Whether the data is SONAR data
+     *
+    */
+    void simpleExtractChromatograms_(const std::vector< OpenSwath::SwathMap > & swath_maps,
+                                     const OpenSwath::LightTargetedExperiment & irt_transitions,
+                                     std::vector< OpenMS::MSChromatogram > & chromatograms,
+                                     const TransformationDescription& trafo,
+                                     const ChromExtractParams & cp,
+                                     bool sonar,
+                                     bool load_into_memory);
 
+    /** @brief Add two chromatograms
+     *
+     * @param base_chrom The base chromatogram to which we will add intensity
+     * @param newchrom The chromatogram to be added
+     *
+    */
     static void addChromatograms(MSChromatogram& base_chrom, const MSChromatogram& newchrom);
+
   };
 
   /**
-   * @brief Class to execute an OpenSwath Workflow
+   * @brief Execute all steps in an OpenSwath analysis
    *
-   * The workflow will perform a complete OpenSWATH analysis. Optionally, an RT
-   * transformation (mapping peptides to normalized space) can be obtained
-   * beforehand using the OpenSwathRetentionTimeNormalization class.
+   * The workflow will perform a complete OpenSWATH analysis. Optionally, 
+   * a calibration of m/z and retention time (mapping peptides to normalized 
+   * space and correcting m/z error) can be performed beforehand using the 
+   * OpenSwathCalibrationWorkflow class.
+   *
+   * The overall execution flow in this class is as follows (see performExtraction() function)
+   *
+   *    - Obtain precursor ion chromatograms (if enabled) through MS1Extraction_()
+   *    - Perform scoring of precursor ion chromatograms if no MS2 is given
+   *    - Iterate through each SWATH-MS window:
+   *      - Select which transitions to extract (proceed in batches) using OpenSwathHelper::selectSwathTransitions()
+   *      - Iterate through each batch of transitions:
+   *        - Extract current batch of transitions from current SWATH window:
+   *          - Select transitions for current batch (see selectCompoundsForBatch_())
+   *          - Prepare transition extraction (see prepareExtractionCoordinates_())
+   *          - Extract transitions using ChromatogramExtractor::extractChromatograms()
+   *          - Convert data to OpenMS format using ChromatogramExtractor::return_chromatogram()
+   *        - Score extracted transitions (see scoreAllChromatograms_())
+   *        - Write scored chromatograms and peak groups to disk (see writeOutFeaturesAndChroms_())
    *
    */
   class OPENMS_DLLAPI OpenSwathWorkflow :
@@ -276,51 +385,59 @@ protected:
 
   public:
 
-    explicit OpenSwathWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces)
+    /** @brief Constructor
+     *
+     *  @param use_ms1_traces Whether to use MS1 data
+     *  @param threads_outer_loop How many threads should be used for the outer
+     *  loop (-1 will use all threads in the outer loop)
+     *
+     *  @note The total number of threads should be divisible by this number
+     *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
+     *  used for the inner loop).
+     *
+     *
+     **/
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
+      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, threads_outer_loop)
     {
     }
 
-    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility) :
-      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility)
-    {
-    }
-
-    /** @brief Execute the OpenSWATH workflow on a set of SwathMaps and transitions.
+    /** @brief Execute OpenSWATH analysis on a set of SwathMaps and transitions.
      *
-     * Executes the following operations on the given input:
-     *
-     * 1. Selecting the appropriate transitions for each SWATH window (using OpenSwathHelper::selectSwathTransitions)
-     * 2. Extract the chromatograms from the SWATH maps (MS1 and MS2) using (ChromatogramExtractor)
-     * 3. Pick peaks in the chromatograms and perform peak scoring (inside scoreAllChromatograms function)
-     * 4. Write out chromatograms and found features
+     * See OpenSwathWorkflow class for a detailed description of this function.
      *
      * @param swath_maps The raw data (swath maps)
-     * @param trafo Transformation description (translating this runs' RT to normalized RT space)
-     * @param cp Parameter set for the chromatogram extraction
+     * @param rt_trafo Retention time transformation description (translating this runs' RT to normalized RT space)
+     * @param chromatogram_extraction_params Parameter set for the chromatogram extraction
+     * @param ms1_chromatogram_extraction_params Parameter set for the chromatogram extraction of the MS1 data
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
-     * @param transition_exp The set of assays to be extracted and scored
-     * @param out_featureFile Output feature map to store identified features
-     * @param store_features Whether features should be appended to the output feature map
-     * @param tsv_writer TSV Writer object to store identified features in csv format
-     * @param osw_writer OSW Writer object to store identified features in SQLite format
-     * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
+     * @param assay_library The set of assays to be extracted and scored
+     * @param result_featureFile Output feature map to store identified features
+     * @param store_features_in_featureFile Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
+     * @param result_tsv TSV Writer object to store identified features in csv format (set store_features to false if using this option)
+     * @param result_osw OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
+     * @param result_chromatograms Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
      * @param int ms1_isotopes Number of MS1 isotopes to extract (zero means only monoisotopic peak)
      * @param load_into_memory Whether to cache the current SWATH map in memory
      *
+     * @note Speed and memory performance can be influenced by \p batchSize and
+     * \p load_into_memory where larger batch sizes increase memory and
+     * potentially decrease the utility of parallelization while loading data
+     * into memory will increase memory usage but decrease execution time.
+     *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
                            const TransformationDescription trafo,
-                           const ChromExtractParams & cp,
-                           const ChromExtractParams & cp_ms1,
+                           const ChromExtractParams & chromatogram_extraction_params,
+                           const ChromExtractParams & ms1_chromatogram_extraction_params,
                            const Param & feature_finder_param,
-                           const OpenSwath::LightTargetedExperiment& transition_exp,
-                           FeatureMap& out_featureFile,
-                           bool store_features,
-                           OpenSwathTSVWriter & tsv_writer,
-                           OpenSwathOSWWriter & osw_writer,
-                           Interfaces::IMSDataConsumer * chromConsumer,
+                           const OpenSwath::LightTargetedExperiment& assay_library,
+                           FeatureMap& result_featureFile,
+                           bool store_features_in_featureFile,
+                           OpenSwathTSVWriter & result_tsv,
+                           OpenSwathOSWWriter & result_osw,
+                           Interfaces::IMSDataConsumer * result_chromatograms,
                            int batchSize,
                            int ms1_isotopes,
                            bool load_into_memory);
@@ -328,8 +445,19 @@ protected:
   protected:
 
 
-    /** @brief Write output features and chromatograms to disk
+    /** @brief Write output features and chromatograms
      *
+     * Writes output chromatograms to the provided chromatogram consumer
+     * (presumably to disk) and output features to the provided FeatureMap.
+     *
+     * @param chromatograms Output chromatograms to be passed to the consumer
+     * @param featureFile Features to be appended to the output FeatureMap
+     * @param out_featureFile Output FeatureMap to which the features will be appended
+     * @param store_features Whether features should be appended to the output
+     *        feature map (if this is false, then out_featureFile will be empty)
+     * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
+     *
+     * @note This should be wrapped in an OpenMP critical block
     */
     void writeOutFeaturesAndChroms_(std::vector< OpenMS::MSChromatogram > & chromatograms,
                                     const FeatureMap & featureFile,
@@ -339,11 +467,29 @@ protected:
 
     /** @brief Perform scoring on a set of chromatograms
      *
-     *  Will iterate over all assays contained in transition_exp and for each
-     *  assay fetch the corresponding chromatograms and find peak groups.
+     *  This will generate a new object of type MRMTransitionGroup for each
+     *  compound or peptide in the provided assay library and link the
+     *  transition meta information with the extracted chromatograms. This will
+     *  then be used to perform peak picking and peak scoring through
+     *  MRMTransitionGroupPicker and MRMFeatureFinderScoring. The assay library
+     *  is provided as transition_exp and the chromatograms in
+     *  ms2_chromatograms.
      *
-     * @param input Input chromatograms (MS2 level)
-     * @param ms1_chromatograms Input chromatograms for MS1-level
+     * The overall execution flow is as follows:
+     *
+     *  - Iterate over all assays (compounds / peptides) in the transition_exp
+     *    - Create a new MRMTransitionGroup
+     *    - Iterate over all transitions in an assay
+     *      - Find the relevant chromatogram for the given transition, convert it and filter it by RT
+     *      - Add the chromatogram and transition to the MRMTransitionGroup
+     *    - Add a single MS1 chromatogram of the mono-isotopic precursor to the
+     *    MRMTransitionGroup, if available (named "groupId_Precursor_i0")
+     *    - Find peakgroups in the chromatogram set (see MRMTransitionGroupPicker::pickTransitionGroup)
+     *    - Score peakgroups in the chromatogram set (see MRMFeatureFinderScoring::scorePeakgroups)
+     *    - Add the identified peak groups to the TSV writer (tsv_writer) and the SQL-based output format (osw_writer)
+     *
+     * @param ms2_chromatograms Input chromatograms (MS2 level)
+     * @param ms1_chromatograms Input chromatograms (MS1-level)
      * @param swath_maps Set of swath map(s) for the current swath window (for SONAR multiple maps are provided)
      * @param transition_exp The transition experiment (assay library)
      * @param feature_finder_param Parameters for the MRMFeatureFinderScoring
@@ -352,10 +498,11 @@ protected:
      * @param output Output map
      * @param tsv_writer TSV writer for storing output (on the fly)
      * @param osw_writer OSW Writer object to store identified features in SQLite format
+     * @param ms1only If true, will only score on MS1 level and ignore MS2 level
      *
     */
-    void scoreAllChromatograms(
-        const std::vector< OpenMS::MSChromatogram > & chrom_input,
+    void scoreAllChromatograms_(
+        const std::vector< OpenMS::MSChromatogram > & ms2_chromatograms,
         const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
         const std::vector< OpenSwath::SwathMap >& swath_maps,
         OpenSwath::LightTargetedExperiment& transition_exp,
@@ -370,22 +517,23 @@ protected:
 
     /** @brief Select which compounds to analyze in the next batch (and copy to output)
      *
-     * This function will select which compounds to analyze in the next batch j
-     * and will copy the corresponding compounds and transitions into the
-     * output structure. The output will contain batch_size compounds.
+     * This function will select which compounds or peptides should be analyzed
+     * in the current batch (with index "batch_idx"). The selected compounds
+     * will be copied into the output structure. The output will contain
+     * "batch_size" compounds or peptides.
      *
-     * @param transition_exp_used_all input (all transitions for this swath)
-     * @param transition_exp_used output (will contain only transitions for the next batch)
-     * @param batch_size how many compounds per batch
-     * @param j batch number (peptides from j*batch_size to j*batch_size+batch_size will be copied)
+     * @param transition_exp_used_all The full set of transitions (this will be used to select transitions from)
+     * @param transition_exp_used The selected set of transitions (will contain only transitions for the next batch)
+     * @param batch_size How many compounds or peptides should be used per batch
+     * @param batch_idx Current batch index (only compounds or peptides from batch_idx*batch_size to batch_idx*batch_size+batch_size will be copied)
      *
      * @note The proteins will be copied completely without checking for a match
      *
     */
     void selectCompoundsForBatch_(const OpenSwath::LightTargetedExperiment& transition_exp_used_all,
-      OpenSwath::LightTargetedExperiment& transition_exp_used, int batch_size, size_t j);
+      OpenSwath::LightTargetedExperiment& transition_exp_used, int batch_size, size_t batch_idx);
 
-    /** @brief Copy the required transitions to output
+    /** @brief Helper function for selectCompoundsForBatch_()
      *
      * Copy all transitions matching to one of the compounds in the selected
      * peptide vector from all_transitions to the output.
@@ -402,12 +550,28 @@ protected:
   };
 
   /**
-   * @brief Class to execute an OpenSwath Workflow for SONAR data
+   * @brief Execute all steps in an OpenEcho analysis (OpenSwath for SONAR data)
    *
    * The workflow will perform a complete OpenSWATH analysis, using scanning
    * SWATH data (SONAR data) instead of regular data. In this case, each
    * fragment ion may appear in multiple SWATH windows and thus needs to be
    * extracted from multiple maps.
+   *
+   * The overall execution flow in this class is as follows (see performExtractionSonar() function)
+   *
+   *    - Obtain precursor ion chromatograms (if enabled) through MS1Extraction_()
+   *    - Compute SONAR windows using computeSonarWindows_()
+   *    - Iterate through each SONAR window:
+   *      - Select which transitions to extract (proceed in batches) using OpenSwathHelper::selectSwathTransitions()
+   *      - Identify which SONAR windows to use for current set of transitions
+   *      - Iterate through each batch of transitions:
+   *        - Extract current batch of transitions from current SONAR window:
+   *          - Select transitions for current batch (see OpenSwathWorkflow::selectCompoundsForBatch_())
+   *          - Prepare transition extraction (see OpenSwathWorkflow::prepareExtractionCoordinates_())
+   *          - Extract transitions using performSonarExtraction_()
+   *          - Convert data to OpenMS format using ChromatogramExtractor::return_chromatogram()
+   *        - Score extracted transitions (see scoreAllChromatograms_())
+   *        - Write scored chromatograms and peak groups to disk (see writeOutFeaturesAndChroms_())
    *
    */
   class OPENMS_DLLAPI OpenSwathWorkflowSonar :
@@ -417,21 +581,16 @@ protected:
   public:
 
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces, false)
+      OpenSwathWorkflow(use_ms1_traces, false, -1)
     {
     }
 
-    /** @brief Execute the OpenSWATH workflow on a set of SONAR SwathMaps and transitions.
+    /** @brief Execute OpenSWATH analysis on a set of SONAR SwathMaps and transitions.
      *
-     * Executes the following operations on the given input:
+     * See OpenSwathWorkflowSonar class for a detailed description of this function.
      *
-     * 1. Selecting the appropriate transitions for each SWATH window (using OpenSwathHelper::selectSwathTransitions)
-     * 2. Extract the chromatograms from the SWATH maps (MS1 and MS2) using (ChromatogramExtractor)
-     * 3. Pick peaks in the chromatograms and perform peak scoring (inside scoreAllChromatograms function)
-     * 4. Write out chromatograms and found features
-     *
-     * Given that these are scanning SWATH maps, for each transition multiple
-     * maps will be used for chromatogram extraction and scoring.
+     * @note Given that these are scanning SWATH maps, for each transition
+     * multiple maps will be used for chromatogram extraction and scoring.
      *
      * @param swath_maps The raw data, expected to be scanning SWATH maps (SONAR)
      * @param trafo Transformation description (translating this runs' RT to normalized RT space)
@@ -439,9 +598,9 @@ protected:
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
      * @param transition_exp The set of assays to be extracted and scored
      * @param out_featureFile Output feature map to store identified features
-     * @param store_features Whether features should be appended to the output feature map
-     * @param tsv_writer TSV Writer object to store identified features in csv format
-     * @param osw_writer OSW Writer object to store identified features in SQLite format
+     * @param store_features Whether features should be appended to the output feature map (if this is false, then out_featureFile will be empty)
+     * @param tsv_writer TSV Writer object to store identified features in csv format (set store_features to false if using this option)
+     * @param osw_writer OSW Writer object to store identified features in SQLite format (set store_features to false if using this option)
      * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms
      * @param batchSize Size of the batches which should be extracted and scored
      * @param load_into_memory Whether to cache the current SONAR map(s) in memory

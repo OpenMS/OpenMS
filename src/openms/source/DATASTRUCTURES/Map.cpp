@@ -32,6 +32,8 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/Map.h>
+
 namespace OpenMS
 {
 }

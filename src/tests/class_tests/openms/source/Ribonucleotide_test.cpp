@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Samuel Wein $
+// $Authors: Samuel Wein $
 // --------------------------------------------------------------------------
 //
 
@@ -54,7 +54,7 @@ Ribonucleotide* e_ptr = nullptr;
 Ribonucleotide* e_nullPointer = nullptr;
 START_SECTION((Ribonucleotide()))
   e_ptr = new Ribonucleotide();
-	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+  TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
 
 START_SECTION((virtual ~Ribonucleotide()))

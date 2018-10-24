@@ -48,7 +48,7 @@ namespace OpenMS
     It contains the fields score, score_type, rank, accession,
     sequence and coverage.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI ProteinHit :
     public MetaInfoInterface
@@ -100,23 +100,29 @@ public:
     /** @name Constructors and Destructor */
     //@{
 
-    /// default constructor
+    /// Default constructor
     ProteinHit();
 
-    /// values constructor
+    /// Values constructor
     ProteinHit(double score, UInt rank, String accession, String sequence);
 
-    /// copy constructor
-    ProteinHit(const ProteinHit & source);
+    /// Copy constructor
+    ProteinHit(const ProteinHit & source) = default;
 
-    /// destructor
+    /// Move constructor
+    ProteinHit(ProteinHit&&) = default;
+
+    /// Destructor
     virtual ~ProteinHit();
     //@}
 
-    /// assignment operator
-    ProteinHit & operator=(const ProteinHit & source);
+    /// Assignment operator
+    ProteinHit & operator=(const ProteinHit & source) = default;
 
-    /// assignment for MetaInfo
+    /// Move assignment operator
+    ProteinHit& operator=(ProteinHit&&) & = default;
+
+    /// Assignment for MetaInfo
     ProteinHit & operator=(const MetaInfoInterface & source);
 
     /// Equality operator
@@ -168,11 +174,11 @@ public:
     //@}
 
 protected:
-    float score_;                        ///< the score of the protein hit
-    UInt rank_;                         ///< the position(rank) where the hit appeared in the hit list
-    String accession_;          ///< the protein identifier
-    String sequence_;               ///< the amino acid sequence of the protein hit
-    double coverage_;         ///< coverage of the protein based upon the matched peptide sequences
+    float score_;        ///< the score of the protein hit
+    UInt rank_;          ///< the position(rank) where the hit appeared in the hit list
+    String accession_;   ///< the protein identifier
+    String sequence_;    ///< the amino acid sequence of the protein hit
+    double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
 
   };
 

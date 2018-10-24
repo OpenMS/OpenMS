@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,12 +57,12 @@ namespace OpenMS
       {
         // @TODO: return true or false for the empty set?
         if (query_match_refs.size() <= 1) return true;
-        IdentifiedMoleculeRef ref =
+        const IdentifiedMoleculeRef ref =
           (*query_match_refs.begin())->identified_molecule_ref;
         for (auto it = ++query_match_refs.begin(); it != query_match_refs.end();
              ++it)
         {
-          if ((*it)->identified_molecule_ref != ref) return false;
+          if (!((*it)->identified_molecule_ref == ref)) return false;
         }
         return true;
       }
@@ -78,6 +78,19 @@ namespace OpenMS
           if ((*it)->data_query_ref != ref) return false;
         }
         return true;
+      }
+
+      bool operator==(const QueryMatchGroup rhs) const
+      {
+        if (rhs.query_match_refs == query_match_refs && rhs.processing_step_refs == processing_step_refs && rhs.scores == scores)
+          return true;
+        else
+          return false;
+      }
+
+      bool operator!=(const QueryMatchGroup& rhs) const
+      {
+        return !operator==(rhs);
       }
     };
 

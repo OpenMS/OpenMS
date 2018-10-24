@@ -82,3 +82,14 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
 
         void tryGnuplot(const String & gp_file) nogil except +
 
+        # Cannot handle bool by reference ... 
+        # void updateScores(PosteriorErrorProbabilityModel PEP_model,
+        #                   const String & search_engine,
+        #                   const Int charge,
+        #                   const bool prob_correct,
+        #                   const bool split_charge,
+        #                   libcpp_vector[ ProteinIdentification ] & protein_ids,
+        #                   libcpp_vector[ PeptideIdentification ] & peptide_ids,
+        #                   bool unable_to_fit_data,
+        #                   bool data_might_not_be_well_fit) nogil except +
+

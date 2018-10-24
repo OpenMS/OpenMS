@@ -167,6 +167,12 @@ namespace OpenMS
 
         int precursor_correction = 0;
 
+        double precursor_total_intensity = 0;
+        double precursor_target_intensity = 0;
+        double precursor_signal_proportion = 0;
+        Size precursor_target_peak_count = 0;
+        Size precursor_residual_peak_count = 0;
+
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
         Size peptide_id_index = 0;

@@ -52,26 +52,8 @@ namespace OpenMS
   {
   }
 
-  AASequence::AASequence(const AASequence& rhs) :
-    peptide_(rhs.peptide_),
-    n_term_mod_(rhs.n_term_mod_),
-    c_term_mod_(rhs.c_term_mod_)
-  {
-  }
-
   AASequence::~AASequence()
   {
-  }
-
-  AASequence& AASequence::operator=(const AASequence& rhs)
-  {
-    if (this != &rhs)
-    {
-      peptide_ = rhs.peptide_;
-      n_term_mod_ = rhs.n_term_mod_;
-      c_term_mod_ = rhs.c_term_mod_;
-    }
-    return *this;
   }
 
   const Residue& AASequence::getResidue(Size index) const

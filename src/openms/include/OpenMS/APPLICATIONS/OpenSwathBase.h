@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -157,10 +157,13 @@ private:
 protected:
 
   /**
-   * @brief Load the DIA files
+   * @brief Load the DIA files into internal data structures.
    *
-   * This function will load the DIA files from disk and check the input.
-
+   * Loads SWATH files into the provided OpenSwath::SwathMap data structures. It
+   * uses the SwathFile class to load files from either mzML, mzXML or SqMass.
+   * The files will be either loaded into memory or cached to disk (depending on
+   * the readoptions parameter).
+   *
    * @param file_list The input file(s)
    * @param exp_meta The output (meta data about experiment)
    * @param swath_maps The output (ptr to raw data)
@@ -175,7 +178,6 @@ protected:
    * @param sonar Whether data is in sonar format
    *
    * @return Returns whether loading and sanity check was successful
-   *
    *
    */
   bool loadSwathFiles(const StringList& file_list,
@@ -358,11 +360,15 @@ protected:
   }
 
   /**
-   * @brief Load the retention time transformation file
+   * @brief Perform retention time and m/z calibration
    *
    * This function will create the retention time transformation either by
    * loading a provided .trafoXML file or determine it from the data itself by
-   * extracting the transitions specified in the irt_tr_file TraML file.
+   * extracting the transitions specified in the irt_tr_file TraML file. It
+   * will also perform the m/z calibration.
+   *
+   * @note Internally, the retention time and @p m/z calibration are performed
+   * by OpenMS::OpenSwathCalibrationWorkflow::performRTNormalization
    *
    * @param trafo_in Input trafoXML file (if not empty, transformation will be
    *                 loaded from this file)
@@ -377,14 +383,15 @@ protected:
    * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
    * @param mz_correction_function If correction in m/z is desired, which function should be used
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+   * @param sonar Whether the data is SONAR data
+   * @param load_into_memory Whether to cache the current SWATH map in memory
    * @param irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
    *        the transformation parameters will be stored in this file)
    * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
    *        iRT chromatograms will be stored in this file)
    *
-   *
    */
-  TransformationDescription loadTrafoFile(String trafo_in,
+  TransformationDescription performCalibration(String trafo_in,
         String irt_tr_file,
         std::vector< OpenSwath::SwathMap > & swath_maps,
         double min_rsq,
@@ -423,7 +430,7 @@ protected:
       OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
 
       // perform extraction
-      OpenSwathRetentionTimeNormalization wf;
+      OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
       feature_finder_param, cp_irt, irt_detection_param, mz_correction_function, irt_mzml_out,

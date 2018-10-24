@@ -165,20 +165,6 @@ protected:
     setValidFormats_("out_mzIdentML", ListUtils::create<String>("mzid"));
   }
 
-  // vector<ResidueModification> getModifications_(StringList modNames)
-  // {
-  //   vector<ResidueModification> modifications;
-  //
-  //   // iterate over modification names and add to vector
-  //   for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
-  //   {
-  //     String modification(*mod_it);
-  //     modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
-  //   }
-  //
-  //   return modifications;
-  // }
-
   ExitCodes main_(int, const char**) override
   {
     ProgressLogger progresslogger;
@@ -200,6 +186,7 @@ protected:
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
+    options.addMSLevel(1);
     f.getOptions() = options;
     f.load(in_mzml, unprocessed_spectra);
 

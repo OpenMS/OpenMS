@@ -39,35 +39,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  SpectrumIdentification::SpectrumIdentification() :
-    MetaInfoInterface(),
-    id_()
-  {
-  }
-
-  SpectrumIdentification::SpectrumIdentification(const SpectrumIdentification & rhs) :
-    MetaInfoInterface(rhs),
-    id_(rhs.id_),
-    hits_(rhs.hits_)
-  {
-  }
-
   SpectrumIdentification::~SpectrumIdentification()
   {
-  }
-
-  SpectrumIdentification & SpectrumIdentification::operator=(const SpectrumIdentification & rhs)
-  {
-    if (this == &rhs)
-    {
-      return *this;
-    }
-
-    MetaInfoInterface::operator=(rhs);
-    id_ = rhs.id_;
-    hits_ = rhs.hits_;
-
-    return *this;
   }
 
   // Equality operator
@@ -100,3 +73,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

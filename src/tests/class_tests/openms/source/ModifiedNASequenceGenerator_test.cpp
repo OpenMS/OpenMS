@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,10 +52,10 @@ START_TEST(ModifiedNASequenceGenerator, "$Id$")
 RibonucleotideDB* db = RibonucleotideDB::getInstance();
 
 START_SECTION((
-	static void applyFixedModifications(
-		const std::vector<ModifiedNASequenceGenerator::ConstRibonucleotidePtr>::const_iterator& fixed_mods_begin,
-		const std::vector<ModifiedNASequenceGenerator::ConstRibonucleotidePtr>::const_iterator& fixed_mods_end,
-		NASequence& sequence)))
+                static void applyFixedModifications(
+                  const std::vector<ModifiedNASequenceGenerator::ConstRibonucleotidePtr>::const_iterator& fixed_mods_begin,
+                  const std::vector<ModifiedNASequenceGenerator::ConstRibonucleotidePtr>::const_iterator& fixed_mods_end,
+                  NASequence& sequence)))
 {
   vector<ModifiedNASequenceGenerator::ConstRibonucleotidePtr> fixed_mods;
 
@@ -66,38 +66,38 @@ START_SECTION((
   NASequence sequence = NASequence::fromString("AUAUAUA");
 
   ModifiedNASequenceGenerator::applyFixedModifications(
-  	fixed_mods.begin(),
-	  fixed_mods.end(),
-	  sequence);
+        fixed_mods.begin(),
+        fixed_mods.end(),
+        sequence);
 
-	TEST_STRING_EQUAL(sequence.toString(), "A[s4U]A[s4U]A[s4U]A");
+  TEST_STRING_EQUAL(sequence.toString(), "A[s4U]A[s4U]A[s4U]A");
 
-	// additional check if internal representation equal
+  // additional check if internal representation equal
     NASequence sequence2 = NASequence::fromString("A[s4U]A[s4U]A[s4U]A");
-	TEST_EQUAL(sequence ,sequence2);
+    TEST_EQUAL(sequence ,sequence2);
 
 }
 END_SECTION
 
 START_SECTION(applyVariableModifications())
   vector<ModifiedNASequenceGenerator::ConstRibonucleotidePtr> var_mods;
-	// query modified ribos by code
-	vector<string> mods_code = {"s4U", "m3U"};  // 4-thiouridine, 3-methyluridine
-	for (auto const & f : mods_code) { var_mods.push_back(db->getRibonucleotide(f)); }
+  // query modified ribos by code
+  vector<string> mods_code = {"s4U", "m3U"};  // 4-thiouridine, 3-methyluridine
+  for (auto const & f : mods_code) { var_mods.push_back(db->getRibonucleotide(f)); }
 
     NASequence sequence = NASequence::fromString("AUAUAUA");
   vector<NASequence> ams;
 
-	// (1) Add at most one modification. (true) return the unmodified version
+  // (1) Add at most one modification. (true) return the unmodified version
   ModifiedNASequenceGenerator::applyVariableModifications(
-		var_mods.begin(),
-  	var_mods.end(),
-	  sequence,
-	  1,
-		ams,
-	  true);
+      var_mods.begin(),
+      var_mods.end(),
+      sequence,
+      1,
+      ams,
+      true);
 
-	TEST_EQUAL(ams.size(), 7);
+  TEST_EQUAL(ams.size(), 7);
     TEST_STRING_EQUAL(ams[0].toString(), NASequence::fromString("AUAUAUA").toString());
     TEST_STRING_EQUAL(ams[1].toString(), NASequence::fromString("AUAUA[s4U]A").toString());
     TEST_STRING_EQUAL(ams[2].toString(), NASequence::fromString("AUAUA[m3U]A").toString());
@@ -106,43 +106,44 @@ START_SECTION(applyVariableModifications())
     TEST_STRING_EQUAL(ams[5].toString(), NASequence::fromString("A[s4U]AUAUA").toString());
     TEST_STRING_EQUAL(ams[6].toString(), NASequence::fromString("A[m3U]AUAUA").toString());
 
-	ams.clear();
-	// (1) Add at most one modification. (false) without the unmodified version
-	ModifiedNASequenceGenerator::applyVariableModifications(
-		var_mods.begin(),
-		var_mods.end(),
-		sequence,
-		1,
-		ams,
-		false);
-	TEST_EQUAL(ams.size(), 6); // same as before but now without the unmodified version
+    ams.clear();
+    // (1) Add at most one modification. (false) without the unmodified version
+    ModifiedNASequenceGenerator::applyVariableModifications(
+      var_mods.begin(),
+      var_mods.end(),
+      sequence,
+      1,
+      ams,
+      false);
 
-	ams.clear();
-	// (3) Add at most three modification. (true) with the unmodified version
-	ModifiedNASequenceGenerator::applyVariableModifications(
-		var_mods.begin(),
-		var_mods.end(),
-		sequence,
-		3,
-		ams,
-		true);
-	TEST_EQUAL(ams.size(), 3*3*3); // 3^3 sequences expected
+  TEST_EQUAL(ams.size(), 6); // same as before but now without the unmodified version
 
-	// test modification of A and U
-	ams.clear();
-	var_mods.clear();
-	mods_code = {"s4U", "m3U", "m1A"};
-	for (auto const & f : mods_code) { var_mods.push_back(db->getRibonucleotide(f)); }
+  ams.clear();
+  // (3) Add at most three modification. (true) with the unmodified version
+  ModifiedNASequenceGenerator::applyVariableModifications(
+      var_mods.begin(),
+      var_mods.end(),
+      sequence,
+      3,
+      ams,
+      true);
+  TEST_EQUAL(ams.size(), 3*3*3); // 3^3 sequences expected
 
-	ModifiedNASequenceGenerator::applyVariableModifications(
-		var_mods.begin(),
-		var_mods.end(),
-		sequence,
-		7,
-		ams,
-		true);
-	TEST_EQUAL(ams.size(), 3*3*3*2*2*2*2); // 3^3 combinations for U times 2^4 for A
-END_SECTION
+  // test modification of A and U
+  ams.clear();
+  var_mods.clear();
+  mods_code = {"s4U", "m3U", "m1A"};
+  for (auto const & f : mods_code) { var_mods.push_back(db->getRibonucleotide(f)); }
+
+  ModifiedNASequenceGenerator::applyVariableModifications(
+      var_mods.begin(),
+      var_mods.end(),
+      sequence,
+      7,
+      ams,
+      true);
+  TEST_EQUAL(ams.size(), 3*3*3*2*2*2*2); // 3^3 combinations for U times 2^4 for A
+  END_SECTION
 
 
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,6 +71,7 @@
 // spectra comparison
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
 // post-processing of results
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
@@ -99,6 +100,33 @@
 
 using namespace OpenMS;
 using namespace std;
+
+//-------------------------------------------------------------
+//Doxygen docu
+//-------------------------------------------------------------
+
+/**
+    @page UTILS_NucleicAcidSearchEngine NucleicAcidSearchEngine
+
+    @brief Searches an mzML file for specified nucleic acid sequences.
+
+    Given a FASTA file containing oligonucleotide sequences (and optionally decoys) and a mzML file from a nucleic acid mass spec experiment:
+    - Generate a list of digest fragments from the FASTA file with a specified RNAse
+    - Search the mzML input for MS2 spectra with parent masses corresponding to any of these digests
+    - Match the MS2 spectra to theoretically generated spectra
+    - Score the resulting matches
+
+    Output is in the form of an mzTab file containing the search results and an optional idXML file containing identifications.
+
+    Modified nucleic acids can either be included in the FASTA input file, or set as @p variable or @p fixed modifications in the tool options.
+    All modification syntax is taken from the Modomics database (http://modomics.genesilico.pl/)
+
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_NucleicAcidSearchEngine.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_NucleicAcidSearchEngine.html
+*/
 
 class NucleicAcidSearchEngine :
   public TOPPBase
@@ -164,7 +192,7 @@ protected:
     registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
-    registerStringList_("fragment:ions", "<choice>", ListUtils::create<String>("a-B,c,w,y"), "Fragment ions to include in theoretical spectra", false);
+    registerStringList_("fragment:ions", "<choice>", ListUtils::create<String>("a-B,a,b,c,d,w,x,y,z"), "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
     registerTOPPSubsection_("modifications", "Modifications Options");

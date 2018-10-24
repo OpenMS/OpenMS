@@ -44,14 +44,16 @@
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteSwathHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/SYSTEM/File.h>
 
-
+#include <memory> // for make_shared
 
 namespace OpenMS
 {
 
   /// Loads a Swath run from a list of split mzML files
-  std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list, String tmp,
+  std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list, 
+	String tmp,
     boost::shared_ptr<ExperimentalSettings>& exp_meta,
     String readoptions)
   {
@@ -143,7 +145,7 @@ namespace OpenMS
     String readoptions)
   {
     std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << std::endl;
-    String tmp_fname = "openswath_tmpfile";
+	String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
 
     startProgress(0, 1, "Loading metadata file " + file);
     boost::shared_ptr<PeakMap> experiment_metadata = populateMetaData_(file);
@@ -159,22 +161,22 @@ namespace OpenMS
       " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
     endProgress();
 
-    FullSwathFileConsumer* dataConsumer;
+    std::shared_ptr<FullSwathFileConsumer> dataConsumer;
     startProgress(0, 1, "Loading data file " + file);
     if (readoptions == "normal")
     {
-      dataConsumer = new RegularSwathFileConsumer(known_window_boundaries);
-      MzMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_shared<RegularSwathFileConsumer>(known_window_boundaries);
+      MzMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "cache")
     {
-      dataConsumer = new CachedSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      MzMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_shared<CachedSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      MzMLFile().transform(file, dataConsumer.get());
     }
     else if (readoptions == "split")
     {
-      dataConsumer = new MzMLSwathFileConsumer(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
-      MzMLFile().transform(file, dataConsumer);
+      dataConsumer = std::make_shared<MzMLSwathFileConsumer>(known_window_boundaries, tmp, tmp_fname, nr_ms1_spectra, swath_counter);
+      MzMLFile().transform(file, dataConsumer.get());
     }
     else
     {
@@ -184,7 +186,6 @@ namespace OpenMS
     LOG_DEBUG << "Finished parsing Swath file " << std::endl;
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
-    delete dataConsumer;
 
     endProgress();
     return swath_maps;
@@ -288,10 +289,11 @@ namespace OpenMS
     String meta_file = tmp + tmp_fname;
 
     // Create new consumer, transform infile, write out metadata
-    MSDataCachedConsumer* cachedConsumer = new MSDataCachedConsumer(cached_file, true);
-    MzMLFile().transform(in, cachedConsumer, *experiment_metadata.get());
-    Internal::CachedMzMLHandler().writeMetadata(*experiment_metadata.get(), meta_file, true);
-    delete cachedConsumer; // ensure that filestream gets closed
+    {
+      MSDataCachedConsumer cachedConsumer(cached_file, true);
+      MzMLFile().transform(in, &cachedConsumer, *experiment_metadata.get());
+      Internal::CachedMzMLHandler().writeMetadata(*experiment_metadata.get(), meta_file, true);
+    } // ensure that filestream gets closed
 
     boost::shared_ptr<PeakMap > exp(new PeakMap);
     MzMLFile().load(meta_file, *exp.get());
