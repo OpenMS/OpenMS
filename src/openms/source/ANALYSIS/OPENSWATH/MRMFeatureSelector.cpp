@@ -104,7 +104,7 @@ namespace OpenMS
     for (const std::pair<double, String>& elem : time_to_name) {
       std::vector<Int> constraints;
       for (const Feature& feature : feature_name_map.at(elem.second)) {
-        const String name1 = elem.second + "_" + (String)feature.getUniqueId();
+        const String name1 = elem.second + "_" + String(feature.getUniqueId());
         if (variables.count(name1) == 0) {
             constraints.push_back(_addVariable(problem, name1, true, make_score(feature)));
             variables.insert(name1);
@@ -143,7 +143,7 @@ namespace OpenMS
       std::vector<Int> constraints;
       const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
       for (size_t i = 0; i < feature_row1.size(); ++i) {
-        const String name1 = time_to_name[cnt1].second + "_" + (String)feature_row1[i].getUniqueId();
+        const String name1 = time_to_name[cnt1].second + "_" + String(feature_row1[i].getUniqueId());
         if (variables.count(name1) == 0) {
             constraints.push_back(_addVariable(problem, name1, true, 0));
             variables.insert(name1);
@@ -155,7 +155,7 @@ namespace OpenMS
             continue;
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
           for (size_t j = 0; j < feature_row2.size(); ++j) {
-            const String name2 = time_to_name[cnt2].second + "_" + (String)feature_row2[j].getUniqueId();
+            const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
             if (variables.count(name2) == 0) {
                 _addVariable(problem, name2, true, 0);
                 variables.insert(name2);
@@ -164,7 +164,7 @@ namespace OpenMS
             if (locality_weight_) {
               locality_weight = 1.0 / (nn_threshold_ - std::abs((int)start_iter + (int)cnt2 - (int)cnt1) + 1);
             }
-            const String var_qp_name = time_to_name[cnt1].second + "_" + (String)i + "-" + time_to_name[cnt2].second + "_" + (String)j;
+            const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
             const String var_abs_name = var_qp_name + "-ABS";
             const Int index_var_qp = _addVariable(problem, var_qp_name, true, 0);
             const Int index_var_abs = _addVariable(problem, var_abs_name, false, 1);
@@ -254,8 +254,8 @@ namespace OpenMS
       std::vector<Feature> subordinates_filtered;
       for (const Feature& subordinate : feature.getSubordinates()) {
         const String feature_name = getSelectTransitionGroup()
-          ? feature.getMetaValue("PeptideRef").toString() + "_" + feature.getUniqueId()
-          : subordinate.getMetaValue("native_id").toString() + "_" + subordinate.getUniqueId();
+          ? feature.getMetaValue("PeptideRef").toString() + "_" + String(feature.getUniqueId())
+          : subordinate.getMetaValue("native_id").toString() + "_" + String(subordinate.getUniqueId());
 
         if (result_names_set.count(feature_name)) {
           subordinates_filtered.push_back(subordinate);
