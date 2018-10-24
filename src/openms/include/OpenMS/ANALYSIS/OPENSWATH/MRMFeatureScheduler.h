@@ -51,8 +51,8 @@ public:
     ~MRMFeatureScheduler() = default;
 
     void schedule_MRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& output_features) const;
-    void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features);
-    void schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features);
+    void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features) const;
+    void schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features) const;
 
     void setNNThresholds(const std::vector<Int>& nn_thresholds);
     void setLocalityWeights(const std::vector<String>& locality_weights);

@@ -61,12 +61,14 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureScheduler::schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features) {
+  void MRMFeatureScheduler::schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features) const
+  {
     MRMFeatureSelectorQMIP feature_selector;
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
 
-  void MRMFeatureScheduler::schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features) {
+  void MRMFeatureScheduler::schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features) const
+  {
     MRMFeatureSelectorScore feature_selector;
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
