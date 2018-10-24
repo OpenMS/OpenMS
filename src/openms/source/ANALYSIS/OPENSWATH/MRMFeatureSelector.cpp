@@ -57,7 +57,7 @@ namespace OpenMS
     const double obj
   ) const
   {
-    Int index = problem.addColumn();
+    const Int index = problem.addColumn();
 
     if (bounded) {
       problem.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
@@ -269,26 +269,40 @@ namespace OpenMS
     }
   }
 
-  double MRMFeatureSelectorScore::make_score(
-    const Feature& feature
-  )
+  double MRMFeatureSelector::make_score(const Feature& feature) const
   {
-    double peak_apices_sum = std::log((double)feature.getMetaValue("peak_apices_sum"));
-    double sn_ratio = std::log((double)feature.getMetaValue("sn_ratio"));
-    if (peak_apices_sum <= 0.) peak_apices_sum = 1.;
-    if (sn_ratio <= 0.) sn_ratio = 1.;
-    return peak_apices_sum*sn_ratio;
+    double score_1 = 1.0;
+    for (const std::pair<String,String>& score_weight : score_weights_) {
+      const String& metavalue_name = score_weight.first;
+      const String& lambda_score = score_weight.second;
+      if (!feature.metaValueExists(metavalue_name)) {
+        LOG_WARN << "make_score(): Metavalue \"" << metavalue_name << "\" not found.";
+        continue;
+      }
+      const double value = weight_func((double)feature.getMetaValue(metavalue_name), lambda_score);
+      if (value > 0.0)
+        score_1 *= value;
+      else
+        LOG_WARN << "make_score(): Value is not greater than 0." << std::endl;
+    }
+    return score_1;
   }
 
-  double MRMFeatureSelectorQMIP::make_score(
-    const Feature& feature
-  )
+  double MRMFeatureSelector::weight_func(const double score, const String& lambda_score) const
   {
-    double peak_apices_sum = pow(std::log10((double)feature.getMetaValue("peak_apices_sum")), -1);
-    double sn_ratio = pow(std::log((double)feature.getMetaValue("sn_ratio")), -1);
-    if (peak_apices_sum <= 0.) peak_apices_sum = 1.;
-    if (sn_ratio <= 0.) sn_ratio = 1.;
-    return pow(peak_apices_sum*sn_ratio, 0.5);
+    if (lambda_score == "lambda score: score*1.0") {
+      return score * 1.0; // TODO: hardcoded value, but it might actually be different than 1.0
+    } else if (lambda_score == "lambda score: 1/score") {
+      return 1.0 / score;
+    } else if (lambda_score == "lambda score: log(score)") {
+      return std::log(score);
+    } else if (lambda_score == "lambda score: 1/log(score)") {
+      return 1.0 / std::log(score);
+    } else if (lambda_score == "lambda score: 1/log10(score)") {
+      return 1.0 / std::log10(score);
+    } else {
+      throw "Case not handled.";
+    }
   }
 
   void MRMFeatureSelector::setNNThreshold(const Int nn_threshold)
@@ -369,6 +383,11 @@ namespace OpenMS
   double MRMFeatureSelector::getOptimalThreshold() const
   {
     return optimal_threshold_;
+  }
+
+  void MRMFeatureSelector::setScoreWeights(const std::map<String, String>& score_weights)
+  {
+    score_weights_ = score_weights;
   }
 
   void MRMFeatureSelector::getDefaultParameters(Param& params)

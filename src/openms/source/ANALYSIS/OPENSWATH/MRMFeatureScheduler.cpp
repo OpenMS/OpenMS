@@ -64,12 +64,14 @@ namespace OpenMS
   void MRMFeatureScheduler::schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features) const
   {
     MRMFeatureSelectorQMIP feature_selector;
+    feature_selector.setScoreWeights(score_weights_);
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
 
   void MRMFeatureScheduler::schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features) const
   {
     MRMFeatureSelectorScore feature_selector;
+    feature_selector.setScoreWeights(score_weights_);
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
 
@@ -111,5 +113,10 @@ namespace OpenMS
   void MRMFeatureScheduler::setOptimalThresholds(const std::vector<double>& optimal_thresholds)
   {
     optimal_thresholds_ = optimal_thresholds;
+  }
+
+  void MRMFeatureScheduler::setScoreWeights(const std::map<String, String>& score_weights)
+  {
+    score_weights_ = score_weights;
   }
 }

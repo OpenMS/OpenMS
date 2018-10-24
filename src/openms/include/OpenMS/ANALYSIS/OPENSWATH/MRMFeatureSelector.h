@@ -61,7 +61,7 @@ public:
       std::vector<String>& result
     )=0;
     void select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered);
-    virtual double make_score(const Feature& feature)=0;
+    double make_score(const Feature& feature) const;
 
     String remove_spaces(String str);
 
@@ -89,6 +89,8 @@ public:
     void setOptimalThreshold(const double optimal_threshold);
     double getOptimalThreshold() const;
 
+    void setScoreWeights(const std::map<String, String>& score_weights);
+
     void getDefaultParameters(Param& params);
 
 protected:
@@ -103,6 +105,7 @@ private:
     String select_highest_count_;
     String variable_type_;
     double optimal_threshold_;
+    std::map<String, String> score_weights_;
 
     Int _addVariable(LPWrapper& problem, const String& name, const bool bounded = true, const double obj = 1.0) const;
 
@@ -115,6 +118,8 @@ private:
       const double ub,
       const LPWrapper::Type param
     ) const;
+
+    double weight_func(const double score, const String& lambda_score) const;
   };
 
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
@@ -125,7 +130,6 @@ public:
       const std::map< String, std::vector<Feature> >& feature_name_map,
       std::vector<String>& result
     );
-    double make_score(const Feature& feature);
   };
 
   class OPENMS_DLLAPI MRMFeatureSelectorScore : public MRMFeatureSelector
@@ -136,6 +140,5 @@ public:
       const std::map< String, std::vector<Feature> >& feature_name_map,
       std::vector<String>& result
     );
-    double make_score(const Feature& feature);
   };
 }

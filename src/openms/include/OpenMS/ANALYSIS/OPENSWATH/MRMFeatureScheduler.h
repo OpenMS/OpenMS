@@ -62,6 +62,7 @@ public:
     void setSelectHighestCounts(const std::vector<String>& select_highest_counts);
     void setVariableTypes(const std::vector<String>& variable_types);
     void setOptimalThresholds(const std::vector<double>& optimal_thresholds);
+    void setScoreWeights(const std::map<String, String>& score_weights);
 
 private:
     std::vector<Int> nn_thresholds_;
@@ -72,5 +73,6 @@ private:
     std::vector<String> select_highest_counts_;
     std::vector<String> variable_types_;
     std::vector<double> optimal_thresholds_;
+    std::map<String, String> score_weights_;
   };
 }

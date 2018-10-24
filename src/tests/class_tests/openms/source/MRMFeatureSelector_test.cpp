@@ -143,7 +143,7 @@ START_SECTION(getOptimalThreshold())
 }
 END_SECTION
 
-START_SECTION(select_MRMFeature())
+START_SECTION(MRMFeatureSelectorScore::select_MRMFeature())
 {
   const char* s_integer = MRMFeatureSelector::s_integer;
   FeatureMap feature_map;
@@ -151,21 +151,25 @@ START_SECTION(select_MRMFeature())
   feature_file.load(features_path, feature_map);
   TEST_EQUAL(feature_map.size(), 703);
 
-  MRMFeatureSelectorScore selectoreScore;
+  MRMFeatureSelectorScore selectorScore;
 
   Param param;
-  param.setValue("nn_threshold", 4);
-  param.setValue("locality_weight", "true");
   param.setValue("select_transition_group", "true");
   param.setValue("segment_window_length", -1);
   param.setValue("segment_step_length", -1);
   param.setValue("select_highest_count", "false");
   param.setValue("variable_type", s_integer);
-  param.setValue("optimal_threshold", 1.0);
-  selectoreScore.setParameters(param);
+  param.setValue("optimal_threshold", 0.5);
+  selectorScore.setParameters(param);
+
+  const std::map<String, String> score_weights {
+    {"sn_ratio", "lambda score: log(score)"},
+    {"peak_apices_sum", "lambda score: log(score)"}
+  };
+  selectorScore.setScoreWeights(score_weights);
 
   FeatureMap output_selected;
-  selectoreScore.select_MRMFeature(feature_map, output_selected);
+  selectorScore.select_MRMFeature(feature_map, output_selected);
   TEST_EQUAL(output_selected.size(), 117);
   TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 286.0);                        // NOTE: same result as python, but assert failing
   TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
@@ -195,14 +199,18 @@ START_SECTION(schedule_MRMFeaturesQMIP())
 
   MRMFeatureScheduler scheduler;
 
-  std::vector<Int>    nn_thresholds {4, 4};
-  std::vector<String> locality_weights {"false", "false", "false", "true"};
-  std::vector<String> select_transition_groups {"true", "true", "true", "true"};
-  std::vector<Int>    segment_window_lengths {8, -1};
-  std::vector<Int>    segment_step_lengths {4, -1};
-  std::vector<String> select_highest_counts {"false", "false", "false", "false"};
-  std::vector<String> variable_types {s_continuous, s_continuous, s_continuous, s_continuous};
-  std::vector<double> optimal_thresholds {0.5, 0.5, 0.5, 0.5};
+  const std::vector<Int>    nn_thresholds {4, 4};
+  const std::vector<String> locality_weights {"false", "false", "false", "true"};
+  const std::vector<String> select_transition_groups {"true", "true", "true", "true"};
+  const std::vector<Int>    segment_window_lengths {8, -1};
+  const std::vector<Int>    segment_step_lengths {4, -1};
+  const std::vector<String> select_highest_counts {"false", "false", "false", "false"};
+  const std::vector<String> variable_types {s_continuous, s_continuous, s_continuous, s_continuous};
+  const std::vector<double> optimal_thresholds {0.5, 0.5, 0.5, 0.5};
+  const std::map<String, String> score_weights {
+    {"sn_ratio", "lambda score: 1/log(score)"},
+    {"peak_apices_sum", "lambda score: 1/log10(score)"}
+  };
 
   scheduler.setNNThresholds(nn_thresholds);
   scheduler.setLocalityWeights(locality_weights);
@@ -212,6 +220,7 @@ START_SECTION(schedule_MRMFeaturesQMIP())
   scheduler.setSelectHighestCounts(select_highest_counts);
   scheduler.setVariableTypes(variable_types);
   scheduler.setOptimalThresholds(optimal_thresholds);
+  scheduler.setScoreWeights(score_weights);
 
   FeatureMap output_selected;
   scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
