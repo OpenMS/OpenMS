@@ -5,16 +5,37 @@ library(dplyr)
 library(tibble)
 library(tidyr)
 
-mzTab_input <- "C:\\Users\\sachs\\targeted_msstats_study1.mzTab"
-MSstats_input <- "C:\\Users\\sachs\\targeted_msstats_study1.csv"
-mzTab_output <- "C:\\Users\\sachs\\targeted_msstats_study1_out.mzTab"
+args = commandArgs(trailingOnly=TRUE)
+
+MSstats_input <- args[1] 
+mzTab_input <- args[2] 
+mzTab_output <- args[3]
 
 ##################### Quantification
 #
 data <- read.csv(MSstats_input, sep=",", header=T, stringsAsFactors=T)
 quant <- OpenMStoMSstatsFormat(data, removeProtein_with1Feature=T)
 processed.quant <- dataProcess(quant, censoredInt = 'NA')
-#dataProcessPlots(data=processed.quant, type="QCPlot", which.Protein="allonly")
+dataProcessPlots(data=processed.quant, type="QCPlot", which.Protein="allonly")
+
+comparison1<-matrix(c(-1,1),nrow=1) # 2/1
+
+comparison <- rbind(comparison1)
+row.names(comparison)<-c("P2-P1")
+
+groupcomp <- groupComparison(contrast.matrix=comparison, data=processed.quant)
+# for plotting, remove proteins with infinite fold change / p-value NA (e.g., those only present in one condition)
+groupcomp$Volcano = groupcomp$ComparisonResult[!is.na(groupcomp$ComparisonResult$pvalue),]
+groupComparisonPlots(data=groupcomp$Volcano, type="VolcanoPlot", width=12, height=12,dot.size = 2,ylimUp = 7)
+					 			 
+#write comparison to CSV (one CSV per contrast)							 
+writeComparisonToCSV <- function(DF) 
+{
+write.table(DF, file=paste0("comparison_",unique(DF$Label),".csv"), quote=FALSE, sep='\t', row.names = FALSE)
+return(DF)
+}
+groupcomp$ComparisonResult %>% group_by(Label) %>% do(writeComparisonToCSV(as.data.frame(.)))  
+
 
 ##################### Imputation into existing MzTab
 # find start of the section
@@ -130,7 +151,7 @@ for (acc in quant.runLevel$accession)
   else
   {
     PRT[w, PRT_assay_cols] <- quant.runLevel[q, RL_assay_cols]
-	PRT[w, PRT_stdv_cols] <- quant.runLevel[q, RL_assay_cols] # we currently store same data in stdv and assay column
+    PRT[w, PRT_stdv_cols] <- quant.runLevel[q, RL_assay_cols] # we currently store same data in stdv and assay column
   }
 }
 
