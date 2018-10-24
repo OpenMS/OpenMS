@@ -93,25 +93,25 @@ namespace OpenMS
   }
 
   void MRMFeatureSelectorScore::optimize(
-      const std::vector<std::pair<double, String>>& time_to_name, 
-      const std::map< String, std::vector<Feature> >& feature_name_map,
-      std::vector<String>& result
-  ) {
+    const std::vector<std::pair<double, String>>& time_to_name,
+    const std::map< String, std::vector<Feature> >& feature_name_map,
+    std::vector<String>& result
+  )
+  {
     std::unordered_set<std::string> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
-    for (size_t cnt1=0; cnt1 < time_to_name.size(); ++cnt1) {
+    for (const std::pair<double, String>& elem : time_to_name) {
       std::vector<Int> constraints;
-      const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
-      for (size_t i=0; i < feature_row1.size(); ++i) {
-        String name1 = time_to_name[cnt1].second + "_" + (String)feature_row1[i].getUniqueId();
-        if (variables.find(name1) == variables.end()) {
-            constraints.push_back(_addVariable(problem, name1, true, make_score(feature_row1[i])));
+      for (const Feature& feature : feature_name_map.at(elem.second)) {
+        const String name1 = elem.second + "_" + (String)feature.getUniqueId();
+        if (variables.count(name1) == 0) {
+            constraints.push_back(_addVariable(problem, name1, true, make_score(feature)));
             variables.insert(name1);
         }
       }
-      std::vector<double> constraints_values(constraints.size(), 1.);
-      _addConstraint(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
+      std::vector<double> constraints_values(constraints.size(), 1.0);
+      _addConstraint(problem, constraints, constraints_values, elem.second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
