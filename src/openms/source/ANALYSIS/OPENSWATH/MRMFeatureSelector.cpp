@@ -207,33 +207,30 @@ namespace OpenMS
     std::unordered_set<std::string> names;
     std::vector<std::pair<double, String>> time_to_name;
     std::map< String, std::vector<Feature> > feature_name_map;
-    size_t feature_count = 0;
-    for (FeatureMap::const_iterator it = features.begin(); it != features.end(); ++it) {
-      String component_group_name = remove_spaces(it->getMetaValue("PeptideRef").toString());
-      double assay_retention_time = it->getMetaValue("assay_rt");
-      if (names.find(component_group_name) == names.end()) {
+    for (const Feature& feature : features) {
+      const String component_group_name = remove_spaces(feature.getMetaValue("PeptideRef").toString());
+      const double assay_retention_time = feature.getMetaValue("assay_rt");
+      if (names.count(component_group_name) == 0) {
         time_to_name.push_back(std::make_pair(assay_retention_time, component_group_name));
         names.insert(component_group_name);
       }
-      if (feature_name_map.find(component_group_name) == feature_name_map.end()) {
+      if (feature_name_map.count(component_group_name) == 0) {
         feature_name_map[component_group_name] = std::vector<Feature>();
       }
-      feature_name_map[component_group_name].push_back(*it);
-      ++feature_count;
-      if (!getSelectTransitionGroup()) {
-        for (std::vector<Feature>::const_iterator sub_it = it->getSubordinates().begin();
-            sub_it != it->getSubordinates().end(); ++sub_it) {
-          String component_name = remove_spaces(sub_it->getMetaValue("native_id").toString());
-          if (names.find(component_name) != names.end()) {
-            time_to_name.push_back(std::make_pair(assay_retention_time, component_name));
-            names.insert(component_name);
-          }
-          if (feature_name_map.find(component_name) == feature_name_map.end()) {
-            feature_name_map[component_name] = std::vector<Feature>();
-          }
-          feature_name_map[component_name].push_back(*sub_it);
-          ++feature_count;
+      feature_name_map[component_group_name].push_back(feature);
+      if (getSelectTransitionGroup()) {
+        continue;
+      }
+      for (const Feature& subordinate : feature.getSubordinates()) {
+        String component_name = remove_spaces(subordinate.getMetaValue("native_id").toString());
+        if (names.count(component_name)) {
+          time_to_name.push_back(std::make_pair(assay_retention_time, component_name));
+          names.insert(component_name);
         }
+        if (feature_name_map.count(component_name) == 0) {
+          feature_name_map[component_name] = std::vector<Feature>();
+        }
+        feature_name_map[component_name].push_back(subordinate);
       }
     }
     sort(time_to_name.begin(), time_to_name.end());
