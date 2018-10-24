@@ -38,24 +38,23 @@
 
 namespace OpenMS
 {
-  MRMFeatureScheduler::MRMFeatureScheduler() :
-      DefaultParamHandler("MRMFeatureScheduler")
-  {}
-
-  MRMFeatureScheduler::~MRMFeatureScheduler() {}
-
-  void MRMFeatureScheduler::schedule_MRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& output_features) {
+  void MRMFeatureScheduler::schedule_MRMFeatures(
+    MRMFeatureSelector& feature_selector,
+    const FeatureMap& features,
+    FeatureMap& output_features
+  ) const
+  {
     FeatureMap features_mutable = features;
     for (size_t i = 0; i < segment_window_lengths_.size(); ++i) {
       Param param;
-      param.setValue("nn_threshold", nn_thresholds_[i]);
-      param.setValue("locality_weight", locality_weights_[i]);
-      param.setValue("select_transition_group", select_transition_groups_[i]);
-      param.setValue("segment_window_length", segment_window_lengths_[i]);
-      param.setValue("segment_step_length", segment_step_lengths_[i]);
-      param.setValue("select_highest_count", select_highest_counts_[i]);
-      param.setValue("variable_type", variable_types_[i]);
-      param.setValue("optimal_threshold", optimal_thresholds_[i]);
+      param.setValue("nn_threshold", nn_thresholds_.at(i));
+      param.setValue("locality_weight", locality_weights_.at(i));
+      param.setValue("select_transition_group", select_transition_groups_.at(i));
+      param.setValue("segment_window_length", segment_window_lengths_.at(i));
+      param.setValue("segment_step_length", segment_step_lengths_.at(i));
+      param.setValue("select_highest_count", select_highest_counts_.at(i));
+      param.setValue("variable_type", variable_types_.at(i));
+      param.setValue("optimal_threshold", optimal_thresholds_.at(i));
       feature_selector.setParameters(param);
       feature_selector.select_MRMFeature(features_mutable, output_features);
       features_mutable = output_features;

@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_MRMFEATURESCHEDULER_H
-#define OPENMS_ANALYSIS_OPENSWATH_MRMFEATURESCHEDULER_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -45,14 +44,13 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI MRMFeatureScheduler :
-    public DefaultParamHandler
+  class OPENMS_DLLAPI MRMFeatureScheduler
   {
 public:
-    MRMFeatureScheduler();
-    virtual ~MRMFeatureScheduler();
+    MRMFeatureScheduler() = default;
+    ~MRMFeatureScheduler() = default;
 
-    void schedule_MRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& output_features);
+    void schedule_MRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& output_features) const;
     void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features);
     void schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features);
 
@@ -67,14 +65,12 @@ public:
 
 private:
     std::vector<double> nn_thresholds_;
-    std::vector<String>   locality_weights_;
-    std::vector<String>   select_transition_groups_;
+    std::vector<String> locality_weights_;
+    std::vector<String> select_transition_groups_;
     std::vector<double> segment_window_lengths_;
     std::vector<double> segment_step_lengths_;
-    std::vector<String>   select_highest_counts_;
+    std::vector<String> select_highest_counts_;
     std::vector<String> variable_types_;
     std::vector<double> optimal_thresholds_;
   };
 }
-
-#endif // OPENMS_ANALYSIS_OPENSWATH_MRMFEATURESCHEDULER_H
