@@ -55,14 +55,14 @@ public:
     /// Constructor
     Gradient() = default;
     /// Copy constructor
-    Gradient(const Gradient & source) = default;
+    Gradient(const Gradient &) = default;
     /// Move constructor
     Gradient(Gradient&&) = default;
     /// Destructor
     ~Gradient();
 
     /// Assignment operator
-    Gradient & operator=(const Gradient & source) = default;
+    Gradient & operator=(const Gradient &) = default;
     /// Move assignment operator
     Gradient& operator=(Gradient&&) & = default;
 

@@ -61,14 +61,14 @@ public:
     /// Copy constructor
     MetaInfoInterface(const MetaInfoInterface& rhs);
     /// Move constructor
-    MetaInfoInterface(MetaInfoInterface&&);
+    MetaInfoInterface(MetaInfoInterface&&) noexcept;
     /// Destructor
     ~MetaInfoInterface();
 
     /// Assignment operator
     MetaInfoInterface& operator=(const MetaInfoInterface& rhs);
     /// Move assignment operator
-    MetaInfoInterface& operator=(MetaInfoInterface&&);
+    MetaInfoInterface& operator=(MetaInfoInterface&&) noexcept;
 
     /// Equality operator
     bool operator==(const MetaInfoInterface& rhs) const;

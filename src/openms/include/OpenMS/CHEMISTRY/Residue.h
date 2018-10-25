@@ -182,7 +182,7 @@ public:
     Residue();
 
     /// Copy constructor
-    Residue(const Residue& residue) = default;
+    Residue(const Residue&) = default;
 
     /// Move constructor
     Residue(Residue&&) = default;
@@ -202,7 +202,7 @@ public:
     //@{
 
     /// Assignment operator
-    Residue& operator=(const Residue& residue) = default;
+    Residue& operator=(const Residue&) = default;
 
     /// Move assignment operator
     Residue& operator=(Residue&&) & = default;

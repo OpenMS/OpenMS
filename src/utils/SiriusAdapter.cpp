@@ -420,29 +420,27 @@ protected:
       QDir sw_dir(sirius_workspace_directory.toQString());
       sirius_workspace_directory = String(sw_dir.absolutePath());
       
-      // try to create directory if not present
-      if (!sw_dir.exists())
-      {
-        sw_dir.mkpath(sirius_workspace_directory.toQString());
-      }
-      
       // move tmp folder to new location
-      std::rename(tmp_dir.toStdString().c_str(), sirius_workspace_directory.c_str());
-      LOG_WARN << "Sirius Workspace was moved to " << sirius_workspace_directory << std::endl;
+      bool copy_status = File::copyDirRecursively(tmp_dir, sirius_workspace_directory.toQString());
+      if (copy_status)
+      { 
+        LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
+      }
+      else
+      {
+        LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run SiriusAdapter with debug >= 2." << std::endl;
+      }
     }
    
     // should the ms file be retained (non-converter mode)
     if (!out_ms.empty())
     {  
       QFile::copy(tmp_ms_file.toQString(), out_ms.toQString());
-      LOG_WARN << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
+      LOG_INFO << "Preprocessed .ms files was moved to " << out_ms << std::endl; 
     }
 
-
     // clean tmp directory if debug level < 2 
-    // if out_ms and sirius_workspace_directoy is set - the files/folders have already be moved to 
-    // the designated location
-    if (debug_level_ >= 2 && out_ms.empty() && sirius_workspace_directory.empty())
+    if (debug_level_ >= 2)
     {
       writeDebug_("Keeping temporary files in directory '" + String(tmp_dir) + " and msfile at this location "+ tmp_ms_file + ". Set debug level to 1 or lower to remove them.", 2);
     }

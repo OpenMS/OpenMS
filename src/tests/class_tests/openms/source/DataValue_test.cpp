@@ -36,8 +36,9 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+///////////////////////////
+
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
@@ -258,6 +259,70 @@ START_SECTION((DataValue(const DataValue&)))
 }
 END_SECTION
 
+// move ctor
+START_SECTION((DataValue(DataValue&&) noexcept))
+{
+  // Ensure that DataValue has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(DataValue(std::declval<DataValue&&>())), true)
+
+  DataValue empty;
+  DataValue p1((double) 1.23);
+  DataValue p3((float) 1.23);
+  DataValue p4((Int) -3);
+  DataValue p5((UInt) 123);
+  DataValue p6("test char");
+  DataValue p7(std::string("test string"));
+  DataValue p8(ListUtils::create<String>("test string,string2,last string"));
+  DataValue p9;
+  DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
+  DataValue p11(ListUtils::create<double>("1.2,2.3,3.4"));
+  DataValue copy_of_p1(std::move(p1));
+  DataValue copy_of_p3(std::move(p3));
+  DataValue copy_of_p4(std::move(p4));
+  DataValue copy_of_p5(std::move(p5));
+  DataValue copy_of_p6(std::move(p6));
+  DataValue copy_of_p7(std::move(p7));
+  DataValue copy_of_p8(std::move(p8));
+  DataValue copy_of_p9(std::move(p9));
+  DataValue copy_of_p10(std::move(p10));
+  DataValue copy_of_p11(std::move(p11));
+  TEST_REAL_SIMILAR( (double) copy_of_p1, 1.23)
+  TEST_REAL_SIMILAR( (float) copy_of_p3, 1.23)
+  TEST_EQUAL( (Int) copy_of_p4, -3)
+  TEST_EQUAL( (UInt) copy_of_p5, 123)
+  TEST_EQUAL( (std::string) copy_of_p6, "test char")
+  TEST_EQUAL( (std::string) copy_of_p7, "test string")
+  TEST_EQUAL( copy_of_p8 == ListUtils::create<String>("test string,string2,last string"), true)
+  TEST_EQUAL( (copy_of_p9.isEmpty()), true)
+  TEST_EQUAL( copy_of_p10 == ListUtils::create<Int>("1,2,3,4,5"), true)
+  TEST_EQUAL( copy_of_p11 == ListUtils::create<double>("1.2,2.3,3.4"), true)
+
+  TEST_EQUAL(p1 == empty, true)
+  TEST_EQUAL(p3 == empty, true)
+  TEST_EQUAL(p4 == empty, true)
+  TEST_EQUAL(p5 == empty, true)
+  TEST_EQUAL(p6 == empty, true)
+  TEST_EQUAL(p7 == empty, true)
+  TEST_EQUAL(p8 == empty, true)
+  TEST_EQUAL(p9 == empty, true)
+  TEST_EQUAL(p10 == empty, true)
+  TEST_EQUAL(p11 == empty, true)
+
+  DataValue val;
+  {
+    DataValue p1((double) 1.23);
+    p1.setUnit(8);
+    val = DataValue(p1);
+  }
+  DataValue val2(std::move(val));
+
+  TEST_EQUAL(val == empty, true)
+  TEST_REAL_SIMILAR( (double) val2, 1.23)
+  TEST_EQUAL( val2.getUnit(), 8)
+}
+END_SECTION
+
 // assignment operator
 START_SECTION((DataValue& operator=(const DataValue&)))
 {
@@ -306,6 +371,70 @@ START_SECTION((DataValue& operator=(const DataValue&)))
   TEST_REAL_SIMILAR( (double) val2, 1.23)
   TEST_EQUAL( val2.getUnit(), 9)
 
+}
+END_SECTION
+
+// move assignment operator
+START_SECTION(( DataValue& operator=(DataValue&&) noexcept ))
+{
+  // Ensure that DataValue has a no-except move assignment operator.
+  TEST_EQUAL(noexcept(declval<DataValue&>() = declval<DataValue &&>()), true)
+
+  DataValue empty;
+  DataValue p1((double) 1.23);
+  DataValue p3((float) 1.23);
+  DataValue p4((Int) -3);
+  DataValue p5((UInt) 123);
+  DataValue p6("test char");
+  DataValue p7(std::string("test string"));
+  DataValue p8(ListUtils::create<String>("test string,string2,last string"));
+  DataValue p9;
+  DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
+  DataValue p11(ListUtils::create<double>("1.2,2.3,3.4"));
+  DataValue copy_of_p;
+  copy_of_p = std::move(p1);
+  TEST_REAL_SIMILAR( (double) copy_of_p, 1.23)
+  copy_of_p = std::move(p3);
+  TEST_REAL_SIMILAR( (float) copy_of_p, 1.23)
+  copy_of_p = std::move(p4);
+  TEST_EQUAL( (Int) copy_of_p, -3)
+  copy_of_p = std::move(p5);
+  TEST_EQUAL( (UInt) copy_of_p, 123)
+  copy_of_p = std::move(p6);
+  TEST_EQUAL( (std::string) copy_of_p, "test char")
+  copy_of_p = std::move(p7);
+  TEST_EQUAL( (std::string) copy_of_p, "test string")
+  copy_of_p = std::move(p8);
+  TEST_EQUAL( copy_of_p == ListUtils::create<String>("test string,string2,last string"), true)
+  copy_of_p = std::move(p9);
+  TEST_EQUAL( (copy_of_p.isEmpty()), true)
+  copy_of_p = std::move(p10);
+  TEST_EQUAL(copy_of_p == ListUtils::create<Int>("1,2,3,4,5"), true)
+  copy_of_p = std::move(p11);
+  TEST_EQUAL(copy_of_p == ListUtils::create<double>("1.2,2.3,3.4"), true)
+
+  TEST_EQUAL(p1 == empty, true)
+  TEST_EQUAL(p3 == empty, true)
+  TEST_EQUAL(p4 == empty, true)
+  TEST_EQUAL(p5 == empty, true)
+  TEST_EQUAL(p6 == empty, true)
+  TEST_EQUAL(p7 == empty, true)
+  TEST_EQUAL(p8 == empty, true)
+  TEST_EQUAL(p9 == empty, true)
+  TEST_EQUAL(p10 == empty, true)
+  TEST_EQUAL(p11 == empty, true)
+
+  DataValue val;
+  {
+    DataValue p1((double) 1.23);
+    p1.setUnit(8);
+    val = p1;
+  }
+  DataValue val2 = std::move(val);
+
+  TEST_EQUAL(val == empty, true)
+  TEST_REAL_SIMILAR( (double) val2, 1.23)
+  TEST_EQUAL( val2.getUnit(), 8)
 }
 END_SECTION
 

@@ -115,6 +115,14 @@ public:
     }
 
     /**
+      @brief Platform-agnostic getline() which can deal with all line endings (\r, \r\n, \n)
+
+      Line endings will be removed from the resulting string.
+    
+    */
+    static std::istream& getLine(std::istream& is, std::string& t);
+
+    /**
       @brief Gives access to the underlying text buffer.
     */
     ConstIterator begin() const;
