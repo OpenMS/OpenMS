@@ -201,7 +201,7 @@ for (acc in quant.runLevel$accession)
   else
   {
     PRT[w, PRT_assay_cols] <- quant.runLevel[q, RL_assay_cols]
-	PRT[w, PRT_stdv_cols] <- quant.runLevel[q, RL_assay_cols] # we currently store same data in stdv and assay column
+    PRT[w, PRT_stdv_cols] <- quant.runLevel[q, RL_assay_cols] # we currently store same data in stdv and assay column
   }
 }
 
