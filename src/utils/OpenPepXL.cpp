@@ -72,7 +72,7 @@ using namespace OpenMS;
 #endif
 
 // turn on additional debug output
-#define DEBUG_OPENPEPXL
+//#define DEBUG_OPENPEPXL
 
 //-------------------------------------------------------------
 //Doxygen docu
