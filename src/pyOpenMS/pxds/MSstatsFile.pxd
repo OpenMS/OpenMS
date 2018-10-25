@@ -1,12 +1,10 @@
-<<<<<<< HEAD
-=======
 from libcpp cimport bool
 from Types cimport *
 from String cimport *
 from ConsensusMap cimport *
 from ExperimentalDesign cimport *
 from StringList cimport *
->>>>>>> upstream/develop
+
 
 cdef extern from "<OpenMS/FORMAT/MSstatsFile.h>" namespace "OpenMS":
 
