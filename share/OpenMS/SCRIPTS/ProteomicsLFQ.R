@@ -11,23 +11,73 @@ MSstats_input <- args[1]
 mzTab_input <- args[2] 
 mzTab_output <- args[3]
 
-##################### Quantification
-#
+Sys.setenv(LANG = "en")
+
 data <- read.csv(MSstats_input, sep=",", header=T, stringsAsFactors=T)
+
 quant <- OpenMStoMSstatsFormat(data, removeProtein_with1Feature=T)
 processed.quant <- dataProcess(quant, censoredInt = 'NA')
-dataProcessPlots(data=processed.quant, type="QCPlot", which.Protein="allonly")
+dataProcessPlots(data=processed.quant, type="QCPlot",which.Protein="allonly")
 
 comparison1<-matrix(c(-1,1),nrow=1) # 2/1
 
 comparison <- rbind(comparison1)
-row.names(comparison)<-c("P2-P1")
+row.names(comparison)<-c("Condition2-Condition1")
+
+############ also calculate missingness on condition level
+
+# input: ProcessedData matrix of MSstats
+# output: 
+#   calculate fraction of na in condition (per protein)
+# Groups:   PROTEIN [762]
+#   PROTEIN                 `1`   `2`
+#   <fct>                 <dbl> <dbl>
+# 1 sp|A1ANS1|HTPG_PELPD   0    0.5  
+# 2 sp|A2I7N3|SPA37_BOVIN  0    0.5  
+# 3 sp|A2VDF0|FUCM_HUMAN   0    0.5  
+# 4 sp|A6ND91|ASPD_HUMAN   0.5  0.5  
+# 5 sp|A7E3W2|LG3BP_BOVIN  0.5  0.5  
+# 6 sp|B8FGT4|ATPB_DESAA   0    0.5
+
+
+getMissingInCondition <- function(processedData)
+{
+p <- processedData
+
+# count number of samples per condition
+n_samples = p %>% group_by(GROUP) %>% summarize(n_samples = length(unique((as.numeric(SUBJECT))))) 
+
+p <- p %>% 
+   filter(!is.na(INTENSITY)) %>% # remove rows with INTENSITY=NA
+   select(PROTEIN, GROUP, SUBJECT) %>%
+   distinct() %>% 
+   group_by(PROTEIN, GROUP) %>% 
+   summarize(non_na = n())  # count non-NA values for this protein and condition
+   
+p <- left_join(p, n_samples) %>% 
+       mutate(missingInCondition = 1 - non_na/n_samples) # calculate fraction of missing values in condition
+
+# create one column for every condition containing the missingness
+p <- spread(data = p[,c("PROTEIN", "GROUP", "missingInCondition")], key = GROUP, value = missingInCondition)
+return(p)
+}
+mic <- getMissingInCondition(processed.quant$ProcessedData)
+#filtered.quant <- processed.quant
+#filtered.quant$RunlevelData <- merge(x=processed.quant$RunlevelData, y=mic, by.y="PROTEIN", by.x="Protein")
+#filtered.quant$RunlevelData[is.na(filtered.quant$RunlevelData)] <- 1 # set completely missing to 1.0 (had no matching entry in join and were set to NA)
+#filtered.quant$ProcessedData <- merge(x=processed.quant$ProcessedData, y=mic, by="PROTEIN")
+#filtered.quant$ProcessedData[is.na(filtered.quant$ProcessedData)] <- 1 # set completely missing to 1.0 (had no matching entry in join and were set to NA)
 
 groupcomp <- groupComparison(contrast.matrix=comparison, data=processed.quant)
 # for plotting, remove proteins with infinite fold change / p-value NA (e.g., those only present in one condition)
 groupcomp$Volcano = groupcomp$ComparisonResult[!is.na(groupcomp$ComparisonResult$pvalue),]
 groupComparisonPlots(data=groupcomp$Volcano, type="VolcanoPlot", width=12, height=12,dot.size = 2,ylimUp = 7)
-					 			 
+
+# annotate how often the protein was quantified in each condition (NA values introduced by merge of completely missing are set to 1.0)
+groupcomp$ComparisonResult <- merge(x=groupcomp$ComparisonResult, y=mic, by.x="Protein", by.y="PROTEIN")
+commoncols <- intersect(colnames(mic), colnames(groupcomp$ComparisonResult))
+groupcomp$ComparisonResult[, commoncols]<-groupcomp$ComparisonResult %>% select(commoncols) %>% mutate_all(funs(replace(., is.na(.), 1))) 
+				 			 
 #write comparison to CSV (one CSV per contrast)							 
 writeComparisonToCSV <- function(DF) 
 {
@@ -37,7 +87,7 @@ return(DF)
 groupcomp$ComparisonResult %>% group_by(Label) %>% do(writeComparisonToCSV(as.data.frame(.)))  
 
 
-##################### Imputation into existing MzTab
+################# MzTab
 # find start of the section
 startSection <- function(file, section.identifier) {
   data <- file(file, "r")
@@ -151,7 +201,7 @@ for (acc in quant.runLevel$accession)
   else
   {
     PRT[w, PRT_assay_cols] <- quant.runLevel[q, RL_assay_cols]
-    PRT[w, PRT_stdv_cols] <- quant.runLevel[q, RL_assay_cols] # we currently store same data in stdv and assay column
+	PRT[w, PRT_stdv_cols] <- quant.runLevel[q, RL_assay_cols] # we currently store same data in stdv and assay column
   }
 }
 
@@ -162,22 +212,3 @@ write("\n",file=mzTab_output,append=TRUE)
 write.table(PEP, mzTab_output, sep = "\t", quote=FALSE, row.names = FALSE, append=TRUE, na = "null")
 write("\n",file=mzTab_output,append=TRUE)
 write.table(PSM, mzTab_output, sep = "\t", quote=FALSE, row.names = FALSE, append=TRUE, na = "null")
-
-########################### Group Comparison
-# perform comparisons between conditions and create comparison plots
-
-comparison1<-matrix(c(-1,1),nrow=1) # 2/1
-comparison <- rbind(comparison1)
-row.names(comparison)<-c("P2-P1")
-groupcomp <- groupComparison(contrast.matrix=comparison, data=processed.quant)
-groupComparisonPlots(data=groupcomp$ComparisonResult, type="VolcanoPlot", width=12, height=12,dot.size = 2,ylimUp = 7)
-					 			 
-# write comparison to CSV (one CSV per contrast)							 
-writeComparisonToCSV <- function(DF) 
-{
-write.table(DF, file=paste0("comparison_",unique(DF$Label),".csv"), quote=FALSE, sep='\t', row.names = FALSE)
-return(DF)
-}
-groupcomp$ComparisonResult %>% group_by(Label) %>% do(writeComparisonToCSV(as.data.frame(.)))  
-
-
