@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/SourceFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -122,6 +123,8 @@ namespace OpenMS
                     const vector<pair<double,double>>& f_isotopes,
                     const int& feature_charge,
                     uint64_t& feature_id,
+                    const double& feature_rt,
+                    const double& feature_mz,
                     bool& writecompound,
                     const bool& no_masstrace_info_isotope_pattern,
                     const int& isotope_pattern_iterations,
@@ -134,8 +137,17 @@ namespace OpenMS
     {
       //write function would have to go here
       const MSSpectrum &current_ms2 = spectra[ind];
+      const double current_rt = current_ms2.getRT();
+
+      const SourceFile sf = current_ms2.getSourceFile();
+      std::cout << "sourceFile: " << sf.getNameOfFile() << std::endl;
+      std::cout << "sourceFile: " << sf.getNativeIDTypeAccession() << std::endl;
+
       const String native_id = current_ms2.getNativeID();
+      std::cout << "native_id: " << native_id << std::endl;
+      std::cout << "type_accession: " << native_id_type_accession << std::endl;
       int scan_number = SpectrumLookup::extractScanNumber(native_id, native_id_type_accession);
+      std::cout << "native_id_scan_number: " << scan_number << std::endl;
 
       const vector<Precursor> &precursor = current_ms2.getPrecursors();
 
@@ -249,7 +261,44 @@ namespace OpenMS
             os << ">charge " << int_charge << "\n\n";
           }
 
-          // Use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
+          // comments
+          // mz
+          // TODO: is parentmass correct??
+          //if (feature_mz != 0)
+          //{
+          //  os << "#mz " <<  feature_mz << "\n";
+          //}
+          //else
+          //{
+          // os << "#mz " <<  precursor_mz << "\n";
+          //}
+
+          // >parentmass = mu
+          // >rt = rt
+          // >rt_start >rt_end
+          // #nid = index native
+          // #specref = spectra_ref native id with identifier
+          // #fid = feautreid
+          // #cid = consensusid
+          // #source = sourcefile
+
+          // rt
+          if (feature_rt != 0)
+          {
+            os << ">rt " << feature_rt << "\n";
+          }
+          else
+          {
+            os << ">rt " << current_rt << "\n";
+          }
+          // featureid
+          os << "#fid " << String(feature_id) << "\n";
+          // native_id
+          os << "#nid " << String(scan_number) << "\n";
+          // spectra_ref
+          os << "#specref" << String(native_id_type_accession) << "_" << String(native_id)  << "\n";
+
+          // use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
           Size no_isotopes = isotopes.size();
           Size no_f_isotopes = f_isotopes.size();
 
@@ -290,7 +339,7 @@ namespace OpenMS
 
         if (!precursor_spec.empty())
         {
-          os << "#SCANS" << " " << String(ind) << "\n";
+          os << "#scan" << " " << String(ind) << "\n";
           os << ">ms1peaks" << endl;
           for (auto iter = precursor_spec.begin(); iter != precursor_spec.end(); ++iter)
           {
@@ -381,6 +430,8 @@ namespace OpenMS
     StringList adducts;
     uint64_t feature_id;
     int feature_charge;
+    double feature_rt;
+    double feature_mz;
     vector<pair<double, double>> f_isotopes;
     f_isotopes.clear();
 
@@ -400,6 +451,8 @@ namespace OpenMS
 
         feature_id = feature->getUniqueId();
         feature_charge = feature->getCharge();
+        feature_rt = feature->getRT();
+        feature_mz = feature->getMZ();
 
         // multiple charged compounds are not allowed in sirius
         if (feature_charge > 1 || feature_charge < -1)
@@ -436,6 +489,8 @@ namespace OpenMS
                      f_isotopes,
                      feature_charge,
                      feature_id,
+                     feature_mz,
+                     feature_rt,
                      writecompound,
                      no_masstrace_info_isotope_pattern,
                      isotope_pattern_iterations,
@@ -456,6 +511,8 @@ namespace OpenMS
       adducts.clear();
       feature_charge = 0;
       feature_id = 0;
+      feature_mz = 0;
+      feature_rt = 0;
 
       writeMsFile_(os,
                    spectra,
@@ -465,6 +522,8 @@ namespace OpenMS
                    f_isotopes,
                    feature_charge,
                    feature_id,
+                   feature_mz,
+                   feature_rt,
                    writecompound,
                    no_masstrace_info_isotope_pattern,
                    isotope_pattern_iterations,
@@ -482,6 +541,8 @@ namespace OpenMS
       adducts.clear();
       feature_charge = 0;
       feature_id = 0;
+      feature_mz = 0;
+      feature_rt = 0;
 
       // fill vector with index of all ms2 of the mzml
       vector<size_t> all_ms2;
@@ -507,6 +568,8 @@ namespace OpenMS
                    f_isotopes,
                    feature_charge,
                    feature_id,
+                   feature_mz,
+                   feature_rt,
                    writecompound,
                    no_masstrace_info_isotope_pattern,
                    isotope_pattern_iterations,

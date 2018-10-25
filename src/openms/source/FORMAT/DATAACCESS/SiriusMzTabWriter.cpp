@@ -50,6 +50,13 @@ int SiriusMzTabWriter::extract_scan_index(const String &path)
   return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
 }
 
+
+// TODO: Method to extract metadata from .ms file and put it in a "Metadata converter struct"
+// proably method will be used within the read function to process the data in .ms file
+// how to reference to the specturm.ms -- have a look at internal datastructure
+// maybe can be user later for mapping of feature mz/rt
+
+
 void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
                              const String & original_input_mzml,
                              const Size & top_n_hits,
