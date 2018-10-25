@@ -264,10 +264,10 @@ namespace OpenMS
     {
       regexp = std::string("scan=(?<GROUP>\\d+)");
     }
-    // "experiment=NUMBER"
+    // "cycle=NUMBER"
     else if (native_id_type_accession == "MS:1000770")
     {
-      regexp = std::string("experiment=(?<GROUP>\\d+)");
+      regexp = std::string("cycle=(?<GROUP>\\d+)");
     }
     // "file=NUMBER"
     else if (std::find(file.begin(), file.end(), native_id_type_accession) != file.end())
