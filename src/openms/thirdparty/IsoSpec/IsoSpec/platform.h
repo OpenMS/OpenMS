@@ -19,19 +19,16 @@
 
 #if defined(__unix__) || defined(__unix) || \
         (defined(__APPLE__) && defined(__MACH__))
-#include <sys/mman.h>
 #define ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY true
 #define ISOSPEC_TEST_WE_ARE_ON_WINDOWS false /* CYGWIN doesn't really count as Windows for our purposes, we'll be using UNIX API anyway */
 #define ISOSPEC_TEST_GOT_SYSTEM_MMAN true
 #define ISOSPEC_TEST_GOT_MMAN true
 #elif defined(__MINGW32__) || defined(_WIN32)
-#include "mman.h"
 #define ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY false
 #define ISOSPEC_TEST_WE_ARE_ON_WINDOWS true
 #define ISOSPEC_TEST_GOT_SYSTEM_MMAN false
 #define ISOSPEC_TEST_GOT_MMAN true
 #else
-#include <stdlib.h>     /* malloc, free, rand */
 #define ISOSPEC_TEST_WE_ARE_ON_UNIX_YAY false /* Well, probably... */
 #define ISOSPEC_TEST_WE_ARE_ON_WINDOWS false
 #define ISOSPEC_TEST_GOT_SYSTEM_MMAN false
@@ -78,4 +75,14 @@
 #define ISOSPEC_FORCE_INLINE inline
 #endif
 
+
+#if ISOSPEC_GOT_MMAN
+    #if ISOSPEC_GOT_SYSTEM_MMAN
+        #include <sys/mman.h>
+    #else
+        #include "mman.h"
+    #endif
+#else
+    #include <stdlib.h>     /* malloc, free, rand */
+#endif
 
