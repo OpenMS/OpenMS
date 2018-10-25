@@ -44,6 +44,7 @@
 namespace IsoSpec
 {
     class Iso;
+    class IsoThresholdGenerator;
 }
 
 namespace OpenMS
@@ -65,53 +66,72 @@ namespace OpenMS
   class OPENMS_DLLAPI IsoSpecWrapper
   {
 public:
-    /// Default constructor
-    IsoSpecWrapper() = default;
 
+    /**
+      * @brief Run the algorithm
+      *
+      **/
+    virtual std::vector<Peak1D> run() = 0;
+    virtual ~IsoSpecWrapper();
+
+protected:
     /**
       * @brief Constructor
       *
-      * @param threshold The probability threshold
-      * @param absolute Whether threshold is absolute or relative
-      *
-      **/
-    IsoSpecWrapper(double threshold, bool absolute);
-
-    /**
-      * @brief Run the algorithm 
-      *
       * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
       * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-      * @param isotopeMasses Array with the individual elements isotopic masses 
-      * @param isotopeProbabilities Array with the individual elements isotopic probabilities 
+      * @param isotopeMasses Array with the individual elements isotopic masses
+      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
       *
       **/
-    std::vector<Peak1D> run(const std::vector<int>& isotopeNumbers,
+    IsoSpecWrapper(const std::vector<int>& isotopeNumbers,
              const std::vector<int>& atomCounts,
              const std::vector<std::vector<double> >& isotopeMasses,
              const std::vector<std::vector<double> >& isotopeProbabilities);
 
+
     /**
-      * @brief Run the algorithm on a sum formula 
+      * @brief Run the algorithm on a sum formula
       *
       **/
-    std::vector<Peak1D> run(const std::string&);
+    IsoSpecWrapper(const std::string& formula);
+
+    IsoSpec::Iso* iso;
+  };
+
+  class OPENMS_DLLAPI IsoSpecThresholdWrapper : public IsoSpecWrapper
+  {
+public:
+    /**
+      * @brief Constructor
+      *
+      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param isotopeMasses Array with the individual elements isotopic masses
+      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
+      * @param threshold Intensity threshold: will only compute peaks above this threshold
+      * @param absolute Whether the threshold is absolute or relative (relative to the most intense peak)
+      *
+      **/
+  IsoSpecThresholdWrapper(const std::vector<int>& isotopeNumbers,
+             const std::vector<int>& atomCounts,
+             const std::vector<std::vector<double> >& isotopeMasses,
+             const std::vector<std::vector<double> >& isotopeProbabilities,
+             double threshold,
+             bool absolute);
+
+    /**
+      * @brief Run the algorithm on a sum formula
+      *
+      **/
+  IsoSpecThresholdWrapper(const std::string& formula, double threshold, bool absolute);
+
+  virtual std::vector<Peak1D> run() override final;
+
+  virtual ~IsoSpecThresholdWrapper();
 
 protected:
-
-    /**
-      * @brief Internal run function
-      *
-      * Will create a new IsoThresholdGenerator and tabulate probabilities up
-      * to threshold_ which are then stored in the mass and probability
-      * vectors.
-      *
-      **/
-    std::vector<Peak1D> run_(IsoSpec::Iso& iso);
-
-    double threshold_ = 0.01;
-    bool absolute_ = false;
-
+  IsoSpec::IsoThresholdGenerator* ITG;
   };
 }
 

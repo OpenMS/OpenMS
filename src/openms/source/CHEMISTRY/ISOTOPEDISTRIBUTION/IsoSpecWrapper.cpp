@@ -58,37 +58,12 @@ using namespace IsoSpec;
 namespace OpenMS
 {
 
-  IsoSpecWrapper::IsoSpecWrapper(double threshold, bool absolute) :
-    threshold_(threshold),
-    absolute_(absolute)
-  {
-  }
 
-  std::vector<Peak1D> IsoSpecWrapper::run_(Iso& iso)
-  {
-    int tabSize = 1000;
-    int hashSize = 1000;
-
-    IsoThresholdGenerator generator(std::move(iso), threshold_, absolute_, tabSize, hashSize); 
-
-    std::vector<Peak1D> distribution;
-
-    while(generator.advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(generator.mass(), generator.eprob()));
-
-    return distribution;
-  }
-
-  std::vector<Peak1D> IsoSpecWrapper::run(const std::string& formula)
-  {
-    Iso iso(formula.c_str());
-    return run_(iso);
-  }
-
-  std::vector<Peak1D> IsoSpecWrapper::run(const std::vector<int>& isotopeNr,
+  IsoSpecWrapper::IsoSpecWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
-                    const std::vector<std::vector<double> >& isotopeProbabilities)
+                    const std::vector<std::vector<double> >& isotopeProbabilities) :
+  iso(nullptr)
   {
     OPENMS_PRECONDITION(isotopeNr.size() == atomCounts.size(), "Vectors need to be of the same size")
     OPENMS_PRECONDITION(isotopeNr.size() == isotopeMasses.size(), "Vectors need to be of the same size")
@@ -114,12 +89,59 @@ namespace OpenMS
       IP[i] = isotopeProbabilities[i].data();
     }
 
-    Iso iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
+    iso = new Iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
     
     delete[] IM;
     delete[] IP;
-    
-    return run_(iso);
+  }
+
+  IsoSpecWrapper::IsoSpecWrapper(const std::string& formula)
+  : iso(new Iso(formula.c_str()))
+  {}
+
+  IsoSpecWrapper::~IsoSpecWrapper()
+  {
+    if(iso != nullptr)
+      delete iso;
+  };
+
+
+  IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const std::vector<int>& isotopeNr,
+                    const std::vector<int>& atomCounts,
+                    const std::vector<std::vector<double> >& isotopeMasses,
+                    const std::vector<std::vector<double> >& isotopeProbabilities,
+                    double threshold,
+                    bool absolute) :
+  IsoSpecWrapper(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities),
+  ITG(new IsoThresholdGenerator(std::move(*iso), threshold, absolute))
+  {};
+
+  IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const std::string& formula,
+                    double threshold,
+                    bool absolute) :
+  IsoSpecWrapper(formula.c_str()),
+  ITG(new IsoThresholdGenerator(std::move(*iso), threshold, absolute))
+  {};
+
+
+  std::vector<Peak1D> IsoSpecThresholdWrapper::run()
+  {
+    std::vector<Peak1D> distribution;
+
+//    distribution.reserve(ITG->count_confs()); TODO: fix that
+
+//    ITG->reset();
+
+    while(ITG->advanceToNextConfiguration())
+        distribution.emplace_back(Peak1D(ITG->mass(), ITG->eprob()));
+
+    return distribution;
+  }
+
+  IsoSpecThresholdWrapper::~IsoSpecThresholdWrapper()
+  {
+    if(ITG != nullptr)
+      delete ITG;
   }
 
 #if 0

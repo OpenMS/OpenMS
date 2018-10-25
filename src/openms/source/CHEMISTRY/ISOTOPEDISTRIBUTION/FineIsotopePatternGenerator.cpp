@@ -43,7 +43,7 @@ namespace OpenMS
 
   IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
-    IsoSpecWrapper algorithm(threshold_, absolute_);
+//    IsoSpecWrapper algorithm(threshold_, absolute_);
 #if 0
     // Use IsoSpec's isotopic tables
     IsotopeDistribution result;
@@ -75,7 +75,7 @@ namespace OpenMS
 
     // Store the data in a IsotopeDistribution
     IsotopeDistribution result;
-    result.set(algorithm.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities));
+    result.set(IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold_, absolute_).run());
 #endif
 
     result.sortByMass();

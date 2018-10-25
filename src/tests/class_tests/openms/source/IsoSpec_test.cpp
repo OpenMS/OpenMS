@@ -86,21 +86,21 @@ expected_oms.push_back(Peak1D( 184.07435438280000994382135 , 1.99615211482664827
 
 IsoSpecWrapper* ptr = nullptr;
 IsoSpecWrapper* nullPointer = nullptr;
-START_SECTION((IsoSpecWrapper()))
-  ptr = new IsoSpecWrapper();
+START_SECTION((IsoSpecThresholdWrapper(const std::string&, double, bool)))
+  ptr = new IsoSpecThresholdWrapper("C10", 0.5, false);
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((~IsoSpecWrapper()))
+START_SECTION((~IsoSpecThresholdWrapper()))
   delete ptr;
 END_SECTION
 
-START_SECTION(( void run(const std::string&) ))
+START_SECTION(( void run(const std::string&, double, bool) ))
 {
   double threshold = 1e-5;
   bool absolute = false;
-  IsoSpecWrapper iso(threshold, absolute);
-  std::vector<Peak1D> iso_result(iso.run("C6H12O6"));
+  IsoSpecThresholdWrapper iso("C6H12O6", threshold, absolute);
+  std::vector<Peak1D> iso_result(iso.run());
 
   TEST_EQUAL(iso_result.size(), 14)
 
@@ -114,11 +114,10 @@ START_SECTION(( void run(const std::string&) ))
   }
 
   // human insulin
-  std::vector<Peak1D> iso_result2(iso.run("C520H817N139O147S8"));
+  std::vector<Peak1D> iso_result2 = IsoSpecThresholdWrapper("C520H817N139O147S8", threshold, absolute).run();
   TEST_EQUAL(iso_result2.size(), 5402)
 
-  IsoSpecWrapper iso2(0.01, false);
-  std::vector<Peak1D> iso_result3(iso2.run("C520H817N139O147S8"));
+  std::vector<Peak1D> iso_result3 = IsoSpecThresholdWrapper("C520H817N139O147S8", 0.01, false).run();
   TEST_EQUAL(iso_result3.size(), 269)
 }
 END_SECTION
@@ -127,8 +126,7 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
 {
   double threshold = 1e-5;
   bool absolute = true;
-  IsoSpecWrapper iso(threshold, absolute);
-  std::vector<Peak1D> iso_result(iso.run("C6H12O6"));
+  std::vector<Peak1D> iso_result(IsoSpecThresholdWrapper("C6H12O6", threshold, absolute).run());
 
   TEST_EQUAL(iso_result.size(), 14)
 
@@ -141,11 +139,10 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
   }
 
   // human insulin
-  std::vector<Peak1D> iso_result2(iso.run("C520H817N139O147S8"));
+  std::vector<Peak1D> iso_result2(IsoSpecThresholdWrapper("C520H817N139O147S8", threshold, absolute).run());
   TEST_EQUAL(iso_result2.size(), 1720)
 
-  IsoSpecWrapper iso2(0.01, true);
-  std::vector<Peak1D> iso_result3(iso2.run("C520H817N139O147S8"));
+  std::vector<Peak1D> iso_result3(IsoSpecThresholdWrapper("C520H817N139O147S8", 0.01, true).run());
   TEST_EQUAL(iso_result3.size(), 21)
 }
 END_SECTION
@@ -187,8 +184,7 @@ START_SECTION((
   {
     double threshold = 1e-5;
     bool absolute = false;
-    IsoSpecWrapper iso(threshold, absolute);
-    std::vector<Peak1D> iso_results(iso.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities));
+    std::vector<Peak1D> iso_results(IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold, absolute).run());
 
     TEST_EQUAL(iso_results.size(), 14)
 
@@ -204,11 +200,10 @@ START_SECTION((
   // TEST exception:
   // We cannot have zero values as input data
   double threshold = 1e-5;
-  IsoSpecWrapper iso(threshold, false);
   isotopeNumbers[0] += 1;
   isotopeMasses[0].push_back(3.0160492699999998933435563);
   isotopeProbabilities[0].push_back(0.0);
-  TEST_EXCEPTION(Exception::IllegalArgument, iso.run(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities));
+  TEST_EXCEPTION(Exception::IllegalArgument, IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold, false).run());
 
 }
 END_SECTION
@@ -223,8 +218,8 @@ START_SECTION(( [STRESSTEST] void run(const std::string&) ))
   {
     double threshold = 1e-2;
     bool absolute = false;
-    IsoSpecWrapper iso(threshold, absolute);
-    auto res = iso.run("C520H817N139O147");
+    IsoSpecThresholdWrapper iso("C520H817N139O147", threshold, absolute);
+    auto res = iso.run();
     sum += res.size();
   }
   TEST_EQUAL(sum, 140*2*1e5)
