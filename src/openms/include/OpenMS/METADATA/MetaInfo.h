@@ -72,7 +72,7 @@ public:
     MetaInfo() = default;
 
     /// Copy constructor
-    MetaInfo(const MetaInfo& rhs) = default;
+    MetaInfo(const MetaInfo&) = default;
 
     /// Move constructor
     MetaInfo(MetaInfo&&) = default;
@@ -81,7 +81,7 @@ public:
     ~MetaInfo();
 
     /// Assignment operator
-    MetaInfo& operator=(const MetaInfo& rhs) = default;
+    MetaInfo& operator=(const MetaInfo&) = default;
     /// Move assignment operator
     MetaInfo& operator=(MetaInfo&&) & = default;
 

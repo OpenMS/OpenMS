@@ -65,14 +65,14 @@ public:
     /// Constructor
     ExperimentalSettings() = default;
     /// Copy constructor
-    ExperimentalSettings(const ExperimentalSettings & source) = default;
+    ExperimentalSettings(const ExperimentalSettings &) = default;
     /// Move constructor
     ExperimentalSettings(ExperimentalSettings&&) = default;
     /// Destructor
     ~ExperimentalSettings() override;
 
     /// Assignment operator
-    ExperimentalSettings & operator=(const ExperimentalSettings & source) = default;
+    ExperimentalSettings & operator=(const ExperimentalSettings &) = default;
     /// Move assignment operator
     ExperimentalSettings& operator=(ExperimentalSettings&&) & = default;
 

@@ -145,7 +145,7 @@ namespace OpenMS
     String readoptions)
   {
     std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << std::endl;
-	String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
+    String tmp_fname = tmp.hasSuffix('/') ? File::getUniqueName() : ""; // use tmp-filename if just a directory was given
 
     startProgress(0, 1, "Loading metadata file " + file);
     boost::shared_ptr<PeakMap> experiment_metadata = populateMetaData_(file);
