@@ -233,9 +233,11 @@ protected:
 
     registerFlag_("RNPxl:decoys", "Generate decoy sequences and spectra.");
 
-    registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
-    registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.");
-    registerFlag_("RNPxl:carbon_labeled_fragments", "Generate fragment shifts assuming full labeling of carbon (e.g. completely labeled U13).");
+    registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.", true);
+    registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.", true);
+    registerFlag_("RNPxl:carbon_labeled_fragments", "Generate fragment shifts assuming full labeling of carbon (e.g. completely labeled U13).", true);
+    registerFlag_("RNPxl:only_xl", "Only search cross-links and ignore non-cross-linked peptides.", true);
+
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
@@ -1636,8 +1638,11 @@ protected:
             max_nucleotide_length);
     }
 
-    mm.mod_masses[""] = 0; // insert "null" modification otherwise peptides without RNA will not be searched
-    mm.mod_combinations[""].insert("none");
+    if (!getFlag_("RNPxl:only_xl"))
+    {
+      mm.mod_masses[""] = 0; // insert "null" modification otherwise peptides without RNA will not be searched
+      mm.mod_combinations[""].insert("none");
+    }
 
     // parse tool parameter and generate all fragment adducts
 
