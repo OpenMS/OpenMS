@@ -388,7 +388,7 @@ void IsoThresholdGenerator::reset()
 
     partialLProbs[dimNumber] = 0.0;
 
-    bzero(counter, sizeof(int)*dimNumber);
+    memset(counter, 0, sizeof(int)*dimNumber);
     recalc(dimNumber-1);
     counter[0]--;
 
@@ -579,7 +579,7 @@ generator_position(-1)
     }
 
     void* topConf = allocator.newConf();
-    bzero(reinterpret_cast<char*>(topConf) + sizeof(double), sizeof(int)*dimNumber);
+    memset(reinterpret_cast<char*>(topConf) + sizeof(double), 0, sizeof(int)*dimNumber);
     *(reinterpret_cast<double*>(topConf)) = combinedSum(getConf(topConf), logProbs, dimNumber);
 
     current = new std::vector<void*>();
