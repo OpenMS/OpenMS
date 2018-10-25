@@ -128,9 +128,9 @@ namespace OpenMS
   {
     std::vector<Peak1D> distribution;
 
-//    distribution.reserve(ITG->count_confs()); TODO: fix that
+    distribution.reserve(ITG->count_confs());
 
-//    ITG->reset();
+    ITG->reset();
 
     while(ITG->advanceToNextConfiguration())
         distribution.emplace_back(Peak1D(ITG->mass(), ITG->eprob()));

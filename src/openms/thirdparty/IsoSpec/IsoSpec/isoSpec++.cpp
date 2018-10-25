@@ -382,15 +382,17 @@ size_t IsoThresholdGenerator::count_confs()
 }
 
 void IsoThresholdGenerator::reset()
-{ //TODO: needs testing
+{
     if(empty)
         return;
+
+    partialLProbs[dimNumber] = 0.0;
 
     bzero(counter, sizeof(int)*dimNumber);
     recalc(dimNumber-1);
     counter[0]--;
 
-    lProbs_ptr = marginalResults[0]->get_lProbs_ptr();
+    lProbs_ptr = lProbs_ptr_start - 1;
 }
 
 /*
