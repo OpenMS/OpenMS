@@ -101,7 +101,7 @@ namespace OpenMS
 
   IsoSpecWrapper::~IsoSpecWrapper()
   {
-    if(iso != nullptr)
+    if (iso != nullptr)
       delete iso;
   };
 
@@ -132,7 +132,7 @@ namespace OpenMS
 
     ITG->reset();
 
-    while(ITG->advanceToNextConfiguration())
+    while (ITG->advanceToNextConfiguration())
         distribution.emplace_back(Peak1D(ITG->mass(), ITG->eprob()));
 
     return distribution;
@@ -140,7 +140,7 @@ namespace OpenMS
 
   IsoSpecThresholdWrapper::~IsoSpecThresholdWrapper()
   {
-    if(ITG != nullptr)
+    if (ITG != nullptr)
       delete ITG;
   }
 
