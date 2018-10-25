@@ -18,6 +18,7 @@ data <- read.csv(MSstats_input, sep=",", header=T, stringsAsFactors=T)
 quant <- OpenMStoMSstatsFormat(data, removeProtein_with1Feature=T)
 processed.quant <- dataProcess(quant, censoredInt = 'NA')
 dataProcessPlots(data=processed.quant, type="QCPlot",which.Protein="allonly")
+dataProcessPlots(data=processed.quant, type="ProfilePlot",which.Protein="all")
 
 comparison1<-matrix(c(-1,1),nrow=1) # 2/1
 
