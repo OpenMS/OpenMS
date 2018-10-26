@@ -22,21 +22,29 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 using namespace OpenMS;
 using namespace std;
 
 class TDfeatureDeconvolution :
-    public TOPPBase, public ProgressLogger
+    public TOPPBase
 {
 public:
     TDfeatureDeconvolution():
         TOPPBase("TDfeatureDeconvolution", "Feature deconvolution with top down data", false)
     {
     }
+
+    typedef struct MassTraceApex{
+        double MZ, RT;
+        double FWHM;
+        Size mt_idx, et_idx;
+
+        MassTraceApex(): MZ(0.0), RT(0.0), FWHM(0.0), mt_idx(0), et_idx(0){}
+
+        static double cluster_similartity(const MassTraceApex& a, const MassTraceApex& b){
+            return abs( a.MZ-b.MZ ); // just simple example
+        }
+    }MTApex;
 
 protected:
     // this function will be used to register the tool parameters
@@ -71,7 +79,6 @@ protected:
         //-------------------------------------------------------------
         // set parameters
         //-------------------------------------------------------------
-        vector<MassTrace> m_traces;
         Param common_param = getParam_().copy("algorithm:common:", true);
         writeDebug_("Common parameters passed to sub-algorithms (mtd and ffm)", common_param, 3);
 
@@ -84,7 +91,7 @@ protected:
         //-------------------------------------------------------------
         // configure and run mass trace detection
         //-------------------------------------------------------------
-
+        vector<MassTrace> m_traces;
         MassTraceDetection mtdet;
         mtd_param.insert("", common_param);
         mtd_param.remove("chrom_fwhm");
@@ -95,12 +102,9 @@ protected:
         mtdet.run(map, m_traces);  // m_traces : output of this function
 
         //-------------------------------------------------------------
-        // configure and run elution peak detection
+        // configure and run elution peak detection (find apexes)
         //-------------------------------------------------------------
-
-//        std::vector<MassTrace> m_traces_final;
-
-        std::vector<MassTrace> splitted_mtraces;
+        std::vector<vector<MassTrace>> elutionPeaks;
         epd_param.remove("enabled"); // artificially added above
         epd_param.insert("", common_param);
         ElutionPeakDetection epdet;
@@ -108,46 +112,18 @@ protected:
         // fill mass traces with smoothed data as well --> code exists in FeatureFinderMetabo.cpp (not using here)
         // some filtering should work here, but removed for now. (22.10.18)
 
-        vector<pair<MassTrace, vector<MassTrace>>> mt_submt;
-        detectPeaks(epdet, m_traces, mt_submt);
-
-        //
-        cout << "mass traces" << endl;
-        cout << m_traces.size() << endl;
-        cout << m_traces[0][m_traces[0].findMaxByIntPeak()] << endl;
-        int cnt = 0;
-        for (auto &m_trace : m_traces) {
-            cnt += m_trace.getSize();
-        }
-        cout << cnt << endl;
-
-        cout << "elution detection" << endl;
-        cout << mt_submt.size() << endl;\
-        cout << mt_submt[0].first[mt_submt[0].first.findMaxByIntPeak()] << endl;
-        cout << mt_submt[0].second.size() << endl;
-
-        cnt = 0;
-        vector<int> maxINmt;
-        for (auto &i : mt_submt) {
-            maxINmt.push_back(i.second.size());
-            for (auto &j : i.second) {
-                cnt += j.getSize();
-            }
-        }
-        cout << (1.0 * accumulate(maxINmt.begin(), maxINmt.end(), 0LL) / maxINmt.size()) << endl;
-        cout << cnt << endl;
-
-
+        vector<MTApex> apexes; // pair of elution peaks and original mass trace
+        detectPeaks(epdet, m_traces, elutionPeaks, apexes);
 
         //-------------------------------------------------------------
-        // calculate interval
+        // generate elution peak clusters (close_apexes)
         //-------------------------------------------------------------
-//        generateInterval(m_traces);
-
-
-        //m_traces[0][0].getPosition()
-
-        //cout << m_traces.size() << endl;
+        // sort apexes w/ RT
+        sort(apexes.begin(), apexes.end(), [this](MTApex &a, MTApex &b){
+            return this->sortApexes_byRT(a,b);
+        });
+        std::vector<vector<MTApex>> elu_clusters;
+        generateElutionPeakClusters(apexes, elu_clusters);
 
         //-------------------------------------------------------------
         // writing output
@@ -176,59 +152,100 @@ protected:
         return EXECUTION_OK;
     }
 
-    void generateInterval(std::vector<MassTrace>& m_traces)
+    void print_apexes(vector<MTApex> &m)
     {
-        // input : MS1 (map), m_traces
-        // output : interval set (RTs, RTe) -> m_traces?
-        // param : deltaRT, N
-        float rw_wndw_size = 0.01; // delatRT
-        int N = 5;
-
-//        cout << m_traces[0].findMaxByIntPeak() << endl;
-//        cout << m_traces[0][m_traces[0].findMaxByIntPeak()] << endl;
-//        for(int j = 0; j<m_traces[0].getSize(); j++){
-//            cout << m_traces[0][j].getRT() << "," << m_traces[0][j].getMZ() << "," << m_traces[0][j].getIntensity() << endl;
-//        }
-
-        // find apexes
-
-
-//    for (const auto &trace : m_traces) {
-//        trace.getCentroidRT()
-//    }
-
+        cout << "m_starts : " << m.size() << endl;
+        for (auto&x : m) {
+            cout << x.RT << "," << x.MZ << "," << x.FWHM << endl;
+        }
     }
 
+    bool sortApexes_byRT(const MTApex &a, const MTApex &b)
+    {
+        return ( a.RT < b.RT);
+    }
+
+    void generateElutionPeakClusters(std::vector<MTApex>& apexes, std::vector<vector<MTApex>> &elucluster)
+    {
+        // input : the set of apexes
+        // output : the set of elution peak clusters
+        // param : deltaRT, N
+
+        elucluster.clear();
+
+        double rw_wndw_size = 0.1; // delatRT
+        unsigned long N = 6;
+
+        std::vector<MTApex> closeApexes;
+        int apexesSize = apexes.size();
+        int pntr=0; // end of the window
+        for (int i=0;  i<apexesSize; i++) { // i : start of the window
+//            cout << i << " : " << apexes[i].RT << "," << apexes[i].MZ << endl;
+            if(closeApexes.empty()) closeApexes.push_back(apexes[i]);
+
+            // collect closeApexes
+            if( pntr == i ) pntr++;
+            double stdRT = apexes[i].RT;
+            while( pntr<apexesSize ){
+                if( apexes[pntr].RT-stdRT > rw_wndw_size ) break;
+
+                closeApexes.push_back(apexes[pntr]);
+                pntr++;
+            }
+
+            if( closeApexes.size() < N ) {
+                closeApexes.erase(closeApexes.begin());
+                continue;
+            }
+            // otherwise, calculate cluster here
+            clusteringByFWHM(closeApexes, elucluster);
+
+            //
+//            print_apexes(closeApexes); // for testing
+            closeApexes.erase(closeApexes.begin()); // remove i from window after clustering
+        }
+    }
+
+    void clusteringByFWHM(std::vector<MTApex> &closeAps, std::vector<vector<MTApex>> &elu_clus){
+        for(auto& x: closeAps){
+        }
+    }
 
     // this is from 'elutionPeakDetection'
-    void detectPeaks(ElutionPeakDetection& epdet, vector<MassTrace>& mt_vec, vector<pair<MassTrace, vector<MassTrace>>>& out_mtraces)
+    void detectPeaks(ElutionPeakDetection& epdet, vector<MassTrace>& mt_vec,vector<vector<MassTrace>>& elu_vec, vector<MTApex>& apexes)
     {
-        out_mtraces.clear();
-        vector<MassTrace> single_mtraces;
+        // make sure all things are cleared
+        elu_vec.clear();
+        apexes.clear();
+        vector<MassTrace> mt_vec_tmp; // copy to remember the reference
 
-        this->startProgress(0, mt_vec.size(), "elution peak detection");
-        Size progress(0);
-    #ifdef _OPENMP
-    #pragma omp parallel for
-    #endif
+        cout << "elution peak detection" << endl;
 
         SignedSize mt_size = mt_vec.size();
-        for (SignedSize i = 0; i < mt_size; ++i)
-        {
-            IF_MASTERTHREAD this->setProgress(progress);
-
-    #ifdef _OPENMP
-    #pragma omp atomic
-    #endif
-            ++progress;
+        for (SignedSize i = 0; i < mt_size; ++i) {
 
             // push_back to 'single_mtraces' is protected, so threading is ok
+            vector<MassTrace> single_mtraces;
+            single_mtraces.clear();
             epdet.detectPeaks(mt_vec[i], single_mtraces);
-            if( !single_mtraces.empty() )
-                out_mtraces.emplace_back( make_pair(mt_vec[i], single_mtraces) );
+            if (!single_mtraces.empty()) {
+                elu_vec.push_back(single_mtraces);
+                mt_vec_tmp.push_back(mt_vec[i]);
+                for (Size j = 0; j < single_mtraces.size(); j++) {
+                    MTApex mta = MTApex();
+                    PeakType p = single_mtraces[j][single_mtraces[j].findMaxByIntPeak()];
+                    mta.MZ = p.getMZ();
+                    mta.RT = p.getRT();
+                    mta.et_idx = j;
+                    mta.mt_idx = elu_vec.size() - 1;
+                    mta.FWHM = single_mtraces[j].getFWHM();
+                    apexes.push_back(mta);
+                }
+            }
         }
-
-        this->endProgress();
+        // no apex -> remove mass trace from vector
+        mt_vec.clear();
+        copy(mt_vec_tmp.begin(), mt_vec_tmp.end(), back_inserter(mt_vec));
     }
 
 };
