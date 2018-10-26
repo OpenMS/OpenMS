@@ -128,7 +128,7 @@ public:
 
   virtual std::vector<Peak1D> run() override final;
 
-  virtual ~IsoSpecThresholdWrapper();
+  virtual ~IsoSpecThresholdWrapper() override;
 
 protected:
   IsoSpec::IsoThresholdGenerator* ITG;
