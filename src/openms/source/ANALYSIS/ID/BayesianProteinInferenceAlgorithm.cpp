@@ -123,6 +123,8 @@ namespace OpenMS
           else if (fg[*ui].which() == 0) // prot
           {
             //TODO allow an already present prior probability here
+            //TODO modify createProteinFactor to start with a modified prior based on the number of missing
+            // peptides (later tweak to include conditional prob. for that peptide
             bigb.insert_dependency(mpf.createProteinFactor(*ui));
             posteriorVars.push_back({*ui});
           }

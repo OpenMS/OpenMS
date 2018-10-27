@@ -379,6 +379,7 @@ public:
               DEBUG_ONLY std::cerr << " activating cache ...\n";
               has_active_data = proteins.activateCache(); // swap in last cache
               protein_accessions.resize(proteins.getChunkOffset() + proteins.chunkSize());
+              protein_found_peptides.resize(proteins.getChunkOffset() + proteins.chunkSize());
             } // implicit barrier here
             
             if (!has_active_data) break; // leave while-loop

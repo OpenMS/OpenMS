@@ -70,6 +70,7 @@ namespace OpenMS
 
    @ingroup Analysis_ID
    */
+   //TODO Add OPENMS_DLLAPI everywhere
   class IDBoostGraph
   {
 
@@ -80,11 +81,15 @@ namespace OpenMS
     // TODO make a double out of it and store the posterior
     BOOST_STRONG_TYPEDEF(char, ProteinGroup)
 
+    BOOST_STRONG_TYPEDEF(String, Peptide)
+    BOOST_STRONG_TYPEDEF(int, RunIndex)
+    BOOST_STRONG_TYPEDEF(int, Charge)
+
     //typedefs
     //typedef ProteinIdentification::ProteinGroup ProteinGroup;
 
-    typedef boost::variant<ProteinHit*, ProteinGroup*, PeptideCluster*, PeptideHit*> IDPointer;
-    typedef boost::variant<const ProteinHit*, const ProteinGroup*, const PeptideCluster*, const PeptideHit*> IDPointerConst;
+    typedef boost::variant<ProteinHit*, ProteinGroup*, PeptideCluster*, /*Peptide, RunIndex, Charge,**/ PeptideHit*> IDPointer;
+    typedef boost::variant<const ProteinHit*, const ProteinGroup*, const PeptideCluster*, /*const Peptide, const RunIndex, const Charge,*/ const PeptideHit*> IDPointerConst;
     //TODO check the impact of different data structures to store nodes/edges
     // Directed graphs would make the internal computations much easier (less in/out edge checking) but boost
     // does not allow computation of "non-strongly" connected components for directed graphs, which is what we would
@@ -104,7 +109,7 @@ namespace OpenMS
     IDBoostGraph(ProteinIdentification &proteins, std::vector<PeptideIdentification>& idedSpectra);
 
     /// Do sth on connected components (your functor object has to inherit from std::function)
-    void applyFunctorOnCCs(std::function<void(Graph &)> functor);
+    void applyFunctorOnCCs(std::function<void(Graph&)> functor);
 
     /// Add intermediate nodes to the graph that represent indist. protein groups and peptides with the same parents
     /// this will save computation time and oscillations later on.
@@ -198,30 +203,30 @@ namespace OpenMS
     public:
 
       explicit PrintAddressVisitor(std::basic_ostream<CharT> stream):
-       stream(stream)
+       stream_(stream)
       {}
 
       void operator()(PeptideHit* pep) const
       {
-        stream << pep->getSequence().toUnmodifiedString() << ": " << pep << std::endl;
+        stream_ << pep->getSequence().toUnmodifiedString() << ": " << pep << std::endl;
       }
 
       void operator()(ProteinHit* prot) const
       {
-        stream << prot->getAccession() << ": " << prot << std::endl;
+        stream_ << prot->getAccession() << ": " << prot << std::endl;
       }
 
       void operator()(const ProteinGroup* /*protgrp*/) const
       {
-        stream << "PG" << std::endl;
+        stream_ << "PG" << std::endl;
       }
 
       void operator()(const PeptideCluster* /*pc*/) const
       {
-        stream << "PepClust" << std::endl;
+        stream_ << "PepClust" << std::endl;
       }
 
-      std::basic_ostream<CharT> stream;
+      std::basic_ostream<CharT> stream_;
     };
 
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type sets the posterior

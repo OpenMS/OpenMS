@@ -515,15 +515,26 @@ namespace OpenMS
     newProtIDRun.setSearchEngineVersion(protRuns[0].getSearchEngineVersion());
     newProtIDRun.setSearchParameters(protRuns[0].getSearchParameters());
 
+    //TODO construct mapping from RunPath to index in set
     set<String> mergedOriginFiles{};
     for (const auto& protIDRun: protRuns)
     {
       StringList toFill;
       protIDRun.getPrimaryMSRunPath(toFill);
+      //TODO I think we can remove that.  We have sensible default now.
+      if (toFill.size() > 1 && annotate_origin)
+      {
+        throw Exception::IllegalArgument(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Annotating origin not yet supported when merging already merged ID runs.");
+      }
       for (String& s : toFill)
       {
         mergedOriginFiles.insert(s);
       }
+      toFill.clear();
     }
     vector<String> mergedOriginFilesVec(mergedOriginFiles.begin(), mergedOriginFiles.end());
     newProtIDRun.setPrimaryMSRunPath(mergedOriginFilesVec);
@@ -534,15 +545,34 @@ namespace OpenMS
         ProteinIdentification* oldProtIDRun(nullptr);
         int oldProtRunIdx = -1;
         const String& runID = pid.getIdentifier();
-        int count = 1;
         for (auto& protIDRun : protRuns)
         {
           if (protIDRun.getIdentifier() == runID)
           {
             oldProtIDRun = &protIDRun;
-            oldProtRunIdx = count;
+
+            if (annotate_origin)
+            {
+              StringList runs;
+              oldProtIDRun->getPrimaryMSRunPath(runs);
+              String run = runs[0];
+
+              if (runs.size() > 1 && pid.metaValueExists("map_index"))
+              {
+                run = runs[pid.getMetaValue("map_index")];
+              }
+
+              //TODO maybe create lookup table in the beginning
+              for (Size u = 0; u < mergedOriginFilesVec.size(); ++u)
+              {
+                if (mergedOriginFilesVec[u] == run)
+                {
+                  oldProtRunIdx = u;
+                  break;
+                }
+              }
+            }
           }
-          ++count;
         }
         if (!oldProtIDRun)
         {

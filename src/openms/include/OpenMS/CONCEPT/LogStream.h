@@ -249,6 +249,8 @@ protected:
       /// Returns the next free index for a log message
       Size getNextLogCounter_();
 
+      /// Non-lock acquiring sync function called in the d'tor
+      int syncLF_();
       //@}
     };
 
