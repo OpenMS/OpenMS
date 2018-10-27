@@ -133,7 +133,7 @@ namespace OpenMS
     ITG->reset();
 
     while (ITG->advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ITG->mass(), ITG->eprob()));
+        distribution.emplace_back(Peak1D(ITG->mass(), ITG->prob()));
 
     return distribution;
   }

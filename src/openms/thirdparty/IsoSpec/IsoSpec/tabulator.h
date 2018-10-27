@@ -73,7 +73,7 @@ template <typename T> Tabulator<T>::Tabulator(T* generator,
 
         if(_lprobs != nullptr) _lprobs[_confs_no] = generator->lprob();
 
-        if(_probs  != nullptr) _probs[_confs_no]  = generator->eprob();
+        if(_probs  != nullptr) _probs[_confs_no]  = generator->prob();
 
         if(_confs  != nullptr){
             generator->get_conf_signature(_confs + confs_tbl_idx);

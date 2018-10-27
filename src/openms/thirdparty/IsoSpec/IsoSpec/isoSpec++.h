@@ -131,7 +131,7 @@ class IsoGenerator : public Iso
 protected:
     double* partialLProbs;  /*!< The prefix sum of the log-probabilities of the current isotopologue. */
     double* partialMasses;  /*!< The prefix sum of the masses of the current isotopologue. */
-    double* partialExpProbs;/*!< The prefix product of the probabilities of the current isotopologue. */
+    double* partialProbs;/*!< The prefix product of the probabilities of the current isotopologue. */
 
 public:
     //! Advance to the next, not yet visited, most probable isotopologue.
@@ -156,7 +156,7 @@ public:
     /*!
         \return The probability of the current isotopologue.
     */
-    virtual double eprob() const { return partialExpProbs[0]; };
+    virtual double prob() const { return partialProbs[0]; };
 
     //TODO: what is this???
     virtual void get_conf_signature(int* space) const = 0;
@@ -188,7 +188,7 @@ private:
     const std::vector<int*>**   marginalConfs;              /*!< Obtained counts of isotopes. */
     double                      currentLProb;               /*!< The log-probability of the current isotopologue. */
     double                      currentMass;                /*!< The mass of the current isotopologue. */
-    double                      currentEProb;               /*!< The probability of the current isotopologue. */
+    double                      currentProb;                /*!< The probability of the current isotopologue. */
     int                         ccount;
 
 public:
@@ -321,7 +321,7 @@ public:
             if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
             {
                 partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-                partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+                partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
                 recalc(idx-1);
                 return true;
             }
@@ -334,7 +334,7 @@ public:
 
     ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
     ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
-    ISOSPEC_FORCE_INLINE double eprob()  const override final { return partialExpProbs[1] * marginalResults[0]->get_eProb(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_eProb(lProbs_ptr - lProbs_ptr_start); };
 
     //! Block the subsequent search of isotopologues.
     void terminate_search();
@@ -359,7 +359,7 @@ private:
         {
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-            partialExpProbs[idx] = partialExpProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+            partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
         }
         partialLProbs_second_val = *partialLProbs_second;
         partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);

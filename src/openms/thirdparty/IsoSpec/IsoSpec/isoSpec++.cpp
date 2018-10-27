@@ -161,7 +161,10 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
 {
     // This function is NOT guaranteed to be secure against malicious input. It should be used only for debugging.
     size_t slen = strlen(formula);
-    std::vector<string> elements;
+    // Yes, it would be more elegant to use std::string here, but it's the only promiment place where it would be used in IsoSpec, and avoiding it here
+    // means we can run the whole thing through Clang's memory sanitizer without the need for instrumented libc++/libstdc++. That's worth messing with char pointers a
+    // little bit.
+    std::vector<std::pair<const char*, size_t> > elements;
     std::vector<int> numbers;
 
     if(slen == 0)
@@ -186,7 +189,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         digit_end = elem_end;
         while(isdigit(formula[digit_end]))
             digit_end++;
-        elements.push_back(std::string(&formula[position], elem_end-position));
+        elements.emplace_back(&formula[position], elem_end-position);
         numbers.push_back(atoi(&formula[elem_end]));
         position = digit_end;
     }
@@ -198,7 +201,7 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         int idx = -1;
         for(int j=0; j<ISOSPEC_NUMBER_OF_ISOTOPIC_ENTRIES; j++)
         {
-            if (elements[i].compare(elem_table_symbol[j]) == 0)
+            if ((strlen(elem_table_symbol[j]) == elements[i].second) && (strncmp(elements[i].first, elem_table_symbol[j], elements[i].second) == 0))
             {
                 idx = j;
                 break;
@@ -207,7 +210,6 @@ unsigned int parse_formula(const char* formula, std::vector<const double*>& isot
         if(idx < 0)
             throw invalid_argument("Invalid formula");
         element_indexes.push_back(idx);
-
     }
 
     vector<int> _isotope_numbers;
@@ -252,13 +254,13 @@ IsoGenerator::IsoGenerator(Iso&& iso, bool alloc_partials) :
     Iso(std::move(iso)),
     partialLProbs(alloc_partials ? new double[dimNumber+1] : nullptr),
     partialMasses(alloc_partials ? new double[dimNumber+1] : nullptr),
-    partialExpProbs(alloc_partials ? new double[dimNumber+1] : nullptr)
+    partialProbs(alloc_partials ? new double[dimNumber+1] : nullptr)
 {
     if(alloc_partials)
     {
         partialLProbs[dimNumber] = 0.0;
         partialMasses[dimNumber] = 0.0;
-        partialExpProbs[dimNumber] = 1.0;
+        partialProbs[dimNumber] = 1.0;
     }
 }
 
@@ -269,8 +271,8 @@ IsoGenerator::~IsoGenerator()
         delete[] partialLProbs; 
     if(partialMasses != nullptr)
         delete[] partialMasses; 
-    if(partialExpProbs != nullptr)
-        delete[] partialExpProbs; 
+    if(partialProbs != nullptr)
+        delete[] partialProbs;
 }
 
 
@@ -348,6 +350,7 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
     {
         recalc(dimNumber-1);
         counter[0]--;
+        lProbs_ptr--;
     }
     else
     {
@@ -355,7 +358,6 @@ Lcutoff(_threshold <= 0.0 ? std::numeric_limits<double>::lowest() : (_absolute ?
         lcfmsv = std::numeric_limits<double>::infinity();
     }
 
-    lProbs_ptr--;
 
 
 }
@@ -368,7 +370,7 @@ void IsoThresholdGenerator::terminate_search()
         partialLProbs[ii] = -std::numeric_limits<double>::infinity();
     }
     partialLProbs[dimNumber] = -std::numeric_limits<double>::infinity();
-    lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs();
+    lProbs_ptr = lProbs_ptr_start + marginalResults[0]->get_no_confs()-1;
 }
 
 size_t IsoThresholdGenerator::count_confs()
@@ -384,7 +386,10 @@ size_t IsoThresholdGenerator::count_confs()
 void IsoThresholdGenerator::reset()
 {
     if(empty)
+    {
+        terminate_search();
         return;
+    }
 
     partialLProbs[dimNumber] = 0.0;
 
@@ -404,7 +409,7 @@ IsoGenerator(std::move(iso), false), allocator(dimNumber, _tabSize)
 {
     partialLProbs = &currentLProb;
     partialMasses = &currentMass;
-    partialExpProbs = &currentEProb;
+    partialProbs = &currentProb;
 
     marginalResults = new MarginalTrek*[dimNumber];
 
@@ -449,7 +454,7 @@ IsoOrderedGenerator::~IsoOrderedGenerator()
     delete[] marginalConfs;
     partialLProbs = nullptr;
     partialMasses = nullptr;
-    partialExpProbs = nullptr;
+    partialProbs = nullptr;
 }
 
 
@@ -466,7 +471,7 @@ bool IsoOrderedGenerator::advanceToNextConfiguration()
 
     currentLProb = *(reinterpret_cast<double*>(topConf));
     currentMass = combinedSum( topConfIsoCounts, masses, dimNumber );
-    currentEProb = exp(currentLProb);
+    currentProb = exp(currentLProb);
 
     ccount = -1;
     for(int j = 0; j < dimNumber; ++j)
@@ -772,7 +777,7 @@ bool IsoLayeredGenerator::advanceToNextConfiguration()
     {
         partialLProbs[0] = getLProb(newaccepted[generator_position]);
         partialMasses[0] = combinedSum(getConf(newaccepted[generator_position]), masses, dimNumber);
-        partialExpProbs[0] = exp(partialLProbs[0]);
+        partialProbs[0] = exp(partialLProbs[0]);
         return true;
     }
     else
