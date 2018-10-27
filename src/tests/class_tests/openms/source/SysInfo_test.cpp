@@ -45,9 +45,6 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#ifdef _OPENMP
- #include <omp.h>
-#endif
 
 
 using namespace OpenMS;
@@ -57,9 +54,6 @@ START_TEST(SysInfo, "$Id$")
 
 START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
 {
-  #ifdef _OPENMP
-  std::cout << omp_get_num_threads() << std::endl;
-  #endif
   size_t first, after, final;
   TEST_EQUAL(SysInfo::getProcessMemoryConsumption(first), true);
   std::cout << "Memory consumed initally: " << first << " KB" << std::endl;

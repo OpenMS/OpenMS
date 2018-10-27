@@ -96,12 +96,7 @@ namespace OpenMS
       {
         *pptr() = c;
         pbump(1);
-        #ifdef _OPENMP
-          //#pragma omp critical
-        #endif
-        {
-          sync();
-        };
+        sync();
         return c;
       }
       else
@@ -158,21 +153,16 @@ namespace OpenMS
       }
       else
       {
-        #ifdef _OPENMP
-          //#pragma omp critical
-        #endif
-        {
-          // increment counter
-          log_cache_[line].counter++;
+        // increment counter
+        log_cache_[line].counter++;
 
-          // remove old entry
-          log_time_cache_.erase(log_cache_[line].timestamp);
+        // remove old entry
+        log_time_cache_.erase(log_cache_[line].timestamp);
 
-          // update timestamp
-          Size counter_value = getNextLogCounter_();
-          log_cache_[line].timestamp = counter_value;
-          log_time_cache_[counter_value] = line;
-        };
+        // update timestamp
+        Size counter_value = getNextLogCounter_();
+        log_cache_[line].timestamp = counter_value;
+        log_time_cache_[counter_value] = line;
         return true;
       }
     }
@@ -180,35 +170,29 @@ namespace OpenMS
     std::string LogStreamBuf::addToCache_(std::string const & line)
     {
       std::string extra_message = "";
-
-      #ifdef _OPENMP
-        //#pragma omp critical
-      #endif
+      if (log_cache_.size() > 1) // check if we need to remove one of the entries
       {
-        if (log_cache_.size() > 1) // check if we need to remove one of the entries
+        // get smallest key
+        map<Size, string>::iterator it = log_time_cache_.begin();
+
+        // check if message occurred more then once
+        if (log_cache_[it->second].counter != 0)
         {
-          // get smallest key
-          map<Size, string>::iterator it = log_time_cache_.begin();
-
-          // check if message occurred more then once
-          if (log_cache_[it->second].counter != 0)
-          {
-            std::stringstream stream;
-            stream << "<" << it->second << "> occurred " << ++log_cache_[it->second].counter << " times";
-            extra_message = stream.str();
-          }
-
-          log_cache_.erase(it->second);
-          log_time_cache_.erase(it);
+          std::stringstream stream;
+          stream << "<" << it->second << "> occurred " << ++log_cache_[it->second].counter << " times";
+          extra_message = stream.str();
         }
 
-        Size counter_value = getNextLogCounter_();
-        log_cache_[line].counter = 0;
-        log_cache_[line].timestamp = counter_value;
+        log_cache_.erase(it->second);
+        log_time_cache_.erase(it);
+      }
 
-        log_time_cache_[counter_value] = line;
+      Size counter_value = getNextLogCounter_();
+      log_cache_[line].counter = 0;
+      log_cache_[line].timestamp = counter_value;
 
-      };
+      log_time_cache_[counter_value] = line;
+
       return extra_message;
     }
 
@@ -227,14 +211,9 @@ namespace OpenMS
           distribute_(stream.str());
         }
       }
-      #ifdef _OPENMP
-        //#pragma omp critical
-      #endif
-      {
-        // remove all entries from cache
-        log_cache_.clear();
-        log_time_cache_.clear();
-      };
+      // remove all entries from cache
+      log_cache_.clear();
+      log_time_cache_.clear();
     }
 
     void LogStreamBuf::distribute_(std::string outstring)
@@ -483,16 +462,10 @@ namespace OpenMS
       {
         return;
       }
-
-      #ifdef _OPENMP
-        //#pragma omp critical
-      #endif
-      {
-        // we didn't find it - create a new entry in the list
-        LogStreamBuf::StreamStruct s_struct;
-        s_struct.stream = &stream;
-        rdbuf()->stream_list_.push_back(s_struct);
-      };
+      // we didn't find it - create a new entry in the list
+      LogStreamBuf::StreamStruct s_struct;
+      s_struct.stream = &stream;
+      rdbuf()->stream_list_.push_back(s_struct);
     }
 
     void LogStream::remove(std::ostream & stream)
@@ -500,19 +473,14 @@ namespace OpenMS
       if (!bound_())
         return;
 
-      #ifdef _OPENMP
-        //#pragma omp critical
-      #endif
+      StreamIterator it = findStream_(stream);
+      if (it != rdbuf()->stream_list_.end())
       {
-        StreamIterator it = findStream_(stream);
-        if (it != rdbuf()->stream_list_.end())
-        {
-          rdbuf()->sync();
-          // HINT: we do NOT clear the cache (because we cannot access it from here)
-          //       and we do not flush incomplete_line_!!!
-          rdbuf()->stream_list_.erase(it);
-        }
-      };
+        rdbuf()->sync();
+        // HINT: we do NOT clear the cache (because we cannot access it from here)
+        //       and we do not flush incomplete_line_!!!
+        rdbuf()->stream_list_.erase(it);
+      }
     }
 
     void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
@@ -522,13 +490,8 @@ namespace OpenMS
 
       insert(s);
 
-      #ifdef _OPENMP
-        //#pragma omp critical
-      #endif
-      {
-        StreamIterator it = findStream_(s);
-        (*it).target = &target;
-      };
+      StreamIterator it = findStream_(s);
+      (*it).target = &target;
     }
 
     LogStream::StreamIterator LogStream::findStream_(const std::ostream & s)
@@ -561,12 +524,7 @@ namespace OpenMS
       StreamIterator it = findStream_(s);
       if (it != rdbuf()->stream_list_.end())
       {
-        #ifdef _OPENMP
-          //#pragma omp critical
-        #endif
-        {
-          (*it).prefix = prefix;
-        };
+        (*it).prefix = prefix;
       }
     }
 
@@ -577,12 +535,7 @@ namespace OpenMS
 
       for (StreamIterator it = rdbuf()->stream_list_.begin(); it != rdbuf()->stream_list_.end(); ++it)
       {
-        #ifdef _OPENMP
-          //#pragma omp critical
-        #endif
-        {
-          (*it).prefix = prefix;
-        };
+        (*it).prefix = prefix;
       }
     }
 
