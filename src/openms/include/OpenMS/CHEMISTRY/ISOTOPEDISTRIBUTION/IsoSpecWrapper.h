@@ -83,6 +83,8 @@ public:
     virtual double getMass() = 0;
     virtual double getIntensity() = 0;
     virtual double getLogIntensity() = 0;
+
+    virtual inline ~IsoSpecWrapper() {};
   };
 
   class OPENMS_DLLAPI IsoSpecThresholdWrapper : public IsoSpecWrapper
@@ -123,6 +125,43 @@ public:
 
 protected:
   IsoSpec::IsoThresholdGenerator ITG;
+  };
+
+  class OPENMS_DLLAPI IsoSpecTotalProbWrapper : public IsoSpecWrapper
+  {
+public:
+    /**
+      * @brief Constructor
+      *
+      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param isotopeMasses Array with the individual elements isotopic masses
+      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
+      * @param total_prob Total coverage of probability space desired
+      *
+      **/
+  IsoSpecTotalProbWrapper(const std::vector<int>& isotopeNumbers,
+             const std::vector<int>& atomCounts,
+             const std::vector<std::vector<double> >& isotopeMasses,
+             const std::vector<std::vector<double> >& isotopeProbabilities,
+             double total_prob);
+
+    /**
+      * @brief Run the algorithm on a sum formula
+      *
+      **/
+  IsoSpecTotalProbWrapper(const std::string& formula, double total_prob);
+
+  virtual std::vector<Peak1D> run() override final;
+
+  virtual inline bool nextConf() override final { return ILG.advanceToNextConfiguration(); };
+  virtual inline Peak1D getConf() override final { return Peak1D(ILG.mass(), ILG.prob()); };
+  virtual inline double getMass() override final { return ILG.mass(); };
+  virtual inline double getIntensity() override final { return ILG.prob(); };
+  virtual inline double getLogIntensity() override final { return ILG.lprob(); };
+
+protected:
+  IsoSpec::IsoLayeredGenerator ILG;
   };
 }
 

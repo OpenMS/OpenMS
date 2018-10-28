@@ -115,7 +115,6 @@ namespace OpenMS
   std::vector<Peak1D> IsoSpecThresholdWrapper::run()
   {
     std::vector<Peak1D> distribution;
-
     distribution.reserve(ITG.count_confs());
 
     ITG.reset();
@@ -125,6 +124,37 @@ namespace OpenMS
 
     return distribution;
   }
+
+
+//  --------------------------------------------------------------------------------
+
+
+
+  IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const std::vector<int>& isotopeNr,
+                    const std::vector<int>& atomCounts,
+                    const std::vector<std::vector<double> >& isotopeMasses,
+                    const std::vector<std::vector<double> >& isotopeProbabilities,
+                    double total_prob) :
+  ILG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)), total_prob, 0.3)
+  {};
+
+  IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const std::string& formula,
+                    double total_prob) :
+  ILG(formula.c_str(), total_prob, 0.3)
+  {};
+
+  std::vector<Peak1D> IsoSpecTotalProbWrapper::run()
+  {
+    std::vector<Peak1D> distribution;
+    // There is no sensible way to precalculate the number of configurations 
+    // in IsoLayeredGenerator
+
+    while (ILG.advanceToNextConfiguration())
+        distribution.emplace_back(Peak1D(ILG.mass(), ILG.prob()));
+
+    return distribution;
+  }
+
 
 }
 
