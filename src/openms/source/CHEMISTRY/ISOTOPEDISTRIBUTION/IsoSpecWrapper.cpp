@@ -156,5 +156,22 @@ namespace OpenMS
   }
 
 
+//  --------------------------------------------------------------------------------
+
+
+  IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNr,
+                    const std::vector<int>& atomCounts,
+                    const std::vector<std::vector<double> >& isotopeMasses,
+                    const std::vector<std::vector<double> >& isotopeProbabilities,
+                    double total_prob) :
+  IOG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)))
+  {};
+
+  IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const std::string& formula,
+                    double total_prob) :
+  IOG(formula.c_str())
+  {};
+
+
 }
 

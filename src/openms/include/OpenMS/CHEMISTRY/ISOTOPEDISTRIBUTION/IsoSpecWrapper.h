@@ -57,8 +57,7 @@ namespace OpenMS
   /**
     * @brief Interface to the IsoSpec algorithm.
     * 
-    * Provides an interface to the IsoSpec algorithm. Currently only the
-    * "threshold" algorithm is implemented.
+    * Provides an interface to the IsoSpec algorithm.
     *
     * @code
     * Łącki MK, Startek M, Valkenborg D, Gambin A.
@@ -163,5 +162,45 @@ public:
 protected:
   IsoSpec::IsoLayeredGenerator ILG;
   };
+
+
+
+  class OPENMS_DLLAPI IsoSpecOrderedGeneratorWrapper : public IsoSpecWrapper
+  {
+public:
+    /**
+      * @brief Constructor
+      *
+      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
+      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
+      * @param isotopeMasses Array with the individual elements isotopic masses
+      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
+      * @param total_prob Total coverage of probability space desired
+      *
+      **/
+  IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNumbers,
+             const std::vector<int>& atomCounts,
+             const std::vector<std::vector<double> >& isotopeMasses,
+             const std::vector<std::vector<double> >& isotopeProbabilities);
+
+    /**
+      * @brief Run the algorithm on a sum formula
+      *
+      **/
+  IsoSpecOrderedGeneratorWrapper(const std::string& formula);
+
+  virtual std::vector<Peak1D> run() override final
+  { throw std::logic_error("There is no stop condition in OrderedGenerator - therefore it only makes sense to use it as a generator"); } ;
+
+  virtual inline bool nextConf() override final { return IOG.advanceToNextConfiguration(); };
+  virtual inline Peak1D getConf() override final { return Peak1D(IOG.mass(), IOG.prob()); };
+  virtual inline double getMass() override final { return IOG.mass(); };
+  virtual inline double getIntensity() override final { return IOG.prob(); };
+  virtual inline double getLogIntensity() override final { return IOG.lprob(); };
+
+protected:
+  IsoSpec::IsoOrderedGenerator IOG;
+  };
+
 }
 
