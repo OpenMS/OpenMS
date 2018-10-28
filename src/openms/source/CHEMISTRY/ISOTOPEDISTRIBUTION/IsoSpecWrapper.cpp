@@ -39,10 +39,8 @@
 #include <iterator>
 #include <string>
 
-// Override IsoSpec's use of mmap whenever it is available
-#define ISOSPEC_GOT_SYSTEM_MMAN false
-#define ISOSPEC_GOT_MMAN false
-
+// IsoSpec doesn't (yet) support being compiled with -fvisibility=hidden
+#pragma GCC visibility push(default)
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
 #include "IsoSpec/isoSpec++.cpp"
@@ -51,6 +49,7 @@
 #include "IsoSpec/operators.cpp"
 #include "IsoSpec/element_tables.cpp"
 #include "IsoSpec/misc.cpp"
+#pragma GCC visibility pop
 
 using namespace std;
 using namespace IsoSpec;
@@ -59,11 +58,10 @@ namespace OpenMS
 {
 
 
-  IsoSpecWrapper::IsoSpecWrapper(const std::vector<int>& isotopeNr,
+  Iso _OMS_IsoFromParameters(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
-                    const std::vector<std::vector<double> >& isotopeProbabilities) :
-  iso(nullptr)
+                    const std::vector<std::vector<double> >& isotopeProbabilities)
   {
     OPENMS_PRECONDITION(isotopeNr.size() == atomCounts.size(), "Vectors need to be of the same size")
     OPENMS_PRECONDITION(isotopeNr.size() == isotopeMasses.size(), "Vectors need to be of the same size")
@@ -89,21 +87,14 @@ namespace OpenMS
       IP[i] = isotopeProbabilities[i].data();
     }
 
-    iso = new Iso(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
+    Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM, IP);
     
     delete[] IM;
     delete[] IP;
+
+    return ret;
   }
 
-  IsoSpecWrapper::IsoSpecWrapper(const std::string& formula)
-  : iso(new Iso(formula.c_str()))
-  {}
-
-  IsoSpecWrapper::~IsoSpecWrapper()
-  {
-    if (iso != nullptr)
-      delete iso;
-  };
 
 
   IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const std::vector<int>& isotopeNr,
@@ -112,70 +103,28 @@ namespace OpenMS
                     const std::vector<std::vector<double> >& isotopeProbabilities,
                     double threshold,
                     bool absolute) :
-  IsoSpecWrapper(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities),
-  ITG(new IsoThresholdGenerator(std::move(*iso), threshold, absolute))
+  ITG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)), threshold, absolute)
   {};
 
   IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const std::string& formula,
                     double threshold,
                     bool absolute) :
-  IsoSpecWrapper(formula.c_str()),
-  ITG(new IsoThresholdGenerator(std::move(*iso), threshold, absolute))
+  ITG(formula.c_str(), threshold, absolute)
   {};
-
 
   std::vector<Peak1D> IsoSpecThresholdWrapper::run()
   {
     std::vector<Peak1D> distribution;
 
-    distribution.reserve(ITG->count_confs());
+    distribution.reserve(ITG.count_confs());
 
-    ITG->reset();
+    ITG.reset();
 
-    while (ITG->advanceToNextConfiguration())
-        distribution.emplace_back(Peak1D(ITG->mass(), ITG->prob()));
+    while (ITG.advanceToNextConfiguration())
+        distribution.emplace_back(Peak1D(ITG.mass(), ITG.prob()));
 
     return distribution;
   }
-
-  IsoSpecThresholdWrapper::~IsoSpecThresholdWrapper()
-  {
-    if (ITG != nullptr)
-      delete ITG;
-  }
-
-#if 0
-  void runLayered(const std::string& formula)
-  {
-    Iso* iso = new Iso(formula.c_str());
-
-    double delta = -10;
-    int tabSize = 1000;
-    int hashSize = 1000;
-
-    IsoLayeredGenerator* generator = new IsoLayeredGenerator(std::move(*iso), delta, tabSize, hashSize);
-    Tabulator<IsoLayeredGenerator>* tabulator = new Tabulator<IsoLayeredGenerator>(generator, true, true, true, true); 
-
-    delete generator;
-    delete tabulator;
-    delete iso;
-  }
-
-  void runOrdered(const std::string& formula)
-  {
-    Iso* iso = new Iso(formula.c_str());
-
-    int tabSize = 1000;
-    int hashSize = 1000;
-
-    IsoOrderedGenerator* generator = new IsoOrderedGenerator(std::move(*iso), tabSize, hashSize);
-    Tabulator<IsoOrderedGenerator>* tabulator = new Tabulator<IsoOrderedGenerator>(generator, true, true, true, true); 
-
-    delete generator;
-    delete tabulator;
-    delete iso;
-  }
-#endif
 
 }
 

@@ -41,11 +41,15 @@
 
 #include <OpenMS/KERNEL/Peak1D.h>
 
-namespace IsoSpec
-{
-    class Iso;
-    class IsoThresholdGenerator;
-}
+// Override IsoSpec's use of mmap whenever it is available
+#define ISOSPEC_GOT_SYSTEM_MMAN false
+#define ISOSPEC_GOT_MMAN false
+
+// IsoSpec doesn't (yet) support being compiled with -fvisibility=hidden
+#pragma GCC visibility push(default)
+#include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
+#pragma GCC visibility pop
+
 
 namespace OpenMS
 {
@@ -72,31 +76,13 @@ public:
       *
       **/
     virtual std::vector<Peak1D> run() = 0;
-    virtual ~IsoSpecWrapper();
-
-protected:
-    /**
-      * @brief Constructor
-      *
-      * @param isotopeNumbers A vector of how many isotopes each element has, e.g. [2, 2, 3])
-      * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
-      * @param isotopeMasses Array with the individual elements isotopic masses
-      * @param isotopeProbabilities Array with the individual elements isotopic probabilities
-      *
-      **/
-    IsoSpecWrapper(const std::vector<int>& isotopeNumbers,
-             const std::vector<int>& atomCounts,
-             const std::vector<std::vector<double> >& isotopeMasses,
-             const std::vector<std::vector<double> >& isotopeProbabilities);
 
 
-    /**
-      * @brief Run the algorithm on a sum formula
-      *
-      **/
-    IsoSpecWrapper(const std::string& formula);
-
-    IsoSpec::Iso* iso;
+    virtual bool nextConf() = 0;
+    virtual Peak1D getConf() = 0;
+    virtual double getMass() = 0;
+    virtual double getIntensity() = 0;
+    virtual double getLogIntensity() = 0;
   };
 
   class OPENMS_DLLAPI IsoSpecThresholdWrapper : public IsoSpecWrapper
@@ -128,10 +114,15 @@ public:
 
   virtual std::vector<Peak1D> run() override final;
 
-  virtual ~IsoSpecThresholdWrapper() override;
+  virtual inline bool nextConf() override final { return ITG.advanceToNextConfiguration(); };
+  virtual inline Peak1D getConf() override final { return Peak1D(ITG.mass(), ITG.prob()); };
+  virtual inline double getMass() override final { return ITG.mass(); };
+  virtual inline double getIntensity() override final { return ITG.prob(); };
+  virtual inline double getLogIntensity() override final { return ITG.lprob(); };
+
 
 protected:
-  IsoSpec::IsoThresholdGenerator* ITG;
+  IsoSpec::IsoThresholdGenerator ITG;
   };
 }
 
