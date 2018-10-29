@@ -52,22 +52,6 @@ START_TEST(IsoSpecWrapper, "$Id$")
 
 //typedef std::pair<double,double> isopair;
 typedef Peak1D isopair;
-std::vector<isopair> expected;
-expected.push_back(Peak1D( 180.06338810843999453936704 , 0.92211923150129093684768122    ));
-expected.push_back(Peak1D( 181.06674294364000843415852 , 0.060338187213731186986365174   ));
-expected.push_back(Peak1D( 181.06760524584001359471586 , 0.0021130960055518325027557047  ));
-expected.push_back(Peak1D( 181.06966485435998492903309 , 0.0012805273467946340793660598  ));
-expected.push_back(Peak1D( 182.06763310194000382580271 , 0.01137744132753025667892377    ));
-expected.push_back(Peak1D( 182.07009777883999390724057 , 0.0016450768656347837786552146  ));
-expected.push_back(Peak1D( 182.07096008103999906779791 , 0.00013826886808985885154825446 ));
-expected.push_back(Peak1D( 182.07301968955999882382457 , 8.3790356109809577852924611e-05 ));
-expected.push_back(Peak1D( 183.07098793713998929888476 , 0.00074447442519563354536987765 ));
-expected.push_back(Peak1D( 183.0718502393399944594421  , 2.1726787058638343864448716e-05 ));
-expected.push_back(Peak1D( 183.07345261403997938032262 , 2.3920974041512910987549237e-05 ));
-expected.push_back(Peak1D( 183.07390984786002263717819 , 1.5799610569594269005293946e-05 ));
-expected.push_back(Peak1D( 184.07187809544001311223838 , 5.8491247994869661650744336e-05 ));
-expected.push_back(Peak1D( 184.07434277234000319367624 , 2.0297554674751325817869813e-05 ));
-
 std::vector<isopair> expected_oms;
 expected_oms.push_back(Peak1D( 180.06339038280000863778696 , 0.92263317941561073798339976    ));
 expected_oms.push_back(Peak1D( 181.06674538280000774648215 , 0.059873700450778437331944559   ));
@@ -107,18 +91,18 @@ START_SECTION(( void run() ))
   // std::cout.precision(26);
   std::sort(iso_result.begin(), iso_result.end(),  [](isopair a, isopair b) {return a.getPos() < b.getPos();});
 
-  for (Size i = 0; i != expected.size(); ++i)
+  for (Size i = 0; i != expected_oms.size(); ++i)
   {
-    TEST_REAL_SIMILAR(iso_result[i].getPos(), expected[i].getPos());
-    TEST_REAL_SIMILAR(iso_result[i].getIntensity(), expected[i].getIntensity());
+    TEST_REAL_SIMILAR(iso_result[i].getPos(), expected_oms[i].getPos());
+    TEST_REAL_SIMILAR(iso_result[i].getIntensity(), expected_oms[i].getIntensity());
   }
 
   // human insulin
   std::vector<Peak1D> iso_result2 = IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run();
-  TEST_EQUAL(iso_result2.size(), 5402)
+  TEST_EQUAL(iso_result2.size(), 5513)
 
   std::vector<Peak1D> iso_result3 = IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, false).run();
-  TEST_EQUAL(iso_result3.size(), 269)
+  TEST_EQUAL(iso_result3.size(), 267)
 }
 END_SECTION
 
@@ -132,15 +116,15 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
 
   std::sort(iso_result.begin(), iso_result.end(),  [](isopair a, isopair b) {return a.getPos() < b.getPos();});
 
-  for (Size i = 0; i != expected.size(); ++i)
+  for (Size i = 0; i != expected_oms.size(); ++i)
   {
-    TEST_REAL_SIMILAR(iso_result[i].getPos(), expected[i].getPos());
-    TEST_REAL_SIMILAR(iso_result[i].getIntensity(), expected[i].getIntensity());
+    TEST_REAL_SIMILAR(iso_result[i].getPos(), expected_oms[i].getPos());
+    TEST_REAL_SIMILAR(iso_result[i].getIntensity(), expected_oms[i].getIntensity());
   }
 
   // human insulin
   std::vector<Peak1D> iso_result2(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run());
-  TEST_EQUAL(iso_result2.size(), 1720)
+  TEST_EQUAL(iso_result2.size(), 1734)
 
   std::vector<Peak1D> iso_result3(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, true).run());
   TEST_EQUAL(iso_result3.size(), 21)
