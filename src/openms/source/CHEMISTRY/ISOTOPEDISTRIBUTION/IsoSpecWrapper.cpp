@@ -40,8 +40,6 @@
 #include <iterator>
 #include <string>
 
-// IsoSpec doesn't (yet) support being compiled with -fvisibility=hidden
-#pragma GCC visibility push(default)
 #include "IsoSpec/allocator.cpp"
 #include "IsoSpec/dirtyAllocator.cpp"
 #include "IsoSpec/isoSpec++.cpp"
@@ -50,7 +48,6 @@
 #include "IsoSpec/operators.cpp"
 #include "IsoSpec/element_tables.cpp"
 #include "IsoSpec/misc.cpp"
-#pragma GCC visibility pop
 
 using namespace std;
 using namespace IsoSpec;
