@@ -466,7 +466,6 @@ public:
               if (hits_total < func_threads.filter_passed + func_threads.filter_rejected)
               {
                 protein_accessions[prot_idx] = proteins.chunkAt(i).identifier;
-                protein_found_peptides[prot_idx] = std::vector<std::set<std::pair<Size,Size>>>(prot_ids.size());
                 acc_to_prot_thread[protein_accessions[prot_idx]] = prot_idx;
               }
             } // end parallel FOR
@@ -528,6 +527,16 @@ public:
 
       Map<Size, std::set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
 
+      if (annotate_nr_theoretical_peptides_ || add_missing_peptides_)
+      {
+        // initialize vectors of sets
+        for (auto& prot : protein_found_peptides)
+        {
+          prot.resize(prot_ids.size());
+        }
+      }
+
+
       Size pep_idx(0);
       for (std::vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
       {
@@ -553,7 +562,8 @@ public:
             it_i != func.pep_to_prot[pep_idx].end(); ++it_i)
           {
             prot_indices.insert(it_i->protein_index);
-            protein_found_peptides[it_i->protein_index][run_idx].insert(std::make_pair<Size,Size>(it_i->position, it2->getSequence().size()));
+            if (annotate_nr_theoretical_peptides_ || add_missing_peptides_)
+              protein_found_peptides[it_i->protein_index][run_idx].insert(std::make_pair<Size,Size>(it_i->position, it2->getSequence().size()));
             const String& accession = protein_accessions[it_i->protein_index];
             PeptideEvidence pe(accession, it_i->position, it_i->position + (int)it2->getSequence().size() - 1, it_i->AABefore, it_i->AAAfter);
             it2->addPeptideEvidence(pe);
