@@ -43,11 +43,10 @@ namespace OpenMS
 
   IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
-    IsotopeDistribution result;
-
-    result.set(IsoSpecThresholdWrapper(formula, threshold_, absolute_).run());
+    IsotopeDistribution result(IsoSpecThresholdWrapper(formula, threshold_, absolute_).run());
 
     result.sortByMass();
+
     return result;
   }
 

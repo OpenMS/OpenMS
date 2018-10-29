@@ -144,7 +144,7 @@ namespace OpenMS
   ITG(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute)
   {};
 
-  std::vector<Peak1D> IsoSpecThresholdWrapper::run()
+  IsotopeDistribution IsoSpecThresholdWrapper::run()
   {
     std::vector<Peak1D> distribution;
     distribution.reserve(ITG.count_confs());
@@ -154,7 +154,11 @@ namespace OpenMS
     while (ITG.advanceToNextConfiguration())
         distribution.emplace_back(Peak1D(ITG.mass(), ITG.prob()));
 
-    return distribution;
+    IsotopeDistribution ID;
+
+    ID.set(std::move(distribution));
+
+    return ID;
   }
 
 
@@ -175,7 +179,7 @@ namespace OpenMS
   ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3)
   {};
 
-  std::vector<Peak1D> IsoSpecTotalProbWrapper::run()
+  IsotopeDistribution IsoSpecTotalProbWrapper::run()
   {
     std::vector<Peak1D> distribution;
     // There is no sensible way to precalculate the number of configurations 
@@ -184,7 +188,11 @@ namespace OpenMS
     while (ILG.advanceToNextConfiguration())
         distribution.emplace_back(Peak1D(ILG.mass(), ILG.prob()));
 
-    return distribution;
+    IsotopeDistribution ID;
+
+    ID.set(std::move(distribution));
+
+    return ID;
   }
 
 

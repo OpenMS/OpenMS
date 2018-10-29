@@ -42,6 +42,8 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+
 
 // Override IsoSpec's use of mmap whenever it is available
 #define ISOSPEC_GOT_SYSTEM_MMAN false
@@ -76,7 +78,7 @@ public:
       * @brief Run the algorithm
       *
       **/
-    virtual std::vector<Peak1D> run() = 0;
+    virtual IsotopeDistribution run() = 0;
 
 
     virtual bool nextConf() = 0;
@@ -115,7 +117,7 @@ public:
       **/
   IsoSpecThresholdWrapper(const EmpiricalFormula& formula, double threshold, bool absolute);
 
-  virtual std::vector<Peak1D> run() override final;
+  virtual IsotopeDistribution run() override final;
 
   virtual inline bool nextConf() override final { return ITG.advanceToNextConfiguration(); };
   virtual inline Peak1D getConf() override final { return Peak1D(ITG.mass(), ITG.prob()); };
@@ -153,7 +155,7 @@ public:
       **/
   IsoSpecTotalProbWrapper(const EmpiricalFormula& formula, double total_prob);
 
-  virtual std::vector<Peak1D> run() override final;
+  virtual IsotopeDistribution run() override final;
 
   virtual inline bool nextConf() override final { return ILG.advanceToNextConfiguration(); };
   virtual inline Peak1D getConf() override final { return Peak1D(ILG.mass(), ILG.prob()); };
@@ -191,8 +193,8 @@ public:
       **/
   IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula);
 
-  virtual std::vector<Peak1D> run() override final
-  { throw std::logic_error("There is no stop condition in OrderedGenerator - therefore it only makes sense to use it as a generator"); } ;
+  virtual IsotopeDistribution run() override final
+  { throw std::logic_error("There is no stop condition in OrderedGenerator - therefore it only makes sense to use it as a generator"); };
 
   virtual inline bool nextConf() override final { return IOG.advanceToNextConfiguration(); };
   virtual inline Peak1D getConf() override final { return Peak1D(IOG.mass(), IOG.prob()); };

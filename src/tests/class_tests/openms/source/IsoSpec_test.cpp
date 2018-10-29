@@ -84,7 +84,7 @@ START_SECTION(( void run() ))
   double threshold = 1e-5;
   bool absolute = false;
   IsoSpecThresholdWrapper iso(EmpiricalFormula("C6H12O6"), threshold, absolute);
-  std::vector<Peak1D> iso_result(iso.run());
+  IsotopeDistribution iso_result(iso.run());
 
   TEST_EQUAL(iso_result.size(), 14)
 
@@ -98,10 +98,10 @@ START_SECTION(( void run() ))
   }
 
   // human insulin
-  std::vector<Peak1D> iso_result2 = IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run();
+  IsotopeDistribution iso_result2 = IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run();
   TEST_EQUAL(iso_result2.size(), 5513)
 
-  std::vector<Peak1D> iso_result3 = IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, false).run();
+  IsotopeDistribution iso_result3 = IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, false).run();
   TEST_EQUAL(iso_result3.size(), 267)
 }
 END_SECTION
@@ -110,7 +110,7 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
 {
   double threshold = 1e-5;
   bool absolute = true;
-  std::vector<Peak1D> iso_result(IsoSpecThresholdWrapper(EmpiricalFormula("C6H12O6"), threshold, absolute).run());
+  IsotopeDistribution iso_result(IsoSpecThresholdWrapper(EmpiricalFormula("C6H12O6"), threshold, absolute).run());
 
   TEST_EQUAL(iso_result.size(), 14)
 
@@ -123,10 +123,10 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
   }
 
   // human insulin
-  std::vector<Peak1D> iso_result2(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run());
+  IsotopeDistribution iso_result2(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run());
   TEST_EQUAL(iso_result2.size(), 1734)
 
-  std::vector<Peak1D> iso_result3(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, true).run());
+  IsotopeDistribution iso_result3(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, true).run());
   TEST_EQUAL(iso_result3.size(), 21)
 }
 END_SECTION
@@ -168,7 +168,7 @@ START_SECTION((
   {
     double threshold = 1e-5;
     bool absolute = false;
-    std::vector<Peak1D> iso_results(IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold, absolute).run());
+    IsotopeDistribution iso_results(IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold, absolute).run());
 
     TEST_EQUAL(iso_results.size(), 14)
 
