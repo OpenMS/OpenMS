@@ -428,9 +428,7 @@ namespace OpenMS
     void LogStreamNotifier::registerAt(LogStream & log)
     {
       unregister();
-      {
-        registered_at_ = &log;
-      };
+      registered_at_ = &log;
       log.insertNotification(stream_, *this);
     }
 
