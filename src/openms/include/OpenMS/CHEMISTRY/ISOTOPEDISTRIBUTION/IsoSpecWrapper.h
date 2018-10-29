@@ -49,10 +49,7 @@
 #define ISOSPEC_GOT_SYSTEM_MMAN false
 #define ISOSPEC_GOT_MMAN false
 
-// IsoSpec doesn't (yet) support being compiled with -fvisibility=hidden
-#pragma GCC visibility push(default)
 #include <OpenMS/../../thirdparty/IsoSpec/IsoSpec/isoSpec++.h>
-#pragma GCC visibility pop
 
 
 namespace OpenMS

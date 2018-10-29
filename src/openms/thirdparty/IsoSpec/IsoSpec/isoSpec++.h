@@ -49,7 +49,7 @@ unsigned int parse_formula(const char* formula,
 /*!
     It contains full description of the molecule for which one would like to calculate the isotopic distribution.
 */
-class Iso {
+class ISOSPEC_EXPORT_SYMBOL Iso {
 private:
 
     //! Set up the marginal isotopic envelopes, corresponding to subisotopologues.
@@ -126,7 +126,7 @@ public:
 /*!
     This class provides the common interface for all isotopic generators.
 */
-class IsoGenerator : public Iso
+class ISOSPEC_EXPORT_SYMBOL IsoGenerator : public Iso
 {
 protected:
     double* partialLProbs;  /*!< The prefix sum of the log-probabilities of the current isotopologue. */
@@ -176,7 +176,7 @@ public:
     This algorithm take O(N*log(N)) to compute the N isotopologues because of using the Priority Queue data structure.
     Obtaining the N isotopologues can be achieved in O(N) if they are not required to be spit out in the descending order.
 */
-class IsoOrderedGenerator: public IsoGenerator
+class ISOSPEC_EXPORT_SYMBOL IsoOrderedGenerator: public IsoGenerator
 {
 private:
     MarginalTrek**              marginalResults;            /*!< Table of pointers to marginal distributions of subisotopologues. */
@@ -232,7 +232,7 @@ public:
     This algorithm computes N isotopologues in O(N).
     It is a considerable advantage w.r.t. the IsoOrderedGenerator.
 */
-class IsoThresholdGenerator: public IsoGenerator
+class ISOSPEC_EXPORT_SYMBOL IsoThresholdGenerator: public IsoGenerator
 {
 private:
 
@@ -380,7 +380,7 @@ private:
     the class actually performs all computations during the initialization and stores them, and the generator methods
     only walk through the array of precomputed values. . It will be reimplemented as a true generator in 2.0.
 */
-class IsoLayeredGenerator : public IsoGenerator
+class ISOSPEC_EXPORT_SYMBOL IsoLayeredGenerator : public IsoGenerator
 {
 private:
     Summator                totalProb;
