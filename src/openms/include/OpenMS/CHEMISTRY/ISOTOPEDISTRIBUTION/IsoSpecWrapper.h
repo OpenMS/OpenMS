@@ -41,6 +41,8 @@
 
 #include <OpenMS/KERNEL/Peak1D.h>
 
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
 // Override IsoSpec's use of mmap whenever it is available
 #define ISOSPEC_GOT_SYSTEM_MMAN false
 #define ISOSPEC_GOT_MMAN false
@@ -111,7 +113,7 @@ public:
       * @brief Run the algorithm on a sum formula
       *
       **/
-  IsoSpecThresholdWrapper(const std::string& formula, double threshold, bool absolute);
+  IsoSpecThresholdWrapper(const EmpiricalFormula& formula, double threshold, bool absolute);
 
   virtual std::vector<Peak1D> run() override final;
 
@@ -149,7 +151,7 @@ public:
       * @brief Run the algorithm on a sum formula
       *
       **/
-  IsoSpecTotalProbWrapper(const std::string& formula, double total_prob);
+  IsoSpecTotalProbWrapper(const EmpiricalFormula& formula, double total_prob);
 
   virtual std::vector<Peak1D> run() override final;
 
@@ -187,7 +189,7 @@ public:
       * @brief Run the algorithm on a sum formula
       *
       **/
-  IsoSpecOrderedGeneratorWrapper(const std::string& formula);
+  IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula);
 
   virtual std::vector<Peak1D> run() override final
   { throw std::logic_error("There is no stop condition in OrderedGenerator - therefore it only makes sense to use it as a generator"); } ;

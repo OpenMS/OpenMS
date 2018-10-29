@@ -86,8 +86,8 @@ expected_oms.push_back(Peak1D( 184.07435438280000994382135 , 1.99615211482664827
 
 IsoSpecWrapper* ptr = nullptr;
 IsoSpecWrapper* nullPointer = nullptr;
-START_SECTION((IsoSpecThresholdWrapper(const std::string&, double, bool)))
-  ptr = new IsoSpecThresholdWrapper("C10", 0.5, false);
+START_SECTION((IsoSpecThresholdWrapper(const EmpiricalFormula&, double, bool)))
+  ptr = new IsoSpecThresholdWrapper(EmpiricalFormula("C10"), 0.5, false);
   TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -95,11 +95,11 @@ START_SECTION((~IsoSpecThresholdWrapper()))
   delete ptr;
 END_SECTION
 
-START_SECTION(( void run(const std::string&, double, bool) ))
+START_SECTION(( void run() ))
 {
   double threshold = 1e-5;
   bool absolute = false;
-  IsoSpecThresholdWrapper iso("C6H12O6", threshold, absolute);
+  IsoSpecThresholdWrapper iso(EmpiricalFormula("C6H12O6"), threshold, absolute);
   std::vector<Peak1D> iso_result(iso.run());
 
   TEST_EQUAL(iso_result.size(), 14)
@@ -114,10 +114,10 @@ START_SECTION(( void run(const std::string&, double, bool) ))
   }
 
   // human insulin
-  std::vector<Peak1D> iso_result2 = IsoSpecThresholdWrapper("C520H817N139O147S8", threshold, absolute).run();
+  std::vector<Peak1D> iso_result2 = IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run();
   TEST_EQUAL(iso_result2.size(), 5402)
 
-  std::vector<Peak1D> iso_result3 = IsoSpecThresholdWrapper("C520H817N139O147S8", 0.01, false).run();
+  std::vector<Peak1D> iso_result3 = IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, false).run();
   TEST_EQUAL(iso_result3.size(), 269)
 }
 END_SECTION
@@ -126,7 +126,7 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
 {
   double threshold = 1e-5;
   bool absolute = true;
-  std::vector<Peak1D> iso_result(IsoSpecThresholdWrapper("C6H12O6", threshold, absolute).run());
+  std::vector<Peak1D> iso_result(IsoSpecThresholdWrapper(EmpiricalFormula("C6H12O6"), threshold, absolute).run());
 
   TEST_EQUAL(iso_result.size(), 14)
 
@@ -139,10 +139,10 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
   }
 
   // human insulin
-  std::vector<Peak1D> iso_result2(IsoSpecThresholdWrapper("C520H817N139O147S8", threshold, absolute).run());
+  std::vector<Peak1D> iso_result2(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run());
   TEST_EQUAL(iso_result2.size(), 1720)
 
-  std::vector<Peak1D> iso_result3(IsoSpecThresholdWrapper("C520H817N139O147S8", 0.01, true).run());
+  std::vector<Peak1D> iso_result3(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, true).run());
   TEST_EQUAL(iso_result3.size(), 21)
 }
 END_SECTION

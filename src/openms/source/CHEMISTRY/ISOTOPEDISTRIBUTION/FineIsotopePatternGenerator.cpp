@@ -43,40 +43,9 @@ namespace OpenMS
 
   IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
-//    IsoSpecWrapper algorithm(threshold_, absolute_);
-#if 0
-    // Use IsoSpec's isotopic tables
     IsotopeDistribution result;
-    result.set(algorithm.run(formula.toString()));
-#else
-    // Use our own isotopic tables
-    std::vector<int> isotopeNumbers, atomCounts;
-    std::vector<std::vector<double> > isotopeMasses, isotopeProbabilities;
 
-    // Iterate through all elements in the molecular formula
-    for (auto elem : formula)
-    {
-      atomCounts.push_back(elem.second);
-
-      std::vector<double> masses;
-      std::vector<double> probs;
-      for (auto iso : elem.first->getIsotopeDistribution())
-      {
-        if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
-        masses.push_back(iso.getMZ());
-        probs.push_back(iso.getIntensity());
-      }
-
-      // For each element store how many isotopes it has and their masses/probabilities
-      isotopeNumbers.push_back( masses.size() );
-      isotopeMasses.push_back(masses);
-      isotopeProbabilities.push_back(probs);
-    }
-
-    // Store the data in a IsotopeDistribution
-    IsotopeDistribution result;
-    result.set(IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold_, absolute_).run());
-#endif
+    result.set(IsoSpecThresholdWrapper(formula, threshold_, absolute_).run());
 
     result.sortByMass();
     return result;

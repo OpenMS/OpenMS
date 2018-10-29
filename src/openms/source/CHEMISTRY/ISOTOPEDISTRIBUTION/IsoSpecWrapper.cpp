@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 #include <iterator>
 #include <string>
 
@@ -95,6 +96,37 @@ namespace OpenMS
     return ret;
   }
 
+    Iso _OMS_IsoFromEmpiricalFormula(const EmpiricalFormula& formula) 
+  {
+    // Use our own isotopic tables
+    std::vector<int> isotopeNumbers, atomCounts;
+    std::vector<std::vector<double> > isotopeMasses, isotopeProbabilities;
+
+    // Iterate through all elements in the molecular formula
+    for (auto elem : formula)
+    {
+      atomCounts.push_back(elem.second);
+
+      std::vector<double> masses;
+      std::vector<double> probs;
+      for (auto iso : elem.first->getIsotopeDistribution())
+      {
+        if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
+        masses.push_back(iso.getMZ());
+        probs.push_back(iso.getIntensity());
+      }
+
+      // For each element store how many isotopes it has and their masses/probabilities
+      isotopeNumbers.push_back( masses.size() );
+      isotopeMasses.push_back(masses);
+      isotopeProbabilities.push_back(probs);
+    }
+
+    // Store the data in a IsotopeDistribution
+    return _OMS_IsoFromParameters(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+  }
+
+
 
 
   IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const std::vector<int>& isotopeNr,
@@ -106,10 +138,10 @@ namespace OpenMS
   ITG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)), threshold, absolute)
   {};
 
-  IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const std::string& formula,
+  IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const EmpiricalFormula& formula,
                     double threshold,
                     bool absolute) :
-  ITG(formula.c_str(), threshold, absolute)
+  ITG(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute)
   {};
 
   std::vector<Peak1D> IsoSpecThresholdWrapper::run()
@@ -138,9 +170,9 @@ namespace OpenMS
   ILG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)), total_prob, 0.3)
   {};
 
-  IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const std::string& formula,
+  IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const EmpiricalFormula& formula,
                     double total_prob) :
-  ILG(formula.c_str(), total_prob, 0.3)
+  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3)
   {};
 
   std::vector<Peak1D> IsoSpecTotalProbWrapper::run()
@@ -162,14 +194,12 @@ namespace OpenMS
   IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
-                    const std::vector<std::vector<double> >& isotopeProbabilities,
-                    double total_prob) :
+                    const std::vector<std::vector<double> >& isotopeProbabilities) :
   IOG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)))
   {};
 
-  IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const std::string& formula,
-                    double total_prob) :
-  IOG(formula.c_str())
+  IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula) :
+  IOG(_OMS_IsoFromEmpiricalFormula(formula))
   {};
 
 
