@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: $
-// $Authors: $
+// $Authors: Hannes Rost, Michał Startek, Mateusz Łącki $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsoSpecWrapper.h>

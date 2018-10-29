@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Rost $
-// $Authors: Hannes Rost $
+// $Authors: Hannes Rost, Michał Startek, Mateusz Łącki $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenerator.h>
