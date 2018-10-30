@@ -271,7 +271,7 @@ public:
       {
       }
 
-      reference operator*()
+      reference operator*() const
       {
         return *((*vector_)[position_]);
       }
