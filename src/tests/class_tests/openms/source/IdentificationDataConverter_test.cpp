@@ -69,12 +69,22 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
   IdentificationDataConverter::exportIDs(ids, proteins_out, peptides_out);
 
   TEST_EQUAL(peptides_in.size(), peptides_out.size());
-  // the order in the output is different:
-  TEST_EQUAL(peptides_in[0].getHits()[0] == peptides_out[2].getHits()[0], true);
-  TEST_EQUAL(peptides_in[0].getHits()[1] == peptides_out[2].getHits()[1], true);
-  TEST_EQUAL(peptides_in[1].getHits()[0] == peptides_out[0].getHits()[0], true);
-  TEST_EQUAL(peptides_in[1].getHits()[1] == peptides_out[0].getHits()[1], true);
-  TEST_EQUAL(peptides_in[2].getHits()[0] == peptides_out[1].getHits()[0], true);
+  vector<PeptideHit> hits_in, hits_out;
+  for (const auto& pep : peptides_in)
+  {
+    hits_in.insert(hits_in.end(), pep.getHits().begin(), pep.getHits().end());
+  }
+  for (const auto& pep : peptides_out)
+  {
+    hits_out.insert(hits_out.end(), pep.getHits().begin(), pep.getHits().end());
+  }
+  TEST_EQUAL(hits_in.size(), hits_out.size());
+  // order of hits is different, check that every output one is in the input:
+  for (const auto& hit : hits_out)
+  {
+    TEST_EQUAL(find(hits_in.begin(), hits_in.end(), hit) != hits_in.end(),
+               true);
+  }
 
   TEST_EQUAL(proteins_in.size(), proteins_out.size());
   // the exporter adds target/decoy information (default: target):
@@ -87,16 +97,8 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
   TEST_EQUAL(proteins_in[0].getHits() == proteins_out[0].getHits(), true);
   TEST_EQUAL(proteins_in[1].getHits() == proteins_out[1].getHits(), true);
 
-  String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
-  // NEW_TMP_FILE(filename);
-  // cout << "Test file:" << filename << endl;
-  IdXMLFile().store(filename, proteins_out, peptides_out);
-
-  MzTab mztab = IdentificationDataConverter::exportMzTab(ids);
-  filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.mzTab");
-  // NEW_TMP_FILE(filename);
-  // cout << "Test file:" << filename << endl;
-  MzTabFile().store(filename, mztab);
+  // String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
+  // IdXMLFile().store(filename, proteins_out, peptides_out);
 }
 END_SECTION
 
@@ -114,11 +116,9 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
 {
   vector<ProteinIdentification> proteins_in;
   vector<PeptideIdentification> peptides_in;
-  PepXMLFile().load(OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml"), proteins_in, peptides_in, "PepXMLFile_test");
 
-  TEST_EQUAL(proteins_in.size(), 1);
-  TEST_EQUAL(proteins_in[0].getHits().size(), 4);
-  TEST_EQUAL(peptides_in.size(), 2);
+  String filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
+  IdXMLFile().load(filename, proteins_in, peptides_in);
 
   IdentificationData ids;
   IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
@@ -127,15 +127,63 @@ START_SECTION((void exportIDs(const IdentificationData&, vector<ProteinIdentific
   vector<PeptideIdentification> peptides_out;
   IdentificationDataConverter::exportIDs(ids, proteins_out, peptides_out);
 
-  // the additional Peptide-/InterProphet scores cause multiple ID runs upon
-  // export:
-  TEST_EQUAL(proteins_out.size(), 3);
-  TEST_EQUAL(peptides_out.size(), 4);
+  TEST_EQUAL(proteins_in.size(), proteins_out.size());
+  TEST_EQUAL(proteins_in[0].getHits().size(),
+             proteins_out[0].getHits().size());
+  TEST_EQUAL(proteins_in[0].getHits() == proteins_out[0].getHits(), true);
 
-  String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_pepXML_out.idXML");
-  // NEW_TMP_FILE(filename);
-  // cout << "Test file:" << filename << endl;
-  IdXMLFile().store(filename, proteins_out, peptides_out);
+  TEST_EQUAL(proteins_in[0].getIndistinguishableProteins() ==
+             proteins_out[0].getIndistinguishableProteins(), true);
+  TEST_EQUAL(proteins_in[0].getProteinGroups() ==
+             proteins_out[0].getProteinGroups(), true);
+
+  TEST_EQUAL(peptides_in.size(), peptides_out.size());
+  // no "operator<" for PeptideHit, otherwise we could use a set:
+  vector<PeptideHit> hits_in, hits_out;
+  for (const auto& pep : peptides_in)
+  {
+    hits_in.insert(hits_in.end(), pep.getHits().begin(), pep.getHits().end());
+  }
+  for (const auto& pep : peptides_out)
+  {
+    hits_out.insert(hits_out.end(), pep.getHits().begin(), pep.getHits().end());
+  }
+  for (auto& hit : hits_in)
+  {
+    // "target+decoy" is counted as "target" in IdentificationData:
+    if (hit.getMetaValue("target_decoy") == "target+decoy")
+    {
+      hit.setMetaValue("target_decoy", "target");
+    }
+  }
+  TEST_EQUAL(hits_in.size(), hits_out.size());
+  // order of hits is different, check that every output one is in the input:
+  for (const auto& hit : hits_out)
+  {
+    TEST_EQUAL(find(hits_in.begin(), hits_in.end(), hit) != hits_in.end(),
+               true);
+  }
+
+  // filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out2.idXML");
+  // IdXMLFile().store(filename, proteins_out, peptides_out);
+}
+END_SECTION
+
+START_SECTION((MzTab exportMzTab(const IdentificationData& id_data)))
+{
+  vector<ProteinIdentification> proteins_in;
+  vector<PeptideIdentification> peptides_in;
+  String filename = OPENMS_GET_TEST_DATA_PATH("../../../topp/THIRDPARTY/FidoAdapter_4_output.idXML");
+  IdXMLFile().load(filename, proteins_in, peptides_in);
+
+  IdentificationData ids;
+  IdentificationDataConverter::importIDs(ids, proteins_in, peptides_in);
+
+  MzTab mztab = IdentificationDataConverter::exportMzTab(ids);
+  NEW_TMP_FILE(filename);
+  MzTabFile().store(filename, mztab);
+
+  TEST_FILE_SIMILAR(filename, OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.mzTab"));
 }
 END_SECTION
 
