@@ -820,10 +820,10 @@ namespace OpenMS
 
   void IdentificationDataConverter::addMzTabMoleculeParentContext_(
     const set<IdentificationData::MoleculeParentMatch>& /* matches */,
-    const MzTabPeptideSectionRow& /* row */,
-    vector<MzTabPeptideSectionRow>& /* output */)
+    const MzTabPeptideSectionRow& row,
+    vector<MzTabPeptideSectionRow>& output)
   {
-    // do nothing here
+    output.push_back(row);
   }
 
 
