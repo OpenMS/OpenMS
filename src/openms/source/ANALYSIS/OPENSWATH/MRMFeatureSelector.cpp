@@ -299,11 +299,10 @@ namespace OpenMS
         LOG_WARN << "make_score(): Metavalue \"" << metavalue_name << "\" not found.";
         continue;
       }
-      const double value = weight_func((double)feature.getMetaValue(metavalue_name), lambda_score);
-      if (value > 0.0)
+      const double value = weight_func(feature.getMetaValue(metavalue_name), lambda_score);
+      if (value > 0.0) {
         score_1 *= value;
-      else
-        LOG_WARN << "make_score(): Value is not greater than 0." << std::endl;
+      }
     }
     return score_1;
   }
