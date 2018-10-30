@@ -160,7 +160,6 @@ namespace OpenMS
     int nr_ms1_spectra;
     std::vector<OpenSwath::SwathMap> known_window_boundaries;
     countScansInSwath_(exp_stripped->getSpectra(), swath_counter, nr_ms1_spectra, known_window_boundaries);
-    exp_meta->setMetaValue("nr_ms1_spectra", nr_ms1_spectra); // required for SwathQC::getExpSettingsFunc()
     std::cout << "Determined there to be " << swath_counter.size()
               << " SWATH windows and in total " << nr_ms1_spectra << " MS1 spectra" << std::endl;
     endProgress();
@@ -190,11 +189,9 @@ namespace OpenMS
     // only use plugin if non-empty
     if (plugin_consumer) 
     {  
-      if (!exp_meta->metaValueExists("nr_ms1_spectra"))
-      {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected meta value 'nr_ms1_spectra'");
-      }
+      exp_meta->setMetaValue("nr_ms1_spectra", nr_ms1_spectra); // required for SwathQC::getExpSettingsFunc()
       plugin_consumer->setExperimentalSettings(*exp_meta.get());
+      exp_meta->removeMetaValue("nr_ms1_spectra"); // served its need. remove
       // plugin_consumer->setExpectedSize(nr_ms1_spectra + accumulate(swath_counter)); // not needed currently
       consumer_list.push_back(plugin_consumer);
     }
@@ -205,7 +202,6 @@ namespace OpenMS
     LOG_DEBUG << "Finished parsing Swath file " << std::endl;
     std::vector<OpenSwath::SwathMap> swath_maps;
     dataConsumer->retrieveSwathMaps(swath_maps);
-
     endProgress();
     return swath_maps;
   }

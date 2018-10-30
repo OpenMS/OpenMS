@@ -84,7 +84,6 @@ namespace OpenSwath
 
       if (!isSubsampledSpectrum_(nr_ms1_spectra_, cd_spectra_, ms1_spectra_seen_))
       { 
-        std::cerr << "Not subsampling: " << nr_ms1_spectra_ << " " << cd_spectra_ << " " << ms1_spectra_seen_ << "\n";
         return;
       }
 
@@ -120,7 +119,6 @@ namespace OpenSwath
       // add charges to output map
       for (const auto& q : ida)
       {
-        std::cerr << "adding q" << q << "\n";
         ++cd_[q];
       }
     };
