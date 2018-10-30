@@ -50,6 +50,15 @@ using namespace OpenMS;
 using namespace std;
 using namespace OpenSwath;
 
+class SwathQCTest : public SwathQC
+{
+  public:
+    static bool isSubsampledSpectrum_(const size_t total_spec_count, const size_t subsample_count, const size_t idx)
+    {
+      return SwathQC::isSubsampledSpectrum_(total_spec_count, subsample_count, idx);
+    }
+};
+
 START_TEST(SwathQC, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -80,19 +89,77 @@ std::vector< OpenSwath::SwathMap > swath_maps(1);
 swath_maps.back().sptr = sptr; 
 swath_maps.back().ms1 = true;
 
-START_SECTION((static ChargeDistribution getChargeDistribution(const std::vector<SwathMap>& swath_maps, const int level, const size_t nr_samples, const double mz_tol)))
+START_SECTION((static ChargeDistribution getChargeDistribution(const std::vector<SwathMap>& swath_maps, const size_t nr_samples, const double mz_tol)))
 {
-  auto cd = SwathQC::getChargeDistribution(swath_maps, 1, 10, 0.04);
-  TEST_EQUAL(cd.size(), 5);
-  // remainder is tested below in detail
+  auto cd = SwathQC::getChargeDistribution(swath_maps, 10, 0.04);
+  SwathQC::ChargeDistribution cde = { {1,13}, {2,2}, {5,1}, {8,1}, {10,2}};
+  TEST_EQUAL(cd.size(), cde.size());
+  TEST_EQUAL(cd == cde, true)
+
 }
 END_SECTION
 
-START_SECTION((static void storeJSON(const OpenMS::String& filename, const ChargeDistribution& cd)))
+START_SECTION((static bool isSubsampledSpectrum_(const size_t total_spec_count, const size_t subsample_count, const size_t idx)))
 {
-  auto cd = SwathQC::getChargeDistribution(swath_maps, 1, 10, 0.04);
+  TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(0, 100, 4), true); // always true (unknown number of total spectra)
+  TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(10, 100, 4), true); // always true (not enough samples)
+  TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(10, 4, 10), false); // always false (index beyond # of total spectra)
+  TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(10, 4, 11), false); // always false (index beyond # of total spectra)
+
+  int r[] = {1, 0, 0, 1, 0, 1, 0, 0, 1, 0};
+  int c = 10;
+  for (int i = 0; i < c; ++i)
+  {
+    //std::cout << i << ": " << SwathQCTest::isSubsampledSpectrum_(c, 4, i) << "\n";
+    TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(c, 4, i), r[i]);
+  }
+
+  // sample none
+  c = 10;
+  for (int i = 0; i < c; ++i)
+  {
+    //std::cout << i << ": " << SwathQCTest::isSubsampledSpectrum_(c, 0, i) << "\n";
+    TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(c, 0, i), false);
+  }
+
+  // sample all
+  c = 4;
+  for (int i = 0; i < c; ++i)
+  {
+    //std::cout << i << ": " << SwathQCTest::isSubsampledSpectrum_(c, c, i) << "\n";
+    TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(c, c, i), true);
+  }
+
+  // sample 2 of 5
+  c = 5;
+  int r5[] = {1,0,0,1,0};
+  for (int i = 0; i < 5; ++i)
+  {
+    //std::cout << i << ": " << SwathQCTest::isSubsampledSpectrum_(5, 2, i) << "\n";
+    TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(5, 2, i), r5[i]);
+  }
+
+}
+END_SECTION
+
+START_SECTION((static void storeJSON(const OpenMS::String& filename)))
+{
+  SwathQC qc(10, 0.04);
+  int count{};
+  for (auto& s : *exp)
+  {
+    if (s.getMSLevel()==1) ++count;
+  }
+  qc.setNrMS1Spectra(count);
+  auto f = qc.getSpectraProcessingFunc();
+  for (auto& s : *exp)
+  {
+    if (s.getMSLevel()==1) f(s);
+  }
+  
+  // getChargeDistribution(swath_maps, 10, 0.04);
   String tmp_json = File::getTemporaryFile();
-  SwathQC::storeJSON(tmp_json, cd);
+  qc.storeJSON(tmp_json);
   String tmp_expected = File::getTemporaryFile();
   TextFile tf;
   tf.addLine(R"({

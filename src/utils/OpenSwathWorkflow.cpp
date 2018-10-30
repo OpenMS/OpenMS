@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -483,7 +484,7 @@ protected:
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
     // additional QC data
-    registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1)", false, true);
+    registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
     setValidFormats_("out_qc", ListUtils::create<String>("json"));
     
 
@@ -824,19 +825,32 @@ protected:
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
-    if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
-                        swath_windows_file, min_upper_edge_dist, force,
-                        sort_swath_maps, sonar))
-    {
-      return PARSE_ERROR;
-    }
 
     // collect some QC data
     if (!out_qc.empty())
     {
-      auto cd = OpenSwath::SwathQC::getChargeDistribution(swath_maps, 1, 30, 0.04);
-      OpenSwath::SwathQC::storeJSON(out_qc, cd);
+      OpenSwath::SwathQC qc(30, 0.04);
+      MSDataTransformingConsumer qc_consumer; // apply some transformation
+      qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
+      qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
+      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
+                          swath_windows_file, min_upper_edge_dist, force,
+                          sort_swath_maps, sonar, &qc_consumer))
+      {
+        return PARSE_ERROR;
+      }
+      qc.storeJSON(out_qc);
     }
+    else
+    {
+      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
+                          swath_windows_file, min_upper_edge_dist, force,
+                          sort_swath_maps, sonar))
+      {
+        return PARSE_ERROR;
+      }
+    }
+
 
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)

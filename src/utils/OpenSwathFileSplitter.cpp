@@ -36,8 +36,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+
 #include <OpenMS/SYSTEM/File.h>
 
 
@@ -92,7 +94,7 @@ protected:
     registerStringOption_("outputDirectory", "<output>", "./", "Output path to store the split files", false, true);
     
     // additional QC data
-    registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1)", false, true);
+    registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
     setValidFormats_("out_qc", ListUtils::create<String>("json"));
   }
 
@@ -100,7 +102,8 @@ protected:
                       const String& tmp,
                       const String& readoptions,
                       boost::shared_ptr<ExperimentalSettings >& exp_meta,
-                      std::vector< OpenSwath::SwathMap >& swath_maps)
+                      std::vector< OpenSwath::SwathMap >& swath_maps,
+                      Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     SwathFile swath_file;
     swath_file.setLogType(log_type_);
@@ -108,7 +111,7 @@ protected:
     FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_in);
     if (in_file_type == FileTypes::MZML)
     {
-      swath_maps = swath_file.loadMzML(file_in, tmp, exp_meta, readoptions);
+      swath_maps = swath_file.loadMzML(file_in, tmp, exp_meta, readoptions, plugin_consumer);
     }
     else if (in_file_type == FileTypes::MZXML)
     {
@@ -142,13 +145,20 @@ protected:
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
-    loadSwathFiles(file_in, tmp, "split", exp_meta, swath_maps);
 
     // collect some QC data
-    if (!out_qc.empty())
+    if (out_qc.empty())
     {
-      auto cd = OpenSwath::SwathQC::getChargeDistribution(swath_maps, 1, 30, 0.04);
-      OpenSwath::SwathQC::storeJSON(out_qc, cd);
+      loadSwathFiles(file_in, tmp, "split", exp_meta, swath_maps);
+    }
+    else
+    {
+      OpenSwath::SwathQC qc(30, 0.04);
+      MSDataTransformingConsumer qc_consumer; // apply some transformation
+      qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
+      qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
+      loadSwathFiles(file_in, tmp, "split", exp_meta, swath_maps, &qc_consumer);
+      qc.storeJSON(out_qc);
     }
 
     return EXECUTION_OK;

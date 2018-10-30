@@ -542,7 +542,7 @@ protected:
    * map) objects of MSDataCachedConsumer which can consume the spectra and
    * write them to disk immediately.
    *
-   * Warning: only the MS1 swathmap will be available then calling retrieveSwathMaps()
+   * Warning: no swathmaps (MS1 nor MS2) will be available when calling retrieveSwathMaps()
    *          for downstream use.
    *
    */
@@ -623,8 +623,6 @@ protected:
       ms1_consumer_ = new PlainMSDataWritingConsumer(mzml_file);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
       ms1_consumer_->getOptions().setCompression(true);
-      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
-      ms1_map_ = exp;
     }
 
     void consumeMS1Spectrum_(MapType::SpectrumType& s) override
@@ -634,7 +632,6 @@ protected:
         addMS1Map_();
       }
       ms1_consumer_->consumeSpectrum(s);
-      ms1_map_->addSpectrum(s); // keep spectrum in memory
     }
 
     void ensureMapsAreFilled_() override
