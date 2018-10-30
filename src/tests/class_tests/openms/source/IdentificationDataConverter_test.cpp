@@ -69,10 +69,23 @@ START_SECTION((void importIDs(IdentificationData&, const vector<ProteinIdentific
   IdentificationDataConverter::exportIDs(ids, proteins_out, peptides_out);
 
   TEST_EQUAL(peptides_in.size(), peptides_out.size());
-  TEST_EQUAL(proteins_in.size(), proteins_out.size());
-  //TEST_EQUAL(proteins_in == proteins_out, true);
-  //TEST_EQUAL(peptides_in == peptides_out, true);
+  // the order in the output is different:
+  TEST_EQUAL(peptides_in[0].getHits()[0] == peptides_out[2].getHits()[0], true);
+  TEST_EQUAL(peptides_in[0].getHits()[1] == peptides_out[2].getHits()[1], true);
+  TEST_EQUAL(peptides_in[1].getHits()[0] == peptides_out[0].getHits()[0], true);
+  TEST_EQUAL(peptides_in[1].getHits()[1] == peptides_out[0].getHits()[1], true);
+  TEST_EQUAL(peptides_in[2].getHits()[0] == peptides_out[1].getHits()[0], true);
 
+  TEST_EQUAL(proteins_in.size(), proteins_out.size());
+  // the exporter adds target/decoy information (default: target):
+  for (auto& hit : proteins_in[0].getHits()) {
+    hit.setMetaValue("target_decoy", "target");
+  }
+  for (auto& hit : proteins_in[1].getHits()) {
+    hit.setMetaValue("target_decoy", "target");
+  }
+  TEST_EQUAL(proteins_in[0].getHits() == proteins_out[0].getHits(), true);
+  TEST_EQUAL(proteins_in[1].getHits() == proteins_out[1].getHits(), true);
 
   String filename = OPENMS_GET_TEST_DATA_PATH("IdentificationDataConverter_out.idXML");
   // NEW_TMP_FILE(filename);
