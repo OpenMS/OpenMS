@@ -179,7 +179,14 @@ namespace OpenMS
             std::vector<Int>    indices_abs = {index_var_abs, index_var_qp};
             const double tr_delta          = feature_row1[i].getRT() - feature_row2[j].getRT();
             const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
-            const double score = locality_weight * make_score(feature_row1[i]) * make_score(feature_row2[j]) * (tr_delta - tr_delta_expected);
+            double score_1 = make_score(feature_row1[i]);
+            double score_2 = make_score(feature_row2[j]);
+            const size_t n_score_weights = score_weights_.size();
+            if (n_score_weights) {
+              score_1 = std::pow(score_1, 1.0 / n_score_weights);
+              score_2 = std::pow(score_2, 1.0 / n_score_weights);
+            }
+            const double score = locality_weight * score_1 * score_2 * (tr_delta - tr_delta_expected);
             std::vector<double> values_abs_plus = {-1.0, score};
             std::vector<double> values_abs_minus = {-1.0, -score};
             _addConstraint(problem, indices1, values, var_qp_name + "-QP1", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
@@ -247,16 +254,16 @@ namespace OpenMS
     constructToList(features, time_to_name, feature_name_map);
 
     sort(time_to_name.begin(), time_to_name.end());
-    double window_length = getSegmentWindowLength();
-    double step_length = getSegmentStepLength();
+    Int window_length = getSegmentWindowLength();
+    Int step_length = getSegmentStepLength();
     if (window_length == -1 && step_length == -1) {
       window_length = step_length = time_to_name.size();
     }
-    const size_t n_segments = std::ceil(time_to_name.size() / step_length);
+    const size_t n_segments = std::ceil(time_to_name.size() / static_cast<double>(step_length));
     std::vector<String> result_names;
     for (size_t i = 0; i < n_segments; ++i) {
       const size_t start = step_length * i;
-      const size_t end = std::min(start + window_length, (double)time_to_name.size());
+      const size_t end = std::min(start + window_length, time_to_name.size());
       const std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
       std::vector<String> result;
       optimize(time_slice, feature_name_map, result);
