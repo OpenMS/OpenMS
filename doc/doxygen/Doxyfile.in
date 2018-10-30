@@ -60,7 +60,7 @@ PROJECT_BRIEF          =
 # exceed 55 pixels and the maximum width should not exceed 200 pixels.
 # Doxygen will copy the logo to the output directory.
 
-PROJECT_LOGO           =
+PROJECT_LOGO           = @CF_OPENMS_SRC_PATH@/doc/doxygen/common/OpenMS_75x55_transparent.png
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute)
 # base path where the generated documentation will be put.
@@ -681,7 +681,6 @@ WARN_LOGFILE           = "@CF_OPENMS_BIN_PATH@/doxygen/doxygen-error.log"
 INPUT                  = "@CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/" \
                          "@CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/internal/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/install/" \
                          @CF_OPENMS_DOCUMENTATION_DIRECTORIES@
 
@@ -732,7 +731,7 @@ EXCLUDE_SYMLINKS       = NO
 # against the file with absolute path, so to exclude all test directories
 # for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       = */.svn/* \
+EXCLUDE_PATTERNS       = */.git/* \
                          *_moc* \
                          */UIC/* \
                          */contrib/* \
@@ -951,7 +950,7 @@ HTML_FOOTER            = "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/footer.html"
 # HTML_EXTRA_STYLESHEET instead of this one, as it is more robust and this
 # tag will in the future become obsolete.
 
-HTML_STYLESHEET        =
+HTML_STYLESHEET        = 
 
 # The HTML_EXTRA_STYLESHEET tag can be used to specify an additional
 # user-defined cascading style sheet that is included after the standard
@@ -961,7 +960,7 @@ HTML_STYLESHEET        =
 # robust against future updates. Doxygen will copy the style sheet file to
 # the output directory.
 
-HTML_EXTRA_STYLESHEET  =
+HTML_EXTRA_STYLESHEET  = "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/style_ini.css"
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note
@@ -970,7 +969,7 @@ HTML_EXTRA_STYLESHEET  =
 # files. In the HTML_STYLESHEET file, use the file name only. Also note that
 # the files will be copied as-is; there are no commands or markers available.
 
-HTML_EXTRA_FILES       =
+HTML_EXTRA_FILES       = @CF_OPENMS_SRC_PATH@/doc/doxygen/common/favicon.ico
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output.
 # Doxygen will adjust the colors in the style sheet and background images
@@ -1177,7 +1176,7 @@ ECLIPSE_DOC_ID         = org.doxygen.Project
 # navigation tree you can set this option to NO if you already set
 # GENERATE_TREEVIEW to YES.
 
-DISABLE_INDEX          = YES
+DISABLE_INDEX          = NO
 
 # The GENERATE_TREEVIEW tag is used to specify whether a tree-like index
 # structure should be generated to display hierarchical information.
@@ -1271,7 +1270,7 @@ MATHJAX_CODEFILE       =
 # typically be disabled. For large projects the javascript based search engine
 # can be slow, then enabling SERVER_BASED_SEARCH may provide a better solution.
 
-SEARCHENGINE           = NO
+SEARCHENGINE           = YES
 
 # When the SERVER_BASED_SEARCH tag is enabled the search engine will be
 # implemented using a web server instead of a web client using Javascript.

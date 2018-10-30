@@ -4,7 +4,6 @@ set(directory source/DATASTRUCTURES)
 ### list all filenames of the directory here
 set(sources_list
 Adduct.cpp
-BigString.cpp
 BinaryTreeNode.cpp
 CalibrationData.cpp
 ChargePair.cpp
@@ -34,7 +33,6 @@ MassExplainer.cpp
 Matrix.cpp
 Param.cpp
 QTCluster.cpp
-SparseVector.cpp
 String.cpp
 StringListUtils.cpp
 StringUtils.cpp
@@ -52,4 +50,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\DATASTRUCTURES" FILES ${sources})
-

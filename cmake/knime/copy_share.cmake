@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ foreach(file ${share_files})
     string(LENGTH "${CMAKE_MATCH_1}" pos) 
   endif() 
   
-  # we only write out line that do not contain our parameter
+  # we only copy files that do not match
   if (pos EQUAL -1)  
     # copy
     configure_file(${file} ${TARGET_DIRECTORY}/${trimmed_file} COPYONLY)

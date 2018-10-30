@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H
-#define OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H
+#pragma once
 
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -42,11 +41,27 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 
 namespace OpenMS
 {
   /**
     @brief Compute the area, background and shape metrics of a peak.
+
+    The area computation is performed in integratePeak() and it supports
+    integration by simple sum of the intensity, integration by Simpson's rule
+    implementations for an odd number of unequally spaced points or integration
+    by the trapezoid rule.
+
+    The background computation is performed in estimateBackground() and it
+    supports three different approaches to baseline correction, namely
+    computing a rectangular shape under the peak based on the minimum value of
+    the peak borders (vertical_division_min), a rectangular shape based on the
+    maximum value of the beak borders (vertical_division_max) or a trapezoidal
+    shape based on a straight line between the peak borders (base_to_base).
+
+    Peak shape metrics are computed in calculatePeakShapeMetrics() and multiple
+    metrics are supported.
 
     The containers supported by the methods are MSChromatogram and MSSpectrum.
   */
@@ -102,7 +117,8 @@ public:
     ///@}
 
     /** @name calculatePeakShapeMetrics() output
-      The calculatePeakShapeMetrics() method uses this struct to save its results.
+      
+        The calculatePeakShapeMetrics() method uses this struct to save its results.
     */
     ///@{
     struct PeakShapeMetrics
@@ -192,6 +208,28 @@ public:
     };
     ///@}
 
+    /** @name Constant expressions for parameters
+      
+        Constants expressions used throughout the code and tests to set
+        the integration and baseline types.
+    */
+    ///@{
+    /// Integration type: intensity sum
+    static constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
+    /// Integration type: trapezoid
+    static constexpr const char* INTEGRATION_TYPE_TRAPEZOID = "trapezoid";
+    /// Integration type: simpson
+    static constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
+    /// Baseline type: base to base
+    static constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
+    /// Baseline type: vertical division (min of end points; only for backwards compatibility)
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION = "vertical_division";
+    /// Baseline type: vertical division (min of end points)
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MIN = "vertical_division_min";
+    /// Baseline type: vertical division (max of end points)
+    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION_MAX = "vertical_division_max";
+    ///@}
+
     /**
       @brief Compute the area of a peak contained in a MSChromatogram.
 
@@ -201,6 +239,8 @@ public:
       - "intensity_sum" for the simple sum of the intensities
 
       @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
 
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
@@ -222,6 +262,8 @@ public:
 
       @note Make sure the chromatogram is sorted with respect to retention time.
 
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
+
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
@@ -242,6 +284,8 @@ public:
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
 
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
+
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
@@ -261,6 +305,8 @@ public:
       - "intensity_sum" for the simple sum of the intensities
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @throw Exception::InvalidParameter for class parameter `integration_type`.
 
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
@@ -286,6 +332,8 @@ public:
       integratePeak().
 
       @note Make sure the chromatogram is sorted with respect to retention time.
+
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
 
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The left retention time boundary
@@ -314,6 +362,8 @@ public:
 
       @note Make sure the chromatogram is sorted with respect to retention time.
 
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
+
       @param[in] chromatogram The chromatogram which contains the peak
       @param[in] left The iterator to the first point
       @param[in] right The iterator to the last point
@@ -341,6 +391,8 @@ public:
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
 
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
+
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The left mass-to-charge ratio boundary
       @param[in] right The right mass-to-charge ratio boundary
@@ -367,6 +419,8 @@ public:
       integratePeak().
 
       @note Make sure the spectrum is sorted with respect to mass-to-charge ratio.
+
+      @throw Exception::InvalidParameter for class parameter `baseline_type`.
 
       @param[in] spectrum The spectrum which contains the peak
       @param[in] left The iterator to the first point
@@ -483,12 +537,12 @@ protected:
 
     template <typename PeakContainerT>
     PeakArea integratePeak_(
-      const PeakContainerT& p, const double left, const double right
+      const PeakContainerT& pc, double left, double right
     ) const;
 
     template <typename PeakContainerT>
     PeakBackground estimateBackground_(
-      const PeakContainerT& p, const double left, const double right,
+      const PeakContainerT& pc, double left, double right,
       const double peak_apex_pos
     ) const;
 
@@ -497,8 +551,36 @@ protected:
 
     template <typename PeakContainerT>
     PeakShapeMetrics calculatePeakShapeMetrics_(
-      const PeakContainerT& p, const double left, const double right,
+      const PeakContainerT& pc, double left, double right,
       const double peak_height, const double peak_apex_pos
+    ) const;
+
+    /**
+      @brief Find the position (RT/MZ) at a given percentage of peak's height
+
+      @note The method expects that the iterators span half of the peak's width.
+      Examples:
+      - Left half case: the range would be [leftMostPt, peakApexPos)
+      - Right half case: the range would be [peakApexPos + 1, rightMostPt + 1)
+
+      @note The method assumes a convex peak. If 5%, 10%, or 50% peak heights are not found on either side of the peak,
+      the closest left (for left peak height percentages) and closest right (for right peak height percentages) will be used.
+
+      @param[in] it_begin The iterator to the first point
+      @param[in] it_end The iterator to past-the-last point
+      @param[in] peak_height The peak's height
+      @param[in] percent At which percentage of the peak height we want to find the position (common values: 0.05, 0.1, 0.5)
+      @param[in] is_left_half According to which half of the peak, the algorithm proceeds to the correct direction
+
+      @return The position found
+    */
+    template <typename PeakContainerConstIteratorT>
+    double findPosAtPeakHeightPercent_(
+      PeakContainerConstIteratorT it_begin,
+      PeakContainerConstIteratorT it_end,
+      const double peak_height,
+      const double percent,
+      const bool is_left_half
     ) const;
 
 private:
@@ -514,15 +596,20 @@ private:
     String integration_type_ = INTEGRATION_TYPE_INTENSITYSUM;
     /**
       The baseline type to use in estimateBackground().
-      Possible values are: "vertical_division", "base_to_base".
+      Possible values are: "vertical_division_max", "vertical_division_min", "base_to_base".
     */
     String baseline_type_ = BASELINE_TYPE_BASETOBASE;
     ///@}
+
+    /// Enable/disable EMG peak model fitting
+    bool fit_EMG_;
+    EmgGradientDescent emg_;
 
     /** @name Helper methods
       The Simpson's rule implementations for an odd number of unequally spaced points.
     */
     ///@{
+
     /**
       @brief Simpson's rule algorithm
 
@@ -538,6 +625,7 @@ private:
       @return The computed area
     */
     double simpson(MSChromatogram::ConstIterator it_begin, MSChromatogram::ConstIterator it_end) const;
+
     /**
       @brief Simpson's rule algorithm
 
@@ -555,23 +643,25 @@ private:
     double simpson(MSSpectrum::ConstIterator it_begin, MSSpectrum::ConstIterator it_end) const;
     ///@}
 
-    /** @name Constant expressions for parameters
-      Constants expressions used throughout the code and tests to set
-      the integration and baseline types.
+    /**
+      @brief Fit the peak to the EMG model
+
+      The fitting process happens only if `fit_EMG_` is true. `left` and `right`
+      are updated accordingly.
+
+      @tparam PeakContainerT Either a MSChromatogram or a MSSpectrum
+      @param[in] pc Input peak
+      @param[out] emg_pc Will possibly contain the processed peak
+      @param[in] left RT or MZ value of the first point of interest
+      @param[in] right RT or MZ value of the first point of interest
+      @return A const reference to `emg_pc` if the fitting is executed, `pc` otherwise.
     */
-    ///@{
-    /// Integration type: intensity sum
-    static constexpr const char* INTEGRATION_TYPE_INTENSITYSUM = "intensity_sum";
-    /// Integration type: trapezoid
-    static constexpr const char* INTEGRATION_TYPE_TRAPEZOID = "trapezoid";
-    /// Integration type: simpson
-    static constexpr const char* INTEGRATION_TYPE_SIMPSON = "simpson";
-    /// Baseline type: base to base
-    static constexpr const char* BASELINE_TYPE_BASETOBASE = "base_to_base";
-    /// Baseline type: vertical division
-    static constexpr const char* BASELINE_TYPE_VERTICALDIVISION = "vertical_division";
-    ///@}
+    template <typename PeakContainerT>
+    const PeakContainerT& EMGPreProcess_(
+      const PeakContainerT& pc,
+      PeakContainerT& emg_pc,
+      double& left,
+      double& right
+    ) const;
   };
 }
-
-#endif // OPENMS_ANALYSIS_OPENSWATH_PEAKINTEGRATOR_H

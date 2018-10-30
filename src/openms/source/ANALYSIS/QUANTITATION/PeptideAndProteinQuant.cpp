@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,6 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include <algorithm> // for "equal"
 
 using namespace std;
 
@@ -495,7 +492,7 @@ namespace OpenMS
   void PeptideAndProteinQuant::readQuantData(ConsensusMap& consensus)
   {
     updateMembers_(); // clear data
-    stats_.n_samples = consensus.getFileDescriptions().size();
+    stats_.n_samples = consensus.getColumnHeaders().size();
 
     for (ConsensusMap::Iterator cons_it = consensus.begin();
          cons_it != consensus.end(); ++cons_it)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -116,7 +116,7 @@ protected:
       registerInputFile_("in", "<file>", "", "Input files used to generate the mzTab file.", false);
       setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzid"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
-      setValidFormats_("out", ListUtils::create<String>("tsv"));
+      setValidFormats_("out", ListUtils::create<String>("mzTab"));
     }
 
 
@@ -476,8 +476,29 @@ protected:
         search_engine_version = prot_ids[0].getSearchEngineVersion();
       }
 
+      // helper to map between peptide identifications and MS run
+      map<size_t, size_t> map_pep_idx_2_run;
+
       if (!prot_ids.empty())
       {
+        // map peptide ids back to their MS run
+        map<String, size_t> map_id_to_run;
+
+        // first: map run identifier to run index
+        size_t run_index(1);
+        for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it, ++run_index)
+        {
+          map_id_to_run[it->getIdentifier()] = run_index;
+        }
+
+        // second: map peptide index to run index
+        size_t psm_idx(0);
+        for (auto it = peptide_ids.begin(); it != peptide_ids.end(); ++it, ++psm_idx)
+        {          
+          size_t run_idx = map_id_to_run[it->getIdentifier()];
+          map_pep_idx_2_run[psm_idx] = run_idx;
+        }
+
         MzTabParameter protein_score_type;
         protein_score_type.fromCellString("[,,custom score,]"); // TODO at least it should be noted if higher score is better. Better document type of score
         meta_data.protein_search_engine_score[1] = protein_score_type; // TODO add meta value to ProteinIdentification
@@ -493,8 +514,7 @@ protected:
         MzTabProteinSectionRows protein_rows;
 
         Size current_run_index(1);
-        for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin();
-         it != prot_ids.end(); ++it, ++current_run_index)
+        for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it, ++current_run_index)
         {
           const std::vector<ProteinIdentification::ProteinGroup> protein_groups = it->getProteinGroups();
           const std::vector<ProteinIdentification::ProteinGroup> indist_groups = it->getIndistinguishableProteins();
@@ -637,7 +657,7 @@ protected:
 
       MzTabPSMSectionRows rows;
       Size psm_id(0);
-      for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it, ++psm_id)
+      for (auto it = pep_ids.begin(); it != pep_ids.end(); ++it, ++psm_id)
       {
         // skip empty peptide identification objects
         if (it->getHits().empty())
@@ -649,6 +669,14 @@ protected:
         it->assignRanks();
 
         MzTabPSMSectionRow row;
+
+        // link to MS run
+        size_t run_index = map_pep_idx_2_run[psm_id];
+        String spectrum_nativeID = it->getMetaValue("spectrum_reference").toString();
+
+        MzTabSpectraRef spec_ref;
+        row.spectra_ref.setMSFile(run_index);
+        row.spectra_ref.setSpecRef(spectrum_nativeID);
 
         // only consider best peptide hit for export
         const PeptideHit& best_ph = it->getHits()[0];
@@ -666,8 +694,10 @@ protected:
         row.search_engine = search_engines;
 
         row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
+
         vector<MzTabDouble> rts_vector;
         rts_vector.push_back(MzTabDouble(it->getRT()));
+
         MzTabDoubleList rts;
         rts.set(rts_vector);
         row.retention_time = rts;
@@ -775,18 +805,18 @@ protected:
       MzTab mztab;
       vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
       vector<String> var_mods, fixed_mods;
-      MzTabString db, db_version;
+      MzTabString db, db_version; 
       if (!prot_ids.empty())
       {
-        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters(); 
         var_mods = sp.variable_modifications;
         fixed_mods = sp.fixed_modifications;
         db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
         db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
       }
 
-      // determine number of channels
-      Size n_study_variables = consensus_map.getFileDescriptions().size();
+      // determine number of quant. columns
+      Size n_study_variables = consensus_map.getColumnHeaders().size();
 
       MzTabMetaData meta_data;
 
@@ -802,13 +832,25 @@ protected:
       meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
       meta_data.peptide_search_engine_score[1] = MzTabParameter();
       meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
-      MzTabMSRunMetaData ms_run;
+
       StringList ms_runs;
-      consensus_map.getPrimaryMSRunPath(ms_runs);
-      for (Size i = 0; i != ms_runs.size(); ++i)
+      consensus_map.getPrimaryMSRunPath(ms_runs); 
+
+      // condense consecutive unique MS runs to get the different MS files
+      auto it = std::unique(ms_runs.begin(), ms_runs.end());
+      ms_runs.resize(std::distance(ms_runs.begin(), it)); 
+
+      // set run meta data
+      Size run_index{1};
+      for (auto const & m : ms_runs)
       {
-        ms_run.location = MzTabString(ms_runs[i]);
-        meta_data.ms_run[i + 1] = ms_run;
+        MzTabMSRunMetaData mztab_run_metadata;
+        mztab_run_metadata.format.fromCellString("[MS,MS:1000584,mzML file,]");
+        mztab_run_metadata.id_format.fromCellString("[MS,MS:1001530,mzML unique identifier,]");
+        mztab_run_metadata.location = MzTabString(m);
+        meta_data.ms_run[run_index] = mztab_run_metadata;
+        LOG_DEBUG << "Adding MS run for file: " << m << endl;
+        ++run_index;
       }
 
       mztab.setMetaData(meta_data);
@@ -877,7 +919,7 @@ protected:
         rts.push_back(MzTabDouble(c.getRT()));
         rt_list.set(rts);
         row.retention_time = rt_list;
-        MzTabDoubleList rt_window;
+        MzTabDoubleList rt_window;  
         row.retention_time_window = rt_window;
         row.charge = MzTabInteger(c.getCharge());
         row.best_search_engine_score[1] = MzTabDouble();

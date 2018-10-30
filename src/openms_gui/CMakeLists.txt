@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,33 +33,46 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_GUI")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # Find Qt
-#------------------------------------------------------------------------------
-# QtPhonon hack
-# obsolete when CMake MinRequiredVersion becomes >= 2.8.5
-if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
-  set(phonon_extra QtPhonon)
-  message(STATUS "Trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to disable it in build system")
-else()
-  set(phonon_extra)
-  message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
+#---------------------------------------------------------------------------
+set (TEMP_OpenMS_GUI_QT_COMPONENTS Gui Widgets Network Svg)
+
+# On macOS the platform plugin of QT requires PrintSupport. We link
+# so it's packaged via the bundling/dependency tools/scripts
+if (APPLE)
+  set (TEMP_OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} PrintSupport)
 endif()
 
-find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
-if (NOT QT4_FOUND)
-  message(STATUS "Qt4 not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-endif()
-# required to indicate we use qtopengl
-set(QT_USE_QTOPENGL TRUE)
-include(${QT_USE_FILE})
+set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
+
+find_package(Qt5 COMPONENTS ${OpenMS_GUI_QT_COMPONENTS} REQUIRED)
+
+IF (NOT Qt5Widgets_FOUND)
+  message(STATUS "QT5Widgets not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+ENDIF()
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
+# TODO use the imported targets (e.g. Qt5::Widgets) instead, which add all defs, compile options, include dirs, etc
+# by just adding them to the target_link_libraries command
+add_definitions(${Qt5Widgets_DEFINITIONS})
+add_definitions(${Qt5Svg_DEFINITIONS})
+add_definitions(${Qt5Network_DEFINITIONS})
+
+# Executables fail to build with Qt 5 in the default configuration
+# without -fPIE. We add that here.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 
 # --------------------------------------------------------------------------
 # include custom macros for openms_gui lib
-include(qt_wrap_ui.cmake)
+#include(qt_wrap_ui.cmake)
 include(add_mac_bundle.cmake)
 
 #------------------------------------------------------------------------------
@@ -76,16 +89,11 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # --------------------------------------------------------------------------
 # collect link dependencies
 set(OpenMS_GUI_DEP_LIBRARIES OpenMS
-                             ${QT_LIBRARIES})
-
-# --------------------------------------------------------------------------
-# handle OpenGL on macosx systems
-if(APPLE)
-  find_package(OpenGL REQUIRED)
-  set(OpenMS_GUI_DEP_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
-                               ${OPENGL_gl_LIBRARY}
-                               ${OPENGL_glu_LIBRARY})
-endif()
+                             ${Qt5Widgets_LIBRARIES}
+                             ${Qt5Svg_LIBRARIES}
+                             ${Qt5Network_LIBRARIES}
+                            )
+set(OpenMS_GUI_PRIVATE_DEP_LIBRARIES "")
 
 #------------------------------------------------------------------------------
 # add the library
@@ -94,7 +102,13 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES ${OpenMS_INCLUDE_DIRECTORIES}
+		   # The Qt5Widgets_INCLUDES also includes the include directories for
+		   # dependencies QtCore and QtGui
+                                     ${Qt5Widgets_INCLUDE_DIRS}
+				                             ${Qt5Svg_INCLUDE_DIRS}
+				                             ${Qt5Network_INCLUDE_DIRS}
                    LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
+                   PRIVATE_LINK_LIBRARIES ${OpenMS_GUI_PRIVATE_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")
 
 # --------------------------------------------------------------------------
@@ -139,5 +153,16 @@ foreach(i ${GUI_executables})
     set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
   endif()
 endforeach(i)
+
+  ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
+  if(WIN32)
+      install_qt5_plugin("Qt5::QWindowsIntegrationPlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}" QT5PlatformPlugin)
+      file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        "[Paths]\nPlugins = ${QT_PLUGIN_PATH_REL_TO_BIN}\n")
+      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+        DESTINATION ${INSTALL_BIN_DIR}
+        COMPONENT QT5PlatformPlugin)
+  endif()
+
 add_custom_target(GUI)
 add_dependencies(GUI ${GUI_executables})

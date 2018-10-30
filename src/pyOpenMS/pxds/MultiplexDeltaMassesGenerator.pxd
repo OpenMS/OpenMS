@@ -20,6 +20,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGene
         String getLabelShort(String label) nogil except +
         String getLabelLong(String label) nogil except +
 
+        # missing multiset support
         # NAMESPACE # MultiplexDeltaMasses::LabelSet extractLabelSet(AASequence sequence) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>" namespace "OpenMS::MultiplexDeltaMassesGenerator":

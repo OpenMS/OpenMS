@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CONCEPT_HELPERS_H
-#define OPENMS_CONCEPT_HELPERS_H
+#pragma once
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
@@ -87,7 +86,7 @@ namespace OpenMS
 
       // check that all elements of a and b are equal using safe comparison
       // (taking NULL into account)
-      for (Size i = 0; i < a.size(); i++)
+      for (typename ContainerType::size_type i = 0; i < a.size(); i++)
       {
         if (!cmpPtrSafe(a[i], b[i]))
         {
@@ -101,4 +100,3 @@ namespace OpenMS
 }
 
 
-#endif //OPENMS_CONCEPT_HELPERS_H

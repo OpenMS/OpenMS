@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,10 +37,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 //qt includes
-#include <QtGui/QPainter>
-#include <QtGui/QColorDialog>
-#include <QtGui/QPaintEvent>
-#include <QtGui/QMouseEvent>
+#include <QPainter>
+#include <QtWidgets/QColorDialog>
+#include <QPaintEvent>
+#include <QMouseEvent>
 
 using namespace std;
 

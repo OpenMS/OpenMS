@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,29 +35,21 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/openms_data_path.h>
 
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
-#include <QtCore/QStringList>
 #include <QtNetwork/QHostInfo>
-
-#include <iostream>
-#include <cstdio>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #  include <Windows.h> // for GetCurrentProcessId() && GetModuleFileName()
 #else
-#  include <unistd.h> // for 'getpid()'
 #endif
 
 using namespace std;
@@ -123,6 +115,29 @@ namespace OpenMS
   {
     QFileInfo fi(file.toQString());
     return !fi.exists() || fi.size() == 0;
+  }
+
+  bool File::rename(const String& from, const String& to, bool overwrite_existing, bool verbose)
+  {
+    // check for equality
+    if (QFileInfo(from.c_str()).canonicalFilePath() == QFileInfo(to.c_str()).canonicalFilePath())
+    { // same file; no need to to anything
+      return true;
+    }
+
+    // existing file? Qt won't overwrite, so try to remove it:
+    if (overwrite_existing && exists(to) && !remove(to))
+    {
+      if (verbose) LOG_ERROR << "Error: Could not overwrite existing file '" << to << "'\n";
+      return false;
+    }
+    // move the file to the actual destination:
+    if (!QFile::rename(from.toQString(), to.toQString()))
+    {
+      if (verbose) LOG_ERROR << "Error: Could not move '" << from << "' to '" << to << "'\n";
+      return false;
+    }
+    return true;
   }
 
   bool File::remove(const String& file)
@@ -383,24 +398,22 @@ namespace OpenMS
     }
 
 #if defined(__APPLE__)
-    // try to find it relative to the executable
-
-    // #1 the bundle
+    // try to find it relative to the executable in the bundle (e.g. TOPPView)
     if (!path_checked)
     {
       path = getExecutablePath() + "../../../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
       if (path_checked) found_path_from = "bundle path (run time)";
     }
-
-    // #2 the TOPP tool
+#endif
+    
+    // On Linux and Apple check relative from the executable
     if (!path_checked)
     {
       path = getExecutablePath() + "../share/OpenMS";
       path_checked = isOpenMSDataPath_(path);
       if (path_checked) found_path_from = "tool path (run time)";
     }
-#endif
 
     // make its a proper path:
     path = path.substitute("\\", "/").ensureLastChar('/').chop(1);

@@ -27,6 +27,7 @@
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="1.145"/>
 				<UserParam type="float" name="MS:1002253" value="0.466"/>
+				<UserParam type="float" name="MS:1002254" value="0"/>
 				<UserParam type="float" name="MS:1002255" value="541.5"/>
 				<UserParam type="float" name="MS:1002256" value="1"/>
 				<UserParam type="float" name="MS:1002257" value="1.26"/>
@@ -37,6 +38,7 @@
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="0.612"/>
 				<UserParam type="float" name="MS:1002253" value="0.482"/>
+				<UserParam type="float" name="MS:1002254" value="0"/>
 				<UserParam type="float" name="MS:1002255" value="109.7"/>
 				<UserParam type="float" name="MS:1002256" value="3"/>
 				<UserParam type="float" name="MS:1002257" value="48.2"/>
@@ -47,6 +49,7 @@
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="0.592"/>
 				<UserParam type="float" name="MS:1002253" value="0.521"/>
+				<UserParam type="float" name="MS:1002254" value="0"/>
 				<UserParam type="float" name="MS:1002255" value="159.8"/>
 				<UserParam type="float" name="MS:1002256" value="2"/>
 				<UserParam type="float" name="MS:1002257" value="54.9"/>
@@ -57,6 +60,7 @@
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="0.548"/>
 				<UserParam type="float" name="MS:1002253" value="0.641"/>
+				<UserParam type="float" name="MS:1002254" value="0"/>
 				<UserParam type="float" name="MS:1002255" value="79.2"/>
 				<UserParam type="float" name="MS:1002256" value="4"/>
 				<UserParam type="float" name="MS:1002257" value="74.2"/>
@@ -67,6 +71,7 @@
 				<UserParam type="string" name="num_matched_peptides" value="5"/>
 				<UserParam type="float" name="MS:1002252" value="0.411"/>
 				<UserParam type="float" name="MS:1002253" value="1"/>
+				<UserParam type="float" name="MS:1002254" value="0"/>
 				<UserParam type="float" name="MS:1002255" value="32.5"/>
 				<UserParam type="float" name="MS:1002256" value="5"/>
 				<UserParam type="float" name="MS:1002257" value="190"/>
@@ -79,6 +84,7 @@
 				<UserParam type="string" name="num_matched_peptides" value="2"/>
 				<UserParam type="float" name="MS:1002252" value="1.326"/>
 				<UserParam type="float" name="MS:1002253" value="0.226"/>
+				<UserParam type="float" name="MS:1002254" value="0"/>
 				<UserParam type="float" name="MS:1002255" value="183.3"/>
 				<UserParam type="float" name="MS:1002256" value="2"/>
 				<UserParam type="float" name="MS:1002257" value="2.64"/>
@@ -89,6 +95,7 @@
 				<UserParam type="string" name="num_matched_peptides" value="2"/>
 				<UserParam type="float" name="MS:1002252" value="1.026"/>
 				<UserParam type="float" name="MS:1002253" value="1"/>
+				<UserParam type="float" name="MS:1002254" value="0"/>
 				<UserParam type="float" name="MS:1002255" value="266.1"/>
 				<UserParam type="float" name="MS:1002256" value="1"/>
 				<UserParam type="float" name="MS:1002257" value="13"/>

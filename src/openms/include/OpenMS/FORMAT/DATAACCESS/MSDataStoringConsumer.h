@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,11 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_MSDATASTORINGCONSUMER_H
-#define OPENMS_FORMAT_DATAACCESS_MSDATASTORINGCONSUMER_H
+#pragma once
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 namespace OpenMS
@@ -60,36 +57,19 @@ namespace OpenMS
 
   public:
 
-    MSDataStoringConsumer() {}
+    MSDataStoringConsumer();
 
-    void setExperimentalSettings(const ExperimentalSettings & settings) override 
-    {
-      exp_ = settings; // only override the settings, keep the data
-    }
+    void setExperimentalSettings(const ExperimentalSettings & settings) override;
 
-    void setExpectedSize(Size s_size, Size c_size) override 
-    {
-      exp_.reserveSpaceSpectra(s_size);
-      exp_.reserveSpaceChromatograms(c_size);
-    }
+    void setExpectedSize(Size s_size, Size c_size) override;
 
-    void consumeSpectrum(SpectrumType & s) override 
-    {
-      exp_.addSpectrum(s);
-    }
+    void consumeSpectrum(SpectrumType & s) override;
 
-    void consumeChromatogram(ChromatogramType & c) override 
-    {
-      exp_.addChromatogram(c);
-    }
+    void consumeChromatogram(ChromatogramType & c) override;
 
-    const PeakMap& getData() const
-    {
-      return exp_;
-    }
+    const PeakMap& getData() const;
 
   };
 } //end namespace OpenMS
 
-#endif // OPENMS_FORMAT_DATAACCESS_MSDATASTORINGCONSUMER_H
 

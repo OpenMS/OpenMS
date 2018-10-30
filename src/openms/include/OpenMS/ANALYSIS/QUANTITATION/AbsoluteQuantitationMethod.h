@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,158 +28,120 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Douglas McCloskey $
-// $Authors: Douglas McCloskey $
+// $Maintainer: Douglas McCloskey, Pasquale Domenico Colaianni $
+// $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONMETHOD_H
-#define OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONMETHOD_H
+#pragma once
 
-#include <OpenMS/config.h>
-
-//Kernal classes
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MRMFeature.h>
-
-//Analysis classes
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-
-#include <cstddef> // for size_t & ptrdiff_t
-#include <vector>
-#include <string>
+#include <OpenMS/config.h> // OPENMS_DLLAPI
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 namespace OpenMS
 {
-
   /**
     @brief AbsoluteQuantitationMethod is a class to hold information about the
-      quantitation method and for applying and/or generating the quantitation method.
+    quantitation method and for applying and/or generating the quantitation method.
 
-    The quantitation method describes all parameters required to define the 
-      calibration curve used for absolute quantitation by Isotope Dilution Mass Spectrometry (IDMS).
-      The quantitation method also defines the statistics of the fitted calibration curve as well
-      as the lower and upper bounds of the calibration for later Quality Control.
-      
+    The quantitation method describes all parameters required to define the
+    calibration curve used for absolute quantitation by Isotope Dilution Mass Spectrometry (IDMS).
+    The quantitation method also defines the statistics of the fitted calibration curve as well
+    as the lower and upper bounds of the calibration for later Quality Control.
   */
   class OPENMS_DLLAPI AbsoluteQuantitationMethod
   {
+public:
+    AbsoluteQuantitationMethod(); ///< Constructor
+    ~AbsoluteQuantitationMethod() = default; ///< Destructor
 
-public:    
-  
-  //@{
-  /// Constructor
-  AbsoluteQuantitationMethod();
+    inline bool operator==(const AbsoluteQuantitationMethod& other) const
+    {
+      return
+        std::tie(
+          component_name_,
+          feature_name_,
+          IS_name_,
+          llod_,
+          ulod_,
+          lloq_,
+          uloq_,
+          n_points_,
+          correlation_coefficient_,
+          concentration_units_,
+          transformation_model_,
+          transformation_model_params_
+        ) == std::tie(
+          other.component_name_,
+          other.feature_name_,
+          other.IS_name_,
+          other.llod_,
+          other.ulod_,
+          other.lloq_,
+          other.uloq_,
+          other.n_points_,
+          other.correlation_coefficient_,
+          other.concentration_units_,
+          other.transformation_model_,
+          other.transformation_model_params_
+        )
+      ;
+    }
 
-  /// Destructor
-  ~AbsoluteQuantitationMethod();
-  //@}
+    inline bool operator!=(const AbsoluteQuantitationMethod& other) const
+    {
+      return !(*this == other);
+    }
 
-  /// LLOD and ULOD setter
-  void setLLOD(const double& llod);
-  void setULOD(const double& ulod);
+    void setComponentName(const String& component_name); ///< Component name setter
+    String getComponentName() const; ///< Component name getter
 
-  /// LLOD and ULOD getter
-  double getLLOD();
-  double getULOD();
-  
-  /// LLOQ and ULOQ setter
-  void setLLOQ(const double& lloq);
-  void setULOQ(const double& uloq);
+    void setFeatureName(const String& feature_name); ///< Feature name setter
+    String getFeatureName() const; ///< Feature name getter
 
-  /// LLOQ and ULOQ getter
-  double getLLOQ();
-  double getULOQ();
+    void setISName(const String& IS_name); ///< IS name setter
+    String getISName() const; ///< IS_name getter
 
-  /**
-  @brief This function checks if the value is within the
-    limits of detection (LOD)
+    void setLLOD(const double llod); ///< LLOD setter
+    double getLLOD() const; ///< LLOD getter
+    void setULOD(const double ulod); ///< ULOD setter
+    double getULOD() const; ///< ULOD getter
+    bool checkLOD(const double value) const; ///< This function checks if the value is within the limits of detection (LOD)
 
-  */ 
-  bool checkLOD(const double & value);
+    void setLLOQ(const double lloq); ///< LLOQ setter
+    double getLLOQ() const; ///< LLOQ getter
+    void setULOQ(const double uloq); ///< ULOQ setter
+    double getULOQ() const; ///< ULOQ getter
+    bool checkLOQ(const double value) const; ///< This function checks if the value is within the limits of quantitation (LOQ)
 
-  /**
-  @brief This function checks if the value is within the
-    limits of quantitation (LOQ)
+    void setNPoints(const Int n_points); ///< Set the number of points
+    Int getNPoints() const; ///< Get the number of points
 
-  */ 
-  bool checkLOQ(const double & value);
+    void setCorrelationCoefficient(const double correlation_coefficient); ///< Set the correlation coefficient
+    double getCorrelationCoefficient() const; ///< Get the correlation coefficient
 
-  /// component_name, IS_name, and feature_name setter
-  void setComponentName(const String& component_name);
-  void setISName(const String& IS_name);
-  void setFeatureName(const String& feature_name);
+    void setConcentrationUnits(const String& concentration_units); ///< Concentration units setter
+    String getConcentrationUnits() const; ///< Concentration units getter
 
-  /// component_name, IS_name, and feature_name getter
-  String getComponentName();
-  String getISName();
-  String getFeatureName();
-  
-  /// concentration_units setter
-  void setConcentrationUnits(const String& concentration_units);
+    void setTransformationModel(const String& transformation_model); ///< Transformation model setter
+    String getTransformationModel() const; ///< Transformation model getter
 
-  /// concentration_units getter
-  String getConcentrationUnits();
-  
-  /// transformation_model and transformation_model_params setter
-  void setTransformationModel(const String& transformation_model);
-  void setTransformationModelParams(const Param& transformation_model_params);
+    void setTransformationModelParams(const Param& transformation_model_params); ///< Transformation model parameters setter
+    Param getTransformationModelParams() const; ///< Transformation model parameters getter
 
-  /// transformation_model and transformation_model_params getter
-  String getTransformationModel();
-  Param getTransformationModelParams();
-  
-  /// statistics setter
-  void setNPoints(const int& n_points);
-  void setCorrelationCoefficient(const double& correlation_coefficient);
-  
-  /// statistics getter
-  int getNPoints();
-  double getCorrelationCoefficient();
-           
 private:
-  // members
-
-  /// id of the component
-  String component_name_;
-  
-  /// name of the feature (i.e., peak_apex_int or peak_area)
-  String feature_name_;
-
-  /// lower limit of detection (LLOD) of the transition
-  double llod_;
-
-  /// lower limit of quantitation (LLOQ) of the transition
-  double lloq_;
-
-  /// upper limit of detection (LLOD) of the transition
-  double ulod_;
-
-  /// upper limit of quantitation (LLOQ) of the transition
-  double uloq_;
-
-  /// number of points used in a calibration curve
-  int n_points_;
-
-  /// the Pearson R value for the correlation coefficient of the calibration curve
-  double correlation_coefficient_;
-
-  /// the internal standard (IS) name for the transition
-  String IS_name_;
-
-  /// the known concentration of the component
-  double actual_concentration_;
-
-  /// concentration units of the component's concentration
-  String concentration_units_;
-  
-  /// transformation model
-  String transformation_model_;
-
-  /// transformation model parameters
-  Param transformation_model_params_;  
+    String component_name_; ///< id of the component
+    String feature_name_; ///< name of the feature (i.e., peak_apex_int or peak_area)
+    String IS_name_; ///< the internal standard (IS) name for the transition
+    double llod_; ///< lower limit of detection (LLOD) of the transition
+    double ulod_; ///< upper limit of detection (ULOD) of the transition
+    double lloq_; ///< lower limit of quantitation (LLOQ) of the transition
+    double uloq_; ///< upper limit of quantitation (ULOQ) of the transition
+    Int n_points_; ///< number of points used in a calibration curve
+    double correlation_coefficient_; ///< the Pearson R value for the correlation coefficient of the calibration curve
+    String concentration_units_; ///< concentration units of the component's concentration
+    String transformation_model_; ///< transformation model
+    Param transformation_model_params_; ///< transformation model parameters
   };
-
 }
-#endif // OPENMS_ANALYSIS_QUANTITATION_ABSOLUTEQUANTITATIONMETHOD_H
 

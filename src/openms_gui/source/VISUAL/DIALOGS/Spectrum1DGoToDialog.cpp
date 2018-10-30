@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,9 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DGoToDialog.h>
+#include <ui_Spectrum1DGoToDialog.h>
 
-#include <QtGui/QLineEdit>
+#include <QtWidgets/QLineEdit>
 
 using namespace std;
 
@@ -43,32 +44,40 @@ namespace OpenMS
 {
 
   Spectrum1DGoToDialog::Spectrum1DGoToDialog(QWidget * parent) :
-    QDialog(parent)
+    QDialog(parent),
+    ui_(new Ui::Spectrum1DGoToDialogTemplate)
   {
-    setupUi(this);
+    ui_->setupUi(this);
   }
 
   Spectrum1DGoToDialog::~Spectrum1DGoToDialog()
   {
+    delete ui_;
   }
+
 
   void Spectrum1DGoToDialog::setRange(float min, float max)
   {
-    min_->setText(QString::number(min));
-    max_->setText(QString::number(max));
+    ui_->min_->setText(QString::number(min));
+    ui_->max_->setText(QString::number(max));
   }
 
   void Spectrum1DGoToDialog::setMinMaxOfRange(float min, float max)
   {
-    min_const_->setText(QString("min: ") + QString::number(min));
-    max_const_->setText(QString("max: ") + QString::number(max));
+    ui_->min_const_->setText(QString("min: ") + QString::number(min));
+    ui_->max_const_->setText(QString("max: ") + QString::number(max));
+  }
+
+  bool Spectrum1DGoToDialog::checked()
+  {
+    return ui_->clip_checkbox->checkState() == Qt::Checked;
   }
 
   void Spectrum1DGoToDialog::fixRange()
   {
     // load from GUI
-    float min_mz=min_->text().toFloat();
-    float max_mz=max_->text().toFloat();
+    float min_mz = ui_->min_->text().toFloat();
+    float max_mz = ui_->max_->text().toFloat();
 
     // ensure correct order of min and max
     if (min_mz > max_mz) swap(min_mz, max_mz);
@@ -81,18 +90,18 @@ namespace OpenMS
     }
 
     // store in GUI
-    min_->setText(QString::number(min_mz));
-    max_->setText(QString::number(max_mz));
+    ui_->min_->setText(QString::number(min_mz));
+    ui_->max_->setText(QString::number(max_mz));
   }
 
   float Spectrum1DGoToDialog::getMin() const
   {
-    return min_->text().toFloat();
+    return ui_->min_->text().toFloat();
   }
 
   float Spectrum1DGoToDialog::getMax() const
   {
-    return max_->text().toFloat();
+    return ui_->max_->text().toFloat();
   }
 
 } //namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,13 +34,6 @@
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-
-#include <cmath>
-#include <climits>
-#include <functional>
 
 using namespace std;
 
@@ -160,7 +153,7 @@ namespace OpenMS
     const set<String>& sequences;
     bool ignore_mods;
 
-    HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false):
+    explicit HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false):
       sequences(sequences), ignore_mods(ignore_mods)
     {}
 
@@ -346,6 +339,8 @@ namespace OpenMS
            groups.begin(); group_it != groups.end(); ++group_it)
     {
       ProteinIdentification::ProteinGroup filtered;
+      // sort group accessions (required for 'set_intersection' operation)
+      sort(group_it->accessions.begin(), group_it->accessions.end());
       set_intersection(group_it->accessions.begin(), group_it->accessions.end(),
                        valid_accessions.begin(), valid_accessions.end(),
                        inserter(filtered.accessions,

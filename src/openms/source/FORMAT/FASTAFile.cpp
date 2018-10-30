@@ -2,7 +2,7 @@
 //           OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,6 @@
 #include <seqan/stream.h>
 #include <seqan/seq_io/guess_stream_format.h>
 #include <seqan/seq_io/read_fasta_fastq.h>
-#include <seqan/sequence.h>
 
 namespace OpenMS
 {

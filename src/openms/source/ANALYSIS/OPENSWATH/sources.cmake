@@ -19,6 +19,7 @@ ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
 TargetedSpectraExtractor.cpp
+MRMFeaturePicker.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFO_H
-#define OPENMS_METADATA_METAINFO_H
+#pragma once
 
 #include <vector>
 
@@ -120,13 +119,12 @@ public:
     void clear();
 
 private:
+    using MapType = std::map<UInt, DataValue>;
     /// Static MetaInfoRegistry
     static MetaInfoRegistry registry_;
     /// The actual mapping of indexes to values
-    std::map<UInt, DataValue> index_to_value_;
-
+    MapType index_to_value_;
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_METAINFO_H

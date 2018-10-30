@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
-#define OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
+#pragma once
 
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
@@ -57,33 +56,36 @@ namespace OpenMS
       /// Binary data representation
       struct BinaryData
       {
-        String base64;
+        // ordered by size (alignment) and cache hotness in 'decode'
         enum {PRE_NONE, PRE_32, PRE_64} precision;
-        Size size;
+        enum { DT_NONE, DT_FLOAT, DT_INT, DT_STRING } data_type;
+        MSNumpressCoder::NumpressCompression np_compression;
         bool compression; // zlib compression
-        enum {DT_NONE, DT_FLOAT, DT_INT, DT_STRING} data_type;
+        double unit_multiplier;
+        String base64;
+        Size size;
         std::vector<float> floats_32;
         std::vector<double> floats_64;
         std::vector<Int32> ints_32;
         std::vector<Int64> ints_64;
         std::vector<String> decoded_char;
         MetaInfoDescription meta;
-        MSNumpressCoder::NumpressCompression np_compression;
 
         /// Constructor
         BinaryData() :
-          base64(),
           precision(PRE_NONE),
-          size(0),
-          compression(false),
           data_type(DT_NONE),
+          np_compression(),
+          compression(false),
+          unit_multiplier(1.0),
+          base64(),
+          size(0),
           floats_32(),
           floats_64(),
           ints_32(),
           ints_64(),
           decoded_char(),
-          meta(),
-          np_compression()
+          meta()
         {
         }
 
@@ -108,17 +110,16 @@ namespace OpenMS
         @param data_ The input and output
         @param skipXMLCheck whether to skip cleaning the Base64 arrays and remove whitespaces 
       */
-      static void decodeBase64Arrays(std::vector<BinaryData> & data_, bool skipXMLCheck = false);
+      static void decodeBase64Arrays(std::vector<BinaryData> & data_, const bool skipXMLCheck = false);
 
-      static void computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, String index_name);
+      static void computeDataProperties_(const std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, const String& index_name);
 
       static bool handleBinaryDataArrayCVParam(std::vector<BinaryData>& data_,
-        const String& accession, const String& value, const String& name);
+        const String& accession, const String& value, const String& name, const String& unit_accession);
     };
 
 
   } // namespace Internal
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_HANDLERS_MZMLHANDLERHELPER_H
 

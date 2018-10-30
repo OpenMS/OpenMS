@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,11 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
-#define OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H
+#pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
 namespace OpenMS
 {
@@ -51,14 +50,27 @@ public:
     for the conversion of a MzMlFile to an internal format.
 
     @ingroup ID
+
+    Store .ms file.
+    Adducts are written to SIRIUS .ms file. If adduct information for a spectrum is missing, 
+    no adduct information is written. In this case, SIRIUS assumes default adducts for the respective spectrum.
+    
+    @return string (full path to file)
+    
+    @param spectra: Peakmap from input mzml
+    @param msfile: (internal) written .ms file from sirius 
+    @param map_precursor_to_adducts: adducts of a spectrum (index). 
     */
 
-    /// store MS file
-    /// @return string (full path to file)
-    static void store(const PeakMap & spectra, const OpenMS::String & msfile);
+    // preprocessing e.g. feature information
+    static void store(const PeakMap& spectra,
+                      const OpenMS::String& msfile,
+                      const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+                      const bool& feature_only,
+                      const int& isotope_pattern_iterations,
+                      const bool no_mt_info);
 
   };
 
 }
 
-#endif //OPENMS_ANALYSIS_ID_SIRIUSMSCONVERTER_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_DECHARGING_FEATUREDECONVOLUTION_H
-#define OPENMS_ANALYSIS_DECHARGING_FEATUREDECONVOLUTION_H
+#pragma once
 
 // OpenMS
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -160,4 +159,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_DECHARGING_FEATUREDECONVOLUTION_H

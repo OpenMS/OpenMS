@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,14 +34,7 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/math/special_functions/acosh.hpp>
-
-#include <unsupported/Eigen/NonLinearOptimization>
-
-#include <limits>
 
 
 #ifdef DEBUG_DECONV
@@ -62,7 +55,8 @@ namespace OpenMS
     int values() const { return m_values; }
 
     OPDFunctor(unsigned dimensions, unsigned numDataPoints, const OptimizePeakDeconvolution::Data* data) :
-      m_inputs(dimensions), m_values(numDataPoints), m_data(data){}
+      m_inputs(dimensions), m_values(numDataPoints), m_data(data)
+    {}
 
     int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
     {

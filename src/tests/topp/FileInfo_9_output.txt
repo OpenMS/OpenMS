@@ -1,7 +1,7 @@
 
 -- General information --
 
-File name: /nfs/wsi/abi/old-data/sachsenb/OpenMS_IDE/src/tests/topp/FileInfo_9_input.mzML
+File name: C:/dev/openmsqt5/src/tests/topp/FileInfo_9_input.mzML
 File type: mzML
 
 MS levels: 1, 2
@@ -18,7 +18,7 @@ Ranges:
   intensity:      1.00 .. 20.00
 
 Peak type metadata (estimated)
-  level 1: Centroid (Profile)
+  level 1: Centroid (Centroid)
   level 2: Centroid (Unknown)
 Meta data array:
   charge array:          1 spectra

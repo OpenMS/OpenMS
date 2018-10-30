@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLDOMHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZIDENTMLDOMHANDLER_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -281,11 +280,10 @@ private:
       std::map<String, String> xl_id_acceptor_map_; //mapping  peptide id of acceptor peptide -> cross-link acceptor value
       std::map<String, SignedSize> xl_donor_pos_map_; //mapping donor value -> cross-link modification location
       std::map<String, SignedSize> xl_acceptor_pos_map_; //mapping acceptor value -> cross-link modification location
-      std::map<String, double> xl_mass_map_; //mapping Peptide id -> crosslink mass
+      std::map<String, double> xl_mass_map_; //mapping Peptide id -> cross-link mass
       std::map<String, String> xl_mod_map_; //mapping peptide id -> cross-linking reagent name
 
     };
   } // namespace Internal
 } // namespace OpenMS
 
-#endif

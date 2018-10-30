@@ -8,7 +8,7 @@ from ISpectrumAccess cimport *
 # from Scoring cimport *
 from LightTargetedExperiment cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath":
+cdef extern from "<OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>" namespace "OpenSwath":
     
     cdef cppclass MRMScoring "OpenSwath::MRMScoring":
         MRMScoring(MRMScoring) nogil except + #wrap-ignore
@@ -29,3 +29,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>" n
         double calcMS1XcorrCoelutionScore() nogil except +
         double calcMS1XcorrShape_score() nogil except +
 
+        double calcMIScore() nogil except +
+        double calcMIScore_weighted(const libcpp_vector[ double ] & normalized_library_intensity) nogil except +
+        double calcMS1MIScore() nogil except +
+        libcpp_string calcIndMIIdScore() nogil except +
+        libcpp_vector[ libcpp_vector[ double ] ]  getMIMatrix() nogil except +

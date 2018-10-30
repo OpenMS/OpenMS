@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,9 +39,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <iostream>
 #include <fstream>
-#include <limits>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -91,7 +90,7 @@ namespace OpenMS
     prot_hit_ = ProteinHit();
     pep_hit_ = PeptideHit();
     proteinid_to_accession_.clear();
-    
+
     endProgress();
   }
 
@@ -355,6 +354,26 @@ namespace OpenMS
           os << " >\n";
           writeFragmentAnnotations_("UserParam", os, p_hit.getPeakAnnotations(), 4);
           writeUserParam_("UserParam", os, p_hit, 4);
+
+          // write out the (optional) peptide prophet / interprophet results as UserParams
+          {
+            int k = 0;
+            for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = p_hit.getAnalysisResults().begin();
+                ar_it != p_hit.getAnalysisResults().end(); ++ar_it, ++k)
+            {
+              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << k << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
+              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << k << "_score\" value=\"" << ar_it->main_score << "\"/>" << "\n";
+              if (!ar_it->sub_scores.empty())
+              {
+                for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
+                    subscore_it != ar_it->sub_scores.end(); ++subscore_it)
+                {
+                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << k << "_subscore_" << subscore_it->first <<"\" value=\"" << subscore_it->second << "\"/>" << "\n";
+                }
+              }
+            }
+
+          }
           os << "\t\t\t</PeptideHit>\n";
         }
 
@@ -370,7 +389,7 @@ namespace OpenMS
       if (count_wrong_id && protein_ids.size() == 1) LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl;
       if (count_empty) LOG_WARN << "Omitted writing of " << count_empty << " peptide identifications due to empty hits." << std::endl;
     }
-    
+
     // empty protein ids  parameters
     if (protein_ids.empty())
     {
@@ -728,6 +747,32 @@ namespace OpenMS
       String name = attributeAsString_(attributes, "name");
       String type = attributeAsString_(attributes, "type");
 
+      // Handle specially encoded pepXML analysis results
+      if (name.hasPrefix("_ar_"))
+      {
+        // must be in PeptideHit (indicated by special _ar_ prefix)
+        String sfx = name.substr(4, name.size());
+        String val_name = sfx.substr(sfx.find("_") + 1, sfx.size());
+        if (val_name.hasPrefix("subscore"))
+        {
+          String score_name = val_name.substr(val_name.find("_") + 1, val_name.size());
+          current_analysis_result_.sub_scores[score_name] = attributeAsDouble_(attributes, "value");
+        }
+        else if (val_name == "score_type")
+        {
+          if (!current_analysis_result_.score_type.empty())
+          {
+            pep_hit_.addAnalysisResults(current_analysis_result_);
+          }
+          current_analysis_result_.score_type = attributeAsString_(attributes, "value");
+        }
+        else if (val_name == "score")
+        {
+          current_analysis_result_.main_score = attributeAsDouble_(attributes, "value");
+        }
+        return;
+      }
+
       if (type == "int")
       {
         last_meta_->setMetaValue(name, attributeAsInt_(attributes, "value"));
@@ -741,13 +786,13 @@ namespace OpenMS
         String value = (String)attributeAsString_(attributes, "value");
 
         // TODO: check if we are parsing a peptide hit
-        if (name == "fragment_annotation")
+        if (name == Constants::FRAGMENT_ANNOTATION_USERPARAM)
         {
           std::vector<PeptideHit::PeakAnnotation> annotations;
           parseFragmentAnnotation_(value, annotations);
           pep_hit_.setPeakAnnotations(annotations);
           return;
-        }
+      }
         last_meta_->setMetaValue(name, value);
       }
       else if (type == "intList")
@@ -831,6 +876,11 @@ namespace OpenMS
     else if (tag == "PeptideHit")
     {
       pep_hit_.setPeptideEvidences(peptide_evidences_);
+      if (!current_analysis_result_.score_type.empty())
+      {
+        pep_hit_.addAnalysisResults(current_analysis_result_);
+      }
+      current_analysis_result_ = PeptideHit::PepXMLAnalysisResult();
       pep_id_.insertHit(pep_hit_);
       last_meta_ = &pep_id_;
     }
@@ -1003,23 +1053,17 @@ namespace OpenMS
     return aa_string;
   }
 
-  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os, 
+  void IdXMLFile::writeFragmentAnnotations_(const String & tag_name, std::ostream & os,
                                             std::vector<PeptideHit::PeakAnnotation> annotations, UInt indent)
   {
-    if (annotations.empty()) { return; } 
-
-    // sort by mz, charge, ...
-    stable_sort(annotations.begin(), annotations.end());
-
     String val;
-    for (auto& a : annotations)
+    PeptideHit::PeakAnnotation::writePeakAnnotationsString_(val, annotations);
+    if (!val.empty())
     {
-      val += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
-      if (&a != &annotations.back()) { val += "|"; }     
+      os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
     }
-    os << String(indent, '\t') << "<" << writeXMLEscape(tag_name) << " type=\"string\" name=\"fragment_annotation\" value=\"" << writeXMLEscape(val) << "\"/>" << "\n";
   }
- 
+
   void IdXMLFile::parseFragmentAnnotation_(const String& s, std::vector<PeptideHit::PeakAnnotation> & annotations)
   {
     if (s.empty()) { return; }
@@ -1031,7 +1075,7 @@ namespace OpenMS
     {
       StringList fields;
       pa.split_quoted(',', fields);
-      if (fields.size() != 4) 
+      if (fields.size() != 4)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                 "Invalid fragment annotation. Four comma-separated fields required. String is: '" + pa + "'");

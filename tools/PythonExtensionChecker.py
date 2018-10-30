@@ -5,7 +5,7 @@
                   OpenMS -- Open-Source Mass Spectrometry
 --------------------------------------------------------------------------
 Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 
 This software is released under a three-clause BSD license:
  * Redistributions of source code must retain the above copyright
@@ -46,18 +46,18 @@ from PythonCheckerLib import create_pxd_file_map
 
 # Try non-standard libs
 try:
-    import breathe.parser
     import yaml
+    import breathe
     from Cython.Compiler.Nodes import CEnumDefNode, CppClassNode, CTypeDefNode, CVarDefNode, CImportStatNode, CDefExternNode
     from autowrap.PXDParser import CppClassDecl, CTypeDefDecl, MethodOrAttributeDecl, EnumDecl
-except ImportError:
+except ImportError as e:
     print ("You need to install a few packages for this library to work")
     print ("Please use:")
     print (" pip install breathe")
     print (" pip install pyyaml")
     print (" pip install autowrap")
     print (" pip install Cython")
-    raise ImportError
+    raise e
 
 # Try breathe parser
 try:
@@ -72,7 +72,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
     """ Matches a doxygen member definition (mdef) to a Cython pxd file.
 
     This tries to ensure that all C++ functions are wrapped and have an
-    equivalent in the Python wrapper. 
+    equivalent in the Python wrapper.
 
     Parameters
     ----------
@@ -80,10 +80,9 @@ def handle_member_definition(mdef, pxd_class, cnt):
         A doxygen entry
     pxd_class : autowrap.PXDParser.CppClassDecl
         A PXD class file as parsed by autowrap
-    cnt : 
+    cnt :
         A count object to keep track of how many functions we wrapped
     """
-    pxd_class_methods_str = str([ str(m) for m in pxd_class.methods.keys()])
 
     tres = TestResult()
     protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
@@ -111,7 +110,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 break
 
             # Sometimes we rename things in pyOpenMS for sanity (and namespace consistency) sake
-            # E.g. OpenMS::PercolatorOutfile::ScoreType becomes PercolatorOutfile_ScoreType 
+            # E.g. OpenMS::PercolatorOutfile::ScoreType becomes PercolatorOutfile_ScoreType
             # and we have to go back to the full cname. However, the doxygen name needs to be inferred
             if hasattr(klass[0], "cname") and klass[0].cname.endswith(mdef.get_name()):
                 assumed_fullname = mdef.compoundname + "::" + mdef.get_name()
@@ -166,7 +165,8 @@ def handle_member_definition(mdef, pxd_class, cnt):
             py_return_type = [str(d.result_type) for d in py_methods]
             if mdef.definition == mdef.name:
                 # Constructor, no return type -> all is good
-                assert len(c_return_type) == 0
+                if len(c_return_type) != 0:
+                    raise AssertionError()
                 tres.setPassed(True)
             elif "void" in py_return_type and not "void" in c_return_type:
                 tres.setPassed(False)
@@ -176,12 +176,28 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 tres.setPassed(True)
 
         else:
+
+            # Missing method, lets remove false positives (destructors, operators, etc)
             cnt.public_methods_missing += 1
             if mdef.name.find("~") != -1:
                 # destructor
                 cnt.public_methods_missing_nowrapping += 1
                 tres.setPassed(True)
                 tres.setMessage("Cannot wrap destructor")
+            elif mdef.definition == mdef.name:
+                # constructor
+                find_match = False
+                for kk in pxd_class.methods:
+                    if kk.split("_")[-1] == mdef.name:
+                        find_match = True
+                if find_match:
+                    cnt.public_methods_missing_nowrapping += 1
+                    tres.setPassed(True)
+                    tres.setMessage("Renamed constructor")
+                else:
+                    tres.setPassed(False)
+                    tres.setMessage(" -- TODO missing constructor in PXD: %s nogil except +" % mdef.format_definition_for_cython())
+
             elif (mdef.name.find("operator") != -1 or
                   mdef.name.find("begin") != -1 or
                   mdef.name.find("end") != -1):
@@ -593,18 +609,25 @@ class DoxygenCppFunction(object):
         if len(self.get_argsstring()) == 0:
             arguments = ""
 
-        # remove returned references
+        # remove returned references and const values (Cython cannot deal with those at the moment)
         return_type = "".join(c_return_type)
         return_type = return_type.replace("&", "")
+        return_type = return_type.replace("const", "")
         cpp_def = return_type + " " + function_name + arguments
+
+        # Handle comments
         cpp_def = cpp_def.replace("///", "#")
         cpp_def = cpp_def.replace("//", "#")
+
+        # Add nogil
         if replace_nogil:
             cpp_def = cpp_def.replace(";", "nogil except +")
             cpp_def = cpp_def.replace("const;", "nogil except +")
         else:
             cpp_def = cpp_def.replace("const;", "")
             cpp_def = cpp_def.replace(";", "")
+
+        # Replace common names from OpenMS, templates, STL constructs etc
         # TODO handle static ...
         cpp_def = cpp_def.replace("static", "")
         cpp_def = cpp_def.replace("MSSpectrum<>", "MSSpectrum")
@@ -620,7 +643,6 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("operator]", "operator>")
         cpp_def = cpp_def.replace("operator[", "operator<")
         cpp_def = cpp_def.replace("operator__[]", "operator[]")
-        cpp_def = cpp_def.replace("const ", "")
 
         # Note that template arguments cannot be typedefs but need to be basic types
         cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")
@@ -633,6 +655,9 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("MSExperiment[]", "MSExperiment")
         cpp_def = cpp_def.replace("PeakSpectrum", "MSSpectrum")
         cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
+
+        # Handle const
+        # cpp_def = cpp_def.replace("const ", "")
 
         # Alert the user to potential problems and comment out potential
         # dangerous things (raw pointers, iterators)
@@ -677,7 +702,8 @@ class IgnoreFile(object):
         return res
 
 class PXDFileParseError(Exception):
-    pass
+    def __init__(self, message):
+        self.message = message
 
 #
 ## Class for the .pxd file
@@ -1043,7 +1069,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
     # Iterate through all xml files generated by doxygen (these are all the
     # classes available in OpenMS)
-    for class_cntr, f in enumerate(xml_files):
+    for f in xml_files:
 
         # Only look out for one specific pxd file (see option --generate_pxd_for)
         if len(generate_pxd) > 0:
@@ -1080,7 +1106,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             if verbose: print ("  - Skip file without namespace:", comp_name)
             continue
 
-        if verbose: 
+        if verbose:
             print ("  - Found class", comp_name, compound.prot, "in namespace", comp_name.split("::")[0])
 
         namespace = comp_name.split("::")[0]
@@ -1117,7 +1143,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         # Get file location and skip empty files
         file_location = dfile.getCompoundFileLocation(src_path)
         internal_file_name = dfile.getInternalFileName()
-        if verbose: 
+        if verbose:
             print ("  - Header file location identified as", internal_file_name)
 
         if file_location is None:
@@ -1151,7 +1177,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             pxd_text_printout(pxd_text, pxds_out, comp_name, print_pxd)
             continue
 
-        if verbose: 
+        if verbose:
             print ("  - Matching pxd files", pxdfiles)
 
         # At this point we have

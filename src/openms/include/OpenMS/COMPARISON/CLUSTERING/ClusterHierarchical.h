@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,8 +38,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H
-#define OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
@@ -89,11 +88,16 @@ public:
     /**
         @brief Clustering function
 
-        Conducts the SimilarityComparator with a ClusterFunctor an produces a clustering.
-        Will create a DistanceMatrix if not yet created and start the clustering up to the given ClusterHierarchical::threshold_ used for the ClusterFunctor.
-        The type of the objects to be clustered has to be the first template argument, the
-        similarity functor applicable to this type must be the second template argument, e.g.
-        for @ref PeakSpectrum with a @ref PeakSpectrumCompareFunctor.
+        Cluster data using SimilarityComparator and ClusterFunctor.
+
+        Creates a DistanceMatrix (if an empty matrix is passed) and the clustering is started.
+        Clustering stops if the ClusterHierarchical::threshold_ is reached by the ClusterFunctor.
+
+        First template parameter is the cluster object type,
+        Second template parameter is the similarity functor applicable to the type.
+
+        For example, @ref PeakSpectrum with a @ref PeakSpectrumCompareFunctor.
+
         The similarity functor must provide the similarity calculation with the ()-operator and
         yield normalized values in range of [0,1] for the type of < Data >.
 
@@ -105,24 +109,27 @@ public:
         @see ClusterFunctor, BinaryTreeNode, ClusterAnalyzer
     */
     template <typename Data, typename SimilarityComparator>
-    void cluster(std::vector<Data> & data, const SimilarityComparator & comparator, const ClusterFunctor & clusterer, std::vector<BinaryTreeNode> & cluster_tree, DistanceMatrix<float> & original_distance)
+    void cluster(std::vector<Data> & data, 
+      const SimilarityComparator & comparator, 
+      const ClusterFunctor & clusterer, 
+      std::vector<BinaryTreeNode> & cluster_tree,
+      DistanceMatrix<float> & original_distance)
     {
       if (original_distance.dimensionsize() != data.size())
       {
-        //create distancematrix for data with comparator
+        // create distance matrix for data using comparator
         original_distance.clear();
         original_distance.resize(data.size(), 1);
         for (Size i = 0; i < data.size(); i++)
         {
           for (Size j = 0; j < i; j++)
           {
-            //distance value is 1-similarity value, since similarity is in range of [0,1]
+            // distance value is 1-similarity value, since similarity is in range of [0,1]
             original_distance.setValueQuick(i, j, 1 - comparator(data[i], data[j]));
           }
         }
       }
 
-      //~ std::cout << "done" << std::endl; //maybe progress handler?
       // create clustering with ClusterMethod, DistanceMatrix and Data
       clusterer(original_distance, cluster_tree, threshold_);
     }
@@ -136,6 +143,7 @@ public:
         @param comparator a BinnedSpectrumCompareFunctor
         @param sz the desired binsize for the @ref BinnedSpectrum s
         @param sp the desired binspread for the @ref BinnedSpectrum s
+        @param offset the desired bins offset for the @ref BinnedSpectrum s
         @param clusterer a clustermethod implementation, base class ClusterFunctor
         @param cluster_tree the vector that will hold the BinaryTreeNodes representing the clustering (for further investigation with the ClusterAnalyzer methods)
         @param original_distance the DistanceMatrix holding the pairwise distances of the elements in @p data, will be made newly if given size does not fit to the number of elements given in @p data
@@ -143,9 +151,15 @@ public:
 
     @ingroup SpectraClustering
     */
-    void cluster(std::vector<PeakSpectrum> & data, const BinnedSpectrumCompareFunctor & comparator, double sz, UInt sp, const ClusterFunctor & clusterer, std::vector<BinaryTreeNode> & cluster_tree, DistanceMatrix<float> & original_distance)
+    void cluster(std::vector<PeakSpectrum> & data, 
+      const BinnedSpectrumCompareFunctor & comparator, 
+      double sz, 
+      UInt sp,
+      float offset, 
+      const ClusterFunctor & clusterer, 
+      std::vector<BinaryTreeNode> & cluster_tree, 
+      DistanceMatrix<float> & original_distance)
     {
-
       std::vector<BinnedSpectrum> binned_data;
       binned_data.reserve(data.size());
 
@@ -153,7 +167,7 @@ public:
       for (Size i = 0; i < data.size(); i++)
       {
         //double sz(2), UInt sp(1);
-        binned_data.push_back(BinnedSpectrum(sz, sp, data[i]));
+        binned_data.push_back(BinnedSpectrum(data[i], sz, false, sp, offset));
       }
 
       //create distancematrix for data with comparator
@@ -204,4 +218,4 @@ public:
   };
 
 }
-#endif //OPENMS_COMPARISON_CLUSTERING_CLUSTERHIERARCHICAL_H
+

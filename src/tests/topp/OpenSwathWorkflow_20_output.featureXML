@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_14509930621887606273" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="1999-12-31T23:59:59">
+		<software name="OpenSwathWorkflow" version="version_string" />
+		<processingAction name="Quantitation" />
+		<UserParam type="string" name="parameter: mode" value="test_mode"/>
+	</dataProcessing>
+	<featureList count="6">
+		<feature id="f_4835329514588776807">
+			<position dim="0">100.999999701977</position>
+			<position dim="1">412.5</position>
+			<intensity>25944.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.33613</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_4835329514588776807_17749660155506638460">
+					<position dim="0">100.999999701977</position>
+					<position dim="1">500.01</position>
+					<intensity>14151.5</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="500.01"/>
+					<UserParam type="float" name="peak_apex_position" value="101"/>
+					<UserParam type="string" name="native_id" value="1"/>
+					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="14151.5089874268"/>
+					<UserParam type="float" name="total_mi" value="3.30055909239095"/>
+					<UserParam type="float" name="logSN" value="0.754007845849604"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_4835329514588776807_7804704400743266335">
+					<position dim="0">100.999999701977</position>
+					<position dim="1">500.15</position>
+					<intensity>7075.75</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="500.15"/>
+					<UserParam type="float" name="peak_apex_position" value="101"/>
+					<UserParam type="string" name="native_id" value="2"/>
+					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="7075.75449371338"/>
+					<UserParam type="float" name="total_mi" value="3.30055909239095"/>
+					<UserParam type="float" name="logSN" value="0.754007845849604"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_4835329514588776807_15004869347769368353">
+					<position dim="0">100.999999701977</position>
+					<position dim="1">500.25</position>
+					<intensity>4717.17</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="500.25"/>
+					<UserParam type="float" name="peak_apex_position" value="101"/>
+					<UserParam type="string" name="native_id" value="3"/>
+					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4717.16970062256"/>
+					<UserParam type="float" name="total_mi" value="3.30055909239095"/>
+					<UserParam type="float" name="logSN" value="0.754007825635777"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_4835329514588776807_3332699010107892018">
+					<position dim="0">100.999999701977</position>
+					<position dim="1">412.5</position>
+					<intensity>0</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEA_Precursor_i0"/>
+					<UserParam type="float" name="peak_apex_int" value="0"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="potentialOutlier" value="none"/>
+			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="25944.4331817627"/>
+			<UserParam type="float" name="total_mi" value="3.30055909239095"/>
+			<UserParam type="string" name="PeptideRef" value="PEPTIDEA"/>
+			<UserParam type="float" name="leftWidth" value="11"/>
+			<UserParam type="float" name="rightWidth" value="191"/>
+			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="1"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="1"/>
+			<UserParam type="float" name="var_library_corr" value="0.999260080228866"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0101010169447449"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0275987870053456"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0109103452681859"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0196377807414642"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999800479534642"/>
+			<UserParam type="float" name="delta_rt" value="0.999999701976776"/>
+			<UserParam type="float" name="assay_rt" value="100"/>
+			<UserParam type="float" name="norm_RT" value="0.504999998509884"/>
+			<UserParam type="float" name="rt_score" value="0.00499999850988386"/>
+			<UserParam type="float" name="var_norm_rt_score" value="4.99999850988386e-05"/>
+			<UserParam type="float" name="var_intensity_score" value="1.0000000158796"/>
+			<UserParam type="float" name="nr_peaks" value="3"/>
+			<UserParam type="float" name="sn_ratio" value="2.12550163726256"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.754007839111662"/>
+			<UserParam type="float" name="var_mi_score" value="3.30055909239095"/>
+			<UserParam type="float" name="var_mi_weighted_score" value="3.30055909239095"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="1"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.58444741361961"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.865706696187627"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0"/>
+			<UserParam type="float" name="var_massdev_score" value="0.0105780765314897"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.0142403024987419"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.569372173289291"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.41687881616726"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="19"/>
+			<UserParam type="float" name="var_ms1_ppm_diff" value="121.212121212121"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.33612680846117"/>
+			<UserParam type="float" name="PrecursorMZ" value="412.5"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+		</feature>
+		<feature id="f_13440783915218733453">
+			<position dim="0">112.007107555866</position>
+			<position dim="1">437.5</position>
+			<intensity>25850.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.26318</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_13440783915218733453_15916652588957785155">
+					<position dim="0">112.007107555866</position>
+					<position dim="1">501.01</position>
+					<intensity>14100.3</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="501.01"/>
+					<UserParam type="float" name="peak_apex_position" value="112"/>
+					<UserParam type="string" name="native_id" value="4"/>
+					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="14100.3481216431"/>
+					<UserParam type="float" name="total_mi" value="3.40582225028569"/>
+					<UserParam type="float" name="logSN" value="0.749945748776714"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_13440783915218733453_15157403601844400700">
+					<position dim="0">112.007107555866</position>
+					<position dim="1">501.15</position>
+					<intensity>7050.17</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="501.15"/>
+					<UserParam type="float" name="peak_apex_position" value="112"/>
+					<UserParam type="string" name="native_id" value="5"/>
+					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="7050.17406082153"/>
+					<UserParam type="float" name="total_mi" value="3.40582225028569"/>
+					<UserParam type="float" name="logSN" value="0.749945748776714"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_13440783915218733453_6408859317243173796">
+					<position dim="0">112.007107555866</position>
+					<position dim="1">501.25</position>
+					<intensity>4700.12</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="501.25"/>
+					<UserParam type="float" name="peak_apex_position" value="112"/>
+					<UserParam type="string" name="native_id" value="6"/>
+					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4700.11607933044"/>
+					<UserParam type="float" name="total_mi" value="3.40582225028569"/>
+					<UserParam type="float" name="logSN" value="0.749945728605632"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_13440783915218733453_474525871221756682">
+					<position dim="0">112.007107555866</position>
+					<position dim="1">437.5</position>
+					<intensity>0</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEB_Precursor_i0"/>
+					<UserParam type="float" name="peak_apex_int" value="0"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="potentialOutlier" value="none"/>
+			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="25850.638261795"/>
+			<UserParam type="float" name="total_mi" value="3.40582225028569"/>
+			<UserParam type="string" name="PeptideRef" value="PEPTIDEB"/>
+			<UserParam type="float" name="leftWidth" value="12"/>
+			<UserParam type="float" name="rightWidth" value="192"/>
+			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999999999999999"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="1"/>
+			<UserParam type="float" name="var_library_corr" value="0.999260080225017"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0101010169695764"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0275987870739056"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.010910345295007"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0196377807887513"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999800479533677"/>
+			<UserParam type="float" name="delta_rt" value="-7.99289244413376"/>
+			<UserParam type="float" name="assay_rt" value="120"/>
+			<UserParam type="float" name="norm_RT" value="0.560035537779331"/>
+			<UserParam type="float" name="rt_score" value="0.0399644622206687"/>
+			<UserParam type="float" name="var_norm_rt_score" value="0.000399644622206687"/>
+			<UserParam type="float" name="var_intensity_score" value="1.00000001586344"/>
+			<UserParam type="float" name="nr_peaks" value="3"/>
+			<UserParam type="float" name="sn_ratio" value="2.1168851556541"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.74994574205302"/>
+			<UserParam type="float" name="var_mi_score" value="3.40582225028569"/>
+			<UserParam type="float" name="var_mi_weighted_score" value="3.40582225028569"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="1"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.57901577560892"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.860907906792624"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0.181818187236786"/>
+			<UserParam type="float" name="var_massdev_score" value="0.0105569652958578"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.0142118811987165"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.569254627829016"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.41701521376166"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="19"/>
+			<UserParam type="float" name="var_ms1_ppm_diff" value="114.285714285714"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.26317708959625"/>
+			<UserParam type="float" name="PrecursorMZ" value="437.5"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+		</feature>
+		<feature id="f_12999979801269632061">
+			<position dim="0">122.985871613026</position>
+			<position dim="1">462.5</position>
+			<intensity>25378.6</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.25334</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_12999979801269632061_17413765565443951891">
+					<position dim="0">122.985871613026</position>
+					<position dim="1">502.01</position>
+					<intensity>13842.9</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="502.01"/>
+					<UserParam type="float" name="peak_apex_position" value="123"/>
+					<UserParam type="string" name="native_id" value="7"/>
+					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="13938.7174682617"/>
+					<UserParam type="float" name="total_mi" value="3.51108540818043"/>
+					<UserParam type="float" name="logSN" value="0.738242596855508"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_12999979801269632061_2927519776102075938">
+					<position dim="0">122.985871613026</position>
+					<position dim="1">502.15</position>
+					<intensity>6921.44</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="502.15"/>
+					<UserParam type="float" name="peak_apex_position" value="123"/>
+					<UserParam type="string" name="native_id" value="8"/>
+					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="6969.35873413086"/>
+					<UserParam type="float" name="total_mi" value="3.51108540818043"/>
+					<UserParam type="float" name="logSN" value="0.738242596855508"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_12999979801269632061_16907355690727166316">
+					<position dim="0">122.985871613026</position>
+					<position dim="1">502.25</position>
+					<intensity>4614.29</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="502.25"/>
+					<UserParam type="float" name="peak_apex_position" value="123"/>
+					<UserParam type="string" name="native_id" value="9"/>
+					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4646.23919296265"/>
+					<UserParam type="float" name="total_mi" value="3.51108540818043"/>
+					<UserParam type="float" name="logSN" value="0.738242576145299"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_12999979801269632061_10306100746905639127">
+					<position dim="0">122.985871613026</position>
+					<position dim="1">462.5</position>
+					<intensity>0</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEC_Precursor_i0"/>
+					<UserParam type="float" name="peak_apex_int" value="0"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="potentialOutlier" value="none"/>
+			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="25554.3153953552"/>
+			<UserParam type="float" name="total_mi" value="3.51108540818043"/>
+			<UserParam type="string" name="PeptideRef" value="PEPTIDEC"/>
+			<UserParam type="float" name="leftWidth" value="33"/>
+			<UserParam type="float" name="rightWidth" value="193"/>
+			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999999999999999"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="0.999999999999999"/>
+			<UserParam type="float" name="var_library_corr" value="0.999260081289737"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0101010101010101"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0275987681107524"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0109103378761075"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0196377677088557"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999800479800468"/>
+			<UserParam type="float" name="delta_rt" value="-17.0141283869743"/>
+			<UserParam type="float" name="assay_rt" value="140"/>
+			<UserParam type="float" name="norm_RT" value="0.614929358065128"/>
+			<UserParam type="float" name="rt_score" value="0.0850706419348716"/>
+			<UserParam type="float" name="var_norm_rt_score" value="0.000850706419348716"/>
+			<UserParam type="float" name="var_intensity_score" value="0.99312428979169"/>
+			<UserParam type="float" name="nr_peaks" value="3"/>
+			<UserParam type="float" name="sn_ratio" value="2.09225533110427"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.738242589952105"/>
+			<UserParam type="float" name="var_mi_score" value="3.26393342948563"/>
+			<UserParam type="float" name="var_mi_weighted_score" value="3.26393342948563"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.929608098362131"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.56729149002673"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.860792944075832"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0.181818187236786"/>
+			<UserParam type="float" name="var_massdev_score" value="0.0105359381580433"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.0141835731211933"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.568606608850677"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.41776651059303"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="17"/>
+			<UserParam type="float" name="var_ms1_ppm_diff" value="108.108108108108"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.25334112393915"/>
+			<UserParam type="float" name="PrecursorMZ" value="462.5"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+		</feature>
+		<feature id="f_12524258085768770586">
+			<position dim="0">133.991621077061</position>
+			<position dim="1">487.5</position>
+			<intensity>24809.2</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.30858</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_12524258085768770586_1755235105885170967">
+					<position dim="0">133.991621077061</position>
+					<position dim="1">503.01</position>
+					<intensity>13532.3</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="503.01"/>
+					<UserParam type="float" name="peak_apex_position" value="134"/>
+					<UserParam type="string" name="native_id" value="10"/>
+					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="13644.073764801"/>
+					<UserParam type="float" name="total_mi" value="3.61634856607517"/>
+					<UserParam type="float" name="logSN" value="0.831981918089203"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_12524258085768770586_14811341817612382122">
+					<position dim="0">133.991621077061</position>
+					<position dim="1">503.15</position>
+					<intensity>6766.14</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="503.15"/>
+					<UserParam type="float" name="peak_apex_position" value="134"/>
+					<UserParam type="string" name="native_id" value="11"/>
+					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="6822.03688240051"/>
+					<UserParam type="float" name="total_mi" value="3.61634856607517"/>
+					<UserParam type="float" name="logSN" value="0.831981918089203"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_12524258085768770586_2684106197423007927">
+					<position dim="0">133.991621077061</position>
+					<position dim="1">503.25</position>
+					<intensity>4510.76</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="503.25"/>
+					<UserParam type="float" name="peak_apex_position" value="134"/>
+					<UserParam type="string" name="native_id" value="12"/>
+					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4548.02462768555"/>
+					<UserParam type="float" name="total_mi" value="3.61634856607517"/>
+					<UserParam type="float" name="logSN" value="0.831981897274276"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_12524258085768770586_8119044117483804262">
+					<position dim="0">133.991621077061</position>
+					<position dim="1">487.5</position>
+					<intensity>0</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDED_Precursor_i0"/>
+					<UserParam type="float" name="peak_apex_int" value="0"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="potentialOutlier" value="none"/>
+			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="25014.1352748871"/>
+			<UserParam type="float" name="total_mi" value="3.61634856607517"/>
+			<UserParam type="string" name="PeptideRef" value="PEPTIDED"/>
+			<UserParam type="float" name="leftWidth" value="44"/>
+			<UserParam type="float" name="rightWidth" value="194"/>
+			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999999999999999"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="1"/>
+			<UserParam type="float" name="var_library_corr" value="0.999260080735029"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.01010101367946"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0275987779903494"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0109103417412751"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0196377745233419"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999800479661473"/>
+			<UserParam type="float" name="delta_rt" value="-26.0083789229393"/>
+			<UserParam type="float" name="assay_rt" value="160"/>
+			<UserParam type="float" name="norm_RT" value="0.669958105385304"/>
+			<UserParam type="float" name="rt_score" value="0.130041894614697"/>
+			<UserParam type="float" name="var_norm_rt_score" value="0.00130041894614697"/>
+			<UserParam type="float" name="var_intensity_score" value="0.991806487331671"/>
+			<UserParam type="float" name="nr_peaks" value="3"/>
+			<UserParam type="float" name="sn_ratio" value="2.29786840127076"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.831981911150894"/>
+			<UserParam type="float" name="var_mi_score" value="3.25"/>
+			<UserParam type="float" name="var_mi_weighted_score" value="3.25"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.898696555550018"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.63253871224327"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.860677785899829"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0.181818187236786"/>
+			<UserParam type="float" name="var_massdev_score" value="0.0105149946165322"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.0141553775909472"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.568489272177953"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.41790253334288"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="16"/>
+			<UserParam type="float" name="var_ms1_ppm_diff" value="102.564102564103"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.30858332702265"/>
+			<UserParam type="float" name="PrecursorMZ" value="487.5"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+		</feature>
+		<feature id="f_17314619952666245179">
+			<position dim="0">145.392713844776</position>
+			<position dim="1">510.05</position>
+			<intensity>23954.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.29984</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_17314619952666245179_3023658190814908261">
+					<position dim="0">145.392713844776</position>
+					<position dim="1">504.01</position>
+					<intensity>13066</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="504.01"/>
+					<UserParam type="float" name="peak_apex_position" value="145"/>
+					<UserParam type="string" name="native_id" value="13"/>
+					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="13185.1150016785"/>
+					<UserParam type="float" name="total_mi" value="3.7216117239699"/>
+					<UserParam type="float" name="logSN" value="0.812720763688243"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_17314619952666245179_7898004582401008768">
+					<position dim="0">145.392713844776</position>
+					<position dim="1">504.15</position>
+					<intensity>6533.01</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="504.15"/>
+					<UserParam type="float" name="peak_apex_position" value="145"/>
+					<UserParam type="string" name="native_id" value="14"/>
+					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="6592.55750083923"/>
+					<UserParam type="float" name="total_mi" value="3.7216117239699"/>
+					<UserParam type="float" name="logSN" value="0.812720763688243"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_17314619952666245179_15050004366391181853">
+					<position dim="0">145.392713844776</position>
+					<position dim="1">504.25</position>
+					<intensity>4355.34</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="504.25"/>
+					<UserParam type="float" name="peak_apex_position" value="145"/>
+					<UserParam type="string" name="native_id" value="15"/>
+					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4395.03837323189"/>
+					<UserParam type="float" name="total_mi" value="3.7216117239699"/>
+					<UserParam type="float" name="logSN" value="0.812720742323742"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_17314619952666245179_17716858074023296841">
+					<position dim="0">145.392713844776</position>
+					<position dim="1">510.05</position>
+					<intensity>10614.4</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEE_Precursor_i0"/>
+					<UserParam type="float" name="peak_apex_int" value="1178.41558837891"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="potentialOutlier" value="none"/>
+			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="24172.7108757496"/>
+			<UserParam type="float" name="total_mi" value="3.7216117239699"/>
+			<UserParam type="string" name="PeptideRef" value="PEPTIDEE"/>
+			<UserParam type="float" name="leftWidth" value="55"/>
+			<UserParam type="float" name="rightWidth" value="195"/>
+			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999999999999999"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="1"/>
+			<UserParam type="float" name="var_library_corr" value="0.999260081289737"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0101010101010101"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0275987681107524"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0109103378761075"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0196377677088557"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999800479800468"/>
+			<UserParam type="float" name="delta_rt" value="-14.6072861552238"/>
+			<UserParam type="float" name="assay_rt" value="160"/>
+			<UserParam type="float" name="norm_RT" value="0.726963569223881"/>
+			<UserParam type="float" name="rt_score" value="0.0730364307761192"/>
+			<UserParam type="float" name="var_norm_rt_score" value="0.000730364307761192"/>
+			<UserParam type="float" name="var_intensity_score" value="0.990967267076626"/>
+			<UserParam type="float" name="nr_peaks" value="3"/>
+			<UserParam type="float" name="sn_ratio" value="2.25403232473119"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.812720756566743"/>
+			<UserParam type="float" name="var_mi_score" value="3.24022392894185"/>
+			<UserParam type="float" name="var_mi_weighted_score" value="3.24022392894185"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.870650720512417"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.6225018017657"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.860562650333716"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0.181818172335625"/>
+			<UserParam type="float" name="var_massdev_score" value="0.0104941341737905"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.0141272939381115"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.56598410001346"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.42079940133806"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.488849657452846"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="11"/>
+			<UserParam type="float" name="var_ms1_ppm_diff" value="0.023933009041013"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.854105802029408"/>
+			<UserParam type="float" name="var_ms1_isotope_overlap" value="0"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.29984118126958"/>
+			<UserParam type="float" name="PrecursorMZ" value="510.05"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+		</feature>
+		<feature id="f_16250062551099875712">
+			<position dim="0">145.392713844776</position>
+			<position dim="1">500.01</position>
+			<intensity>23954.4</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>2.29984</overallquality>
+			<charge>0</charge>
+			<subordinate>
+				<feature id="f_16250062551099875712_16177748921272733768">
+					<position dim="0">145.392713844776</position>
+					<position dim="1">504.01</position>
+					<intensity>13066</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="504.01"/>
+					<UserParam type="float" name="peak_apex_position" value="145"/>
+					<UserParam type="string" name="native_id" value="16"/>
+					<UserParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<UserParam type="float" name="total_xic" value="13185.1150016785"/>
+					<UserParam type="float" name="total_mi" value="3.7216117239699"/>
+					<UserParam type="float" name="logSN" value="0.812720763688243"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_16250062551099875712_7276556891837796968">
+					<position dim="0">145.392713844776</position>
+					<position dim="1">504.15</position>
+					<intensity>6533.01</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="504.15"/>
+					<UserParam type="float" name="peak_apex_position" value="145"/>
+					<UserParam type="string" name="native_id" value="17"/>
+					<UserParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<UserParam type="float" name="total_xic" value="6592.55750083923"/>
+					<UserParam type="float" name="total_mi" value="3.7216117239699"/>
+					<UserParam type="float" name="logSN" value="0.812720763688243"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_16250062551099875712_1147219038608936718">
+					<position dim="0">145.392713844776</position>
+					<position dim="1">504.25</position>
+					<intensity>4355.34</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>0</charge>
+					<UserParam type="float" name="MZ" value="504.25"/>
+					<UserParam type="float" name="peak_apex_position" value="145"/>
+					<UserParam type="string" name="native_id" value="18"/>
+					<UserParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<UserParam type="float" name="total_xic" value="4395.03837323189"/>
+					<UserParam type="float" name="total_mi" value="3.7216117239699"/>
+					<UserParam type="float" name="logSN" value="0.812720742323742"/>
+					<UserParam type="string" name="FeatureLevel" value="MS2"/>
+				</feature>
+				<feature id="f_16250062551099875712_11115414975438642789">
+					<position dim="0">145.392713844776</position>
+					<position dim="1">500.01</position>
+					<intensity>10614.4</intensity>
+					<quality dim="0">0</quality>
+					<quality dim="1">0</quality>
+					<overallquality>0</overallquality>
+					<charge>2</charge>
+					<UserParam type="string" name="native_id" value="PEPTIDEF_Precursor_i0"/>
+					<UserParam type="float" name="peak_apex_int" value="1178.41558837891"/>
+					<UserParam type="string" name="FeatureLevel" value="MS1"/>
+				</feature>
+			</subordinate>
+			<UserParam type="string" name="potentialOutlier" value="none"/>
+			<UserParam type="float" name="initialPeakQuality" value="1.25"/>
+			<UserParam type="float" name="total_xic" value="24172.7108757496"/>
+			<UserParam type="float" name="total_mi" value="3.7216117239699"/>
+			<UserParam type="string" name="PeptideRef" value="PEPTIDEF"/>
+			<UserParam type="float" name="leftWidth" value="55"/>
+			<UserParam type="float" name="rightWidth" value="195"/>
+			<UserParam type="float" name="peak_apices_sum" value="2633.01913452148"/>
+			<UserParam type="float" name="var_xcorr_coelution" value="0"/>
+			<UserParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
+			<UserParam type="float" name="var_xcorr_shape" value="0.999999999999999"/>
+			<UserParam type="float" name="var_xcorr_shape_weighted" value="1"/>
+			<UserParam type="float" name="var_library_corr" value="0.999260081289737"/>
+			<UserParam type="float" name="var_library_rmsd" value="0.0101010101010101"/>
+			<UserParam type="float" name="var_library_sangle" value="0.0275987681107524"/>
+			<UserParam type="float" name="var_library_rootmeansquare" value="0.0109103378761075"/>
+			<UserParam type="float" name="var_library_manhattan" value="0.0196377677088557"/>
+			<UserParam type="float" name="var_library_dotprod" value="0.999800479800468"/>
+			<UserParam type="float" name="delta_rt" value="-14.6072861552238"/>
+			<UserParam type="float" name="assay_rt" value="160"/>
+			<UserParam type="float" name="norm_RT" value="0.726963569223881"/>
+			<UserParam type="float" name="rt_score" value="0.0730364307761192"/>
+			<UserParam type="float" name="var_norm_rt_score" value="0.000730364307761192"/>
+			<UserParam type="float" name="var_intensity_score" value="0.990967267076626"/>
+			<UserParam type="float" name="nr_peaks" value="3"/>
+			<UserParam type="float" name="sn_ratio" value="2.25403232473119"/>
+			<UserParam type="float" name="var_log_sn_score" value="0.812720756566743"/>
+			<UserParam type="float" name="var_mi_score" value="3.24022392894185"/>
+			<UserParam type="float" name="var_mi_weighted_score" value="3.24022392894185"/>
+			<UserParam type="float" name="var_mi_ratio_score" value="0.870650720512417"/>
+			<UserParam type="float" name="xx_lda_prelim_score" value="6.6225018017657"/>
+			<UserParam type="float" name="var_isotope_correlation_score" value="0.860562650333716"/>
+			<UserParam type="float" name="var_isotope_overlap_score" value="0.181818172335625"/>
+			<UserParam type="float" name="var_massdev_score" value="0.0104941341737905"/>
+			<UserParam type="float" name="var_massdev_score_weighted" value="0.0141272939381115"/>
+			<UserParam type="float" name="var_bseries_score" value="0"/>
+			<UserParam type="float" name="var_yseries_score" value="0"/>
+			<UserParam type="float" name="var_dotprod_score" value="0.56598410001346"/>
+			<UserParam type="float" name="var_manhatt_score" value="1.42079940133806"/>
+			<UserParam type="float" name="var_ms1_xcorr_shape" value="0.488849657452846"/>
+			<UserParam type="float" name="var_ms1_xcorr_coelution" value="11"/>
+			<UserParam type="float" name="var_ms1_ppm_diff" value="0.0195308594010019"/>
+			<UserParam type="float" name="var_ms1_isotope_correlation" value="0.968503425892327"/>
+			<UserParam type="float" name="var_ms1_isotope_overlap" value="1.5"/>
+			<UserParam type="float" name="main_var_xx_swath_prelim_score" value="2.29984118126958"/>
+			<UserParam type="float" name="PrecursorMZ" value="500.01"/>
+			<UserParam type="float" name="xx_swath_prelim_score" value="0"/>
+		</feature>
+	</featureList>
+</featureMap>

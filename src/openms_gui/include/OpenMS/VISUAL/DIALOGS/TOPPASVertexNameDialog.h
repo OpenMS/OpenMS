@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,17 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPASVERTEXNAMEDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPASVERTEXNAMEDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASVertexNameDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class TOPPASVertexNameDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -49,8 +53,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI TOPPASVertexNameDialog :
-    public QDialog,
-    public Ui::TOPPASVertexNameDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -58,10 +61,16 @@ public:
 
     /// Constructor
     TOPPASVertexNameDialog(const QString& name, const QString& input_regex = QString());
+    ~TOPPASVertexNameDialog();
 
     /// Returns the name
     QString getName();
+
+
+
+  private:
+    Ui::TOPPASVertexNameDialogTemplate* ui_;
+
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILESDIALOG_H

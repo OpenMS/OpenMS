@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,10 +51,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 
-#include <QtCore/QFile>
-#include <QtCore/QProcess>
-#include <QDir>
-#include <QDebug>
+#include <QtCore/QDir>
+
 #include <iostream>
 #include <fstream>
 
@@ -84,9 +82,12 @@ using namespace std;
         </table>
     </CENTER>
 
-    @em Crux must be installed before this wrapper can be used. 
+    @em Crux must be installed before this wrapper can be used. This should be the case for the installers.
 
     The default parameters are set for a high resolution instrument.
+    See the following publication: <br>
+    Christopher Y. Park, Aaron A. Klammer, Lukas Käll, Michael J. MacCoss and William Stafford Noble.
+    "Rapid and accurate peptide identification from tandem mass spectra." Journal of Proteome Research. 7(7):3022-3027, 2008. doi: 10.1021/pr800127y
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_CruxAdapter.cli
@@ -103,7 +104,11 @@ class TOPPCruxAdapter :
 {
 public:
   TOPPCruxAdapter() :
-    TOPPBase("CruxAdapter", "Identifies MS/MS spectra using Crux.")
+    TOPPBase("CruxAdapter", "Identifies MS/MS spectra using Crux.", true,
+      {
+        { "Park CI, Klammer AA, Käll L, MacCoss MJ, Noble WS", "Rapid and accurate peptide identification from tandem mass spectra", "J Proteome Res 7(7):3022-3027, 2008.", "10.1021/pr800127y" }
+      }
+    )
   {
   }
 
@@ -118,8 +123,12 @@ protected:
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
     registerInputFile_("crux_executable", "<executable>",
       // choose the default value according to the platform where it will be executed
-      "crux.exe",
-      "Crux executable of the installation e.g. 'Crux.exe'", true, false, ListUtils::create<String>("skipexists"));
+      #ifdef OPENMS_WINDOWSPLATFORM
+                     "crux.exe",
+      #else
+                     "crux",
+      #endif
+      "Crux executable of the installation e.g. 'crux.exe'", true, false, ListUtils::create<String>("skipexists"));
 
     //
     // Optional parameters //
@@ -147,14 +156,19 @@ protected:
     registerStringOption_("digestion", "<choice>", "full-digest", "Full, partial or non specific digestion", false, false);
     setValidStrings_("digestion", ListUtils::create<String>("full-digest,partial-digest,non-specific-digest"));
     registerIntOption_("allowed_missed_cleavages", "<num>", 0, "Number of possible cleavage sites missed by the enzyme, maximum value is 5; for enzyme search", false, false);
-    registerStringOption_("custom_enzyme", "<enzyme description>", "", "Specify rules for in silico digestion of protein sequences. Overrides the enzyme option. Two lists of residues are given enclosed in square brackets or curly braces and separated by a |. The first list contains residues required/prohibited before the cleavage site and the second list is residues after the cleavage site.  ", false, false); 
-    registerStringOption_("decoy_prefix", "<decoy_prefix>", "decoy_", "Specifies the prefix of the protein names that indicate a decoy", false, false); 
+    registerStringOption_("custom_enzyme", "<enzyme description>", "", "Specify rules for in silico digestion of protein sequences. Overrides the enzyme option. Two lists of residues are given enclosed in square brackets or curly braces and separated by a |. The first list contains residues required/prohibited before the cleavage site and the second list is residues after the cleavage site.  ", false, true);
+    registerStringOption_("decoy_prefix", "<decoy_prefix>", "decoy_", "Specifies the prefix of the protein names that indicate a decoy", false, true);
+
+    registerStringOption_("decoy-format", "<choice>", "shuffle", "Decoy generation method either by reversing the sequence or shuffling it.", false, false);
+    setValidStrings_("decoy-format", ListUtils::create<String>("none,shuffle,peptide-reverse,protein-reverse"));
+    registerStringOption_("keep-terminal-aminos", "<choice>", "NC", "Whether to keep N and C terminal in place or also shuffled / reversed.", false, false);
+    setValidStrings_("keep-terminal-aminos", ListUtils::create<String>("N,C,NC,none"));
 
     //Modifications
     registerStringOption_("cterm_modifications", "<mods>", "", "Specifies C-terminal static and variable mass modifications on peptides.  Specify a comma-separated list of C-terminal modification sequences of the form: X+21.9819 Default = <empty>.", false, false);
     registerStringOption_("nterm_modifications", "<mods>", "", "Specifies N-terminal static and variable mass modifications on peptides.  Specify a comma-separated list of N-terminal modification sequences of the form: 1E-18.0106,C-17.0265 Default = <empty>.", false, false);
     registerStringOption_("modifications", "<mods>", "", "Expression for static and variable mass modifications to include. Specify a comma-separated list of modification sequences of the form: C+57.02146,2M+15.9949,1STY+79.966331,... Default = C+57.02146.", false, false);
-     
+
     // Percolator
     registerDoubleOption_("test_fdr", "<fdr>", 0.01, "False discovery rate threshold used in selecting hyperparameters during internal cross-validation and for reporting the final results.", false, false);
     registerDoubleOption_("train_fdr", "<fdr>", 0.01, "False discovery rate threshold to define positive examples in training.", false, false);
@@ -240,14 +254,14 @@ protected:
       db_name = full_db_name;
     }
 
-    const String tmp_dir = makeTempDirectory_();
+    //tmp_dir
+    String tmp_dir = makeAutoRemoveTempDirectory_();
 
     String output_dir = tmp_dir + "crux-output";
     String out_dir_q = QDir::toNativeSeparators((output_dir + "/").toQString());
     String concat = " --concat T"; // concat target and decoy
     String parser = " --spectrum-parser mstoolkit "; // only this parser correctly parses our .mzML files
 
-    writeDebug_("Creating temporary directory '" + tmp_dir + "'", 1);
     String tmp_mzml = tmp_dir + "input.mzML";
 
     // Low memory conversion
@@ -273,6 +287,8 @@ protected:
       String params = "--overwrite T --peptide-list T --num-threads " + String(getIntOption_("threads"));
       params += " --missed-cleavages " + String(getIntOption_("allowed_missed_cleavages"));
       params += " --digestion " + getStringOption_("digestion");
+      params += " --decoy-format " + getStringOption_("decoy-format");
+      params += " --keep-terminal-aminos " + getStringOption_("keep-terminal-aminos");
       if (!getStringOption_("enzyme").empty()) params += " --enzyme " + getStringOption_("enzyme");
       if (!getStringOption_("custom_enzyme").empty()) params += " --custom-enzyme " + getStringOption_("custom_enzyme");
       if (!getStringOption_("modifications").empty()) params += " --mods-spec " + getStringOption_("modifications");
@@ -295,18 +311,16 @@ protected:
       }
       process_params << db_name.toQString() << idx_name.toQString();
 
-      qDebug() << process_params;
-
-      int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
-      if (status != 0)
+      //-------------------------------------------------------------
+      // run tide-index
+      //-------------------------------------------------------------
+      writeLog_("Executing Crux (tide-index)...");
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
+      if (exit_code != EXECUTION_OK)
       {
-        writeLog_("Crux problem. Aborting! Calling command was: '" + 
-            crux_executable + " \"" + params + " " + db_name + " " + idx_name + "\"'.\nDoes the Crux executable exist?");
-        return EXTERNAL_PROGRAM_ERROR;
+        return exit_code;
       }
     }
-
-    std::cout << " Done running tide-index ... " << std::endl;
 
     // run crux tide-search
     {
@@ -346,18 +360,17 @@ protected:
         process_params << s.toQString();
       }
       process_params << tmp_mzml.toQString() << idx_name.toQString();
-      qDebug() << process_params;
 
-      int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
-      if (status != 0)
+      //-------------------------------------------------------------
+      // run tide-index
+      //-------------------------------------------------------------
+      writeLog_("Executed Crux (tide-search)...");
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
+      if (exit_code != EXECUTION_OK)
       {
-        writeLog_("Crux problem. Aborting! Calling command was: '" + 
-            crux_executable + " \"" + params + " " + tmp_mzml + " " + idx_name + "\"'.\nDoes the Crux executable exist?");
-        return EXTERNAL_PROGRAM_ERROR;
+        return exit_code;
       }
     }
-
-    std::cout << " Done running tide-search ... " << std::endl;
 
     // run crux percolator (currently we dont have much choice in the matter)
     if (run_percolator)
@@ -393,17 +406,17 @@ protected:
         process_params << s.toQString();
       }
       process_params << input.toQString();
-      qDebug() << process_params;
 
-      int status = QProcess::execute(crux_executable.toQString(), process_params); // does automatic escaping etc...
-      if (status != 0)
+      //-------------------------------------------------------------
+      // run percolator
+      //-------------------------------------------------------------
+      writeLog_("Executing Crux (percolator)...");
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(crux_executable.toQString(), process_params);
+      if (exit_code != EXECUTION_OK)
       {
-        writeLog_("Crux problem. Aborting! Calling command was: '" + crux_executable + " \"" + inputfile_name + "\"'.\nDoes the Crux executable exist?");
-        return EXTERNAL_PROGRAM_ERROR;
+        return exit_code;
       }
     }
-
-    std::cout << " Done running percolator ... " << std::endl;
 
     //-------------------------------------------------------------
     // writing IdXML output
@@ -434,14 +447,10 @@ protected:
 
     IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
-    // remove tempdir
-    removeTempDir_(tmp_dir);
-
     return EXECUTION_OK;
   }
 
 };
-
 
 int main(int argc, const char** argv)
 {

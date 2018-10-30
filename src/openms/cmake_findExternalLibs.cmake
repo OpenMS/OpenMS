@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -106,7 +106,7 @@ find_package(BZip2 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find eigen3
-find_package(Eigen3 3.1.0 REQUIRED)
+find_package(Eigen3 3.3.4 REQUIRED)
 
 #------------------------------------------------------------------------------
 # Find geometric tools - wildmagick 5
@@ -119,6 +119,7 @@ endif()
 #------------------------------------------------------------------------------
 # Find Crawdad libraries if requested
 # cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
+## TODO check if necessary
 if (WITH_CRAWDAD)
   message(STATUS "Will compile with Crawdad support: ${Crawdad_DIR}" )
   find_package(Crawdad REQUIRED)
@@ -144,16 +145,27 @@ endif()
 #------------------------------------------------------------------------------
 # QT
 #------------------------------------------------------------------------------
-SET(QT_MIN_VERSION "4.8.1")
+SET(QT_MIN_VERSION "5.5.0")
 
 # find qt
-find_package(Qt4 REQUIRED QtCore QtNetwork)
+## TODO Use the component variable during install time 
+## Why were many more QT modules linked? Removed for now until complaints.
+set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
+find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
-IF (NOT QT4_FOUND)
-  message(STATUS "QT4 not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+IF (NOT Qt5Core_FOUND)
+  message(STATUS "QT5Core not found!")
+  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
+ELSE()
+  message(STATUS "Found Qt ${Qt5Core_VERSION}")
 ENDIF()
-include(${QT_USE_FILE})
-include(UseQt4)
+
+
+##TODO check if we can integrate the next lines into the openms_add_library cmake macro
+add_definitions(${Qt5Core_DEFINITIONS})
+add_definitions(${Qt5Network_DEFINITIONS})
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
+
 
 #------------------------------------------------------------------------------

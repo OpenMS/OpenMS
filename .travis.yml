@@ -18,9 +18,11 @@ addons:
       sources:
          - ubuntu-toolchain-r-test
          - boost-latest
-         - george-edison55-precise-backports
+         - sourceline: 'ppa:beineri/opt-qt591-trusty'
       packages:
          - cmake
+         - qt59base
+         - qt59svg
          - cmake-data
          - g++-4.8
          - python-dev
@@ -37,17 +39,13 @@ addons:
          - libxerces-c3.1
          - libxerces-c-dev
          - libicu-dev
-         - qt4-dev-tools
-         - libqt4-dev
-         - libqt4-core
-         - libqt4-gui
          - libsvm-dev
          - libsvm3
-         - libglpk36
-         - libglpk-dev
          - subversion
          - doxygen 
          - graphviz
+         - libglpk36
+         - libglpk-dev
          - coinor-cbc
          - coinor-libcgl1
          - coinor-libclp1

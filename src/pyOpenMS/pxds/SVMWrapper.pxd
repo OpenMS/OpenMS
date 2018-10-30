@@ -58,8 +58,8 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
         # TODO nested STL
         # SVMData(libcpp_vector[ libcpp_vector[ libcpp_pair[ Int, double ] ] ] &seqs, libcpp_vector[ double ] &lbls) nogil except +
         bool operator==(SVMData &rhs) nogil except +
-        bool store(String &filename) nogil except +
-        bool load(String &filename) nogil except +
+        bool store(const String &filename) nogil except +
+        bool load(const String &filename) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS::SVMWrapper":

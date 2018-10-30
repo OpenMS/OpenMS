@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_FASTACONTAINER_H
-#define OPENMS_DATASTRUCTURES_FASTACONTAINER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -199,6 +198,17 @@ public:
     return f_.atEnd() && offsets_.empty();
   }
 
+  /// resets reading of the FASTA file, enables fresh reading of the FASTA from the beginning
+  void reset()
+  {
+    f_.setPosition(0);
+    offsets_.clear();
+    data_fg_.clear();
+    data_bg_.clear();
+    chunk_offset_ = 0;
+  }
+
+
   /** @brief NOT the number of entries in the FASTA file, but merely the number of already read entries (since we do not know how many are still to come)
 
       @note Data in the background cache is included here, i.e. access to size()-1 using readAt() might be slow 
@@ -251,9 +261,12 @@ public:
   */
   bool activateCache()
   {
-    static int count = 0;
-    ++count;
-    return (count == 1); // only true on first call.
+    if (!activate_count_)
+    { 
+      activate_count_ = 1;
+      return true;
+    }
+    return false; 
   }
 
   /** @brief no-op (since data is already fully available as vector)
@@ -261,10 +274,12 @@ public:
   */
   bool cacheChunk(int /*suggested_size*/)
   {
-    // NOOP, since we already have all the data...
-    static int count = 0;
-    ++count;
-    return (count == 1); // only true on first call.
+    if (!cache_count_)
+    { 
+      cache_count_ = 1;
+      return true;
+    }
+    return false; 
   }
 
   /** @brief active data spans the full range, i.e. size of container
@@ -301,10 +316,18 @@ public:
     return data_.size();
   }
 
+  /// required for template parameters!
+  void reset()
+  {
+    activate_count_ = 0;
+    cache_count_ = 0;
+  }
+
 private:
   const std::vector<FASTAFile::FASTAEntry>& data_; ///< reference to existing data
+  int activate_count_ = 0;
+  int cache_count_ = 0;
 };
 
 } // namespace OpenMS
 
-#endif // OPENMS_DATASTRUCTURES_FASTACONTAINER_H

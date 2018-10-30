@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,13 +38,8 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/RANSACModelLinear.h>
 #include <OpenMS/MATH/MISC/RANSACModelQuadratic.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include <algorithm>
-#include <iterator>
-#include <map>
 
 namespace OpenMS
 {
@@ -129,7 +124,8 @@ namespace OpenMS
     if (use_ppm_) // the above prediction is the ppm error
     { // ... so we convert to actual mass diff
       predict = Math::ppmToMass(-predict, mz) + mz;
-    } else
+    }
+    else
     {
       predict = (-predict) + mz;
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MSSPECTRUM_H
-#define OPENMS_KERNEL_MSSPECTRUM_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -250,49 +249,6 @@ public:
 
     /// Sets the integer meta data arrays
     void setIntegerDataArrays(const IntegerDataArrays& ida);
-
-    /// Returns a mutable reference to the first integer meta data array with the given name
-    inline IntegerDataArray& getIntegerDataArrayByName(String name)
-    {
-      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
-        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a mutable reference to the first string meta data array with the given name
-    inline StringDataArray& getStringDataArrayByName(String name)
-    {
-      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
-        [&name](const StringDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a mutable reference to the first float meta data array with the given name
-    inline FloatDataArray& getFloatDataArrayByName(String name)
-    {
-      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
-        [&name](const FloatDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first integer meta data array with the given name
-    inline const IntegerDataArray& getIntegerDataArrayByName(String name) const
-    {
-      return *std::find_if(integer_data_arrays_.begin(), integer_data_arrays_.end(), 
-        [&name](const IntegerDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first string meta data array with the given name
-    inline const StringDataArray& getStringDataArrayByName(String name) const
-    {
-      return *std::find_if(string_data_arrays_.begin(), string_data_arrays_.end(), 
-        [&name](const StringDataArray& da) { return da.getName() == name; } );
-    }
-
-    /// Returns a const reference to the first float meta data array with the given name
-    inline const FloatDataArray& getFloatDataArrayByName(String name) const
-    {
-      return *std::find_if(float_data_arrays_.begin(), float_data_arrays_.end(), 
-        [&name](const FloatDataArray& da) { return da.getName() == name; } );
-    }
-
     //@}
 
     ///@name Sorting peaks
@@ -547,5 +503,3 @@ protected:
   }
 
 } // namespace OpenMS
-
-#endif // OPENMS_KERNEL_MSSPECTRUM_H

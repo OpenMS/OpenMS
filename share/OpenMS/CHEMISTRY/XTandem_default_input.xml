@@ -31,10 +31,10 @@
 		peaks in the spectrum. X! tandem does not do any peak finding: it only
 		limits the peaks used by this parameter, and the dynamic range parameter.</note>
 	<note type="input" label="spectrum, maximum parent charge">4</note>
-	<note type="input" label="spectrum, use noise suppression">yes</note>
-	<note type="input" label="spectrum, minimum parent m+h">500.0</note>
-	<note type="input" label="spectrum, minimum fragment mz">150.0</note>
-	<note type="input" label="spectrum, minimum peaks">15</note> 
+	<note type="input" label="spectrum, use noise suppression">yes</note>   !!!! default: no
+	<note type="input" label="spectrum, minimum parent m+h">500.0</note>    !!!! default: 850, but 500 is recommended
+	<note type="input" label="spectrum, minimum fragment mz">150.0</note>   !!!! default: 200
+	<note type="input" label="spectrum, minimum peaks">15</note>            !!!! default: 5
 	<note type="input" label="spectrum, threads">1</note>
 	<note type="input" label="spectrum, sequence batch size">1000</note>
 	
@@ -73,25 +73,28 @@
 		To denote cleavage at any residue, use [X]|[X] and reset the 
 		scoring, maximum missed cleavage site parameter (see below) to something like 50.
 		</note>
-  <note type="input" label="protein, cleavage semi">yes</note>
-	<note type="input" label="protein, modified residue mass file"></note>
-	<note type="input" label="protein, cleavage C-terminal mass change">+17.002735</note>
-	<note type="input" label="protein, cleavage N-terminal mass change">+1.007825</note>
-	<note type="input" label="protein, N-terminal residue modification mass">0.0</note>
-	<note type="input" label="protein, C-terminal residue modification mass">0.0</note>
-	<note type="input" label="protein, homolog management">no</note>
-		<note>if yes, an upper limit is set on the number of homologues kept for a particular spectrum</note>
+  <note type="input" label="protein, cleavage semi">no</note>
+  <note type="input" label="protein, quick acetyl">yes</note>
+  <note type="input" label="protein, quick pyrolidone">yes</note>
+  <note type="input" label="protein, modified residue mass file"></note>
+  <note type="input" label="protein, cleavage C-terminal mass change">+17.002735</note>
+  <note type="input" label="protein, cleavage N-terminal mass change">+1.007825</note>
+  <note type="input" label="protein, N-terminal residue modification mass">0.0</note>
+  <note type="input" label="protein, C-terminal residue modification mass">0.0</note>
+  <note type="input" label="protein, homolog management">no</note>
+      <note>if yes, an upper limit is set on the number of homologues kept for a particular spectrum</note>
 
 <note>model refinement parameters</note>
-	<note type="input" label="refine">yes</note>
+	<note type="input" label="refine">no</note>                                     !!!!! default: no, but can massively boost #PSM's
 	<note type="input" label="refine, modification mass"></note>
 	<note type="input" label="refine, sequence path"></note>
 	<note type="input" label="refine, tic percent">20</note>
-	<note type="input" label="refine, spectrum synthesis">yes</note>
+	<note type="input" label="refine, spectrum synthesis">yes</note>                !!!!! default: no
 	<note type="input" label="refine, maximum valid expectation value">0.1</note>
 	<note type="input" label="refine, potential N-terminus modifications">+42.010565@[</note>
-	<note type="input" label="refine, potential C-terminus modifications"></note>
-	<note type="input" label="refine, unanticipated cleavage">yes</note>
+	<note type="input" label="refine, potential C-terminus modifications"></note>   !!!!! might be deprecated
+	<note type="input" label="refine, cleavage semi">yes</note>                     !!!!! default: no
+	<note type="input" label="refine, unanticipated cleavage">no</note>
 	<note type="input" label="refine, potential modification mass"></note>
 	<note type="input" label="refine, point mutations">no</note>
 	<note type="input" label="refine, use potential modifications for full refinement">no</note>
@@ -119,8 +122,6 @@
 		<note>if yes, cyclic peptide sequence permutation is used to pad the scoring histograms</note>
 	<note type="input" label="scoring, include reverse">no</note>
 		<note>if yes, then reversed sequences are searched at the same time as forward sequences</note>
-	<note type="input" label="scoring, cyclic permutation">no</note>
-	<note type="input" label="scoring, include reverse">no</note>
 
 <note>output parameters</note>
 	<note type="input" label="output, log path"></note>

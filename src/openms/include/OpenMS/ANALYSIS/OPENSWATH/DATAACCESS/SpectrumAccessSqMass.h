@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSSQMASS_H
-#define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSSQMASS_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -42,7 +41,7 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 #include <boost/shared_ptr.hpp>
 #include <algorithm>    // std::lower_bound, std::upper_bound, std::sort
@@ -93,11 +92,11 @@ public:
     typedef OpenMS::MSChromatogram MSChromatogramType;
 
     /// Constructor
-    SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler);
+    SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler);
 
-    SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices);
+    SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices);
 
-    SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> indices);
+    SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices);
 
     /// Destructor
     ~SpectrumAccessSqMass() override;
@@ -134,6 +133,5 @@ private:
   };
 } //end namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSSQMASS_H
 
 

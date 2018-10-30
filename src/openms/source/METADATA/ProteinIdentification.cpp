@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,6 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/METADATA/PeptideHit.h>
-#include <sstream>
-#include <algorithm>
 #include <numeric>
 
 
@@ -450,5 +445,11 @@ namespace OpenMS
   {
     return search_parameters_;
   }
+
+  ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters()
+  {
+    return search_parameters_;
+  }
+
 
 } // namespace OpenMS

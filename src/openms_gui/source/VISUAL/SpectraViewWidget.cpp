@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,12 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraViewWidget.h>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QComboBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMenu>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMenu>
 
 namespace OpenMS
 {
@@ -66,7 +66,7 @@ namespace OpenMS
     ///@improvement write the visibility-status of the columns in toppview.ini and read at start
 
     QStringList qsl; // names of searchable columns
-    qsl << "index" << "RT" << "PC m/z" << "dissociation" << "scan" << "zoom";
+    qsl << "index" << "RT" << "precursor m/z" << "dissociation" << "scan" << "zoom";
 
     QStringList header_labels; /// @improvement make this global to change only once (otherwise changes must be applied in several slots too!)
     header_labels.append(QString("MS level"));
@@ -314,6 +314,20 @@ namespace OpenMS
       parent_stack.push_back(nullptr);
       bool fail = false;
 
+      if (cl.isIonMobilityData())
+      {
+        // replace RT with Ion Mobility as a header
+        QStringList header_labels;
+        header_labels.append(QString("MS level"));
+        header_labels.append(QString("index"));
+        header_labels.append(QString("Ion Mobility"));
+        header_labels.append(QString("precursor m/z"));
+        header_labels.append(QString("dissociation"));
+        header_labels.append(QString("scan type"));
+        header_labels.append(QString("zoom"));
+        spectra_treewidget_->setHeaderLabels(header_labels);
+      }
+
       for (Size i = 0; i < cl.getPeakData()->size(); ++i)
       {
         const MSSpectrum& current_spec = (*cl.getPeakData())[i];
@@ -382,16 +396,16 @@ namespace OpenMS
 
         if (!current_precursors.empty() || current_spec.metaValueExists("analyzer scan offset"))
         {
-          double pc_val;
+          double precursor_mz;
           if (current_spec.metaValueExists("analyzer scan offset"))
           {
-            pc_val = current_spec.getMetaValue("analyzer scan offset");
+            precursor_mz = current_spec.getMetaValue("analyzer scan offset");
             item->setText(4, "-");
           }
           else 
           {
             const Precursor& current_pc = current_precursors[0];
-            pc_val = current_pc.getMZ();
+            precursor_mz = current_pc.getMZ();
             if (!current_pc.getActivationMethods().empty())
             {
               QString t;
@@ -410,7 +424,7 @@ namespace OpenMS
               item->setText(4, "-");
             }
           }
-          item->setText(3, QString::number(pc_val));
+          item->setText(3, QString::number(precursor_mz));
         }
         else
         {
@@ -579,7 +593,7 @@ namespace OpenMS
       spectra_combo_box_->addItems(qsl);
       spectra_combo_box_->setCurrentIndex(curr);
 
-      LayerData::ExperimentSharedPtrType exp;
+      LayerData::ConstExperimentSharedPtrType exp;
       exp = cl.getPeakData();
 
       if (cl.chromatogram_flag_set())
@@ -593,6 +607,7 @@ namespace OpenMS
       }
 
       // try to retrieve the map from the cache if available
+      // TODO: same precursor mass / different precursors are not supported! 
       typedef std::set<Precursor, Precursor::MZLess> PCSetType;
       std::map<Precursor, std::vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
       if (map_precursor_to_chrom_idx_cache_.find((size_t)(exp.get())) != map_precursor_to_chrom_idx_cache_.end())
@@ -633,13 +648,13 @@ namespace OpenMS
           QString mz_string = QString::number(mit->first.getMZ());
           QString charge = QString::number(mit->first.getCharge());
           QString description = "";
-          if (mit->first.metaValueExists("peptide_sequence"))
-          {
-            description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
-          }
           if (mit->first.metaValueExists("description"))
           {
             description = String(mit->first.getMetaValue("description")).toQString();
+          }
+          if (mit->first.metaValueExists("peptide_sequence"))
+          {
+            description = String(mit->first.getMetaValue("peptide_sequence")).toQString();
           }
 
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms

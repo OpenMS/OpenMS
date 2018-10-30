@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "Op
         Size getNumberOfVariableModifications() nogil except +
         void addModification(ModificationDefinition &mod_def) nogil except +
         void setModifications(libcpp_set[ ModificationDefinition ] &mod_defs) nogil except +
-        void setModifications(String &fixed_modifications, String &variable_modifications) nogil except +
+        void setModifications(const String &fixed_modifications, String &variable_modifications) nogil except +
         void setModifications(StringList &fixed_modifications, StringList &variable_modifications) nogil except +
         libcpp_set[ ModificationDefinition ] getModifications() nogil except +
         libcpp_set[ ModificationDefinition ]  getFixedModifications() nogil except +
@@ -34,3 +34,4 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "Op
         libcpp_set[ String ] getVariableModificationNames() nogil except +
         bool isCompatible(AASequence &peptide) nogil except +
         void inferFromPeptides(libcpp_vector[ PeptideIdentification ] &peptides) nogil except +
+

@@ -1,4 +1,4 @@
-PrecursorMz	ProductMz	NormalizedRetentionTime	LibraryIntensity	StrippedSequence	ProteinName	ModifiedSequence	PrecursorCharge	FragmentType	FragmentCharge	FragmentSeriesNumber
+PrecursorMz	FragmentMz	NormalizedRetentionTime	RelativeFragmentIntensity	StrippedSequence	ProteinId	ModifiedSequence	PrecursorCharge	FragmentType	FragmentCharge	FragmentSeriesNumber
 500	628.435	0.44	1	PEPTIDEAR	ProteinA	PEPTIDEAR	2	b	2	1
 500	654.38	0.44	2	PEPTIDEAR	ProteinA	PEPTIDEAR	2	b	2	2
 501	618.31	0.2	10000	PEPTIDECEK	ProteinA	PEPT(Phospho)IDEC(Carbamidomethyl)EK	2	y	2	3

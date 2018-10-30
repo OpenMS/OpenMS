@@ -6,6 +6,7 @@ set(sources_list_h
 AcqusHandler.h
 FidHandler.h
 IndexedMzMLDecoder.h
+IndexedMzMLHandler.h
 MascotXMLHandler.h
 MzDataHandler.h
 MzIdentMLDOMHandler.h

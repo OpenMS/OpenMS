@@ -1,8 +1,9 @@
+//! [ResidueModification]
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -27,7 +28,6 @@
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -62,10 +62,11 @@ int main()
   // to relate the name of the mod to its attributes
   aas.setModification(2, "Carbamidomethyl (C)");
   cout << aas[2].getName() << " "
-       << aas[2].getFormula().toString() << " "
-       << aas[2].getModificationName() << " "
-       << aas[2].getMonoWeight() << endl;
- 
+   	<< aas[2].getFormula().toString() << " "
+   	<< aas[2].getModificationName() << " "
+   	<< aas[2].getMonoWeight() << endl;
+
   return 0;
 } //end of main
-         	   	   	             	   	   	               	   	   	  
+
+//! [ResidueModification]

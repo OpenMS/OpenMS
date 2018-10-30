@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,12 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SONARSCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_SONARSCORING_H
+#pragma once
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -68,9 +67,9 @@ public:
     //
 
     void computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
-                      const std::vector<OpenSwath::LightTransition> & transitions,
-                      std::vector<OpenSwath::SwathMap>& swath_maps,
-                      OpenSwath_Scores & scores);
+                            const std::vector<OpenSwath::LightTransition> & transitions,
+                            const std::vector<OpenSwath::SwathMap>& swath_maps,
+                            OpenSwath_Scores & scores);
 
 private:
 
@@ -93,5 +92,4 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_SONARSCORING_H
 

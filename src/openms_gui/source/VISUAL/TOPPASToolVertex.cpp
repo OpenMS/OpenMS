@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,8 +43,8 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASToolConfigDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 
-#include <QtGui/QGraphicsScene>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QGraphicsScene>
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -177,7 +177,7 @@ namespace OpenMS
       if (!File::exists(old_ini_file))
       {
         String msg = String("Could not open old INI file '") + old_ini_file + "'! File does not exist!";
-        if (getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
+        if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
         else LOG_ERROR << msg << std::endl;
         tool_ready_ = false;
         return false;
@@ -195,7 +195,7 @@ namespace OpenMS
           " returned with exit code (" + String(p.exitCode()) + "), exit status (" + String(p.exitStatus()) + ")." +
           "\noutput:\n" + String(QString(p.readAll())) +
           "\n";
-      if (getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
+      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
       else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;
@@ -203,7 +203,7 @@ namespace OpenMS
     if (!File::exists(ini_file))
     { // it would be weird to get here, since the TOPP tool ran successfully above, so INI file should exist, but nevertheless:
       String msg = String("Could not open '") + ini_file + "'! It does not exist!";
-      if (getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
+      if (getScene_() && getScene_()->isGUIMode()) QMessageBox::critical(nullptr, "Error", msg.c_str());
       else LOG_ERROR << msg << std::endl;
       tool_ready_ = false;
       return false;

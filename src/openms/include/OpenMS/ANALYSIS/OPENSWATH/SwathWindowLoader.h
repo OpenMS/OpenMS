@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,10 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
-#define OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
+#pragma once
 
 #include <OpenMS/config.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 
 #include <vector>
 
@@ -74,7 +73,8 @@ namespace OpenMS
      *
      */
     static void annotateSwathMapsFromFile(const std::string & filename,
-      std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort);
+                                          std::vector< OpenSwath::SwathMap >& swath_maps,
+                                          bool doSort);
 
     /**
      * @brief Reading a tab delimited file specifying the SWATH windows
@@ -93,10 +93,8 @@ namespace OpenMS
      *
      */
     static void readSwathWindows(const std::string & filename,
-      std::vector<double> & swath_prec_lower_,
-      std::vector<double> & swath_prec_upper_ );
+                                 std::vector<double> & swath_prec_lower_,
+                                 std::vector<double> & swath_prec_upper_ );
   };
 }
-
-#endif // OPENMS_ANALYSIS_OPENSWATH_SWATHWINDOWLOADER_H
 

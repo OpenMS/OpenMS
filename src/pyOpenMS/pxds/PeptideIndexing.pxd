@@ -16,6 +16,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS":
                                       libcpp_vector[ ProteinIdentification ] & prot_ids,
                                       libcpp_vector[ PeptideIdentification ] & pep_ids) nogil except +
 
+        String getDecoyString() nogil except +
+        bool isPrefix() nogil except +
+
 cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS::PeptideIndexing":
     cdef enum PeptideIndexing_ExitCodes "OpenMS::PeptideIndexing::ExitCodes":
         #wrap-attach:
@@ -23,7 +26,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PeptideIndexing.h>" namespace "OpenMS::Pep
         EXECUTION_OK
         DATABASE_EMPTY
         PEPTIDE_IDS_EMPTY
-        DATABASE_CONTAINS_MULTIPLES
         ILLEGAL_PARAMETERS
         UNEXPECTED_RESULT
+        DECOYSTRING_EMPTY
 

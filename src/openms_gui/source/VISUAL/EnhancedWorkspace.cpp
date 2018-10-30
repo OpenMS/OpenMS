@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,14 +29,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <QtCore/QMimeData>
-#include <QtGui/QDragEnterEvent>
-#include <QtGui/QDragMoveEvent>
-#include <QtGui/QDropEvent>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
 
 #include <QtCore/QStringList>
 
@@ -44,7 +44,7 @@ namespace OpenMS
 {
 
   EnhancedWorkspace::EnhancedWorkspace(QWidget * parent) :
-    QWorkspace(parent)
+    QMdiArea(parent)
   {
     setAcceptDrops(true);
   }
@@ -71,7 +71,7 @@ namespace OpenMS
 
   void EnhancedWorkspace::dropEvent(QDropEvent * event)
   {
-    emit dropReceived(event->mimeData(), event->source(), -1);
+    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), -1);
     event->acceptProposedAction();
   }
 

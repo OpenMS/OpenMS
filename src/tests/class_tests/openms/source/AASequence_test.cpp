@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -224,7 +224,7 @@ START_SECTION(const Residue& getResidue(Size index) const)
 END_SECTION
 
 START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge=0) const))
-  AASequence seq = AASequence::fromString("ACDEF");
+  AASequence seq = AASequence::fromString("ACDEF"); 
   TEST_EQUAL(seq.getFormula(), EmpiricalFormula("O10SH33N5C24"))
   TEST_EQUAL(seq.getFormula(Residue::Full, 1), EmpiricalFormula("O10SH33N5C24+"))
   TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
@@ -383,7 +383,7 @@ END_SECTION
 START_SECTION(bool hasSubsequence(const AASequence& peptide) const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("IANG");
-  AASequence seq3 = AASequence::fromString("AIN");
+  AASequence seq3 = AASequence::fromString("DFPP");
   TEST_EQUAL(seq1.hasSubsequence(seq2), true)
   TEST_EQUAL(seq1.hasSubsequence(seq3), false)
 END_SECTION
@@ -1106,6 +1106,19 @@ START_SECTION([EXTRA] Peptide equivalence)
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[147.035405]GER"))
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM(Oxidation)GER"))
 
+  // Test Oxidation
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+16]GER"))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147]GER"))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+15.99]GER"))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.035405]GER"))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM(Oxidation)GER"))
+
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+16]GER."))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147]GER."))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[+15.99]GER."))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM[147.035405]GER."))
+  TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString(".DFPIAM(Oxidation)GER."))
+  
   // Test Phosphorylation
   TEST_EQUAL(AASequence::fromString("PEPT(UniMod:21)TIDEK"), AASequence::fromString("PEPT(Phospho)TIDEK"))
   TEST_EQUAL(AASequence::fromString("PEPT(UniMod:21)TIDEK"), AASequence::fromString("PEPT[181]TIDEK"))
@@ -1158,6 +1171,56 @@ START_SECTION([EXTRA] testing terminal modifications)
   TEST_EQUAL(aaNoMod.getCTerminalModificationName(), "")
   TEST_EQUAL(aaNtermMod.getCTerminalModificationName(), "")
   TEST_EQUAL(aaCtermMod.getCTerminalModificationName(), "Label:18O(2)")
+
+  vector<String> fixed_mods;
+  TEST_STRING_EQUAL(aaNoMod.toBracketString(true, fixed_mods), "DFPIANGER");
+  TEST_STRING_EQUAL(aaNoMod.toBracketString(false, fixed_mods), "DFPIANGER");
+  TEST_STRING_EQUAL(aaNtermMod.toBracketString(true, fixed_mods), "n[29]DFPIANGER");
+  TEST_STRING_EQUAL(aaNtermMod.toBracketString(false, fixed_mods), "n[29.0391250319]DFPIANGER");
+  TEST_STRING_EQUAL(aaCtermMod.toBracketString(true, fixed_mods), "DFPIANGERc[21]");
+  TEST_STRING_EQUAL(aaCtermMod.toBracketString(false, fixed_mods), "DFPIANGERc[21.0112310319]");
+
+  TEST_STRING_EQUAL(aaNoMod.toUniModString(), "DFPIANGER");
+  TEST_STRING_EQUAL(aaNtermMod.toUniModString(), ".(UniMod:36)DFPIANGER");
+  TEST_STRING_EQUAL(aaCtermMod.toUniModString(), "DFPIANGER.(UniMod:193)");
+
+  // Test equivalence
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString(".(UniMod:36)DFPIANGER."))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString(".(Dimethyl)DFPIANGER."))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString("n[29]DFPIANGER"))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString("n[29.0391250319]DFPIANGER"))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString(".[29]DFPIANGER."))
+  TEST_EQUAL(AASequence::fromString(".(UniMod:36)DFPIANGER"), AASequence::fromString(".[29.0391250319]DFPIANGER."))
+
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.(UniMod:193)"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.(Label:18O(2))"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGERc[21]"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGERc[21.0112310319]"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.[21]"))
+  TEST_EQUAL(AASequence::fromString("DFPIANGER.(UniMod:193)"), AASequence::fromString(".DFPIANGER.[21.0112310319]"))
+
+  // Test "forbidden combinations" on the N/C terminal end
+
+  // UniMod 10 can only occur on C-terminal peptide on an M
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("DFPIANGER.(UniMod:10)")) // not just any C-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("DFPIANGEM(UniMod:10)R.")) // not just any M is allowed
+  TEST_EQUAL( AASequence::fromString(".DFPIANGEM.(UniMod:10)"), AASequence::fromString(".DFPIANGEM.(UniMod:10)") )
+  TEST_EQUAL( AASequence::fromString(".DFPIANGEM(UniMod:10)"), AASequence::fromString(".DFPIANGEM.(UniMod:10)") )
+
+  // UniMod 385 can only occur on N-terminal peptide on an C
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:385).DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:385)DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:385)CFPIANGER.")) // not just any C is allowed
+  TEST_EQUAL(AASequence::fromString(".DN(UniMod:385)CFPIANGER."), AASequence::fromString(".DN(UniMod:385)CFPIANGER.")) // any N is allowed
+  TEST_EQUAL(AASequence::fromString("(UniMod:385).CFPIANGER."), AASequence::fromString("(UniMod:385).CFPIANGER."))
+  TEST_EQUAL(AASequence::fromString("(UniMod:385)CFPIANGER."), AASequence::fromString("(UniMod:385).CFPIANGER."))
+
+  // UniMod 1009 can only occur on N-terminal peptide on an C
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:1009).DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("(UniMod:1009)DFPIANGER.")) // not just any N-term is allowed
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString(".DC(UniMod:1009)CFPIANGER.")) // not just any C is allowed
+  TEST_EQUAL(AASequence::fromString("(UniMod:1009).CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER."))
+  TEST_EQUAL(AASequence::fromString("(UniMod:1009)CFPIANGER."), AASequence::fromString("(UniMod:1009).CFPIANGER.")) 
 }
 END_SECTION
 
