@@ -56,14 +56,14 @@ public:
     static constexpr const char* s_integer = "integer";
 
     virtual void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name, 
+      const std::vector<std::pair<double, String>>& time_to_name,
       const std::map< String, std::vector<Feature> >& feature_name_map,
       std::vector<String>& result
-    )=0;
+    ) = 0;
     void select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered);
     double make_score(const Feature& feature) const;
 
-    String remove_spaces(String str);
+    String remove_spaces(String str) const;
 
     void setNNThreshold(const Int nn_threshold);
     Int getNNThreshold() const;
@@ -92,6 +92,12 @@ public:
     void setScoreWeights(const std::map<String, String>& score_weights);
 
     void getDefaultParameters(Param& params);
+
+    void constructToList( // TODO: make it private and a friend class to test it
+      const FeatureMap& features,
+      std::vector<std::pair<double, String>>& time_to_name,
+      std::map<String, std::vector<Feature>>& feature_name_map
+    ) const;
 
 protected:
     void updateMembers_(); /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
@@ -126,7 +132,7 @@ private:
   {
 public:
     void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name, 
+      const std::vector<std::pair<double, String>>& time_to_name,
       const std::map< String, std::vector<Feature> >& feature_name_map,
       std::vector<String>& result
     );
@@ -136,7 +142,7 @@ public:
   {
 public:
     void optimize(
-      const std::vector<std::pair<double, String>>& time_to_name, 
+      const std::vector<std::pair<double, String>>& time_to_name,
       const std::map< String, std::vector<Feature> >& feature_name_map,
       std::vector<String>& result
     );

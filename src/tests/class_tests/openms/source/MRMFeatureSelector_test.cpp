@@ -190,6 +190,47 @@ START_SECTION(remove_spaces())
 }
 END_SECTION
 
+START_SECTION(constructToList())
+{
+  MRMFeatureSelectorQMIP selector;
+  FeatureMap feature_map;
+  FeatureXMLFile feature_file;
+  feature_file.load(features_path, feature_map);
+
+  vector<pair<double, String>> time_to_name;
+  map<String, vector<Feature>> feature_name_map;
+  selector.setSelectTransitionGroup("true");
+  selector.constructToList(feature_map, time_to_name, feature_name_map);
+
+  TEST_EQUAL(time_to_name.size(), 117)
+  TEST_EQUAL(feature_name_map.size(), 117)
+
+  sort(time_to_name.begin(), time_to_name.end());
+
+  pair<double, String> *p = nullptr;
+
+  p = &time_to_name.front();
+  TEST_REAL_SIMILAR(p->first, 0)
+  TEST_STRING_EQUAL(p->second, "arg-L")
+
+  p = &time_to_name[1];
+  TEST_REAL_SIMILAR(p->first, 0.167913821)
+  TEST_STRING_EQUAL(p->second, "orn")
+
+  p = &time_to_name[54];
+  TEST_REAL_SIMILAR(p->first, 61.76161499)
+  TEST_STRING_EQUAL(p->second, "35cgmp")
+
+  p = &time_to_name[99];
+  TEST_REAL_SIMILAR(p->first, 92.88219725)
+  TEST_STRING_EQUAL(p->second, "itp")
+
+  p = &time_to_name.back();
+  TEST_REAL_SIMILAR(p->first, 99.98770892)
+  TEST_STRING_EQUAL(p->second, "succoa")
+}
+END_SECTION
+
 START_SECTION(schedule_MRMFeaturesQMIP())
 {
   const char* s_continuous = MRMFeatureSelector::s_continuous;

@@ -122,7 +122,8 @@ namespace OpenMS
     }
   }
 
-  String MRMFeatureSelector::remove_spaces(String str) {
+  String MRMFeatureSelector::remove_spaces(String str) const
+  {
     String::iterator end_pos = std::remove(str.begin(), str.end(), ' ');
     str.erase(end_pos, str.end());
     return std::move(str);
@@ -202,11 +203,15 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureSelector::select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered)
+  void MRMFeatureSelector::constructToList(
+    const FeatureMap& features,
+    std::vector<std::pair<double, String>>& time_to_name,
+    std::map<String, std::vector<Feature>>& feature_name_map
+  ) const
   {
+    time_to_name.clear();
+    feature_name_map.clear();
     std::unordered_set<std::string> names;
-    std::vector<std::pair<double, String>> time_to_name;
-    std::map< String, std::vector<Feature> > feature_name_map;
     for (const Feature& feature : features) {
       const String component_group_name = remove_spaces(feature.getMetaValue("PeptideRef").toString());
       const double assay_retention_time = feature.getMetaValue("assay_rt");
@@ -233,6 +238,14 @@ namespace OpenMS
         feature_name_map[component_name].push_back(subordinate);
       }
     }
+  }
+
+  void MRMFeatureSelector::select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered)
+  {
+    std::vector<std::pair<double, String>> time_to_name;
+    std::map<String, std::vector<Feature>> feature_name_map;
+    constructToList(features, time_to_name, feature_name_map);
+
     sort(time_to_name.begin(), time_to_name.end());
     double window_length = getSegmentWindowLength();
     double step_length = getSegmentStepLength();
