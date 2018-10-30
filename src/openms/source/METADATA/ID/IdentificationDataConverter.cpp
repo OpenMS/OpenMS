@@ -309,8 +309,6 @@ namespace OpenMS
     vector<PeptideIdentification>& peptides, const String& protein_score,
     const String& peptide_score, bool export_oligonucleotides)
   {
-    // @TODO: export ParentMoleculeGroups
-
     proteins.clear();
     peptides.clear();
 
@@ -374,6 +372,10 @@ namespace OpenMS
           hit.addPeptideEvidence(evidence);
         }
       }
+      // sort the evidences:
+      vector<PeptideEvidence> evidences = hit.getPeptideEvidences();
+      sort(evidences.begin(), evidences.end());
+      hit.setPeptideEvidences(evidences);
       // find all steps that assigned a score:
       for (IdentificationData::ProcessingStepRef step_ref :
              query_match.processing_step_refs)
@@ -552,6 +554,7 @@ namespace OpenMS
             {
               new_group.accessions.push_back(parent_ref->accession);
             }
+            sort(new_group.accessions.begin(), new_group.accessions.end());
             if (grouping.label == "indistinguishable proteins")
             {
               protein.insertIndistinguishableProteins(new_group);
@@ -563,7 +566,10 @@ namespace OpenMS
           }
         }
       }
-
+      sort(protein.getIndistinguishableProteins().begin(),
+           protein.getIndistinguishableProteins().end());
+      sort(protein.getProteinGroups().begin(),
+           protein.getProteinGroups().end());
       proteins.push_back(protein);
     }
   }
@@ -832,7 +838,22 @@ namespace OpenMS
     dbsp.database = pisp.db;
     dbsp.database_version = pisp.db_version;
     dbsp.taxonomy = pisp.taxonomy;
-    vector<Int> charges = ListUtils::create<Int>(pisp.charges);
+    vector<Int> charges;
+    try
+    {
+      charges = ListUtils::create<Int>(pisp.charges);
+    }
+    catch (Exception::ConversionError& e) { // X! Tandem notation, e.g. "+1-+4"?
+      charges = ListUtils::create<Int>(pisp.charges, '-');
+      if ((charges.size() == 2) && (charges[0] < charges[1]))
+      {
+        for (Int z = charges[0] + 1; z < charges[1]; ++z)
+        {
+          charges.push_back(z);
+        }
+        sort(charges.begin(), charges.end());
+      }
+    }
     dbsp.charges.insert(charges.begin(), charges.end());
     dbsp.fixed_mods.insert(pisp.fixed_modifications.begin(),
                            pisp.fixed_modifications.end());
