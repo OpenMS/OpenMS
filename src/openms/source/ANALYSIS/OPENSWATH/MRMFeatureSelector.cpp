@@ -98,6 +98,7 @@ namespace OpenMS
     std::vector<String>& result
   )
   {
+    result.clear();
     std::unordered_set<std::string> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
@@ -135,6 +136,7 @@ namespace OpenMS
     std::vector<String>& result
   )
   {
+    result.clear();
     std::unordered_set<std::string> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
@@ -259,7 +261,9 @@ namespace OpenMS
     if (window_length == -1 && step_length == -1) {
       window_length = step_length = time_to_name.size();
     }
-    const size_t n_segments = std::ceil(time_to_name.size() / static_cast<double>(step_length));
+    size_t n_segments = time_to_name.size() / step_length;
+    if (time_to_name.size() % step_length)
+      ++n_segments;
     std::vector<String> result_names;
     for (size_t i = 0; i < n_segments; ++i) {
       const size_t start = step_length * i;
