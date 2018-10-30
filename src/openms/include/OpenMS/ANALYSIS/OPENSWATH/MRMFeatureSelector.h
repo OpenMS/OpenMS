@@ -99,6 +99,9 @@ public:
       std::map<String, std::vector<Feature>>& feature_name_map
     ) const;
 
+    // TODO: make it private and a friend class to test it
+    double weight_func(const double score, const String& lambda_score) const;
+
 protected:
     void updateMembers_(); /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
 
@@ -124,8 +127,6 @@ private:
       const double ub,
       const LPWrapper::Type param
     ) const;
-
-    double weight_func(const double score, const String& lambda_score) const;
   };
 
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector

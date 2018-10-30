@@ -231,6 +231,24 @@ START_SECTION(constructToList())
 }
 END_SECTION
 
+START_SECTION(weight_func())
+{
+  MRMFeatureSelectorQMIP selector;
+  double score = -1.0;
+
+  score = selector.weight_func(3413.0, "lambda score: score*1.0");
+  TEST_REAL_SIMILAR(score, 3413.0)
+  score = selector.weight_func(341.0, "lambda score: 1/score");
+  TEST_REAL_SIMILAR(score, 0.002932551)
+  score = selector.weight_func(341.0, "lambda score: log(score)");
+  TEST_REAL_SIMILAR(score, 5.831882477)
+  score = selector.weight_func(96640.0, "lambda score: 1/log(score)");
+  TEST_REAL_SIMILAR(score, 0.087117)
+  score = selector.weight_func(341.0, "lambda score: 1/log10(score)");
+  TEST_REAL_SIMILAR(score, 0.394827074)
+}
+END_SECTION
+
 START_SECTION(schedule_MRMFeaturesQMIP())
 {
   const char* s_continuous = MRMFeatureSelector::s_continuous;
