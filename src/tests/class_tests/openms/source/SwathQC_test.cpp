@@ -133,10 +133,10 @@ START_SECTION((static bool isSubsampledSpectrum_(const size_t total_spec_count, 
   // sample 2 of 5
   c = 5;
   int r5[] = {1,0,0,1,0};
-  for (int i = 0; i < 5; ++i)
+  for (int i = 0; i < c; ++i)
   {
     //std::cout << i << ": " << SwathQCTest::isSubsampledSpectrum_(5, 2, i) << "\n";
-    TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(5, 2, i), r5[i]);
+    TEST_EQUAL(SwathQCTest::isSubsampledSpectrum_(c, 2, i), r5[i]);
   }
 
 }
