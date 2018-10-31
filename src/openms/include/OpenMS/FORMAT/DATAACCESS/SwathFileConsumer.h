@@ -503,9 +503,12 @@ protected:
 
       if (have_ms1)
       {
+        boost::shared_ptr<PeakMap > exp(new PeakMap);
         String meta_file = cachedir_ + basename_ + "_ms1.mzML";
-        // clear spectral data from ms1_map and write remaining metadata to disk and store the correct data processing tag
+        // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*ms1_map_, meta_file, true);
+        MzMLFile().load(meta_file, *exp.get());
+        ms1_map_ = exp;
       }
 
 #ifdef _OPENMP
