@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser, Lucia Espona, Moritz Freidank $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_IDCONFLICTRESOLVERALGORITHM
-#define OPENMS_ANALYSIS_ID_IDCONFLICTRESOLVERALGORITHM
+#pragma once
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -43,9 +42,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <algorithm>
-
-using namespace OpenMS;
-using namespace std;
 
 //-------------------------------------------------------------
 // Doxygen docu
@@ -120,8 +116,8 @@ protected:
                           const PeptideIdentification & right);
 
   static void resolveConflict_(
-    vector<PeptideIdentification> & peptides, 
-    vector<PeptideIdentification> & removed,
+    std::vector<PeptideIdentification> & peptides,
+    std::vector<PeptideIdentification> & removed,
     UInt64 uid);
   
   template<class T>
@@ -201,7 +197,5 @@ protected:
   
 };
 
-}
-
-#endif
+}// namespace OpenMS
 

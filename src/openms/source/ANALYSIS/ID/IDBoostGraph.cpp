@@ -56,6 +56,8 @@ using namespace std;
 //TODO go through the vectors and see if we can preallocate some.
 namespace OpenMS
 {
+
+
   struct MyUIntSetHasher
   {
   public:
@@ -73,11 +75,14 @@ namespace OpenMS
     idedSpectra_(idedSpectra)
   {}
 
-
   //TODO actually to build the graph, the inputs could be passed const. But if you want to do sth
   //on the graph later it needs to be non-const. Overload this function or somehow make sure it can be used const.
-  void IDBoostGraph::buildGraph(bool use_all_psms)
+  void IDBoostGraph::buildGraph(bool use_all_psms /*bool readstore_run_info*/)
   {
+    StringList runs;
+    proteins_.getPrimaryMSRunPath(runs);
+    Size nrRuns = runs.size();
+    bool readstore_run_info = true;
     //TODO add support for (consensus) feature information
 
     unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>> vertex_map{};
@@ -94,13 +99,33 @@ namespace OpenMS
     pl.startProgress(0,idedSpectra_.size(), "Building graph...");
     for (auto & spectrum : idedSpectra_)
     {
-      //TODO add psm nodes here if using all psms
+      Size run(0);
+      if (readstore_run_info)
+      {
+        if (spectrum.metaValueExists("map_index"))
+        {
+          run = spectrum.getMetaValue("map_index");
+          if (run >= nrRuns)
+          {
+            std::cout << "Warning: Reference to non-existing run found at peptide ID. Skipping." << std::endl;
+            continue;
+          }
+        }
+        else
+        {
+          std::cout << "Warning: Trying to read run information but none present at peptide ID. Skipping." << std::endl;
+          continue;
+        }
+      }
+      //TODO add psm nodes here optionally if using all psms
       auto pepIt = spectrum.getHits().begin();
       auto pepItEnd = use_all_psms || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + 1;
       for (; pepIt != pepItEnd; ++pepIt)
       {
         IDPointer pepPtr(&(*pepIt));
         vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
+        pepHitVtx_to_run_[pepV] = run;
+
         for (auto const & proteinAcc : pepIt->extractProteinAccessionsSet())
         {
           // assumes protein is present
@@ -110,9 +135,10 @@ namespace OpenMS
             std::cout << "Warning: Building graph: skipping pep that maps to a non existent protein accession.";
             continue;
           }
-          //TODO consider/calculate missing digests.
+          //TODO consider/calculate missing digests. Probably not here though!
           //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
           //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
+
           IDPointer prot(accToPHit->second);
           vertex_t protV = addVertexWithLookup_(prot, vertex_map);
           boost::add_edge(protV, pepV, g);
@@ -403,7 +429,7 @@ namespace OpenMS
         }
       }
 
-      #pragma omp critical
+      #pragma omp critical (ProteinGroups)
       {proteins_.getIndistinguishableProteins().push_back(pg);};
     }
   }
@@ -579,6 +605,15 @@ namespace OpenMS
 
   void IDBoostGraph::clusterIndistProteinsAndPeptides()
   {
+    Size nrReplicates = 1;
+    if (!pepHitVtx_to_run_.empty()) //graph built with run info
+    {
+      StringList runs;
+      proteins_.getPrimaryMSRunPath(runs);
+      nrReplicates = runs.size();
+    }
+
+    pair<int,int> chargeRange = proteins_.getSearchParameters().getChargeRange();
 
     if (ccs_.empty()) {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
@@ -587,7 +622,7 @@ namespace OpenMS
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
-      Graph& curr_cc = ccs_.at(i);
+      Graph& curr_cc = ccs_[i];
 
       LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
 
@@ -607,6 +642,42 @@ namespace OpenMS
       {
 
         Graph::vertex_iterator ui, ui_end;
+        boost::tie(ui,ui_end) = boost::vertices(curr_cc);
+
+        //TODO FINISH
+        // Cluster peptides with same sequence
+        for (; ui != ui_end; ++ui)
+        {
+          SequenceToReplicateChargeVariantHierarchy hierarchy{nrReplicates, chargeRange.first, chargeRange.second};
+          if (curr_cc[*ui].which() == 0) //protein: same seq peptideHits have to be at a single protein
+          {
+            Graph::adjacency_iterator adjIt, adjIt_end;
+            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, curr_cc);
+            for (; adjIt != adjIt_end; ++adjIt)
+            {
+              //pepHit, this also makes sure that pepHits already in hierarchy are masked
+              if (curr_cc[*adjIt].which() == 3)
+              {
+                PeptideHit *phitp = boost::get<PeptideHit *>(curr_cc[*adjIt]);
+                String seq = phitp->getSequence().toUnmodifiedString();
+                //TODO we could specify/check in the beginning if it is a multirun experiment and how many runs it has
+                //TODO make sure (prob. best during merging) that different map_indices indeed represent replicates
+                //or pass a lookup table here to get from map_index to replicate.
+                //OR pass a vector of PeptideIdVectors that represent the different replicates. Needs changes in
+                //IDMerger
+                //TODO actually the map_index is probably annotated as MetaValue in the PepID object (the parent of the
+                // hit -> requires changes here again. Probably best to go with the multi vector solution.
+                int rep = phitp->metaValueExists("map_index") ? int(phitp->getMetaValue("map_index")) : 0;
+                int chg = phitp->getCharge();
+
+                hierarchy.insert(seq, rep, chg, *adjIt);
+              }
+            }
+            hierarchy.insertToGraph(*ui, g);
+
+          }
+        }
+
         /*boost::tie(ui,ui_end) = boost::vertices(curr_cc);
 
          //TODO FINISH OR MOVE TO BUILD_THEORETICAL_GRAPH
@@ -615,13 +686,13 @@ namespace OpenMS
         {
           IDBoostGraph::IDPointer curr_idObj = curr_cc[*ui];
           unordered_map<string, map<pair<unsigned int, int>, set<vertex_t>>> seq_to_rep_chg_to_pepVariantNodes{};
-          if (curr_idObj.which() == 0) //protein: find indist. ones
+          if (curr_idObj.which() == 0) //protein: same seq peptideHits have to be at a single protein
           {
             Graph::adjacency_iterator adjIt, adjIt_end;
             boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, curr_cc);
             for (; adjIt != adjIt_end; ++adjIt)
             {
-              if (curr_cc[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
+              if (curr_cc[*adjIt].which() == 3) //pepHit
               {
                 PeptideHit* phitp = boost::get<PeptideHit*>(curr_cc[*adjIt]);
                 String seq = phitp->getSequence().toUnmodifiedString();
@@ -684,11 +755,9 @@ namespace OpenMS
         // Cluster proteins
         for (; ui != ui_end; ++ui)
         {
-          IDBoostGraph::IDPointer curr_idObj = curr_cc[*ui];
-
           //TODO introduce an enum for the types to make it more clear.
           //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
-          if (curr_idObj.which() == 0) //protein: find indist. ones
+          if (curr_cc[*ui].which() == 0) //protein: find indist. ones
           {
             //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
             //Or just check rigorously here.
@@ -751,9 +820,8 @@ namespace OpenMS
 
         for (; ui != ui_end; ++ui)
         {
-          IDBoostGraph::IDPointer curr_idObj = curr_cc[*ui];
           //TODO introduce an enum for the types to make it more clear.
-          if (curr_idObj.which() == 3) //peptide: find peptide clusters
+          if (curr_cc[*ui].which() == 3) //peptide: find peptide clusters
           {
             //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
             //Or just check rigorously here.
@@ -862,22 +930,32 @@ namespace OpenMS
     boost::write_graphviz(out, fg, boost::make_label_writer(labels));
   }
 
-/* Const version
- * IDBoostGraph::vertex_t IDBoostGraph::addVertexWithLookup_(IDPointerConst& ptr, unordered_map<IDPointerConst, vertex_t, boost::hash<IDPointerConst>>& vertex_map)
+  ////// Hashers for the strong typedefs
+  std::size_t hash_value(IDBoostGraph::Peptide const& x)
   {
-    vertex_t v;
-    auto const& vertex_iter = vertex_map.find(ptr);
-    if (vertex_iter != vertex_map.end() )
-    {
-      v = boost::vertex(vertex_iter->second, gconst);
-    }
-    else
-    {
-      v = boost::add_vertex(gconst);
-      vertex_map[ptr] = v;
-      gconst[v] = ptr;
-    }
-    return v;
-  }*/
+    boost::hash<std::string> hasher;
+    return hasher(static_cast<std::string>(x));
+  }
+  std::size_t hash_value(IDBoostGraph::RunIndex const& x)
+  {
+    boost::hash<Size> hasher;
+    return hasher(static_cast<Size>(x));
+  }
+  std::size_t hash_value(IDBoostGraph::Charge const& x)
+  {
+    boost::hash<int> hasher;
+    return hasher(static_cast<int>(x));
+  }
+  std::size_t hash_value(IDBoostGraph::ProteinGroup const& x)
+  {
+    boost::hash<char> hasher;
+    return hasher(static_cast<char>(x));
+  }
+  std::size_t hash_value(IDBoostGraph::PeptideCluster const& x)
+  {
+    boost::hash<char> hasher;
+    return hasher(static_cast<char>(x));
+  }
+
 }
 

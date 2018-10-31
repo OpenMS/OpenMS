@@ -230,6 +230,9 @@ public:
 
       bool operator!=(const SearchParameters& rhs) const;
 
+      std::pair<int,int> getChargeRange() const;
+      int getChargeValue_(String& charge_str) const;
+
     };
 
 

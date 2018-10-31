@@ -789,10 +789,10 @@ namespace OpenMS
       engine.toUpper();
       for (ProteinIdentification & prot : protein_ids)
       {
-        String search_engine = prot.getSearchEngine();
-        search_engine.toUpper();
+        String se = prot.getSearchEngine();
+        se.toUpper();
 
-        if (engine == search_engine)
+        if (engine == se)
         {
           for (PeptideIdentification & pep : peptide_ids)
           {
