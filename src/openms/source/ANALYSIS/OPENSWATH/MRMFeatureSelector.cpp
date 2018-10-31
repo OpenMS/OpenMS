@@ -184,7 +184,7 @@ namespace OpenMS
             double score_1 = make_score(feature_row1[i]);
             double score_2 = make_score(feature_row2[j]);
             const size_t n_score_weights = score_weights_.size();
-            if (n_score_weights) {
+            if (n_score_weights > 1) {
               score_1 = std::pow(score_1, 1.0 / n_score_weights);
               score_2 = std::pow(score_2, 1.0 / n_score_weights);
             }
