@@ -140,9 +140,9 @@ namespace OpenMS
     std::unordered_set<std::string> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
-    for (size_t cnt1 = 0; cnt1 < time_to_name.size(); ++cnt1) {
-      const size_t start_iter = std::max(cnt1 - nn_threshold_, 0ul);
-      const size_t stop_iter = std::min(cnt1 + nn_threshold_ + 1, time_to_name.size());
+    for (Int cnt1 = 0; static_cast<size_t>(cnt1) < time_to_name.size(); ++cnt1) {
+      const size_t start_iter = std::max(cnt1 - nn_threshold_, 0);
+      const size_t stop_iter = std::min(static_cast<size_t>(cnt1 + nn_threshold_ + 1), time_to_name.size()); // assuming nn_threshold_ >= -1
       std::vector<Int> constraints;
       const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
       for (size_t i = 0; i < feature_row1.size(); ++i) {
@@ -154,7 +154,7 @@ namespace OpenMS
             constraints.push_back(problem.getColumnIndex(name1));
         }
         for (size_t cnt2 = start_iter; cnt2 < stop_iter; ++cnt2) {
-          if (cnt1 == cnt2)
+          if (static_cast<size_t>(cnt1) == cnt2)
             continue;
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
           for (size_t j = 0; j < feature_row2.size(); ++j) {
