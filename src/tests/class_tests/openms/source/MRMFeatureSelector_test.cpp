@@ -249,6 +249,28 @@ START_SECTION(weight_func())
 }
 END_SECTION
 
+START_SECTION(make_score())
+{
+  MRMFeatureSelectorQMIP selector;
+  double score;
+  Feature feature;
+  feature.setMetaValue("sn_ratio", 6.84619503982874);
+  feature.setMetaValue("peak_apices_sum", 96640.0);
+
+  selector.setScoreWeights({{"sn_ratio", "lambda score: 1/log(score)"}});
+  score = selector.make_score(feature);
+  TEST_REAL_SIMILAR(score, 0.5198334582314795)
+
+  selector.setScoreWeights({{"peak_apices_sum", "lambda score: 1/log10(score)"}});
+  score = selector.make_score(feature);
+  TEST_REAL_SIMILAR(score, 0.20059549093267626)
+
+  selector.setScoreWeights({{"sn_ratio", "lambda score: 1/log(score)"}, {"peak_apices_sum", "lambda score: 1/log10(score)"}});
+  score = selector.make_score(feature);
+  TEST_REAL_SIMILAR(score, 0.10427624775717449)
+}
+END_SECTION
+
 START_SECTION(schedule_MRMFeaturesQMIP())
 {
   const char* s_continuous = MRMFeatureSelector::s_continuous;
