@@ -240,7 +240,7 @@ std::cout << "END OPTIMIZE" << std::endl;
         continue;
       }
       for (const Feature& subordinate : feature.getSubordinates()) {
-        String component_name = remove_spaces(subordinate.getMetaValue("native_id").toString());
+        const String component_name = remove_spaces(subordinate.getMetaValue("native_id").toString());
         if (names.count(component_name)) {
           time_to_name.push_back(std::make_pair(assay_retention_time, component_name));
           names.insert(component_name);
@@ -301,8 +301,8 @@ std::cout << "n_segments: " << n_segments << std::endl;
       std::vector<Feature> subordinates_filtered;
       for (const Feature& subordinate : feature.getSubordinates()) {
         const String feature_name = getSelectTransitionGroup() == "true"
-          ? feature.getMetaValue("PeptideRef").toString() + "_" + String(feature.getUniqueId())
-          : subordinate.getMetaValue("native_id").toString() + "_" + String(feature.getUniqueId());
+          ? remove_spaces(feature.getMetaValue("PeptideRef").toString()) + "_" + String(feature.getUniqueId())
+          : remove_spaces(subordinate.getMetaValue("native_id").toString()) + "_" + String(feature.getUniqueId());
 
         if (result_names_set.count(feature_name)) {
           subordinates_filtered.push_back(subordinate);
