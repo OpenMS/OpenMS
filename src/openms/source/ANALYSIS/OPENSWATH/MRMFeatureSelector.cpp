@@ -171,13 +171,16 @@ std::cout << "START OPTIMIZE" << std::endl;
           for (size_t j = 0; j < feature_row2.size(); ++j) {
             const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
             if (variables.count(name2) == 0) {
-                _addVariable(problem, name2, true, 0);
-                variables.insert(name2);
+              _addVariable(problem, name2, true, 0);
+              variables.insert(name2);
             }
             const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
             const String var_abs_name = var_qp_name + "-ABS";
+            const String prev_variable_type = getVariableType();
+            setVariableType(s_continuous);
             const Int index_var_qp = _addVariable(problem, var_qp_name, true, 0);
             const Int index_var_abs = _addVariable(problem, var_abs_name, false, 1);
+            setVariableType(prev_variable_type);
             const Int index2 = problem.getColumnIndex(name2);
             std::vector<Int>    indices1 = {index1, index_var_qp};
             std::vector<Int>    indices2 = {index2, index_var_qp};
