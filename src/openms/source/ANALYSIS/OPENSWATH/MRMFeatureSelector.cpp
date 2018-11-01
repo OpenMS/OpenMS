@@ -159,25 +159,25 @@ std::cout << "START OPTIMIZE" << std::endl;
         if (n_score_weights > 1) {
           score_1 = std::pow(score_1, 1.0 / n_score_weights);
         }
+        const Int index1 = problem.getColumnIndex(name1);
         for (size_t cnt2 = start_iter; cnt2 < stop_iter; ++cnt2) {
           if (static_cast<size_t>(cnt1) == cnt2)
             continue;
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
+          const double locality_weight = getLocalityWeight() == "true"
+            ? 1.0 / (nn_threshold_ - std::abs((int)start_iter + (int)cnt2 - (int)cnt1) + 1)
+            : 1.0;
+          const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
           for (size_t j = 0; j < feature_row2.size(); ++j) {
             const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
             if (variables.count(name2) == 0) {
                 _addVariable(problem, name2, true, 0);
                 variables.insert(name2);
             }
-            double locality_weight = 1.0;
-            if (getLocalityWeight() == "true") {
-              locality_weight = 1.0 / (nn_threshold_ - std::abs((int)start_iter + (int)cnt2 - (int)cnt1) + 1);
-            }
             const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
             const String var_abs_name = var_qp_name + "-ABS";
             const Int index_var_qp = _addVariable(problem, var_qp_name, true, 0);
             const Int index_var_abs = _addVariable(problem, var_abs_name, false, 1);
-            const Int index1 = problem.getColumnIndex(name1);
             const Int index2 = problem.getColumnIndex(name2);
             std::vector<Int>    indices1 = {index1, index_var_qp};
             std::vector<Int>    indices2 = {index2, index_var_qp};
@@ -185,8 +185,7 @@ std::cout << "START OPTIMIZE" << std::endl;
             std::vector<Int>    indices3 = {index1, index2, index_var_qp};
             std::vector<double> values3  = {1.0, 1.0, -1.0};
             std::vector<Int>    indices_abs = {index_var_abs, index_var_qp};
-            const double tr_delta          = feature_row1[i].getRT() - feature_row2[j].getRT();
-            const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
+            const double tr_delta = feature_row1[i].getRT() - feature_row2[j].getRT();
             double score_2 = make_score(feature_row2[j]);
             if (n_score_weights > 1) {
               score_2 = std::pow(score_2, 1.0 / n_score_weights);
