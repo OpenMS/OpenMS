@@ -149,10 +149,10 @@ std::cout << "START OPTIMIZE" << std::endl;
       for (size_t i = 0; i < feature_row1.size(); ++i) {
         const String name1 = time_to_name[cnt1].second + "_" + String(feature_row1[i].getUniqueId());
         if (variables.count(name1) == 0) {
-            constraints.push_back(_addVariable(problem, name1, true, 0));
-            variables.insert(name1);
+          constraints.push_back(_addVariable(problem, name1, true, 0));
+          variables.insert(name1);
         } else {
-            constraints.push_back(problem.getColumnIndex(name1));
+          constraints.push_back(problem.getColumnIndex(name1));
         }
         double score_1 = make_score(feature_row1[i]);
         const size_t n_score_weights = score_weights_.size();
