@@ -165,7 +165,7 @@ std::cout << "START OPTIMIZE" << std::endl;
             continue;
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
           const double locality_weight = getLocalityWeight() == "true"
-            ? 1.0 / (nn_threshold_ - std::abs((int)start_iter + (int)cnt2 - (int)cnt1) + 1)
+            ? 1.0 / (nn_threshold_ - std::abs(static_cast<Int>(start_iter + cnt2) - cnt1) + 1)
             : 1.0;
           const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
           for (size_t j = 0; j < feature_row2.size(); ++j) {
