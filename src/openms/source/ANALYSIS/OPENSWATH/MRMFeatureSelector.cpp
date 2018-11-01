@@ -141,6 +141,8 @@ std::cout << "START OPTIMIZE" << std::endl;
     std::unordered_set<std::string> variables; // component_names_1
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
+    size_t n_constraints = 0;
+    size_t n_variables = 0;
     for (Int cnt1 = 0; static_cast<size_t>(cnt1) < time_to_name.size(); ++cnt1) {
       const size_t start_iter = std::max(cnt1 - nn_threshold_, 0);
       const size_t stop_iter = std::min(static_cast<size_t>(cnt1 + nn_threshold_ + 1), time_to_name.size()); // assuming nn_threshold_ >= -1
@@ -151,6 +153,7 @@ std::cout << "START OPTIMIZE" << std::endl;
         if (variables.count(name1) == 0) {
           constraints.push_back(_addVariable(problem, name1, true, 0));
           variables.insert(name1);
+          ++n_variables;
         } else {
           constraints.push_back(problem.getColumnIndex(name1));
         }
@@ -173,6 +176,7 @@ std::cout << "START OPTIMIZE" << std::endl;
             if (variables.count(name2) == 0) {
               _addVariable(problem, name2, true, 0);
               variables.insert(name2);
+              ++n_variables;
             }
             const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
             const String var_abs_name = var_qp_name + "-ABS";
@@ -201,18 +205,22 @@ std::cout << "START OPTIMIZE" << std::endl;
             _addConstraint(problem, indices3, values3, var_qp_name + "-QP3", 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY);
             _addConstraint(problem, indices_abs, values_abs_plus, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
             _addConstraint(problem, indices_abs, values_abs_minus, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
+            n_constraints += 5;
+            n_variables += 2;
           }
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
       _addConstraint(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
+      ++n_constraints;
 std::cout << "variables: " << variables.size() << "\tconstraints: " << constraints.size() << std::endl;
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
+    const double optimal_threshold = getOptimalThreshold();
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c) {
       const String name = problem.getColumnName(c);
-      if ((problem.getColumnValue(c) - getOptimalThreshold()) > 1e-06 && variables.count(name)) {
+      if (problem.getColumnValue(c) > optimal_threshold && variables.count(name)) {
         result.push_back(name);
       }
     }

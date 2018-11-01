@@ -313,6 +313,14 @@ START_SECTION(schedule_MRMFeaturesQMIP())
   // TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 1080.0);
   // TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "oxa.oxa_1.Heavy");
   // TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 13.4963475631714);
+
+  // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
+  sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
+    return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
+
+  for (const Feature& f : output_selected) {
+    cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
+  }
 }
 END_SECTION
 
