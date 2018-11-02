@@ -88,10 +88,10 @@ public:
       * not be called again, nor anythong other than destroying the object should be done with it), the most common
       * usage pattern of IsoSpecWrapper classes with the run method is:
       *
-      * IsotopeDistribution dist = IsoSpecSubclass(...).run();
+      * IsotopeDistribution dist = IsoSpecWrapperSubclass(...).run();
       * do something with dist;
       *
-      * @note Calling this method invalidates the object! In future versions this limitation will be removed.
+      * @note Calling this method invalidates the object! In future versions this limitation might be removed.
       *
       * @note This method should not be mixed with the generator methods - a given object should only ever have
       * its run method used, or only its generator methods used.
@@ -103,16 +103,17 @@ public:
      * @brief Move the generator to a next isotopologue
      *
      * Advance the internal generator to the next isotopologue. The value returned determines whether the
-     * generator has been exhausted. It is invalid to call any other generator methods before the first call
-     * to nextConf(), as well as after it returns false.
+     * generator has been exhausted (that is, all eligible configurations have already been visited). 
+     * It is invalid to call any other generator methods before the first call to nextConf(), as well as 
+     * after this method returns false.
      *
-     * A common, correct usage pattern would be:
+     * Thus, a common, correct usage pattern would be:
      *
-     * IsotopeDistributionSubclass isotopeDist(...);
+     * IsoSpecWrapperSubclass iso(...);
      *
-     * while(isotopeDist.nextConf())
+     * while(iso.nextConf())
      * {
-     *     Peak1D conf = isotopeDist.getConf(); // and/or GetMass, GetProb, etc.
+     *     Peak1D conf = iso.getConf(); // and/or getMass, getIntensity, etc.
      *     do some computations on that conf;
      * }
      *
@@ -163,19 +164,19 @@ public:
      * This is the simplest generator - most users will however want to use IsoSpecTotalProbWrapper.
      * The reason for it is that when thresholding by peak intensity one has no idea how far the obtained
      * spectrum is from a real spectrum. For example, consider human insulin: if the threshold is set at
-     * 0.1 of the most intense peak, then the total amount covered will be 99.7% for water, 82% for substance P,
-     * only 60% for human insulin, and 23% for titin.
+     * 0.1 of the most intense peak, then the peaks above the treshhold account for 99.7% of total probability 
+     * for water, 82% for substance P, only 60% for human insulin, and 23% for titin.
      * For a threshold of 0.01, the numbers will be: still 99.7% for water, 96% for substance P, 88% for human insulin
      * and 72% for titin (it also took 5 minutes on an average notebook computer to process the 17 billion configurations
      * involved).
      *
      * As you can see the threshold does not have a straightforward correlation to the accuracy of the final spectrum
-     * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpecProbabilityWrapper
+     * obtained - and accuracy of final spectrum is often what the user is interested in. The IsoSpeTotalcProbWrapper
      * provides a way to directly parametrise based on the desired accuracy of the final spectrum - and should be used
      * instead in most cases. The tradeoff is that it's (slightly) slower than Threshold algorithm. This speed gap will
      * be dramatically improved with IsoSpec 2.0.
      *
-     * @note The isotopologues are NOT guaranteed to be generated in any particular order.
+     * @note The eligible isotopologues are NOT guaranteed to be generated in any particular order.
      */
 
 public:
@@ -231,11 +232,13 @@ protected:
    * An optimal p-set of isotopologues is the smallest set of isotopologues that, taken together, cover at
    * least p of the probability space (that is, their probabilities sum up to at least p). This means that
    * the computed spectrum is accurate to at least degree p, and that the L1 distance between the computed
-   * spectrum and the true spectrum is less than 1-p.
+   * spectrum and the true spectrum is less than 1-p. The optimlity of the p-set means that it contains
+   * the most probable configurations - any isotopologues outside of the returned p-set have lower intensity
+   * than the configurations in the p-set.
    *
    * This is the method most users will want: the p parameter directly controls the accuracy of results.
    *
-   * @note The configurations are not guaranteed to be returned in any particular order.
+   * @note The eligible configurations are NOT guaranteed to be returned in any particular order.
    */
 public:
     /**
