@@ -322,6 +322,109 @@ START_SECTION((
 }
 END_SECTION
 
+
+
+// ----------------------------------------------------------------------------------------------------------------------
+
+
+{
+  IsoSpecWrapper* ptr = nullptr;
+  IsoSpecWrapper* nullPointer = nullptr;
+  START_SECTION((IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula&)))
+    ptr = new IsoSpecOrderedGeneratorWrapper(EmpiricalFormula("C10"));
+    TEST_NOT_EQUAL(ptr, nullPointer)
+  END_SECTION
+
+  START_SECTION((~IsoSpecOrderedGeneratorWrapper()))
+    delete ptr;
+  END_SECTION
+}
+
+
+START_SECTION(( void run(const EmpiricalFormula&) ))
+{
+  IsoSpecOrderedGeneratorWrapper iso(EmpiricalFormula("C6H12O6"));
+
+  Size ii = 0;
+  while(iso.nextConf()) ii++;
+
+  TEST_EQUAL(ii, 2548)
+
+  // std::cout.precision(26);
+  IsoSpecOrderedGeneratorWrapper iso2(EmpiricalFormula("C6H12O6"));
+
+  for (Size i = 0; i != expected_oms.size(); ++i)
+  {
+    iso2.nextConf();
+    TEST_REAL_SIMILAR(iso2.getMass(), expected_oms[i].getPos());
+    TEST_REAL_SIMILAR(iso2.getIntensity(), expected_oms[i].getIntensity());
+  }
+}
+END_SECTION
+
+
+START_SECTION(( 
+    void run(const std::vector<int>& isotopeNumbers,
+             const std::vector<int>& atomCounts,
+             const std::vector<std::vector<double> >& isotopeMasses,
+             const std::vector<std::vector<double> >& isotopeProbabilities) ))
+{
+
+  EmpiricalFormula ef ("C6H12O6");
+
+  std::vector<int> isotopeNumbers;
+  std::vector<int> atomCounts;
+  std::vector<std::vector<double> > isotopeMasses;
+  std::vector<std::vector<double> > isotopeProbabilities;
+
+  for (auto elem : ef)
+  {
+    atomCounts.push_back( elem.second );
+
+    std::vector<double> masses;
+    std::vector<double> probs;
+    for (auto iso : elem.first->getIsotopeDistribution())
+    {
+      if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
+      masses.push_back(iso.getMZ());
+      probs.push_back(iso.getIntensity());
+    }
+    isotopeNumbers.push_back( masses.size() );
+    isotopeMasses.push_back(masses);
+    isotopeProbabilities.push_back(probs);
+  }
+
+  // -----------------------------------
+  // Start
+  // -----------------------------------
+  {
+    IsoSpecOrderedGeneratorWrapper iso(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+
+    Size ii = 0;
+    while(iso.nextConf()) ii++;
+
+    TEST_EQUAL(ii, 2548);
+
+    IsoSpecOrderedGeneratorWrapper iso2(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+
+    for (Size i = 0; i != expected_oms.size(); ++i)
+    {
+      iso2.nextConf();
+      TEST_REAL_SIMILAR(iso2.getMass(), expected_oms[i].getPos());
+      TEST_REAL_SIMILAR(iso2.getIntensity(), expected_oms[i].getIntensity());
+    }
+  }
+
+  // TEST exception:
+  // We cannot have zero values as input data
+  isotopeNumbers[0] += 1;
+  isotopeMasses[0].push_back(3.0160492699999998933435563);
+  isotopeProbabilities[0].push_back(0.0);
+  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecOrderedGeneratorWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities));
+
+}
+END_SECTION
+
 #if 0
 START_SECTION(( [STRESSTEST] void run(const std::string&) ))
 {
