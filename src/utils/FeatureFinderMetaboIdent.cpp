@@ -38,7 +38,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -237,6 +237,7 @@ protected:
   bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
   double isotope_pmin_; // min. isotope probability for MS1 assay
   Size n_isotopes_; // number of isotopes for MS1 assay
+  CoarseIsotopePatternGenerator iso_gen_;
   map<String, double> isotope_probs_; // isotope probabilities of transitions
   map<String, double> target_rts_; // RTs of targets (assays)
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
@@ -336,7 +337,7 @@ protected:
 
     // get isotope distribution for target:
     IsotopeDistribution iso_dist;
-    Size n_isotopes = (isotope_pmin_ > 0.0) ? 10 : n_isotopes_;
+    Size n_isotopes = n_isotopes_;
     if (iso_distrib.empty() || (iso_distrib[0] == 0))
     {
       if (formula.empty())
@@ -344,11 +345,11 @@ protected:
         LOG_ERROR << "Error: No sum formula given for target '" << name
                   << "'; cannot calculate isotope distribution"
                   << " - using estimation method for peptides." << endl;
-        iso_dist.estimateFromPeptideWeight(mass);
+        iso_dist = iso_gen_.estimateFromPeptideWeight(mass);
       }
       else
       {
-        iso_dist = emp_formula.getIsotopeDistribution(n_isotopes);
+        iso_dist = emp_formula.getIsotopeDistribution(iso_gen_);
       }
     }
     else
@@ -358,7 +359,7 @@ protected:
       probs.reserve(n_isotopes);
       for (Size i = 0; i < n_isotopes; ++i)
       {
-        probs.push_back(make_pair(i, iso_distrib[i]));
+        probs.push_back(Peak1D(i, iso_distrib[i]));
       }
       iso_dist.set(probs);
     }
@@ -437,13 +438,14 @@ protected:
 
       transition.setNativeID(transition_name);
       transition.setPrecursorMZ(mz);
+      // @TODO: use accurate masses from the isotope distribution here?
       transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
                               float(counter) / charge);
-      transition.setLibraryIntensity(iso_it->second);
+      transition.setLibraryIntensity(iso_it->getIntensity());
       // transition.setMetaValue("annotation", annotation); // ???
       transition.setCompoundRef(target_id);
       library_.addTransition(transition);
-      isotope_probs_[transition_name] = iso_it->second;
+      isotope_probs_[transition_name] = iso_it->getIntensity();
     }
   }
 
@@ -875,7 +877,9 @@ protected:
     mz_window_ = getDoubleOption_("extract:mz_window");
     mz_window_ppm_ = mz_window_ >= 1;
     isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
-    n_isotopes_ = getIntOption_("extract:n_isotopes");
+    n_isotopes_ = ((isotope_pmin_ > 0.0) ?
+                   10 : getIntOption_("extract:n_isotopes"));
+    iso_gen_.setMaxIsotope(n_isotopes_);
     double peak_width = getDoubleOption_("detect:peak_width");
     double min_peak_width = getDoubleOption_("detect:min_peak_width");
     double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
