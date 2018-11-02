@@ -189,7 +189,7 @@ START_SECTION((
   isotopeNumbers[0] += 1;
   isotopeMasses[0].push_back(3.0160492699999998933435563);
   isotopeProbabilities[0].push_back(0.0);
-  TEST_EXCEPTION(Exception::IllegalArgument, IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold, false).run());
+  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold, false).run());
 
 }
 END_SECTION
@@ -317,7 +317,7 @@ START_SECTION((
   isotopeNumbers[0] += 1;
   isotopeMasses[0].push_back(3.0160492699999998933435563);
   isotopeProbabilities[0].push_back(0.0);
-  TEST_EXCEPTION(Exception::IllegalArgument, IsoSpecTotalProbWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, total_prob).run());
+  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecTotalProbWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, total_prob).run());
 
 }
 END_SECTION
