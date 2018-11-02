@@ -1,6 +1,6 @@
+from __future__ import print_function
 
 def parse_pxd_file(path):
-    import pdb
 
     import os
 
@@ -32,7 +32,7 @@ def parse_pxd_file(path):
             for n in tree.body.stats[0].stats:
                 # cimports at head of file
                 yield n
-        except:
+        except Exception:
             pass
         if hasattr(tree.body, "stats"):
             for s in tree.body.stats:
@@ -52,7 +52,7 @@ def parse_pxd_file(path):
     lines = open(path).readlines()
 
     def cimport(b, _, __):
-        print "cimport", b.module_name, "as", b.as_name
+        print ("cimport", b.module_name, "as", b.as_name)
 
     handlers = { CEnumDefNode : "",
                  CppClassNode : "",

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_EXPERIMENTALSETTINGS_H
-#define OPENMS_METADATA_EXPERIMENTALSETTINGS_H
+#pragma once
 
 #include <OpenMS/METADATA/Sample.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -52,7 +51,8 @@ namespace OpenMS
       @brief Description of the experimental settings
 
       These settings are valid for the whole experiment.
-      See SpectrumSettings for settings which are spectrum specific.
+      See SpectrumSettings for settings which are specific to an MSSpectrum.
+      See ChromatogramSettings for settings which are specific to an MSChromatogram.
 
       @ingroup Metadata
   */
@@ -61,15 +61,20 @@ namespace OpenMS
     public DocumentIdentifier
   {
 public:
-    ///Constructor
-    ExperimentalSettings();
-    ///Copy constructor
-    ExperimentalSettings(const ExperimentalSettings & source);
-    ///Destructor
+
+    /// Constructor
+    ExperimentalSettings() = default;
+    /// Copy constructor
+    ExperimentalSettings(const ExperimentalSettings &) = default;
+    /// Move constructor
+    ExperimentalSettings(ExperimentalSettings&&) = default;
+    /// Destructor
     ~ExperimentalSettings() override;
 
-    ///Assignment operator
-    ExperimentalSettings & operator=(const ExperimentalSettings & source);
+    /// Assignment operator
+    ExperimentalSettings & operator=(const ExperimentalSettings &) = default;
+    /// Move assignment operator
+    ExperimentalSettings& operator=(ExperimentalSettings&&) & = default;
 
     /// Equality operator
     bool operator==(const ExperimentalSettings & rhs) const;
@@ -150,4 +155,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_EXPERIMENTALSETTINGS_H

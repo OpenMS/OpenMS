@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,11 @@
 // $Authors: Nico Pfeifer, Mathias Walzer, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_ID_IDFILTER_H
-#define OPENMS_FILTERING_ID_IDFILTER_H
+#pragma once
 
 #include <OpenMS/config.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -99,8 +99,9 @@ public:
       double score;
       bool higher_score_better;
 
-      HasGoodScore(double score, bool higher_score_better):
-        score(score), higher_score_better(higher_score_better)
+      HasGoodScore(double score_, bool higher_score_better_) :
+        score(score_),
+        higher_score_better(higher_score_better_)
       {}
 
       bool operator()(const HitType& hit) const
@@ -125,10 +126,10 @@ public:
 
       Size rank;
 
-      HasMaxRank(Size rank):
-        rank(rank)
+      HasMaxRank(Size rank_):
+        rank(rank_)
       {
-        if (rank == 0)
+        if (rank_ == 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The cut-off value for rank filtering must not be zero!");
         }
@@ -158,9 +159,10 @@ public:
       String key;
       DataValue value;
 
-      HasMetaValue(const String& key, const DataValue& value):
-        key(key), value(value)
-      {}
+      HasMetaValue(const String& key_, const DataValue& value_):
+        key(key_),
+        value(value_)
+      {} 
 
       bool operator()(const HitType& hit) const
       {
@@ -180,8 +182,9 @@ public:
       String key;
       double value;
 
-      HasMaxMetaValue(const String& key, const double& value):
-        key(key), value(value)
+      HasMaxMetaValue(const String& key_, const double& value_):
+        key(key_),
+        value(value_)
       {}
 
       bool operator()(const HitType& hit) const
@@ -225,8 +228,8 @@ public:
 
       const std::set<String>& accessions;
 
-      HasMatchingAccession(const std::set<String>& accessions):
-        accessions(accessions)
+      HasMatchingAccession(const std::set<String>& accessions_):
+        accessions(accessions_)
       {}
 
       bool operator()(const PeptideHit& hit) const
@@ -1090,4 +1093,3 @@ public:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FILTERING_ID_IDFILTER_H

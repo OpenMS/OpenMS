@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,37 +34,15 @@
 
 #include <OpenMS/METADATA/CVTermList.h>
 
-#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-  // CV term implementation
-  CVTermList::CVTermList() :
-    MetaInfoInterface()
-  {
-  }
-
-  CVTermList::CVTermList(const CVTermList& rhs) :
-    MetaInfoInterface(rhs),
-    cv_terms_(rhs.cv_terms_)
-  {
-  }
 
   CVTermList::~CVTermList()
   {
-  }
-
-  CVTermList& CVTermList::operator=(const CVTermList& rhs)
-  {
-    if (this != &rhs)
-    {
-      MetaInfoInterface::operator=(rhs);
-      cv_terms_ = rhs.cv_terms_;
-    }
-    return *this;
   }
 
   void CVTermList::addCVTerm(const CVTerm& cv_term)
@@ -133,3 +111,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

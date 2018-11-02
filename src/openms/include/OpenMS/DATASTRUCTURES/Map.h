@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_DATASTRUCTURES_MAP_H
-#define OPENMS_DATASTRUCTURES_MAP_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/config.h>
@@ -121,7 +120,6 @@ public:
     /// Return a mutable reference to the element whose key is @p key. If an element with the key @p key does not exist, it is inserted.
     T& operator[](const Key& key);
 
-
     inline bool equals(const Map<Key, T>& other) const
     {
       return operator==(
@@ -163,4 +161,3 @@ public:
 
 } // namespace OPENMS
 
-#endif // OPENMS_DATASTRUCTURES_MAP_H

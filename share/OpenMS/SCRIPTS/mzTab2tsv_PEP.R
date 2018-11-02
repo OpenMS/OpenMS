@@ -62,7 +62,7 @@ readMzTabPEP <- function(file) {
   first.row <- startSection(file, "PEH")
   
   # read entire mzTab
-  data <- read.table(file, sep="\t", skip=first.row-1, fill=TRUE, header=TRUE, quote="", na.strings=c("null","NA"), stringsAsFactors=FALSE)
+  data <- read.table(file, sep="\t", skip=first.row-1, fill=TRUE, header=TRUE, quote="", na.strings=c("null","NA"), stringsAsFactors=FALSE, check.names=FALSE)
   
   # extract PEP data
   peptide.data <- data[which(data[,1]=="PEP"),]

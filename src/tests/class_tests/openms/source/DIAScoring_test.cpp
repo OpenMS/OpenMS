@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,8 +40,8 @@
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"
+#include "OpenMS/OPENSWATHALGO/DATAACCESS/MockObjects.h"
 
 using namespace std;
 using namespace OpenMS;
@@ -374,9 +374,10 @@ START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &tra
   std::vector<double> normalized_library_intensity;
   normalized_library_intensity.push_back(0.7);
   normalized_library_intensity.push_back(0.3);
-  diascoring.dia_massdiff_score(transitions, sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
+  std::vector<double> ppm_errors;
+  diascoring.dia_massdiff_score(transitions, sptr, normalized_library_intensity, ppm_score, ppm_score_weighted, ppm_errors);
 
-  TEST_REAL_SIMILAR(ppm_score, 15 + 10); // 15 ppm and 10 ppm
+  TEST_REAL_SIMILAR(ppm_score, (15 + 10) / 2.0); // 15 ppm and 10 ppm
   TEST_REAL_SIMILAR(ppm_score_weighted, 15 * 0.7 + 10* 0.3); // weighted
 }
 END_SECTION

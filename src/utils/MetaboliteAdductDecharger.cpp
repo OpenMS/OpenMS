@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,10 @@ using namespace std;
    The Decharger uses an ILP approach to group charge variants of the same metabolite, which
    usually occur in ESI ionization mode. The resulting zero-charge metabolites, which are defined by RT and mass,
    are written to consensusXML. Intensities of charge variants are summed up. The position of the zero charge
-   variant is the average of all clustered metabolites in each dimension (m/z and RT).
+   variant is the average of all clustered metabolites in each dimension (m and RT). For clustered metabolites,
+   the reported m/z is thus their neutral mass. For unclusted features with known charge, a default adduct
+   (protonation for positive mode, deprotonation for negative mode) is assumed to compute the neutral mass.
+   For unclustered features without known charge, m/z zero is reported.
    It is also possible to include adducted species to the charge ladders (see 'potential_adducts' parameter).
    Via this mechanism it is also possible to use this tool to find pairs/triples/quadruples/... in labeled data (by specifing the mass
    tag weight as an adduct). If mass tags induce an RT shift (e.g. deuterium labeled data) you can also specify this also in the adduct list.
@@ -165,8 +168,8 @@ protected:
 
     writeDebug_("Saving output files", 1);
 
-    cm.getFileDescriptions()[0].filename = infile;
-    cm2.getFileDescriptions()[0].filename = infile;
+    cm.getColumnHeaders()[0].filename = infile;
+    cm2.getColumnHeaders()[0].filename = infile;
 
     //annotate output with data processing info
     addDataProcessing_(map_out, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));

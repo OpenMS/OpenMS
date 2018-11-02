@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,15 +34,13 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
+#include <OpenMS/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <cmath>
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 // #define DEBUG_SONAR
 
@@ -70,7 +68,7 @@ namespace OpenMS
   }
 
   void SONARScoring::computeXCorr_(std::vector<std::vector<double> >& sonar_profiles,
-                     double& xcorr_coelution_score, double& xcorr_shape_score)
+                                   double& xcorr_coelution_score, double& xcorr_shape_score)
   {
     /// Cross Correlation array
     typedef OpenSwath::Scoring::XCorrArrayType XCorrArrayType;
@@ -86,7 +84,7 @@ namespace OpenMS
       {
         // compute normalized cross correlation
         xcorr_matrix[i][j] = OpenSwath::Scoring::normalizedCrossCorrelation(
-                sonar_profiles[i], sonar_profiles[j], boost::numeric_cast<int>(sonar_profiles[i].size()), 1);
+                                  sonar_profiles[i], sonar_profiles[j], boost::numeric_cast<int>(sonar_profiles[i].size()), 1);
       }
     }
 
@@ -109,8 +107,6 @@ namespace OpenMS
       xcorr_coelution_score = deltas_mean + deltas_stdv;
     }
 
-
-
     // shape score (intensity)
     std::vector<double> intensities;
     for (std::size_t i = 0; i < xcorr_matrix.size(); i++)
@@ -130,7 +126,7 @@ namespace OpenMS
 
   void SONARScoring::computeSonarScores(OpenSwath::IMRMFeature* imrmfeature,
                                         const std::vector<OpenSwath::LightTransition> & transitions,
-                                        std::vector<OpenSwath::SwathMap>& swath_maps,
+                                        const std::vector<OpenSwath::SwathMap>& swath_maps,
                                         OpenSwath_Scores & scores)
   {
     if (transitions.empty()) {return;}

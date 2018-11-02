@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_MATH_STATISTICS_REGRESSIONUTILS_H
-#define OPENMS_MATH_STATISTICS_REGRESSIONUTILS_H
+#pragma once
 #include <vector>
 #include "Wm5Vector2.h"
 
@@ -55,4 +54,3 @@ namespace OpenMS {
     }
   }
 }
-#endif /* OPENMS_MATH_STATISTICS_REGRESSIONUTILS_H */

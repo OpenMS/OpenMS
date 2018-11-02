@@ -4,10 +4,12 @@ set(directory source/FORMAT)
 ### list all filenames of the directory here
 set(sources_list
 AbsoluteQuantitationMethodFile.cpp
+AbsoluteQuantitationStandardsFile.cpp
 Base64.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
 CachedMzML.cpp
+ChromeleonFile.cpp
 CompressedInputSource.cpp
 CVMappingFile.cpp
 ConsensusXMLFile.cpp
@@ -16,9 +18,8 @@ CsvFile.cpp
 DTA2DFile.cpp
 DTAFile.cpp
 EDTAFile.cpp
+ExperimentalDesignFile.cpp
 FASTAFile.cpp
-FastaIterator.cpp
-FastaIteratorIntern.cpp
 FeatureXMLFile.cpp
 FileHandler.cpp
 FileTypes.cpp
@@ -26,16 +27,18 @@ GzipIfstream.cpp
 GzipInputStream.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
-IndexedMzMLFile.cpp
 IndexedMzMLFileLoader.cpp
 InspectInfile.cpp
 InspectOutfile.cpp
 KroenikFile.cpp
 LibSVMEncoder.cpp
+MRMFeaturePickerFile.cpp
 MRMFeatureQCFile.cpp
 MS2File.cpp
 MSNumpressCoder.cpp
 MSPFile.cpp
+MSPGenericFile.cpp
+MSstatsFile.cpp
 MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
@@ -91,4 +94,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\FORMAT" FILES ${sources})
-

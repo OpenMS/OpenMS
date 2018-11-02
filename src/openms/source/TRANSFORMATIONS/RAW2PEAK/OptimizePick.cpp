@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,8 @@
 #include <cmath>
 
 #include <boost/math/special_functions/acosh.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 
 using std::max;

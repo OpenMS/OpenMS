@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Mathias Walzer $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PRECURSOR_H
-#define OPENMS_METADATA_PRECURSOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
@@ -69,15 +68,15 @@ public:
       PSD,                      ///< Post-source decay
       PD,                       ///< Plasma desorption
       SID,                      ///< Surface-induced dissociation
-      BIRD,                             ///< Blackbody infrared radiative dissociation
-      ECD,                              ///< Electron capture dissociation
-      IMD,                              ///< Infrared multiphoton dissociation
-      SORI,                             ///< Sustained off-resonance irradiation
-      HCID,                             ///< High-energy collision-induced dissociation
-      LCID,                             ///< Low-energy collision-induced dissociation
-      PHD,                              ///< Photodissociation
-      ETD,                              ///< Electron transfer dissociation
-      PQD,                              ///< Pulsed q dissociation
+      BIRD,                     ///< Blackbody infrared radiative dissociation
+      ECD,                      ///< Electron capture dissociation
+      IMD,                      ///< Infrared multiphoton dissociation
+      SORI,                     ///< Sustained off-resonance irradiation
+      HCID,                     ///< High-energy collision-induced dissociation
+      LCID,                     ///< Low-energy collision-induced dissociation
+      PHD,                      ///< Photodissociation
+      ETD,                      ///< Electron transfer dissociation
+      PQD,                      ///< Pulsed q dissociation
       SIZE_OF_ACTIVATIONMETHOD
     };
 
@@ -88,12 +87,16 @@ public:
     /// Constructor
     Precursor();
     /// Copy constructor
-    Precursor(const Precursor & source);
+    Precursor(const Precursor &) = default;
+    /// Move constructor
+    Precursor(Precursor&&) = default;
     /// Destructor
     ~Precursor() override;
 
     /// Assignment operator
-    Precursor & operator=(const Precursor & source);
+    Precursor & operator=(const Precursor &) = default;
+    /// Move assignment operator
+    Precursor& operator=(Precursor&&) & = default;
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
@@ -117,6 +120,7 @@ public:
      *
      * @note This is an offset relative to the target m/z. The start of the
      * mass isolation window should thus be computed as:
+     *
      *   p.getMZ() - p.getIsolationWindowLowerOffset()
      *
      * @return the lower offset from the target m/z
@@ -130,6 +134,7 @@ public:
      *
      * @note This is an offset relative to the target m/z. The end of the mass
      * isolation window should thus be computed as:
+     *
      *   p.getMZ() + p.getIsolationWindowUpperOffset()
      *
      * @return the upper offset from the target m/z
@@ -148,6 +153,34 @@ public:
     double getDriftTime() const;
     /// sets the ion mobility drift time in milliseconds
     void setDriftTime(double drift_time);
+
+    /**
+     * @brief Returns the lower offset from the target ion mobility in milliseconds
+     *
+     * @note This is an offset relative to the target ion mobility. The start
+     * of the ion mobility isolation window should thus be computed as:
+     *
+     *   p.getDriftTime() + p.getDriftTimeWindowLowerOffset()
+     *
+     * @return the lower offset from the target ion mobility
+    */
+    double getDriftTimeWindowLowerOffset() const;
+    /// sets the lower offset from the target ion mobility
+    void setDriftTimeWindowLowerOffset(double drift_time);
+
+    /**
+     * @brief Returns the upper offset from the target ion mobility in milliseconds
+     *
+     * @note This is an offset relative to the target ion mobility. The end
+     * of the ion mobility isolation window should thus be computed as:
+     *
+     *   p.getDriftTime() + p.getDriftTimeWindowUpperOffset()
+     *
+     * @return the upper offset from the target ion mobility
+    */
+    double getDriftTimeWindowUpperOffset() const;
+    /// sets the upper offset from the target ion mobility
+    void setDriftTimeWindowUpperOffset(double drift_time);
 
     /// Non-mutable access to the charge
     Int getCharge() const;
@@ -176,9 +209,10 @@ protected:
     double window_low_;
     double window_up_;
     double drift_time_;
+    double drift_window_low_;
+    double drift_window_up_;
     Int charge_;
     std::vector<Int> possible_charge_states_;
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_PRECURSOR_H

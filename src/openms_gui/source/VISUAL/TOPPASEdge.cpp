@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,11 +42,11 @@
 #include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 
 #include <Qt>
-#include <QtGui/QPainter>
-#include <QtGui/QPainterPath>
-#include <QtGui/QMessageBox>
-#include <QtGui/QMenu>
-
+#include <QPainter>
+#include <QPainterPath>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QMenu>
+#include <QApplication>
 
 namespace OpenMS
 {
@@ -171,7 +171,7 @@ namespace OpenMS
 
     TOPPASToolVertex* ttv_source = qobject_cast<TOPPASToolVertex*>(this->getSourceVertex());
     // when copying parameters (using CTRL); only for incomplete edges drawn from tool nodes
-    if (QApplication::keyboardModifiers() && Qt::ControlModifier && !this->to_ && ttv_source)
+    if ((QGuiApplication::keyboardModifiers() & Qt::ControlModifier) && !this->to_ && ttv_source)
     {
       pen.setColor(Qt::darkMagenta);
       pen.setWidth(1);

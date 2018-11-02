@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,12 +42,12 @@
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 
-#include <QtGui/QResizeEvent>
-#include <QtGui/QComboBox>
-#include <QtGui/QSpinBox>
-#include <QtGui/QMenu>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
+#include <QResizeEvent>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
 
 using namespace std;
 
@@ -192,6 +192,10 @@ namespace OpenMS
   {
 #endif
 
+    // make sure OpenGL already properly initialized
+    QOpenGLContext *ctx = QOpenGLContext::currentContext();
+    if (!ctx || !ctx->isValid()) return;
+    
     if (update_buffer_)
     {
       update_buffer_ = false;
@@ -202,7 +206,7 @@ namespace OpenMS
       openglwidget()->initializeGL();
     }
     openglwidget()->resizeGL(width(), height());
-    openglwidget()->glDraw();
+    openglwidget()->repaint();
   }
 
   void Spectrum3DCanvas::showCurrentLayerPreferences()

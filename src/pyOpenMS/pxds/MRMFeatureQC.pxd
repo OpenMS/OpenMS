@@ -8,23 +8,31 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>" namespace "OpenMS"
         MRMFQC_ComponentGroupQCs(MRMFQC_ComponentGroupQCs &) # no-wrap
 
         String component_group_name
-        int n_heavy_l
-        int n_heavy_u
-        int n_light_l
-        int n_light_u
-        int n_detecting_l
-        int n_detecting_u
-        int n_quantifying_l
-        int n_quantifying_u
-        int n_identifying_l
-        int n_identifying_u
-        int n_transitions_l
-        int n_transitions_u
+        double retention_time_l
+        double retention_time_u
+        double intensity_l
+        double intensity_u
+        double overall_quality_l
+        double overall_quality_u
+        Int n_heavy_l
+        Int n_heavy_u
+        Int n_light_l
+        Int n_light_u
+        Int n_detecting_l
+        Int n_detecting_u
+        Int n_quantifying_l
+        Int n_quantifying_u
+        Int n_identifying_l
+        Int n_identifying_u
+        Int n_transitions_l
+        Int n_transitions_u
         String ion_ratio_pair_name_1
         String ion_ratio_pair_name_2
         double ion_ratio_l
         double ion_ratio_u
         String ion_ratio_feature_name
+        # libcpp_map[String,libcpp_pair[double,double]] meta_value_qc
+        ## currently not supported
 
     cdef cppclass MRMFQC_ComponentQCs "OpenMS::MRMFeatureQC::ComponentQCs":
         MRMFQC_ComponentQCs()
@@ -58,5 +66,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>" namespace "OpenMS"
         
         libcpp_vector[MRMFQC_ComponentQCs] component_qcs
         libcpp_vector[MRMFQC_ComponentGroupQCs] component_group_qcs
-        libcpp_vector[MRMFQC_ComponentGroupQCs] component_group_pair_qcs
+        libcpp_vector[MRMFQC_ComponentGroupPairQCs] component_group_pair_qcs
 

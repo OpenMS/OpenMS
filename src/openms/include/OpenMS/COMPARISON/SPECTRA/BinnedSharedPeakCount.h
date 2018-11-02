@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#ifndef OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H
-#define OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H
+#pragma once
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 
@@ -90,10 +89,7 @@ public:
     static BinnedSpectrumCompareFunctor* create() { return new BinnedSharedPeakCount(); }
 
     /// get the identifier for this DefaultParamHandler
-    static const String getProductName()
-    {
-      return "BinnedSharedPeakCount";
-    }
+    static const String getProductName() { return "BinnedSharedPeakCount"; }
 
 protected:
     void updateMembers_() override;
@@ -101,4 +97,3 @@ protected:
   };
 
 }
-#endif //OPENMS_COMPARISON_SPECTRA_BINNEDSHAREDPEAKCOUNT_H

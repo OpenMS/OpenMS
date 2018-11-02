@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // CV term implementation
-  CVTerm::CVTerm()
-  {
-  }
 
   CVTerm::CVTerm(const String & accession, const String & name, const String & cv_identifier_ref, const String & value, const Unit & unit) :
     accession_(accession),
@@ -52,30 +48,8 @@ namespace OpenMS
   {
   }
 
-  CVTerm::CVTerm(const CVTerm & rhs) :
-    accession_(rhs.accession_),
-    name_(rhs.name_),
-    cv_identifier_ref_(rhs.cv_identifier_ref_),
-    unit_(rhs.unit_),
-    value_(rhs.value_)
-  {
-  }
-
   CVTerm::~CVTerm()
   {
-  }
-
-  CVTerm & CVTerm::operator=(const CVTerm & rhs)
-  {
-    if (this != &rhs)
-    {
-      accession_ = rhs.accession_;
-      name_ = rhs.name_;
-      cv_identifier_ref_ = rhs.cv_identifier_ref_;
-      unit_ = rhs.unit_;
-      value_ = rhs.value_;
-    }
-    return *this;
   }
 
   bool CVTerm::operator==(const CVTerm & rhs) const
@@ -153,3 +127,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

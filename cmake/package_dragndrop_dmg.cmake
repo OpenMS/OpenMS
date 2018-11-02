@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -42,12 +42,13 @@ set(CPACK_GENERATOR "DragNDrop")
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY 0) ## dmg seems to be component-aware and makes an ALL-IN-ONE package
 set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY 1) ## Therefore _only_ use the second.. weird stuff.
 ## we make sure it is called like we want although this is the standard name I think.
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-Darwin")  
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}-macOS")  
 
 ## Note: That the mac app bundles (TOPPView) take care of themselves
 ##       when installed as dmg (see src/openms_gui/add_mac_bundle.cmake)
 
-## Fix OpenMS dependencies for all executables in the install directory
+## Fix OpenMS dependencies for all executables in the install directory under bin.
+## That affects everything but the bundles (which have their own structure and are fixed up in add_mac_bundle.cmake)
 ########################################################### Fix Dependencies
 install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -v)"
   COMPONENT zzz-fixing-dependencies
@@ -89,7 +90,8 @@ add_custom_target(dist
 
 ########################################################### Create dmg with background image
 if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
-  set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent.png) ## For configuration of the script
+  set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent.png) ## The logo to be used for the OpenMS folder on the DMG
+  set(OPENMS_DMG_FOLDER_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}") ## The name of the OpenMS folder on the DMG
   configure_file(${PROJECT_SOURCE_DIR}/cmake/MacOSX/setup_applescript.scpt.in ${PROJECT_BINARY_DIR}/macOS_bundle_setup/setup_applescript.scpt)
   set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${PROJECT_BINARY_DIR}/macOS_bundle_setup/setup_applescript.scpt)
   #Next line could overcome a script but since we do not have a fixed name of the OpenMS-$VERSION folder, it probably won't work
@@ -97,10 +99,11 @@ if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
   set(CPACK_DMG_BACKGROUND_IMAGE ${PROJECT_SOURCE_DIR}/cmake/MacOSX/background.png)
   set(CPACK_DMG_FORMAT UDBZ) ## Try bzip2 to get slighlty smaller images
 
-  ## Sign the image. System keychain needs to be unlocked and include the ID used.
+  ## Sign the image. CPACK_BUNDLE_APPLE_CERT_APP needs to be unique and found in one of the
+  ## keychains in the search list (which needs to be unlocked).
   if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
     add_custom_target(signed_dist
-      COMMAND codesign --deep --force --keychain /Library/Keychains/System.keychain --sign "${CPACK_BUNDLE_APPLE_CERT_APP}" ${CPACK_PACKAGE_FILE_NAME}.dmg
+      COMMAND codesign --deep --force --sign ${CPACK_BUNDLE_APPLE_CERT_APP} ${CPACK_PACKAGE_FILE_NAME}.dmg
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
       COMMENT "Signing ${CPACK_PACKAGE_FILE_NAME}.dmg as ${CPACK_BUNDLE_APPLE_CERT_APP}"
       DEPENDS dist)
@@ -121,5 +124,5 @@ else()
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     COMMENT "Finalizing dmg image"
-    DEPENDS dmg)
+    DEPENDS dist)
 endif()

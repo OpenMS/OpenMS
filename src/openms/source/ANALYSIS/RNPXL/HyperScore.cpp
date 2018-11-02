@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,11 +37,6 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <vector>
-#include <map>
-#include <cmath>
-#include <iostream>
-
 using std::vector;
 
 namespace OpenMS
@@ -51,8 +46,8 @@ namespace OpenMS
     if (x < 2) { return 0; }
     double z(0);
     for (double y = 2; y <= static_cast<double>(x); ++y) { z += log(static_cast<double>(y)); }
-    return z;
-  }
+      return z;
+    }
 
   double HyperScore::compute(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const PeakSpectrum& exp_spectrum, const PeakSpectrum& theo_spectrum)
   {
@@ -93,7 +88,8 @@ namespace OpenMS
       // found peak match
       if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
-        dot_product += exp_spectrum[index].getIntensity() * theo_intensity;
+//        double mass_error = 1.0 - std::abs(theo_mz - exp_mz) / max_dist_dalton;
+        dot_product += exp_spectrum[index].getIntensity() * theo_intensity /* * mass_error */;
         // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
         if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
         {
@@ -111,13 +107,12 @@ namespace OpenMS
         }
       }
     }
-  
-    // discard very low scoring hits (basically no matching peaks)
+
     const double yFact = logfactorial_(y_ion_count);
     const double bFact = logfactorial_(b_ion_count);
     const double hyperScore = log1p(dot_product) + yFact + bFact;
-    return hyperScore;
-  }
+      return hyperScore;
+    }
 
 }
 

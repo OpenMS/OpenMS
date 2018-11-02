@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
-#define OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H
+#pragma once
 
 namespace OpenMS
 {
@@ -45,10 +44,29 @@ namespace OpenMS
     @brief Internal structure used in @ref SiriusAdapter that is used
     for the conversion of the sirius output to an mzTab.
     @ingroup ID
-    */
 
-     /// store a specific @param number of lines from sirius output
-     /// @return mzTab
+    SiriusAdapterHit:
+    formula (String) - Sumformula
+    adduct (String) - Assigned adduct
+    rank (int)  - Rank of the possible sumformula for a compound (spectrum) calculated by Sirius
+    score (double) - Overall score of the possible sumformula for a compound (spectrum) calculated by Sirius
+    treescore (double) - Fragmentation pattern score
+    isoscore (double) - Isotope pattern score
+    explainedpeaks (int) - Number of explained peaks
+    explainedintensity (double) - Relative amount of explained intensity
+
+    SiriusAdapterIdentification:
+    scan_index (int) - Index of the spectrum used
+    scan_number (int) - NativeId of the spectrum used
+    feature_id (String) - FeatureId (if spectrum was assigned to a feature)
+    hits (vector<SiriusAdapterHit>)
+
+    SiriusAdapterRun:
+    identifications (vector<SiriusAdapterIdentification>)
+
+    Store a specific @param number of lines from sirius output
+    @return mzTab
+    */
 
     struct SiriusAdapterHit
     {
@@ -64,7 +82,9 @@ namespace OpenMS
 
     struct SiriusAdapterIdentification
     {
-      OpenMS::String scan_index;
+      int scan_index;
+      int scan_number;
+      OpenMS::String feature_id;
       std::vector<SiriusAdapterHit> hits;
     };
 
@@ -73,16 +93,27 @@ namespace OpenMS
       std::vector<SiriusAdapterIdentification> identifications;
     };
 
-    // extract scan_index from filepath
-    static String extract_scan_index(const String & path);
-
-    //Output of Sirius is one directory per spectrum/compound
-    //paths: Path to output directories of sirius
-    //number: Amount of entries for each file/compound should be written to the mztab file
-    static void read(const std::vector<String> & paths, Size number, MzTab & result);
+    /**
+    @brief Extract scan_index from filepath
+    */
+    static int extract_scan_index(const String & path);
+ 
+    /**
+    @brief Conversion of sirius output to mzTab
+    
+    Output of Sirius is one directory per spectrum/compound
+    @param sirius_output_paths: Path to output directories of Sirius
+    @param original_input_mzml: Path to mzml input of SiriusAdapter
+    @param top_n_hits: Top n  entries for each compound written to the result file     
+    
+    @return: Result written to mzTab
+    */
+    static void read(const std::vector<String>& sirius_output_paths,
+                     const String& original_input_mzml,
+                     const Size& top_n_hits,
+                     MzTab& result);
 
   };
 
 }
 
-#endif //OPENMS_FORMAT_DATAACCESS_SIRIUSMZTABWRITER_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,14 +36,9 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include <iostream>
 #include <fstream>
-#include <cmath>
-#include <numeric>
-#include <algorithm>
 
 // #define SIMPLE_DEBUG2
 // #undef  SIMPLE_DEBUG2

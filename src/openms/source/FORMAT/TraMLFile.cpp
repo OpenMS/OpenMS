@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,12 +37,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/VALIDATORS/TraMLValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/HANDLERS/TraMLHandler.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <iostream>
 
 namespace OpenMS
 {

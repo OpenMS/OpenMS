@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_METAINFOREGISTRY_H
-#define OPENMS_METADATA_METAINFOREGISTRY_H
+#pragma once
 
 #include <map>
 #include <string>
@@ -74,16 +73,16 @@ namespace OpenMS
   class OPENMS_DLLAPI MetaInfoRegistry
   {
 public:
-    ///default constructor
+    /// Default constructor
     MetaInfoRegistry();
 
-    ///copy constructor
+    /// Copy constructor
     MetaInfoRegistry(const MetaInfoRegistry& rhs);
 
-    ///destructor
+    /// Destructor
     ~MetaInfoRegistry();
 
-    ///assignment operator
+    /// Assignment operator
     MetaInfoRegistry& operator=(const MetaInfoRegistry& rhs);
 
     /**
@@ -162,15 +161,17 @@ public:
 private:
     /// internal counter, that stores the next index to assign
     UInt next_index_;
+    using MapString2IndexType = std::map<String, UInt>;
+    using MapIndex2StringType = std::map<UInt, String>;
+    
     /// map from name to index
-    std::map<String, UInt> name_to_index_;
+    MapString2IndexType name_to_index_;
     /// map from index to name
-    std::map<UInt, String> index_to_name_;
+    MapIndex2StringType index_to_name_;
     /// map from index to description
-    std::map<UInt, String> index_to_description_;
+    MapIndex2StringType index_to_description_;
     /// map from index to unit
-    std::map<UInt, String> index_to_unit_;
-
+    MapIndex2StringType index_to_unit_;
   };
 
 } // namespace OpenMS
@@ -179,4 +180,3 @@ private:
 #pragma warning( pop )
 #endif
 
-#endif // OPENMS_METADATA_METAINFOREGISTRY_H

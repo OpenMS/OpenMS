@@ -11,6 +11,7 @@ TransitionTSVFile.cpp
 TransitionPQPFile.cpp
 SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
+OpenSwathScores.cpp
 OpenSwathScoring.cpp
 OpenSwathTSVWriter.cpp
 OpenSwathOSWWriter.cpp
@@ -19,6 +20,7 @@ ChromatogramExtractor.cpp
 ChromatogramExtractorAlgorithm.cpp
 SpectrumAddition.cpp
 TargetedSpectraExtractor.cpp
+MRMFeaturePicker.cpp
 MRMTransitionGroupPicker.cpp
 DIAHelper.cpp
 DIAScoring.cpp

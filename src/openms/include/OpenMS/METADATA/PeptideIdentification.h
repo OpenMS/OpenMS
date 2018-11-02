@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PEPTIDEIDENTIFICATION_H
-#define OPENMS_METADATA_PEPTIDEIDENTIFICATION_H
+#pragma once
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
@@ -73,11 +72,16 @@ public:
     /// default constructor
     PeptideIdentification();
     /// destructor
-    virtual ~PeptideIdentification();
+    virtual ~PeptideIdentification() noexcept;
     /// copy constructor
-    PeptideIdentification(const PeptideIdentification& source);
-    /// assignment operator
-    PeptideIdentification& operator=(const PeptideIdentification& source);
+    PeptideIdentification(const PeptideIdentification&) = default;
+    /// Move constructor
+    PeptideIdentification(PeptideIdentification&&) noexcept = default;
+
+    /// Assignment operator
+    PeptideIdentification& operator=(const PeptideIdentification&) = default;
+    /// Move assignment operator
+    PeptideIdentification& operator=(PeptideIdentification&&) = default; // TODO: add noexcept (gcc 4.8 bug)
     /// Equality operator
     bool operator==(const PeptideIdentification& rhs) const;
     /// Inequality operator
@@ -104,6 +108,8 @@ public:
     std::vector<PeptideHit>& getHits();
     /// Appends a peptide hit
     void insertHit(const PeptideHit& hit);
+    /// Appends a peptide hit
+    void insertHit(PeptideHit&& hit);
     /// Sets the peptide hits
     void setHits(const std::vector<PeptideHit>& hits);
 
@@ -175,4 +181,3 @@ protected:
   };
 
 } //namespace OpenMS
-#endif // OPENMS_METADATA_PEPTIDEIDENTIFICATION_H

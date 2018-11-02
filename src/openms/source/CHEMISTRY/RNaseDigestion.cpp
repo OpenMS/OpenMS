@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,15 +59,15 @@ namespace OpenMS
                                        has_3prime_p) + "$";
 
     // beginning positions of "naive" fragments:
-    vector<Size> fragment_pos = tokenize_(temp_rna);
+    vector<int> fragment_pos = tokenize_(temp_rna);
     // after "^" or before "$" aren't valid cleavages:
     if (fragment_pos.size() > 1)
     {
       if (fragment_pos[1] == 1)
       {
-        fragment_pos.erase(++fragment_pos.begin());
+        fragment_pos.erase(fragment_pos.begin() + 1);
       }
-      if (fragment_pos[fragment_pos.size() - 1] == temp_rna.size() - 1)
+      if (fragment_pos.back() == (int)temp_rna.size() - 1)
       {
         fragment_pos.resize(fragment_pos.size() - 1);
       }

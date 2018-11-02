@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,8 +43,6 @@ namespace OpenMS
     BinnedSpectrumCompareFunctor()
   {
     setName(BinnedSumAgreeingIntensities::getProductName());
-    defaults_.setValue("normalized", 1, "is set 1 if the similarity-measurement is normalized to the range [0,1]");
-    defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, defines the distance of two PrecursorPeaks for which they are supposed to be from different peptides");
     defaultsToParam_();
   }
 
@@ -73,48 +71,24 @@ namespace OpenMS
 
   void BinnedSumAgreeingIntensities::updateMembers_()
   {
-    precursor_mass_tolerance_ = param_.getValue("precursor_mass_tolerance");
   }
 
   double BinnedSumAgreeingIntensities::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
-    // avoid crash while comparing
-    if (!spec1.checkCompliance(spec2))
-    {
-      throw IncompatibleBinning(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "");
-    }
+    OPENMS_PRECONDITION(BinnedSpectrum::isCompatible(spec1, spec2), "Binned spectra have different bin size or spread");
 
-    // shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)
-    double pre_mz1 = 0.0;
-    if (!spec1.getRawSpectrum().getPrecursors().empty())
-    {
-      pre_mz1 = spec1.getRawSpectrum().getPrecursors()[0].getMZ();
-    }
-    double pre_mz2 = 0.0;
-    if (!spec2.getRawSpectrum().getPrecursors().empty())
-    {
-      pre_mz2 = spec2.getRawSpectrum().getPrecursors()[0].getMZ();
-    }
-    if (fabs(pre_mz1 - pre_mz2) > precursor_mass_tolerance_)
-    {
-      return 0;
-    }
+    const double sum1 = spec1.getBins().sum();
+    const double sum2 = spec2.getBins().sum();
 
-    double score(0), sharedBins(min(spec1.getBinNumber(), spec2.getBinNumber())), sum1(0), sum2(0), summax(0);
-
-    // all bins at equal position and similar intensities contribute positively to score
-    for (Size i = 0; i < sharedBins; ++i)
-    {
-      sum1 += spec1.getBins()[i];
-      sum2 += spec2.getBins()[i];
-      summax += max((float)0, ((spec1.getBins()[i] + spec2.getBins()[i]) / 2) - fabs(spec1.getBins()[i] - spec2.getBins()[i]));
-    }
+    // For maximum speed, keep in single expression
+    // 1. calculate mean minus difference: x = mean(a,b) - abs(a-b)
+    // 2. truncate negative values:        y = max(0, x)
+    // 3. calculate sum of entries:   sum_nn = y.sum()
+    BinnedSpectrum::SparseVectorType s = ((spec1.getBins() + spec2.getBins()) * 0.5) - ((spec1.getBins() - spec2.getBins()).cwiseAbs());
+    double sum_nn = s.coeffs().cwiseMax(0).sum();
 
     // resulting score normalized to interval [0,1]
-    score = summax * (2 / (sum1 + sum2));
-
-    return score;
-
+    return min(sum_nn / ((sum1 + sum2) / 2.0), 1.0);
   }
-
 }
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_SMOOTHING_GAUSSFILTERALGORITHM_H
-#define OPENMS_FILTERING_SMOOTHING_GAUSSFILTERALGORITHM_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -61,11 +60,12 @@ namespace OpenMS
           Use a gaussian filter kernel which has approximately the same width as your mass peaks,
           whereas the gaussian peak width corresponds approximately to 8*sigma.
 
-        @note The data must be sorted according to ascending m/z!
+    @note The data must be sorted according to ascending m/z!
 
     @ingroup SignalProcessing
   */
-//#define DEBUG_FILTERING
+
+// #define DEBUG_FILTERING
 
   class OPENMS_DLLAPI GaussFilterAlgorithm 
   {
@@ -139,8 +139,8 @@ public:
     {
       bool found_signal = false;
 
-      IterT mz_it = mz_in_start;
-      IterT int_it = int_in_start;
+      ConstIterT mz_it = mz_in_start;
+      ConstIterT int_it = int_in_start;
       for (; mz_it != mz_in_end; mz_it++, int_it++)
       {
         // if ppm tolerance is used, calculate a reasonable width value for this m/z
@@ -385,4 +385,3 @@ protected:
   };
 
 } // namespace OpenMS
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,21 +35,11 @@
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h> // tmp
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
 
 //DEBUG:
-#include <iostream>
 #include <fstream>
 
 #undef DC_DEVEL
@@ -877,8 +867,8 @@ namespace OpenMS
 
         // print pairs only
         cons_map_p_neg.push_back(cf);
-        cons_map_p_neg.getFileDescriptions()[0].size = fm_out.size();
-        cons_map_p_neg.getFileDescriptions()[0].label = "charged features pairs (inactive)";
+        cons_map_p_neg.getColumnHeaders()[0].size = fm_out.size();
+        cons_map_p_neg.getColumnHeaders()[0].label = "charged features pairs (inactive)";
 #endif
       }
 
@@ -983,15 +973,15 @@ namespace OpenMS
 
 
     // fill the header
-    //cons_map.getFileDescriptions()[0].filename = "TODO - take from FeatureMAP.getLoadedFilePath () ";
+    //cons_map.getColumnHeaders()[0].filename = "TODO - take from FeatureMAP.getLoadedFilePath () ";
 
     for (Size i = 0; i < map_label_.size(); ++i)
     {
-      cons_map.getFileDescriptions()[i].size = fm_out.size();
-      cons_map.getFileDescriptions()[i].label = map_label_[i];
+      cons_map.getColumnHeaders()[i].size = fm_out.size();
+      cons_map.getColumnHeaders()[i].label = map_label_[i];
 
-      cons_map_p.getFileDescriptions()[i].size = fm_out.size();
-      cons_map_p.getFileDescriptions()[i].label = map_label_[i];
+      cons_map_p.getColumnHeaders()[i].size = fm_out.size();
+      cons_map_p.getColumnHeaders()[i].label = map_label_[i];
     }
 
 #ifdef DC_DEVEL

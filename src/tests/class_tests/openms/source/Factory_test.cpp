@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,6 +50,29 @@ START_TEST(<Factory>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+  int nr_iterations (1e2), test (0);
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
+    TICFilter reducer;
+
+#ifdef _OPENMP
+#pragma omp critical (add_test)
+#endif
+    {
+      test += (*p==reducer);
+    }
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
+END_SECTION
 
 // Factory is singleton, therefore we don't test the constructor
 START_SECTION(static FactoryProduct* create(const String& name))

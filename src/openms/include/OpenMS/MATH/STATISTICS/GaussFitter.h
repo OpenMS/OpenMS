@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_MATH_STATISTICS_GAUSSFITTER_H
-#define OPENMS_MATH_STATISTICS_GAUSSFITTER_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -61,7 +60,7 @@ namespace OpenMS
 public:
 
       /// struct of parameters of a Gaussian distribution
-      struct GaussFitResult
+      struct OPENMS_DLLAPI GaussFitResult
       {
 public:
         GaussFitResult()
@@ -77,6 +76,16 @@ public:
 
         /// parameter sigma of Gaussian distribution (width)
         double sigma;
+
+      /**
+        @brief Evaluate the current Gaussian model at the specified point.
+
+        Returns the intensities (i.e. probabilities scaled by the factor 'A') of the PDF at the given positions.
+        This function can be called with any set of parameters, e.g. the initial parameters (to get a 'before-fit' status),
+        or after fitting.
+
+      */
+        double eval(const double x) const;
       };
 
       /// Constructor
@@ -113,7 +122,7 @@ protected:
 
 private:
 
-      /// Copy constructor (not implemented)
+     /// Copy constructor (not implemented)
       GaussFitter(const GaussFitter & rhs);
 
       /// Assignment operator (not implemented)
@@ -122,4 +131,3 @@ private:
   }
 }
 
-#endif

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
@@ -104,7 +105,7 @@ protected:
     registerInputFile_("database", "<file>", "CHEMISTRY/MetaboliteSpectralDB.mzML", "Default spectral database.", false);
     setValidFormats_("database", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "mzTab file");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }

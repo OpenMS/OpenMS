@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_PEPTIDEHIT_H
-#define OPENMS_METADATA_PEPTIDEHIT_H
+#pragma once
 
 #include <vector>
 
@@ -50,7 +49,7 @@ namespace OpenMS
 
     It contains the fields score, score_type, rank, and sequence.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI PeptideHit :
     public MetaInfoInterface
@@ -60,18 +59,24 @@ public:
     /**
    * @brief Contains annotations of a peak
 
-      The mz and intensity values contain the same information as a spectrum would have about the peaks,
-      and can be used to map the additional information to the correct peak or reconstruct the annotated spectrum.
-      Additionally the charge of the peak and an arbitrary string annotaion can be stored.
+      The mz and intensity values contain the same information as a spectrum
+      would have about the peaks, and can be used to map the additional
+      information to the correct peak or reconstruct the annotated spectrum.
+      Additionally the charge of the peak and an arbitrary string annotation
+      can be stored.
+
       The string annotation can be e.g. a fragment type like "y3".
       This information can be used e.g. to label peaks in TOPPView.
 
-      The specific application in OpenProXL uses a more complex syntax to define the larger number of different ion types
-      found in XL-MS data.
-      In the example "[alpha|ci$y3-H2O-NH3]" "alpha" or "beta" determines on which of the two peptides the fragmentation occured,
-      "ci" or "xi" determines whether the cross-link and with it the other peptide is contained in the fragment,
-      and the last part is the ion type with the fragmentation position (index) and losses.
-      The separators "|" and "$" are used to separate the parts easily when parsing the annotation.
+      The specific application in OpenProXL uses a more complex syntax to
+      define the larger number of different ion types found in XL-MS data.
+
+      In the example "[alpha|ci$y3-H2O-NH3]" "alpha" or "beta" determines on
+      which of the two peptides the fragmentation occurred, "ci" or "xi"
+      determines whether the cross-link and with it the other peptide is
+      contained in the fragment, and the last part is the ion type with the
+      fragmentation position (index) and losses.  The separators "|" and "$"
+      are used to separate the parts easily when parsing the annotation.
 
    */
   struct PeakAnnotation
@@ -125,11 +130,27 @@ public:
 
     bool operator==(const PeptideHit::PeakAnnotation& other) const
     {
-      if (charge != other.charge || mz != other.mz || 
+      if (charge != other.charge || mz != other.mz ||
           intensity != other.intensity || annotation != other.annotation) return false;
       return true;
     }
-};
+
+    static void writePeakAnnotationsString_(String& annotation_string, std::vector<PeptideHit::PeakAnnotation> annotations)
+    {
+      if (annotations.empty()) { return; }
+
+      // sort by mz, charge, ...
+      stable_sort(annotations.begin(), annotations.end());
+
+      String val;
+      for (auto& a : annotations)
+      {
+        annotation_string += String(a.mz) + "," + String(a.intensity) + "," + String(a.charge) + "," + String(a.annotation).quote();
+        if (&a != &annotations.back()) { annotation_string += "|"; }
+      }
+    }
+
+  };
 
 public:
 
@@ -172,7 +193,7 @@ public:
     };
     //@}
 
-    
+
     /// Lesser predicate for (modified) sequence of hits
     class OPENMS_DLLAPI SequenceLessComparator
     {
@@ -196,44 +217,40 @@ public:
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
       {
-        return score_type == rhs.score_type 
+        return score_type == rhs.score_type
           && higher_is_better == rhs.higher_is_better
           && main_score == rhs.main_score
           && sub_scores == rhs.sub_scores;
       }
-
-      PepXMLAnalysisResult& operator=(const PepXMLAnalysisResult& source)
-      {
-        if (this == &source) return *this;
-        score_type = source.score_type;
-        higher_is_better = source.higher_is_better;
-        main_score = source.main_score;
-        sub_scores = source.sub_scores;
-        return *this;
-      }
-
     };
 
     /** @name Constructors and Destructor */
     //@{
-    /// default constructor
+
+    /// Default constructor
     PeptideHit();
 
-    /// values constructor
+    /// Values constructor
     PeptideHit(double score,
                UInt rank,
                Int charge,
                const AASequence& sequence);
 
-    /// copy constructor
+    /// Copy constructor
     PeptideHit(const PeptideHit& source);
 
-    /// destructor
+    /// Move constructor
+    PeptideHit(PeptideHit&&) noexcept;
+
+    /// Destructor
     virtual ~PeptideHit();
     //@}
 
-    /// assignment operator
+    /// Assignment operator
     PeptideHit& operator=(const PeptideHit& source);
+
+    /// Move assignment operator
+    PeptideHit& operator=(PeptideHit&&) noexcept;
 
     /// Equality operator
     bool operator==(const PeptideHit& rhs) const;
@@ -320,5 +337,3 @@ protected:
   };
 
 } // namespace OpenMS
-
-#endif // OPENMS_METADATA_PEPTIDEHIT_H

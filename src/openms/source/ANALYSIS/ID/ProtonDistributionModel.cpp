@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,17 +35,13 @@
 
 #include <OpenMS/ANALYSIS/ID/ProtonDistributionModel.h>
 
-#include <cmath>
-#include <numeric>
-#include <cstdlib>
-#include <boost/math/distributions.hpp>
-#include <iostream>
-
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 
+#include <iostream>
+#include <numeric>
+#include <boost/math/distributions.hpp>
 
 
 #define COULOMB_REPULSION (double)47.0  // from zhang: 47.0 kJ/mol

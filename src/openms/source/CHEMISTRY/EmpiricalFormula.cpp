@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,17 @@
 //
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+
+
+#include <boost/math/special_functions/binomial.hpp>
 
 #include <iostream>
 
@@ -47,14 +54,7 @@ namespace OpenMS
 {
   EmpiricalFormula::EmpiricalFormula() :
     charge_(0)
-  {
-  }
-
-  EmpiricalFormula::EmpiricalFormula(const EmpiricalFormula& formula) :
-    formula_(formula.formula_),
-    charge_(formula.charge_)
-  {
-  }
+  {}
 
   EmpiricalFormula::EmpiricalFormula(const String& formula)
   {
@@ -78,10 +78,9 @@ namespace OpenMS
     {
       weight += Constants::PROTON_MASS_U * charge_;
     }
-    MapType_::const_iterator it = formula_.begin();
-    for (; it != formula_.end(); ++it)
+    for (const auto& it : formula_)
     {
-      weight += it->first->getMonoWeight() * (double)it->second;
+      weight += it.first->getMonoWeight() * (double)it.second;
     }
     return weight;
   }
@@ -93,12 +92,37 @@ namespace OpenMS
     {
       weight += Constants::PROTON_MASS_U * charge_;
     }
-    MapType_::const_iterator it = formula_.begin();
-    for (; it != formula_.end(); ++it)
+    for (const auto& it : formula_)
     {
-      weight += it->first->getAverageWeight() * (double)it->second;
+      weight += it.first->getAverageWeight() * (double)it.second;
     }
     return weight;
+  }
+
+  double EmpiricalFormula::calculateTheoreticalIsotopesNumber() const
+  {
+    double total = 1;
+    for (const auto& element : formula_)
+    {
+      UInt non_trace_isotopes = 0;
+      const auto& distr = element.first->getIsotopeDistribution();
+      for (auto isotope : distr)
+      {
+        if (isotope.getIntensity() != 0)
+        {
+          non_trace_isotopes++;
+        }
+      }
+      if (non_trace_isotopes>1 && element.second!=1)
+      {
+        total *= boost::math::binomial_coefficient<double>(UInt(element.second), non_trace_isotopes);
+      }
+      else
+      {
+        total *= element.second*non_trace_isotopes;
+      }
+    }
+    return total;
   }
 
   bool EmpiricalFormula::estimateFromWeightAndCompAndS(double average_weight, UInt S, double C, double H, double N, double O, double P)
@@ -154,21 +178,14 @@ namespace OpenMS
     return true;
   }
 
-  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
+  IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(const IsotopePatternGenerator& solver) const
   {
-    IsotopeDistribution result(max_depth);
-    MapType_::const_iterator it = formula_.begin();
-    for (; it != formula_.end(); ++it)
-    {
-      IsotopeDistribution tmp = it->first->getIsotopeDistribution();
-      tmp.setMaxIsotope(max_depth);
-      result += tmp * it->second;
-    }
-    result.renormalize();
-    return result;
+    return solver.run(*this);
   }
 
-  IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const
+  IsotopeDistribution EmpiricalFormula::getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor,
+                                                                          const std::set<UInt>& precursor_isotopes,
+                                                                          const CoarseIsotopePatternGenerator& solver) const
   {
     // A fragment's isotopes can only be as high as the largest isolated precursor isotope.
     UInt max_depth = *std::max_element(precursor_isotopes.begin(), precursor_isotopes.end())+1;
@@ -176,11 +193,10 @@ namespace OpenMS
     // Treat *this as the fragment molecule
     EmpiricalFormula complementary_fragment = precursor-*this;
 
-    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(max_depth);
-    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(max_depth);
+    IsotopeDistribution fragment_isotope_dist = getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
+    IsotopeDistribution comp_fragment_isotope_dist = complementary_fragment.getIsotopeDistribution(CoarseIsotopePatternGenerator(max_depth));
 
-    IsotopeDistribution result;
-    result.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes);
+    IsotopeDistribution result = solver.calcFragmentIsotopeDist(fragment_isotope_dist, comp_fragment_isotope_dist, precursor_isotopes, getMonoWeight());
 
     // Renormalize to make these conditional probabilities (conditioned on the isolated precursor isotopes)
     result.renormalize();
@@ -190,7 +206,7 @@ namespace OpenMS
 
   SignedSize EmpiricalFormula::getNumberOf(const Element* element) const
   {
-    MapType_::const_iterator it  = formula_.find(element);
+    const auto& it  = formula_.find(element);
     if (it != formula_.end())
     {
       return it->second;
@@ -201,11 +217,7 @@ namespace OpenMS
   SignedSize EmpiricalFormula::getNumberOfAtoms() const
   {
     SignedSize num_atoms(0);
-    MapType_::const_iterator it = formula_.begin();
-    for (; it != formula_.end(); ++it)
-    {
-      num_atoms += it->second;
-    }
+    for (const auto& it : formula_) num_atoms += it.second;
     return num_atoms;
   }
 
@@ -224,36 +236,33 @@ namespace OpenMS
     String formula;
     std::map<String, SignedSize> new_formula;
 
-    for (MapType_::const_iterator it = formula_.begin(); it != formula_.end(); ++it)
+    for (const auto& it : formula_) 
     {
-      new_formula[it->first->getSymbol()] = it->second;
+      new_formula[it.first->getSymbol()] = it.second;
     }
 
-    for (std::map<String, SignedSize>::const_iterator it = new_formula.begin(); it != new_formula.end(); ++it)
+    for (const auto& it : new_formula) 
     {
-      formula += it->first + String(it->second);
+      formula += it.first + String(it.second);
     }
     return formula;
   }
 
-  EmpiricalFormula& EmpiricalFormula::operator=(const EmpiricalFormula& formula)
+  std::map<std::string, int> EmpiricalFormula::toMap() const
   {
-    if (this != &formula)
+    std::map<std::string, int> new_formula; 
+
+    for (const auto & it : formula_)
     {
-      formula_ = formula.formula_;
-      charge_ = formula.charge_;
+      new_formula[it.first->getSymbol()] = it.second;
     }
-    return *this;
+    return new_formula;
   }
 
   EmpiricalFormula EmpiricalFormula::operator*(const SignedSize& times) const
   {
     EmpiricalFormula ef(*this);
-    MapType_::const_iterator it = formula_.begin();
-    for (; it != formula_.end(); ++it)
-    {
-      ef.formula_[it->first] *= times;
-    }
+    for (const auto& it : formula_) ef.formula_[it.first] *= times;
     ef.charge_ *= times;
     ef.removeZeroedElements_();
     return ef;
@@ -263,17 +272,16 @@ namespace OpenMS
   {
     EmpiricalFormula ef;
     ef.formula_ = formula.formula_;
-    MapType_::const_iterator it = formula_.begin();
-    for (; it != formula_.end(); ++it)
+    for (const auto& it : formula_) 
     {
-      MapType_::iterator ef_it  = ef.formula_.find(it->first);
+      auto ef_it  = ef.formula_.find(it.first);
       if (ef_it != ef.formula_.end())
       {
-        ef_it->second += it->second;
+        ef_it->second += it.second;
       }
       else
       {
-        ef.formula_.insert(*it);
+        ef.formula_.insert(it);
       }
     }
     ef.charge_ = charge_ + formula.charge_;
@@ -283,17 +291,16 @@ namespace OpenMS
 
   EmpiricalFormula& EmpiricalFormula::operator+=(const EmpiricalFormula& formula)
   {
-    MapType_::const_iterator it = formula.formula_.begin();
-    for (; it != formula.formula_.end(); ++it)
+    for (const auto& it : formula.formula_) 
     {
-      MapType_::iterator f_it  = formula_.find(it->first);
+      auto f_it  = formula_.find(it.first);
       if (f_it != formula_.end())
       {
-        f_it->second += it->second;
+        f_it->second += it.second;
       }
       else
       {
-        formula_.insert(*it);
+        formula_.insert(it);
       }
     }
     charge_ += formula.charge_;
@@ -304,12 +311,11 @@ namespace OpenMS
   EmpiricalFormula EmpiricalFormula::operator-(const EmpiricalFormula& formula) const
   {
     EmpiricalFormula ef(*this);
-    MapType_::const_iterator it = formula.formula_.begin();
-    for (; it != formula.formula_.end(); ++it)
+    for (const auto& it : formula.formula_) 
     {
-      const Element* e = it->first;
-      SignedSize num = it->second;
-      MapType_::iterator ef_it  = ef.formula_.find(e);
+      const Element* e = it.first;
+      SignedSize num = it.second;
+      auto ef_it  = ef.formula_.find(e);
       if (ef_it != ef.formula_.end())
       {
         ef_it->second -= num;
@@ -327,17 +333,16 @@ namespace OpenMS
 
   EmpiricalFormula& EmpiricalFormula::operator-=(const EmpiricalFormula& formula)
   {
-    MapType_::const_iterator it = formula.formula_.begin();
-    for (; it != formula.formula_.end(); ++it)
+    for (const auto& it : formula.formula_) 
     {
-      MapType_::iterator f_it  = formula_.find(it->first);
+      auto f_it  = formula_.find(it.first);
       if (f_it != formula_.end())
       {
-        f_it->second -= it->second;
+        f_it->second -= it.second;
       }
       else
       {
-        formula_[it->first] = -it->second;
+        formula_[it.first] = -it.second;
       }
     }
     charge_ -= formula.charge_;
@@ -362,9 +367,9 @@ namespace OpenMS
 
   bool EmpiricalFormula::contains(const EmpiricalFormula& ef)
   {
-    for (EmpiricalFormula::const_iterator it = ef.begin(); it != ef.end(); ++it)
+    for (const auto& it : ef) 
     {
-      if (this->getNumberOf(it->first) < it->second)
+      if (this->getNumberOf(it.first) < it.second)
       {
         return false;
       }
@@ -385,18 +390,15 @@ namespace OpenMS
   ostream& operator<<(ostream& os, const EmpiricalFormula& formula)
   {
     std::map<String, SignedSize> new_formula;
-    for (Map<const Element*, SignedSize>::const_iterator it = formula.formula_.begin(); it != formula.formula_.end(); ++it)
+    for (const auto& it : formula.formula_) 
     {
-      new_formula[it->first->getSymbol()] = it->second;
+      new_formula[it.first->getSymbol()] = it.second;
     }
 
-    for (std::map<String, SignedSize>::const_iterator it = new_formula.begin(); it != new_formula.end(); ++it)
+    for (const auto& it : new_formula)
     {
-      os << it->first;
-      if (it->second > 1)
-      {
-        os << it->second;
-      }
+      os << it.first;
+      if (it.second > 1) os << it.second;
     }
     if (formula.charge_ == 0)
     {
@@ -642,4 +644,24 @@ namespace OpenMS
     }
   }
 
-}
+  bool EmpiricalFormula::operator<(const EmpiricalFormula& rhs) const  
+  {
+    if (formula_.size() != rhs.formula_.size()) 
+    { 
+      return formula_.size() < rhs.formula_.size(); 
+    }
+
+    // both maps have same size
+    auto it = formula_.begin();
+    auto rhs_it = rhs.formula_.begin();
+    for (; it != formula_.end(); ++it, ++rhs_it)
+    {
+      if (*(it->first) != *(rhs_it->first)) return *(it->first) < *(rhs_it->first); // element
+      if (it->second != rhs_it->second) return it->second < rhs_it->second; // count
+    }
+
+    return charge_ < rhs.charge_;
+  }
+
+
+} // namespace OpenMS

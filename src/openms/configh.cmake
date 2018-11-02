@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,9 @@
 ## define some source directories
 set(CF_OPENMS_DATA_PATH ${OPENMS_HOST_DIRECTORY}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 set(CF_OPENMS_DOC_PATH ${OPENMS_HOST_DIRECTORY}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
-## and the corresponding ones when installed
-set(CF_OPENMS_INSTALL_DATA_PATH ${INSTALL_SHARE_DIR} CACHE INTERNAL "Path to the installed shared documents of OpenMS.")
-set(CF_OPENMS_INSTALL_DOC_PATH ${INSTALL_DOC_DIR} CACHE INTERNAL "Path to the installed documentation of OpenMS." )
+## and the corresponding ones when installed (careful, you have to rebuild if you change -DCMAKE_PREFIX_PATH). Also, does not work after deployment.
+set(CF_OPENMS_INSTALL_DATA_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_SHARE_DIR} CACHE INTERNAL "Path to the installed shared documents of OpenMS.")
+set(CF_OPENMS_INSTALL_DOC_PATH ${CMAKE_INSTALL_PREFIX}/${INSTALL_DOC_DIR} CACHE INTERNAL "Path to the installed documentation of OpenMS." )
 
 ## check for Microsoft Visual Studio compiler
 if (MSVC)

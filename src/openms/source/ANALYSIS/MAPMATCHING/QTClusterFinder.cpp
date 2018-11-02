@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,14 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-
-#include <list>
-#include <vector>
-#include <algorithm> // for max
+#include <OpenMS/KERNEL/FeatureHandle.h>
 
 // #define DEBUG_QTCLUSTERFINDER
 
@@ -48,8 +43,6 @@ using std::list;
 using std::vector;
 using std::max;
 using std::make_pair;
-
-#include <iostream>
 
 namespace OpenMS
 {
@@ -112,7 +105,7 @@ namespace OpenMS
          map_it != input_maps.end(); ++map_it)
     {
       for (typename MapType::const_iterator feat_it = map_it->begin();
-          feat_it != map_it->end(); feat_it++)
+          feat_it != map_it->end(); ++feat_it)
       {
         massrange.push_back(feat_it->getMZ());
       }
@@ -344,8 +337,14 @@ namespace OpenMS
     for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
          it = elements.begin(); it != elements.end(); ++it)
     {
-      feature.insert(it->first, it->second->getFeature());
+      BaseFeature& elem_feat = const_cast<BaseFeature&>(it->second->getFeature());
+      feature.insert(it->first, elem_feat);
+      if (elem_feat.metaValueExists("dc_charge_adducts"))
+      {
+        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
+      }
     }
+
     feature.computeConsensus();
 
 #ifdef DEBUG_QTCLUSTERFINDER

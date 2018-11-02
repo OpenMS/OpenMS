@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,12 @@
 // $Authors: Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONDESCRIPTION_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONDESCRIPTION_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <iostream>
+#include <map>
 
 namespace OpenMS
 {
@@ -63,6 +63,39 @@ namespace OpenMS
     // friend class MapAlignmentAlgorithm;
 
 public:
+
+    /* @brief Summary statistics before/after applying the transformation.
+              For deviations before/after transformation, the percentiles 
+              100, 99, 95, 90, 75, 50, 25 are returned.
+     */ 
+    struct TransformationStatistics
+    {
+      TransformationStatistics& operator=(const TransformationStatistics& rhs)
+      {
+        if (this == &rhs)
+          return *this;
+
+        // percents = rhs.precents; // const, cannot be assigned
+        xmin = rhs.xmin;
+        xmax = rhs.xmax;
+        ymin = rhs.ymin;
+        ymax = rhs.ymax;
+        percentiles_before = rhs.percentiles_before;
+        percentiles_after = rhs.percentiles_after;
+
+        return *this;
+      }
+
+      const std::vector<Size> percents = {100, 99, 95, 90, 75, 50, 25};
+      double xmin = 0; ///< smallest x value before transformation
+      double xmax = 0; ///< largest x value before transformation
+      double ymin = 0; ///< smallest y value before transformation
+      double ymax = 0; ///< largest y value before transformation
+      
+      std::map<Size, double> percentiles_before; ///< percentiles of x/y deviations before transformation
+      std::map<Size, double> percentiles_after; ///< percentiles of x/y deviations after transformation
+    };
+    
 
     /// Coordinate pair
     typedef TransformationModel::DataPoint DataPoint;
@@ -131,6 +164,9 @@ public:
     void getDeviations(std::vector<double>& diffs, bool do_apply = false,
                        bool do_sort = true) const;
 
+    /// Get summary statistics (ranges and errors before/after)
+    TransformationStatistics getStatistics() const;
+
     /// Print summary statistics for the transformation
     void printSummary(std::ostream& os = std::cout) const;
 
@@ -145,4 +181,3 @@ protected:
 
 } // end of namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONDESCRIPTION_H

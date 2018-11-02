@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,34 +39,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  Software::Software() :
-    CVTermList(),
-    name_(),
-    version_()
-  {
-  }
-
-  Software::Software(const Software & rhs) :
-    CVTermList(rhs),
-    name_(rhs.name_),
-    version_(rhs.version_)
-  {
-  }
-
   Software::~Software()
   {
-  }
-
-  Software & Software::operator=(const Software & rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    CVTermList::operator=(rhs);
-    name_ = rhs.name_;
-    version_ = rhs.version_;
-
-    return *this;
   }
 
   bool Software::operator==(const Software & rhs) const
@@ -102,3 +76,4 @@ namespace OpenMS
   }
 
 }
+

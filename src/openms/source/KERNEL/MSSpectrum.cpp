@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <ostream>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+
 
 namespace OpenMS
 {
@@ -101,6 +102,29 @@ namespace OpenMS
     }
 
     return *this;
+  }
+
+  SpectrumSettings::SpectrumType MSSpectrum::getType(const bool query_data) const
+  {
+    SpectrumSettings::SpectrumType t = SpectrumSettings::getType();
+    // easy case: type is known
+    if (t != SpectrumSettings::UNKNOWN) return t;
+
+    // Some conversion software only annotate "MS:1000525 spectrum representation" leading to an UNKNOWN type
+    // Fortunately, some store a data processing item that indicates that the data has been picked
+    for (auto& dp : getDataProcessing())
+    {
+      if (dp->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
+      {
+        return SpectrumSettings::CENTROID;
+      }
+    }
+
+    if (query_data)
+    {
+      return PeakTypeEstimator::estimateType(begin(), end());
+    }
+    return SpectrumSettings::UNKNOWN;
   }
 
   void MSSpectrum::clear(bool clear_meta_data)

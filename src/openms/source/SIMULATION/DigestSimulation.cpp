@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,8 @@
 
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
-#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
 namespace OpenMS
@@ -139,7 +137,7 @@ namespace OpenMS
 
 
     UInt min_peptide_length = param_.getValue("min_peptide_length");
-    bool use_log_model = param_.getValue("model") == "trained" ? true : false;
+    bool use_log_model = param_.getValue("model") == "trained";
     UInt missed_cleavages = param_.getValue("model_naive:missed_cleavages");
     double cleave_threshold = param_.getValue("model_trained:threshold");
     if (use_log_model)
@@ -309,4 +307,4 @@ namespace OpenMS
 
   }
 
-}
+} // namespace OpenMS

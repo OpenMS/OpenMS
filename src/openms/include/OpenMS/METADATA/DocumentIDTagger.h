@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_DOCUMENTIDTAGGER_H
-#define OPENMS_METADATA_DOCUMENTIDTAGGER_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -76,12 +75,12 @@ public:
     /// Constructor
     DocumentIDTagger(String toolname);
     /// Copy constructor
-    DocumentIDTagger(const DocumentIDTagger & source);
+    DocumentIDTagger(const DocumentIDTagger & source) = default;
     /// Destructor
     ~DocumentIDTagger();
 
     /// Assignment operator
-    DocumentIDTagger & operator=(const DocumentIDTagger & source);
+    DocumentIDTagger & operator=(const DocumentIDTagger & source) = default;
 
     /// Equality operator
     bool operator==(const DocumentIDTagger & source) const;
@@ -131,4 +130,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_DOCUMENTIDTAGGER_H

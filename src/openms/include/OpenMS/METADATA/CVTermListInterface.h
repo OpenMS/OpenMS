@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_CVTERMLISTINTERFACE_H
-#define OPENMS_METADATA_CVTERMLISTINTERFACE_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/METADATA/CVTerm.h>
@@ -55,22 +54,27 @@ namespace OpenMS
 
       @ingroup Metadata
   */
-  ///Representation of a CV term used by CVMappings
   class OPENMS_DLLAPI CVTermListInterface :
     public MetaInfoInterface
   {
 
   public:
 
+    // Constructor
     CVTermListInterface();
 
+    /// Copy constructor
     CVTermListInterface(const CVTermListInterface & rhs);
+    /// Move constructor
+    CVTermListInterface(CVTermListInterface&&);
 
     // Destructor (non virtual)
     ~CVTermListInterface();
 
     /// Assignment operator
     CVTermListInterface & operator=(const CVTermListInterface & rhs);
+    /// Move assignment operator
+    CVTermListInterface& operator=(CVTermListInterface&&);
 
     /// equality operator
     bool operator==(const CVTermListInterface& rhs) const;
@@ -114,6 +118,4 @@ namespace OpenMS
   };
 
 } // namespace OpenMS
-
-#endif // OPENMS_DATASTRUCTURES_CVTERMLISTINTERFACE_H
 

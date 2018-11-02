@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,18 +37,19 @@
 #include <cmath>
 
 #include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
+
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 // Qt
-#include <QtGui/QLayout>
-#include <QtGui/QPushButton>
-#include <QtGui/QComboBox>
-#include <QtGui/QLabel>
-#include <QtGui/QValidator>
-#include <QtGui/QGridLayout>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QImageWriter>
-#include <QtGui/QApplication>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLabel>
+#include <QValidator>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QHBoxLayout>
+#include <QImageWriter>
+#include <QtWidgets/QApplication>
 
 namespace OpenMS
 {

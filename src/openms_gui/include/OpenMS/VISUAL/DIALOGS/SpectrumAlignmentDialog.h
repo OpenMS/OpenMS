@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,11 +33,16 @@
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H
+#pragma once
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_SpectrumAlignmentDialog.h>
 #include <OpenMS/CONCEPT/Types.h>
+
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class SpectrumAlignmentDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -49,8 +54,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class SpectrumAlignmentDialog :
-    public QDialog,
-    public Ui::SpectrumAlignmentDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -58,6 +62,10 @@ public:
 
     /// Constructor
     SpectrumAlignmentDialog(Spectrum1DWidget * parent);
+    ~SpectrumAlignmentDialog();
+  
+    double getTolerance() const;
+    bool isPPM() const;
 
     /// Returns the index of the selected non-flipped layer
     Int get1stLayerIndex();
@@ -74,8 +82,7 @@ protected:
     std::vector<UInt> layer_indices_2_;
 
 private:
-
+    Ui::SpectrumAlignmentDialogTemplate* ui_;
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_SPECTRUMALIGNMENTDIALOG_H

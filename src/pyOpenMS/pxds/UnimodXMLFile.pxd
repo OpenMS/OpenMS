@@ -12,5 +12,5 @@ cdef extern from "<OpenMS/FORMAT/UnimodXMLFile.h>" namespace "OpenMS":
         UnimodXMLFile(UnimodXMLFile) nogil except + #wrap-ignore
 
         # TODO raw ptr in vector
-        # void load(String & filename, libcpp_vector[ ResidueModification * ] & modifications) nogil except +
+        # void load(const String & filename, libcpp_vector[ ResidueModification * ] & modifications) nogil except +
 

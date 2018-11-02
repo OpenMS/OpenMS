@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_XTANDEMXMLFILE_H
-#define OPENMS_FORMAT_XTANDEMXMLFILE_H
+#pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -105,6 +104,10 @@ private:
     // true during "note" element containing spectrum ID
     bool is_spectrum_note_;
 
+    // true after non-new protein entries, so that with the next "protein note" the
+    // accession will not be updated again
+    bool skip_protein_acc_update_;
+
     // peptide hits per spectrum
     std::map<UInt, std::vector<PeptideHit> > peptide_hits_;
 
@@ -147,4 +150,3 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_XTANDEMXMLFILE_H

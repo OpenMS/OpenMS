@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,16 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H
+#pragma once
 
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
+#include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenMS
 {
@@ -110,13 +109,18 @@ public:
     //@{
     /// Isotope scores, see class description
     void dia_isotope_scores(const std::vector<TransitionType>& transitions,
-                            SpectrumPtrType spectrum, OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr,
+                            SpectrumPtrType spectrum,
+                            OpenSwath::IMRMFeature* mrmfeature,
+                            double& isotope_corr,
                             double& isotope_overlap);
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            SpectrumPtrType spectrum, const std::vector<double>& normalized_library_intensity,
-                            double& ppm_score, double& ppm_score_weighted);
+                            SpectrumPtrType spectrum,
+                            const std::vector<double>& normalized_library_intensity,
+                            double& ppm_score,
+                            double& ppm_score_weighted,
+                            std::vector<double>& diff_ppm);
 
     /**
       Precursor massdifference score
@@ -131,15 +135,17 @@ public:
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
     void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
-                                double& isotope_corr, double& isotope_overlap, std::string sum_formula = "");
+                                double& isotope_corr, double& isotope_overlap, const std::string& sum_formula = "");
 
     /// b/y ion scores
     void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
                           int charge, double& bseries_score, double& yseries_score);
 
     /// Dotproduct / Manhatten score with theoretical spectrum
-    void score_with_isotopes(SpectrumPtrType spectrum, const std::vector<TransitionType>& transitions,
-                             double& dotprod, double& manhattan);
+    void score_with_isotopes(SpectrumPtrType spectrum,
+                             const std::vector<TransitionType>& transitions,
+                             double& dotprod,
+                             double& manhattan);
     //@}
 
 private:
@@ -155,8 +161,10 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                                SpectrumPtrType spectrum, std::map<std::string, double>& intensities,
-                                double& isotope_corr, double& isotope_overlap);
+                              SpectrumPtrType spectrum,
+                              std::map<std::string, double>& intensities,
+                              double& isotope_corr,
+                              double& isotope_overlap);
 
     /// retrieves intensities from MRMFeature
     /// computes a vector of relative intensities for each feature (output to intensities)
@@ -192,8 +200,10 @@ private:
       model. The returned value is a Pearson correlation between the
       experimental and theoretical pattern.
     */
-    double scoreIsotopePattern_(double product_mz, const std::vector<double>& isotopes_int, 
-                                int putative_fragment_charge, std::string sum_formula = "");
+    double scoreIsotopePattern_(double product_mz,
+                                const std::vector<double>& isotopes_int, 
+                                int putative_fragment_charge,
+                                const std::string& sum_formula = "");
 
     // Parameters
     double dia_extract_window_;
@@ -209,5 +219,4 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_DIASCORING_H
 

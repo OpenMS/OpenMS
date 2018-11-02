@@ -10,6 +10,7 @@ set(sources_list_h
   DIAHelper.h
   DIAPrescoring.h
   DIAScoring.h
+  MRMFeaturePicker.h
   MRMIonSeries.h
   MRMAssay.h
   MRMDecoy.h
@@ -18,6 +19,7 @@ set(sources_list_h
   MRMTransitionGroupPicker.h
   MasstraceCorrelator.h
   OpenSwathHelper.h
+  OpenSwathScores.h
   OpenSwathScoring.h
   OpenSwathTSVWriter.h
   OpenSwathOSWWriter.h

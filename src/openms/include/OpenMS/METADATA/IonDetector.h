@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_IONDETECTOR_H
-#define OPENMS_METADATA_IONDETECTOR_H
+#pragma once
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -51,28 +50,28 @@ public:
     /// Detector type
     enum Type
     {
-      TYPENULL,                                                                 ///< Unknown
-      ELECTRONMULTIPLIER,                                           ///< Electron multiplier
-      PHOTOMULTIPLIER,                                                  ///< Photo multiplier
-      FOCALPLANEARRAY,                                                  ///< Focal plane array
-      FARADAYCUP,                                                           ///< Faraday cup
-      CONVERSIONDYNODEELECTRONMULTIPLIER,           ///< Conversion dynode electron multiplier
-      CONVERSIONDYNODEPHOTOMULTIPLIER,                  ///< Conversion dynode photo multiplier
-      MULTICOLLECTOR,                                                   ///< Multi-collector
-      CHANNELELECTRONMULTIPLIER,                            ///< Channel electron multiplier
-      CHANNELTRON,                                                          ///< channeltron
-      DALYDETECTOR,                                                         ///< daly detector
-      MICROCHANNELPLATEDETECTOR,                            ///< microchannel plate detector
-      ARRAYDETECTOR,                                                    ///< array detector
-      CONVERSIONDYNODE,                                                 ///< conversion dynode
-      DYNODE,                                                                   ///< dynode
-      FOCALPLANECOLLECTOR,                                          ///< focal plane collector
-      IONTOPHOTONDETECTOR,                                          ///< ion-to-photon detector
-      POINTCOLLECTOR,                                                   ///< point collector
-      POSTACCELERATIONDETECTOR,                                 ///< postacceleration detector
-      PHOTODIODEARRAYDETECTOR,                                  ///< photodiode array detector
-      INDUCTIVEDETECTOR,                                            ///< inductive detector
-      ELECTRONMULTIPLIERTUBE,                                   ///< electron multiplier tube
+      TYPENULL,                                  ///< Unknown
+      ELECTRONMULTIPLIER,                        ///< Electron multiplier
+      PHOTOMULTIPLIER,                           ///< Photo multiplier
+      FOCALPLANEARRAY,                           ///< Focal plane array
+      FARADAYCUP,                                ///< Faraday cup
+      CONVERSIONDYNODEELECTRONMULTIPLIER,        ///< Conversion dynode electron multiplier
+      CONVERSIONDYNODEPHOTOMULTIPLIER,           ///< Conversion dynode photo multiplier
+      MULTICOLLECTOR,                            ///< Multi-collector
+      CHANNELELECTRONMULTIPLIER,                 ///< Channel electron multiplier
+      CHANNELTRON,                               ///< channeltron
+      DALYDETECTOR,                              ///< daly detector
+      MICROCHANNELPLATEDETECTOR,                 ///< microchannel plate detector
+      ARRAYDETECTOR,                             ///< array detector
+      CONVERSIONDYNODE,                          ///< conversion dynode
+      DYNODE,                                    ///< dynode
+      FOCALPLANECOLLECTOR,                       ///< focal plane collector
+      IONTOPHOTONDETECTOR,                       ///< ion-to-photon detector
+      POINTCOLLECTOR,                            ///< point collector
+      POSTACCELERATIONDETECTOR,                  ///< postacceleration detector
+      PHOTODIODEARRAYDETECTOR,                   ///< photodiode array detector
+      INDUCTIVEDETECTOR,                         ///< inductive detector
+      ELECTRONMULTIPLIERTUBE,                    ///< electron multiplier tube
       SIZE_OF_TYPE
     };
     /// Names of detector types
@@ -81,11 +80,11 @@ public:
     /// Acquisition mode
     enum AcquisitionMode
     {
-      ACQMODENULL,                          ///< Unknown
-      PULSECOUNTING,                    ///< Pulse counting
-      ADC,                                          ///< Analog-digital converter
-      TDC,                                          ///< Time-digital converter
-      TRANSIENTRECORDER,            ///< Transient recorder
+      ACQMODENULL,             ///< Unknown
+      PULSECOUNTING,           ///< Pulse counting
+      ADC,                     ///< Analog-digital converter
+      TDC,                     ///< Time-digital converter
+      TRANSIENTRECORDER,       ///< Transient recorder
       SIZE_OF_ACQUISITIONMODE
     };
     /// Names of acquisition modes
@@ -94,12 +93,16 @@ public:
     /// Constructor
     IonDetector();
     /// Copy constructor
-    IonDetector(const IonDetector & source);
+    IonDetector(const IonDetector &) = default;
+    /// Move constructor
+    IonDetector(IonDetector&&) = default;
     /// Destructor
     ~IonDetector();
 
     /// Assignment operator
-    IonDetector & operator=(const IonDetector & source);
+    IonDetector & operator=(const IonDetector &) = default;
+    /// Move assignment operator
+    IonDetector& operator=(IonDetector&&) & = default;
 
     /// Equality operator
     bool operator==(const IonDetector & rhs) const;
@@ -135,7 +138,7 @@ public:
         - one ion detector
 
         For more complex instruments, the order should be defined.
-*/
+    */
     Int getOrder() const;
     /// sets the order
     void setOrder(Int order);
@@ -150,4 +153,3 @@ protected:
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_IONDETECTOR_H

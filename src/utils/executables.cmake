@@ -4,6 +4,7 @@ set(directory source/APPLICATIONS/UTILS)
 ### list all filenames of the directory here
 set(UTILS_executables
 AccurateMassSearch
+AssayGeneratorMetabo
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector
@@ -30,9 +31,12 @@ MetaboliteAdductDecharger
 MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
+MSFraggerAdapter
 MSSimulator
+MSstatsConverter
 MultiplexResolver
 MzMLSplitter
+NovorAdapter
 OpenMSInfo
 OpenPepXL
 OpenPepXLLF
@@ -46,7 +50,6 @@ QCImporter
 QCMerger
 QCShrinker
 RNADigestor
-RNPxl
 RNPxlXICFilter
 RNPxlSearch
 RTEvaluation
@@ -79,7 +82,6 @@ endif(NOT DISABLE_OPENSWATH)
 
 ## all targets requiring OpenMS_GUI
 set(UTILS_executables_with_GUIlib
-IDEvaluator
 ImageCreator
 INIUpdater
 )

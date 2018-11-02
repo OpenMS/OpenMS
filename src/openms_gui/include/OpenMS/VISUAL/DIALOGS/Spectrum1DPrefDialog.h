@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,17 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM1DPREFDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUM1DPREFDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum1DPrefDialog.h>
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class Spectrum1DPrefDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -46,15 +50,16 @@ namespace OpenMS
   {
     ///Preferences dialog for Spectrum1DWidget
     class OPENMS_GUI_DLLAPI Spectrum1DPrefDialog :
-      public QDialog,
-      public Ui::Spectrum1DPrefDialogTemplate
+      public QDialog
     {
       Q_OBJECT
 
 public:
       ///Constructor
       Spectrum1DPrefDialog(QWidget * parent);
+      ~Spectrum1DPrefDialog();
+private:
+      Ui::Spectrum1DPrefDialogTemplate* ui_;
     };
   }
 }
-#endif // OPENMS_VISUAL_DIALOGS_SPECTRUM1DPREFDIALOG_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,21 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPViewOpenDialog.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
+#include <QtWidgets/QDialog>
 class QAbstractButton;
+
+namespace Ui
+{
+  class TOPPViewOpenDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -54,8 +58,7 @@ namespace OpenMS
       @ingroup TOPPView_elements
   */
   class OPENMS_GUI_DLLAPI TOPPViewOpenDialog :
-    public QDialog,
-    public Ui::TOPPViewOpenDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -69,8 +72,10 @@ public:
     bool viewMapAs2D() const;
     /// Returns true, if 1D mode is to be used for maps
     bool viewMapAs1D() const;
-    /// Returns of the low intensity peaks should be hidden
+    /// Returns if the low intensity peaks should be hidden
     bool isCutoffEnabled() const;
+    /// Returns if the data is DIA / SWATH-MS data
+    bool isDataDIA() const;
     /// Returns true, if the data should be opened in a new window
     bool openAsNewWindow() const;
     ///Returns the index of the selected merge layer. If the option is not selected -1 is returned.
@@ -83,7 +88,7 @@ public:
     /// Disables opening location section and sets the selected option
     void disableLocation(bool window);
     /**
-        @brief Sets the possible merge layers (index and name) and activates the the option
+        @brief Sets the possible merge layers (index and name) and activates the option
 
         It is deactivated by default and can be deactivated manually by passing an empty list.
     */
@@ -96,7 +101,9 @@ protected slots:
 protected:
     ///Stores if this option is disabled, to avoid activating it in updateViewMode_()
     bool map_as_2d_disabled_;
+
+private: 
+    Ui::TOPPViewOpenDialogTemplate* ui_;
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_TOPPVIEWOPENDIALOG_H

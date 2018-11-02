@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#ifndef OPENMS_CHEMISTRY_DIGESTIONENZYMEPROTEIN_H
-#define OPENMS_CHEMISTRY_DIGESTIONENZYMEPROTEIN_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 
@@ -46,20 +45,25 @@ namespace OpenMS
 
       @brief Representation of a digestion enzyme for proteins (protease)
   */
-  class OPENMS_DLLAPI DigestionEnzymeProtein: public DigestionEnzyme
+  class OPENMS_DLLAPI DigestionEnzymeProtein :
+    public DigestionEnzyme
   {
   public:
 
     /** @name Constructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     DigestionEnzymeProtein();
 
-    /// copy constructor
-    DigestionEnzymeProtein(const DigestionEnzymeProtein& enzyme);
+    /// Copy constructor
+    DigestionEnzymeProtein(const DigestionEnzymeProtein&) = default;
 
-    /// detailed constructor
+    /// Move constructor
+    DigestionEnzymeProtein(DigestionEnzymeProtein&&) = default;
+
+    /// Detailed constructor
     explicit DigestionEnzymeProtein(const String& name,
                                     const String& cleavage_regex,
                                     const std::set<String>& synonyms = std::set<String>(),
@@ -68,20 +72,23 @@ namespace OpenMS
                                     EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
                                     String psi_id = "",
                                     String xtandem_id = "",
-                                    UInt comet_id = 0,
+                                    Int comet_id = -1,
                                     String crux_id = "",
                                     Int msgf_id = -1,
-                                    UInt omssa_id = 0);
+                                    Int omssa_id = -1);
 
-    /// destructor
+    /// Destructor
     ~DigestionEnzymeProtein() override;
     //@}
 
     /** @name Assignment
      */
     //@{
-    /// assignment operator
-    DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein& enzyme);
+    /// Assignment operator
+    DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein&) = default;
+
+    /// Move assignment operator
+    DigestionEnzymeProtein& operator=(DigestionEnzymeProtein&&) & = default;
     //@}
 
     /** Accessors
@@ -112,10 +119,10 @@ namespace OpenMS
     String getXTandemID() const;
 
     /// returns the Comet enzyme ID
-    UInt getCometID() const;
+    Int getCometID() const;
 
     /// sets the Comet enzyme ID
-    void setCometID(UInt value);
+    void setCometID(Int value);
 
     /// returns the Crux enzyme ID
     String getCruxID() const;
@@ -130,10 +137,10 @@ namespace OpenMS
     Int getMSGFID() const;
 
     /// sets the OMSSA enzyme ID
-    void setOMSSAID(UInt value);
+    void setOMSSAID(Int value);
 
     /// returns the OMSSA enzyme ID
-    UInt getOMSSAID() const;
+    Int getOMSSAID() const;
 
     //@}
 
@@ -175,13 +182,13 @@ namespace OpenMS
 
     String xtandem_id_;
 
-    UInt comet_id_;
+    Int comet_id_;
 
     String crux_id_;
 
     Int msgf_id_;
 
-    UInt omssa_id_;
+    Int omssa_id_;
 
   };
 
@@ -190,4 +197,3 @@ namespace OpenMS
   typedef DigestionEnzymeProtein Protease;
 }
 
-#endif

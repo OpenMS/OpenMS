@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,19 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/PepNovoInfile.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/PTMXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
-#include <algorithm>
-#include <set>
 #include <fstream>
-#include <iostream>
-#include <sstream>
 
 using namespace std;
 

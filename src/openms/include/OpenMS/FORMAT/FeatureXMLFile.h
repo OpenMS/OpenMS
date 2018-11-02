@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm, Chris Bielow, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_FEATUREXMLFILE_H
-#define OPENMS_FORMAT_FEATUREXMLFILE_H
+#pragma once
 
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
@@ -55,7 +54,7 @@ namespace OpenMS
   /**
     @brief This class provides Input/Output functionality for feature maps
 
-    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
     @todo Take care that unique ids are assigned properly by TOPP tools before
     calling FeatureXMLFile::store().  There will be a message on LOG_INFO but
@@ -194,4 +193,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FORMAT_FeatureXMLFile_H

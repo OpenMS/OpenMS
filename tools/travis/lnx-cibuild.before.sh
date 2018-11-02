@@ -34,11 +34,10 @@ if [ "${PYOPENMS}" = "ON" ]; then
   pip install -U numpy
   pip install -U wheel
   pip install -U Cython
-  pip install -U autowrap==0.14
+  pip install -U autowrap==0.18.1
 fi
 
-# fetch contrib and build seqan
-git clone git://github.com/OpenMS/contrib/
+# move to automatically cloned contrib submodule
 pushd contrib
 
 # we build seqan as the versions shipped in Ubuntu are not recent enough
@@ -56,7 +55,6 @@ build_contrib SQLITE
 # leave contrib
 popd
 
-
 # build custom cppcheck if we want to perform style tests
 if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   git clone git://github.com/danmar/cppcheck.git
@@ -65,9 +63,9 @@ if [ "${ENABLE_STYLE_TESTING}" = "ON" ]; then
   CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
   popd
 else
-  # regular builds .. get the search engine executables via githubs SVN interface (as git doesn't allow single folder checkouts)
-  svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/Linux/64bit/ _thirdparty
-  svn export --force https://github.com/OpenMS/THIRDPARTY/trunk/All/ _thirdparty
+  # regular builds .. merge the search engine executables for this platform from the automatically cloned submodule to _thirdparty
+  mkdir -p _thirdparty
+  cp -R THIRDPARTY/Linux/64bit/* _thirdparty/
+  cp -R THIRDPARTY/All/* _thirdparty/
 fi
-
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MSCHROMATOGRAM_H
-#define OPENMS_KERNEL_MSCHROMATOGRAM_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/ChromatogramSettings.h>
@@ -128,26 +127,13 @@ public:
     //@}
 
     /// Constructor
-    MSChromatogram() :
-      ContainerType(),
-      RangeManager<1>(),
-      ChromatogramSettings(),
-      name_(),
-      float_data_arrays_(),
-      string_data_arrays_(),
-      integer_data_arrays_()
-    {}
+    MSChromatogram() = default;
 
     /// Copy constructor
-    MSChromatogram(const MSChromatogram& source) :
-      ContainerType(source),
-      RangeManager<1>(source),
-      ChromatogramSettings(source),
-      name_(source.name_),
-      float_data_arrays_(source.float_data_arrays_),
-      string_data_arrays_(source.string_data_arrays_),
-      integer_data_arrays_(source.integer_data_arrays_)
-    {}
+    MSChromatogram(const MSChromatogram&) = default;
+
+    /// Move constructor
+    MSChromatogram(MSChromatogram&&) = default;
 
     /// Destructor
     ~MSChromatogram() override
@@ -155,6 +141,9 @@ public:
 
     /// Assignment operator
     MSChromatogram& operator=(const MSChromatogram& source);
+
+    /// Move assignment operator
+    MSChromatogram& operator=(MSChromatogram&&) & = default;
 
     /// Equality operator
     bool operator==(const MSChromatogram& rhs) const;
@@ -447,4 +436,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_KERNEL_MSCHROMATOGRAM_H

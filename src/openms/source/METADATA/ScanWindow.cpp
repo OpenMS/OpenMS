@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,20 +38,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  //--------------------------- ScanWindow ----------------------------
-  ScanWindow::ScanWindow() :
-    MetaInfoInterface(),
-    begin(0.0),
-    end(0.0)
-  {
-  }
-
-  ScanWindow::ScanWindow(const ScanWindow & source) :
-    MetaInfoInterface(source),
-    begin(source.begin),
-    end(source.end)
-  {
-  }
 
   bool ScanWindow::operator==(const ScanWindow & source) const
   {
@@ -65,16 +51,5 @@ namespace OpenMS
     return !(operator==(source));
   }
 
-  ScanWindow & ScanWindow::operator=(const ScanWindow & source)
-  {
-    if (&source == this)
-      return *this;
-
-    MetaInfoInterface::operator=(source);
-    begin = source.begin;
-    end = source.end;
-
-    return *this;
-  }
-
 }
+

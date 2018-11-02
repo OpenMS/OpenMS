@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_HPLC_H
-#define OPENMS_METADATA_HPLC_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -46,7 +45,7 @@ namespace OpenMS
 
     It contains the description of instrument, the settings and the gradient.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI HPLC
   {
@@ -54,12 +53,16 @@ public:
     /// Constructor
     HPLC();
     /// Copy constructor
-    HPLC(const HPLC & source);
+    HPLC(const HPLC &) = default;
+    /// Move constructor
+    HPLC(HPLC&&) = default;
     /// Destructor
     ~HPLC();
 
     /// Assignment operator
-    HPLC & operator=(const HPLC & source);
+    HPLC & operator=(const HPLC &) = default;
+    /// Move assignment operator
+    HPLC& operator=(HPLC&&) & = default;
 
     /// Equality operator
     bool operator==(const HPLC & source) const;
@@ -115,4 +118,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_HPLC_H

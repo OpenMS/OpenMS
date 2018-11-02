@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+#include <OpenMS/SYSTEM/File.h>
+
+
+#include <QDir>
 
 using namespace OpenMS;
 
@@ -80,13 +84,13 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFileList_("in", "<files>", StringList(), "Input file (SWATH/DIA file)");
+    registerInputFile_("in", "<files>", "", "Input file (SWATH/DIA file)");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
 
     registerStringOption_("outputDirectory", "<output>", "./", "Output path to store the split files", false, true);
   }
 
-  void loadSwathFiles(StringList& file_list, String tmp, String readoptions,
+  void loadSwathFiles(String& file_in, String tmp, String readoptions,
     boost::shared_ptr<ExperimentalSettings > & exp_meta,
     std::vector< OpenSwath::SwathMap > & swath_maps)
   {
@@ -94,16 +98,16 @@ protected:
     swath_file.setLogType(log_type_);
 
     {
-      FileTypes::Type in_file_type = FileTypes::nameToType(file_list[0]);
-      if (in_file_type == FileTypes::MZML || file_list[0].suffix(4).toLower() == "mzml"
-        || file_list[0].suffix(7).toLower() == "mzml.gz"  )
+      FileTypes::Type in_file_type = FileTypes::nameToType(file_in);
+      if (in_file_type == FileTypes::MZML || file_in.suffix(4).toLower() == "mzml"
+        || file_in.suffix(7).toLower() == "mzml.gz"  )
       {
-        swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions);
+        swath_maps = swath_file.loadMzML(file_in, tmp, exp_meta, readoptions);
       }
-      else if (in_file_type == FileTypes::MZXML || file_list[0].suffix(5).toLower() == "mzxml"
-        || file_list[0].suffix(8).toLower() == "mzxml.gz"  )
+      else if (in_file_type == FileTypes::MZXML || file_in.suffix(5).toLower() == "mzxml"
+        || file_in.suffix(8).toLower() == "mzxml.gz"  )
       {
-        swath_maps = swath_file.loadMzXML(file_list[0], tmp, exp_meta, readoptions);
+        swath_maps = swath_file.loadMzXML(file_in, tmp, exp_meta, readoptions);
       }
       else
       {
@@ -118,15 +122,22 @@ protected:
     ///////////////////////////////////
     // Prepare Parameters
     ///////////////////////////////////
-    StringList file_list = getStringList_("in");
-    String tmp = getStringOption_("outputDirectory");
+    String file_in = getStringOption_("in");
+
+	// make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
+	// (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
+	String tmp_dir = String(QDir(getStringOption_("outputDirectory").c_str()).absolutePath()).ensureLastChar('/');
+
+	QFileInfo fi(file_in.toQString());
+	String tmp = tmp_dir + String(fi.baseName());
+
 
     ///////////////////////////////////
     // Load the SWATH files
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
-    loadSwathFiles(file_list, tmp, "split", exp_meta, swath_maps);
+    loadSwathFiles(file_in, tmp, "split", exp_meta, swath_maps);
     return EXECUTION_OK;
   }
 

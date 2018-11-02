@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,55 +72,9 @@ namespace OpenMS
 
   }
 
-  MassAnalyzer::MassAnalyzer(const MassAnalyzer & source) :
-    MetaInfoInterface(source),
-    type_(source.type_),
-    resolution_method_(source.resolution_method_),
-    resolution_type_(source.resolution_type_),
-    scan_direction_(source.scan_direction_),
-    scan_law_(source.scan_law_),
-    reflectron_state_(source.reflectron_state_),
-    resolution_(source.resolution_),
-    accuracy_(source.accuracy_),
-    scan_rate_(source.scan_rate_),
-    scan_time_(source.scan_time_),
-    TOF_total_path_length_(source.TOF_total_path_length_),
-    isolation_width_(source.isolation_width_),
-    final_MS_exponent_(source.final_MS_exponent_),
-    magnetic_field_strength_(source.magnetic_field_strength_),
-    order_(source.order_)
-  {
-
-  }
-
   MassAnalyzer::~MassAnalyzer()
   {
 
-  }
-
-  MassAnalyzer & MassAnalyzer::operator=(const MassAnalyzer & source)
-  {
-    if (&source == this)
-      return *this;
-
-    order_ = source.order_;
-    type_ = source.type_;
-    resolution_method_ = source.resolution_method_;
-    resolution_type_ = source.resolution_type_;
-    scan_direction_ = source.scan_direction_;
-    scan_law_ = source.scan_law_;
-    reflectron_state_ = source.reflectron_state_;
-    resolution_ = source.resolution_;
-    accuracy_ = source.accuracy_;
-    scan_rate_ = source.scan_rate_;
-    scan_time_ = source.scan_time_;
-    TOF_total_path_length_ = source.TOF_total_path_length_;
-    isolation_width_ = source.isolation_width_;
-    final_MS_exponent_ = source.final_MS_exponent_;
-    magnetic_field_strength_ = source.magnetic_field_strength_;
-    MetaInfoInterface::operator=(source);
-
-    return *this;
   }
 
   bool MassAnalyzer::operator==(const MassAnalyzer & rhs) const
@@ -299,3 +253,4 @@ namespace OpenMS
   }
 
 }
+

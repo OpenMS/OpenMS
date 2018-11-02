@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_GRADIENT_H
-#define OPENMS_METADATA_GRADIENT_H
+#pragma once
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -48,20 +47,24 @@ namespace OpenMS
     It consists of several eluents and timepoints.
     Linear behaviour between timepoints is assumed.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI Gradient
   {
 public:
     /// Constructor
-    Gradient();
+    Gradient() = default;
     /// Copy constructor
-    Gradient(const Gradient & source);
+    Gradient(const Gradient &) = default;
+    /// Move constructor
+    Gradient(Gradient&&) = default;
     /// Destructor
     ~Gradient();
 
     /// Assignment operator
-    Gradient & operator=(const Gradient & source);
+    Gradient & operator=(const Gradient &) = default;
+    /// Move assignment operator
+    Gradient& operator=(Gradient&&) & = default;
 
     /// Equality operator
     bool operator==(const Gradient & source) const;
@@ -126,4 +129,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_GRADIENT_H

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
+
 #include <iostream>
 
 using namespace std;
@@ -46,23 +47,10 @@ namespace OpenMS
     c_term_gain_(""),
     psi_id_(""),
     xtandem_id_(""),
-    comet_id_(),
-    crux_id_(),
+    comet_id_(-1),
+    crux_id_(""),
     msgf_id_(-1),
-    omssa_id_()
-  {
-  }
-
-  DigestionEnzymeProtein::DigestionEnzymeProtein(const DigestionEnzymeProtein& enzyme) :
-    DigestionEnzyme(enzyme),
-    n_term_gain_(enzyme.n_term_gain_),
-    c_term_gain_(enzyme.c_term_gain_),
-    psi_id_(enzyme.psi_id_),
-    xtandem_id_(enzyme.xtandem_id_),
-    comet_id_(enzyme.comet_id_),
-    crux_id_(enzyme.crux_id_),
-    msgf_id_(enzyme.msgf_id_),
-    omssa_id_(enzyme.omssa_id_)
+    omssa_id_(-1)
   {
   }
 
@@ -74,10 +62,10 @@ namespace OpenMS
                                                  EmpiricalFormula c_term_gain,
                                                  String psi_id,
                                                  String xtandem_id,
-                                                 UInt comet_id,
+                                                 Int comet_id,
                                                  String crux_id,
                                                  Int msgf_id,
-                                                 UInt omssa_id) :
+                                                 Int omssa_id) :
     DigestionEnzyme(name, cleavage_regex, synonyms, regex_description),
     n_term_gain_(n_term_gain),
     c_term_gain_(c_term_gain),
@@ -92,23 +80,6 @@ namespace OpenMS
 
   DigestionEnzymeProtein::~DigestionEnzymeProtein()
   {
-  }
-
-  DigestionEnzymeProtein& DigestionEnzymeProtein::operator=(const DigestionEnzymeProtein& enzyme)
-  {
-    if (this != &enzyme)
-    {
-      DigestionEnzyme::operator=(enzyme);
-      n_term_gain_ = enzyme.n_term_gain_;
-      c_term_gain_ = enzyme.c_term_gain_;
-      psi_id_ = enzyme.psi_id_;
-      xtandem_id_ = enzyme.xtandem_id_;
-      comet_id_ = enzyme.comet_id_;
-      crux_id_ = enzyme.crux_id_;
-      omssa_id_ = enzyme.omssa_id_;
-      msgf_id_ = enzyme.msgf_id_;
-    }
-    return *this;
   }
 
   void DigestionEnzymeProtein::setNTermGain(EmpiricalFormula value)
@@ -151,12 +122,12 @@ namespace OpenMS
     return xtandem_id_;
   }
 
-  void DigestionEnzymeProtein::setCometID(UInt value)
+  void DigestionEnzymeProtein::setCometID(Int value)
   {
     comet_id_ = value;
   }
 
-  UInt DigestionEnzymeProtein::getCometID() const
+  Int DigestionEnzymeProtein::getCometID() const
   {
     return comet_id_;
   }
@@ -171,12 +142,12 @@ namespace OpenMS
     return crux_id_;
   }
 
-  void DigestionEnzymeProtein::setOMSSAID(UInt value)
+  void DigestionEnzymeProtein::setOMSSAID(Int value)
   {
     omssa_id_ = value;
   }
 
-  UInt DigestionEnzymeProtein::getOMSSAID() const
+  Int DigestionEnzymeProtein::getOMSSAID() const
   {
     return omssa_id_;
   }
@@ -281,3 +252,4 @@ namespace OpenMS
   }
 
 }
+

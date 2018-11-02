@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,10 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 namespace OpenMS
 {
@@ -68,7 +67,7 @@ namespace OpenMS
                         const std::map<std::string, int>& header_dict)
   {
     auto tmp = header_dict.find( header_name );
-    if (tmp != header_dict.end())
+    if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
       value = String(tmp_line[ tmp->second ]).toInt();
       return true;
@@ -81,8 +80,8 @@ namespace OpenMS
                         const std::vector<std::string>& tmp_line,
                         const std::map<std::string, int>& header_dict)
   {
-    auto tmp = header_dict.find( header_name );
-    if (tmp != header_dict.end())
+    auto tmp = header_dict.find(header_name);
+    if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
       value = String(tmp_line[ tmp->second ]).toDouble();
       return true;
@@ -96,7 +95,7 @@ namespace OpenMS
                         const std::map<std::string, int>& header_dict)
   {
     auto tmp = header_dict.find( header_name );
-    if (tmp != header_dict.end())
+    if (tmp != header_dict.end() && !String(tmp_line[ tmp->second ]).empty())
     {
       auto str_value = tmp_line[ tmp->second ];
       if (str_value == "1" || str_value == "TRUE") value = true;
@@ -135,7 +134,7 @@ namespace OpenMS
     force_invalid_mods_ = param_.getValue("force_invalid_mods").toBool();
   }
 
-  const char* TransitionTSVFile::strarray_[] =
+  const std::vector<std::string> TransitionTSVFile::header_names_ = 
   {
     "PrecursorMz",
     "ProductMz",
@@ -156,38 +155,42 @@ namespace OpenMS
     "FragmentSeriesNumber",
     "Annotation",
     "CollisionEnergy",
+    "PrecursorIonMobility",
     "TransitionGroupId",
     "TransitionId",
     "Decoy",
     "DetectingTransition",
     "IdentifyingTransition",
-    "QuantifyingTransition"
+    "QuantifyingTransition",
+    "Peptidoforms"
   };
 
-  const std::vector<std::string> TransitionTSVFile::header_names_(strarray_, strarray_ + 25);
 
-  void TransitionTSVFile::getTSVHeader_(const std::string& line, char& delimiter,
-                                          std::vector<std::string> header, std::map<std::string, int>& header_dict)
+  void TransitionTSVFile::getTSVHeader_(const std::string& line, char& delimiter, std::map<std::string, int>& header_dict) const
   {
     std::string tmp;
-
+    std::vector<std::string> header;
     int nr_delimiters = 3;
     Size min_header_size = 8;
     const char possibleDelimiters[3] = {',', ';', '\t'};
 
     for (int i = 0; i < nr_delimiters; i++)
     {
+      header.clear();
       std::stringstream lineStream(line);
       delimiter = possibleDelimiters[i];
       while (std::getline(lineStream, tmp, delimiter))
       {
-        header.push_back(tmp);
+        String tmp2(tmp);
+        tmp2 = tmp2.remove('"');
+        tmp2 = tmp2.remove('\'');
+        tmp2 = tmp2.remove(',');
+        header.push_back(tmp2);
       }
       if (header.size() >= min_header_size)
       {
         break; // found the delimiter, got the correct header
       }
-      header.clear();
     }
 
     for (Size i = 0; i < header.size(); i++)
@@ -208,35 +211,6 @@ namespace OpenMS
           "', but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + 
           (String)min_header_size + ". Please check your input file.");
     }
-
-    int requiredFields[4] = { 0, 1, 4, 5};
-    /*
-     * required fields:
-     *
-     *
-     * PrecursorMz
-     * ProductMz
-     * LibraryIntensity
-     * NormalizedRetentionTime
-     *
-     * these fields will be generated if not available:
-     * TransitionId
-     * TransitionGroupId
-     *
-     * for peptides, also PeptideSequence and ProteinId are required
-     * for metabolites, also CompoundName is required 
-     *
-    */
-    for (int i = 0; i < 3; i++)
-    {
-      if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-            "I determined that your your csv/tsv file has the delimiter '" + (String)txt_delimiter +
-             "'.\nBut the parsed header does not have the required field \"" + (String)header_names_[requiredFields[i]] + 
-             "\". Please check your input file.");
-      }
-    }
   }
 
   void TransitionTSVFile::readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list)
@@ -247,12 +221,11 @@ namespace OpenMS
 
     // read header
     std::vector<std::string>   tmp_line;
-    std::vector<std::string>   header;
     std::map<std::string, int> header_dict;
     char delimiter = ',';
 
     // SpectraST MRM Files do not have a header
-    if (FileTypes::typeToName(filetype) == "mrm")
+    if (filetype == FileTypes::MRM)
     {
       delimiter = '\t';
 
@@ -273,19 +246,18 @@ namespace OpenMS
     // Read header for TSV input
     else
     {
-      std::getline(data, line);
-
-      getTSVHeader_(line, delimiter, header, header_dict);
+      TextFile::getLine(data, line);
+      getTSVHeader_(line, delimiter, header_dict);
     }
 
     bool spectrast_legacy = false; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
     int cnt = 0;
-    while (std::getline(data, line))
+    while (TextFile::getLine(data, line)) // make sure line endings are handled correctly
     {
       line.push_back(delimiter); // avoid losing last column if it is empty
       std::stringstream lineStream(line);
 
-      while (std::getline(lineStream, tmp, delimiter))
+      while (std::getline(lineStream, tmp, delimiter)) // default getline is fine here, we only want to split the line
       {
         tmp_line.push_back(tmp);
       }
@@ -366,12 +338,13 @@ namespace OpenMS
       !extractName<int>(mytransition.fragment_nr, "FragmentNumber", tmp_line, header_dict) &&
       !extractName<int>(mytransition.fragment_nr, "FragmentIonOrdinal", tmp_line, header_dict);
 
+      extractName<double>(mytransition.drift_time, "PrecursorIonMobility", tmp_line, header_dict);
       extractName<double>(mytransition.fragment_mzdelta, "FragmentMzDelta", tmp_line, header_dict);
       extractName<int>(mytransition.fragment_modification, "FragmentModification", tmp_line, header_dict);
 
       //// Proteomics
-      extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
-      extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
+      !extractName(mytransition.ProteinName, "ProteinName", tmp_line, header_dict) &&
+      !extractName(mytransition.ProteinName, "ProteinId", tmp_line, header_dict); // Spectronaut
 
       extractName(mytransition.peptide_group_label, "PeptideGroupLabel", tmp_line, header_dict);
 
@@ -387,6 +360,7 @@ namespace OpenMS
       !extractName(mytransition.FullPeptideName, "ModifiedPeptideSequence", tmp_line, header_dict);
 
       //// IPF
+      String peptidoforms;
       !extractName<bool>(mytransition.detecting_transition, "detecting_transition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.detecting_transition, "DetectingTransition", tmp_line, header_dict);
       !extractName<bool>(mytransition.identifying_transition, "identifying_transition", tmp_line, header_dict) &&
@@ -394,6 +368,9 @@ namespace OpenMS
       !extractName<bool>(mytransition.quantifying_transition, "quantifying_transition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.quantifying_transition, "QuantifyingTransition", tmp_line, header_dict) &&
       !extractName<bool>(mytransition.quantifying_transition, "Quantitative", tmp_line, header_dict); // Skyline
+
+      extractName(peptidoforms, "Peptidoforms", tmp_line, header_dict);
+      peptidoforms.split('|', mytransition.peptidoforms);
 
       //// Targeted Metabolomics
       !extractName(mytransition.CompoundName, "CompoundName", tmp_line, header_dict) &&
@@ -423,7 +400,7 @@ namespace OpenMS
 
       //// Generate Group IDs
       // SpectraST
-      if (FileTypes::typeToName(filetype) == "mrm")
+      if (filetype == FileTypes::MRM)
       {
         std::vector<String> substrings;
         String(tmp_line[header_dict["SpectraSTFullPeptideName"]]).split("/", substrings);
@@ -677,7 +654,7 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, transition_list.size(), "conversion to internal data representation");
-    for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
+    for (auto tr_it = transition_list.cbegin(); tr_it != transition_list.cend(); ++tr_it)
     {
       OpenSwath::LightTransition transition;
       transition.transition_name  = tr_it->transition_name;
@@ -961,14 +938,15 @@ namespace OpenMS
     {
       rm_trans.setMetaValue("annotation", tr_it->Annotation);
     }
-    if (tr_it->detecting_transition) {rm_trans.setDetectingTransition(true);}
-    else if (!tr_it->detecting_transition) {rm_trans.setDetectingTransition(false);}
 
-    if (tr_it->identifying_transition) {rm_trans.setIdentifyingTransition(true);}
-    else if (!tr_it->identifying_transition) {rm_trans.setIdentifyingTransition(false);}
+    rm_trans.setDetectingTransition(tr_it->detecting_transition);
+    rm_trans.setIdentifyingTransition(tr_it->identifying_transition);
+    rm_trans.setQuantifyingTransition(tr_it->quantifying_transition);
 
-    if (tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(true);}
-    else if (!tr_it->quantifying_transition) {rm_trans.setQuantifyingTransition(false);}
+    if (!tr_it->peptidoforms.empty())
+    {
+      rm_trans.setMetaValue("Peptidoforms", ListUtils::concatenate(tr_it->peptidoforms, "|"));
+    }
   }
 
   void TransitionTSVFile::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
@@ -1016,7 +994,7 @@ namespace OpenMS
     retention_times.push_back(retention_time);
   }
 
-  void TransitionTSVFile::createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
+  void TransitionTSVFile::createPeptide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
   {
 
     // the following attributes will be stored as meta values (userParam):
@@ -1051,6 +1029,12 @@ namespace OpenMS
     OpenMS::DataValue rt_value(tr_it->rt_calibrated);
     interpretRetentionTime_(retention_times, rt_value);
     peptide.rts = retention_times;
+
+    // add ion mobility drift time
+    if (tr_it->drift_time >= 0.0)
+    {
+      peptide.setDriftTime(tr_it->drift_time);
+    }
 
     // Try to parse full UniMod string including modifications. If we fail, we
     // can force reading and only parse the "naked" sequence.
@@ -1130,7 +1114,7 @@ namespace OpenMS
                           + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
-  void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound)
+  void TransitionTSVFile::createCompound_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Compound& compound)
   {
 
     // the following attributes will be stored as meta values (userParam):
@@ -1153,6 +1137,12 @@ namespace OpenMS
     if (!tr_it->label_type.empty())
     {
       compound.setMetaValue("LabelType", tr_it->label_type);
+    }
+
+    // add ion mobility drift time
+    if (tr_it->drift_time >= 0.0)
+    {
+      compound.setDriftTime(tr_it->drift_time);
     }
 
     if (!tr_it->precursor_charge.empty() && tr_it->precursor_charge != "NA")
@@ -1218,6 +1208,11 @@ namespace OpenMS
 
       mytransition.FullPeptideName = TargetedExperimentHelper::getAASequence(pep).toUniModString();
 
+      mytransition.drift_time = -1;
+      if (pep.getDriftTime() >= 0.0)
+      {
+        mytransition.drift_time = pep.getDriftTime();
+      }
       mytransition.precursor_charge = "NA";
       if (pep.hasCharge())
       {
@@ -1243,6 +1238,11 @@ namespace OpenMS
         mytransition.rt_calibrated = compound.getRetentionTime();
       }
 
+      mytransition.drift_time = -1;
+      if (compound.getDriftTime() >= 0.0)
+      {
+        mytransition.drift_time = compound.getDriftTime();
+      }
       mytransition.precursor_charge = "NA";
       if (compound.hasCharge())
       {
@@ -1357,7 +1357,7 @@ namespace OpenMS
     }
     if (it->metaValueExists("Peptidoforms"))
     {
-      it->getMetaValue("Peptidoforms").toString().split('|', mytransition.peptidoforms);
+      String(it->getMetaValue("Peptidoforms")).split('|', mytransition.peptidoforms);
     }
     mytransition.detecting_transition = it->isDetectingTransition();
     mytransition.identifying_transition = it->isIdentifyingTransition();
@@ -1417,12 +1417,14 @@ namespace OpenMS
         + (String)it->fragment_nr              + "\t"
         + (String)it->Annotation               + "\t"
         + (String)it->CE                       + "\t"
+        + (String)it->drift_time               + "\t"
         + (String)it->group_id                 + "\t"
         + (String)it->transition_name          + "\t"
         + (String)it->decoy                    + "\t"
         + (String)it->detecting_transition     + "\t"
         + (String)it->identifying_transition   + "\t"
-        + (String)it->quantifying_transition;
+        + (String)it->quantifying_transition   + "\t"
+        + ListUtils::concatenate(it->peptidoforms, "|");
 
       os << line << std::endl;
 
@@ -1455,7 +1457,7 @@ namespace OpenMS
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
 
-  void TransitionTSVFile::validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp)
+  void TransitionTSVFile::validateTargetedExperiment(const OpenMS::TargetedExperiment& targeted_exp)
   {
     if (targeted_exp.containsInvalidReferences())
     {

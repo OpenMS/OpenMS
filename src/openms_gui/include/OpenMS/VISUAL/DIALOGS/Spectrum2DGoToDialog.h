@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,19 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM2DGOTODIALOG_H
-#define OPENMS_VISUAL_DIALOGS_SPECTRUM2DGOTODIALOG_H
+#pragma once
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-#include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum2DGoToDialog.h>
 #include <OpenMS/CONCEPT/Types.h>
+
+#include <QtWidgets/QDialog>
+
+namespace Ui
+{
+  class Spectrum2DGoToDialogTemplate;
+}
 
 namespace OpenMS
 {
@@ -52,8 +57,7 @@ namespace OpenMS
       @ingroup Dialogs
   */
   class OPENMS_GUI_DLLAPI Spectrum2DGoToDialog :
-    public QDialog,
-    public Ui::Spectrum2DGoToDialogTemplate
+    public QDialog
   {
     Q_OBJECT
 
@@ -68,6 +72,8 @@ public:
 
     /// Fixes the currently stored range (i.e. ensure correct order of min-max; enforce minimum of 1 Da (or 1 sec for RT) window IFF min==max
     void fixRange();
+
+    bool checked();
 
     ///@name Methods for ranges
     //@{
@@ -93,7 +99,9 @@ public:
     void enableFeatureNumber(bool);
     //@}
 
+  private:
+    Ui::Spectrum2DGoToDialogTemplate* ui_;
+
   };
 
 }
-#endif // OPENMS_VISUAL_DIALOGS_SPECTRUM2DGOTODIALOG_H

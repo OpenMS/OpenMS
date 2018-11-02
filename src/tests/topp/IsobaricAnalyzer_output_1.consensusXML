@@ -1,34 +1,33 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:///C:/dev/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/sachsenb/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.7" id="cm_3332699010107892018" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="int" name="isoquant:scans_noquant" value="0"/>
 	<UserParam type="int" name="isoquant:scans_total" value="5"/>
-	<UserParam type="stringList" name="spectra_data" value="[file:///N:/UserData/Werner/20120822--QEx2_Hela - Quant-0_5Da--Id-1_5Da Test/Syntaxtest.raw]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="IsobaricAnalyzer" version="version_string" />
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
 	<mapList count="4">
-		<map id="0" name="C:/dev/OpenMS/src/tests/topp/IsobaricAnalyzer_input_1.mzML" label="itraq4plex_114" size="5">
+		<map id="0" name="/home/sachsenb/OpenMS/src/tests/topp/IsobaricAnalyzer_input_1.mzML" label="itraq4plex_114" size="5">
 			<UserParam type="string" name="channel_name" value="114"/>
 			<UserParam type="int" name="channel_id" value="0"/>
 			<UserParam type="string" name="channel_description" value="l1"/>
 			<UserParam type="float" name="channel_center" value="114.1112"/>
 		</map>
-		<map id="1" name="C:/dev/OpenMS/src/tests/topp/IsobaricAnalyzer_input_1.mzML" label="itraq4plex_115" size="5">
+		<map id="1" name="/home/sachsenb/OpenMS/src/tests/topp/IsobaricAnalyzer_input_1.mzML" label="itraq4plex_115" size="5">
 			<UserParam type="string" name="channel_name" value="115"/>
 			<UserParam type="int" name="channel_id" value="1"/>
 			<UserParam type="string" name="channel_description" value="l2"/>
 			<UserParam type="float" name="channel_center" value="115.1082"/>
 		</map>
-		<map id="2" name="C:/dev/OpenMS/src/tests/topp/IsobaricAnalyzer_input_1.mzML" label="itraq4plex_116" size="5">
+		<map id="2" name="/home/sachsenb/OpenMS/src/tests/topp/IsobaricAnalyzer_input_1.mzML" label="itraq4plex_116" size="5">
 			<UserParam type="string" name="channel_name" value="116"/>
 			<UserParam type="int" name="channel_id" value="2"/>
 			<UserParam type="string" name="channel_description" value="l3"/>
 			<UserParam type="float" name="channel_center" value="116.1116"/>
 		</map>
-		<map id="3" name="C:/dev/OpenMS/src/tests/topp/IsobaricAnalyzer_input_1.mzML" label="itraq4plex_117" size="5">
+		<map id="3" name="/home/sachsenb/OpenMS/src/tests/topp/IsobaricAnalyzer_input_1.mzML" label="itraq4plex_117" size="5">
 			<UserParam type="string" name="channel_name" value="117"/>
 			<UserParam type="int" name="channel_id" value="3"/>
 			<UserParam type="string" name="channel_description" value="lung"/>
@@ -53,7 +52,7 @@
 			<groupedElementList>
 				<element map="0" id="1" rt="3611.39772" mz="114.1112" it="893328"/>
 				<element map="1" id="1" rt="3611.39772" mz="115.1082" it="867501"/>
-				<element map="2" id="1" rt="3611.39772" mz="116.1116" it="269177"/>
+				<element map="2" id="1" rt="3611.39772" mz="116.1116" it="269176"/>
 				<element map="3" id="1" rt="3611.39772" mz="117.1149" it="320332"/>
 			</groupedElementList>
 			<UserParam type="float" name="precursor_purity" value="0.692433623198553"/>
@@ -76,7 +75,7 @@
 			<centroid rt="3612.0051" mz="407.579288484896" it="1.59862e+06"/>
 			<groupedElementList>
 				<element map="0" id="3" rt="3612.0051" mz="114.1112" it="612458"/>
-				<element map="1" id="3" rt="3612.0051" mz="115.1082" it="631365"/>
+				<element map="1" id="3" rt="3612.0051" mz="115.1082" it="631364"/>
 				<element map="2" id="3" rt="3612.0051" mz="116.1116" it="159026"/>
 				<element map="3" id="3" rt="3612.0051" mz="117.1149" it="195769"/>
 			</groupedElementList>

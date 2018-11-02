@@ -20,3 +20,4 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>"
         # SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler);
         # SpectrumAccessSqMass(SpectrumAccessSqMass sp, std::vector<int> indices);
         # SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler, std::vector<int> indices);
+

@@ -3,6 +3,8 @@ set(directory source/ANALYSIS/XLMS)
 
 ### list all filenames of the directory here
 set(sources_list
+OpenPepXLAlgorithm.cpp
+OpenPepXLLFAlgorithm.cpp
 OPXLDataStructs.cpp
 OPXLHelper.cpp
 OPXLSpectrumProcessingAlgorithms.cpp
@@ -20,4 +22,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\ANALYSIS\\XLMS" FILES ${sources})
-

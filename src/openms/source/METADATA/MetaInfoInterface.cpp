@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,19 +42,24 @@ namespace OpenMS
   MetaInfoInterface::MetaInfoInterface() :
     meta_(nullptr)
   {
-
   }
 
-  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs)
+  /// Copy constructor
+  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs) :
+    meta_(nullptr)
   {
     if (rhs.meta_ != nullptr)
     {
       meta_ = new MetaInfo(*(rhs.meta_));
     }
-    else
-    {
-      meta_ = nullptr;
-    }
+  }
+
+  /// Move constructor
+  MetaInfoInterface::MetaInfoInterface(MetaInfoInterface&& rhs) noexcept :
+    meta_(std::move(rhs.meta_))
+  {
+    // take ownership
+    rhs.meta_ = nullptr;
   }
 
   MetaInfoInterface::~MetaInfoInterface()
@@ -65,11 +70,9 @@ namespace OpenMS
   MetaInfoInterface & MetaInfoInterface::operator=(const MetaInfoInterface & rhs)
   {
     if (this == &rhs)
+    {
       return *this;
-
-//      std::cout << meta_ << std::endl;
-//      std::cout << rhs.meta_ << std::endl;
-//      std::cout << " " << std::endl;
+    }
 
     if (rhs.meta_ != nullptr && meta_ != nullptr)
     {
@@ -84,6 +87,21 @@ namespace OpenMS
     {
       meta_ = new MetaInfo(*(rhs.meta_));
     }
+
+    return *this;
+  }
+
+  MetaInfoInterface& MetaInfoInterface::operator=(MetaInfoInterface&& rhs) noexcept
+  {
+    if (this == &rhs)
+    {
+      return *this;
+    }
+
+    // free memory and assign rhs memory
+    delete(meta_);
+    meta_ = rhs.meta_;
+    rhs.meta_ = nullptr;
 
     return *this;
   }
@@ -225,3 +243,4 @@ namespace OpenMS
   }
 
 } //namespace
+

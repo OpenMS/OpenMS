@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_SOURCEFILE_H
-#define OPENMS_METADATA_SOURCEFILE_H
+#pragma once
 
 #include <OpenMS/METADATA/CVTermList.h>
 
@@ -56,17 +55,23 @@ public:
       MD5, ///< Message-Digest algorithm 5
       SIZE_OF_CHECKSUMTYPE
     };
+
     /// Names of checksum types
     static const std::string NamesOfChecksumType[SIZE_OF_CHECKSUMTYPE];
 
     /// Constructor
     SourceFile();
     /// Copy constructor
-    SourceFile(const SourceFile& source);
+    SourceFile(const SourceFile&) = default;
+    /// Move constructor
+    SourceFile(SourceFile&&) = default;
     /// Destructor
     ~SourceFile() override;
+
     /// Assignment operator
-    SourceFile& operator=(const SourceFile& source);
+    SourceFile& operator=(const SourceFile&) = default;
+    /// Move assignment operator
+    SourceFile& operator=(SourceFile&&) & = default;
 
     /// Equality operator
     bool operator==(const SourceFile& rhs) const;
@@ -105,15 +110,20 @@ public:
     /// Sets the native ID type of the spectra
     void setNativeIDType(const String& type);
 
+    /// Returns the nativeID of the spectra
+    const String& getNativeIDTypeAccession() const;
+    /// Sets the native ID of the spectra
+    void setNativeIDTypeAccession(const String& accesssion);
+
 protected:
     String name_of_file_;
     String path_to_file_;
     double file_size_;
     String file_type_;
     String checksum_;
-    ChecksumType checksum_type_;
+    ChecksumType checksum_type_ = SourceFile::ChecksumType::UNKNOWN_CHECKSUM;
     String native_id_type_;
+    String native_id_type_accession_;
   };
 } // namespace OpenMS
 
-#endif // OPENMS_METADATA_SOURCEFILE_H

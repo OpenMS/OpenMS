@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,9 +58,27 @@ using namespace OpenMS;
 
  @brief The OpenSwathRTNormalizer will find retention time peptides in data.
 
- This tool will take a description of RT peptides and their normalized
- retention time to write out a transformation file on how to transoform the
- RT space into the normalized space.
+  <CENTER>
+      <table>
+          <tr>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathRTNormalizer \f$ \longrightarrow \f$</td>
+              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=2></td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
+          </tr>
+          <tr>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_OpenSwathWorkflow </td>
+          </tr>
+      </table>
+  </CENTER>
+
+ This tool will find retention time normalization peptides in data and use them
+ to generate a transformation between the experimental RT space and the
+ normalized RT space. The output is a transformation file on how to transform
+ the RT space into the normalized space.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathRTNormalizer.cli
