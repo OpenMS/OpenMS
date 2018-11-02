@@ -200,7 +200,7 @@ namespace OpenSwath
     double steps_low = std::floor(steps) * step_size;
     double steps_high = std::ceil(steps) * step_size;
 
-    return (std::lround(steps_low) == idx || std::lround(steps_high) == idx);
+    return (std::lround(steps_low) == (long)idx || std::lround(steps_high) == (long)idx);
   }
 
 }
