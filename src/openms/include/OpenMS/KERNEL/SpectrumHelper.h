@@ -32,6 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
 #pragma once
 
 namespace OpenMS
@@ -55,6 +57,7 @@ namespace OpenMS
     }
     return it;
   }
+  
   template <class DataArrayT>
   typename DataArrayT::const_iterator getDataArrayByName(const DataArrayT& a, const String& name)
   {
@@ -133,6 +136,70 @@ namespace OpenMS
     }
     // Note: data arrays are not updated
   }
+  
+  /**
+   @brief Make peak positions unique.
+    
+   A peak container may contain multiple peaks with the same position, i.e. either
+   an MSSpectrum containing peaks with the same m/z position, or an MSChromatogram
+   containing peaks with identical RT position. The method combines peaks with the
+   same position to a single one with the intensity dteremined by method m.
+
+   @param[in] p The peak container to be manipulated.
+   @param[in] m The method for determining peak intensity from peaks with same position (1 = median, 2 = mean, 3 = min, 4 = max).
+  */
+  template <typename PeakContainerT>
+  void makePeakPositionUnique(PeakContainerT& p, const int m = 1)
+  {
+    if (p.empty()) return;
+    
+    if ((m != 1) && (m != 2) && (m != 3) && (m != 4))
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Method for determining peak intensities not defined.");
+    }
+
+    p.sortByPosition();
+    
+    double current_position = p.begin()->getPos();
+    PeakContainerT p_new;
+    double intensity_new(0);
+    std::vector<double> intensities_at_same_position;
+    for (typename PeakContainerT::PeakType& peak : p)
+    {
+      if (peak.getPos() > current_position)
+      {
+        // add a peak to the new peak container
+        switch(m)
+        {
+          case 1: intensity_new = Math::median(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+          case 2: intensity_new = Math::mean(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+          case 3: intensity_new = *std::min_element(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+          case 4: intensity_new = *std::max_element(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+        }
+        typename PeakContainerT::PeakType peak_new(current_position, intensity_new);
+        p_new.push_back(peak_new);
+        
+        current_position = peak.getPos();
+        intensities_at_same_position.clear();
+      }
+      
+      intensities_at_same_position.push_back(peak.getIntensity());
+    }
+    
+    // add the very last peak to the new peak container
+    switch(m)
+    {
+      case 1 : intensity_new = Math::median(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+      case 2 : intensity_new = Math::mean(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+      case 3 : intensity_new = *std::min_element(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+      case 4 : intensity_new = *std::max_element(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+    }
+    typename PeakContainerT::PeakType peak_new(current_position, intensity_new);
+    p_new.push_back(peak_new);
+
+    std::swap(p_new, p);
+  }
+  
 } // namespace OpenMS
 
 
