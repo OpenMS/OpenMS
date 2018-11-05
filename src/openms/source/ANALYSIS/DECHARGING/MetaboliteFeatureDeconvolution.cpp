@@ -958,6 +958,15 @@ namespace OpenMS
         continue;
       }
 
+      // store element adducts
+      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
+      {
+        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists("dc_charge_adducts"))
+        {
+          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("dc_charge_adducts"));
+        }
+      }
+
       // store number of distinct charges
       std::set<Int> charges;
       for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
@@ -1041,6 +1050,11 @@ namespace OpenMS
 
       cons_map.push_back(cf);
       cons_map.back().computeDechargeConsensus(fm_out);//previously used fm_out_untouched. does fm_out also work?
+      //If computing decharge mz is 0 (meaning monoisotopic singleton), we instead use the feature mz
+      if (cons_map.back().getMZ() == 0)
+      {
+        cons_map.back().setMZ(f_single.getMZ());
+      }
       ++singletons_count;
     }
     if (verbose_level_ > 2)
