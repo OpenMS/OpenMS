@@ -58,7 +58,7 @@ public:
     CVTermList() = default;
 
     /// Copy constructor
-    CVTermList(const CVTermList& rhs) = default;
+    CVTermList(const CVTermList&) = default;
 
     /// Move constructor
     CVTermList(CVTermList&&) = default;
@@ -67,7 +67,7 @@ public:
     virtual ~CVTermList();
 
     /// Assignment operator
-    CVTermList& operator=(const CVTermList& rhs) = default;
+    CVTermList& operator=(const CVTermList&) = default;
 
     /// Move assignment operator
     CVTermList& operator=(CVTermList&&) & = default;

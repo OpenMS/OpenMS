@@ -130,7 +130,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
             true_cppname = '"%s::%s"' % (comp_name, mdef.get_name())
             enumr  = "\n"
             enumr += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
-            enumr += "    \n"
+            enumr += "\n"
             enumr += '    cdef enum %s %s:\n' % (mdef.get_name(), true_cppname)
             for val in mdef.get_enumvalue():
                 enumr += "        %s\n" % val.get_name()
@@ -410,7 +410,7 @@ class DoxygenXMLFile(object):
         preferred_classname = comp_name.split("::")[-1]
         cldef  = "\n"
         cldef += 'cdef extern from "<%s>" namespace "%s":\n' % (internal_file_name, namespace)
-        cldef += "    \n"
+        cldef += "\n"
 
         inherit_txt = ""
         true_cppname = '"%s"' % comp_name
@@ -423,6 +423,10 @@ class DoxygenXMLFile(object):
         else:
             targs = [p.get_declname() for p in compound.templateparamlist.get_param()]
             cldef += '    cdef cppclass %s[%s]%s:\n' % (preferred_classname, ",".join(targs), inherit_txt)
+        cldef += '        #\n'
+        cldef += '        # wrap-doc:\n'
+        cldef += '        #     ADD PYTHON DOCUMENTATION HERE\n'
+        cldef += '        #\n'
         if len(parent_classes) > 0:
             cldef += '        # wrap-inherits:\n'
         for p in parent_classes:
@@ -440,6 +444,7 @@ class DoxygenXMLFile(object):
         default_ctor = False
         copy_ctor = False
         enum = ""
+        static_methods = ""
         imports_needed = {}
         for mdef in dfile.iterMemberDef():
             if mdef.kind == "enum" and mdef.prot == "public":
@@ -454,7 +459,11 @@ class DoxygenXMLFile(object):
 
             if mdef.kind == "variable" and mdef.prot == "public":
                 # print ("var", mdef.name)
-                methods += "        %s\n" % mdef.format_definition_for_cython(False)
+                # cannot wrap const member variables
+                if mdef.definition.find("const") == -1:
+                    methods += "        %s\n" % mdef.format_definition_for_cython(False)
+                else:
+                    methods += "        # const # %s\n" % mdef.format_definition_for_cython(False)
             elif mdef.kind == "function" and mdef.prot == "public":
                 if mdef.definition == mdef.name:
                     # Means we have a constructor
@@ -476,13 +485,19 @@ class DoxygenXMLFile(object):
                 if declaration.find("operator=(") != -1:
                     # assignment operator, cannot be overriden in Python
                     continue
+                if mdef.definition.find("static") != -1:
+                    methods += "        # TODO: static # %s nogil except +\n" % declaration
+                    static_methods += "        %s nogil except + # wrap-attach:%s\n" % (declaration, preferred_classname)
+                    continue
                 methods += "        %s nogil except +\n" % declaration
 
         # Build up the whole file
         res  = DoxygenCppFunction.generate_imports(imports_needed) # add default cimport
         res += includes
         res += cldef
-        if default_ctor:
+        # We need to create a default ctor in any case, however we do not need
+        # to *wrap* the copy constructor even though we need to have one for Cython
+        if True: # not default_ctor:
             res += "        %s() nogil except +\n" % comp_name.split("::")[-1]
         if not copy_ctor:
             res += "        %s(%s) nogil except + #wrap-ignore\n" % (comp_name.split("::")[-1], comp_name.split("::")[-1])
@@ -491,6 +506,14 @@ class DoxygenXMLFile(object):
         res += methods
         res += enum
         res += "\n"
+        if len(static_methods) > 0:
+            res += "\n"
+            res += "# COMMENT: wrap static methods\n"
+            res += 'cdef extern from "<%s>" namespace "%s::%s":\n' % (internal_file_name, namespace, preferred_classname)
+            res += "\n"
+            res += static_methods
+            res += "\n"
+
         return res
 
     def iterMemberDef(self):
@@ -613,6 +636,7 @@ class DoxygenCppFunction(object):
         return_type = "".join(c_return_type)
         return_type = return_type.replace("&", "")
         return_type = return_type.replace("const", "")
+        return_type = return_type.strip()
         cpp_def = return_type + " " + function_name + arguments
 
         # Handle comments
@@ -657,7 +681,9 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("PeakMap", "MSExperiment")
 
         # Handle const
-        # cpp_def = cpp_def.replace("const ", "")
+        cpp_def = cpp_def.replace("const String", "constXXXString")
+        cpp_def = cpp_def.replace("const ", "")
+        cpp_def = cpp_def.replace("constXXXString", "const String")
 
         # Alert the user to potential problems and comment out potential
         # dangerous things (raw pointers, iterators)
@@ -1187,6 +1213,10 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         # Parse the pxd files corresponding to this doxygen XML file
         try:
+            # Raise a (dummy) exception to actually produce a PXD file for a
+            # specific class if requested by the user.
+            if len(generate_pxd) > 0:
+                raise PXDFileParseError ("dummy")
             pxd_class = PXDFile.parse_multiple_files(pxdfiles, comp_name)
             pxdfile = pxd_class.pxdfile
         except PXDFileParseError as e:

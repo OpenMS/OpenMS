@@ -52,7 +52,7 @@ namespace OpenMS
   {
   }
 
-  PeptideIdentification::~PeptideIdentification()
+  PeptideIdentification::~PeptideIdentification() noexcept
   {
   }
 
@@ -120,6 +120,11 @@ namespace OpenMS
   void PeptideIdentification::insertHit(const PeptideHit& hit)
   {
     hits_.push_back(hit);
+  }
+
+  void PeptideIdentification::insertHit(PeptideHit&& hit)
+  {
+    hits_.push_back(std::forward<PeptideHit>(hit));
   }
 
   void PeptideIdentification::setHits(const std::vector<PeptideHit>& hits)

@@ -60,14 +60,14 @@ public:
     /// Constructor
     AcquisitionInfo() = default;
     /// Copy constructor
-    AcquisitionInfo(const AcquisitionInfo& source) = default;
+    AcquisitionInfo(const AcquisitionInfo&) = default;
     /// Move constructor
     AcquisitionInfo(AcquisitionInfo&&) = default;
     /// Destructor
     ~AcquisitionInfo() = default;
 
     /// Assignment operator
-    AcquisitionInfo& operator=(const AcquisitionInfo& source) = default;
+    AcquisitionInfo& operator=(const AcquisitionInfo&) = default;
     /// Move assignment operator
     AcquisitionInfo& operator=(AcquisitionInfo&&) & = default;
 

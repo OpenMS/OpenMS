@@ -63,12 +63,11 @@ START_SECTION(virtual ~SwathWindowLoader())
     delete ptr;
 END_SECTION
 
-START_SECTION( static void readSwathWindows(const String & filename, std::vector<double> & swath_prec_lower_, std::vector<double> & swath_prec_upper_ ) )
+START_SECTION( static void readSwathWindows(const std::string& filename, std::vector<double>& swath_prec_lower, std::vector<double>& swath_prec_upper) )
 {
   std::vector<double> swath_prec_lower;
   std::vector<double> swath_prec_upper;
-  SwathWindowLoader::readSwathWindows(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"),
-      swath_prec_lower, swath_prec_upper);
+  SwathWindowLoader::readSwathWindows(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_prec_lower, swath_prec_upper);
 
   TEST_EQUAL(swath_prec_lower.size(), swath_prec_upper.size())
   TEST_REAL_SIMILAR(swath_prec_lower[0], 400)
@@ -83,75 +82,106 @@ START_SECTION( static void readSwathWindows(const String & filename, std::vector
 }
 END_SECTION
 
-START_SECTION ( static void annotateSwathMapsFromFile(const std::string & filename, std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort))
+START_SECTION ( static void annotateSwathMapsFromFile(const std::string& filename, std::vector<OpenSwath::SwathMap>& swath_maps, bool do_sort, bool force) )
 {
-  // Initialize swath maps
-  std::vector< OpenSwath::SwathMap > swath_maps(4);
-  for (int i = 0; i < (int)swath_maps.size(); i++)
-  {
-    swath_maps[i].lower = 0;
-    swath_maps[i].upper = 0;
-    swath_maps[i].center = 0;
-    swath_maps[i].ms1 = false;
-  }
+  // pretend this is given in the raw data:
+  const std::vector< OpenSwath::SwathMap > swath_maps = {
+   {399, 426, 1, false},
+   {424, 451, 2, false},
+   {450, 475, 3, false}, // matches exacly (no overlap), but will be ok
+   {474, 501, 4, false}
+  };
 
-  SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps, false);
+  // copy to feed into function
+  std::vector< OpenSwath::SwathMap > swath_maps_test = swath_maps;
 
-  TEST_REAL_SIMILAR(swath_maps[0].lower, 400)
-  TEST_REAL_SIMILAR(swath_maps[1].lower, 425)
-  TEST_REAL_SIMILAR(swath_maps[2].lower, 450)
-  TEST_REAL_SIMILAR(swath_maps[3].lower, 475)
+
+  SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_test, false, false);
+
+  TEST_REAL_SIMILAR(swath_maps_test[0].lower, 400)
+  TEST_REAL_SIMILAR(swath_maps_test[1].lower, 425)
+  TEST_REAL_SIMILAR(swath_maps_test[2].lower, 450)
+  TEST_REAL_SIMILAR(swath_maps_test[3].lower, 475)
                                  
-  TEST_REAL_SIMILAR(swath_maps[0].upper, 425)
-  TEST_REAL_SIMILAR(swath_maps[1].upper, 450)
-  TEST_REAL_SIMILAR(swath_maps[2].upper, 475)
-  TEST_REAL_SIMILAR(swath_maps[3].upper, 500)
+  TEST_REAL_SIMILAR(swath_maps_test[0].upper, 425)
+  TEST_REAL_SIMILAR(swath_maps_test[1].upper, 450)
+  TEST_REAL_SIMILAR(swath_maps_test[2].upper, 475)
+  TEST_REAL_SIMILAR(swath_maps_test[3].upper, 500)
 
-  // Initialize swath maps
-  std::vector< OpenSwath::SwathMap > swath_maps_sorted(4);
-  for (int i = 0; i < (int)swath_maps_sorted.size(); i++)
-  {
-    swath_maps_sorted[i].lower = -i;
-    swath_maps_sorted[i].upper = -i;
-    swath_maps_sorted[i].center = -i;
-    swath_maps_sorted[i].ms1 = false;
-  }
+  ///////////////
+  // test sorting (start inverted)
+  std::vector< OpenSwath::SwathMap > swath_maps_inv = swath_maps;
+  // invert
+  std::sort(swath_maps_inv.rbegin(), swath_maps_inv.rend(), [](const OpenSwath::SwathMap& a, const OpenSwath::SwathMap& b) { return a.lower < b.lower; });
 
+  swath_maps_test = swath_maps_inv;
   // test before
-  TEST_REAL_SIMILAR(swath_maps_sorted[0].center, 0)
-  TEST_REAL_SIMILAR(swath_maps_sorted[1].center, -1)
-  TEST_REAL_SIMILAR(swath_maps_sorted[2].center, -2)
-  TEST_REAL_SIMILAR(swath_maps_sorted[3].center, -3)
+  TEST_EQUAL(swath_maps_test[0].lower, 474)
+  TEST_EQUAL(swath_maps_test[0].center, 4)
+  TEST_EQUAL(swath_maps_test[3].lower, 399)
+  TEST_EQUAL(swath_maps_test[3].center, 1)
 
   SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), 
-      swath_maps_sorted, true);
+      swath_maps_test, true, false);
 
-  TEST_REAL_SIMILAR(swath_maps_sorted[0].lower, 400)
-  TEST_REAL_SIMILAR(swath_maps_sorted[1].lower, 425)
-  TEST_REAL_SIMILAR(swath_maps_sorted[2].lower, 450)
-  TEST_REAL_SIMILAR(swath_maps_sorted[3].lower, 475)
+  TEST_REAL_SIMILAR(swath_maps_test[0].lower, 400)
+  TEST_REAL_SIMILAR(swath_maps_test[1].lower, 425)
+  TEST_REAL_SIMILAR(swath_maps_test[2].lower, 450)
+  TEST_REAL_SIMILAR(swath_maps_test[3].lower, 475)
                                         
-  TEST_REAL_SIMILAR(swath_maps_sorted[0].upper, 425)
-  TEST_REAL_SIMILAR(swath_maps_sorted[1].upper, 450)
-  TEST_REAL_SIMILAR(swath_maps_sorted[2].upper, 475)
-  TEST_REAL_SIMILAR(swath_maps_sorted[3].upper, 500)
+  TEST_REAL_SIMILAR(swath_maps_test[0].upper, 425)
+  TEST_REAL_SIMILAR(swath_maps_test[1].upper, 450)
+  TEST_REAL_SIMILAR(swath_maps_test[2].upper, 475)
+  TEST_REAL_SIMILAR(swath_maps_test[3].upper, 500)
 
-  // should now be in reverse order
-  TEST_REAL_SIMILAR(swath_maps_sorted[0].center, -3)
-  TEST_REAL_SIMILAR(swath_maps_sorted[1].center, -2)
-  TEST_REAL_SIMILAR(swath_maps_sorted[2].center, -1)
-  TEST_REAL_SIMILAR(swath_maps_sorted[3].center, 0)
+  // should now be in original order
+  TEST_REAL_SIMILAR(swath_maps_test[0].center, 1)
+  TEST_REAL_SIMILAR(swath_maps_test[1].center, 2)
+  TEST_REAL_SIMILAR(swath_maps_test[2].center, 3)
+  TEST_REAL_SIMILAR(swath_maps_test[3].center, 4)
 
+  ///////////////////////////////////
   // Test exceptions
   std::vector< OpenSwath::SwathMap > swath_maps_too_large(5);
   TEST_EXCEPTION(OpenMS::Exception::IllegalArgument, 
       SwathWindowLoader::annotateSwathMapsFromFile(
-        OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_too_large, true));
+        OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_too_large, true, false));
 
   std::vector< OpenSwath::SwathMap > swath_maps_too_small(3);
   TEST_EXCEPTION(OpenMS::Exception::IllegalArgument, 
       SwathWindowLoader::annotateSwathMapsFromFile(
-        OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_too_small, true));
+        OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_too_small, true, false));
+
+  // wrong order && no sorting --> fail
+  swath_maps_test = swath_maps_inv;
+  // test before
+  TEST_EQUAL(swath_maps_test[0].lower, 474)
+  TEST_EQUAL(swath_maps_test[0].center, 4)
+  TEST_EQUAL(swath_maps_test[3].lower, 399)
+  TEST_EQUAL(swath_maps_test[3].center, 1)
+  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument, 
+      SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), 
+                                                   swath_maps_test, false, false));
+  // wrong order && no sorting && force --> ok
+  swath_maps_test = swath_maps_inv;
+  SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), 
+                                               swath_maps_test, false, true);
+  // overwritten windows (not narrowing the range since in wrong order )... but ok, due to -force
+  TEST_REAL_SIMILAR(swath_maps_test[0].lower, 400)
+  TEST_REAL_SIMILAR(swath_maps_test[1].lower, 425)
+  TEST_REAL_SIMILAR(swath_maps_test[2].lower, 450)
+  TEST_REAL_SIMILAR(swath_maps_test[3].lower, 475)
+                                        
+  TEST_REAL_SIMILAR(swath_maps_test[0].upper, 425)
+  TEST_REAL_SIMILAR(swath_maps_test[1].upper, 450)
+  TEST_REAL_SIMILAR(swath_maps_test[2].upper, 475)
+  TEST_REAL_SIMILAR(swath_maps_test[3].upper, 500)
+
+  // should still be in reverse order
+  TEST_REAL_SIMILAR(swath_maps_test[0].center, 4)
+  TEST_REAL_SIMILAR(swath_maps_test[1].center, 3)
+  TEST_REAL_SIMILAR(swath_maps_test[2].center, 2)
+  TEST_REAL_SIMILAR(swath_maps_test[3].center, 1)
 }
 END_SECTION
 

@@ -44,10 +44,10 @@
   The UTILS tools are divided into several subgroups:
 
   <b>Maintenance</b>
-  - @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
+  - @subpage UTILS_INIUpdater - Updates INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have change
   
   <b>Signal Processing and Preprocessing</b>
-  - @subpage UTILS_RNPxlXICFilter - Remove MS2 spectra from treatment based on the fold change between control and treatment for RNP cross linking experiments.
+  - @subpage UTILS_RNPxlXICFilter - Removes MS2 spectra from treatment based on the fold change between control and treatment for RNP cross linking experiments.
 
   <b>File Handling</b>
   - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
@@ -62,11 +62,11 @@
   <b>Algorithm Evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
   - @subpage UTILS_LabeledEval - Evaluation tool for isotope-labeled quantitation experiments.
-  - @subpage UTILS_RTEvaluation - Application that evaluates TPs (true positives), TNs, FPs, and FNs for an idXML file with predicted RTs.
+  - @subpage UTILS_RTEvaluation - Application that evaluates true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN) for an idXML file with predicted RTs.
   - @subpage UTILS_TransformationEvaluation - Simple evaluation of transformations (e.g. RT transformations produced by a MapAligner tool).
 
   <b>Protein/Peptide Identification</b>
-  - @subpage UTILS_DecoyDatabase - Create decoy peptide databases from normal ones.
+  - @subpage UTILS_DecoyDatabase - Creates decoy peptide databases from normal ones.
   - @subpage UTILS_Digestor - Digests a protein database in-silico.
   - @subpage UTILS_DigestorMotif - Digests a protein database in-silico (optionally allowing only peptides with a specific motif) and produces statistical data for all peptides.
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
@@ -86,25 +86,26 @@
   - @subpage UTILS_XFDR - Calculates false discovery rate estimates on crosslink identifications.
 
   <b>Quantitation</b>
-  - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
-  - @subpage UTILS_FeatureFinderSuperHirn - Find Features using the SuperHirn Algorithm (it can handle centroided or profile data, see .ini file).
+  - @subpage UTILS_ERPairFinder - Evaluates pair ratios on enhanced resolution (zoom) scans.
+  - @subpage UTILS_FeatureFinderMetaboIdent - Detects features in MS1 data corresponding to small molecule identifications.
+  - @subpage UTILS_FeatureFinderSuperHirn - Finds features using the SuperHirn algorithm (can handle centroided or profile data, see .ini file).
   - @subpage UTILS_MetaboliteAdductDecharger - Decharges and merges different feature charge variants of the same small molecule.  
-  - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
+  - @subpage UTILS_MRMPairFinder - Evaluates labeled pair ratios on MRM features.
   - @subpage UTILS_OpenSwathWorkflow - Complete workflow to run OpenSWATH.
 
   <b>Metabolite Identification</b>
-  - @subpage UTILS_AccurateMassSearch - Find potential HMDB IDs within the given mass error window.
-  - @subpage UTILS_MetaboliteSpectralMatcher - Identify small molecules from tandem MS spectra.  
+  - @subpage UTILS_AccurateMassSearch - Finds potential HMDB IDs within the given mass error window.
+  - @subpage UTILS_MetaboliteSpectralMatcher - Identifies small molecules from tandem MS spectra.  
   - @subpage UTILS_SiriusAdapter - De novo metabolite identification.
 
   <b>Quality Control</b>
   - @subpage UTILS_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
-  - @subpage UTILS_QCEmbedder - This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
-  - @subpage UTILS_QCExporter - Will extract several quality parameter from several run/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
+  - @subpage UTILS_QCEmbedder - Embeds tables or plots generated externally as attachments to existing quality parameters in qcML files.
+  - @subpage UTILS_QCExporter - Extracts several quality parameter from several runs/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
   - @subpage UTILS_QCExtractor - Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
-  - @subpage UTILS_QCImporter - Will import several quality parameter from a tabular (text) format into a qcML file - counterpart to QCExporter.
+  - @subpage UTILS_QCImporter - Imports several quality parameters from a tabular (text) format into a qcML file - counterpart to QCExporter.
   - @subpage UTILS_QCMerger - Merges two qcML files together.
-  - @subpage UTILS_QCShrinker - This application is used to remove extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
+  - @subpage UTILS_QCShrinker - Removes extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
   <b>Misc</b>
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
@@ -116,12 +117,12 @@
   - @subpage UTILS_OpenSwathRewriteToFeatureXML - Rewrites results from mProphet back into featureXML.
   - @subpage UTILS_OpenSwathFileSplitter - A tool for splitting a single SWATH / DIA file into a set of files, each containing one SWATH window.
   - @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for SVM models as input for SvmTheoreticalSpectrumGenerator.
-  - @subpage UTILS_PeakPickerIterative A tool for peak detection in profile data.
+  - @subpage UTILS_PeakPickerIterative - A tool for peak detection in profile data.
   - @subpage UTILS_DatabaseFilter - Filters a protein database in FASTA format according to one or multiple filtering criteria.
   - @subpage UTILS_TICCalculator - Calculates the TIC of a raw mass spectrometric file. 
   - @subpage UTILS_MultiplexResolver - Resolves conflicts between identifications and quantifications in multiplex data.
-  - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data 
-  - @subpage UTILS_LowMemPeakPickerHiResRandomAccess - A tool for peak detection on streamed profile data 
+  - @subpage UTILS_LowMemPeakPickerHiRes - A tool for peak detection on streamed profile data.
+  - @subpage UTILS_LowMemPeakPickerHiResRandomAccess - A tool for peak detection on streamed profile data.
   - @subpage UTILS_MRMTransitionGroupPicker - Picks peaks in MRM chromatograms.
   - @subpage TOPP_ClusterMassTraces - Cluster mass traces occurring in the same map together.
   - @subpage TOPP_CorrelateMassTraces - Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.

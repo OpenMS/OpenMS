@@ -70,7 +70,7 @@ public:
     /**
      * @brief constructor
      *
-     * @param exp_picked    experimental data in centroid mode
+     * @param exp_centroided    experimental data in centroid mode
      * @param patterns    patterns of isotopic peaks to be searched for
      * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
      * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
@@ -83,7 +83,7 @@ public:
      * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p).
      * @param averagine_type    The averagine model to use, current options are RNA DNA or peptide.
      */
-    MultiplexFilteringCentroided(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
+    MultiplexFilteringCentroided(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
     /**
      * @brief filter for patterns
