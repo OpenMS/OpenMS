@@ -68,9 +68,8 @@ SwathQC* ptr = nullptr;
 
 START_SECTION(SwathQC())
 {
-  //ptr = new SwathQC();
-  //TEST_NOT_EQUAL(ptr, nullPointer)
-  NOT_TESTABLE // no Ctor
+  ptr = new SwathQC(10, 0.04);
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
