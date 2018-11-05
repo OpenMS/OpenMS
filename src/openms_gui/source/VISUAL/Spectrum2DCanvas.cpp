@@ -933,8 +933,16 @@ namespace OpenMS
         painter.drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 
         //draw sequence
-        String sequence = pep_begin->getHits()[0].getSequence().toString();
-        if (show_labels || sequence.empty())
+        String sequence;
+        if (show_labels)
+        {
+          sequence = pep_begin->getMetaValue("label");
+        }
+        else
+        {
+          sequence = pep_begin->getHits()[0].getSequence().toString();
+        }
+        if (sequence.empty() && !pep_begin->getHits().empty())
         {
           sequence = pep_begin->getHits()[0].getMetaValue("label");
         }
