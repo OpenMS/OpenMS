@@ -633,6 +633,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureQC_test
     SpectrumHelpers_test
     StatsHelpers_test
+    SwathQC_test
     CachedMzML_test
     CachedMzMLHandler_test
   )
