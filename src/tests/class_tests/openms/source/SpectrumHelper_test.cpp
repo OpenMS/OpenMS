@@ -303,56 +303,70 @@ START_SECTION(void makePeakPositionUnique(PeakContainerT& p, const int m) )
   c_template.push_back(ChromatogramPeak(2, 10));
 
   s = s_template;
-  makePeakPositionUnique(s, 1);
+  makePeakPositionUnique(s, IntensityAveragingMethod::median);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(s[1].getIntensity(), 8)
   TEST_REAL_SIMILAR(s[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(s[3].getIntensity(), 7)
   
   c = c_template;
-  makePeakPositionUnique(c, 1);
+  makePeakPositionUnique(c, IntensityAveragingMethod::median);
   TEST_REAL_SIMILAR(c[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(c[1].getIntensity(), 8)
   TEST_REAL_SIMILAR(c[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(c[3].getIntensity(), 7)
   
   s = s_template;
-  makePeakPositionUnique(s, 2);
+  makePeakPositionUnique(s, IntensityAveragingMethod::mean);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(s[1].getIntensity(), (4+8+10)/3.0)
   TEST_REAL_SIMILAR(s[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(s[3].getIntensity(), 7)
   
   c = c_template;
-  makePeakPositionUnique(c, 2);
+  makePeakPositionUnique(c, IntensityAveragingMethod::mean);
   TEST_REAL_SIMILAR(c[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(c[1].getIntensity(), (4+8+10)/3.0)
   TEST_REAL_SIMILAR(c[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(c[3].getIntensity(), 7)
   
   s = s_template;
-  makePeakPositionUnique(s, 3);
+  makePeakPositionUnique(s, IntensityAveragingMethod::sum);
+  TEST_REAL_SIMILAR(s[0].getIntensity(), 1)
+  TEST_REAL_SIMILAR(s[1].getIntensity(), (4+8+10))
+  TEST_REAL_SIMILAR(s[2].getIntensity(), 9)
+  TEST_REAL_SIMILAR(s[3].getIntensity(), 7)
+  
+  c = c_template;
+  makePeakPositionUnique(c, IntensityAveragingMethod::sum);
+  TEST_REAL_SIMILAR(c[0].getIntensity(), 1)
+  TEST_REAL_SIMILAR(c[1].getIntensity(), (4+8+10))
+  TEST_REAL_SIMILAR(c[2].getIntensity(), 9)
+  TEST_REAL_SIMILAR(c[3].getIntensity(), 7)
+  
+  s = s_template;
+  makePeakPositionUnique(s, IntensityAveragingMethod::min);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(s[1].getIntensity(), 4)
   TEST_REAL_SIMILAR(s[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(s[3].getIntensity(), 7)
   
   c = c_template;
-  makePeakPositionUnique(c, 3);
+  makePeakPositionUnique(c, IntensityAveragingMethod::min);
   TEST_REAL_SIMILAR(c[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(c[1].getIntensity(), 4)
   TEST_REAL_SIMILAR(c[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(c[3].getIntensity(), 7)
   
   s = s_template;
-  makePeakPositionUnique(s, 4);
+  makePeakPositionUnique(s, IntensityAveragingMethod::max);
   TEST_REAL_SIMILAR(s[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(s[1].getIntensity(), 10)
   TEST_REAL_SIMILAR(s[2].getIntensity(), 9)
   TEST_REAL_SIMILAR(s[3].getIntensity(), 7)
   
   c = c_template;
-  makePeakPositionUnique(c, 4);
+  makePeakPositionUnique(c, IntensityAveragingMethod::max);
   TEST_REAL_SIMILAR(c[0].getIntensity(), 1)
   TEST_REAL_SIMILAR(c[1].getIntensity(), 10)
   TEST_REAL_SIMILAR(c[2].getIntensity(), 9)
