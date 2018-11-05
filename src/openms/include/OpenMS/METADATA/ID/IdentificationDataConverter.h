@@ -160,6 +160,13 @@ namespace OpenMS
         xsm.spectra_ref.setMSFile(file_map[*query.input_file_opt]);
       }
       xsm.spectra_ref.setSpecRef(query.data_id);
+      if (match.metaValueExists("adduct"))
+      {
+        MzTabOptionalColumnEntry opt_adduct;
+        opt_adduct.first = "opt_adduct";
+        opt_adduct.second.set(match.getMetaValue("adduct"));
+        xsm.opt_.push_back(opt_adduct);
+      }
       // don't repeat data from the peptide section (e.g. accessions)
       // why are "pre"/"post"/"start"/"end" not in the peptide section?!
       output.push_back(xsm);
