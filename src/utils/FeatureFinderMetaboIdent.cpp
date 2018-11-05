@@ -162,9 +162,9 @@ protected:
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
     setMinFloat_("extract:mz_window", 0.0);
-    registerIntOption_("extract:n_isotopes", "<number>", 2, "Number of isotopes to include in each peptide assay.", false);
+    registerIntOption_("extract:n_isotopes", "<number>", 2, "Number of isotopes to include in each assay.", false);
     setMinInt_("extract:n_isotopes", 2);
-    registerDoubleOption_("extract:isotope_pmin", "<value>", 0.0, "Minimum probability for an isotope to be included in the assay for a peptide. If set, this parameter takes precedence over 'extract:n_isotopes'.", false, true);
+    registerDoubleOption_("extract:isotope_pmin", "<value>", 0.0, "Minimum probability for an isotope to be included in the assay for a compound. If set, this parameter takes precedence over 'extract:n_isotopes'.", false, true);
     setMinFloat_("extract:isotope_pmin", 0.0);
     setMaxFloat_("extract:isotope_pmin", 1.0);
     registerDoubleOption_("extract:rt_window", "<value>", 0.0, "RT window size (in sec.) for chromatogram extraction. If zero, calculated based on 'detect:peak_width'.", false);
@@ -385,7 +385,8 @@ protected:
       if (!mass_given) // calculate m/z from formula
       {
         emp_formula.setCharge(*z_it);
-        mz = emp_formula.getMonoWeight() / *z_it;
+        // "EmpiricalFormula::getMonoWeight()" already includes charges:
+        mz = abs(emp_formula.getMonoWeight() / *z_it);
       }
       else
       {
@@ -439,8 +440,8 @@ protected:
       transition.setNativeID(transition_name);
       transition.setPrecursorMZ(mz);
       // @TODO: use accurate masses from the isotope distribution here?
-      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
-                              float(counter) / charge);
+      transition.setProductMZ(mz + abs(Constants::C13C12_MASSDIFF_U *
+                                       float(counter) / charge));
       transition.setLibraryIntensity(iso_it->getIntensity());
       // transition.setMetaValue("annotation", annotation); // ???
       transition.setCompoundRef(target_id);

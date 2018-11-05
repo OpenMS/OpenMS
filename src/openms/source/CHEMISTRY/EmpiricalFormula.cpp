@@ -73,11 +73,7 @@ namespace OpenMS
 
   double EmpiricalFormula::getMonoWeight() const
   {
-    double weight(0);
-    if (charge_ > 0)
-    {
-      weight += Constants::PROTON_MASS_U * charge_;
-    }
+    double weight = Constants::PROTON_MASS_U * charge_;
     for (const auto& it : formula_)
     {
       weight += it.first->getMonoWeight() * (double)it.second;
