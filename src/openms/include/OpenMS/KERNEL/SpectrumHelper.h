@@ -154,7 +154,7 @@ namespace OpenMS
    * is when multiple spectra are merged to a single one.
    * 
    * The method combines peaks with the same position to a single one with the
-   * intensity deteremined by method m.
+   * intensity determined by method m.
    *
    * @param[in] p The peak container to be manipulated.
    * @param[in] m The method for determining peak intensity from peaks with same position (median, mean, sum, min, max).
