@@ -81,19 +81,6 @@
 
 
 
-//-------------------------------------------------------------
-// Doxygen docu
-//-------------------------------------------------------------
-
-/**
-    @page TOPP_MapAlignerBase MapAlignerBase
-
-    @brief Base class for different MapAligner TOPP tools.
-*/
-
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
-
 namespace OpenMS
 {
 
@@ -115,7 +102,8 @@ private:
                        const String& tmp,
                        const String& readoptions,
                        boost::shared_ptr<ExperimentalSettings > & exp_meta,
-                       std::vector< OpenSwath::SwathMap > & swath_maps)
+                       std::vector< OpenSwath::SwathMap > & swath_maps,
+                       Interfaces::IMSDataConsumer* plugin_consumer)
   {
     SwathFile swath_file;
     swath_file.setLogType(log_type_);
@@ -130,7 +118,7 @@ private:
       FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
       if (in_file_type == FileTypes::MZML)
       {
-        swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions);
+        swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
       }
       else if (in_file_type == FileTypes::MZXML)
       {
@@ -184,10 +172,11 @@ protected:
                       const double min_upper_edge_dist,
                       const bool force,
                       const bool sort_swath_maps,
-                      const bool sonar)
+                      const bool sonar,
+                      Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     // (i) Load files
-    loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps);
+    loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps, plugin_consumer);
 
     // (ii) Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
