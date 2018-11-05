@@ -1004,7 +1004,6 @@ namespace OpenMS
         //if negative mode, we report only negative charges. abs() for chains of negative mode dechargers.
         f_single.setCharge(- abs(f_single.getCharge()));
       }
-      f_single.setMetaValue("charge", f_single.getCharge());
 
       //if negative mode, replace former positive charges with their negative sign version?
       //If singleton, set dc_charge_adduct to default, and charge negative in neg mode?,
