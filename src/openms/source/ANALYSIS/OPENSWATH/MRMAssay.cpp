@@ -988,7 +988,7 @@ namespace OpenMS
     exp.setTransitions(transitions);
   }
 
-  // TODO: see if you can find better solution with less code duplication
+  // TODO: e.g add bool removePrecursorTransitions (ms2)
   void MRMAssay::detectingTransitionsCompound(OpenMS::TargetedExperiment& exp, int min_transitions, int max_transitions)
   {
     CompoundVectorType compounds;
@@ -1009,6 +1009,9 @@ namespace OpenMS
 
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
+
+    //TODO: Filter for precursor mz before Instenisty Filtering
+
 
     for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)

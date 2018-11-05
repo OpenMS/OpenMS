@@ -693,6 +693,8 @@ protected:
                                             file_counter);
 
 
+
+
       // append potential transitions of one file to vector of all files
       v_pts.insert(v_pts.end(), tmp_pts.begin(),tmp_pts.end());
 
@@ -722,13 +724,13 @@ protected:
 
     // TODO: how is it done in MRMAssay & isinSWATH
 
-
     // TODO: filter: precursor
 
     // TODO: filter: isotopes (+1/-1 Da)
 
     // filter: min/max transitions
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
+
 
     // TODO: add "compoundgroup" see ProteinGroup (e.g. with different adducts - give the unique id)
 
