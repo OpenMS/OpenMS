@@ -219,11 +219,6 @@ public:
         return *((*vector_)[position_]);
       }
 
-      pointer operator->()
-      {
-        return (*vector_)[position_];
-      }
-
       pointer operator->() const
       {
         return (*vector_)[position_];
@@ -274,11 +269,6 @@ public:
       reference operator*() const
       {
         return *((*vector_)[position_]);
-      }
-
-      pointer operator->()
-      {
-        return (*vector_)[position_];
       }
 
       pointer operator->() const
