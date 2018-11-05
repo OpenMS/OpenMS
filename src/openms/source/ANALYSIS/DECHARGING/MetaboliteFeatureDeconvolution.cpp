@@ -846,34 +846,29 @@ namespace OpenMS
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
         cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
-        cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
-                        + String("Delta M: ") + feature_relation[i].getMassDiff()
-                        + String(" Score: ") + feature_relation[i].getEdgeScore());
-        //cf.computeDechargeConsensus(fm_out);
 
-        //remove info not wanted in pair info nor in decharged consensus
-        cf.removeMetaValue("label");
-        cf.removeMetaValue("dc_charge_adducts");
-        cf.removeMetaValue("adducts");
-        cf.removeMetaValue("dc_charge_adduct_mass");
-        cf.removeMetaValue("is_backbone");
-        cf.removeMetaValue("old_charge");
-        cf.removeMetaValue("map_idx");
-        // print pairs only
-        cons_map_p.push_back(cf);
-
-        //remove info not wanted in decharged consensus
+        //remove info not wanted in pair
         std::vector<String> keys;
         cf.getKeys(keys);
         for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
         {
           cf.removeMetaValue(*it);
         }
-        //cf.removeMetaValue("Local");
-        //cf.removeMetaValue("CP");
+        cf.setMetaValue("Old_charges", String(old_q0) + ":" + String(old_q1));
+        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
+                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
+                        + String("Delta M: ") + feature_relation[i].getMassDiff()
+                        + String(" Score: ") + feature_relation[i].getEdgeScore());
+        //cf.computeDechargeConsensus(fm_out);
 
+        cons_map_p.push_back(cf);
+
+        //remove info not wanted in decharged consensus
+        cf.getKeys(keys);
+        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+          cf.removeMetaValue(*it);
+        }
 
         //
         // create cliques for decharge consensus features
