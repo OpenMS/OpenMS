@@ -162,7 +162,7 @@ namespace OpenMS
   template <typename PeakContainerT>
   void makePeakPositionUnique(PeakContainerT& p, const IntensityAveragingMethod m = IntensityAveragingMethod::median)
   {
-    if (!p.getFloatDataArrays().empty())
+    if (!p.getFloatDataArrays().empty() || !p.getStringDataArrays().empty() || !p.getIntegerDataArrays().empty())
     {
       LOG_WARN << "Warning: data arrays are being ignored in the method SpectrumHelper::makePeakPositionUnique().\n";
     }
