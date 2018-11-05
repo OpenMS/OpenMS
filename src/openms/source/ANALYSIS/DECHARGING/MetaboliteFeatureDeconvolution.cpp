@@ -959,6 +959,8 @@ namespace OpenMS
         if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists("dc_charge_adducts"))
         {
           it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("dc_charge_adducts"));
+          // also add consensusID of group to feature_relation
+          fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue("Group", it->getUniqueId());
         }
       }
 
