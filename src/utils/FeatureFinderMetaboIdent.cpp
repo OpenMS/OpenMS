@@ -192,18 +192,19 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  typedef vector<Feature*> FeatureGroup;
+  typedef vector<Feature*> FeatureGroup; ///< group of (overlapping) features
 
-  // boundaries for a mass trace in a feature:
+  /// Boundaries for a mass trace in a feature
   struct MassTraceBounds
   {
     Size sub_index;
     double rt_min, rt_max, mz_min, mz_max;
   };
-  // boundaries for all mass traces per feature:
+
+  /// Boundaries for all mass traces per feature
   typedef map<UInt64, vector<MassTraceBounds> > FeatureBoundsMap;
 
-  // predicate for filtering features by overall quality:
+  /// Predicate for filtering features by overall quality
   struct FeatureFilterQuality
   {
     bool operator()(const Feature& feature)
@@ -212,7 +213,7 @@ protected:
     }
   } feature_filter_;
 
-  // comparison functor for features
+  /// Comparison functor for features
   struct FeatureCompare
   {
     bool operator()(const Feature& f1, const Feature& f2)
@@ -227,23 +228,23 @@ protected:
     }
   } feature_compare_;
 
-  PeakMap ms_data_; // input LC-MS data
-  PeakMap chrom_data_; // accumulated chromatograms (XICs)
-  bool keep_chromatograms_; // keep chromatogram data for output?
-  TargetedExperiment library_; // accumulated assays for targets
-  bool keep_library_; // keep assay data for output?
-  double rt_window_; // RT window width
-  double mz_window_; // m/z window width
-  bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
-  double isotope_pmin_; // min. isotope probability for MS1 assay
-  Size n_isotopes_; // number of isotopes for MS1 assay
-  CoarseIsotopePatternGenerator iso_gen_;
-  map<String, double> isotope_probs_; // isotope probabilities of transitions
-  map<String, double> target_rts_; // RTs of targets (assays)
-  MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
-  ProgressLogger prog_log_;
+  PeakMap ms_data_; ///< input LC-MS data
+  PeakMap chrom_data_; ///< accumulated chromatograms (XICs)
+  bool keep_chromatograms_; ///< keep chromatogram data for output?
+  TargetedExperiment library_; ///< accumulated assays for targets
+  bool keep_library_; ///< keep assay data for output?
+  double rt_window_; ///< RT window width
+  double mz_window_; ///< m/z window width
+  bool mz_window_ppm_; ///< m/z window width is given in PPM (not Da)?
+  double isotope_pmin_; ///< min. isotope probability for MS1 assay
+  Size n_isotopes_; ///< number of isotopes for MS1 assay
+  CoarseIsotopePatternGenerator iso_gen_; ///< isotope pattern generator
+  map<String, double> isotope_probs_; ///< isotope probabilities of transitions
+  map<String, double> target_rts_; ///< RTs of targets (assays)
+  MRMFeatureFinderScoring feat_finder_; ///< OpenSWATH feature finder
+  ProgressLogger prog_log_; ///< progress logger
 
-  // read input with information about targets:
+  /// Read input file with information about targets
   void readTargets_(const String& in_path)
   {
     const string header =
@@ -300,13 +301,13 @@ protected:
     }
   }
 
-
+  /// Calculate mass-to-charge ratio from mass and charge
   double calculateMZ_(double mass, Int charge)
   {
     return (mass + charge * Constants::PROTON_MASS_U) / fabs(charge);
   }
 
-
+  /// Add a target (from the input file) to the assay library
   void addTargetToLibrary_(const String& name, const String& formula,
                            double mass, const vector<Int>& charges,
                            const vector<double>& rts,
@@ -423,8 +424,7 @@ protected:
     }
   }
 
-
-  // generate transitions for a target ion and add them to the library:
+  /// Generate transitions for a target ion and add them to the library
   void generateTransitions_(const String& target_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist)
   {
@@ -450,7 +450,7 @@ protected:
     }
   }
 
-
+  /// Helper function to add retention time to a target
   void addTargetRT_(TargetedExperiment::Compound& target, double rt)
   {
     TargetedExperiment::RetentionTime te_rt;
@@ -462,7 +462,7 @@ protected:
     target.rts.push_back(te_rt);
   }
 
-
+  /// Check if two sets of mass trace boundaries overlap
   bool hasOverlappingBounds_(const vector<MassTraceBounds>& mtb1,
                              const vector<MassTraceBounds>& mtb2)
   {
@@ -484,7 +484,7 @@ protected:
     return false;
   }
 
-
+  /// Check if a feature overlaps with a group of other features
   bool hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group,
                               const FeatureBoundsMap& feature_bounds)
   {
@@ -506,10 +506,10 @@ protected:
   }
 
 
+  /// Get bounding boxes for all mass traces in all features of a feature map
   void getFeatureBounds_(const FeatureMap& features,
                          FeatureBoundsMap& feature_bounds)
   {
-    // get bounding boxes for all mass traces in all features:
     for (FeatureMap::ConstIterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
@@ -556,12 +556,11 @@ protected:
     }
   }
 
-
+  /// Partition features of a feature map into groups of overlapping features
   void findOverlappingFeatures_(FeatureMap& features,
                                 const FeatureBoundsMap& feature_bounds,
                                 vector<FeatureGroup>& overlap_groups)
   {
-    // partition features into groups of overlapping features:
     for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
@@ -602,7 +601,7 @@ protected:
     }
   }
 
-
+  /// Resolve overlapping features by picking the best and removing all others
   void resolveOverlappingFeatures_(FeatureGroup& group,
                                    const FeatureBoundsMap& feature_bounds)
   {
@@ -695,7 +694,7 @@ protected:
     }
   }
 
-
+  /// Add relevant annotations/meta values to features
   void annotateFeatures_(FeatureMap& features)
   {
     for (FeatureMap::Iterator feat_it = features.begin();
@@ -725,10 +724,10 @@ protected:
     features.getProteinIdentifications().clear();
   }
 
-
+  /// Create hulls for mass traces of a feature, if not already present
   void ensureConvexHulls_(Feature& feature)
   {
-    if (feature.getConvexHulls().empty()) // add hulls for mass traces
+    if (feature.getConvexHulls().empty())
     {
       double rt_min = feature.getMetaValue("leftWidth");
       double rt_max = feature.getMetaValue("rightWidth");
@@ -750,7 +749,7 @@ protected:
     }
   }
 
-
+  /// Select the best feature for an assay from a set of candidates
   void selectFeaturesFromCandidates_(FeatureMap& features)
   {
     String previous_ref;
@@ -805,7 +804,7 @@ protected:
                              feature_filter_), features.end());
   }
 
-
+  /// Create a string of identifying information for a compound
   String prettyPrintCompound_(const TargetedExperiment::Compound& compound)
   {
     return (String(compound.getMetaValue("name")) + " (m=" +
@@ -814,7 +813,7 @@ protected:
             String(float(double(compound.getMetaValue("expected_rt")))) + ")");
   }
 
-
+  /// Add "peptide" identifications with information about targets to features
   Size addTargetAnnotations_(FeatureMap& features)
   {
     Size n_shared = 0;
@@ -859,7 +858,7 @@ protected:
     return n_shared; // for summary statistics
   }
 
-
+  /// Main function
   ExitCodes main_(int, const char**)
   {
     FeatureMap features;
