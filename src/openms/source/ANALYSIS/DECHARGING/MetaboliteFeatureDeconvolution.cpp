@@ -865,8 +865,14 @@ namespace OpenMS
         cons_map_p.push_back(cf);
 
         //remove info not wanted in decharged consensus
-        cf.removeMetaValue("Local");
-        cf.removeMetaValue("CP");
+        std::vector<String> keys;
+        cf.getKeys(keys);
+        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+          cf.removeMetaValue(*it);
+        }
+        //cf.removeMetaValue("Local");
+        //cf.removeMetaValue("CP");
 
 
         //
@@ -984,7 +990,14 @@ namespace OpenMS
         continue;
 
       FeatureMapType::FeatureType f_single = fm_out_untouched[i];
-      f_single.setMetaValue("is_single_feature", 1);
+      if (f_single.getCharge() == 0)
+      {
+        f_single.setMetaValue("is_ungrouped_monoisotopic", 1);
+      }
+      else
+      {
+        f_single.setMetaValue("is_ungrouped_with_charge", 1);
+      }
 
       if (is_neg)
       {
@@ -1016,6 +1029,16 @@ namespace OpenMS
       cf.setQuality(0.0);
       cf.setUniqueId();
       cf.insert(0, f_single);
+      //remove info not wanted in decharged consensus
+      std::vector<String> keys;
+      cf.getKeys(keys);
+      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      {
+        if (*it == "is_ungrouped_monoisotopic" || *it == "is_ungrouped_with_charge")
+          continue;
+
+        cf.removeMetaValue(*it);
+      }
 
       cons_map.push_back(cf);
       cons_map.back().computeDechargeConsensus(fm_out);//previously used fm_out_untouched. does fm_out also work?
