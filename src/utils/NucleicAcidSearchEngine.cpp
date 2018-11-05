@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h> // for "median"
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -51,6 +52,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/SVOutStream.h>
 
 // digestion enzymes
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
@@ -156,6 +158,9 @@ protected:
 
     registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
+
+    registerOutputFile_("lfq_out", "<file>", "", "Output file: Coordinates for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
+    setValidFormats_("lfq_out", vector<String>(1, "tsv"));
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("theo_ms2_out", ListUtils::create<String>("mzML"));
@@ -699,6 +704,37 @@ protected:
   }
 
 
+  void generateLFQInput_(IdentificationData& id_data, const String& out_file)
+  {
+    map<NASequence, map<Int, vector<double>>> rt_info;
+    for (const IdentificationData::MoleculeQueryMatch& match :
+           id_data.getMoleculeQueryMatches())
+    {
+      rt_info[match.getIdentifiedOligoRef()->sequence][match.charge].push_back(
+        match.data_query_ref->rt);
+    }
+
+    SVOutStream tsv(out_file);
+    tsv.modifyStrings(false);
+    tsv << "CompoundName" << "SumFormula" << "Mass" << "Charge"
+        << "RetentionTime" << "RetentionTimeRange" << "IsoDistribution" << endl;
+    for (const auto& entry : rt_info)
+    {
+      tsv << entry.first.toString() << entry.first.getFormula() << 0;
+      vector<Int> charges;
+      vector<double> rts;
+      for (const auto& pair : entry.second)
+      {
+        charges.push_back(pair.first);
+        rts.insert(rts.end(), pair.second.begin(), pair.second.end());
+      }
+      tsv << ListUtils::concatenate(charges, ",");
+      // @TODO: do something more sophisticated for the RT?
+      tsv << Math::median(rts.begin(), rts.end(), false) << 0 << 0 << endl;
+    }
+  }
+
+
   ExitCodes main_(int, const char**)
   {
     ProgressLogger progresslogger;
@@ -707,6 +743,7 @@ protected:
     String in_db = getStringOption_("database");
     String out = getStringOption_("out");
     String id_out = getStringOption_("id_out");
+    String lfq_out = getStringOption_("lfq_out");
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
@@ -1158,6 +1195,11 @@ protected:
       // proteins[0].setDateTime(DateTime::now());
       // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
+    }
+
+    if (!lfq_out.empty())
+    {
+      generateLFQInput_(id_data, lfq_out);
     }
 
     return EXECUTION_OK;
