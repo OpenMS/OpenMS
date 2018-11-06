@@ -43,14 +43,13 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI MRMFeatureSelector :
-    public DefaultParamHandler
+  class OPENMS_DLLAPI MRMFeatureSelector
   {
     friend class MRMFeatureSelectorQMIP;
     friend class MRMFeatureSelectorScore;
 public:
-    MRMFeatureSelector();
-    virtual ~MRMFeatureSelector();
+    MRMFeatureSelector() = default;
+    virtual ~MRMFeatureSelector() = default;
 
     static constexpr const char* s_continuous = "continuous";
     static constexpr const char* s_integer = "integer";
@@ -60,7 +59,9 @@ public:
       const std::map< String, std::vector<Feature> >& feature_name_map,
       std::vector<String>& result
     ) = 0;
+
     void select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered);
+
     double make_score(const Feature& feature) const;
 
     String remove_spaces(String str) const;
@@ -80,9 +81,6 @@ public:
     void setSegmentStepLength(const Int segment_step_length);
     Int getSegmentStepLength() const;
 
-    void setSelectHighestCount(const String select_highest_count);
-    String getSelectHighestCount() const;
-
     void setVariableType(const String& variable_type);
     String getVariableType() const;
 
@@ -90,8 +88,7 @@ public:
     double getOptimalThreshold() const;
 
     void setScoreWeights(const std::map<String, String>& score_weights);
-
-    void getDefaultParameters(Param& params);
+    std::map<String, String> getScoreWeights() const;
 
     void constructToList( // TODO: make it private and a friend class to test it
       const FeatureMap& features,
@@ -102,18 +99,14 @@ public:
     // TODO: make it private and a friend class to test it
     double weight_func(const double score, const String& lambda_score) const;
 
-protected:
-    void updateMembers_(); /// overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
-
 private:
-    Int    nn_threshold_;
-    String locality_weight_;
-    String select_transition_group_;
-    Int    segment_window_length_;
-    Int    segment_step_length_;
-    String select_highest_count_;
-    String variable_type_;
-    double optimal_threshold_;
+    Int    nn_threshold_ = 4;
+    String locality_weight_ = "false";
+    String select_transition_group_ = "true";
+    Int    segment_window_length_ = 8;
+    Int    segment_step_length_ = 4;
+    String variable_type_ = "continuous";
+    double optimal_threshold_ = 0.5;
     std::map<String, String> score_weights_;
 
     Int _addVariable(LPWrapper& problem, const String& name, const bool bounded = true, const double obj = 1.0) const;

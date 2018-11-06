@@ -50,29 +50,47 @@ public:
     MRMFeatureScheduler() = default;
     ~MRMFeatureScheduler() = default;
 
+    struct SelectorParameters
+    {
+      SelectorParameters() = default;
+
+      SelectorParameters(
+        Int nn,
+        String& lw,
+        String& stg,
+        Int swl,
+        Int ssl,
+        String& vt,
+        double ot,
+        std::map<String,String>& sw
+      ) :
+        nn_threshold(nn),
+        locality_weight(lw),
+        select_transition_group(stg),
+        segment_window_length(swl),
+        segment_step_length(ssl),
+        variable_type(vt),
+        optimal_threshold(ot),
+        score_weights(sw) {}
+
+      Int nn_threshold;
+      String locality_weight;
+      String select_transition_group;
+      Int segment_window_length;
+      Int segment_step_length;
+      String variable_type;
+      double optimal_threshold;
+      std::map<String, String> score_weights;
+    };
+
     void schedule_MRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& output_features) const;
     void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features) const;
     void schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features) const;
 
-    void setNNThresholds(const std::vector<Int>& nn_thresholds);
-    void setLocalityWeights(const std::vector<String>& locality_weights);
-    void setSelectTransitionGroups(const std::vector<String>& select_transition_groups);
-    void setSegmentWindowLengths(const std::vector<Int>& segment_window_lengths);
-    void setSegmentStepLengths(const std::vector<Int>& segment_step_lengths);
-    void setSelectHighestCounts(const std::vector<String>& select_highest_counts);
-    void setVariableTypes(const std::vector<String>& variable_types);
-    void setOptimalThresholds(const std::vector<double>& optimal_thresholds);
-    void setScoreWeights(const std::map<String, String>& score_weights);
+    void setParameters(const std::vector<SelectorParameters>& parameters);
+    std::vector<SelectorParameters>& getParameters(void);
 
 private:
-    std::vector<Int> nn_thresholds_;
-    std::vector<String> locality_weights_;
-    std::vector<String> select_transition_groups_;
-    std::vector<Int> segment_window_lengths_;
-    std::vector<Int> segment_step_lengths_;
-    std::vector<String> select_highest_counts_;
-    std::vector<String> variable_types_;
-    std::vector<double> optimal_thresholds_;
-    std::map<String, String> score_weights_;
+    std::vector<SelectorParameters> parameters_;
   };
 }

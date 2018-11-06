@@ -116,15 +116,6 @@ START_SECTION(getSegmentStepLength())
 }
 END_SECTION
 
-START_SECTION(getSelectHighestCount())
-{
-  MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getSelectHighestCount(), "false")
-  selectorScore.setSelectHighestCount("true");
-  TEST_EQUAL(selectorScore.getSelectHighestCount(), "true")
-}
-END_SECTION
-
 START_SECTION(getVariableType())
 {
   MRMFeatureSelectorScore selectorScore;
@@ -145,7 +136,6 @@ END_SECTION
 
 START_SECTION(MRMFeatureSelectorScore::select_MRMFeature())
 {
-  const char* s_integer = MRMFeatureSelector::s_integer;
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
@@ -153,20 +143,15 @@ START_SECTION(MRMFeatureSelectorScore::select_MRMFeature())
 
   MRMFeatureSelectorScore selectorScore;
 
-  Param param;
-  param.setValue("select_transition_group", "true");
-  param.setValue("segment_window_length", -1);
-  param.setValue("segment_step_length", -1);
-  param.setValue("select_highest_count", "false");
-  param.setValue("variable_type", s_integer);
-  param.setValue("optimal_threshold", 0.5);
-  selectorScore.setParameters(param);
-
-  const std::map<String, String> score_weights {
+  selectorScore.setSelectTransitionGroup("true");
+  selectorScore.setSegmentWindowLength(-1);
+  selectorScore.setSegmentStepLength(-1);
+  selectorScore.setVariableType("integer");
+  selectorScore.setOptimalThreshold(0.5);
+  selectorScore.setScoreWeights({
     {"sn_ratio", "lambda score: log(score)"},
     {"peak_apices_sum", "lambda score: log(score)"}
-  };
-  selectorScore.setScoreWeights(score_weights);
+  });
 
   FeatureMap output_selected;
   selectorScore.select_MRMFeature(feature_map, output_selected);
@@ -271,57 +256,53 @@ START_SECTION(make_score())
 }
 END_SECTION
 
-START_SECTION(schedule_MRMFeaturesQMIP() integer) // integer variable type
-{
-  FeatureMap feature_map;
-  FeatureXMLFile feature_file;
-  feature_file.load(features_path, feature_map);
+// START_SECTION(schedule_MRMFeaturesQMIP() integer) // integer variable type
+// {
+//   FeatureMap feature_map;
+//   FeatureXMLFile feature_file;
+//   feature_file.load(features_path, feature_map);
 
-  const std::vector<Int>    nn_thresholds            {4, 4};
-  const std::vector<String> locality_weights         {"false", "false"};
-  const std::vector<String> select_transition_groups {"true", "true"};
-  const std::vector<Int>    segment_window_lengths   {8, -1};
-  const std::vector<Int>    segment_step_lengths     {4, -1};
-  const std::vector<String> select_highest_counts    {"false", "false"};
-  const std::vector<String> variable_types           {"integer", "integer"};
-  const std::vector<double> optimal_thresholds       {0.5, 0.5};
-  const std::map<String, String> score_weights {
-    {"sn_ratio", "lambda score: 1/log(score)"},
-    {"peak_apices_sum", "lambda score: 1/log10(score)"}
-  };
+//   MRMFeatureScheduler::SelectorParameters params1;
+//   params1.nn_threshold = 4;
+//   params1.locality_weight = "false";
+//   params1.select_transition_group = "true";
+//   params1.segment_window_length = 8;
+//   params1.segment_step_length = 4;
+//   params1.variable_type = "integer";
+//   params1.optimal_threshold = 0.5;
+//   params1.score_weights = {
+//     {"sn_ratio", "lambda score: 1/log(score)"},
+//     {"peak_apices_sum", "lambda score: 1/log10(score)"}
+//   };
 
-  MRMFeatureScheduler scheduler;
+//   MRMFeatureScheduler::SelectorParameters params2 = params1;
+//   params2.segment_window_length = -1;
+//   params2.segment_step_length = -1;
 
-  scheduler.setNNThresholds(nn_thresholds);
-  scheduler.setLocalityWeights(locality_weights);
-  scheduler.setSelectTransitionGroups(select_transition_groups);
-  scheduler.setSegmentWindowLengths(segment_window_lengths);
-  scheduler.setSegmentStepLengths(segment_step_lengths);
-  scheduler.setSelectHighestCounts(select_highest_counts);
-  scheduler.setVariableTypes(variable_types);
-  scheduler.setOptimalThresholds(optimal_thresholds);
-  scheduler.setScoreWeights(score_weights);
+//   MRMFeatureScheduler scheduler;
+//   const std::vector<MRMFeatureScheduler::SelectorParameters> parameters = {params1, params2};
+//   scheduler.setParameters(parameters);
 
-  FeatureMap output_selected;
-  scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
+//   FeatureMap output_selected;
+//   scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
 
-  sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
-    return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
+//   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
+//     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
 
-  TEST_EQUAL(output_selected.size(), 117);
-  TEST_STRING_EQUAL(output_selected[0].getMetaValue("PeptideRef"), "23dpg");
-  TEST_REAL_SIMILAR(output_selected[0].getRT(), 15.8944563381195);
-  TEST_STRING_EQUAL(output_selected[12].getMetaValue("PeptideRef"), "actp");
-  TEST_REAL_SIMILAR(output_selected[12].getRT(), 11.8904100268046);
-  TEST_STRING_EQUAL(output_selected[116].getMetaValue("PeptideRef"), "xan");
-  TEST_REAL_SIMILAR(output_selected[116].getRT(), 1.49026310475667);
+//   TEST_EQUAL(output_selected.size(), 117);
+//   TEST_STRING_EQUAL(output_selected[0].getMetaValue("PeptideRef"), "23dpg");
+//   TEST_REAL_SIMILAR(output_selected[0].getRT(), 15.8944563381195);
+//   TEST_STRING_EQUAL(output_selected[12].getMetaValue("PeptideRef"), "actp");
+//   TEST_REAL_SIMILAR(output_selected[12].getRT(), 11.8904100268046);
+//   TEST_STRING_EQUAL(output_selected[116].getMetaValue("PeptideRef"), "xan");
+//   TEST_REAL_SIMILAR(output_selected[116].getRT(), 1.49026310475667);
 
-  // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
-  for (const Feature& f : output_selected) {
-    cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
-  }
-}
-END_SECTION
+//   // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
+//   for (const Feature& f : output_selected) {
+//     cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
+//   }
+// }
+// END_SECTION
 
 START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
 {
@@ -329,30 +310,26 @@ START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
 
-  const std::vector<Int>    nn_thresholds            {4, 4};
-  const std::vector<String> locality_weights         {"false", "false"};
-  const std::vector<String> select_transition_groups {"true", "true"};
-  const std::vector<Int>    segment_window_lengths   {8, -1};
-  const std::vector<Int>    segment_step_lengths     {4, -1};
-  const std::vector<String> select_highest_counts    {"false", "false"};
-  const std::vector<String> variable_types           {"continuous", "continuous"};
-  const std::vector<double> optimal_thresholds       {0.5, 0.5};
-  const std::map<String, String> score_weights {
+  MRMFeatureScheduler::SelectorParameters params1;
+  params1.nn_threshold = 4;
+  params1.locality_weight = "false";
+  params1.select_transition_group = "true";
+  params1.segment_window_length = 8;
+  params1.segment_step_length = 4;
+  params1.variable_type = "continuous";
+  params1.optimal_threshold = 0.5;
+  params1.score_weights = {
     {"sn_ratio", "lambda score: 1/log(score)"},
     {"peak_apices_sum", "lambda score: 1/log10(score)"}
   };
 
-  MRMFeatureScheduler scheduler;
+  MRMFeatureScheduler::SelectorParameters params2 = params1;
+  params2.segment_window_length = -1;
+  params2.segment_step_length = -1;
 
-  scheduler.setNNThresholds(nn_thresholds);
-  scheduler.setLocalityWeights(locality_weights);
-  scheduler.setSelectTransitionGroups(select_transition_groups);
-  scheduler.setSegmentWindowLengths(segment_window_lengths);
-  scheduler.setSegmentStepLengths(segment_step_lengths);
-  scheduler.setSelectHighestCounts(select_highest_counts);
-  scheduler.setVariableTypes(variable_types);
-  scheduler.setOptimalThresholds(optimal_thresholds);
-  scheduler.setScoreWeights(score_weights);
+  MRMFeatureScheduler scheduler;
+  const std::vector<MRMFeatureScheduler::SelectorParameters> parameters = {params1, params2};
+  scheduler.setParameters(parameters);
 
   FeatureMap output_selected;
   scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);

@@ -41,15 +41,6 @@
 
 namespace OpenMS
 {
-  MRMFeatureSelector::MRMFeatureSelector() :
-    DefaultParamHandler("MRMFeatureSelector")
-  {
-    getDefaultParameters(defaults_);
-    defaultsToParam_(); // write defaults into Param object param_
-  }
-
-  MRMFeatureSelector::~MRMFeatureSelector() {}
-
   Int MRMFeatureSelector::_addVariable(
     LPWrapper& problem,
     const String& name,
@@ -289,7 +280,6 @@ std::cout << locality_weight_ << std::endl;
 std::cout << select_transition_group_ << std::endl;
 std::cout << segment_window_length_ << std::endl;
 std::cout << segment_step_length_ << std::endl;
-std::cout << select_highest_count_ << std::endl;
 std::cout << variable_type_ << std::endl;
 std::cout << optimal_threshold_ << std::endl;
 
@@ -430,16 +420,6 @@ std::cout << "END SELECT_MRMFEATURE" << std::endl;
     return segment_step_length_;
   }
 
-  void MRMFeatureSelector::setSelectHighestCount(const String select_highest_count)
-  {
-    select_highest_count_ = select_highest_count;
-  }
-
-  String MRMFeatureSelector::getSelectHighestCount() const
-  {
-    return select_highest_count_;
-  }
-
   void MRMFeatureSelector::setVariableType(const String& variable_type)
   {
     variable_type_ = variable_type;
@@ -465,30 +445,8 @@ std::cout << "END SELECT_MRMFEATURE" << std::endl;
     score_weights_ = score_weights;
   }
 
-  void MRMFeatureSelector::getDefaultParameters(Param& params)
+  std::map<String, String> MRMFeatureSelector::getScoreWeights() const
   {
-    params.clear();
-    // TODO Adjust defaults
-    // TODO set limits on parameters
-    params.setValue("nn_threshold", 4);
-    params.setValue("locality_weight", "false");
-    params.setValue("select_transition_group", "true");
-    params.setValue("segment_window_length", 8);
-    params.setValue("segment_step_length", 4);
-    params.setValue("select_highest_count", "false");
-    params.setValue("variable_type", s_continuous);
-    params.setValue("optimal_threshold", 0.5);
-  }
-
-  void MRMFeatureSelector::updateMembers_()
-  {
-    nn_threshold_ = (Int)param_.getValue("nn_threshold");
-    locality_weight_ = param_.getValue("locality_weight").toString();
-    select_transition_group_ = param_.getValue("select_transition_group").toString();
-    segment_window_length_ = (Int)param_.getValue("segment_window_length");
-    segment_step_length_ = (Int)param_.getValue("segment_step_length");
-    select_highest_count_ = param_.getValue("select_highest_count").toString();
-    variable_type_ = param_.getValue("variable_type").toString();
-    optimal_threshold_ = (double)param_.getValue("optimal_threshold");
+    return score_weights_;
   }
 }

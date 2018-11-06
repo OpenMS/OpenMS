@@ -45,17 +45,16 @@ namespace OpenMS
   ) const
   {
     FeatureMap features_mutable = features;
-    for (size_t i = 0; i < segment_window_lengths_.size(); ++i) {
-      Param param;
-      param.setValue("nn_threshold", nn_thresholds_.at(i));
-      param.setValue("locality_weight", locality_weights_.at(i));
-      param.setValue("select_transition_group", select_transition_groups_.at(i));
-      param.setValue("segment_window_length", segment_window_lengths_.at(i));
-      param.setValue("segment_step_length", segment_step_lengths_.at(i));
-      param.setValue("select_highest_count", select_highest_counts_.at(i));
-      param.setValue("variable_type", variable_types_.at(i));
-      param.setValue("optimal_threshold", optimal_thresholds_.at(i));
-      feature_selector.setParameters(param);
+    for (const SelectorParameters& params : parameters_) {
+      feature_selector.setNNThreshold(params.nn_threshold);
+      feature_selector.setLocalityWeight(params.locality_weight);
+      feature_selector.setSelectTransitionGroup(params.select_transition_group);
+      feature_selector.setSegmentWindowLength(params.segment_window_length);
+      feature_selector.setSegmentStepLength(params.segment_step_length);
+      feature_selector.setVariableType(params.variable_type);
+      feature_selector.setOptimalThreshold(params.optimal_threshold);
+      feature_selector.setScoreWeights(params.score_weights);
+
       feature_selector.select_MRMFeature(features_mutable, output_features);
       features_mutable = output_features;
     }
@@ -64,59 +63,22 @@ namespace OpenMS
   void MRMFeatureScheduler::schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features) const
   {
     MRMFeatureSelectorQMIP feature_selector;
-    feature_selector.setScoreWeights(score_weights_);
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
 
   void MRMFeatureScheduler::schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features) const
   {
     MRMFeatureSelectorScore feature_selector;
-    feature_selector.setScoreWeights(score_weights_);
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
 
-  void MRMFeatureScheduler::setNNThresholds(const std::vector<Int>& nn_thresholds)
+  void MRMFeatureScheduler::setParameters(const std::vector<SelectorParameters>& parameters)
   {
-    nn_thresholds_ = nn_thresholds;
+    parameters_ = parameters;
   }
 
-  void MRMFeatureScheduler::setLocalityWeights(const std::vector<String>& locality_weights)
+  std::vector<MRMFeatureScheduler::SelectorParameters>& MRMFeatureScheduler::getParameters()
   {
-    locality_weights_ = locality_weights;
-  }
-
-  void MRMFeatureScheduler::setSelectTransitionGroups(const std::vector<String>& select_transition_groups)
-  {
-    select_transition_groups_ = select_transition_groups;
-  }
-
-  void MRMFeatureScheduler::setSegmentWindowLengths(const std::vector<Int>& segment_window_lengths)
-  {
-    segment_window_lengths_ = segment_window_lengths;
-  }
-
-  void MRMFeatureScheduler::setSegmentStepLengths(const std::vector<Int>& segment_step_lengths)
-  {
-    segment_step_lengths_ = segment_step_lengths;
-  }
-
-  void MRMFeatureScheduler::setSelectHighestCounts(const std::vector<String>& select_highest_counts)
-  {
-    select_highest_counts_ = select_highest_counts;
-  }
-
-  void MRMFeatureScheduler::setVariableTypes(const std::vector<String>& variable_types)
-  {
-    variable_types_ = variable_types;
-  }
-
-  void MRMFeatureScheduler::setOptimalThresholds(const std::vector<double>& optimal_thresholds)
-  {
-    optimal_thresholds_ = optimal_thresholds;
-  }
-
-  void MRMFeatureScheduler::setScoreWeights(const std::map<String, String>& score_weights)
-  {
-    score_weights_ = score_weights;
+    return parameters_;
   }
 }
