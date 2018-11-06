@@ -107,9 +107,10 @@ if(APPLE)
                            ${CoreServices_LIBRARY})
 endif()
 
-if (TBB_FOUND)
- list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
+if (OPENMP_FOUND)
+  list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
 endif()
+
 if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
