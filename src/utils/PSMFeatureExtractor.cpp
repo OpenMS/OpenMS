@@ -86,6 +86,11 @@ target/decoy annotation is mandatory.
 Currently supported search engines are Comet, X!Tandem, MSGF+.
 Mascot support is available but in beta development.
   </p>
+  @note using the -peptide_motif flag you can specify a regular expression that sequence hits
+ will be matched with. If there is a match the feature will be set to 1 otherwise 0. This feature
+ can be used for special peptides such as MHC peptides that dont carry an enzymatic cleavage motif
+ that the percolator could learn from. However if the motif is very specific the percolator training
+ might be too biased not matching any decoy sequences.
 
   @note if you have extra features you want to pass to percolator, use the extra
  flag and list the MetaData entries containing the extra features.

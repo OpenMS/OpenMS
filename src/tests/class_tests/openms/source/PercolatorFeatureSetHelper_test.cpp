@@ -49,8 +49,9 @@ bool check_regex(const OpenMS::String& peptide_motif)
 {
     try
     {
+      const OpenMS::String sequence = "TESTPEPTIDE";
       boost::regex peptide_motif_regex(peptide_motif);
-      boost::regex_match(const OpenMS::String "TESTPEPTIDE", peptide_motif_regex);
+      boost::regex_match(sequence, peptide_motif_regex);
       return true;
     } catch (boost::regex_error& e) {
       // Syntax error in the regular expression
@@ -256,16 +257,13 @@ START_SECTION((static void addMotifRegExFeatures(std::vector< PeptideIdentificat
     const OpenMS::String motif = "H.*";
 
     IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("motif.regex.idXML"), motif_pods, motif_pids);
-    PercolatorFeatureSetHelper::addMotifRegExFeatures(motif_pids, fs);
+    PercolatorFeatureSetHelper::addMotifRegExFeatures(motif_pids, fs, motif);
 
     //check completeness of feature construction
     ABORT_IF(!check_pepids(motif_check_pids, motif_pids));
 
     //check registration of percolator features for adapter
     ABORT_IF(!check_proids(motif_check_pods, motif_pods, fs));
-
-    //check regex
-    ABORT_IF(!check_regex(motif));
 }
 END_SECTION
 
