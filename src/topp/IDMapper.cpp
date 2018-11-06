@@ -150,7 +150,7 @@ protected:
     setValidStrings_("mz_measure", p.getEntry("mz_measure").valid_strings);
     registerStringOption_("mz_reference", "<choice>", p.getEntry("mz_reference").valid_strings[0], "Source of m/z values for peptide identifications. If 'precursor', the precursor-m/z from the idXML is used. If 'peptide',\nmasses are computed from the sequences of peptide hits; in this case, an identification matches if any of its hits matches.\n('peptide' should be used together with 'feature:use_centroid_mz' to avoid false-positive matches.)", false);
     setValidStrings_("mz_reference", p.getEntry("mz_reference").valid_strings);
-    registerFlag_("ignore_charge", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.");
+    registerFlag_("ignore_charge", "For feature/consensus maps: Assign an ID independently of whether its charge state matches that of the (consensus) feature.", true);
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Additional options for featureXML input");
