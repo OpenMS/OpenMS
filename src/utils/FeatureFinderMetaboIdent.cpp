@@ -522,8 +522,17 @@ protected:
         mtb.mz_min = points.front().getY();
         mtb.mz_max = points.back().getY();
         const Feature& sub = feat_it->getSubordinates()[i];
+        // convex hulls should be written out by "MRMFeatureFinderScoring" (see
+        // parameter "write_convex_hull"):
+        if (sub.getConvexHulls().empty())
+        {
+          String error = "convex hulls for mass traces missing";
+          throw Exception::MissingInformation(__FILE__, __LINE__,
+                                              OPENMS_PRETTY_FUNCTION, error);
+        }
         const ConvexHull2D& hull = sub.getConvexHulls()[0];
         // find beginning of mass trace (non-zero intensity):
+        if (hull.getHullPoints().empty()) continue;
         double rt_min = hull.getHullPoints().back().getX();
         for (ConvexHull2D::PointArrayType::const_iterator p_it =
                hull.getHullPoints().begin(); p_it != hull.getHullPoints().end();
@@ -910,10 +919,7 @@ protected:
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-    if ((elution_model != "none") || (!candidates_out.empty()))
-    {
-      params.setValue("write_convex_hull", "true");
-    }
+    params.setValue("write_convex_hull", "true");
     if (min_peak_width < 1.0) min_peak_width *= peak_width;
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width);
