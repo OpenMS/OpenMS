@@ -120,8 +120,8 @@ private:
 
     void _addConstraint(
       LPWrapper& problem,
-      std::vector<Int>& indices,
-      std::vector<double>& values,
+      std::vector<Int> indices,
+      std::vector<double> values,
       const String& name,
       const double lb,
       const double ub,

@@ -271,27 +271,26 @@ START_SECTION(make_score())
 }
 END_SECTION
 
-START_SECTION(schedule_MRMFeaturesQMIP())
+START_SECTION(schedule_MRMFeaturesQMIP() integer) // integer variable type
 {
-  const char* s_continuous = MRMFeatureSelector::s_continuous;
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
 
-  MRMFeatureScheduler scheduler;
-
-  const std::vector<Int>    nn_thresholds {4, 4};
-  const std::vector<String> locality_weights {"false", "false", "false", "true"};
-  const std::vector<String> select_transition_groups {"true", "true", "true", "true"};
-  const std::vector<Int>    segment_window_lengths {8, -1};
-  const std::vector<Int>    segment_step_lengths {4, -1};
-  const std::vector<String> select_highest_counts {"false", "false", "false", "false"};
-  const std::vector<String> variable_types {s_continuous, s_continuous, s_continuous, s_continuous};
-  const std::vector<double> optimal_thresholds {0.5, 0.5, 0.5, 0.5};
+  const std::vector<Int>    nn_thresholds            {4, 4};
+  const std::vector<String> locality_weights         {"false", "false"};
+  const std::vector<String> select_transition_groups {"true", "true"};
+  const std::vector<Int>    segment_window_lengths   {8, -1};
+  const std::vector<Int>    segment_step_lengths     {4, -1};
+  const std::vector<String> select_highest_counts    {"false", "false"};
+  const std::vector<String> variable_types           {"integer", "integer"};
+  const std::vector<double> optimal_thresholds       {0.5, 0.5};
   const std::map<String, String> score_weights {
     {"sn_ratio", "lambda score: 1/log(score)"},
     {"peak_apices_sum", "lambda score: 1/log10(score)"}
   };
+
+  MRMFeatureScheduler scheduler;
 
   scheduler.setNNThresholds(nn_thresholds);
   scheduler.setLocalityWeights(locality_weights);
@@ -306,18 +305,70 @@ START_SECTION(schedule_MRMFeaturesQMIP())
   FeatureMap output_selected;
   scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
 
-  TEST_EQUAL(output_selected.size(), 49);                                                                      // TODO: fails
-  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);          // TODO: fails
-  TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id"), "23dpg.23dpg_1.Heavy"); // TODO: fails
-  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 15.8944563381195);                        // TODO: fails
-  // TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 1080.0);
-  // TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "oxa.oxa_1.Heavy");
-  // TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 13.4963475631714);
-
-  // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
 
+  TEST_EQUAL(output_selected.size(), 117);
+  TEST_STRING_EQUAL(output_selected[0].getMetaValue("PeptideRef"), "23dpg");
+  TEST_REAL_SIMILAR(output_selected[0].getRT(), 15.8944563381195);
+  TEST_STRING_EQUAL(output_selected[12].getMetaValue("PeptideRef"), "actp");
+  TEST_REAL_SIMILAR(output_selected[12].getRT(), 11.8904100268046);
+  TEST_STRING_EQUAL(output_selected[116].getMetaValue("PeptideRef"), "xan");
+  TEST_REAL_SIMILAR(output_selected[116].getRT(), 1.49026310475667);
+
+  // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
+  for (const Feature& f : output_selected) {
+    cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
+  }
+}
+END_SECTION
+
+START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
+{
+  FeatureMap feature_map;
+  FeatureXMLFile feature_file;
+  feature_file.load(features_path, feature_map);
+
+  const std::vector<Int>    nn_thresholds            {4, 4};
+  const std::vector<String> locality_weights         {"false", "false"};
+  const std::vector<String> select_transition_groups {"true", "true"};
+  const std::vector<Int>    segment_window_lengths   {8, -1};
+  const std::vector<Int>    segment_step_lengths     {4, -1};
+  const std::vector<String> select_highest_counts    {"false", "false"};
+  const std::vector<String> variable_types           {"continuous", "continuous"};
+  const std::vector<double> optimal_thresholds       {0.5, 0.5};
+  const std::map<String, String> score_weights {
+    {"sn_ratio", "lambda score: 1/log(score)"},
+    {"peak_apices_sum", "lambda score: 1/log10(score)"}
+  };
+
+  MRMFeatureScheduler scheduler;
+
+  scheduler.setNNThresholds(nn_thresholds);
+  scheduler.setLocalityWeights(locality_weights);
+  scheduler.setSelectTransitionGroups(select_transition_groups);
+  scheduler.setSegmentWindowLengths(segment_window_lengths);
+  scheduler.setSegmentStepLengths(segment_step_lengths);
+  scheduler.setSelectHighestCounts(select_highest_counts);
+  scheduler.setVariableTypes(variable_types);
+  scheduler.setOptimalThresholds(optimal_thresholds);
+  scheduler.setScoreWeights(score_weights);
+
+  FeatureMap output_selected;
+  scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
+
+  sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
+    return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
+
+  TEST_EQUAL(output_selected.size(), 82);
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 262623.5);
+  TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 15.8944563381195);
+  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 37090.0);
+  TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "gua.gua_1.Heavy");
+  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 1.27875684076945);
+
+  // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
   for (const Feature& f : output_selected) {
     cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
   }
