@@ -159,7 +159,7 @@ protected:
     registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
 
-    registerOutputFile_("lfq_out", "<file>", "", "Output file: Coordinates for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
+    registerOutputFile_("lfq_out", "<file>", "", "Output file: Targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
     setValidFormats_("lfq_out", vector<String>(1, "tsv"));
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
@@ -282,7 +282,6 @@ protected:
     return modifications;
   }
 
-
   // check for minimum size
   class HasInvalidLength
   {
@@ -295,6 +294,42 @@ protected:
     bool operator()(const NASequence& s) { return s.size() < min_size_; }
   };
 
+  // turn an adduct string (param. "precursor:potential_adducts") into a formula
+  EmpiricalFormula parseAdduct_(const String& adduct)
+  {
+    StringList parts;
+    adduct.split(':', parts);
+    if (parts.size() != 2)
+    {
+      String error = "entry in parameter 'precursor:potential_adducts' does not have two parts separated by ':'";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    error, adduct);
+    }
+
+    // determine charge of adduct (by number of '+' or '-')
+    Int pos_charge = parts[1].size() - parts[1].remove('+').size();
+    Int neg_charge = parts[1].size() - parts[1].remove('-').size();
+    LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
+    if (pos_charge > 0 && neg_charge > 0)
+    {
+      String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    error, adduct);
+    }
+
+    // generate the formula for the adduct at neutral charge (!) -
+    // compensate for intrinsic charge by adding/removing hydrogens:
+    EmpiricalFormula ef(parts[0]);
+    if (pos_charge > 0)
+    {
+      ef -= EmpiricalFormula("H" + String(pos_charge));
+    }
+    else if ((neg_charge > 0) && (parts[0] != "H-1"))
+    {
+      ef += EmpiricalFormula("H" + String(neg_charge));
+    }
+    return ef;
+  }
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   void deisotopeAndSingleChargeMSSpectrum_(
@@ -706,12 +741,14 @@ protected:
 
   void generateLFQInput_(IdentificationData& id_data, const String& out_file)
   {
-    map<NASequence, map<Int, vector<double>>> rt_info;
+    // mapping: (oligo, adduct) -> charge -> RTs
+    map<pair<NASequence, String>, map<Int, vector<double>>> rt_info;
     for (const IdentificationData::MoleculeQueryMatch& match :
            id_data.getMoleculeQueryMatches())
     {
-      rt_info[match.getIdentifiedOligoRef()->sequence][match.charge].push_back(
-        match.data_query_ref->rt);
+      auto key = make_pair(match.getIdentifiedOligoRef()->sequence,
+                           match.getMetaValue("adduct"));
+      rt_info[key][match.charge].push_back(match.data_query_ref->rt);
     }
 
     SVOutStream tsv(out_file);
@@ -720,7 +757,14 @@ protected:
         << "RetentionTime" << "RetentionTimeRange" << "IsoDistribution" << endl;
     for (const auto& entry : rt_info)
     {
-      tsv << entry.first.toString() << entry.first.getFormula() << 0;
+      String name = entry.first.first.toString();
+      EmpiricalFormula ef = entry.first.first.getFormula();
+      if (!entry.first.second.empty()) // adduct given
+      {
+        name += "+[" + entry.first.second + "]";
+        ef += parseAdduct_(entry.first.second);
+      }
+      // @TODO: use charge-specific RTs?
       vector<Int> charges;
       vector<double> rts;
       for (const auto& pair : entry.second)
@@ -728,7 +772,7 @@ protected:
         charges.push_back(pair.first);
         rts.insert(rts.end(), pair.second.begin(), pair.second.end());
       }
-      tsv << ListUtils::concatenate(charges, ",");
+      tsv << name << ef << 0 << ListUtils::concatenate(charges, ",");
       // @TODO: do something more sophisticated for the RT?
       tsv << Math::median(rts.begin(), rts.end(), false) << 0 << 0 << endl;
     }
@@ -810,50 +854,7 @@ protected:
     {
       for (const String& adduct : potential_adducts)
       {
-        StringList parts;
-        adduct.split(':', parts);
-        if (parts.size() != 2)
-        {
-          String error = "entry in parameter 'precursor:potential_adducts' does not have two parts separated by ':'";
-          throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, error, adduct);
-        }
-
-        // determine charge of adduct (by # of '+' or '-')
-        Int pos_charge = parts[1].size() - parts[1].remove('+').size();
-        Int neg_charge = parts[1].size() - parts[1].remove('-').size();
-        LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
-        if (pos_charge > 0 && neg_charge > 0)
-        {
-          String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
-          throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, error, adduct);
-        }
-
-        // generate the formula for the adduct at neutral charge (!) -
-        // compensate for intrinsic charge by adding/removing hydrogens:
-        EmpiricalFormula ef(parts[0]);
-        if (pos_charge > 0)
-        {
-          ef -= EmpiricalFormula("H" + String(pos_charge));
-          // ef.setCharge(pos_charge); // effectively subtract electron masses
-        }
-        else if (neg_charge > 0)
-        {
-          if (parts[0] == "H-1") // @TODO: does this need a special case?
-          {
-            adduct_masses[-Constants::PROTON_MASS_U] = adduct;
-            LOG_DEBUG << "Added adduct: " << adduct << ", mass: "
-                      << -Constants::PROTON_MASS_U << endl;
-            continue;
-          }
-          else
-          {
-            ef.setCharge(0); // ensures we get without additional protons, now just add electron masses
-            //TODO triple check salt proton correctness
-            ef += EmpiricalFormula("H" + String(neg_charge));
-          }
-        }
+        EmpiricalFormula ef = parseAdduct_(adduct);
         double mass = use_avg_mass ? ef.getAverageWeight() : ef.getMonoWeight();
         adduct_masses[mass] = adduct;
         LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass << endl;
