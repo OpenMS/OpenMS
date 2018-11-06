@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,12 +156,12 @@ START_SECTION(MRMFeatureSelectorScore::select_MRMFeature())
   FeatureMap output_selected;
   selectorScore.select_MRMFeature(feature_map, output_selected);
   TEST_EQUAL(output_selected.size(), 117);
-  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 286.0);                        // NOTE: same result as python, but assert failing
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 286.0);
   TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
-  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 16.7592102584839);                                   // NOTE: same result as python, but assert failing
-  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 391.5);                       // NOTE: same result as python, but assert failing
+  TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getRT(), 16.7592102584839);
+  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getMetaValue("peak_apex_int"), 391.5);
   TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id").toString(), "f1p.f1p_1.Heavy");
-  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 8.53021852213542);                                  // NOTE: same result as python, but assert failing
+  TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 8.53021852213542);
 }
 END_SECTION
 
@@ -297,6 +297,7 @@ END_SECTION
 //   TEST_STRING_EQUAL(output_selected[116].getMetaValue("PeptideRef"), "xan");
 //   TEST_REAL_SIMILAR(output_selected[116].getRT(), 1.49026310475667);
 
+//   // DEBUG
 //   // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
 //   for (const Feature& f : output_selected) {
 //     cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
@@ -345,10 +346,11 @@ START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
   TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "gua.gua_1.Heavy");
   TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 1.27875684076945);
 
+  // DEBUG
   // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
-  for (const Feature& f : output_selected) {
-    cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
-  }
+  // for (const Feature& f : output_selected) {
+  //   cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
+  // }
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,18 +100,18 @@ public:
     double weight_func(const double score, const String& lambda_score) const;
 
 private:
-    Int    nn_threshold_ = 4;
-    String locality_weight_ = "false";
+    Int    nn_threshold_            = 4;
+    String locality_weight_         = "false";
     String select_transition_group_ = "true";
-    Int    segment_window_length_ = 8;
-    Int    segment_step_length_ = 4;
-    String variable_type_ = "continuous";
-    double optimal_threshold_ = 0.5;
+    Int    segment_window_length_   = 8;
+    Int    segment_step_length_     = 4;
+    String variable_type_           = "continuous";
+    double optimal_threshold_       = 0.5;
     std::map<String, String> score_weights_;
 
-    Int _addVariable(LPWrapper& problem, const String& name, const bool bounded = true, const double obj = 1.0) const;
+    Int addVariable(LPWrapper& problem, const String& name, const bool bounded = true, const double obj = 1.0) const;
 
-    void _addConstraint(
+    void addConstraint(
       LPWrapper& problem,
       std::vector<Int> indices,
       std::vector<double> values,

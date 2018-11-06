@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@
 
 namespace OpenMS
 {
-  Int MRMFeatureSelector::_addVariable(
+  Int MRMFeatureSelector::addVariable(
     LPWrapper& problem,
     const String& name,
     const bool bounded,
@@ -70,7 +70,7 @@ namespace OpenMS
     return index;
   }
 
-  void MRMFeatureSelector::_addConstraint(
+  void MRMFeatureSelector::addConstraint(
     LPWrapper& problem,
     std::vector<Int> indices,
     std::vector<double> values,
@@ -98,12 +98,12 @@ namespace OpenMS
       for (const Feature& feature : feature_name_map.at(elem.second)) {
         const String name1 = elem.second + "_" + String(feature.getUniqueId());
         if (variables.count(name1) == 0) {
-            constraints.push_back(_addVariable(problem, name1, true, make_score(feature)));
+            constraints.push_back(addVariable(problem, name1, true, make_score(feature)));
             variables.insert(name1);
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
-      _addConstraint(problem, constraints, constraints_values, elem.second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
+      addConstraint(problem, constraints, constraints_values, elem.second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
@@ -127,7 +127,6 @@ namespace OpenMS
     std::vector<String>& result
   )
   {
-// std::cout << "START OPTIMIZE" << std::endl;
     result.clear();
     std::unordered_set<std::string> variables; // component_names_1
     LPWrapper problem;
@@ -145,7 +144,7 @@ namespace OpenMS
         const String name1 = time_to_name[cnt1].second + "_" + String(feature_row1[i].getUniqueId());
 
         if (variables.count(name1) == 0) {
-          constraints.push_back(_addVariable(problem, name1, true, 0));
+          constraints.push_back(addVariable(problem, name1, true, 0));
           variables.insert(name1);
           ++n_variables;
         } else {
@@ -174,7 +173,7 @@ namespace OpenMS
           for (size_t j = 0; j < feature_row2.size(); ++j) {
             const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
             if (variables.count(name2) == 0) {
-              _addVariable(problem, name2, true, 0);
+              addVariable(problem, name2, true, 0);
               variables.insert(name2);
               ++n_variables;
             }
@@ -185,8 +184,8 @@ namespace OpenMS
             // Save current variable type to later set it back to the same value
             const String prev_variable_type = getVariableType();
             setVariableType(s_continuous);
-            const Int index_var_qp = _addVariable(problem, var_qp_name, true, 0);
-            const Int index_var_abs = _addVariable(problem, var_qp_name + "-ABS", false, 1);
+            const Int index_var_qp = addVariable(problem, var_qp_name, true, 0);
+            const Int index_var_abs = addVariable(problem, var_qp_name + "-ABS", false, 1);
             setVariableType(prev_variable_type);
 
             const Int index2 = problem.getColumnIndex(name2);
@@ -199,12 +198,12 @@ namespace OpenMS
             const double tr_delta = feature_row1[i].getRT() - feature_row2[j].getRT();
             const double score = locality_weight * score_1 * score_2 * (tr_delta - tr_delta_expected);
 
-            _addConstraint(problem, {index1, index_var_qp}, {1.0, -1.0}, var_qp_name + "-QP1", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
-            _addConstraint(problem, {index2, index_var_qp}, {1.0, -1.0}, var_qp_name + "-QP2", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
-            _addConstraint(problem, {index1, index2, index_var_qp}, {1.0, 1.0, -1.0}, var_qp_name + "-QP3", 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY);
+            addConstraint(problem, {index1, index_var_qp}, {1.0, -1.0}, var_qp_name + "-QP1", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
+            addConstraint(problem, {index2, index_var_qp}, {1.0, -1.0}, var_qp_name + "-QP2", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
+            addConstraint(problem, {index1, index2, index_var_qp}, {1.0, 1.0, -1.0}, var_qp_name + "-QP3", 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY);
             std::vector<Int> indices_abs = {index_var_abs, index_var_qp};
-            _addConstraint(problem, indices_abs, {-1.0, score}, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
-            _addConstraint(problem, indices_abs, {-1.0, -score}, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
+            addConstraint(problem, indices_abs, {-1.0, score}, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
+            addConstraint(problem, indices_abs, {-1.0, -score}, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
 
             n_constraints += 5;
             n_variables += 2;
@@ -212,26 +211,18 @@ namespace OpenMS
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
-      _addConstraint(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
+      addConstraint(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
       ++n_constraints;
-// std::cout << "variables: " << variables.size() << "\tconstraints: " << constraints.size() << std::endl;
     }
-// std::cout << "n_variables: " << n_variables << "\tn_constraints: " << n_constraints << std::endl;
     LPWrapper::SolverParam param;
     problem.solve(param);
     const double optimal_threshold = getOptimalThreshold();
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c) {
       const String name = problem.getColumnName(c);
-      const bool bool_1 = problem.getColumnValue(c) > optimal_threshold - 1e-17;
-      const bool bool_2 = variables.count(name);
-// std::cout << (bool_1 ? "True" : "False") << " " << (bool_2 ? "True" : "False") << "\t" << std::setprecision(17) << problem.getColumnValue(c) << "\t" << name << std::endl;
-// printf("%s %s\t%.21f\t%s\n", (bool_1 ? "True" : "False"), (bool_2 ? "True" : "False"), problem.getColumnValue(c), name.c_str());
-      if (bool_1 && bool_2) {
+      if (problem.getColumnValue(c) > optimal_threshold - 1e-17 && variables.count(name)) {
         result.push_back(name);
       }
     }
-// std::cout << "result size: " << result.size() << std::endl;
-// std::cout << "END OPTIMIZE\n" << std::endl;
   }
 
   void MRMFeatureSelector::constructToList(
@@ -274,23 +265,10 @@ namespace OpenMS
   void MRMFeatureSelector::select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered)
   {
     features_filtered.clear();
-std::cout << "START SELECT_MRMFEATURE" << std::endl;
-std::cout << nn_threshold_ << std::endl;
-std::cout << locality_weight_ << std::endl;
-std::cout << select_transition_group_ << std::endl;
-std::cout << segment_window_length_ << std::endl;
-std::cout << segment_step_length_ << std::endl;
-std::cout << variable_type_ << std::endl;
-std::cout << optimal_threshold_ << std::endl;
-
-std::cout << "features.size(): " << features.size() << std::endl;
 
     std::vector<std::pair<double, String>> time_to_name;
     std::map<String, std::vector<Feature>> feature_name_map;
     constructToList(features, time_to_name, feature_name_map);
-
-std::cout << time_to_name.size() << std::endl;
-std::cout << feature_name_map.size() << std::endl;
 
     sort(time_to_name.begin(), time_to_name.end());
     Int window_length = getSegmentWindowLength();
@@ -302,8 +280,6 @@ std::cout << feature_name_map.size() << std::endl;
     if (time_to_name.size() % step_length)
       ++n_segments;
     std::vector<String> result_names;
-
-std::cout << "n_segments: " << n_segments << std::endl;
 
     for (size_t i = 0; i < n_segments; ++i) {
       const size_t start = step_length * i;
@@ -331,8 +307,6 @@ std::cout << "n_segments: " << n_segments << std::endl;
         features_filtered.push_back(feature_filtered);
       }
     }
-std::cout << "features_filtered.size(): " << features_filtered.size() << std::endl;
-std::cout << "END SELECT_MRMFEATURE" << std::endl;
   }
 
   double MRMFeatureSelector::make_score(const Feature& feature) const
