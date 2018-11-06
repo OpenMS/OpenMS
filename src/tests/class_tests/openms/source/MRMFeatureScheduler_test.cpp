@@ -47,10 +47,8 @@ START_TEST(MRMFeatureScheduler, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureScheduler* ptr = 0;
-MRMFeatureScheduler* null_ptr = 0;
-const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1.featureXML");
-const String target_list_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_BloodProject01_SWATH.csv");
+MRMFeatureScheduler* ptr = nullptr;
+MRMFeatureScheduler* null_ptr = nullptr;
 
 START_SECTION(MRMFeatureScheduler())
 {

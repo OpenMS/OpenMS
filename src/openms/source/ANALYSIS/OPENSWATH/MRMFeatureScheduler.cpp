@@ -66,7 +66,7 @@ namespace OpenMS
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
 
-  void MRMFeatureScheduler::schedule_MRMFeatures_score(const FeatureMap& features, FeatureMap& output_features) const
+  void MRMFeatureScheduler::schedule_MRMFeaturesScore(const FeatureMap& features, FeatureMap& output_features) const
   {
     MRMFeatureSelectorScore feature_selector;
     schedule_MRMFeatures(feature_selector, features, output_features);
