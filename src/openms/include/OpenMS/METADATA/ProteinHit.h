@@ -209,7 +209,7 @@ protected:
     String accession_;   ///< the protein identifier
     String sequence_;    ///< the amino acid sequence of the protein hit
     double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
-    std::set<std::pair<Size, ResidueModification> > modifications_; ///< modified positions in a protein
+    std::set<std::pair<Size, const ResidueModification*> > modifications_; ///< modified positions in a protein
   };
 
 } // namespace OpenMS
