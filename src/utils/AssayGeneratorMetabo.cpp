@@ -177,7 +177,7 @@ protected:
         vector<ReactionMonitoringTransition> potential_rmts;
       };
 
-  static bool CompoundNameLess_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
+  static bool compoundNameLess_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
   {
     if (i.compound_name < j.compound_name)
     {
@@ -201,7 +201,7 @@ protected:
   }
  
   // use std::unique with this function to retain the unique element with the highest precursor intenstiy
-  static bool CompoundUnique_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
+  static bool compoundUnique_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
   {
     if (i.compound_name == j.compound_name && i.compound_adduct == j.compound_adduct && i.precursor_int > j.precursor_int)
     {
@@ -211,6 +211,11 @@ protected:
     {
       return false;
     }
+  }
+
+  static bool intensityLess_(Peak1D a, Peak1D b)
+  {
+      return (a.getIntensity() < b.getIntensity());
   }
 
   // map with closest feature to index of ms2 spectra
@@ -266,10 +271,7 @@ protected:
     return feature_ms2_spectra_map;
   }
 
-  static bool compare_instensity(Peak1D a, Peak1D b)
-  {
-      return (a.getIntensity() < b.getIntensity());
-  }
+
 
   vector<PotentialTransitions> extractPotentialTransitions(const PeakMap& spectra,
                                                            const map<BaseFeature const *, vector<size_t>>& feature_ms2_spectra_map,
@@ -447,8 +449,8 @@ protected:
         transition_spectrum.sortByIntensity(true);
 
         // find max and min intensity peak
-        max_int = max_element(transition_spectrum.begin(),transition_spectrum.end(), compare_instensity)->getIntensity();
-        min_int = min_element(transition_spectrum.begin(),transition_spectrum.end(), compare_instensity)->getIntensity();
+        max_int = max_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
+        min_int = min_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
 
         // no peaks or all peaks have same intensity (single peak / noise)
         if (min_int >= max_int)
@@ -739,10 +741,10 @@ protected:
     } //end iteration over all files
     
     // first sort by CompoundName
-    std::sort(v_pts.begin(), v_pts.end(), CompoundNameLess_);
+    std::sort(v_pts.begin(), v_pts.end(), compoundNameLess_);
     
     // second get unique elements (CompoundName, CompoundAdduct) with highest precursor intensity
-    auto uni_it = std::unique(v_pts.begin(), v_pts.end(), CompoundUnique_);
+    auto uni_it = std::unique(v_pts.begin(), v_pts.end(), compoundUnique_);
     v_pts.resize(std::distance(v_pts.begin(), uni_it)); 
 
     // TODO: test what happens with use_known_unkowns
