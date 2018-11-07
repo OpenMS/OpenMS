@@ -68,11 +68,11 @@ public:
     void setNNThreshold(const Int nn_threshold);
     Int getNNThreshold() const;
 
-    void setLocalityWeight(const String locality_weight);
-    String getLocalityWeight() const;
+    void setLocalityWeight(const bool locality_weight);
+    bool getLocalityWeight() const;
 
-    void setSelectTransitionGroup(const String select_transition_group);
-    String getSelectTransitionGroup() const;
+    void setSelectTransitionGroup(const bool select_transition_group);
+    bool getSelectTransitionGroup() const;
 
     void setSegmentWindowLength(const Int segment_window_length);
     Int getSegmentWindowLength() const;
@@ -91,8 +91,8 @@ public:
 
 private:
     Int    nn_threshold_            = 4;
-    String locality_weight_         = "false";
-    String select_transition_group_ = "true";
+    bool   locality_weight_         = false;
+    bool   select_transition_group_ = true;
     Int    segment_window_length_   = 8;
     Int    segment_step_length_     = 4;
     String variable_type_           = "continuous";

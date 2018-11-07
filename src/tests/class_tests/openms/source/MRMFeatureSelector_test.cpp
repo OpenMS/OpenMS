@@ -83,18 +83,18 @@ END_SECTION
 START_SECTION(getLocalityWeight())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getLocalityWeight(), "false")
-  selectorScore.setLocalityWeight("true");
-  TEST_EQUAL(selectorScore.getLocalityWeight(), "true")
+  TEST_EQUAL(selectorScore.getLocalityWeight(), false)
+  selectorScore.setLocalityWeight(true);
+  TEST_EQUAL(selectorScore.getLocalityWeight(), true)
 }
 END_SECTION
 
 START_SECTION(getSelectTransitionGroup())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), "true")
-  selectorScore.setSelectTransitionGroup("false");
-  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), "false")
+  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), true)
+  selectorScore.setSelectTransitionGroup(false);
+  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), false)
 }
 END_SECTION
 
@@ -143,7 +143,7 @@ START_SECTION(MRMFeatureSelectorScore::select_MRMFeature())
 
   MRMFeatureSelectorScore selectorScore;
 
-  selectorScore.setSelectTransitionGroup("true");
+  selectorScore.setSelectTransitionGroup(true);
   selectorScore.setSegmentWindowLength(-1);
   selectorScore.setSegmentStepLength(-1);
   selectorScore.setVariableType("integer");
@@ -313,8 +313,8 @@ START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
 
   MRMFeatureScheduler::SelectorParameters params1;
   params1.nn_threshold = 4;
-  params1.locality_weight = "false";
-  params1.select_transition_group = "true";
+  params1.locality_weight = false;
+  params1.select_transition_group = true;
   params1.segment_window_length = 8;
   params1.segment_step_length = 4;
   params1.variable_type = "continuous";

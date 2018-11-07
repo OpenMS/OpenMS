@@ -56,8 +56,8 @@ public:
 
       SelectorParameters(
         Int nn,
-        String& lw,
-        String& stg,
+        bool lw,
+        bool stg,
         Int swl,
         Int ssl,
         String& vt,
@@ -73,13 +73,13 @@ public:
         optimal_threshold(ot),
         score_weights(sw) {}
 
-      Int nn_threshold;
-      String locality_weight;
-      String select_transition_group;
-      Int segment_window_length;
-      Int segment_step_length;
-      String variable_type;
-      double optimal_threshold;
+      Int    nn_threshold            = 4;
+      bool   locality_weight         = false;
+      bool   select_transition_group = true;
+      Int    segment_window_length   = 8;
+      Int    segment_step_length     = 4;
+      String variable_type           = "continuous";
+      double optimal_threshold       = 0.5;
       std::map<String, String> score_weights;
     };
 

@@ -165,7 +165,7 @@ namespace OpenMS
             continue;
 
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
-          const double locality_weight = getLocalityWeight() == "true"
+          const double locality_weight = getLocalityWeight()
             ? 1.0 / (nn_threshold_ - std::abs(static_cast<Int>(start_iter + cnt2) - cnt1) + 1)
             : 1.0;
           const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
@@ -245,7 +245,7 @@ namespace OpenMS
         feature_name_map[component_group_name] = std::vector<Feature>();
       }
       feature_name_map[component_group_name].push_back(feature);
-      if (getSelectTransitionGroup() == "true") {
+      if (getSelectTransitionGroup()) {
         continue;
       }
       for (const Feature& subordinate : feature.getSubordinates()) {
@@ -293,7 +293,7 @@ namespace OpenMS
     for (const Feature& feature : features) {
       std::vector<Feature> subordinates_filtered;
       for (const Feature& subordinate : feature.getSubordinates()) {
-        const String feature_name = getSelectTransitionGroup() == "true"
+        const String feature_name = getSelectTransitionGroup()
           ? remove_spaces(feature.getMetaValue("PeptideRef").toString()) + "_" + String(feature.getUniqueId())
           : remove_spaces(subordinate.getMetaValue("native_id").toString()) + "_" + String(feature.getUniqueId());
 
@@ -354,22 +354,22 @@ namespace OpenMS
     return nn_threshold_;
   }
 
-  void MRMFeatureSelector::setLocalityWeight(const String locality_weight)
+  void MRMFeatureSelector::setLocalityWeight(const bool locality_weight)
   {
     locality_weight_ = locality_weight;
   }
 
-  String MRMFeatureSelector::getLocalityWeight() const
+  bool MRMFeatureSelector::getLocalityWeight() const
   {
     return locality_weight_;
   }
 
-  void MRMFeatureSelector::setSelectTransitionGroup(const String select_transition_group)
+  void MRMFeatureSelector::setSelectTransitionGroup(const bool select_transition_group)
   {
     select_transition_group_ = select_transition_group;
   }
 
-  String MRMFeatureSelector::getSelectTransitionGroup() const
+  bool MRMFeatureSelector::getSelectTransitionGroup() const
   {
     return select_transition_group_;
   }
