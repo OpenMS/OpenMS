@@ -165,16 +165,53 @@ protected:
 
   // datastructure used for preprocessing
   // potential transitions for one specific compound
-  //
   struct PotentialTransitions
       {
         double precursor_mz;
         double precursor_rt;
         double precursor_int;
         double transition_quality_score; // here precursor intensity will be used at first, till a better scoring is available
+        String compound_name;
+        String compound_adduct;
         TargetedExperiment::Compound potential_cmp;
         vector<ReactionMonitoringTransition> potential_rmts;
       };
+
+  static bool CompoundNameLess_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
+  {
+    if (i.compound_name < j.compound_name)
+    {
+      return (i.compound_name < j.compound_name);
+    }
+    if (i.compound_name == j.compound_name)
+    {
+      if (i.compound_adduct == j.compound_adduct)
+      {
+        return (i.precursor_int > j.precursor_int);
+      }
+      else
+      {
+        return (i.compound_adduct < j.compound_adduct);
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+ 
+  // use std::unique with this function to retain the unique element with the highest precursor intenstiy
+  static bool CompoundUnique_(const TOPPAssayGeneratorMetabo::PotentialTransitions& i, const TOPPAssayGeneratorMetabo::PotentialTransitions& j)
+  {
+    if (i.compound_name == j.compound_name && i.compound_adduct == j.compound_adduct && i.precursor_int > j.precursor_int)
+    {
+      return true;
+    }
+    else 
+    {
+      return false;
+    }
+  }
 
   // map with closest feature to index of ms2 spectra
   map<const BaseFeature*, std::vector<size_t>> mappingFeatureToMS2Index(const PeakMap& spectra,
@@ -509,6 +546,8 @@ protected:
         pts.precursor_rt = feature_rt;
         pts.precursor_int = highest_precursor_int;
         //pts.transition_quality = ;
+        pts.compound_name = description;
+        pts.compound_adduct = adduct;
         pts.potential_cmp = cmp;
         pts.potential_rmts = v_rmt;
         v_pts.push_back(pts);
@@ -609,6 +648,8 @@ protected:
       // Processing
       //-------------------------------------------------------------
 
+      // TODO: First run SIRIUS and to fragmentation annotation  
+
       // sort spectra
       spectra.sortSpectra();
 
@@ -692,14 +733,22 @@ protected:
                                             method_consensus_spectrum,
                                             file_counter);
 
-
-
-
       // append potential transitions of one file to vector of all files
       v_pts.insert(v_pts.end(), tmp_pts.begin(),tmp_pts.end());
-
+      
     } //end iteration over all files
+    
+    // first sort by CompoundName
+    std::sort(v_pts.begin(), v_pts.end(), CompoundNameLess_);
+    
+    // second get unique elements (CompoundName, CompoundAdduct) with highest precursor intensity
+    auto uni_it = std::unique(v_pts.begin(), v_pts.end(), CompoundUnique_);
+    v_pts.resize(std::distance(v_pts.begin(), uni_it)); 
 
+    // TODO: test what happens with use_known_unkowns
+    // TODO: add "compoundgroup" see ProteinGroup (e.g. with different adducts - give the unique id)
+    // TODO: add ID same compound with different adduct for later e.g. quantification/mapping
+    
     // merge possible transitions
     vector<TargetedExperiment::Compound> v_cmp;
     vector<ReactionMonitoringTransition> v_rmt_all;
@@ -722,31 +771,12 @@ protected:
     // TODO: add further filters
     // TODO: think about if other filters are necessary
 
-    // TODO: how is it done in MRMAssay & isinSWATH
-
     // TODO: filter: precursor
 
     // TODO: filter: isotopes (+1/-1 Da)
 
     // filter: min/max transitions
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
-
-
-    // TODO: add "compoundgroup" see ProteinGroup (e.g. with different adducts - give the unique id)
-
-    // TODO: filter duplicate entries (take the one with the highest score/highest intensity precursor)
-    // TODO: but have to check compoundName and adduct! If adduct is different -> get give Compound identifier
-    // TODO: have to save the compound identifiers temporary (e.g. set of pairs: CompoundName:ConmpoundID)
-
-    // TODO: add ID same compound with different adduct for later e.g. quantification/mapping
-
-    // Iterate over targetedExp CompoundNames and find duplictes ? Better way to find duop
-    // for ()
-    // {
-    //   std::cout << "not sure" << std::endl;
-    // }
-
-
 
     //-------------------------------------------------------------
     // writing output
