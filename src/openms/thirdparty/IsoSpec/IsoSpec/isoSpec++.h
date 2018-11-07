@@ -416,7 +416,7 @@ public:
     };
 
 
-    IsoLayeredGenerator(Iso&& iso, double _targetCoverage, double _percentageToExpand, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
+    IsoLayeredGenerator(Iso&& iso, double _targetCoverage, double _percentageToExpand = 0.3, int _tabSize  = 1000, int _hashSize = 1000, bool trim = false);
     virtual ~IsoLayeredGenerator();
 
     void terminate_search();

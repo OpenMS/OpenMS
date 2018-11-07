@@ -64,7 +64,15 @@ allDim(0),
 marginals(nullptr),
 modeLProb(0.0)
 {
-	setupMarginals(_isotopeMasses, _isotopeProbabilities);
+    try{
+        setupMarginals(_isotopeMasses, _isotopeProbabilities);
+    }
+    catch(...)
+    {
+        delete[] isotopeNumbers;
+        delete[] atomCounts;
+        throw;
+    }
 }
 
 Iso::Iso(Iso&& other) :
@@ -97,17 +105,34 @@ inline void Iso::setupMarginals(const double* const * _isotopeMasses, const doub
 {
     if (marginals == nullptr)
     {
-        marginals = new Marginal*[dimNumber];
-        for(int i=0; i<dimNumber;i++)
+        int ii = 0;
+        try
         {
-        allDim += isotopeNumbers[i];
-        marginals[i] = new Marginal(
-                _isotopeMasses[i],
-                _isotopeProbabilities[i],
-                isotopeNumbers[i],
-                atomCounts[i]
-            );
-            modeLProb += marginals[i]->getModeLProb();
+            marginals = new Marginal*[dimNumber];
+            while(ii < dimNumber)
+            {
+                allDim += isotopeNumbers[ii];
+                marginals[ii] = new Marginal(
+                        _isotopeMasses[ii],
+                        _isotopeProbabilities[ii],
+                        isotopeNumbers[ii],
+                        atomCounts[ii]
+                    );
+                modeLProb += marginals[ii]->getModeLProb();
+                ii++;
+            }
+        }
+        catch(...)
+        {
+            ii--;
+            while(ii >= 0)
+            {
+                delete marginals[ii];
+                ii--;
+            }
+            delete[] marginals;
+            marginals = nullptr;
+            throw;
         }
     }
 

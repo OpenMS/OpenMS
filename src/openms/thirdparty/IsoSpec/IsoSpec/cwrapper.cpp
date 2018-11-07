@@ -61,22 +61,23 @@ void deleteIso(void* iso)
 }
 
 
-#define C_CODE(generatorType, dataType, method)\
+#define ISOSPEC_C_FN_CODE(generatorType, dataType, method)\
 dataType method##generatorType(void* generator){ return reinterpret_cast<generatorType*>(generator)->method(); }
 
-#define C_CODE_GET_CONF_SIGNATURE(generatorType)\
+#define ISOSPEC_C_FN_CODE_GET_CONF_SIGNATURE(generatorType)\
 void get_conf_signature##generatorType(void* generator, int* space)\
 { reinterpret_cast<generatorType*>(generator)->get_conf_signature(space); }
 
 
-#define DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
+#define ISOSPEC_C_FN_DELETE(generatorType) void delete##generatorType(void* generator){ delete reinterpret_cast<generatorType*>(generator); }
 
-#define C_CODES(generatorType)\
-C_CODE(generatorType, double, mass) \
-C_CODE(generatorType, double, lprob) \
-C_CODE_GET_CONF_SIGNATURE(generatorType) \
-C_CODE(generatorType, bool, advanceToNextConfiguration) \
-DELETE(generatorType)
+#define ISOSPEC_C_FN_CODES(generatorType)\
+ISOSPEC_C_FN_CODE(generatorType, double, mass) \
+ISOSPEC_C_FN_CODE(generatorType, double, lprob) \
+ISOSPEC_C_FN_CODE(generatorType, double, prob) \
+ISOSPEC_C_FN_CODE_GET_CONF_SIGNATURE(generatorType) \
+ISOSPEC_C_FN_CODE(generatorType, bool, advanceToNextConfiguration) \
+ISOSPEC_C_FN_DELETE(generatorType)
 
 
 
@@ -96,7 +97,7 @@ void* setupIsoThresholdGenerator(void* iso,
 
     return reinterpret_cast<void*>(iso_tmp);
 }
-C_CODES(IsoThresholdGenerator)
+ISOSPEC_C_FN_CODES(IsoThresholdGenerator)
 
 
 //______________________________________________________LAYERED GENERATOR
@@ -117,7 +118,7 @@ void* setupIsoLayeredGenerator(void* iso,
 
     return reinterpret_cast<void*>(iso_tmp);
 }
-C_CODES(IsoLayeredGenerator)
+ISOSPEC_C_FN_CODES(IsoLayeredGenerator)
 
 
 //______________________________________________________ORDERED GENERATOR
@@ -132,9 +133,9 @@ void* setupIsoOrderedGenerator(void* iso,
 
     return reinterpret_cast<void*>(iso_tmp);
 }
-C_CODES(IsoOrderedGenerator)
+ISOSPEC_C_FN_CODES(IsoOrderedGenerator)
 
-//______________________________________________________ Threshold Tabulator 1.0
+//______________________________________________________ Threshold Tabulator
 
 void* setupThresholdTabulator(void* generator,
                      bool  get_masses,
@@ -179,6 +180,54 @@ const int*    confsThresholdTabulator(void* tabulator)
 int confs_noThresholdTabulator(void* tabulator)
 {
     return reinterpret_cast<Tabulator<IsoThresholdGenerator>*>(tabulator)->confs_no();
+}
+
+
+//______________________________________________________ Layered Tabulator
+
+void* setupLayeredTabulator(void* generator,
+                     bool  get_masses,
+                     bool  get_probs,
+                     bool  get_lprobs,
+                     bool  get_confs)
+{
+    Tabulator<IsoLayeredGenerator>* tabulator = new Tabulator<IsoLayeredGenerator>(reinterpret_cast<IsoLayeredGenerator*>(generator),
+                                         get_masses,
+                                         get_probs,
+                                         get_lprobs,
+                                         get_confs);
+
+    return reinterpret_cast<void*>(tabulator);
+}
+
+void deleteLayeredTabulator(void* t)
+{
+    delete reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(t);
+}
+
+const double* massesLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->masses();
+}
+
+const double* lprobsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->lprobs();
+}
+
+const double* probsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->probs();
+}
+
+const int*    confsLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs();
+}
+
+int confs_noLayeredTabulator(void* tabulator)
+{
+    return reinterpret_cast<Tabulator<IsoLayeredGenerator>*>(tabulator)->confs_no();
 }
 
 
