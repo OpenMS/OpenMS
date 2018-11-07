@@ -167,17 +167,17 @@ END_SECTION
 
 START_SECTION(remove_spaces())
 {
-  MRMFeatureSelectorScore selectorScore;
-  TEST_STRING_EQUAL(selectorScore.remove_spaces("h e ll o"), "hello");
-  TEST_STRING_EQUAL(selectorScore.remove_spaces("hello"), "hello");
-  TEST_STRING_EQUAL(selectorScore.remove_spaces(""), "");
-  TEST_STRING_EQUAL(selectorScore.remove_spaces("A    B"), "AB");
+  MRMFeatureSelector_test selector;
+  TEST_STRING_EQUAL(selector.remove_spaces("h e ll o"), "hello");
+  TEST_STRING_EQUAL(selector.remove_spaces("hello"), "hello");
+  TEST_STRING_EQUAL(selector.remove_spaces(""), "");
+  TEST_STRING_EQUAL(selector.remove_spaces("A    B"), "AB");
 }
 END_SECTION
 
 START_SECTION(constructToList())
 {
-  MRMFeatureSelectorQMIP selector;
+  MRMFeatureSelector_test selector;
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
@@ -218,7 +218,7 @@ END_SECTION
 
 START_SECTION(weight_func())
 {
-  MRMFeatureSelectorQMIP selector;
+  MRMFeatureSelector_test selector;
   double score = -1.0;
 
   score = selector.weight_func(3413.0, "lambda score: score*1.0");
@@ -236,7 +236,7 @@ END_SECTION
 
 START_SECTION(make_score())
 {
-  MRMFeatureSelectorQMIP selector;
+  MRMFeatureSelector_test selector;
   double score;
   Feature feature;
   feature.setMetaValue("sn_ratio", 6.84619503982874);

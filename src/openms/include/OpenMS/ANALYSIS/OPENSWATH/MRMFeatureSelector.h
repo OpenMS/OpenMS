@@ -51,6 +51,9 @@ public:
     MRMFeatureSelector() = default;
     virtual ~MRMFeatureSelector() = default;
 
+    /// To test private methods
+    friend class MRMFeatureSelector_test;
+
     static constexpr const char* s_continuous = "continuous";
     static constexpr const char* s_integer = "integer";
 
@@ -61,10 +64,6 @@ public:
     ) = 0;
 
     void select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered);
-
-    double make_score(const Feature& feature) const;
-
-    String remove_spaces(String str) const;
 
     void setNNThreshold(const Int nn_threshold);
     Int getNNThreshold() const;
@@ -90,15 +89,6 @@ public:
     void setScoreWeights(const std::map<String, String>& score_weights);
     std::map<String, String> getScoreWeights() const;
 
-    void constructToList( // TODO: make it private and a friend class to test it
-      const FeatureMap& features,
-      std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map
-    ) const;
-
-    // TODO: make it private and a friend class to test it
-    double weight_func(const double score, const String& lambda_score) const;
-
 private:
     Int    nn_threshold_            = 4;
     String locality_weight_         = "false";
@@ -120,6 +110,18 @@ private:
       const double ub,
       const LPWrapper::Type param
     ) const;
+
+    void constructToList(
+      const FeatureMap& features,
+      std::vector<std::pair<double, String>>& time_to_name,
+      std::map<String, std::vector<Feature>>& feature_name_map
+    ) const;
+
+    double weight_func(const double score, const String& lambda_score) const;
+
+    double make_score(const Feature& feature) const;
+
+    String remove_spaces(String str) const;
   };
 
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
@@ -140,5 +142,43 @@ public:
       const std::map< String, std::vector<Feature> >& feature_name_map,
       std::vector<String>& result
     );
+  };
+
+  class MRMFeatureSelector_test : public MRMFeatureSelectorQMIP
+  {
+public:
+    MRMFeatureSelector_test() = default;
+    ~MRMFeatureSelector_test() = default;
+
+    void constructToList(
+      const FeatureMap& features,
+      std::vector<std::pair<double, String>>& time_to_name,
+      std::map<String, std::vector<Feature>>& feature_name_map
+    ) const
+    {
+      selector_.constructToList(features, time_to_name, feature_name_map);
+    }
+
+    double weight_func(const double score, const String& lambda_score) const
+    {
+      return selector_.weight_func(score, lambda_score);
+    }
+
+    double make_score(const Feature& feature) const
+    {
+      return selector_.make_score(feature);
+    }
+
+    String remove_spaces(String str) const
+    {
+      return selector_.remove_spaces(str);
+    }
+
+    void setScoreWeights(const std::map<String, String>& score_weights)
+    {
+      selector_.setScoreWeights(score_weights);
+    }
+
+    MRMFeatureSelectorQMIP selector_;
   };
 }
