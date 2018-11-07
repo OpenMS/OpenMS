@@ -330,7 +330,7 @@ START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
 
   MRMFeatureScheduler scheduler;
   const std::vector<MRMFeatureScheduler::SelectorParameters> parameters = {params1, params2};
-  scheduler.setParameters(parameters);
+  scheduler.setSchedulerParameters(parameters);
 
   FeatureMap output_selected;
   scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);

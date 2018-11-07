@@ -72,12 +72,12 @@ namespace OpenMS
     schedule_MRMFeatures(feature_selector, features, output_features);
   }
 
-  void MRMFeatureScheduler::setParameters(const std::vector<SelectorParameters>& parameters)
+  void MRMFeatureScheduler::setSchedulerParameters(const std::vector<SelectorParameters>& parameters)
   {
     parameters_ = parameters;
   }
 
-  std::vector<MRMFeatureScheduler::SelectorParameters>& MRMFeatureScheduler::getParameters()
+  std::vector<MRMFeatureScheduler::SelectorParameters>& MRMFeatureScheduler::getSchedulerParameters()
   {
     return parameters_;
   }

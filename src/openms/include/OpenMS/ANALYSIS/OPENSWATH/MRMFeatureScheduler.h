@@ -87,8 +87,8 @@ public:
     void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features) const;
     void schedule_MRMFeaturesScore(const FeatureMap& features, FeatureMap& output_features) const;
 
-    void setParameters(const std::vector<SelectorParameters>& parameters);
-    std::vector<SelectorParameters>& getParameters(void);
+    void setSchedulerParameters(const std::vector<SelectorParameters>& parameters);
+    std::vector<SelectorParameters>& getSchedulerParameters(void);
 
 private:
     std::vector<SelectorParameters> parameters_;
