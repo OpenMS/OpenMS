@@ -2026,11 +2026,11 @@ namespace OpenMS
        // std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
        // std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
           MzTabModificationList modifications; // Modifications identified in the protein.
-          const std::set<pair<Size, ResidueModification>>& leader_mods = hit.getModifications();
+          const std::set<pair<Size, const ResidueModification *>>& leader_mods = hit.getModifications();
           for (auto const & m : leader_mods)
           {
             MzTabModification mztab_mod;
-            String unimod = m.second.getUniModAccession();
+            String unimod = m.second->getUniModAccession();
             MzTabString unimod_accession = MzTabString(unimod.toUpper());
             mztab_mod.setModificationIdentifier(unimod_accession);
             vector<std::pair<Size, MzTabParameter> > pos;
@@ -2194,11 +2194,11 @@ namespace OpenMS
           protein_row.search_engine = search_engine;
 
           MzTabModificationList modifications; // Modifications identified in the protein.
-          const std::set<pair<Size, ResidueModification>>& leader_mods = leader_protein.getModifications();
+          const std::set<pair<Size, const ResidueModification *>>& leader_mods = leader_protein.getModifications();
           for (auto const & m : leader_mods)
           {
             MzTabModification mztab_mod;
-            String unimod = m.second.getUniModAccession();
+            String unimod = m.second->getUniModAccession();
             MzTabString unimod_accession = MzTabString(unimod.toUpper());
             mztab_mod.setModificationIdentifier(unimod_accession);
             vector<std::pair<Size, MzTabParameter> > pos;
@@ -2397,10 +2397,10 @@ Not sure how to handle these:
       if (aas.hasNTerminalModification())
       {
         MzTabModification mod;
-        const ResidueModification& res_mod = *(aas.getNTerminalModification());
-        if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
+        const ResidueModification* res_mod = aas.getNTerminalModification();
+        if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod->getId()) == fixed_mods.end())
         {
-          String unimod = res_mod.getUniModAccession();
+          String unimod = res_mod->getUniModAccession();
           MzTabString unimod_accession = MzTabString(unimod.toUpper());
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.push_back(make_pair(0, MzTabParameter()));
@@ -2415,11 +2415,11 @@ Not sure how to handle these:
         if (aas[ai].isModified())
         {
           MzTabModification mod;
-          const ResidueModification& res_mod = *(aas[ai].getModification());
-          if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
+          const ResidueModification* res_mod = aas[ai].getModification();
+          if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod->getId()) == fixed_mods.end())
           {
             // MzTab standard is to just report Unimod accession.
-            String unimod = res_mod.getUniModAccession();
+            String unimod = res_mod->getUniModAccession();
             MzTabString unimod_accession = MzTabString(unimod.toUpper());
             vector<std::pair<Size, MzTabParameter> > pos;
             pos.push_back(make_pair(ai + 1, MzTabParameter()));
@@ -2433,10 +2433,10 @@ Not sure how to handle these:
       if (aas.hasCTerminalModification())
       {
         MzTabModification mod;
-        const ResidueModification& res_mod = *(aas.getCTerminalModification());
-        if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod.getId()) == fixed_mods.end())
+        const ResidueModification* res_mod = aas.getCTerminalModification();
+        if (std::find(fixed_mods.begin(), fixed_mods.end(), res_mod->getId()) == fixed_mods.end())
         {
-          String unimod = res_mod.getUniModAccession();
+          String unimod = res_mod->getUniModAccession();
           MzTabString unimod_accession = MzTabString(unimod.toUpper());
           vector<std::pair<Size, MzTabParameter> > pos;
           pos.push_back(make_pair(aas.size() + 1, MzTabParameter()));

@@ -62,8 +62,9 @@ public:
     struct PeptideData
     {
       /// mapping: fraction -> charge -> sample -> abundance
-     struct FractionAbundances { std::map<Int, SampleAbundances> sample_abundances;};
-      std::map<Int, FractionAbundances> abundances;
+      struct ChargeAbundances { std::map<Int, SampleAbundances> charge_abundances; } ;
+      struct FractionAbundances { std::map<Int, ChargeAbundances> fraction_abundances; };
+      FractionAbundances abundances;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
@@ -234,16 +235,16 @@ private:
      *   @return true if at least one abundance was found, false otherwise
      */ 
     bool getBest_(
-      const std::map<Int, std::map<Int, SampleAbundances>> & peptide_abundances, 
+      const PeptideData::FractionAbundances & peptide_abundances, 
       std::pair<size_t, size_t> & best)
     {
       size_t best_n_quant(0);
       double best_abundance(0);
       best = std::make_pair(0,0);
 
-      for (auto & fa : peptide_abundances)  // for all fractions 
+      for (auto & fa : peptide_abundances.fraction_abundances) // for all fractions 
       {
-        for (auto & ca : fa.second) // for all charge states
+        for (auto & ca : fa.second.charge_abundances) // for all charge states
         {
           const Int & fraction = fa.first;
           const Int & charge = ca.first;

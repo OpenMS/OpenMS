@@ -425,10 +425,10 @@ protected:
       if (best_charge_and_fraction)
       {
         // write individual abundances (one line for each charge state and fraction):
-        for (auto const & fa : q.second.abundances)
+        for (auto const & fa : q.second.abundances.fraction_abundances)
         {
           const Size fraction = fa.first;
-          for (auto const & ab : fa.second)
+          for (auto const & ab : fa.second.charge_abundances)
           {
             out << q.first.toString() << protein << accessions.size() << ab.first;
 

@@ -84,7 +84,7 @@ namespace OpenMS
         const PeptideHit& hit = pep.getHits()[0]; // get best hit
         PeptideData& data = pep_quant_[hit.getSequence()];
         data.id_count++;
-        data.abundances[fraction][hit.getCharge()]; // insert empty element for charge
+        data.abundances.fraction_abundances[fraction].charge_abundances[hit.getCharge()]; // insert empty element for charge
 
         // add protein accessions:
         set<String> protein_accessions = hit.extractProteinAccessionsSet();
@@ -127,7 +127,7 @@ namespace OpenMS
 
     stats_.quant_features++;
     const AASequence& seq = hit.getSequence();
-    pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] +=
+    pep_quant_[seq].abundances.fraction_abundances[fraction].charge_abundances[hit.getCharge()][sample] +=
       feature.getIntensity(); // new map element is initialized with 0
   }
 
@@ -191,7 +191,7 @@ namespace OpenMS
         }
         
         // quantify according to the best fraction and charge state only:
-        for (auto & sa : pep_q.second.abundances[best_fraction_and_charge.first][best_fraction_and_charge.second])
+        for (auto & sa : pep_q.second.abundances.fraction_abundances[best_fraction_and_charge.first].charge_abundances[best_fraction_and_charge.second])
         {
           pep_q.second.total_abundances[sa.first] = sa.second;
         }
@@ -199,11 +199,11 @@ namespace OpenMS
       else
       { // sum up sample abundances over all fractions and charge states:
 
-        for (auto & fa : pep_q.second.abundances)  // for all fractions 
+        for (auto & fa : pep_q.second.abundances.fraction_abundances)  // for all fractions 
         {
-          for (auto & ca : fa.second) // for all charge states
+          for (auto & ca : fa.second.charge_abundances) // for all charge states
           {  
-            for (auto & sa : ca.second) // loop over abundances
+            for (auto & sa : ca.second) // loop over sample abundances
             {
               const UInt64 & sample_id = sa.first;
               const double & sample_abundance = sa.second;
@@ -276,11 +276,11 @@ namespace OpenMS
       }
 
       // scale individual abundances
-      for (auto & fa : pep_q.second.abundances) // for all fractions
+      for (auto & fa : pep_q.second.abundances.fraction_abundances) // for all fractions
       {
-        for (auto & ca : fa.second) // for all charge states
+        for (auto & ca : fa.second.charge_abundances) // for all charge states
         {
-          for (auto & sa : ca.second) // loop over abundances
+          for (auto & sa : ca.second) // loop over sample abundances
           {
             sa.second *= scale_factors[sa.first];
           }
@@ -602,7 +602,7 @@ namespace OpenMS
 
       // TODO MULTIPLEXING: think about how id-based quant is done for SILAC, TMT, etc.
       // count peptides in the different fractions, charge states, and samples
-      pep_quant_[seq].abundances[fraction][hit.getCharge()][sample] += 1;
+      pep_quant_[seq].abundances.fraction_abundances[fraction].charge_abundances[hit.getCharge()][sample] += 1;
     }
     stats_.total_peptides = pep_quant_.size();
   }

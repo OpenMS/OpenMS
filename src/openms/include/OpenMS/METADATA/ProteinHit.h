@@ -60,6 +60,8 @@ namespace OpenMS
 public:
     static const double COVERAGE_UNKNOWN; // == -1
 
+    using PositionModificationPair = std::pair<Size, const ResidueModification*>;
+
     /// @name Hashes for ProteinHit
     //@{
     /// Hash of a ProteinHit based on its accession only!
@@ -197,10 +199,10 @@ public:
     void setCoverage(const double coverage);
 
     /// returns the set of modified protein positions
-    const std::set<std::pair<Size, ResidueModification> >& getModifications() const;
+    const std::set<PositionModificationPair>& getModifications() const;
 
     /// sets the set of modified protein positions
-    void setModifications(std::set<std::pair<Size, ResidueModification> >& mods);
+    void setModifications(const std::set<PositionModificationPair>& mods);
     //@}
 
 protected:
@@ -209,7 +211,7 @@ protected:
     String accession_;   ///< the protein identifier
     String sequence_;    ///< the amino acid sequence of the protein hit
     double coverage_;    ///< coverage of the protein based upon the matched peptide sequences
-    std::set<std::pair<Size, const ResidueModification*> > modifications_; ///< modified positions in a protein
+    std::set<PositionModificationPair> modifications_; ///< modified positions in a protein
   };
 
 } // namespace OpenMS

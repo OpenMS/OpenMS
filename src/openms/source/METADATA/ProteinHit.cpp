@@ -162,12 +162,12 @@ namespace OpenMS
     coverage_ = coverage;
   }
 
-  const set<pair<Size, ResidueModification> >& ProteinHit::getModifications() const
+  const set<ProteinHit::PositionModificationPair>& ProteinHit::getModifications() const
   {
     return modifications_;
   }
 
-  void ProteinHit::setModifications(std::set<std::pair<Size, ResidueModification> >& mods)
+  void ProteinHit::setModifications(const std::set<ProteinHit::PositionModificationPair>& mods)
   {
     modifications_ = mods;
   }
