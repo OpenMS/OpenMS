@@ -155,7 +155,8 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Additional options for featureXML input");
     registerFlag_("feature:use_centroid_rt", "Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces.");
-    registerFlag_("feature:use_centroid_mz", "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you should usually set this flag to avoid false-positive matches.)");
+    registerStringOption_("feature:use_centroid_mz", "<choice>", "true", "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you should usually set this flag to avoid false-positive matches.)", false);
+    setValidStrings_("feature:use_centroid_mz", ListUtils::create<String>("true,false"));
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
@@ -262,7 +263,7 @@ protected:
 
       mapper.annotate(map, peptide_ids, protein_ids,
                       getFlag_("feature:use_centroid_rt"),
-                      getFlag_("feature:use_centroid_mz"),
+                      (getStringOption_("feature:use_centroid_mz") == "true"),
                       exp);
 
       //annotate output with data processing info
