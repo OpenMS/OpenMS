@@ -50,6 +50,9 @@ public:
     MRMFeatureScheduler() = default;
     ~MRMFeatureScheduler() = default;
 
+    /**
+      Structure to easily feed the parameters to the `MRMFeatureSelector` derived classes
+    */
     struct SelectorParameters
     {
       SelectorParameters() = default;
@@ -83,14 +86,31 @@ public:
       std::map<String, String> score_weights;
     };
 
-    void schedule_MRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& output_features) const;
-    void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& output_features) const;
-    void schedule_MRMFeaturesScore(const FeatureMap& features, FeatureMap& output_features) const;
+    /**
+      Calls `feature_selector.select_MRMFeature()` feeding it the parameters found in `parameters_`.
+      It calls said method `parameters_.size()` times, using the result of each cycle as input
+      for the next cycle.
 
+      @param[in] feature_selector Base class for the feature selector to use
+      @param[in] features Input features
+      @param[out] selected_features Selected features
+    */
+    void schedule_MRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& selected_features) const;
+
+    /// Calls `schedule_MRMFeatures()` using a `MRMFeatureSelectorScore` selector
+    void schedule_MRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const;
+
+    /// Calls `schedule_MRMFeatures()` using a `MRMFeatureSelectorQMIP` selector
+    void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const;
+
+    /// Setter for the scheduler's parameters
     void setSchedulerParameters(const std::vector<SelectorParameters>& parameters);
+
+    /// Getter for the scheduler's parameters
     std::vector<SelectorParameters>& getSchedulerParameters(void);
 
 private:
+    /// Parameters for a single call to the scheduler. All elements will be consumed.
     std::vector<SelectorParameters> parameters_;
   };
 }
