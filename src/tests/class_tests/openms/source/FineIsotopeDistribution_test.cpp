@@ -110,7 +110,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-100);
     TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 2548)
 
-    gen.setThreshold(1e-1000);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 2548)
   }
 
@@ -151,7 +151,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-250);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
 
-    gen.setThreshold(1e-1000);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
 
     TEST_REAL_SIMILAR(gen.run(EmpiricalFormula("C100"))[100].getIntensity(), 8.67e-198) // note: Intensity is only float, so nothing beyond 1e-38
@@ -192,10 +192,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-320);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 7687)
 
-    gen.setThreshold(1e-350);
-    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
-
-    gen.setThreshold(1e-1000);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
   }
 }
