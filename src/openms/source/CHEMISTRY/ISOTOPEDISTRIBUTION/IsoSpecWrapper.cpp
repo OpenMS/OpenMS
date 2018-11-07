@@ -167,13 +167,15 @@ namespace OpenMS
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
                     const std::vector<std::vector<double> >& isotopeProbabilities,
-                    double total_prob) :
-  ILG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)), total_prob, 0.3)
+                    double total_prob,
+                    bool do_p_trim) :
+  ILG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)), total_prob, 0.3, 1024, 1024, do_p_trim)
   {};
 
   IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const EmpiricalFormula& formula,
-                    double total_prob) :
-  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3)
+                    double total_prob,
+                    bool do_p_trim) :
+  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
   {};
 
   IsotopeDistribution IsoSpecTotalProbWrapper::run()

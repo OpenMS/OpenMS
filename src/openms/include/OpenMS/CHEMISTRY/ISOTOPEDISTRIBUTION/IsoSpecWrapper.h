@@ -103,8 +103,8 @@ public:
      * @brief Move the generator to a next isotopologue
      *
      * Advance the internal generator to the next isotopologue. The value returned determines whether the
-     * generator has been exhausted (that is, all eligible configurations have already been visited). 
-     * It is invalid to call any other generator methods before the first call to nextConf(), as well as 
+     * generator has been exhausted (that is, all eligible configurations have already been visited).
+     * It is invalid to call any other generator methods before the first call to nextConf(), as well as
      * after this method returns false.
      *
      * Thus, a common, correct usage pattern would be:
@@ -123,28 +123,36 @@ public:
 
     /**
      * @brief Obtain the current isotopologue
+     *
      * @return The current isotopologue as a Peak1D
+     *
      * @note It is invalid (undefined results) to call this method before the first call to nextConf(), or after it returns false
      */
     virtual Peak1D getConf() = 0;
 
     /**
      * @brief Obtain the mass of the current isotopologue
+     *
      * @return The mass of the current isotopologue
+     *
      * @note It is invalid (undefined results) to call this method before the first call to nextConf(), or after it returns false
      */
     virtual double getMass() = 0;
 
     /**
      * @brief Obtain the intensity (probability, relative peak height) of the current configuration
+     *
      * @return The intensity (probability) of the current isotopologue
+     *
      * @note It is invalid (undefined results) to call this method before the first call to nextConf(), or after it returns false
      */
     virtual double getIntensity() = 0;
 
     /**
      * @brief Obtain the natural logarithm of the intensity (probability, relative peak height) of the current configuration
+     *
      * @return The natural logarithm of intensity (probability) of the current isotopologue
+     *
      * @note It is invalid (undefined results) to call this method before the first call to nextConf(), or after it returns false
      */
     virtual double getLogIntensity() = 0;
@@ -226,8 +234,8 @@ protected:
   class OPENMS_DLLAPI IsoSpecTotalProbWrapper : public IsoSpecWrapper
   {
   /**
-   * @brief Generate an optimal p-set of configurations for a given p (that is, a spectrum which smallest
-   *        amount of isotopologues that has p accuracy)
+   * @brief Generate a p-set of configurations for a given p (that is, a set of configurations such that
+   *        their probabilities sum up to p). The p in normal usage will usually be close to 1 (e.g. 0.99).
    *
    * An optimal p-set of isotopologues is the smallest set of isotopologues that, taken together, cover at
    * least p of the probability space (that is, their probabilities sum up to at least p). This means that
@@ -237,6 +245,12 @@ protected:
    * than the configurations in the p-set.
    *
    * This is the method most users will want: the p parameter directly controls the accuracy of results.
+   *
+   * Advanced usage note: The algorithm works by computing an optimal p'-set for a p' slightly larger than
+   * the requested p. By default these extra isotopologues are returned too (as they have to be computed
+   * anyway). It is possible to request that the extra configurations be discarded, using the do_p_trim
+   * parameter. This will *increase* the runtime and especially the memory usage of the algorithm, and
+   * should not be done unless there is a good reason to.
    *
    * @note The eligible configurations are NOT guaranteed to be returned in any particular order.
    */
@@ -248,7 +262,8 @@ public:
       * @param atomCounts How many atoms of each we have [e.g. 12, 6, 6 for Glucose]
       * @param isotopeMasses Array with the individual elements isotopic masses
       * @param isotopeProbabilities Array with the individual elements isotopic probabilities
-      * @param total_prob Total coverage of probability space desired (e.g. 0.99)
+      * @param p Total coverage of probability space desired, usually close to 1 (e.g. 0.99)
+      * @param do_p_trim Whether to discard extra configurations that have been computed
       *
       * @note This constructor is only useful if you need to define non-standard abundances
       *       of isotopes, for other uses the one accepting EmpiricalFormula is easier to use.
@@ -258,13 +273,14 @@ public:
              const std::vector<int>& atomCounts,
              const std::vector<std::vector<double> >& isotopeMasses,
              const std::vector<std::vector<double> >& isotopeProbabilities,
-             double total_prob);
+             double p,
+             bool do_p_trim = false);
 
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
       *
       **/
-  IsoSpecTotalProbWrapper(const EmpiricalFormula& formula, double total_prob);
+  IsoSpecTotalProbWrapper(const EmpiricalFormula& formula, double p, bool do_p_trim = false);
 
   virtual IsotopeDistribution run() override final;
 
