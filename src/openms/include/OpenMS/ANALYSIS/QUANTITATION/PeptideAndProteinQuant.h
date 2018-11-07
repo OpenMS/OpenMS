@@ -62,7 +62,8 @@ public:
     struct PeptideData
     {
       /// mapping: fraction -> charge -> sample -> abundance
-      std::map<Int, std::map<Int, SampleAbundances>> abundances;
+     struct FractionAbundances { std::map<Int, SampleAbundances> sample_abundances;};
+      std::map<Int, FractionAbundances> abundances;
 
       /// mapping: sample -> total abundance
       SampleAbundances total_abundances;
