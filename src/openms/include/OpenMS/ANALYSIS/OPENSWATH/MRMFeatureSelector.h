@@ -54,9 +54,6 @@ public:
     /// To test private methods
     friend class MRMFeatureSelector_test;
 
-    static constexpr const char* s_continuous = "continuous";
-    static constexpr const char* s_integer = "integer";
-
     virtual void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
       const std::map< String, std::vector<Feature> >& feature_name_map,

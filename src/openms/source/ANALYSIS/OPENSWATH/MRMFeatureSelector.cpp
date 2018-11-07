@@ -58,9 +58,9 @@ namespace OpenMS
 
     problem.setColumnName(index, name);
 
-    if (getVariableType() == s_integer) {
+    if (getVariableType() == "integer") {
       problem.setColumnType(index, LPWrapper::INTEGER);
-    } else if (getVariableType() == s_continuous) {
+    } else if (getVariableType() == "continuous") {
       problem.setColumnType(index, LPWrapper::CONTINUOUS);
     } else {
       throw "Variable type not supported\n";
@@ -183,7 +183,7 @@ namespace OpenMS
             // The two following problem's variables need the variable type to be "continuous"
             // Save current variable type to later set it back to the same value
             const String prev_variable_type = getVariableType();
-            setVariableType(s_continuous);
+            setVariableType("continuous");
             const Int index_var_qp = addVariable(problem, var_qp_name, true, 0);
             const Int index_var_abs = addVariable(problem, var_qp_name + "-ABS", false, 1);
             setVariableType(prev_variable_type);
