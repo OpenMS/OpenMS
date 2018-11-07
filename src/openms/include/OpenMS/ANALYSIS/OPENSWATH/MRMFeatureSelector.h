@@ -45,22 +45,35 @@ namespace OpenMS
 {
   class OPENMS_DLLAPI MRMFeatureSelector
   {
-    friend class MRMFeatureSelectorQMIP;
-    friend class MRMFeatureSelectorScore;
 public:
     MRMFeatureSelector() = default;
     virtual ~MRMFeatureSelector() = default;
 
-    /// To test private methods
+    /// To test private and protected methods
     friend class MRMFeatureSelector_test;
 
+    /**
+      Derived classes implement this pure virtual method.
+
+      It setups the linear programming problem and solves it.
+
+      @param[in] time_to_name Pairs representing a mapping of retention times to transition names
+      @param[in] feature_name_map Transition names to their features objects
+      @param[out] result Transition names filtered out of the LP problem
+    */
     virtual void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map< String, std::vector<Feature> >& feature_name_map,
+      const std::map<String, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result
     ) = 0;
 
-    void select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered);
+    /**
+      Splits the features into time segments. `optimize()` method is run on each of these segments.
+
+      @param[in] features Input features
+      @param[out] selected_filtered Output features
+    */
+    void select_MRMFeature(const FeatureMap& features, FeatureMap& selected_filtered);
 
     void setNNThreshold(const Int nn_threshold);
     Int getNNThreshold() const;
@@ -86,18 +99,14 @@ public:
     void setScoreWeights(const std::map<String, String>& score_weights);
     std::map<String, String> getScoreWeights() const;
 
-private:
-    Int    nn_threshold_            = 4;
-    bool   locality_weight_         = false;
-    bool   select_transition_group_ = true;
-    Int    segment_window_length_   = 8;
-    Int    segment_step_length_     = 4;
-    String variable_type_           = "continuous";
-    double optimal_threshold_       = 0.5;
-    std::map<String, String> score_weights_;
-
+protected:
+    /// Add variable to the LP problem instantiated in `optimize()`
     Int addVariable(LPWrapper& problem, const String& name, const bool bounded = true, const double obj = 1.0) const;
 
+    /// Scoring method used by the optimizer. Based off score weights parameter. The returned value is used for the LP problem's variables and contraints.
+    double compute_score(const Feature& feature) const;
+
+    /// Add constraint to the LP problem instantiated in `optimize()`
     void addConstraint(
       LPWrapper& problem,
       std::vector<Int> indices,
@@ -108,16 +117,27 @@ private:
       const LPWrapper::Type param
     ) const;
 
+private:
+    Int    nn_threshold_            = 4;
+    bool   locality_weight_         = false;
+    bool   select_transition_group_ = true;
+    Int    segment_window_length_   = 8;
+    Int    segment_step_length_     = 4;
+    String variable_type_           = "continuous";
+    double optimal_threshold_       = 0.5;
+    std::map<String, String> score_weights_;
+
+    // TODO: rename method
     void constructToList(
       const FeatureMap& features,
       std::vector<std::pair<double, String>>& time_to_name,
       std::map<String, std::vector<Feature>>& feature_name_map
     ) const;
 
+    /// Transform the given score thorugh the chosen lambda function
     double weight_func(const double score, const String& lambda_score) const;
 
-    double make_score(const Feature& feature) const;
-
+    /// Helper method to remove spaces from a string
     String remove_spaces(String str) const;
   };
 
@@ -161,9 +181,9 @@ public:
       return selector_.weight_func(score, lambda_score);
     }
 
-    double make_score(const Feature& feature) const
+    double compute_score(const Feature& feature) const
     {
-      return selector_.make_score(feature);
+      return selector_.compute_score(feature);
     }
 
     String remove_spaces(String str) const

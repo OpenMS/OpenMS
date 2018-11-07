@@ -234,7 +234,7 @@ START_SECTION(weight_func())
 }
 END_SECTION
 
-START_SECTION(make_score())
+START_SECTION(compute_score())
 {
   MRMFeatureSelector_test selector;
   double score;
@@ -243,15 +243,15 @@ START_SECTION(make_score())
   feature.setMetaValue("peak_apices_sum", 96640.0);
 
   selector.setScoreWeights({{"sn_ratio", "lambda score: 1/log(score)"}});
-  score = selector.make_score(feature);
+  score = selector.compute_score(feature);
   TEST_REAL_SIMILAR(score, 0.5198334582314795)
 
   selector.setScoreWeights({{"peak_apices_sum", "lambda score: 1/log10(score)"}});
-  score = selector.make_score(feature);
+  score = selector.compute_score(feature);
   TEST_REAL_SIMILAR(score, 0.20059549093267626)
 
   selector.setScoreWeights({{"sn_ratio", "lambda score: 1/log(score)"}, {"peak_apices_sum", "lambda score: 1/log10(score)"}});
-  score = selector.make_score(feature);
+  score = selector.compute_score(feature);
   TEST_REAL_SIMILAR(score, 0.10427624775717449)
 }
 END_SECTION

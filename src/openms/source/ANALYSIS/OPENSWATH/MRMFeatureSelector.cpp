@@ -98,7 +98,7 @@ namespace OpenMS
       for (const Feature& feature : feature_name_map.at(elem.second)) {
         const String name1 = elem.second + "_" + String(feature.getUniqueId());
         if (variables.count(name1) == 0) {
-            constraints.push_back(addVariable(problem, name1, true, make_score(feature)));
+            constraints.push_back(addVariable(problem, name1, true, compute_score(feature)));
             variables.insert(name1);
         }
       }
@@ -135,8 +135,8 @@ namespace OpenMS
     size_t n_constraints = 0;
     size_t n_variables = 0;
     for (Int cnt1 = 0; static_cast<size_t>(cnt1) < time_to_name.size(); ++cnt1) {
-      const size_t start_iter = std::max(cnt1 - nn_threshold_, 0);
-      const size_t stop_iter = std::min(static_cast<size_t>(cnt1 + nn_threshold_ + 1), time_to_name.size()); // assuming nn_threshold_ >= -1
+      const size_t start_iter = std::max(cnt1 - getNNThreshold(), 0);
+      const size_t stop_iter = std::min(static_cast<size_t>(cnt1 + getNNThreshold() + 1), time_to_name.size()); // assuming nn_threshold_ >= -1
       std::vector<Int> constraints;
       const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
 
@@ -151,8 +151,8 @@ namespace OpenMS
           constraints.push_back(problem.getColumnIndex(name1));
         }
 
-        double score_1 = make_score(feature_row1[i]);
-        const size_t n_score_weights = score_weights_.size();
+        double score_1 = compute_score(feature_row1[i]);
+        const size_t n_score_weights = getScoreWeights().size();
 
         if (n_score_weights > 1) {
           score_1 = std::pow(score_1, 1.0 / n_score_weights);
@@ -166,7 +166,7 @@ namespace OpenMS
 
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
           const double locality_weight = getLocalityWeight()
-            ? 1.0 / (nn_threshold_ - std::abs(static_cast<Int>(start_iter + cnt2) - cnt1) + 1)
+            ? 1.0 / (getNNThreshold() - std::abs(static_cast<Int>(start_iter + cnt2) - cnt1) + 1)
             : 1.0;
           const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
 
@@ -190,7 +190,7 @@ namespace OpenMS
 
             const Int index2 = problem.getColumnIndex(name2);
 
-            double score_2 = make_score(feature_row2[j]);
+            double score_2 = compute_score(feature_row2[j]);
             if (n_score_weights > 1) {
               score_2 = std::pow(score_2, 1.0 / n_score_weights);
             }
@@ -262,9 +262,9 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureSelector::select_MRMFeature(const FeatureMap& features, FeatureMap& features_filtered)
+  void MRMFeatureSelector::select_MRMFeature(const FeatureMap& features, FeatureMap& selected_filtered)
   {
-    features_filtered.clear();
+    selected_filtered.clear();
 
     std::vector<std::pair<double, String>> time_to_name;
     std::map<String, std::vector<Feature>> feature_name_map;
@@ -304,19 +304,19 @@ namespace OpenMS
       if (subordinates_filtered.size()) {
         Feature feature_filtered(feature);
         feature_filtered.setSubordinates(subordinates_filtered);
-        features_filtered.push_back(feature_filtered);
+        selected_filtered.push_back(feature_filtered);
       }
     }
   }
 
-  double MRMFeatureSelector::make_score(const Feature& feature) const
+  double MRMFeatureSelector::compute_score(const Feature& feature) const
   {
     double score_1 = 1.0;
     for (const std::pair<String,String>& score_weight : score_weights_) {
       const String& metavalue_name = score_weight.first;
       const String& lambda_score = score_weight.second;
       if (!feature.metaValueExists(metavalue_name)) {
-        LOG_WARN << "make_score(): Metavalue \"" << metavalue_name << "\" not found.";
+        LOG_WARN << "compute_score(): Metavalue \"" << metavalue_name << "\" not found.";
         continue;
       }
       const double value = weight_func(feature.getMetaValue(metavalue_name), lambda_score);
