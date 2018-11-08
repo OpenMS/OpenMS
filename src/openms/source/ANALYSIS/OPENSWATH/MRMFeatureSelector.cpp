@@ -36,7 +36,7 @@
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <algorithm>
-#include <unordered_set>
+#include <set>
 
 namespace OpenMS
 {
@@ -97,7 +97,7 @@ namespace OpenMS
   )
   {
     result.clear();
-    std::unordered_set<std::string> variables;
+    std::set<String> variables;
     LPWrapper problem;
     problem.setObjectiveSense(LPWrapper::MIN);
     for (const std::pair<double, String>& elem : time_to_name)
@@ -134,26 +134,26 @@ namespace OpenMS
   }
 
   void MRMFeatureSelectorQMIP::optimize(
-    const std::vector<std::pair<double, String>>& time_to_name, // To_list
-    const std::map< String, std::vector<Feature> >& feature_name_map, // Tr_dict
+    const std::vector<std::pair<double, String>>& time_to_name,
+    const std::map<String, std::vector<Feature>>& feature_name_map,
     std::vector<String>& result
   )
   {
     result.clear();
-    std::unordered_set<std::string> variables; // component_names_1
+    std::set<String> variables;
     LPWrapper problem;
     // problem.setSolver(LPWrapper::SOLVER_GLPK);
     problem.setObjectiveSense(LPWrapper::MIN);
-    size_t n_constraints = 0;
-    size_t n_variables = 0;
-    for (Int cnt1 = 0; static_cast<size_t>(cnt1) < time_to_name.size(); ++cnt1)
+    Size n_constraints = 0;
+    Size n_variables = 0;
+    for (Int cnt1 = 0; static_cast<Size>(cnt1) < time_to_name.size(); ++cnt1)
     {
-      const size_t start_iter = std::max(cnt1 - getNNThreshold(), 0);
-      const size_t stop_iter = std::min(static_cast<size_t>(cnt1 + getNNThreshold() + 1), time_to_name.size()); // assuming nn_threshold_ >= -1
+      const Size start_iter = std::max(cnt1 - getNNThreshold(), 0);
+      const Size stop_iter = std::min(static_cast<Size>(cnt1 + getNNThreshold() + 1), time_to_name.size()); // assuming nn_threshold_ >= -1
       std::vector<Int> constraints;
       const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
 
-      for (size_t i = 0; i < feature_row1.size(); ++i)
+      for (Size i = 0; i < feature_row1.size(); ++i)
       {
         const String name1 = time_to_name[cnt1].second + "_" + String(feature_row1[i].getUniqueId());
 
@@ -169,7 +169,7 @@ namespace OpenMS
         }
 
         double score_1 = computeScore_(feature_row1[i]);
-        const size_t n_score_weights = getScoreWeights().size();
+        const Size n_score_weights = getScoreWeights().size();
 
         if (n_score_weights > 1)
         {
@@ -178,10 +178,12 @@ namespace OpenMS
 
         const Int index1 = problem.getColumnIndex(name1);
 
-        for (size_t cnt2 = start_iter; cnt2 < stop_iter; ++cnt2)
+        for (Size cnt2 = start_iter; cnt2 < stop_iter; ++cnt2)
         {
-          if (static_cast<size_t>(cnt1) == cnt2)
+          if (static_cast<Size>(cnt1) == cnt2)
+          {
             continue;
+          }
 
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
           const double locality_weight = getLocalityWeight()
@@ -189,7 +191,7 @@ namespace OpenMS
             : 1.0;
           const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
 
-          for (size_t j = 0; j < feature_row2.size(); ++j)
+          for (Size j = 0; j < feature_row2.size(); ++j)
           {
             const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
             if (variables.count(name2) == 0)
@@ -257,7 +259,7 @@ namespace OpenMS
   {
     time_to_name.clear();
     feature_name_map.clear();
-    std::unordered_set<std::string> names;
+    std::set<String> names;
     for (const Feature& feature : features)
     {
       const String component_group_name = removeSpaces_(feature.getMetaValue("PeptideRef").toString());
@@ -308,21 +310,23 @@ namespace OpenMS
     {
       window_length = step_length = time_to_name.size();
     }
-    size_t n_segments = time_to_name.size() / step_length;
+    Size n_segments = time_to_name.size() / step_length;
     if (time_to_name.size() % step_length)
+    {
       ++n_segments;
+    }
     std::vector<String> result_names;
 
-    for (size_t i = 0; i < n_segments; ++i)
+    for (Size i = 0; i < n_segments; ++i)
     {
-      const size_t start = step_length * i;
-      const size_t end = std::min(start + window_length, time_to_name.size());
+      const Size start = step_length * i;
+      const Size end = std::min(start + window_length, time_to_name.size());
       const std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
       std::vector<String> result;
       optimize(time_slice, feature_name_map, result);
       result_names.insert(result_names.end(), result.begin(), result.end());
     }
-    const std::unordered_set<std::string> result_names_set(result_names.begin(), result_names.end());
+    const std::set<String> result_names_set(result_names.begin(), result_names.end());
     for (const Feature& feature : features)
     {
       std::vector<Feature> subordinates_filtered;
