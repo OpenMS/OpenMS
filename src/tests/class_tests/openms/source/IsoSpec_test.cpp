@@ -68,6 +68,45 @@ expected_oms.push_back(Peak1D( 183.07392113090000407282787 , 1.57007299690000059
 expected_oms.push_back(Peak1D( 184.07189838280001481507497 , 5.8444185791655326584186775e-05 ));
 expected_oms.push_back(Peak1D( 184.07435438280000994382135 , 1.9961521148266482778097647e-05 ));
 
+
+
+EmpiricalFormula ef_fructose("C6H12O6");
+
+std::vector<int> fructose_isotopeNumbers;
+std::vector<int> fructose_atomCounts;
+std::vector<std::vector<double> > fructose_isotopeMasses;
+std::vector<std::vector<double> > fructose_isotopeProbabilities;
+
+for (auto elem : ef_fructose)
+{
+  fructose_atomCounts.push_back( elem.second );
+
+  std::vector<double> masses;
+  std::vector<double> probs;
+  for (auto iso : elem.first->getIsotopeDistribution())
+  {
+    if (iso.getIntensity() <= 0.0) continue; // Note: there will be an Isospec exception if one of the intensities is zero!
+    masses.push_back(iso.getMZ());
+    probs.push_back(iso.getIntensity());
+  }
+  fructose_isotopeNumbers.push_back( masses.size() );
+  fructose_isotopeMasses.push_back(masses);
+  fructose_isotopeProbabilities.push_back(probs);
+}
+
+
+// Create an invalid molecule: where one of the isotopic intensities is defined to be zero
+std::vector<int> invalid_isotopeNumbers = fructose_isotopeNumbers;
+std::vector<int> invalid_atomCounts = fructose_atomCounts;
+std::vector<std::vector<double> > invalid_isotopeMasses = fructose_isotopeMasses;
+std::vector<std::vector<double> > invalid_isotopeProbabilities = fructose_isotopeProbabilities;
+
+invalid_isotopeNumbers[0] += 1;
+invalid_isotopeMasses[0].push_back(3.0160492699999998933435563);
+invalid_isotopeProbabilities[0].push_back(0.0);
+
+
+
 {
   IsoSpecWrapper* ptr = nullptr;
   IsoSpecWrapper* nullPointer = nullptr;
@@ -128,7 +167,7 @@ START_SECTION(( [EXTRA] void run(const std::string&) ))
   IsotopeDistribution iso_result2(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute).run());
   TEST_EQUAL(iso_result2.size(), 1734)
 
-  IsotopeDistribution iso_result3(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, true).run());
+  IsotopeDistribution iso_result3(IsoSpecThresholdWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.01, absolute).run());
   TEST_EQUAL(iso_result3.size(), 21)
 }
 END_SECTION
@@ -140,37 +179,13 @@ START_SECTION((
              const std::vector<std::vector<double> >& isotopeProbabilities) ))
 {
 
-  EmpiricalFormula ef ("C6H12O6");
-
-  std::vector<int> isotopeNumbers;
-  std::vector<int> atomCounts;
-  std::vector<std::vector<double> > isotopeMasses;
-  std::vector<std::vector<double> > isotopeProbabilities;
-
-  for (auto elem : ef)
-  {
-    atomCounts.push_back( elem.second );
-
-    std::vector<double> masses;
-    std::vector<double> probs;
-    for (auto iso : elem.first->getIsotopeDistribution())
-    {
-      if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
-      masses.push_back(iso.getMZ());
-      probs.push_back(iso.getIntensity());
-    }
-    isotopeNumbers.push_back( masses.size() );
-    isotopeMasses.push_back(masses);
-    isotopeProbabilities.push_back(probs);
-  }
-
   // ----------------------------------- 
   // Start
   // ----------------------------------- 
   {
     double threshold = 1e-5;
     bool absolute = false;
-    IsotopeDistribution iso_results(IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold, absolute).run());
+    IsotopeDistribution iso_results(IsoSpecThresholdWrapper(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses, fructose_isotopeProbabilities, threshold, absolute).run());
 
     TEST_EQUAL(iso_results.size(), 14)
 
@@ -186,10 +201,8 @@ START_SECTION((
   // TEST exception:
   // We cannot have zero values as input data
   double threshold = 1e-5;
-  isotopeNumbers[0] += 1;
-  isotopeMasses[0].push_back(3.0160492699999998933435563);
-  isotopeProbabilities[0].push_back(0.0);
-  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecThresholdWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, threshold, false).run());
+  bool absolute = false;
+  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecThresholdWrapper(invalid_isotopeNumbers, invalid_atomCounts, invalid_isotopeMasses, invalid_isotopeProbabilities, threshold, absolute).run());
 
 }
 END_SECTION
@@ -202,8 +215,8 @@ std::sort(expected_oms.begin(), expected_oms.end(),  [](isopair a, isopair b) {r
 {
   IsoSpecWrapper* ptr = nullptr;
   IsoSpecWrapper* nullPointer = nullptr;
-  START_SECTION((IsoSpecTotalProbWrapper(const EmpiricalFormula&, double)))
-    ptr = new IsoSpecTotalProbWrapper(EmpiricalFormula("C10"), 0.5);
+  START_SECTION((IsoSpecTotalProbWrapper(const EmpiricalFormula&, double, bool)))
+    ptr = new IsoSpecTotalProbWrapper(EmpiricalFormula("C10"), 0.5, true);
     TEST_NOT_EQUAL(ptr, nullPointer)
   END_SECTION
 
@@ -215,10 +228,11 @@ std::sort(expected_oms.begin(), expected_oms.end(),  [](isopair a, isopair b) {r
 START_SECTION(( void run() ))
 {
   double total_prob = 0.99999;
-  IsoSpecTotalProbWrapper iso(EmpiricalFormula("C6H12O6"), total_prob);
+  bool do_trim = true; // With do_trim == false the size of results is actually undefined, and may change as the underlying non-trimming heuristic changes
+  IsoSpecTotalProbWrapper iso(EmpiricalFormula("C6H12O6"), total_prob, do_trim);
   IsotopeDistribution iso_result(iso.run());
 
-  TEST_EQUAL(iso_result.size(), 22)
+  TEST_EQUAL(iso_result.size(), 17)
 
   // std::cout.precision(26);
   std::sort(iso_result.begin(), iso_result.end(),  [](isopair a, isopair b) {return a.getIntensity() > b.getIntensity();});
@@ -230,37 +244,14 @@ START_SECTION(( void run() ))
   }
 
   // human insulin
-  IsotopeDistribution iso_result2 = IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), total_prob).run();
-  TEST_EQUAL(iso_result2.size(), 20008)
+  IsotopeDistribution iso_result2 = IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), total_prob, do_trim).run();
+  TEST_EQUAL(iso_result2.size(), 19616)
 
-  IsotopeDistribution iso_result3 = IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.99).run();
-  TEST_EQUAL(iso_result3.size(), 2511)
+  IsotopeDistribution iso_result3 = IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.99, do_trim).run();
+  TEST_EQUAL(iso_result3.size(), 1756)
 }
 END_SECTION
 
-START_SECTION(( [EXTRA] void run(const std::string&) ))
-{
-  double total_prob = 0.99999;
-  IsotopeDistribution iso_result(IsoSpecTotalProbWrapper(EmpiricalFormula("C6H12O6"), total_prob).run());
-
-  TEST_EQUAL(iso_result.size(), 22)
-
-  std::sort(iso_result.begin(), iso_result.end(),  [](isopair a, isopair b) {return a.getIntensity() > b.getIntensity();});
-
-  for (Size i = 0; i != expected_oms.size(); ++i)
-  {
-    TEST_REAL_SIMILAR(iso_result[i].getPos(), expected_oms[i].getPos());
-    TEST_REAL_SIMILAR(iso_result[i].getIntensity(), expected_oms[i].getIntensity());
-  }
-
-  // human insulin
-  IsotopeDistribution iso_result2(IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), total_prob).run());
-  TEST_EQUAL(iso_result2.size(), 20008)
-
-  IsotopeDistribution iso_result3(IsoSpecTotalProbWrapper(EmpiricalFormula("C520H817N139O147S8"), 0.99).run());
-  TEST_EQUAL(iso_result3.size(), 2511)
-}
-END_SECTION
 
 START_SECTION(( 
     void run(const std::vector<int>& isotopeNumbers,
@@ -269,38 +260,12 @@ START_SECTION((
              const std::vector<std::vector<double> >& isotopeProbabilities) ))
 {
 
-  EmpiricalFormula ef ("C6H12O6");
-
-  std::vector<int> isotopeNumbers;
-  std::vector<int> atomCounts;
-  std::vector<std::vector<double> > isotopeMasses;
-  std::vector<std::vector<double> > isotopeProbabilities;
-
-  for (auto elem : ef)
-  {
-    atomCounts.push_back( elem.second );
-
-    std::vector<double> masses;
-    std::vector<double> probs;
-    for (auto iso : elem.first->getIsotopeDistribution())
-    {
-      if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
-      masses.push_back(iso.getMZ());
-      probs.push_back(iso.getIntensity());
-    }
-    isotopeNumbers.push_back( masses.size() );
-    isotopeMasses.push_back(masses);
-    isotopeProbabilities.push_back(probs);
-  }
-
-  // -----------------------------------
-  // Start
-  // -----------------------------------
   {
     double total_prob = 0.99999;
-    IsotopeDistribution iso_results(IsoSpecTotalProbWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, total_prob).run());
+    bool do_trim = true;
+    IsotopeDistribution iso_results(IsoSpecTotalProbWrapper(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses, fructose_isotopeProbabilities, total_prob, do_trim).run());
 
-    TEST_EQUAL(iso_results.size(), 22)
+    TEST_EQUAL(iso_results.size(), 17)
 
     std::sort(iso_results.begin(), iso_results.end(),  [](isopair a, isopair b) {return a.getIntensity() > b.getIntensity();});
 
@@ -314,10 +279,8 @@ START_SECTION((
   // TEST exception:
   // We cannot have zero values as input data
   double total_prob = 0.99;
-  isotopeNumbers[0] += 1;
-  isotopeMasses[0].push_back(3.0160492699999998933435563);
-  isotopeProbabilities[0].push_back(0.0);
-  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecTotalProbWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities, total_prob).run());
+  bool do_trim = true;
+  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecTotalProbWrapper(invalid_isotopeNumbers, invalid_atomCounts, invalid_isotopeMasses, invalid_isotopeProbabilities, total_prob, do_trim).run());
 
 }
 END_SECTION
@@ -341,7 +304,7 @@ END_SECTION
 }
 
 
-START_SECTION(( void run(const EmpiricalFormula&) ))
+START_SECTION(( bool nextConf() ))
 {
   IsoSpecOrderedGeneratorWrapper iso(EmpiricalFormula("C6H12O6"));
 
@@ -364,48 +327,24 @@ END_SECTION
 
 
 START_SECTION(( 
-    void run(const std::vector<int>& isotopeNumbers,
+    IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNumbers,
              const std::vector<int>& atomCounts,
              const std::vector<std::vector<double> >& isotopeMasses,
              const std::vector<std::vector<double> >& isotopeProbabilities) ))
 {
 
-  EmpiricalFormula ef ("C6H12O6");
-
-  std::vector<int> isotopeNumbers;
-  std::vector<int> atomCounts;
-  std::vector<std::vector<double> > isotopeMasses;
-  std::vector<std::vector<double> > isotopeProbabilities;
-
-  for (auto elem : ef)
-  {
-    atomCounts.push_back( elem.second );
-
-    std::vector<double> masses;
-    std::vector<double> probs;
-    for (auto iso : elem.first->getIsotopeDistribution())
-    {
-      if (iso.getIntensity() <= 0.0) continue; // Note: there will be a segfault if one of the intensities is zero!
-      masses.push_back(iso.getMZ());
-      probs.push_back(iso.getIntensity());
-    }
-    isotopeNumbers.push_back( masses.size() );
-    isotopeMasses.push_back(masses);
-    isotopeProbabilities.push_back(probs);
-  }
-
   // -----------------------------------
   // Start
   // -----------------------------------
   {
-    IsoSpecOrderedGeneratorWrapper iso(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+    IsoSpecOrderedGeneratorWrapper iso(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses, fructose_isotopeProbabilities);
 
     Size ii = 0;
     while(iso.nextConf()) ii++;
 
     TEST_EQUAL(ii, 2548);
 
-    IsoSpecOrderedGeneratorWrapper iso2(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities);
+    IsoSpecOrderedGeneratorWrapper iso2(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses, fructose_isotopeProbabilities);
 
     for (Size i = 0; i != expected_oms.size(); ++i)
     {
@@ -417,10 +356,7 @@ START_SECTION((
 
   // TEST exception:
   // We cannot have zero values as input data
-  isotopeNumbers[0] += 1;
-  isotopeMasses[0].push_back(3.0160492699999998933435563);
-  isotopeProbabilities[0].push_back(0.0);
-  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecOrderedGeneratorWrapper(isotopeNumbers, atomCounts, isotopeMasses, isotopeProbabilities));
+  TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecOrderedGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, invalid_isotopeMasses, invalid_isotopeProbabilities));
 
 }
 END_SECTION
