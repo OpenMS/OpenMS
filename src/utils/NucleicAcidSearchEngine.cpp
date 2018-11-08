@@ -169,7 +169,7 @@ protected:
     setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
     registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
-    registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered", false, false);
+    registerIntOption_("precursor:max_charge", "<num>", -20, "Maximum precursor charge to be considered", false, false);
 
     registerFlag_("precursor:include_unknown_charge", "Include MS2 spectra with unknown precursor charge - try to match them in any possible charge between 'min_charge' and 'max_charge', at the risk of a higher error rate", false);
 
@@ -177,13 +177,13 @@ protected:
 
     // Whether to look for precursors with salt adducts
     registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses", false);
-    registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("K:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
+    registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("Na:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
 
     // Whether we single charge the MS2s prior to scoring
-    registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", false);
+    registerFlag_("precursor:decharge_ms2", "Decharge the MS2 spectra for scoring", false);
 
     // consider one before annotated monoisotopic peak and the annotated one
-    IntList isotopes = {0, 1};
+    IntList isotopes = {0, 1, 2, 3, 4};
     registerIntList_("precursor:isotopes", "<list>", isotopes, "Correct for mono-isotopic peak misassignments. E.g.: 1 = precursor may be misassigned to the first isotopic peak. Ignored if 'use_avg_mass' is set.", false, false);
 
     registerTOPPSubsection_("fragment", "Fragment (Product Ion) Options");
@@ -192,7 +192,7 @@ protected:
     registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
-    registerStringList_("fragment:ions", "<choice>", ListUtils::create<String>("a-B,a,b,c,d,w,x,y,z"), "Fragment ions to include in theoretical spectra", false);
+    registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
     registerTOPPSubsection_("modifications", "Modifications Options");
