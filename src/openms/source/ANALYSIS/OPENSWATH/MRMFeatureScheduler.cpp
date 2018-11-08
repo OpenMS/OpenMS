@@ -46,7 +46,8 @@ namespace OpenMS
   {
     FeatureMap input_features = features;
     selected_features.clear();
-    for (const SelectorParameters& params : parameters_) {
+    for (const SelectorParameters& params : parameters_)
+    {
       feature_selector.setNNThreshold(params.nn_threshold);
       feature_selector.setLocalityWeight(params.locality_weight);
       feature_selector.setSelectTransitionGroup(params.select_transition_group);

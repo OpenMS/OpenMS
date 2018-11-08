@@ -296,7 +296,8 @@ END_SECTION
 
 //   // DEBUG
 //   // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
-//   for (const Feature& f : output_selected) {
+//   for (const Feature& f : output_selected)
+//   {
 //     cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
 //   }
 // }
@@ -345,7 +346,8 @@ START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
 
   // DEBUG
   // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
-  // for (const Feature& f : output_selected) {
+  // for (const Feature& f : output_selected)
+  // {
   //   cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
   // }
 }
