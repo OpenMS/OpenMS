@@ -35,9 +35,6 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MRMFeatureQCFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureQC.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFilter.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>
 
 ///////////////////////////

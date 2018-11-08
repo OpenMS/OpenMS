@@ -32,12 +32,11 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni, Svetlana Kutuzova $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
+#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <algorithm>
 #include <unordered_set>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
-
 
 namespace OpenMS
 {
