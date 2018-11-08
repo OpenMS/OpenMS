@@ -165,17 +165,17 @@ START_SECTION(MRMFeatureSelectorScore::select_MRMFeature())
 }
 END_SECTION
 
-START_SECTION(remove_spaces())
+START_SECTION(removeSpaces_())
 {
   MRMFeatureSelector_test selector;
-  TEST_STRING_EQUAL(selector.remove_spaces("h e ll o"), "hello");
-  TEST_STRING_EQUAL(selector.remove_spaces("hello"), "hello");
-  TEST_STRING_EQUAL(selector.remove_spaces(""), "");
-  TEST_STRING_EQUAL(selector.remove_spaces("A    B"), "AB");
+  TEST_STRING_EQUAL(selector.removeSpaces_("h e ll o"), "hello");
+  TEST_STRING_EQUAL(selector.removeSpaces_("hello"), "hello");
+  TEST_STRING_EQUAL(selector.removeSpaces_(""), "");
+  TEST_STRING_EQUAL(selector.removeSpaces_("A    B"), "AB");
 }
 END_SECTION
 
-START_SECTION(constructToList())
+START_SECTION(constructTargTransList_())
 {
   MRMFeatureSelector_test selector;
   FeatureMap feature_map;
@@ -185,7 +185,7 @@ START_SECTION(constructToList())
   vector<pair<double, String>> time_to_name;
   map<String, vector<Feature>> feature_name_map;
   selector.setSelectTransitionGroup("true");
-  selector.constructToList(feature_map, time_to_name, feature_name_map);
+  selector.constructTargTransList_(feature_map, time_to_name, feature_name_map);
 
   TEST_EQUAL(time_to_name.size(), 117)
   TEST_EQUAL(feature_name_map.size(), 117)
@@ -216,25 +216,25 @@ START_SECTION(constructToList())
 }
 END_SECTION
 
-START_SECTION(weight_func())
+START_SECTION(weightScore_())
 {
   MRMFeatureSelector_test selector;
   double score = -1.0;
 
-  score = selector.weight_func(3413.0, "lambda score: score*1.0");
+  score = selector.weightScore_(3413.0, "lambda score: score*1.0");
   TEST_REAL_SIMILAR(score, 3413.0)
-  score = selector.weight_func(341.0, "lambda score: 1/score");
+  score = selector.weightScore_(341.0, "lambda score: 1/score");
   TEST_REAL_SIMILAR(score, 0.002932551)
-  score = selector.weight_func(341.0, "lambda score: log(score)");
+  score = selector.weightScore_(341.0, "lambda score: log(score)");
   TEST_REAL_SIMILAR(score, 5.831882477)
-  score = selector.weight_func(96640.0, "lambda score: 1/log(score)");
+  score = selector.weightScore_(96640.0, "lambda score: 1/log(score)");
   TEST_REAL_SIMILAR(score, 0.087117)
-  score = selector.weight_func(341.0, "lambda score: 1/log10(score)");
+  score = selector.weightScore_(341.0, "lambda score: 1/log10(score)");
   TEST_REAL_SIMILAR(score, 0.394827074)
 }
 END_SECTION
 
-START_SECTION(compute_score())
+START_SECTION(computeScore_())
 {
   MRMFeatureSelector_test selector;
   double score;
@@ -243,15 +243,15 @@ START_SECTION(compute_score())
   feature.setMetaValue("peak_apices_sum", 96640.0);
 
   selector.setScoreWeights({{"sn_ratio", "lambda score: 1/log(score)"}});
-  score = selector.compute_score(feature);
+  score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.5198334582314795)
 
   selector.setScoreWeights({{"peak_apices_sum", "lambda score: 1/log10(score)"}});
-  score = selector.compute_score(feature);
+  score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.20059549093267626)
 
   selector.setScoreWeights({{"sn_ratio", "lambda score: 1/log(score)"}, {"peak_apices_sum", "lambda score: 1/log10(score)"}});
-  score = selector.compute_score(feature);
+  score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.10427624775717449)
 }
 END_SECTION

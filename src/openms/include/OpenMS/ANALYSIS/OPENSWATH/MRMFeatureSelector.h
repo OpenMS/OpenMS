@@ -58,8 +58,8 @@ public:
       It setups the linear programming problem and solves it.
 
       @param[in] time_to_name Pairs representing a mapping of retention times to transition names
-      @param[in] feature_name_map Transition names to their features objects
-      @param[out] result Transition names filtered out of the LP problem
+      @param[in] feature_name_map Transitions' names to their features objects
+      @param[out] result Transitions' names filtered out of the LP problem
     */
     virtual void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
@@ -100,14 +100,46 @@ public:
     std::map<String, String> getScoreWeights() const;
 
 protected:
-    /// Add variable to the LP problem instantiated in `optimize()`
-    Int addVariable(LPWrapper& problem, const String& name, const bool bounded = true, const double obj = 1.0) const;
+    /**
+      Add variable to the LP problem instantiated in `optimize()`
 
-    /// Scoring method used by the optimizer. Based off score weights parameter. The returned value is used for the LP problem's variables and contraints.
-    double compute_score(const Feature& feature) const;
+      @param[in,out] problem LPWrapper object
+      @param[in] name Column name
+      @param[in] bounded Double bounded if true, otherwise Unbounded.
+      @param[in] obj Objective value
 
-    /// Add constraint to the LP problem instantiated in `optimize()`
-    void addConstraint(
+      @return The variable's column index
+    */
+    Int addVariable_(
+      LPWrapper& problem,
+      const String& name,
+      const bool bounded = true,
+      const double obj = 1.0
+    ) const;
+
+    /**
+      Scoring method used by the optimizer. Metavalues to use are decided by
+      the `score_weights_` class' member.
+      The returned value is used in the LP problems' variables and contraints.
+
+      @param[in] feature Input feature
+
+      @return Computed score
+    */
+    double computeScore_(const Feature& feature) const;
+
+    /**
+      Add constraint to the LP problem instantiated in `optimize()`
+
+      @param[in,out] problem LPWrapper object
+      @param[in] indices LP matrix indices
+      @param[in] values LP matrix values
+      @param[in] name Row name
+      @param[in] lb Lower bound
+      @param[in] ub Upper bound
+      @param[in] param Row type
+    */
+    void addConstraint_(
       LPWrapper& problem,
       std::vector<Int> indices,
       std::vector<double> values,
@@ -127,20 +159,49 @@ private:
     double optimal_threshold_       = 0.5;
     std::map<String, String> score_weights_;
 
-    // TODO: rename method
-    void constructToList(
+    /**
+      Construct the target transition's or transition group's retention times that
+      will be used to score candidate features based on their deviation from the
+      relative distance between the target transition's or transition group's times
+
+      @param[in] features Input features
+      @param[out] time_to_name Pairs representing a mapping of retention times to transition names
+      @param[out] feature_name_map Transitions' names to their features objects
+    */
+    void constructTargTransList_(
       const FeatureMap& features,
       std::vector<std::pair<double, String>>& time_to_name,
       std::map<String, std::vector<Feature>>& feature_name_map
     ) const;
 
-    /// Transform the given score thorugh the chosen lambda function
-    double weight_func(const double score, const String& lambda_score) const;
+    /**
+      Transform the given score through the chosen lambda function
 
-    /// Helper method to remove spaces from a string
-    String remove_spaces(String str) const;
+      Possible values for `lambda_score` are:
+      - "lambda score: score*1.0"
+      - "lambda score: 1/score"
+      - "lambda score: log(score)"
+      - "lambda score: 1/log(score)"
+      - "lambda score: 1/log10(score)"
+
+      @throw Exception::IllegalArgument When an invalid `lambda_score` is passed
+
+      @param[in] score Value to transform
+      @param[in] lambda_score A string representing the desired transformation
+
+      @return The weighted value
+    */
+    double weightScore_(const double score, const String& lambda_score) const;
+
+    /// Removes spaces from the given string, not-in-place.
+    String removeSpaces_(String str) const;
   };
 
+  /**
+    Class used to select MRMFeatures based on relative retention time using a
+    quadratic mixed integer programming (QMIP) formulation.
+    The method is described in [TODO: update when published]
+  */
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
   {
 public:
@@ -151,6 +212,11 @@ public:
     );
   };
 
+  /**
+    Class used to select MRMFeatures based on a linear programming where each
+    possible transition is weighted by a user defined score (most often retention
+    time and peak intensity). The method is described in [TODO: update when published].
+  */
   class OPENMS_DLLAPI MRMFeatureSelectorScore : public MRMFeatureSelector
   {
 public:
@@ -167,28 +233,28 @@ public:
     MRMFeatureSelector_test() = default;
     ~MRMFeatureSelector_test() = default;
 
-    void constructToList(
+    void constructTargTransList_(
       const FeatureMap& features,
       std::vector<std::pair<double, String>>& time_to_name,
       std::map<String, std::vector<Feature>>& feature_name_map
     ) const
     {
-      selector_.constructToList(features, time_to_name, feature_name_map);
+      selector_.constructTargTransList_(features, time_to_name, feature_name_map);
     }
 
-    double weight_func(const double score, const String& lambda_score) const
+    double weightScore_(const double score, const String& lambda_score) const
     {
-      return selector_.weight_func(score, lambda_score);
+      return selector_.weightScore_(score, lambda_score);
     }
 
-    double compute_score(const Feature& feature) const
+    double computeScore_(const Feature& feature) const
     {
-      return selector_.compute_score(feature);
+      return selector_.computeScore_(feature);
     }
 
-    String remove_spaces(String str) const
+    String removeSpaces_(String str) const
     {
-      return selector_.remove_spaces(str);
+      return selector_.removeSpaces_(str);
     }
 
     void setScoreWeights(const std::map<String, String>& score_weights)

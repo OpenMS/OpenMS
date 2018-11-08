@@ -41,7 +41,7 @@
 
 namespace OpenMS
 {
-  Int MRMFeatureSelector::addVariable(
+  Int MRMFeatureSelector::addVariable_(
     LPWrapper& problem,
     const String& name,
     const bool bounded,
@@ -70,7 +70,7 @@ namespace OpenMS
     return index;
   }
 
-  void MRMFeatureSelector::addConstraint(
+  void MRMFeatureSelector::addConstraint_(
     LPWrapper& problem,
     std::vector<Int> indices,
     std::vector<double> values,
@@ -98,12 +98,12 @@ namespace OpenMS
       for (const Feature& feature : feature_name_map.at(elem.second)) {
         const String name1 = elem.second + "_" + String(feature.getUniqueId());
         if (variables.count(name1) == 0) {
-            constraints.push_back(addVariable(problem, name1, true, compute_score(feature)));
+            constraints.push_back(addVariable_(problem, name1, true, computeScore_(feature)));
             variables.insert(name1);
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
-      addConstraint(problem, constraints, constraints_values, elem.second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
+      addConstraint_(problem, constraints, constraints_values, elem.second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
@@ -114,11 +114,11 @@ namespace OpenMS
     }
   }
 
-  String MRMFeatureSelector::remove_spaces(String str) const
+  String MRMFeatureSelector::removeSpaces_(String str) const
   {
     String::iterator end_pos = std::remove(str.begin(), str.end(), ' ');
     str.erase(end_pos, str.end());
-    return std::move(str);
+    return str;
   }
 
   void MRMFeatureSelectorQMIP::optimize(
@@ -144,14 +144,14 @@ namespace OpenMS
         const String name1 = time_to_name[cnt1].second + "_" + String(feature_row1[i].getUniqueId());
 
         if (variables.count(name1) == 0) {
-          constraints.push_back(addVariable(problem, name1, true, 0));
+          constraints.push_back(addVariable_(problem, name1, true, 0));
           variables.insert(name1);
           ++n_variables;
         } else {
           constraints.push_back(problem.getColumnIndex(name1));
         }
 
-        double score_1 = compute_score(feature_row1[i]);
+        double score_1 = computeScore_(feature_row1[i]);
         const size_t n_score_weights = getScoreWeights().size();
 
         if (n_score_weights > 1) {
@@ -173,7 +173,7 @@ namespace OpenMS
           for (size_t j = 0; j < feature_row2.size(); ++j) {
             const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
             if (variables.count(name2) == 0) {
-              addVariable(problem, name2, true, 0);
+              addVariable_(problem, name2, true, 0);
               variables.insert(name2);
               ++n_variables;
             }
@@ -184,13 +184,13 @@ namespace OpenMS
             // Save current variable type to later set it back to the same value
             const String prev_variable_type = getVariableType();
             setVariableType("continuous");
-            const Int index_var_qp = addVariable(problem, var_qp_name, true, 0);
-            const Int index_var_abs = addVariable(problem, var_qp_name + "-ABS", false, 1);
+            const Int index_var_qp = addVariable_(problem, var_qp_name, true, 0);
+            const Int index_var_abs = addVariable_(problem, var_qp_name + "-ABS", false, 1);
             setVariableType(prev_variable_type);
 
             const Int index2 = problem.getColumnIndex(name2);
 
-            double score_2 = compute_score(feature_row2[j]);
+            double score_2 = computeScore_(feature_row2[j]);
             if (n_score_weights > 1) {
               score_2 = std::pow(score_2, 1.0 / n_score_weights);
             }
@@ -198,12 +198,12 @@ namespace OpenMS
             const double tr_delta = feature_row1[i].getRT() - feature_row2[j].getRT();
             const double score = locality_weight * score_1 * score_2 * (tr_delta - tr_delta_expected);
 
-            addConstraint(problem, {index1, index_var_qp}, {1.0, -1.0}, var_qp_name + "-QP1", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
-            addConstraint(problem, {index2, index_var_qp}, {1.0, -1.0}, var_qp_name + "-QP2", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
-            addConstraint(problem, {index1, index2, index_var_qp}, {1.0, 1.0, -1.0}, var_qp_name + "-QP3", 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY);
+            addConstraint_(problem, {index1, index_var_qp}, {1.0, -1.0}, var_qp_name + "-QP1", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
+            addConstraint_(problem, {index2, index_var_qp}, {1.0, -1.0}, var_qp_name + "-QP2", 0.0, 1.0, LPWrapper::LOWER_BOUND_ONLY);
+            addConstraint_(problem, {index1, index2, index_var_qp}, {1.0, 1.0, -1.0}, var_qp_name + "-QP3", 0.0, 1.0, LPWrapper::UPPER_BOUND_ONLY);
             std::vector<Int> indices_abs = {index_var_abs, index_var_qp};
-            addConstraint(problem, indices_abs, {-1.0, score}, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
-            addConstraint(problem, indices_abs, {-1.0, -score}, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
+            addConstraint_(problem, indices_abs, {-1.0, score}, var_qp_name + "-obj+", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
+            addConstraint_(problem, indices_abs, {-1.0, -score}, var_qp_name + "-obj-", -1.0, 0.0, LPWrapper::UPPER_BOUND_ONLY);
 
             n_constraints += 5;
             n_variables += 2;
@@ -211,7 +211,7 @@ namespace OpenMS
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
-      addConstraint(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
+      addConstraint_(problem, constraints, constraints_values, time_to_name[cnt1].second + "_constraint", 1.0, 1.0, LPWrapper::DOUBLE_BOUNDED);
       ++n_constraints;
     }
     LPWrapper::SolverParam param;
@@ -225,7 +225,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureSelector::constructToList(
+  void MRMFeatureSelector::constructTargTransList_(
     const FeatureMap& features,
     std::vector<std::pair<double, String>>& time_to_name,
     std::map<String, std::vector<Feature>>& feature_name_map
@@ -235,7 +235,7 @@ namespace OpenMS
     feature_name_map.clear();
     std::unordered_set<std::string> names;
     for (const Feature& feature : features) {
-      const String component_group_name = remove_spaces(feature.getMetaValue("PeptideRef").toString());
+      const String component_group_name = removeSpaces_(feature.getMetaValue("PeptideRef").toString());
       const double assay_retention_time = feature.getMetaValue("assay_rt");
       if (names.count(component_group_name) == 0) {
         time_to_name.push_back(std::make_pair(assay_retention_time, component_group_name));
@@ -249,7 +249,7 @@ namespace OpenMS
         continue;
       }
       for (const Feature& subordinate : feature.getSubordinates()) {
-        const String component_name = remove_spaces(subordinate.getMetaValue("native_id").toString());
+        const String component_name = removeSpaces_(subordinate.getMetaValue("native_id").toString());
         if (names.count(component_name)) {
           time_to_name.push_back(std::make_pair(assay_retention_time, component_name));
           names.insert(component_name);
@@ -268,7 +268,7 @@ namespace OpenMS
 
     std::vector<std::pair<double, String>> time_to_name;
     std::map<String, std::vector<Feature>> feature_name_map;
-    constructToList(features, time_to_name, feature_name_map);
+    constructTargTransList_(features, time_to_name, feature_name_map);
 
     sort(time_to_name.begin(), time_to_name.end());
     Int window_length = getSegmentWindowLength();
@@ -294,8 +294,8 @@ namespace OpenMS
       std::vector<Feature> subordinates_filtered;
       for (const Feature& subordinate : feature.getSubordinates()) {
         const String feature_name = getSelectTransitionGroup()
-          ? remove_spaces(feature.getMetaValue("PeptideRef").toString()) + "_" + String(feature.getUniqueId())
-          : remove_spaces(subordinate.getMetaValue("native_id").toString()) + "_" + String(feature.getUniqueId());
+          ? removeSpaces_(feature.getMetaValue("PeptideRef").toString()) + "_" + String(feature.getUniqueId())
+          : removeSpaces_(subordinate.getMetaValue("native_id").toString()) + "_" + String(feature.getUniqueId());
 
         if (result_names_set.count(feature_name)) {
           subordinates_filtered.push_back(subordinate);
@@ -309,17 +309,17 @@ namespace OpenMS
     }
   }
 
-  double MRMFeatureSelector::compute_score(const Feature& feature) const
+  double MRMFeatureSelector::computeScore_(const Feature& feature) const
   {
     double score_1 = 1.0;
     for (const std::pair<String,String>& score_weight : score_weights_) {
       const String& metavalue_name = score_weight.first;
       const String& lambda_score = score_weight.second;
       if (!feature.metaValueExists(metavalue_name)) {
-        LOG_WARN << "compute_score(): Metavalue \"" << metavalue_name << "\" not found.";
+        LOG_WARN << "computeScore_(): Metavalue \"" << metavalue_name << "\" not found.";
         continue;
       }
-      const double value = weight_func(feature.getMetaValue(metavalue_name), lambda_score);
+      const double value = weightScore_(feature.getMetaValue(metavalue_name), lambda_score);
       if (value > 0.0) {
         score_1 *= value;
       }
@@ -327,10 +327,10 @@ namespace OpenMS
     return score_1;
   }
 
-  double MRMFeatureSelector::weight_func(const double score, const String& lambda_score) const
+  double MRMFeatureSelector::weightScore_(const double score, const String& lambda_score) const
   {
-    if (lambda_score == "lambda score: score*1.0") {
-      return score * 1.0; // TODO: hardcoded value, but it might actually be different than 1.0
+    if (       lambda_score == "lambda score: score*1.0") {
+      return score;
     } else if (lambda_score == "lambda score: 1/score") {
       return 1.0 / score;
     } else if (lambda_score == "lambda score: log(score)") {
@@ -340,7 +340,8 @@ namespace OpenMS
     } else if (lambda_score == "lambda score: 1/log10(score)") {
       return 1.0 / std::log10(score);
     } else {
-      throw "Case not handled.";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__,
+        "`lambda_score`'s value is not handled by any current condition.");
     }
   }
 

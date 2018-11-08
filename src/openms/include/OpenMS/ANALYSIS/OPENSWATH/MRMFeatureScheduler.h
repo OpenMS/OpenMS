@@ -44,6 +44,9 @@
 
 namespace OpenMS
 {
+  /**
+    Class used to schedule multiple calls to `MRMFeatureSelector`
+  */
   class OPENMS_DLLAPI MRMFeatureScheduler
   {
 public:
