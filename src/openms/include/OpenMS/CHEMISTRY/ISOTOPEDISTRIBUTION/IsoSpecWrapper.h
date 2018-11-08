@@ -38,6 +38,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <OpenMS/KERNEL/Peak1D.h>
 
@@ -336,7 +337,11 @@ public:
   IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula);
 
   virtual IsotopeDistribution run() override final
-  { throw std::logic_error("There is no stop condition in OrderedGenerator - therefore it only makes sense to use it as a generator"); };
+  { 
+    Exception::NotImplemented exc(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    exc.setMessage(std::string("There is no stop condition in OrderedGenerator - therefore it only makes sense to use it as a generator"));
+    throw exc;
+  };
 
   virtual inline bool nextConf() override final { return IOG.advanceToNextConfiguration(); };
   virtual inline Peak1D getConf() override final { return Peak1D(IOG.mass(), IOG.prob()); };
