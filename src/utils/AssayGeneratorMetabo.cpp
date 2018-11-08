@@ -52,6 +52,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -142,9 +143,13 @@ protected:
     registerDoubleOption_("sn_win_len", "<num>", 200, "Window length in Thomson - for each datapoint in the given scan, we collect a range of data points around it", false, true);
     registerIntOption_("sn_min_required_elements", "<num>", 10, "Minimum number of elements required in a window (otherwise it is considered sparse)", false, true);
 
-    registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
-    registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
-    setValidStrings_("precursor_mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+    registerDoubleOption_("fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks (Deisotoping)", false);
+    registerStringOption_("fragment_unit", "<choice>", "ppm", "Unit of the fragment tolerance", false);
+    setValidStrings_("fragment_unit", ListUtils::create<String>("ppm,Da"));
+
+    registerDoubleOption_("precursor_mz_tolerance", "<num>", 10, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
+    registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "ppm", "Unit of the precursor_mz_tolerance", false);
+    setValidStrings_("precursor_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
 
     registerDoubleOption_("precursor_mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
 
@@ -522,6 +527,10 @@ protected:
     int min_transitions = getIntOption_("min_transitions");
     int max_transitions = getIntOption_("max_transitions");
 
+    double fragment_tolerance = getDoubleOption_("fragment_tolerance");
+    String fragment_unit = getStringOption_("fragment_unit");
+    bool fragment_unit_ppm = fragment_unit == "ppm" ? true : false;
+
     double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
     String unit_prec = getStringOption_("precursor_mz_tolerance_unit");
     bool ppm_prec = unit_prec == "ppm" ? true : false;
@@ -646,6 +655,37 @@ protected:
       vector<double> mzs;
       vector<double> rts;
       PrecursorCorrection::correctToHighestIntensityMS1Peak(spectra, pre_recal_win, ppm_recal, delta_mzs, mzs, rts);
+       
+      // deisotope spectra for transition extraction - run this after SIRIUS
+      int min_charge = 1;
+      int max_charge = 1;
+      bool keep_only_deisotoped = false;
+      unsigned int min_isopeaks = 2;
+      unsigned int max_isopeaks = 8;
+      bool make_single_charged = false;
+      bool annotate_charge = false;
+
+      for (auto peakmap_it : spectra)
+      {
+        MSSpectrum spectrum = peakmap_it;
+        if (spectrum.getMSLevel() == 1) 
+        {
+          continue;
+        }
+        else 
+        {
+          Deisotoper::deisotopeAndSingleCharge(spectrum,
+                                   fragment_tolerance,
+                                   fragment_unit_ppm,
+                                   min_charge,
+                                   max_charge,
+                                   keep_only_deisotoped,
+                                   min_isopeaks,
+                                   max_isopeaks,
+                                   make_single_charged,
+                                   annotate_charge);
+        }
+      }
 
       // filter feature by number of masstraces
       auto map_it = remove_if(feature_map.begin(), feature_map.end(),
@@ -716,12 +756,11 @@ protected:
 
     // additional filter steps:
 
-    // TODO: add further filters
-    // TODO: think about if other filters are necessary
+    // heuristic if no annotation is present
+    // e.g. if anntation is present
+    // filter the ones without 
 
-    // TODO: filter: precursor
-
-    // TODO: filter: isotopes (+1/-1 Da)
+    // TODO: filter: precursor -> MRM Assay
 
     // filter: min/max transitions
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);

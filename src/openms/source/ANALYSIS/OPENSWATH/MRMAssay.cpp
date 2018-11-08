@@ -1010,9 +1010,6 @@ namespace OpenMS
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 
-    //TODO: Filter for precursor mz before Instenisty Filtering
-
-
     for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
@@ -1025,6 +1022,8 @@ namespace OpenMS
         {
           LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
         }
+   
+        // TODO: Filter for precursor mz before Instenisty Filtering (?)
 
         // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
         std::sort(LibraryIntensity.begin(), LibraryIntensity.end());
