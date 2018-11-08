@@ -162,6 +162,8 @@ protected:
     registerOutputFile_("exp_ms2_out", "<file>", "", "Output file: experimental MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("exp_ms2_out", ListUtils::create<String>("mzML"));
 
+    registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", true);
+
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around uncharged precursor mass)", false);
 
@@ -178,9 +180,6 @@ protected:
     // Whether to look for precursors with salt adducts
     registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses", false);
     registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("Na:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
-
-    // Whether we single charge the MS2s prior to scoring
-    registerFlag_("precursor:decharge_ms2", "Decharge the MS2 spectra for scoring", false);
 
     // consider one before annotated monoisotopic peak and the annotated one
     IntList isotopes = {0, 1, 2, 3, 4};
