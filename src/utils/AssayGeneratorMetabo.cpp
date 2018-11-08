@@ -51,6 +51,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -217,61 +218,6 @@ protected:
   {
       return (a.getIntensity() < b.getIntensity());
   }
-
-  // map with closest feature to index of ms2 spectra
-  map<const BaseFeature*, std::vector<size_t>> mappingFeatureToMS2Index(const PeakMap& spectra,
-                                                                        const KDTreeFeatureMaps& fp_map_kd,
-                                                                        const double& precursor_mz_tolerance,
-                                                                        const double& precursor_rt_tolerance,
-                                                                        bool ppm)
-  {
-    map<const BaseFeature*, vector<size_t>> feature_ms2_spectra_map;
-
-    // map precursors to closest feature and retrieve annotated metadata (if possible)
-    for (size_t index = 0; index != spectra.size(); ++index)
-    {
-      if (spectra[index].getMSLevel() != 2) { continue; }
-
-      // get precursor meta data (m/z, rt)
-      const vector<Precursor> & pcs = spectra[index].getPrecursors();
-
-      if (!pcs.empty())
-      {
-        const double mz = pcs[0].getMZ();
-        const double rt = spectra[index].getRT();
-
-        // query features in tolerance window
-        vector<Size> matches;
-
-        // get mz tolerance window
-        std::pair<double,double> mz_tolerance_window = Math::getTolWindow(mz, precursor_mz_tolerance, ppm);
-        fp_map_kd.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz_tolerance_window.first, mz_tolerance_window.second, matches, true);
-
-        // no precursor matches the feature information found
-        if (matches.empty()) { continue; }
-
-        // in the case of multiple features in tolerance window, select the one closest in m/z to the precursor
-        Size min_distance_feature_index(0);
-        double min_distance(1e11);
-        for (auto const & k_idx : matches)
-        {
-          const double f_mz = fp_map_kd.mz(k_idx);
-          const double distance = fabs(f_mz - mz);
-          if (distance < min_distance)
-          {
-            min_distance = distance;
-            min_distance_feature_index = k_idx;
-          }
-        }
-        const BaseFeature* min_distance_feature = fp_map_kd.feature(min_distance_feature_index);
-
-        feature_ms2_spectra_map[min_distance_feature].push_back(index);
-      }
-    }
-    return feature_ms2_spectra_map;
-  }
-
-
 
   vector<PotentialTransitions> extractPotentialTransitions(const PeakMap& spectra,
                                                            const map<BaseFeature const *, vector<size_t>>& feature_ms2_spectra_map,
@@ -714,26 +660,26 @@ protected:
       vector<FeatureMap> v_fp;
       v_fp.push_back(feature_map);
       fp_map_kd.addMaps(v_fp);
+      
+      // allocate ms2 spectra to feature within the minimal distance
+      FeatureMapping::FeatureToMs2Indices feature_mapping = FeatureMapping::assignMS2IndexToFeature(spectra,   
+                                                                                                    fp_map_kd,
+                                                                                                    precursor_mz_tol,
+                                                                                                    precursor_rt_tol,
+                                                                                                    ppm_prec);
 
-      // read FeatureMap in KDTree for feature-precursor assignment
-      // only spectra with precursors are in the map - no need to check for presence of precursors
-      map<const BaseFeature *, std::vector<size_t> > feature_ms2_spectra_map = mappingFeatureToMS2Index(spectra,
-                                                                                                        fp_map_kd,
-                                                                                                        precursor_mz_tol,
-                                                                                                        precursor_rt_tol,
-                                                                                                        ppm_prec);
+      std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
 
       // potential transitions of one file
-      vector<PotentialTransitions> tmp_pts;
-      tmp_pts = extractPotentialTransitions(spectra,
-                                            feature_ms2_spectra_map,
-                                            precursor_rt_tol,
-                                            precursor_mz_distance,
-                                            cosine_sim_threshold,
-                                            transition_threshold,
-                                            use_known_unknowns,
-                                            method_consensus_spectrum,
-                                            file_counter);
+      vector<PotentialTransitions> tmp_pts = extractPotentialTransitions(spectra,
+                                                                         feature_ms2_spectra_map,
+                                                                         precursor_rt_tol,
+                                                                         precursor_mz_distance,
+                                                                         cosine_sim_threshold,
+                                                                         transition_threshold,
+                                                                         use_known_unknowns,
+                                                                         method_consensus_spectrum,
+                                                                         file_counter);
 
       // append potential transitions of one file to vector of all files
       v_pts.insert(v_pts.end(), tmp_pts.begin(),tmp_pts.end());
