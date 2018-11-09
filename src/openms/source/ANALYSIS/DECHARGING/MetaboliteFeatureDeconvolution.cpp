@@ -959,9 +959,9 @@ namespace OpenMS
         if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists("dc_charge_adducts"))
         {
           it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("dc_charge_adducts"));
-          // also add consensusID of group to feature_relation
-          fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue("Group", it->getUniqueId());
         }
+        // also add consensusID of group to all feature_relation
+        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue("Group", String(it->getUniqueId()));
       }
 
       // store number of distinct charges
@@ -1022,11 +1022,6 @@ namespace OpenMS
         f_single.setMetaValue("dc_charge_adducts", (default_ef  * abs(f_single.getCharge())).toString());
         f_single.setMetaValue("dc_charge_adduct_mass", (default_adduct.getSingleMass() * abs(f_single.getCharge())));
       }
-      //What happens with charge 0 features? We can do normal annotation and at end set mz to feature mz?
-      //something like
-      //const double orig_mz = f_single.getMZ();
-      //and set consensusmz at end to that?
-
 
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 
@@ -1044,6 +1039,9 @@ namespace OpenMS
 
         cf.removeMetaValue(*it);
       }
+      // Nedd to set userParam Group output feature map features for singletons here
+      fm_out[i].setMetaValue("Group", String(cf.getUniqueId()));
+
 
       cons_map.push_back(cf);
       cons_map.back().computeDechargeConsensus(fm_out);//previously used fm_out_untouched. does fm_out also work?
