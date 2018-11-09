@@ -1,4 +1,5 @@
 from libcpp.vector cimport vector as libcpp_vector
+from libcpp.set cimport set as libcpp_set
 from String cimport *
 from StringList cimport *
 from ModificationDefinition cimport *
