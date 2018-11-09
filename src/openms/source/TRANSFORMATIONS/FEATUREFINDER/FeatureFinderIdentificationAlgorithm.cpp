@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -207,6 +207,16 @@ namespace OpenMS
 
     double rt_uncertainty(0);
     bool with_external_ids = !peptides_ext.empty();
+
+    if (with_external_ids && !seeds.empty())
+    {
+      throw Exception::IllegalArgument(
+        __FILE__, 
+        __LINE__, 
+        OPENMS_PRETTY_FUNCTION, 
+        "Using seeds and external ids is currently not supported.");
+    }
+
     if (with_external_ids)
     {
       // align internal and external IDs to estimate RT shifts:
@@ -365,12 +375,11 @@ namespace OpenMS
               << " chromatogram(s)." << endl;
 
     LOG_INFO << "Detecting chromatographic peaks..." << endl;
-    Log_info.remove(cout); // suppress status output from OpenSWATH
+    // suppress status output from OpenSWATH, unless in debug mode:
+    if (debug_level_ < 1) Log_info.remove(cout);
     feat_finder_.pickExperiment(chrom_data_, features, library_,
                                 TransformationDescription(), ms_data_);
-    Log_info.insert(cout);
-    cout << "Found " << features.size() << " feature candidates in total."
-         << endl;
+    if (debug_level_ < 1) Log_info.insert(cout); // revert logging change
     LOG_INFO << "Found " << features.size() << " feature candidates in total."
              << endl;
     ms_data_.reset(); // not needed anymore, free up the memory

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,22 +50,26 @@ namespace OpenMS
     public SampleTreatment
   {
 public:
-    /// default constructor
+    /// Default constructor
     Digestion();
-    /// copy constructor
-    Digestion(const Digestion &);
-    /// destructor
+    /// Copy constructor
+    Digestion(const Digestion &) = default;
+    /// Move constructor
+    Digestion(Digestion&&) = default;
+    /// Destructor
     ~Digestion() override;
 
-    /// assignment operator
-    Digestion & operator=(const Digestion &);
+    /// Assignment operator
+    Digestion & operator=(const Digestion &) = default;
+    /// Move assignment operator
+    Digestion& operator=(Digestion&&) & = default;
 
     /**
-        @brief Equality operator
+      @brief Equality operator
 
-    Although this operator takes a reference to a SampleTreatment as argument
-    it tests for the equality of Tagging instances!
-  */
+      Although this operator takes a reference to a SampleTreatment as argument
+      it tests for the equality of Tagging instances!
+    */
     bool operator==(const SampleTreatment & rhs) const override;
 
     /// clone method. See SampleTreatment

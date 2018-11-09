@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,15 @@ namespace OpenMS
     for (UInt i = 0; i < number_of_maps; i++)
     {
       ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
-      if (it == map.getColumnHeaders().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      if (it == map.getColumnHeaders().end()) 
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      } else if (i >= feature_int.size())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String(i) + " exceeds map number");
+      }
+       
       feature_int[i].reserve(it->second.size);
 
       if (it->second.size > map_with_most_features->second.size)

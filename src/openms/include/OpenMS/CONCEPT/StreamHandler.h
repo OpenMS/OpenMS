@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,9 +37,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <map>
 #include <ostream>
-
-using std::ostream;
-using std::map;
 
 namespace OpenMS
 {
@@ -124,8 +121,7 @@ public:
      *
      * @return A reference to the requested stream.
      */
-    ostream & getStream(StreamType const type, const String & stream_name);
-
+    std::ostream & getStream(StreamType const type, const String & stream_name);
 
     /**
      * @brief Returns true if the stream @p stream_name with type @p type is
@@ -140,9 +136,9 @@ public:
 
 protected:
 
-    map<String, ostream *>  name_to_stream_map_;  ///< Maps all registered stream names to the corresponding std::ostream.
-    map<String, StreamType> name_to_type_map_;  ///< Maps all registered stream names to the corresponding StreamHandler::StreamType
-    map<String, Size>      name_to_counter_map_;   ///< Maps all registered stream names to the number of times it was registered. If the counter goes to zero, the stream will be closed and removed.
+    std::map<String, std::ostream *>  name_to_stream_map_;  ///< Maps all registered stream names to the corresponding std::ostream.
+    std::map<String, StreamType> name_to_type_map_;  ///< Maps all registered stream names to the corresponding StreamHandler::StreamType
+    std::map<String, Size>      name_to_counter_map_;   ///< Maps all registered stream names to the number of times it was registered. If the counter goes to zero, the stream will be closed and removed.
 
     /**
      * @brief Creates a stream with the given type and the given name.
@@ -152,7 +148,7 @@ protected:
      *
      * @return A pointer to the created stream.
      */
-    ostream * createStream_(const StreamType type, const String & stream_name);
+    std::ostream * createStream_(const StreamType type, const String & stream_name);
 
 private:
     // copy constructor and assignment operator are hidden to avoid

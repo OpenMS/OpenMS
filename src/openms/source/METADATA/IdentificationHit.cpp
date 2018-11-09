@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,39 +50,8 @@ namespace OpenMS
   {
   }
 
-  IdentificationHit::IdentificationHit(const IdentificationHit & rhs) :
-    MetaInfoInterface(rhs),
-    id_(rhs.id_),
-    charge_(rhs.charge_),
-    calculated_mass_to_charge_(rhs.calculated_mass_to_charge_),
-    experimental_mass_to_charge_(rhs.experimental_mass_to_charge_),
-    name_(rhs.name_),
-    pass_threshold_(rhs.pass_threshold_),
-    rank_(rhs.rank_)
-  {
-  }
-
   IdentificationHit::~IdentificationHit()
   {
-  }
-
-  IdentificationHit & IdentificationHit::operator=(const IdentificationHit & rhs)
-  {
-    if (this == &rhs)
-    {
-      return *this;
-    }
-
-    MetaInfoInterface::operator=(rhs);
-    id_ = rhs.id_;
-    charge_ = rhs.charge_;
-    calculated_mass_to_charge_ = rhs.calculated_mass_to_charge_;
-    experimental_mass_to_charge_ = rhs.experimental_mass_to_charge_;
-    name_ = rhs.name_;
-    pass_threshold_ = rhs.pass_threshold_;
-    rank_ = rhs.rank_;
-
-    return *this;
   }
 
   // Equality operator
@@ -175,3 +144,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

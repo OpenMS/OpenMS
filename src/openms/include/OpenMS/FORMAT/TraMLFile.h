@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,18 @@ namespace OpenMS
 
   /**
       @brief File adapter for HUPO PSI TraML files
+
+      TraML files contain information about transitions used for targeted
+      proteomics and metabolomics experiments:
+
+      Deutsch et al. "TraML--a standard format for exchange of selected reaction monitoring transition lists."
+      Mol Cell Proteomics. 2012 Apr;11(4):R111.015040. doi: 10.1074/mcp.R111.015040. 
+
+      In OpenMS, TraML files can be generated from TSV or CSV files using the
+      @ref OpenMS::TransitionTSVFile "TransitionTSVFile class" or the @ref
+      UTILS_TargetedFileConverter "TargetedFileConverter TOPP Tool". For more information on the TSV format required by the TOPP tool, see
+      see also the documentation of @ref
+      OpenMS::TransitionTSVFile "TransitionTSVFile".
 
       @ingroup FileIO
   */

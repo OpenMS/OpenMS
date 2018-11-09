@@ -28,6 +28,8 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         double getProductMZ() nogil except +
         double getPrecursorMZ() nogil except +
 
+        libcpp_string getCompoundRef() nogil except +
+
         # Detecting / quantifying / identifying transitions
         void setDetectingTransition (bool d) nogil except +
         bool isDetectingTransition() nogil except +
@@ -48,6 +50,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         LightCompound(LightCompound) nogil except +
 
         double rt
+        double drift_time
         int charge
         libcpp_string sequence
         libcpp_vector[libcpp_string] protein_refs
@@ -57,6 +60,9 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
         libcpp_string compound_name
 
         libcpp_vector[LightModification] modifications
+
+        void setDriftTime(double d) nogil except +
+        double getDriftTime() nogil except +
 
         int getChargeState() nogil except +
         bool isPeptide() nogil except +

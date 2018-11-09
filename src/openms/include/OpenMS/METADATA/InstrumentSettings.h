@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,21 +51,21 @@ public:
     /// scan mode
     enum ScanMode
     {
-      UNKNOWN,                      ///< Unknown scan method
-      MASSSPECTRUM,       ///< general spectrum type
-      MS1SPECTRUM,              ///< full scan mass spectrum, is a "mass spectrum" @n Synonyms: 'full spectrum', 'Q1 spectrum', 'Q3 spectrum', 'Single-Stage Mass Spectrometry'
-      MSNSPECTRUM,        ///< MS2+ mass spectrum, is a "mass spectrum"
-      SIM,                              ///< Selected ion monitoring scan @n Synonyms: 'Multiple ion monitoring scan', 'SIM scan', 'MIM scan'
-      SRM,                              ///< Selected reaction monitoring scan @n Synonyms: 'Multiple reaction monitoring scan', 'SRM scan', 'MRM scan'
-      CRM,                              ///< Consecutive reaction monitoring scan @n Synonyms: 'CRM scan'
-      CNG,                              ///< Constant neutral gain scan @n Synonyms: 'CNG scan'
-      CNL,                              ///< Constant neutral loss scan @n Synonyms: 'CNG scan'
-      PRECURSOR,                ///< Precursor ion scan
-      EMC,                              ///< Enhanced multiply charged scan
-      TDF,                              ///< Time-delayed fragmentation scan
-      EMR,                              ///< Electromagnetic radiation scan @n Synonyms: 'EMR spectrum'
-      EMISSION,                     ///< Emission scan
-      ABSORPTION,               ///< Absorption scan
+      UNKNOWN,          ///< Unknown scan method
+      MASSSPECTRUM,     ///< general spectrum type
+      MS1SPECTRUM,      ///< full scan mass spectrum, is a "mass spectrum" @n Synonyms: 'full spectrum', 'Q1 spectrum', 'Q3 spectrum', 'Single-Stage Mass Spectrometry'
+      MSNSPECTRUM,      ///< MS2+ mass spectrum, is a "mass spectrum"
+      SIM,              ///< Selected ion monitoring scan @n Synonyms: 'Multiple ion monitoring scan', 'SIM scan', 'MIM scan'
+      SRM,              ///< Selected reaction monitoring scan @n Synonyms: 'Multiple reaction monitoring scan', 'SRM scan', 'MRM scan'
+      CRM,              ///< Consecutive reaction monitoring scan @n Synonyms: 'CRM scan'
+      CNG,              ///< Constant neutral gain scan @n Synonyms: 'CNG scan'
+      CNL,              ///< Constant neutral loss scan @n Synonyms: 'CNG scan'
+      PRECURSOR,        ///< Precursor ion scan
+      EMC,              ///< Enhanced multiply charged scan
+      TDF,              ///< Time-delayed fragmentation scan
+      EMR,              ///< Electromagnetic radiation scan @n Synonyms: 'EMR spectrum'
+      EMISSION,         ///< Emission scan
+      ABSORPTION,       ///< Absorption scan
       SIZE_OF_SCANMODE
     };
 
@@ -75,12 +75,16 @@ public:
     /// Constructor
     InstrumentSettings();
     /// Copy constructor
-    InstrumentSettings(const InstrumentSettings & source);
+    InstrumentSettings(const InstrumentSettings &) = default;
+    /// Move constructor
+    InstrumentSettings(InstrumentSettings&&) = default;
     /// Destructor
     ~InstrumentSettings();
 
     /// Assignment operator
-    InstrumentSettings & operator=(const InstrumentSettings & source);
+    InstrumentSettings & operator=(const InstrumentSettings &) = default;
+    /// Move assignment operator
+    InstrumentSettings& operator=(InstrumentSettings&&) & = default;
 
     /// Equality operator
     bool operator==(const InstrumentSettings & rhs) const;

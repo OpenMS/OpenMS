@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -213,7 +213,6 @@ if(ENABLE_DOCS)
       COMMAND ${CMAKE_COMMAND} -E remove_directory html
       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile
       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-      COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
       COMMAND ${CMAKE_COMMAND} -E echo ""
       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
       COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
@@ -262,7 +261,6 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-                      COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
@@ -282,7 +280,6 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E remove_directory html
                       COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_noclass
                       COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-                      COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
@@ -308,7 +305,6 @@ if(ENABLE_DOCS)
                         COMMAND ${CMAKE_COMMAND} -E remove_directory html-dot
                         COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile_dot
                         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-                        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
                         COMMAND ${CMAKE_COMMAND} -E echo ""
                         COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                         COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."

@@ -18,6 +18,8 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS":
 
         void debug(bool enable) nogil except +
 
+        double derivatives(double x, unsigned order) nogil except +
+
 cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS::BSpline2d":
 
     cdef enum BoundaryCondition:

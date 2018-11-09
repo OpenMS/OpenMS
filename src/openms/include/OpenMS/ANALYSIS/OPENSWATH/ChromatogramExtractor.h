@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
 namespace OpenMS
 {
@@ -257,13 +258,15 @@ public:
                                     std::vector< ExtractionCoordinates > & coordinates,
                                     const OpenMS::TargetedExperiment & transition_exp,
                                     const double rt_extraction_window,
-                                    const bool ms1);
+                                    const bool ms1 = false,
+                                    const int ms1_isotopes = 0);
 
     static void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
                                     std::vector< ExtractionCoordinates > & coordinates,
                                     const OpenSwath::LightTargetedExperiment & transition_exp_used,
                                     const double rt_extraction_window,
-                                    const bool ms1);
+                                    const bool ms1 = false,
+                                    const int ms1_isotopes = 0);
 
     /**
      * @brief This converts the ChromatogramPtr to MSChromatogram and adds meta-information.
@@ -276,6 +279,7 @@ public:
      * 5) the meta-data, e.g. InstrumentSettings, AcquisitionInfo, 
      *     sourceFile and DataProcessing
      * 6) the native ID from the transition
+     * 7) ion mobility extraction target and window (lower/upper)
      *
      */
     template <typename TransitionExpT>
@@ -284,7 +288,8 @@ public:
                                     TransitionExpT& transition_exp_used,
                                     SpectrumSettings settings,
                                     std::vector<OpenMS::MSChromatogram > & output_chromatograms,
-                                    bool ms1)
+                                    bool ms1,
+                                    double im_extraction_width = 0.0)
     {
       typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
       TransitionMapType trans_map;
@@ -315,10 +320,14 @@ public:
 
           // extract compound / peptide id from transition and store in
           // more-or-less default field
-          int prec_charge = 0;
-          String r = extract_id_(transition_exp_used, coord.id, prec_charge);
-          prec.setCharge(prec_charge);
-          prec.setMetaValue("peptide_sequence", r);
+          String transition_group_id = OpenSwathHelper::computeTransitionGroupId(coord.id);
+          if (!transition_group_id.empty())
+          {
+            int prec_charge = 0;
+            String r = extract_id_(transition_exp_used, transition_group_id, prec_charge);
+            prec.setCharge(prec_charge);
+            prec.setMetaValue("peptide_sequence", r);
+          }
         }
         else 
         {
@@ -353,6 +362,13 @@ public:
             prec.setCharge(prec_charge);
             prec.setMetaValue("peptide_sequence", r);
           }
+        }
+
+        if (coord.ion_mobility >= 0 && im_extraction_width > 0.0)
+        {
+          prec.setDriftTime(coord.ion_mobility);
+          prec.setDriftTimeWindowLowerOffset(im_extraction_width / 2.0);
+          prec.setDriftTimeWindowUpperOffset(im_extraction_width / 2.0);
         }
         chrom.setPrecursor(prec);
 

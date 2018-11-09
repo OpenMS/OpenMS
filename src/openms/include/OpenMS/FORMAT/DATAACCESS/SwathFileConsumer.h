@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -245,6 +245,7 @@ public:
           {
             found = true;
             consumeSwathSpectrum_(s, i);
+            break;
           }
         }
         if (!found)
@@ -452,8 +453,8 @@ protected:
       {
         addNewSwathMap_();
       }
-      swath_consumers_[swath_nr]->consumeSpectrum(s);
-      swath_maps_[swath_nr]->addSpectrum(s); // append for the metadata (actual data is deleted)
+      swath_consumers_[swath_nr]->consumeSpectrum(s); // write data to cached file; clear data from spectrum s
+      swath_maps_[swath_nr]->addSpectrum(s); // append for the metadata (actual data was deleted)
     }
 
     void addMS1Map_()

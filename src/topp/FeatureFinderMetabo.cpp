@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -285,12 +285,7 @@ protected:
     ffm_param.setValue("report_chromatograms", report_chromatograms);
 
     FeatureMap feat_map;
-    StringList ms_runs;
-    ms_peakmap.getPrimaryMSRunPath(ms_runs);
-    feat_map.setPrimaryMSRunPath(ms_runs);
-
     std::vector< std::vector< OpenMS::MSChromatogram > > feat_chromatograms;
-
     FeatureFindingMetabo ffmet;
     ffmet.setParameters(ffm_param);
     ffmet.run(m_traces_final, feat_map, feat_chromatograms);
@@ -366,10 +361,15 @@ protected:
     // annotate output with data processing info
     addDataProcessing_(feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
 
+    // annotate "spectra_data" metavalue
+    StringList ms_runs;
+    ms_peakmap.getPrimaryMSRunPath(ms_runs);
+    feat_map.setPrimaryMSRunPath(ms_runs);
+
     FeatureXMLFile feature_xml_file;
     feature_xml_file.setLogType(log_type_);
     feature_xml_file.store(out, feat_map);
-
+  
     return EXECUTION_OK;
   }
 

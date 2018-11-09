@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,85 +33,86 @@
 // --------------------------------------------------------------------------
 
 /**
-	@mainpage %OpenMS / TOPP documentation
+  @mainpage %OpenMS / TOPP documentation
 
-	<TABLE width="100%" bgcolor="#e8eef2" border="0">
-		<TR>
-			<TD width="50%" bgcolor="#cccccc">
-				<H3>The %OpenMS Proteomics Pipeline (TOPP)</H3>
-				Information for TOPP users.
-				<BR>&nbsp;
-			</TD>
-			<TD width="50%" bgcolor="#cccccc">
-				<H3>%OpenMS library</H3>
-					Information for developers (please make sure to read the Developer Quickstart Guide).
-				<BR>&nbsp;
-			</TD>
-		</TR>
+  <TABLE width="100%" bgcolor="#e8eef2" border="0">
+    <TR>
+      <TD width="50%" bgcolor="#cccccc">
+        <H3>The %OpenMS Proteomics Pipeline (TOPP)</H3>
+        Information for TOPP users.
+        <BR>&nbsp;
+      </TD>
+      <TD width="50%" bgcolor="#cccccc">
+        <H3>%OpenMS library</H3>
+          Information for developers (please make sure to read the Developer Quickstart Guide).
+        <BR>&nbsp;
+      </TD>
+    </TR>
 
-		<TR>
-			<TD valign="top">
+    <TR>
+      <TD valign="top">
 
-				<BR>
-				Installation instructions:
-				<UL>
-					<LI> @subpage install_linux_bin
-					<LI> @subpage install_mac_bin
-					<LI> @subpage install_win_bin
-				</UL>
+        <BR>
+        Installation instructions:
+        <UL>
+          <LI> @subpage install_linux_bin
+          <LI> @subpage install_mac_bin
+          <LI> @subpage install_win_bin
+        </UL>
 
-				Documentation:
-				<UL>
-					<LI> @subpage Quickstart
-				  <LI> @subpage TOPP_tutorial
-					<LI> @subpage TOPPAS_tutorial
-				  <LI> @subpage TOPP_documentation
-				  <LI> @subpage UTILS_documentation
-				</UL>
+        Documentation:
+        <UL>
+          <LI> @subpage Quickstart
+          <LI> @subpage TOPP_tutorial
+          <LI> @subpage TOPPAS_tutorial
+          <LI> @subpage TOPP_documentation
+          <LI> @subpage UTILS_documentation
+        </UL>
 
-				Misc:
-				<UL>
-				  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki#contact" target="_blank">Support</a>
-				  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS" target="_blank">Github</a>
-				  <LI> <a class="el" href="https://gitter.im/OpenMS/OpenMS" target="_blank">Gitter chat</a>
-				  <LI> <a class="el" href="https://sourceforge.net/projects/open-ms/lists/open-ms-general" target="_blank">Mailing List</a>
-					<LI> @subpage FAQ
-					<LI> @subpage ChangeLog
-				</UL>
-			</TD>
+        Misc:
+        <UL>
+          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki#contact" target="_blank">Support</a>
+          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS" target="_blank">Github</a>
+          <LI> <a class="el" href="https://gitter.im/OpenMS/OpenMS" target="_blank">Gitter chat</a>
+          <LI> <a class="el" href="https://sourceforge.net/projects/open-ms/lists/open-ms-general" target="_blank">Mailing List</a>
+          <LI> @subpage FAQ
+          <LI> @subpage ChangeLog
+        </UL>
+      </TD>
 
-			<TD valign="top">
+      <TD valign="top">
 
-				<BR>
-				Building instructions:
-				<UL>
-					<LI> @subpage install_linux
-					<LI> @subpage install_mac
-					<LI> @subpage install_win
-				</UL>
+        <BR>
+        Building instructions:
+        <UL>
+          <LI> @subpage install_linux
+          <LI> @subpage install_mac
+          <LI> @subpage install_win
+        </UL>
 
-				Development:
-				<UL>
-                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions" target="_blank">Coding conventions (online)</a>
-                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Developer-FAQ" target="_blank">Developer FAQ (online)</a>
-                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Cpp-Guide" target="_blank">CPP Guide (online)</a>
-				</UL>
+        Development:
+        <UL>
+          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions" target="_blank">Coding conventions (online)</a>
+          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Developer-FAQ" target="_blank">Developer FAQ (online)</a>
+          <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Cpp-Guide" target="_blank">CPP Guide (online)</a>
+        </UL>
 
-				Documentation:
-				<UL>
-				  <LI> @subpage OpenMS_tutorial
-					<LI> @subpage external_code
-				</UL>
+        Documentation:
+        <UL>
+          <LI> @subpage OpenMS_tutorial
+          <LI> <a class="el" href="https://pyopenms.readthedocs.io/en/release_2.4.0/index.html" target="_blank">Developer Python Quickstart Guide (online)</a>
+          <LI> @subpage external_code
+        </UL>
 
-				Misc:
-				<UL>
-					<LI> @subpage known_dev_bugs
-				</UL>
+        Misc:
+        <UL>
+          <LI> @subpage known_dev_bugs
+        </UL>
 
       </TD>
 
-		</TR>
+    </TR>
 
 
-	</TABLE>
+  </TABLE>
 */

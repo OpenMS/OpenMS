@@ -9,9 +9,144 @@ PyOpenMSChecker:
     #  - status Jan 2015 (Release 2.0)
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    # OpenMS::PeakMarker:
-    #     - apply
 
+    OpenMS::PeakMarker:
+      - apply
+    OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern:
+      - peak
+    OpenMS::SqMassFile:
+      - transform
+    OpenMS::AbsoluteQuantitationStandards:
+      - mapComponentsToConcentrations
+    OpenMS::OSWFile:
+      - read
+      - write
+      - store
+    OpenMS::TargetedSpectraExtractor:
+      - matchSpectrum
+      - targetedMatching
+      - untargetedMatching
+    OpenMS::ConsensusMapNormalizerAlgorithmMedian:
+      - passesFilters_
+    OpenMS::SVMData:
+      - sequences # nested STL
+    OpenMS::TheoreticalSpectrumGeneratorXLMS:
+      - updateMembers_
+    OpenMS::Internal::CachedMzMLHandler:
+      - readSpectrumFast
+      - readChromatogramFast
+      - readSpectrum
+      - readChromatogram
+    OpenMS::OpenSwathOSWWriter:
+      - callback
+    OpenMS::File:
+      - removeDir # Qt
+    OpenMS::SpectrumLookup:
+      # boost::regexes
+      - default_scan_regexp
+      - reference_formats
+    OpenMS::ProteinHit:
+      - COVERAGE_UNKNOWN
+    OpenMS::PeptideEvidence:
+      - UNKNOWN_POSITION
+      - N_TERMINAL_POSITION
+      - UNKNOWN_AA
+      - N_TERMINAL_AA
+      - C_TERMINAL_AA
+    OpenMS::MultiplexDeltaMasses::DeltaMass:
+      - label_set
+    OpenMS::MRMFeatureQC::ComponentQCs:
+      - meta_value_qc
+    OpenMS::MRMFeatureQC::ComponentGroupQCs:
+      - meta_value_qc
+    OpenMS::CoarseIsotopePatternGenerator:
+      - convolve_
+      - convolvePow_
+      - convolveSquare_
+      - correctMass_
+    OpenMS::MRMIonSeries:
+      - getIon
+      - annotateIon
+      - getIonSeries
+    OpenMS::AhoCorasickAmbiguous:
+      - initPattern
+      - findNext
+    OpenMS::FASTAFile:
+      # streampos cannot be wrapped
+      - position
+      - setPosition
+    # ####
+    # static member variable
+    OpenMS::SpectrumMetaDataLookup:
+      - MDF_RT
+      - MDF_PRECURSORRT
+      - MDF_PRECURSORMZ
+      - MDF_PRECURSORCHARGE
+      - MDF_MSLEVEL
+      - MDF_SCANNUMBER
+      - MDF_NATIVEID
+      - MDF_ALL
+    OpenMS::PeakIntegrator:
+      - INTEGRATION_TYPE_INTENSITYSUM
+      - INTEGRATION_TYPE_TRAPEZOID
+      - INTEGRATION_TYPE_SIMPSON
+      - BASELINE_TYPE_BASETOBASE
+      - BASELINE_TYPE_VERTICALDIVISION
+      - BASELINE_TYPE_VERTICALDIVISION_MIN
+      - BASELINE_TYPE_VERTICALDIVISION_MAX
+    OpenMS::BinnedSpectrum:
+      - DEFAULT_BIN_WIDTH_LOWRES
+      - DEFAULT_BIN_WIDTH_HIRES
+      - DEFAULT_BIN_OFFSET_HIRES
+      - DEFAULT_BIN_OFFSET_LOWRES
+      - EmptySparseVector
+      - getBins
+    OpenMS::KDTreeFeatureMaps:
+      - addFeature
+      - feature
+      - applyTransformations
+      - store
+    OpenMS::FeatureGroupingAlgorithmKD:
+      - create
+    OpenMS::MultiplexDeltaMassesGenerator:
+      - getSamplesLabelsList
+      - extractLabelSet
+    # TODO: std::map conversion
+    OpenMS::ExperimentalDesign:
+      - getFractionToMSFilesMapping
+      - getPathLabelToSampleMapping
+      - getPathLabelToFractionMapping
+      - getPathLabelToFractionGroupMapping
+    OpenMS::PeptideAndProteinQuant:
+      - abundances
+      - total_abundances
+    OpenMS::ModificationDefinitionsSet:
+      - findMatches
+    OpenMS::SimpleSVM:
+      - setup
+    OpenMS::Math::PosteriorErrorProbabilityModel:
+      - extractAndTransformScores
+    # TODO: iterators
+    OpenMS::Math::RansacModelQuadratic:
+      - rm_fit_impl
+      - rm_rsq_impl
+      - rm_rss_impl
+      - rm_inliers_impl
+    OpenMS::Math::RansacModelLinear:
+      - rm_fit_impl
+      - rm_rsq_impl
+      - rm_rss_impl
+      - rm_inliers_impl
+    # TODO: support multiset
+    OpenMS::MultiplexDeltaMasses:
+      - labelSetToString
+    OpenMS::IDFilter:
+      - removeMatchingItems
+      - keepMatchingItems
+      - FilterPeptideEvidences
+      - filterPeptideEvidences
+    OpenMS::IDFilter::DigestionFilter:
+      - accession_resolver_
     OpenMS::DefaultParamHandler:
         - DefaultParamHandler
         - getSubsections
@@ -58,8 +193,6 @@ PyOpenMSChecker:
         - findNext # iterator
     OpenMS::FeatureMap:
         - getAnnotationStatistics
-    OpenMS::BinnedSpectrum:
-        - getBins
     OpenMS::PSProteinInference:
         - getNumberOfProtIdsPeptideRule
     OpenMS::FilterFunctor:
@@ -78,6 +211,8 @@ PyOpenMSChecker:
     OpenMS::Normalizer:
         - updateMembers_
     OpenMS::QTCluster:
+        - getCenterPoint
+        - getAllNeighbors
         - add
         - getElements
         - update
@@ -97,6 +232,7 @@ PyOpenMSChecker:
         - getTerms
     OpenMS::OpenSwathScoring:
         ## ptr to abstract base class
+        - calculatePrecursorDIAScores
         - calculateChromatographicScores
         - calculateChromatographicIdScores
         - calculateLibraryScores
@@ -123,92 +259,77 @@ PyOpenMSChecker:
         - scoreSpectra
     OpenMS::OptimizePick:
         - optimize
+        - peaks
+        - penalties
     OpenMS::FeatureFinder:
         - getPeakFlag
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces:
         - computeIntensityProfile
-
     OpenMS::SvmTheoreticalSpectrumGenerator::SvmModelParameterSet:
-        # STL attributes
+        # TODO STL attributes
         - class_models
         - reg_models
         - _intensities
         - ion_types
         - secondary_types
-
+        - static_intensities
+        - conditional_prob
     OpenMS::ProteinResolver::ISDGroup:
         # STL pointer attributes / list
         - proteins
         - peptides
         - msd_groups # TODO no converter for List
-
     OpenMS::ProteinResolver::MSDGroup:
         # STL pointer attributes / list
         - proteins
         - peptides
         - isd_group # raw pointer
-
-    OpenMS::PeptideAndProteinQuant::PeptideData:
-        # STL attributes / map
-        - abundances
-        - total_abundances
     OpenMS::PeptideAndProteinQuant::ProteinData:
+        - ProteinData # constructor
         # STL attributes / map
         - abundances
         - total_abundances
-
     OpenMS::ProteinResolver::PeptideEntry:
         - proteins # std::list
-
     OpenMS::Base64:
         # unwrappable type (QByteArray)
         - decodeSingleString
-
     OpenMS::SimTypes::SimRandomNumberGenerator:
         - getBiologicalRng
         - getTechnicalRng
         - setBiologicalRngSeed
         - setTechnicalRngSeed
-
     OpenMS::FeatureHandle:
         - asMutable
-
+    OpenMS::ModifiedRep:
+        # TODO immutable types by reference
+        - getModificationsForMass
     OpenMS::ConfidenceScoring:
+        - loadSize
+        - isValid
         # other attributes
         - intercept
         - rt_coef
         - int_coef
         - min_rt
         - max_rt
-    OpenMS::ModifiedRep:
-        # TODO immutable types by reference
-        - getModificationsForMass
-
-    OpenMS::ConfidenceScoring:
-        - loadSize
-        - isValid
-
     OpenMS::RNPxlModificationMassesResult:
         # STL attributes
         - mod_masses
         - mod_combinations
         - mod_formula_idx
-
     OpenMS::ResidueDB:
         # wrapped statically
         - getInstance
         # iterator
         - beginResidue
         - endResidue
-
     OpenMS::ModificationsDB:
         # wrapped statically
         - getInstance
-
     OpenMS::EnzymesDB:
         # wrapped statically
         - getInstance
-
     OpenMS::ElementDB:
         # wrapped statically
         - getInstance
@@ -216,11 +337,9 @@ PyOpenMSChecker:
         - getNames
         - getSymbols
         - getAtomicNumbers
-
     OpenMS::IsobaricQuantifierStatistics:
         # STL attributes
         - empty_channels
-
     OpenMS::PrecursorIonSelectionPreprocessing:
         # TODO STL map
         - getProtMasses
@@ -228,10 +347,8 @@ PyOpenMSChecker:
         - getProteinPTMap
         - getProteinPeptideSequenceMap
         - getFixedModifications
-
     OpenMS::CompNovoIonScoringCID:
         - scoreSpectrum
-
     OpenMS::DIAScoring:
         - dia_isotope_scores
         - dia_massdiff_score
@@ -267,6 +384,15 @@ PyOpenMSChecker:
     #  Manual
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    OpenMS::CrossLinksDB:
+      - getInstance
+    OpenMS::Math::RANSACParam:
+      - rng
+    OpenMS::AbsoluteQuantitation:
+      - getQuantMethodsAsMap
+      - optimizeCalibrationCurves
+    OpenMS::EmpiricalFormula:
+      - getNumberOf # will not work with ptr
     OpenMS::Sample:
         - NamesOfSampleState
         - addTreatment
@@ -388,6 +514,7 @@ PyOpenMSChecker:
         - NamesOfNumpressCompression
     OpenMS::Modification:
         - NamesOfSpecificityType
+        - clone
     OpenMS::MassAnalyzer:
         - NamesOfAnalyzerType
         - NamesOfResolutionMethod
@@ -395,16 +522,19 @@ PyOpenMSChecker:
         - NamesOfScanDirection
         - NamesOfScanLaw
         - NamesOfReflectronState
-    MZTrafoModel:
+    OpenMS::MZTrafoModel:
       - names_of_modeltype
     OpenMS::EnzymaticDigestion:
         - NamesOfEnzymes
+        - UnspecificCleavage
+        - filterByMissedCleavages
         - NamesOfSpecificity
         - digestUnmodifiedString
     OpenMS::SourceFile:
         - NamesOfChecksumType
     OpenMS::Precursor:
         - NamesOfActivationMethod
+        - NamesOfActivationMethodShort
     OpenMS::DataProcessing:
         - NamesOfProcessingAction
     OpenMS::ProteinIdentificationVisualizer:
@@ -451,10 +581,6 @@ PyOpenMSChecker:
         - consensus_map
     OpenMS::ims::Weights:
         - Weights
-    OpenMS::PeptideAndProteinQuant::PeptideData:
-        - PeptideData # constructor
-    OpenMS::PeptideAndProteinQuant::ProteinData:
-        - ProteinData # constructor
     OpenMS::PeptideAndProteinQuant::Statistics:
         - Statistics # constructor
     OpenMS::ims::IMSIsotopeDistribution::Peak:
@@ -486,6 +612,10 @@ PyOpenMSChecker:
     OpenMS::ControlledVocabulary::CVTerm:
         - CVTerm
     OpenMS::PeptideAndProteinQuant::PeptideData:
+        # STL attributes / map
+        - abundances
+        - total_abundances
+        - PeptideData # constructor
         - PeptideData
         # attributes
         - abundances
@@ -512,6 +642,15 @@ PyOpenMSChecker:
         - RTBegin
         - RTEnd
         - MZend
+        - MZEnd
+        - PosBegin
+        - PosBegin
+        - PosBegin
+        - PosBegin
+        - PosEnd
+        - PosEnd
+        - PosEnd
+        - PosEnd
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Iterators / Streams
@@ -589,6 +728,14 @@ PyOpenMSChecker:
         - MZBegin
         - MZEnd
         - MZEnd
+        - PosBegin
+        - PosBegin
+        - PosBegin
+        - PosBegin
+        - PosEnd
+        - PosEnd
+        - PosEnd
+        - PosEnd
 
     OpenMS::ConsensusMap:
         - swap
@@ -634,13 +781,16 @@ PyOpenMSChecker:
         - defaultArrayLength
 
     OpenSwath::MRMScoring:
+        - initializeMIMatrix
+        - initializeMS1MI
+        - initializeMIIdMatrix
         - getXCorrMatrix
+        - getXCorrContrastMatrix
         - initializeXCorrMatrix
-        - initializeMS1XCorr
+        - initializeXCorrContrastMatrix
         - calcLibraryScore
         - calcSNScore
-        - initializeXCorrIdMatrix
-        - calcIndSNScore
+        - calcSeparateSNScore
 
     OpenMS::MRMTransitionGroupPicker:
         - pickTransitionGroup
@@ -805,6 +955,16 @@ PyOpenMSChecker:
     #  they will show up as missing. Thus ignore the inherited methods here
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    OpenMS::SpectrumAccessSqMass:
+        - lightClone # TODO
+        - getAllSpectra # TODO
+        - getSpectrumMetaById # TODO
+        - getSpectrumById
+        - getSpectraByRT
+        - getNrSpectra
+        - getChromatogramById
+        - getNrChromatograms
+        - getChromatogramNativeID
     OpenMS::FeatureGroupingAlgorithm:
         - group
         - FeatureGroupingAlgorithm # abstract class
@@ -840,6 +1000,12 @@ PyOpenMSChecker:
         - getIsotopeCorrectionMatrix
         - getReferenceChannel
     OpenMS::TMTTenPlexQuantitationMethod:
+        - getName
+        - getChannelInformation
+        - getNumberOfChannels
+        - getIsotopeCorrectionMatrix
+        - getReferenceChannel
+    OpenMS::TMTElevenPlexQuantitationMethod:
         - getName
         - getChannelInformation
         - getNumberOfChannels
@@ -1137,6 +1303,9 @@ PyOpenMSChecker:
     - OpenMS::AASequence::ConstIterator
     - OpenMS::Internal::IntensityIteratorWrapper
     - OpenMS::Param::ParamIterator::TraceInfo
+    - OpenMS::OPXLDataStructs::CLSMScoreComparator
+    - OpenMS::TargetedSpectraExtractor::Comparator
+    - OpenMS::OPXLDataStructs::CLSMScoreComparator
 
     # Internal OpenMS algorithm datastructures that cannot be used in Python
     - OpenMS::TwoDOptimization::Data
@@ -1446,6 +1615,7 @@ PyOpenMSChecker:
 
     # Abstract Base classes
     - OpenMS::MSDataWritingConsumer
+    - OpenMS::TargetedSpectraExtractor::Comparator
 
     # Exception classes
     - OpenMS::Exception::BaseException

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,9 +41,9 @@ namespace OpenMS
   /**
     @brief Represents a object which can store the information of an analysisXML instance
 
-        //@todo docu (Andreas)
+    //@todo docu (Andreas)
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI IdentificationHit :
     public MetaInfoInterface
@@ -52,14 +52,21 @@ public:
 
     /// @name constructors,destructors,assignment operator
     //@{
-    /// default constructor
+
+    /// Default constructor
     IdentificationHit();
-    /// destructor
+    /// Copy constructor
+    IdentificationHit(const IdentificationHit &) = default;
+    /// Destructor
     virtual ~IdentificationHit();
-    /// copy constructor
-    IdentificationHit(const IdentificationHit & source);
-    /// assignment operator
-    IdentificationHit & operator=(const IdentificationHit & source);
+    /// Move constructor
+    IdentificationHit(IdentificationHit&&) = default;
+
+    /// Assignment operator
+    IdentificationHit & operator=(const IdentificationHit &) = default;
+    /// Move assignment operator
+    IdentificationHit& operator=(IdentificationHit&&) & = default;
+
     /// Equality operator
     bool operator==(const IdentificationHit & rhs) const;
     /// Inequality operator
@@ -124,3 +131,4 @@ protected:
   };
 
 } //namespace OpenMS
+

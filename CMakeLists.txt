@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,6 @@ include(Dart)
 # ADDRESS_SANITIZER
 # OPENMS_COVERAGE
 #------------------------------------------------------------------------------
-option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
@@ -155,7 +154,7 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# All the multi-threading stuff (OpenMP, CUDA, TBB)
+# All the multi-threading stuff (OpenMP)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
 
@@ -318,6 +317,29 @@ SET(CMAKE_MACOSX_RPATH FALSE)
 # macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
 SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
 
+if(UNIX AND NOT APPLE)
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+if (ENABLE_PREPARE_KNIME_PACKAGE)
+  ## Since we rely on copying instead of "installing" for KNIME packaging
+  ## we need to do it during building already.
+  ## In this case, make sure that QT is in a system path if you want to test it locally.
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+else()
+  SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+endif()
+
+# the RPATH to be used when installing
+SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
+
+# don't add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+endif()
+
 #------------------------------------------------------------------------------
 # lib naming when building with msvc & convenience location of build.bat
 if (MSVC)
@@ -348,7 +370,7 @@ add_subdirectory(doc)
 # GKN Package building
 #------------------------------------------------------------------------------
 # We will use this path for the KNIME packages and the installers
-set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
+set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "The location where thirdparty search engines (X!Tandem, OMSSA, MyriMatch, MSGF+, Fido) are located. This directory should have the same structure as the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.")
 
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
 if (ENABLE_PREPARE_KNIME_PACKAGE)

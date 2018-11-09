@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,31 +54,8 @@ namespace OpenMS
   {
   }
 
-  IonSource::IonSource(const IonSource & source) :
-    MetaInfoInterface(source),
-    inlet_type_(source.inlet_type_),
-    ionization_method_(source.ionization_method_),
-    polarity_(source.polarity_),
-    order_(source.order_)
-  {
-  }
-
   IonSource::~IonSource()
   {
-  }
-
-  IonSource & IonSource::operator=(const IonSource & source)
-  {
-    if (&source == this)
-      return *this;
-
-    order_ = source.order_;
-    inlet_type_ = source.inlet_type_;
-    ionization_method_ = source.ionization_method_;
-    polarity_ = source.polarity_;
-    MetaInfoInterface::operator=(source);
-
-    return *this;
   }
 
   bool IonSource::operator==(const IonSource & rhs) const
@@ -136,3 +113,4 @@ namespace OpenMS
   }
 
 }
+

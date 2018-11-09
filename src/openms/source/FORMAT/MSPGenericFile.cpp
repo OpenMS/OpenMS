@@ -69,8 +69,8 @@ namespace OpenMS
   void MSPGenericFile::load(const String& filename, MSExperiment& library)
   {
     // TODO: Remove following "clock" code when not necessary anymore
-    // std::clock_t start;
-    // start = std::clock();
+    std::clock_t start;
+    start = std::clock();
 
     loaded_spectra_names_.clear();
     synonyms_.clear();
@@ -90,7 +90,8 @@ namespace OpenMS
     boost::regex re_synon("^synon(?:yms?)?: (.+)", boost::regex::no_mod_s | boost::regex::icase);
     boost::regex re_points_line("^\\d");
     boost::regex re_point("(\\d+(?:\\.\\d+)?)[: ](\\d+(?:\\.\\d+)?);? ?");
-    boost::regex re_metadatum(" *([^;\r\n]+): ([^;\r\n]+)");
+    boost::regex re_cas_nist("^CAS#: ([\\d-]+);  NIST#: (\\d+)"); // specific to NIST db
+    boost::regex re_metadatum("^(.+): (.+)", boost::regex::no_mod_s);
 
     LOG_INFO << "\nLoading spectra from .msp file. Please wait." << std::endl;
 
@@ -126,21 +127,25 @@ namespace OpenMS
         spectrum.setName( String(m[1]) );
         spectrum.setMetaValue("is_valid", 1);
       }
+      // Specific case of NIST's exported msp
+      else if (boost::regex_search(line, m, re_cas_nist))
+      {
+        // LOG_DEBUG << "CAS#: " << m[1] << "; NIST#: " << m[2] << "\n";
+        spectrum.setMetaValue(String("CAS#"), String(m[1]));
+        spectrum.setMetaValue(String("NIST#"), String(m[2]));
+      }
       // Other metadata
       else if (boost::regex_search(line, m, re_metadatum))
       {
-        do {
-          // LOG_DEBUG << m[1] << m[2] << "\n";
-          spectrum.setMetaValue(String(m[1]), String(m[2]));
-        }
-        while (boost::regex_search(m[0].second, m, re_metadatum));
+        // LOG_DEBUG << m[1] << m[2] << "\n";
+        spectrum.setMetaValue(String(m[1]), String(m[2]));
       }
     }
     // To make sure a spectrum is added even if no empty line is present before EOF
     addSpectrumToLibrary(spectrum, library);
     ifs.close();
     LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
-    // std::cout << "PARSE TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
+    std::cout << "PARSE TIME: " << ((std::clock() - start) / (double)CLOCKS_PER_SEC) << std::endl;
   }
 
   void MSPGenericFile::addSpectrumToLibrary(

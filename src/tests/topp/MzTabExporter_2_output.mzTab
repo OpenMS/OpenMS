@@ -5,7 +5,7 @@ MTD	description	OpenMS export from idXML
 MTD	protein_search_engine_score[1]	[, , MS-GF+, ]
 MTD	peptide_search_engine_score[1]	[, , MS-GF+, Release (v2017.08.23)]
 MTD	psm_search_engine_score[1]	[, , MS-GF+, Release (v2017.08.23)]
-MTD	software[1]	[MS, MS:1000752, TOPP software, 2.4.0-feature-proteomic-lfq-2018-06-04]
+MTD	software[1]	[MS, MS:1000752, TOPP software, 2.4.0-feature-proteomic-lfq-2018-09-12]
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:6, Carboxymethyl, ]
 MTD	fixed_mod[1]-site	C
 MTD	fixed_mod[1]-position	Anywhere
@@ -15,7 +15,7 @@ MTD	fixed_mod[2]-position	Anywhere
 MTD	fixed_mod[3]	[UNIMOD, UNIMOD:36, Dimethyl, ]
 MTD	fixed_mod[3]-site	X
 MTD	fixed_mod[3]-position	Any N-term
-MTD	ms_run[1]-location	C:\Users\lars\AppData\Local\Temp\4\20180404_162115_14736_1\forPercolatorAdapter\003_FileFilter\out\BM3366.mzML
+MTD	ms_run[1]-location	file://C:\Users\lars\AppData\Local\Temp\4\20180404_162115_14736_1\forPercolatorAdapter\003_FileFilter\out\BM3366.mzML
 
 PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	ambiguity_members	modifications	protein_coverage	opt_global_isDecoy	opt_global_target_decoy	opt_global_protein_group_type
 PRT	sp|Q93K97|ADPP_ECOLI	null	null	null	D:\data\proteome-databases-OpenMS\uniprot_Escherichia-coli_June-2017_canonical-without-isoforms_reviewed_plus_shuffled.fasta	null	null	0	null	null	null	false	target	single_protein

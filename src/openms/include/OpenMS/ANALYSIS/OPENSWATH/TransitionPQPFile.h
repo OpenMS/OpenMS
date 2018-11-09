@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,11 +45,13 @@ namespace OpenMS
 {
 
   /**
-      @brief This class can convert TraML and PQP files into each other
+      @brief This class supports reading and writing of PQP files. 
 
       The PQP files are SQLite databases consisting of several tables representing the data contained in TraML files.
 
-  @htmlinclude OpenMS_TransitionPQPFile.parameters
+      This class can convert TraML and PQP files into each other
+
+      @htmlinclude OpenMS_TransitionPQPFile.parameters
 
   */
   class OPENMS_DLLAPI TransitionPQPFile :

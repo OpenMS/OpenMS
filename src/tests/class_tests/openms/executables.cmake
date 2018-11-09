@@ -10,6 +10,7 @@ set(concept_executables_list
   VersionInfo_test
   LogConfigHandler_test
   LogStream_test
+  Multithreading_test
   UniqueIdGenerator_test
   UniqueIdIndexer_test
   UniqueIdInterface_test
@@ -196,6 +197,7 @@ set(format_executables_list
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
+  # MSstatsFile_test
   MzQuantMLFile_test
   #MzQuantMLValidator_test
   MzXMLFile_test
@@ -280,6 +282,7 @@ set(filtering_executables_list
   ComplementFilter_test
   ComplementMarker_test
   DataFilters_test
+  Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FilterFunctor_test
@@ -317,6 +320,7 @@ set(filtering_executables_list
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
+  PrecursorCorrection_test
   SplinePackage_test
   SplineSpectrum_test
   SavitzkyGolayFilter_test
@@ -361,6 +365,8 @@ set(chemistry_executables_list
   AAIndex_test
   AASequence_test
   CoarseIsotopeDistribution_test
+  FineIsotopeDistribution_test
+  IsoSpec_test
   DigestionEnzymeProtein_test
   ElementDB_test
   Element_test
@@ -483,6 +489,8 @@ set(analysis_executables_list
   PScore_test
   HyperScore_test
   MorpheusScore_test
+  OpenPepXLAlgorithm_test
+  OpenPepXLLFAlgorithm_test
   OPXLHelper_test
   OPXLSpectrumProcessingAlgorithms_test
   PoseClusteringAffineSuperimposer_test
@@ -490,6 +498,7 @@ set(analysis_executables_list
   PrecursorIonSelectionPreprocessing_test
   PrecursorIonSelection_test
   ProteinInference_test
+  PrecursorPurity_test
   ProtonDistributionModel_test
   ProteinResolver_test
   PSLPFormulation_test
@@ -497,7 +506,6 @@ set(analysis_executables_list
   QTClusterFinder_test
   QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
-  RNPxlDeisotoper_test
   RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test
@@ -607,6 +615,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
     OpenSwathScoring_test
+    OpenSwathScores_test
     PeakIntegrator_test
     PeakPickerMRM_test
     MRMTransitionGroupPicker_test

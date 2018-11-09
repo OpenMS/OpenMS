@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,26 +52,8 @@ namespace OpenMS
   {
   }
 
-  AASequence::AASequence(const AASequence& rhs) :
-    peptide_(rhs.peptide_),
-    n_term_mod_(rhs.n_term_mod_),
-    c_term_mod_(rhs.c_term_mod_)
-  {
-  }
-
   AASequence::~AASequence()
   {
-  }
-
-  AASequence& AASequence::operator=(const AASequence& rhs)
-  {
-    if (this != &rhs)
-    {
-      peptide_ = rhs.peptide_;
-      n_term_mod_ = rhs.n_term_mod_;
-      c_term_mod_ = rhs.c_term_mod_;
-    }
-    return *this;
   }
 
   const Residue& AASequence::getResidue(Size index) const

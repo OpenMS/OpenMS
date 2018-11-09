@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,6 +66,73 @@ namespace OpenMS
     return it;
   }
 
+  template <typename PeakContainerT>
+  void removePeaks(
+    PeakContainerT& p,
+    const double pos_start,
+    const double pos_end,
+    const bool ignoreDataArrays = false
+  )
+  {
+    typename PeakContainerT::iterator it_start = p.PosBegin(pos_start);
+    typename PeakContainerT::iterator it_end = p.PosEnd(pos_end);
+    if (!ignoreDataArrays)
+    {
+      Size hops_left = std::distance(p.begin(), it_start);
+      Size n_elems = std::distance(it_start, it_end);
+
+      typename PeakContainerT::StringDataArrays& SDAs = p.getStringDataArrays();
+      for (DataArrays::StringDataArray& sda : SDAs)
+      {
+        if (sda.size() == p.size())
+        {
+          sda.erase(sda.begin() + hops_left + n_elems, sda.end());
+          sda.erase(sda.begin(), sda.begin() + hops_left);
+        }
+      }
+
+      typename PeakContainerT::FloatDataArrays& FDAs = p.getFloatDataArrays();
+      for (DataArrays::FloatDataArray& fda : FDAs)
+      {
+        if (fda.size() == p.size())
+        {
+          fda.erase(fda.begin() + hops_left + n_elems, fda.end());
+          fda.erase(fda.begin(), fda.begin() + hops_left);
+        }
+      }
+
+      typename PeakContainerT::IntegerDataArrays& IDAs = p.getIntegerDataArrays();
+      for (DataArrays::IntegerDataArray& ida : IDAs)
+      {
+        if (ida.size() == p.size())
+        {
+          ida.erase(ida.begin() + hops_left + n_elems, ida.end());
+          ida.erase(ida.begin(), ida.begin() + hops_left);
+        }
+      }
+    }
+    p.erase(it_end, p.end());
+    p.erase(p.begin(), it_start);
+  }
+
+  template <typename PeakContainerT>
+  void subtractMinimumIntensity(PeakContainerT& p)
+  {
+    if (p.empty()) return;
+
+    typename PeakContainerT::iterator it = std::min_element(p.begin(), p.end(),
+      [](typename PeakContainerT::PeakType& a, typename PeakContainerT::PeakType& b)
+      {
+        return a.getIntensity() < b.getIntensity();
+      });
+
+    const double rebase = - it->getIntensity();
+    for (typename PeakContainerT::PeakType& peak : p)
+    {
+      peak.setIntensity(peak.getIntensity() + rebase);
+    }
+    // Note: data arrays are not updated
+  }
 } // namespace OpenMS
 
 

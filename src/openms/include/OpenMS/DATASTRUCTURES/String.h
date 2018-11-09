@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,6 +87,10 @@ public:
     //@{
     /// Default constructor
     OPENMS_DLLAPI String();
+    /// Copy constructor
+    OPENMS_DLLAPI String(const String&) = default;
+    /// Move constructor
+    OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
     /// Constructor from Qt QString
@@ -150,6 +154,10 @@ public:
     OPENMS_DLLAPI bool has(Byte byte) const;
     //@}
 
+    /// Assignment operator
+    OPENMS_DLLAPI String& operator=(const String&) = default;
+    /// Move assignment operator
+    OPENMS_DLLAPI String& operator=(String&&) & = default;
 
     /** @name Accessors
     */

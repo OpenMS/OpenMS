@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,10 +74,11 @@ namespace OpenMS
         AASequence alpha; // longer peptide
         AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
         std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
-        double cross_linker_mass;
+        double cross_linker_mass = 0;
         String cross_linker_name;
         ResidueModification::TermSpecificity term_spec_alpha;
         ResidueModification::TermSpecificity term_spec_beta;
+        int precursor_correction = 0;
 
         ProteinProteinCrossLinkType getType() const
         {
@@ -96,7 +97,8 @@ namespace OpenMS
                       cross_linker_mass == other.cross_linker_mass &&
                       cross_linker_name == other.cross_linker_name &&
                       term_spec_alpha == other.term_spec_alpha &&
-                      term_spec_beta == other.term_spec_beta;
+                      term_spec_beta == other.term_spec_beta &&
+                      precursor_correction == other.precursor_correction;
         }
       };
 
@@ -113,73 +115,90 @@ namespace OpenMS
         ProteinProteinCrossLink cross_link;
 
         /// reference to pair of spectra
-        Size scan_index_light;
-        Size scan_index_heavy;
+        Size scan_index_light = 0;
+        Size scan_index_heavy = 0;
 
         /// final score
-        double score;
+        double score = 0;
 
         /// rank among the matches to the same spectrum
-        Size rank;
+        Size rank = 0;
 
         /// counts, scores and other data for xQuest-like output
-        double pre_score;
-        double percTIC;
-        double wTIC;
-        double int_sum;
-        double match_odds;
-        double log_occupancy;
-        double log_occupancy_alpha;
-        double log_occupancy_beta;
-        double log_occupancy_full_spec;
-        std::vector< double > xcorrx;
-        double xcorrx_max;
-        std::vector< double > xcorrc;
-        double xcorrc_max;
-        Size matched_common_alpha;
-        Size matched_common_beta;
-        Size matched_xlink_alpha;
-        Size matched_xlink_beta;
-        double HyperCommon;
-        double HyperXlink;
-        double HyperAlpha;
-        double HyperBeta;
-        double HyperBoth;
+        double xquest_score = 0;
+        double pre_score = 0;
+        double percTIC = 0;
+        double wTIC = 0;
+        double wTICold = 0;
+        double int_sum = 0;
+        double intsum_alpha = 0;
+        double intsum_beta = 0;
+        double total_current = 0;
+        double precursor_error_ppm = 0;
+
+        double match_odds = 0;
+        double match_odds_alpha = 0;
+        double match_odds_beta = 0;
+        double log_occupancy = 0;
+        double log_occupancy_alpha = 0;
+        double log_occupancy_beta = 0;
+        double xcorrx_max = 0;
+        double xcorrc_max = 0;
+        Size matched_linear_alpha = 0;
+        Size matched_linear_beta = 0;
+        Size matched_xlink_alpha = 0;
+        Size matched_xlink_beta = 0;
+
+        double num_iso_peaks_mean = 0;
+        double num_iso_peaks_mean_linear_alpha = 0;
+        double num_iso_peaks_mean_linear_beta = 0;
+        double num_iso_peaks_mean_xlinks_alpha = 0;
+        double num_iso_peaks_mean_xlinks_beta = 0;
+
+        double ppm_error_abs_sum_linear_alpha = 0;
+        double ppm_error_abs_sum_linear_beta = 0;
+        double ppm_error_abs_sum_xlinks_alpha = 0;
+        double ppm_error_abs_sum_xlinks_beta = 0;
+        double ppm_error_abs_sum_linear = 0;
+        double ppm_error_abs_sum_xlinks = 0;
+        double ppm_error_abs_sum_alpha = 0;
+        double ppm_error_abs_sum_beta = 0;
+        double ppm_error_abs_sum = 0;
+
+        int precursor_correction = 0;
+
+        double precursor_total_intensity = 0;
+        double precursor_target_intensity = 0;
+        double precursor_signal_proportion = 0;
+        Size precursor_target_peak_count = 0;
+        Size precursor_residual_peak_count = 0;
 
         std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
-        Size peptide_id_index;
+        Size peptide_id_index = 0;
+      };
 
-        bool operator<(const CrossLinkSpectrumMatch& other) const
-        {
-          return score < other.score;
-        }
+      /**
+        * @brief Comparator to sort CrossLinkSpectrumMatches by the main score
 
-        bool operator==(const CrossLinkSpectrumMatch& other) const
+       */
+      struct CLSMScoreComparator
+      {
+        bool operator() (const CrossLinkSpectrumMatch& a, const CrossLinkSpectrumMatch& b)
         {
-          return cross_link == other.cross_link &&
-                     scan_index_light == other.scan_index_light &&
-                     scan_index_heavy == other.scan_index_heavy &&
-                     score == other.score &&
-                     rank == other.rank &&
-                     pre_score == other.pre_score &&
-                     percTIC == other.percTIC &&
-                     wTIC == other.wTIC &&
-                     int_sum == other.int_sum &&
-                     match_odds == other.match_odds &&
-                     xcorrx == other.xcorrx &&
-                     xcorrx_max == other.xcorrx_max &&
-                     xcorrc == other.xcorrc &&
-                     xcorrc_max == other.xcorrc_max &&
-                     matched_common_alpha == other.matched_common_alpha &&
-                     matched_common_beta == other.matched_common_beta &&
-                     matched_xlink_alpha == other.matched_xlink_alpha &&
-                     matched_xlink_beta == other.matched_xlink_beta &&
-                     HyperCommon == other.HyperCommon &&
-                     HyperXlink == other.HyperXlink &&
-                     HyperAlpha == other.HyperAlpha &&
-                     HyperBeta == other.HyperBeta &&
-                     HyperBoth == other.HyperBoth;
+          if (a.score == b.score)
+          {
+            // in rare cases when the sequences are the same, multiple candidates with different cross-linked positions can have the same score
+            // that leads to ambigious sorting and may cause differences between compilers
+            // in those cases we prefer higher positions (just like the score),
+            // because the lower position might be an N-term link, which is usually less likely and all other positions are equal (because the score is equal)
+            if (a.cross_link.cross_link_position.first == b.cross_link.cross_link_position.first)
+            {
+              return a.cross_link.cross_link_position.second < b.cross_link.cross_link_position.second;
+            }
+            return a.cross_link.cross_link_position.first < b.cross_link.cross_link_position.first;
+          }
+          return a.score < b.score;
         }
       };
 
@@ -281,8 +300,8 @@ namespace OpenMS
       struct PreprocessedPairSpectra
       {
 
-        MSExperiment spectra_common_peaks; // merge spectrum of common peaks (present in both spectra)
-        MSExperiment spectra_xlink_peaks; // Xlink peaks in the light spectrum (common peaks between spectra_light_different and spectra heavy_to_light)
+        MSExperiment spectra_linear_peaks; // merge spectrum of linear peaks (present in both spectra)
+        MSExperiment spectra_xlink_peaks; // Xlink peaks in the light spectrum (linear peaks between spectra_light_different and spectra heavy_to_light)
         MSExperiment spectra_all_peaks;
 
         // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps).
@@ -290,7 +309,7 @@ namespace OpenMS
         {
           for (Size i = 0; i != size; ++i)
           {
-            spectra_common_peaks.addSpectrum(PeakSpectrum());
+            spectra_linear_peaks.addSpectrum(PeakSpectrum());
             spectra_xlink_peaks.addSpectrum(PeakSpectrum());
             spectra_all_peaks.addSpectrum(PeakSpectrum());
           }
@@ -299,5 +318,3 @@ namespace OpenMS
 
   }; // class
 } // namespace OpenMS
-
-

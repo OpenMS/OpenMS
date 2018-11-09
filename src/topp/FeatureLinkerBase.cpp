@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,8 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -266,7 +268,6 @@ protected:
         for (Size i = 1; i <= frac2files.size(); ++i)
         {
           vector<FeatureMap> fraction_maps;
-
           // TODO FRACTIONS: here we assume that the order of featureXML is from fraction 1..n
           // we should check if these are shuffled and error / warn          
           for (size_t feature_map_index = 0; feature_map_index != frac2files[i].size(); ++feature_map_index)

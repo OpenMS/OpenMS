@@ -1,5 +1,6 @@
 from DefaultParamHandler cimport *
 from MSExperiment cimport *
+from Param cimport *
 from String cimport *
 
 cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
@@ -12,3 +13,5 @@ cdef extern from "<OpenMS/FORMAT/MSPGenericFile.h>" namespace "OpenMS":
         MSPGenericFile(const String& filename, MSExperiment& library) nogil except +
 
         void load(const String& filename, MSExperiment& library) nogil except +
+        void getDefaultParameters(Param & params) nogil except +
+

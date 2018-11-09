@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,12 +34,9 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
-#include <OpenMS/METADATA/SourceFile.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 
 namespace OpenMS
 {
@@ -65,7 +62,13 @@ public:
     @param map_precursor_to_adducts: adducts of a spectrum (index). 
     */
 
-    static void store(const PeakMap & spectra, const String & msfile, const std::map<size_t, StringList> & map_precursor_to_adducts);
+    // preprocessing e.g. feature information
+    static void store(const PeakMap& spectra,
+                      const OpenMS::String& msfile,
+                      const FeatureMapping::FeatureToMs2Indices& feature_mapping,
+                      const bool& feature_only,
+                      const int& isotope_pattern_iterations,
+                      const bool no_mt_info);
 
   };
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,9 @@
 // $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
@@ -54,19 +55,6 @@ namespace OpenMS
     min_int(-std::numeric_limits<Int>::max()),
     max_int(std::numeric_limits<Int>::max()),
     valid_strings()
-  {
-  }
-
-  Param::ParamEntry::ParamEntry(const ParamEntry& other) :
-    name(other.name),
-    description(other.description),
-    value(other.value),
-    tags(other.tags),
-    min_float(other.min_float),
-    max_float(other.max_float),
-    min_int(other.min_int),
-    max_int(other.max_int),
-    valid_strings(other.valid_strings)
   {
   }
 
@@ -451,19 +439,8 @@ namespace OpenMS
   {
   }
 
-  Param::Param(const Param& rhs) :
-    root_(rhs.root_)
-  {
-  }
-
   Param::~Param()
   {
-  }
-
-  Param& Param::operator=(const Param& rhs)
-  {
-    root_ = rhs.root_;
-    return *this;
   }
 
   Param::Param(const ParamNode& node) :

@@ -2,7 +2,7 @@
 //                   %OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The %OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,7 @@ Robustness of algorithms is essential if a new method will be applied routinely 
 Since %OpenMS is based on several <b>external libraries</b> it is designed for the integration of external code. All classes are encapsulated in the %OpenMS namespace to avoid symbol clashes with other libraries. Through the use of <b>C++ templates</b>, many data structures are adaptable to specific use cases. Also, %OpenMS supports <b>standard formats</b> and is itself open-source software. The use of standard formats ensures that applications developed with %OpenMS can be easily integrated into existing analysis pipelines. %OpenMS source code is released under the permissive <b>BSD 3 license</b> and located on <b>GitHub</b>, a repository for open-source software. This allows users to participate in the project and to contribute to the code base. <br>
 
 <b>Scriptable:</b>
-%OpenMS allows exposing its functionality through python bindings (<b>%pyOpenMS</b>). This eases the rapid development of algorithms in Python that later can be translated to C++. <br>
+%OpenMS allows exposing its functionality through python bindings (<b>%pyOpenMS</b>). This eases the rapid development of algorithms in Python that later can be translated to C++. Please see our <a href="https://pyopenms.readthedocs.io">pyOpenMS documentation</a> for a description and walk-through of the pyOpenMS capabilities. <br>
 
 <b>Portability:</b>
 %OpenMS supports <b>Windows</b>, <b>Linux</b>, and <b>OS X</b> platforms. <br>
@@ -81,7 +81,8 @@ Since %OpenMS is based on several <b>external libraries</b> it is designed for t
 
 The following image shows the overall structure of %OpenMS:
 
-@image html OpenMS_overview.png "Overall design of OpenMS. Kindly provided by Timo Sachsenberg." width=80%
+\htmlonly <style>div.image img[src="OpenMS_overview.png"]{max-width:1200px;}</style> \endhtmlonly 
+@image html OpenMS_overview.png "Overall design of OpenMS. Kindly provided by Timo Sachsenberg." width=1200px
 @image latex OpenMS_overview.png "Overall design of OpenMS." width=14cm
 
 The structure of the OpenMS framework. <br>
@@ -233,6 +234,8 @@ The extensible %OpenMS library implements common mass spectrometric data process
             - Tool MetaboliteSpectralMatcher
         - Accurate mass search: 
             - Tool AccurateMassSearch
+        - De novo identification:
+            - Tool SiriusAdapter
  
 <br>
 - General:
@@ -253,26 +256,47 @@ The extensible %OpenMS library implements common mass spectrometric data process
 </table >
 <br>
 <table>
-<caption>Directory structure of core library (/src/openms)</caption>
+<caption>Directory structure of core library (/src/openms/include/OpenMS)</caption>
  <tr><th>Folder        <th>Description
  <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
  <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
  <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues, Modifications, Isotope distributions and amino acid sequences</td></tr>
  <tr><td>COMPARISON</td><td>Different scoring functions for clustering and spectra comparison</td></tr>
  <tr><td>CONCEPT</td><td>%OpenMS concepts (types, macros, ...)</td></tr>
- <tr><td>DATASTRUCTURES</td><td>Auxiliary datastructures</td></tr>
+ <tr><td>DATASTRUCTURES</td><td>Auxiliary data structures</td></tr>
  <tr><td>FILTERING</td><td>Filter</td></tr>
  <tr><td>FORMAT</td><td>Source code for I/O classes and file formats</td></tr>
- <tr><td>INTERFACES_IMPL</td><td>Interfaces (WIP)</td></tr>
+ <tr><td>INTERFACES</td><td>Interfaces (WIP)</td></tr>
  <tr><td>KERNEL</td><td>Core data structures</td></tr>
  <tr><td>MATH</td><td>Source code for math functions and classes</td></tr>
  <tr><td>METADATA</td><td>Source code for classes that capture metadata about a MS or HPLC-MS experiment</td></tr>
  <tr><td>SIMULATION</td><td>Source code of MS simulator</td></tr>
  <tr><td>SYSTEM</td><td>Source code for basic functionality (file system, stopwatch)</td></tr>
- <tr><td>TEST</td><td>Unit tests</td></tr>
- <tr><td>TRANSFORMATIONS</td><td>Feature detection</td></tr>
+ <tr><td>TRANSFORMATIONS</td><td>Feature detection (MS1 label-free and isotopic labelling) and PeakPickers (centroiding algorithms)</td></tr>
 </table>
 <br>
+
+Within the ANALYSIS folder, you can find several important tools
+
+<br>
+<table>
+<caption>Directory structure of the algorithmic part of the library (/src/openms/include/OpenMS/ANALYSIS)</caption>
+ <tr><th>Folder        <th>Description
+ <tr><td>DECHARGING</td><td>Algorithms for de-charging (charge analysis) for peptides and metabolites</td></tr>
+ <tr><td>DENOVO</td><td>Algorithms for "de-novo" identification tools including CompNovo</td></tr>
+ <tr><td>ID</td><td>Source code dealing with identifications including ID conflict resolvers, metabolite spectrum matching and target-decoy models</td></tr>
+ <tr><td>MAPMATCHING</td><td>Algorithms for retention time correction and feature matching (matching between runs)</td></tr>
+ <tr><td>MRM</td><td>Algorithms for MRM Fragment selection</td></tr>
+ <tr><td>OPENSWATH</td><td>OpenSWATH algorithms for targeted, chromatogram-based analysis of MRM, SRM, PRM, DIA and SWATH-MS data</td></tr>
+ <tr><td>PIP</td><td>Peak intensity predictor</td></tr>
+ <tr><td>QUANTITATION</td><td>Algorithms for quantitative analysis including isobaric labelling</td></tr>
+ <tr><td>RNPXL</td><td>Algorithms for RNA cross-linking</td></tr>
+ <tr><td>SVM</td><td>Algorithms for SVM</td></tr>
+ <tr><td>TARGETED</td><td>Algorithms for targeted proteomics (MRM, SRM)</td></tr>
+ <tr><td>XLMS</td><td>Algorithms for Cross-link mass spectrometry</td></tr>
+</table>
+<br>
+
 
 For the sake of completeness you will find a short list of the THIRDPARTY tools, which are integrated via wrappers into the %OpenMS framework (usually called -Adapter e.g. SiriusAdapter)
 
@@ -638,7 +662,7 @@ Since different filter criteria may be introduced in the future, the structure w
 <br>
 Polish your code - add additional functionality
 
-\snippet Tutorial_final.cpp final 
+\snippet Tutorial_Final.cpp final 
 
 @subsection tutorial_pull Open a pull request 
 Afterwards you can commit your changes to a new branch “feature/DatabaseFilter” of your %OpenMS clone on github and submit a pull request on your github page. After a short review process by the %OpenMS Team, the tool will be added the %OpenMS Library.

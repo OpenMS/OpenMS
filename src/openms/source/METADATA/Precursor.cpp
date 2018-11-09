@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,43 +57,8 @@ namespace OpenMS
   {
   }
 
-  Precursor::Precursor(const Precursor & source) :
-    CVTermList(source),
-    Peak1D(source),
-    activation_methods_(source.activation_methods_),
-    activation_energy_(source.activation_energy_),
-    window_low_(source.window_low_),
-    window_up_(source.window_up_),
-    drift_time_(source.drift_time_),
-    drift_window_low_(source.drift_window_low_),
-    drift_window_up_(source.drift_window_up_),
-    charge_(source.charge_),
-    possible_charge_states_(source.possible_charge_states_)
-  {
-  }
-
   Precursor::~Precursor()
   {
-  }
-
-  Precursor & Precursor::operator=(const Precursor & source)
-  {
-    if (&source == this)
-      return *this;
-
-    CVTermList::operator=(source);
-    Peak1D::operator=(source);
-    activation_methods_ = source.activation_methods_;
-    activation_energy_ = source.activation_energy_;
-    window_low_ = source.window_low_;
-    window_up_ = source.window_up_;
-    drift_time_ = source.drift_time_;
-    drift_window_low_ = source.drift_window_low_;
-    drift_window_up_ = source.drift_window_up_;
-    charge_ = source.charge_;
-    possible_charge_states_ = source.possible_charge_states_;
-
-    return *this;
   }
 
   bool Precursor::operator==(const Precursor & rhs) const
@@ -222,3 +187,4 @@ namespace OpenMS
   }
 
 }
+

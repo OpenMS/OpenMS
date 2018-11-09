@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Lukas Zimmermann $
+// $Maintainer: Eugen Netz $
 // $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
 #pragma once
@@ -42,6 +42,16 @@
 namespace OpenMS
 {
 
+  /**
+    @brief Used to load and store xQuest result files
+
+    These files are used to store results derived from chemical cross-linking
+    coupled to MS experiments.
+
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
+
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI XQuestResultXMLFile :
     public Internal::XMLFile,
     public ProgressLogger
@@ -117,6 +127,7 @@ public:
 
 
 private:
+
      /**
       * @brief Transforms a PeakSpectrum into a base 64 encoded string, which is the format used in spec.xml for xQuest.
       * @param The spectrum

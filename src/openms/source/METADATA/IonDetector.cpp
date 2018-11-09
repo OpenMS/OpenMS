@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,35 +54,9 @@ namespace OpenMS
 
   }
 
-  IonDetector::IonDetector(const IonDetector & source) :
-    MetaInfoInterface(source),
-    type_(source.type_),
-    acquisition_mode_(source.acquisition_mode_),
-    resolution_(source.resolution_),
-    ADC_sampling_frequency_(source.ADC_sampling_frequency_),
-    order_(source.order_)
-  {
-
-  }
-
   IonDetector::~IonDetector()
   {
 
-  }
-
-  IonDetector & IonDetector::operator=(const IonDetector & source)
-  {
-    if (&source == this)
-      return *this;
-
-    order_ = source.order_;
-    type_ = source.type_;
-    acquisition_mode_ = source.acquisition_mode_;
-    resolution_ = source.resolution_;
-    ADC_sampling_frequency_ = source.ADC_sampling_frequency_;
-    MetaInfoInterface::operator=(source);
-
-    return *this;
   }
 
   bool IonDetector::operator==(const IonDetector & rhs) const
@@ -151,3 +125,4 @@ namespace OpenMS
   }
 
 }
+

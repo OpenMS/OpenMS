@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,13 +55,12 @@
 #include <iterator>
 #include <algorithm>
 
-using std::iterator_traits;
-
 namespace OpenMS
 {
 
   namespace Math
   {
+
     /**
       @brief Helper function checking if two iterators are not equal
 
@@ -366,9 +365,6 @@ namespace OpenMS
       Size n = std::distance(begin_a, end_a);
       return sum / (n-1);
     }
-
-
-
 
     /**
        @brief Calculates the mean square error for the values in [begin_a, end_a) and [begin_b, end_b)

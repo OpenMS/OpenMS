@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -178,7 +178,7 @@ START_SECTION((double getCPUTime() const ))
 
   TEST_EQUAL(s.getCPUTime() > 0.1, true) // waiting costs CPU time... just not sure how much...
   TEST_EQUAL(s.getClockTime() > 2, true) // and must consume wall time
-  TEST_EQUAL(s.getClockTime() < 4, true)
+  TEST_EQUAL(s.getClockTime() < 10, true) // be a bit more loose if e.g. a VM is busy
   TEST_EQUAL(s.getUserTime() > 0.1, true) //  and some user time
   TEST_EQUAL(s.getUserTime() < 4, true)
   TEST_EQUAL(s.getSystemTime() < 3, true) // and usually quite few system time

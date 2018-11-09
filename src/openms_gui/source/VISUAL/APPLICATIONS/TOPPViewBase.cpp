@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -681,11 +681,15 @@ namespace OpenMS
   // static
   bool TOPPViewBase::containsIMData(const MSSpectrum& s)
   {
-    if (s.getFloatDataArrays().empty() || s.getFloatDataArrays()[0].getName() != "Ion Mobility")
+    if (!s.getFloatDataArrays().empty() &&
+        (s.getFloatDataArrays()[0].getName() == "Ion Mobility" ||
+         s.getFloatDataArrays()[0].getName() == "ion mobility array" ||
+         s.getFloatDataArrays()[0].getName() == "ion mobility drift time")
+        )
     {
-      return false;
+      return true;
     }
-    return true;
+    return false;
   }
 
   float TOPPViewBase::estimateNoiseFromRandomMS1Scans(const ExperimentType& exp, UInt n_scans)
@@ -2030,7 +2034,7 @@ namespace OpenMS
 
       if (spectra_identification_view_widget_)
       {
-        spectra_identification_view_widget_->attachLayer(nullptr);
+        spectra_identification_view_widget_->setLayer(nullptr);
         // remove all entries
         QTableWidget* w = spectra_identification_view_widget_->getTableWidget();
         for (int i = w->rowCount() - 1; i >= 0; --i)
@@ -2055,8 +2059,10 @@ namespace OpenMS
 
     if (spectra_identification_view_widget_->isVisible())
     {
-      spectra_identification_view_widget_->attachLayer(&cc->getCurrentLayer());
-      spectra_identification_view_widget_->updateEntries();
+      if (&cc->getCurrentLayer() != spectra_identification_view_widget_->getLayer())
+      {
+        spectra_identification_view_widget_->setLayer(&cc->getCurrentLayer());
+      }
     }
   }
 

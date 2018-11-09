@@ -28,6 +28,7 @@ IDDecoyProbability.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp
+PrecursorPurity.cpp
 ProtonDistributionModel.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
@@ -45,4 +46,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\ANALYSIS\\ID" FILES ${sources})
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,9 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
+
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <numeric>
-#include <iostream>
 
 using namespace std;
 
@@ -225,22 +225,6 @@ namespace OpenMS
   {
   }
 
-  ProteinIdentification::ProteinIdentification(const ProteinIdentification& source) :
-    MetaInfoInterface(source),
-    id_(source.id_),
-    search_engine_(source.search_engine_),
-    search_engine_version_(source.search_engine_version_),
-    search_parameters_(source.search_parameters_),
-    date_(source.date_),
-    protein_score_type_(source.protein_score_type_),
-    higher_score_better_(source.higher_score_better_),
-    protein_hits_(source.protein_hits_),
-    protein_groups_(source.protein_groups_),
-    indistinguishable_proteins_(source.indistinguishable_proteins_),
-    protein_significance_threshold_(source.protein_significance_threshold_)
-  {
-  }
-
   ProteinIdentification::~ProteinIdentification()
   {
   }
@@ -342,6 +326,11 @@ namespace OpenMS
     protein_hits_.push_back(protein_hit);
   }
 
+  void ProteinIdentification::insertHit(ProteinHit&& protein_hit)
+  {
+    protein_hits_.push_back(std::forward<ProteinHit>(protein_hit));
+  }
+
   void ProteinIdentification::setPrimaryMSRunPath(const StringList& s)
   {
     if (!s.empty())
@@ -357,27 +346,6 @@ namespace OpenMS
     {
       toFill = this->getMetaValue("spectra_data");
     }
-  }
-
-  ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
-  {
-    if (this == &source)
-    {
-      return *this;
-    }
-    MetaInfoInterface::operator=(source);
-    id_ = source.id_;
-    search_engine_ = source.search_engine_;
-    search_engine_version_ = source.search_engine_version_;
-    search_parameters_ = source.search_parameters_;
-    date_ = source.date_;
-    protein_hits_ = source.protein_hits_;
-    protein_groups_ = source.protein_groups_;
-    indistinguishable_proteins_ = source.indistinguishable_proteins_;
-    protein_score_type_ = source.protein_score_type_;
-    protein_significance_threshold_ = source.protein_significance_threshold_;
-    higher_score_better_ = source.higher_score_better_;
-    return *this;
   }
 
   // Equality operator
@@ -506,7 +474,7 @@ namespace OpenMS
     const std::vector<PeptideIdentification>& pep_ids, 
     const StringList & skip_modifications)
   {
-    //map protein accession to observed position,modifications pairs
+    // map protein accession to observed position,modifications pairs
     map<String, set<pair<Size, ResidueModification>>> prot2mod;
 
     for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
@@ -528,8 +496,9 @@ namespace OpenMS
           if (aas.hasNTerminalModification())
           {
             const ResidueModification * res_mod = aas.getNTerminalModification();
-            // skip mod?
-            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+            // skip mod if Id, e.g. 'Carbamidomethyl' or full id e.g., 'Carbamidomethyl (C)' match.
+            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+             && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
             {
               for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
               {
@@ -546,7 +515,8 @@ namespace OpenMS
             {
               const ResidueModification * res_mod = aas[ai].getModification();
 
-              if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+              if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+               && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
               {
                 for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
                 {
@@ -562,7 +532,8 @@ namespace OpenMS
           {
             const ResidueModification * res_mod = aas.getCTerminalModification();
             // skip mod?
-            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end())
+            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+             && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
             {
               for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
               {
@@ -642,3 +613,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

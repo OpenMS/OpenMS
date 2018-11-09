@@ -256,17 +256,29 @@ endif()
 
 #------------------------------------------------------------------------------
 if (NOT (${SIRIUS_BINARY} STREQUAL "SIRIUS_BINARY-NOTFOUND"))
+  # Note: Following test are performed without adduct information, since these are obtained by the MetaboliteAdductDecharger
+  # Appropriate files exceed the test size.
+  # test mzMl as input
   add_test("TOPP_SiriusAdapter_1" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_1_output.tmp -auto_charge -profile qtof -database all)
   add_test("TOPP_SiriusAdapter_1_out" ${DIFF} -in1 SiriusAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_output.mzTab -whitelist "MTD")
   set_tests_properties("TOPP_SiriusAdapter_1_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_1")
-  add_test("TOPP_SiriusAdapter_3" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_adductinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_sirius SiriusAdapter_3_output.tmp -auto_charge -profile qtof -database all)
+  # test mzML and featureXML with feature_only
+  add_test("TOPP_SiriusAdapter_2" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.featureXML -out_sirius SiriusAdapter_2_output.tmp -feature_only -filter_by_num_masstraces 3 -auto_charge -profile qtof -database all)
+  add_test("TOPP_SiriusAdapter_2_out" ${DIFF} -in1 SiriusAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_output.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_2_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_2")
+  # test mzML and featureXML without feature_only (filter_by_num_masstraces should automatically set to 1s)
+  add_test("TOPP_SiriusAdapter_3" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_sirius SiriusAdapter_3_output.tmp -filter_by_num_masstraces 3 -auto_charge -profile qtof -database all)
   add_test("TOPP_SiriusAdapter_3_out" ${DIFF} -in1 SiriusAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_output.mzTab -whitelist "MTD")
   set_tests_properties("TOPP_SiriusAdapter_3_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_3")
-  # Note that with FingerID, only one spectrum (number 4) should produce a result
+  # test internal .ms output (converter mode) 
+  add_test("TOPP_SiriusAdapter_5" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_3_input.featureXML -out_ms SiriusAdapter_5_output.tmp -converter_mode)
+  add_test("TOPP_SiriusAdapter_5_out" ${DIFF} -in1 SiriusAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_5_output.ms)
+  set_tests_properties("TOPP_SiriusAdapter_5_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_5")
+  # Note that with FingerID, output for compound 79 without feature only
   if (ENABLE_FINGERID_TEST)
-  add_test("TOPP_SiriusAdapter_2" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_1_input.mzML -out_sirius SiriusAdapter_2_output.tmp -out_fingerid SiriusAdapter_2_foutput.tmp -auto_charge -profile qtof -database all)
-  add_test("TOPP_SiriusAdapter_2_out" ${DIFF} -in1 SiriusAdapter_2_foutput.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_foutput.mzTab -whitelist "MTD")
-  set_tests_properties("TOPP_SiriusAdapter_2_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_2")
+  add_test("TOPP_SiriusAdapter_4" ${TOPP_BIN_PATH}/SiriusAdapter -test -executable "${SIRIUS_BINARY}" -in ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.mzML -in_featureinfo ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_2_input.featureXML  -out_sirius SiriusAdapter_4_output.tmp -out_fingerid SiriusAdapter_4_foutput.tmp -auto_charge -profile qtof -database all)
+  add_test("TOPP_SiriusAdapter_4_out" ${DIFF} -in1 SiriusAdapter_4_foutput.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/SiriusAdapter_4_foutput.mzTab -whitelist "MTD")
+  set_tests_properties("TOPP_SiriusAdapter_4_out" PROPERTIES DEPENDS "TOPP_SiriusAdapter_4")
   endif()
 endif()
 

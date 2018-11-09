@@ -16,24 +16,30 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #  ChromatogramSettings
         #  MetaInfoInterface
         #  RangeManager1
-
-        # COMMENT: Note: access raw data through `get_peaks` function (or by iterating through peaks)
-        # COMMENT: Note: set raw data through `set_peaks` function
+        #
+        # wrap-doc:
+        #   The representation of a chromatogram.
+        #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #   Iterations yields access to underlying peak objects but is slower
+        #   Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
+        #   See help(ChromatogramSettings) for information about meta-information
 
         MSChromatogram() nogil except +
         MSChromatogram(MSChromatogram &) nogil except +
-        double getMZ() nogil except +
+        double getMZ() nogil except + #wrap-doc:returns the mz of the product entry, makes sense especially for MRM scans
         # void   setMZ(double) nogil except +
 
         libcpp_string getName() nogil except +
         void setName(libcpp_string) nogil except +
 
         Size size() nogil except +
+        void reserve(size_t n) nogil except + 
+
         ChromatogramPeak operator[](int) nogil except +
 
         void updateRanges() nogil except +
         void clear(int) nogil except +
-        void push_back(ChromatogramPeak)  nogil except +
+        void push_back(ChromatogramPeak)  nogil except + #wrap-doc:Append a peak
 
         bool isSorted() nogil except +
 

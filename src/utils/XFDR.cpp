@@ -115,6 +115,7 @@ public:
   static const String param_uniquexl; // calculate statistics based on unique IDs
   static const String param_no_qvalues; // Do not transform to qvalues
   static const String param_minscore; // minscore 0 # minimum ld-score to be considered
+  static const String param_binsize; // bin size for cumulative histograms
 
   // Number of ranks used
   static const UInt n_rank;
@@ -132,9 +133,6 @@ public:
   static const String crosslink_class_targets; // targets
   static const String crosslink_class_hybriddecoysintralinks; // hybriddecoysintralinks
   static const String crosslink_class_hybriddecoysinterlinks; // hybriddecoysintralinks
-
-  // Score range for calculating the FPs
-  static const double fpnum_score_step;
 
   // Meta values used to identify cross-links
   static const String crosslink_type;
@@ -202,6 +200,10 @@ protected:
 
     // Minscore
     registerIntOption_(TOPPXFDR::param_minscore, "<minscore>", 0, "Minimum score to be considered for FDR calculation", false);
+
+    // Cumulative Histograms bin size
+    registerDoubleOption_(TOPPXFDR::param_binsize, "<binsize>", 0.0001, "Bin size for the cumulative histograms for score distributions. Should be about the same size as the smallest expected difference between scores. Smaller numbers will make XFDR more robust, but much slower. Negative numbers are not allowed.", false, true);
+    setMinFloat_(TOPPXFDR::param_binsize, 1e-15);
   }
 
     /**
@@ -419,9 +421,9 @@ protected:
     bool decoyclass_present = cum_histograms.find(decoyclass) != cum_histograms.end();
     bool fulldecoyclass_present = cum_histograms.find(fulldecoyclass) != cum_histograms.end();
 
-    for (double current_score = this->min_score +  (TOPPXFDR::fpnum_score_step/2);
-        current_score <= this->max_score - (TOPPXFDR::fpnum_score_step/2);
-        current_score += TOPPXFDR::fpnum_score_step)
+    for (double current_score = this->min_score +  (arg_binsize/2);
+        current_score <= this->max_score - (arg_binsize/2);
+        current_score += arg_binsize)
     {
       double estimated_n_decoys = decoyclass_present ? cum_histograms[decoyclass].binValue(current_score) : 0;
       if ( ! mono)
@@ -533,7 +535,7 @@ protected:
     {
       vector< double > current_scores = class_scores.second;
 
-      Math::Histogram<> histogram(this->min_score, this->max_score, TOPPXFDR::fpnum_score_step);
+      Math::Histogram<> histogram(this->min_score, this->max_score, arg_binsize);
       Math::Histogram<>::getCumulativeHistogram(current_scores.begin(), current_scores.end(), true, true, histogram);
       cum_histograms[class_scores.first] = histogram;
     }
@@ -597,7 +599,7 @@ protected:
           crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
       {
         String current_crosslink_type = *crosslink_types_it;
-        Size idx = std::floor((score - this->min_score) / TOPPXFDR::fpnum_score_step);
+        Size idx = std::floor((score - this->min_score) / arg_binsize);
         if (   current_crosslink_type == TOPPXFDR::crosslink_class_fulldecoysinterlinks
             || current_crosslink_type == TOPPXFDR::crosslink_class_hybriddecoysinterlinks
             || current_crosslink_type == TOPPXFDR::crosslink_class_interdecoys
@@ -691,6 +693,7 @@ private:
   Int arg_minionsmatched;
   Int arg_minscore;
   bool arg_uniquex;
+  double arg_binsize;
 
 
   void logFatal(const String &message) const
@@ -746,6 +749,7 @@ private:
     arg_minionsmatched = getIntOption_(TOPPXFDR::param_minionsmatched);
     arg_minscore = getIntOption_(TOPPXFDR::param_minscore);
     arg_uniquex = getFlag_(TOPPXFDR::param_uniquexl);
+    arg_binsize = getDoubleOption_(TOPPXFDR::param_binsize);
   }
 
   void writeArgumentsLog() const
@@ -765,6 +769,7 @@ private:
                                : "No filtering of hits by minimum score.");
     writeLog_(arg_uniquex ? "Error model is generated based on unique cross-links."
                           : "Error model is generated based on redundant cross-links.");
+    writeLog_("Bin size for cumulative histograms is " + String(arg_binsize));
   }
 
   ExitCodes validateArguments() const
@@ -944,10 +949,9 @@ private:
     {
       return static_cast<double>(alpha.getMetaValue(error_rel));
     }
-    const String error_ppm = "OMS:precursor_mz_error_ppm";
-    if (alpha.metaValueExists(error_ppm))
+    if (alpha.metaValueExists(Constants::PRECURSOR_ERROR_PPM_USERPARAM))
     {
-      return static_cast<double>(alpha.getMetaValue("OMS:precursor_mz_error_ppm"));
+      return static_cast<double>(alpha.getMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM));
     }
     return 0;
   }
@@ -956,8 +960,18 @@ private:
   static Size getMinIonsMatched(const PeptideIdentification &pep_id)
   {
     const PeptideHit &hit = pep_id.getHits()[0];
-    Size alpha_ions = Size(hit.getMetaValue("matched_common_alpha")) + Size(hit.getMetaValue("matched_xlink_alpha"));
-    Size beta_ions = Size(hit.getMetaValue("matched_common_beta")) + Size(hit.getMetaValue("matched_xlink_beta"));
+    Size alpha_ions(0);
+    Size beta_ions(0);
+    if (hit.metaValueExists("matched_common_alpha"))
+    {
+      alpha_ions = Size(hit.getMetaValue("matched_common_alpha")) + Size(hit.getMetaValue("matched_xlink_alpha"));
+      beta_ions = Size(hit.getMetaValue("matched_common_beta")) + Size(hit.getMetaValue("matched_xlink_beta"));
+    }
+    else if (hit.metaValueExists("matched_linear_alpha"))
+    {
+      alpha_ions = Size(hit.getMetaValue("matched_linear_alpha")) + Size(hit.getMetaValue("matched_xlink_alpha"));
+      beta_ions = Size(hit.getMetaValue("matched_linear_beta")) + Size(hit.getMetaValue("matched_xlink_beta"));
+    }
     return std::min(alpha_ions, beta_ions);
   }
 
@@ -1039,6 +1053,7 @@ const String TOPPXFDR::param_minionsmatched = "minionsmatched";
 const String TOPPXFDR::param_uniquexl = "uniquexl";
 const String TOPPXFDR::param_no_qvalues = "no_qvalues";
 const String TOPPXFDR::param_minscore = "minscore";
+const String TOPPXFDR::param_binsize = "binsize";
 
 const String TOPPXFDR::crosslink_class_intradecoys = "intradecoys";
 const String TOPPXFDR::crosslink_class_fulldecoysintralinks = "fulldecoysintralinks";
@@ -1052,9 +1067,6 @@ const String TOPPXFDR::crosslink_class_decoys = "decoys";
 const String TOPPXFDR::crosslink_class_targets = "targets";
 const String TOPPXFDR::crosslink_class_hybriddecoysintralinks = "hybriddecoysintralinks";
 const String TOPPXFDR::crosslink_class_hybriddecoysinterlinks = "hybriddecoysinterlinks";
-
-// Parameters for actually calculating the number of FPs
-const double TOPPXFDR::fpnum_score_step = 0.1;
 
 // meta values for crosslink identifications
 const String TOPPXFDR::crosslink_type = "xl_type";

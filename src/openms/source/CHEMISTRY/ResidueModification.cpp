@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,57 +56,6 @@ namespace OpenMS
     neutral_loss_mono_mass_(0.0),
     neutral_loss_average_mass_(0.0)
   {
-  }
-
-  ResidueModification::ResidueModification(const ResidueModification& rhs) :
-    id_(rhs.id_),
-    full_id_(rhs.full_id_),
-    psi_mod_accession_(rhs.psi_mod_accession_),
-    unimod_record_id_(rhs.unimod_record_id_),
-    full_name_(rhs.full_name_),
-    name_(rhs.name_),
-    term_spec_(rhs.term_spec_),
-    origin_(rhs.origin_),
-    classification_(rhs.classification_),
-    average_mass_(rhs.average_mass_),
-    mono_mass_(rhs.mono_mass_),
-    diff_average_mass_(rhs.diff_average_mass_),
-    diff_mono_mass_(rhs.diff_mono_mass_),
-    formula_(rhs.formula_),
-    diff_formula_(rhs.diff_formula_),
-    synonyms_(rhs.synonyms_),
-    neutral_loss_diff_formula_(rhs.neutral_loss_diff_formula_),
-    neutral_loss_mono_mass_(rhs.neutral_loss_mono_mass_),
-    neutral_loss_average_mass_(rhs.neutral_loss_average_mass_)
-  {
-  }
-
-  ResidueModification & ResidueModification::operator=(const ResidueModification& rhs)
-  {
-    if (this != &rhs)
-    {
-      id_ = rhs.id_;
-      full_id_ = rhs.full_id_;
-      psi_mod_accession_ = rhs.psi_mod_accession_;
-      unimod_record_id_ = rhs.unimod_record_id_;
-      full_name_ = rhs.full_name_;
-      name_ = rhs.name_;
-      term_spec_ = rhs.term_spec_;
-      origin_ = rhs.origin_;
-      classification_ = rhs.classification_;
-      average_mass_ = rhs.average_mass_;
-      mono_mass_ = rhs.mono_mass_;
-      diff_average_mass_ = rhs.diff_average_mass_;
-      diff_mono_mass_ = rhs.diff_mono_mass_;
-      formula_ = rhs.formula_;
-      diff_formula_ = rhs.diff_formula_;
-      synonyms_ = rhs.synonyms_;
-      neutral_loss_diff_formula_ = rhs.neutral_loss_diff_formula_;
-      neutral_loss_mono_mass_ = rhs.neutral_loss_mono_mass_;
-      neutral_loss_average_mass_ = rhs.neutral_loss_average_mass_;
-    }
-
-    return *this;
   }
 
   bool ResidueModification::operator<(const ResidueModification& rhs) const
@@ -609,3 +558,4 @@ namespace OpenMS
   }
 
 }
+

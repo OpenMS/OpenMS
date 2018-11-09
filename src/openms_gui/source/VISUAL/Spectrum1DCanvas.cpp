@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,6 @@
 #include <OpenMS/VISUAL/DIALOGS/Spectrum1DPrefDialog.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
@@ -1081,19 +1080,12 @@ namespace OpenMS
 
     // add new draw mode and style (default: peaks)
     draw_modes_.push_back(DM_PEAKS);
-    SpectrumSettings::SpectrumType spectrum_type = spectrum.getType();
+    SpectrumSettings::SpectrumType spectrum_type = spectrum.getType(true);
 
     if (spectrum_type == SpectrumSettings::PROFILE)
     {
       draw_modes_.back() = DM_CONNECTEDLINES;
     } 
-    else if (spectrum_type == SpectrumSettings::UNKNOWN)
-    {
-      if (PeakTypeEstimator().estimateType(spectrum.begin(), spectrum.end()) == SpectrumSettings::PROFILE)
-      {
-        draw_modes_.back() = DM_CONNECTEDLINES;
-      }
-    }
     peak_penstyle_.push_back(Qt::SolidLine);
 
 

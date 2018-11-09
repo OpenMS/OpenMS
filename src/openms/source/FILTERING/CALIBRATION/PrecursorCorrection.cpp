@@ -41,17 +41,18 @@
 
 
 using namespace std;
+using namespace OpenMS;
 
 namespace OpenMS
 {
 
-    const std::string precursor_correction_csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
+   const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
 
-    void PrecursorCorrection::getPrecursors(
-       const MSExperiment & exp, 
-       vector<Precursor> & precursors, 
-       vector<double> & precursors_rt, 
-       vector<Size> precursor_scan_index)
+
+   void PrecursorCorrection::getPrecursors(const MSExperiment & exp,
+                                           vector<Precursor> & precursors,
+                                           vector<double> & precursors_rt,
+                                           vector<Size> & precursor_scan_index)
     {
       for (Size i = 0; i != exp.size(); ++i)
       {
@@ -67,31 +68,33 @@ namespace OpenMS
       }
     }
 
-    void PrecursorCorrection::writeHist(const String& out_csv, const vector<double> & deltaMZs, const vector<double> & mzs, const vector<double> & rts)
+    void PrecursorCorrection::writeHist(const String& out_csv,
+                                        const vector<double> & delta_mzs,
+                                        const vector<double> & mzs,
+                                        const vector<double> & rts)
     {
       //cout << "writting data" << endl;
       ofstream csv_file(out_csv.c_str());
       csv_file << setprecision(9);
 
       // header
-      csv_file << ListUtils::concatenate(ListUtils::create<String>(precursor_correction_csv_header), "\t") << "\n";
+      csv_file << ListUtils::concatenate(ListUtils::create<String>(PrecursorCorrection::csv_header), "\t") << "\n";
 
       // entries
-      for (vector<double>::const_iterator it = deltaMZs.begin(); it != deltaMZs.end(); ++it)
+      for (vector<double>::const_iterator it = delta_mzs.begin(); it != delta_mzs.end(); ++it)
       {
-        UInt index = it - deltaMZs.begin();
+        UInt index = it - delta_mzs.begin();
         csv_file << rts[index] << "\t" << mzs[index] << "\t" << mzs[index] + *it  << "\t" << *it << "\n";
       }
       csv_file.close();
     }
 
-     set<Size> PrecursorCorrection::correctToNearestMS1Peak(
-      MSExperiment & exp, 
-      double mz_tolerance, 
-      bool ppm, 
-      vector<double> & deltaMZs, 
-      vector<double> & mzs, 
-      vector<double> & rts)
+     set<Size> PrecursorCorrection::correctToNearestMS1Peak(MSExperiment & exp,
+                                                            double mz_tolerance,
+                                                            bool ppm,
+                                                            vector<double> & delta_mzs,
+                                                            vector<double> & mzs,
+                                                            vector<double> & rts)
     {
       set<Size> corrected_precursors;
       // load experiment and extract precursors
@@ -122,7 +125,7 @@ namespace OpenMS
         if (rt_it == exp.end() 
         || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "No MS1 spectrum for this precursor" << endl;
+          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
           continue;          
         }
 
@@ -147,8 +150,8 @@ namespace OpenMS
           }
 
           // cout << mz << " -> " << nearest_peak_mz << endl;
-          double deltaMZ = nearest_peak_mz - mz;
-          deltaMZs.push_back(deltaMZ);
+          double delta_mz = nearest_peak_mz - mz;
+          delta_mzs.push_back(delta_mz);
           mzs.push_back(mz);
           rts.push_back(rt);
           // correct entries
@@ -162,12 +165,12 @@ namespace OpenMS
     }
 
     //Selection of the peak with the highest intensity as corrected precursor mass in a given mass range (e.g. precursor mass +/- 0.2 Da)
-    set<Size> PrecursorCorrection::correctToHighestIntensityMS1Peak(
-      MSExperiment & exp, 
-      double mz_tolerance, 
-      vector<double> & deltaMZs, 
-      vector<double> & mzs, 
-      vector<double> & rts)
+    set<Size> PrecursorCorrection::correctToHighestIntensityMS1Peak(MSExperiment & exp,
+                                                                    double mz_tolerance,
+                                                                    bool ppm,
+                                                                    vector<double> & delta_mzs,
+                                                                    vector<double> & mzs,
+                                                                    vector<double> & rts)
     {
       set<Size> corrected_precursors;
       // load experiment and extract precursors
@@ -194,15 +197,17 @@ namespace OpenMS
         if (rt_it == exp.end() 
         || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "No MS1 spectrum for this precursor." << endl;
+          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
           continue;
         }
 
-        MSSpectrum::ConstIterator left = rt_it->MZBegin(mz - mz_tolerance);
-        MSSpectrum::ConstIterator right = rt_it->MZEnd(mz + mz_tolerance);
+        // get tolerance window and left/right iterator
+        std::pair<double,double> tolerance_window = Math::getTolWindow(mz, mz_tolerance, ppm);
+        MSSpectrum::ConstIterator left = rt_it->MZBegin(tolerance_window.first);
+        MSSpectrum::ConstIterator right = rt_it->MZEnd(tolerance_window.second);
 
         // no MS1 precursor peak in +- tolerance window found
-        if (left == right || left->getMZ() > mz + mz_tolerance)
+        if  (left == right)
         {
           count_error_highest_intenstiy += 1;
           continue;
@@ -217,8 +222,8 @@ namespace OpenMS
         double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();
 
         // cout << mz << " -> " << nearest_peak_mz << endl;
-        double deltaMZ = highest_peak_mz - mz;
-        deltaMZs.push_back(deltaMZ);
+        double delta_mz = highest_peak_mz - mz;
+        delta_mzs.push_back(delta_mz);
         mzs.push_back(mz);
         rts.push_back(rt);
         // correct entries
@@ -230,29 +235,22 @@ namespace OpenMS
 
       if (count_error_highest_intenstiy != 0)
       {
-        LOG_WARN << "Error: The method highest_intensity_peak failed " << count_error_highest_intenstiy << " times." << endl;
+        LOG_INFO << "Correction to the highest intensity peak failed " << count_error_highest_intenstiy << " times. No changes were applied in these cases.";
       }
 
       return corrected_precursors;
     }
 
-    // Wrong assignment of the mono-isotopic mass for precursors are assumed:
-    // - if precursor_mz matches the mz of a non-monoisotopic feature mass trace
-    // - and in the case that believe_charge is true: if feature_charge matches the precursor_charge
-    // In the case of wrong mono-isotopic assignment several options for correction are available:
-    // keep_original will create a copy of the precursor and tandem spectrum for the new mono-isotopic mass trace and retain the original one
-    // all_matching_features does this not for only the closest feature but all features in a question
-    set<Size> PrecursorCorrection::correctToNearestFeature(
-      const FeatureMap& features, 
-      MSExperiment & exp, 
-      double rt_tolerance_s, 
-      double mz_tolerance, 
-      bool ppm, 
-      bool believe_charge, 
-      bool keep_original, 
-      bool all_matching_features, 
-      int max_trace,
-      int debug_level)
+    set<Size> PrecursorCorrection::correctToNearestFeature(const FeatureMap& features,
+                                                           MSExperiment & exp,
+                                                           double rt_tolerance_s,
+                                                           double mz_tolerance,
+                                                           bool ppm,
+                                                           bool believe_charge,
+                                                           bool keep_original,
+                                                           bool all_matching_features,
+                                                           int max_trace,
+                                                           int debug_level)
     {
       set<Size> corrected_precursors;
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
@@ -393,7 +391,10 @@ namespace OpenMS
       return corrected_precursors;
     }
 
-    bool PrecursorCorrection::overlaps_(const Feature& feature, const double rt, const double pc_mz, const double rt_tolerance)
+    bool PrecursorCorrection::overlaps_(const Feature& feature,
+                                        const double rt,
+                                        const double pc_mz,
+                                        const double rt_tolerance)
     {
       if (feature.getConvexHulls().empty())
       {
@@ -417,7 +418,11 @@ namespace OpenMS
       }
     }
 
-    bool PrecursorCorrection::compatible_(const Feature& feature, double pc_mz, double mz_tolerance, Size max_trace_number, int debug_level)
+    bool PrecursorCorrection::compatible_(const Feature& feature,
+                                          double pc_mz,
+                                          double mz_tolerance,
+                                          Size max_trace_number,
+                                          int debug_level)
     {
       const int f_charge = feature.getCharge();
       const double f_mz = feature.getMZ();

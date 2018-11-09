@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -371,10 +371,9 @@ namespace TEST = OpenMS::Internal::ClassTest;
  calling the test program with any arguments (except for <code>-v</code> or
  <code>-V</code>).
 
- The second argument version should take the form "$Id:$".  The actual
- version info will then be filled in by Subversion (the revision control
- system).  If it does not, use "svn help propset" to find out how to include
- "Id" in the property "svn:keywords" for the *_test.cpp file in question.
+ The second argument version should take the form "$Id:$" but is currently
+ deprecated.  Originally, the SVN revision was annotated by the revision 
+ control system.
 
  The #START_TEST macro should be the first one to call in a test program. It
  opens a global <code>try</code> block to catch any unwanted exceptions.  If

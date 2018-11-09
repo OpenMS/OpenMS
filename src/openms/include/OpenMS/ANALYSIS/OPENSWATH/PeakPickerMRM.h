@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,6 +78,9 @@ public:
     /// Destructor
     ~PeakPickerMRM() override {}
     //@}
+
+	/// indices into FloatDataArrays of resulting picked chromatograms
+	enum FLOATINDICES { IDX_FWHM = 0, IDX_ABUNDANCE = 1, IDX_LEFTBORDER = 2, IDX_RIGHTBORDER = 3, SIZE_OF_FLOATINDICES };
 
     /**
       @brief Finds peaks in a single chromatogram and annotates left/right borders

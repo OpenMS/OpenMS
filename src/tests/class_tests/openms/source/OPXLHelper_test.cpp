@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,21 +94,15 @@ std::vector<ResidueModification> variable_modifications = OPXLHelper::getModific
 QStringList q_str_list3;
 QStringList q_str_list4;
 q_str_list3 << "K" << "E";
-q_str_list4 << "D" << "E";
+q_str_list4 << "D" << "E" << "C-term";
 StringList cross_link_residue1 = StringListUtils::fromQStringList(q_str_list3);
 StringList cross_link_residue2 = StringListUtils::fromQStringList(q_str_list4);
 
 Size max_variable_mods_per_peptide = 5;
-Size count_proteins = 0;
-Size count_peptides = 0;
-bool n_term_linker = false;
-bool c_term_linker = true;
 
+START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide))
 
-
-START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db, EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2, std::vector<ResidueModification> fixed_modifications, std::vector<ResidueModification> variable_modifications, Size max_variable_mods_per_peptide, Size count_proteins = 0, Size count_peptides = 0, bool n_term_linker = false, bool c_term_linker = false))
-
-  std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides, n_term_linker, c_term_linker);
+  std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
 
   TEST_EQUAL(peptides.size(), 880)
   TEST_EQUAL(peptides[5].peptide_mass > 5, true) // not an empty AASequence
@@ -120,7 +114,7 @@ START_SECTION(static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(
 END_SECTION
 
 // building more data structures required in several following tests
-std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, count_proteins, count_peptides, n_term_linker, c_term_linker);
+std::vector<OPXLDataStructs::AASeqWithMass> peptides = OPXLHelper::digestDatabase(fasta_db, digestor, min_peptide_length, cross_link_residue1, cross_link_residue2, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
 
 std::sort(peptides.begin(), peptides.end(), OPXLDataStructs::AASeqWithMassComparator());
 
@@ -140,28 +134,30 @@ for (Size i = 0; i < 800; i++)
   spectrum_precursors.push_back(peptides[i].peptide_mass + peptides[i+3].peptide_mass + cross_link_mass);
 }
 
-
-START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
+START_SECTION(static std::vector<OPXLDataStructs::XLPrecursor> enumerateCrossLinksAndMasses(const std::vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass_light, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, std::vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm))
 
   std::cout << std::endl;
-  std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
-  std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
+  std::vector< int > spectrum_precursor_correction_positions;
+  std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+  // std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
   TOLERANCE_ABSOLUTE(1e-3)
   TEST_EQUAL(precursors.size(), 15990)
+  TEST_EQUAL(spectrum_precursor_correction_positions.size(), 15990)
   // sample about 1/15 of the data, since a lot of precursors are generated
-  int sampler = 14;
-  for (Size i = 0; i < precursors.size() / 15; ++i)
+
+  for (Size i = 0; i < precursors.size(); i += 2000)
   {
-    if (precursors[i*sampler].beta_index > peptides.size())
+    if (precursors[i].beta_index > peptides.size())
     {
       // mono-link
-      TEST_REAL_SIMILAR(peptides[precursors[i*sampler].alpha_index].peptide_mass + 50.0, precursors[i*sampler].precursor_mass)
+      TEST_REAL_SIMILAR(peptides[precursors[i].alpha_index].peptide_mass + cross_link_mass_mono_link[0], precursors[i].precursor_mass)
     }
     else
     {
       // cross-link
-      TEST_REAL_SIMILAR(peptides[precursors[i*sampler].alpha_index].peptide_mass + peptides[precursors[i*sampler].beta_index].peptide_mass + cross_link_mass, precursors[i*sampler].precursor_mass)
+      double computed_precursor = peptides[precursors[i].alpha_index].peptide_mass + peptides[precursors[i].beta_index].peptide_mass + cross_link_mass;
+      TEST_REAL_SIMILAR(computed_precursor, precursors[i].precursor_mass)
     }
   }
 
@@ -169,16 +165,16 @@ END_SECTION
 
 // building more data structures required in the following test
 std::cout << std::endl;
-std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+std::vector< int > spectrum_precursor_correction_positions;
+std::vector<OPXLDataStructs::XLPrecursor> precursors = OPXLHelper::enumerateCrossLinksAndMasses(peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, spectrum_precursors, spectrum_precursor_correction_positions, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
 std::sort(precursors.begin(), precursors.end(), OPXLDataStructs::XLPrecursorComparator());
 
-
-START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, double precursor_mass, double allowed_error, String cross_link_name, bool n_term_linker, bool c_term_linker))
-  double precursor_mass = 3425.57034;
-  double allowed_error = precursor_mass * precursor_mass_tolerance * 1e-6;
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buildCandidates(const std::vector< OPXLDataStructs::XLPrecursor > & candidates, const std::vector< int > precursor_corrections, std::vector< int >& precursor_correction_positions, const std::vector<OPXLDataStructs::AASeqWithMass> & peptide_masses, const StringList & cross_link_residue1, const StringList & cross_link_residue2, double cross_link_mass, const DoubleList & cross_link_mass_mono_link, std::vector< double >& spectrum_precursor_vector, std::vector< double >& allowed_error_vector, String cross_link_name))
+  double precursor_mass = 10668.85060;
+  double allowed_error = 0.1;
   String cross_link_name = "MyLinker";
 
-  std::vector< OPXLDataStructs::XLPrecursor > candidates;
+  std::vector< OPXLDataStructs::XLPrecursor > filtered_precursors;
 
   // determine MS2 precursors that match to the current peptide mass
   std::vector< OPXLDataStructs::XLPrecursor >::const_iterator low_it;
@@ -191,17 +187,23 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
   {
     for (; low_it != up_it; ++low_it)
     {
-      candidates.push_back(*low_it);
+      filtered_precursors.push_back(*low_it);
     }
   }
+  TEST_EQUAL(precursors.size(), 15990)
+  TEST_EQUAL(filtered_precursors.size(), 35)
+  std::vector< int > precursor_corrections(59, 0);
+  std::vector< int > precursor_correction_positions(59, 0);
+  std::vector< double > spectrum_precursor_vector(1, 0.0);
+  std::vector< double > allowed_error_vector(1, allowed_error);
 
-  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(candidates, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, precursor_mass, allowed_error, cross_link_name, n_term_linker, c_term_linker);
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::buildCandidates(filtered_precursors, precursor_corrections, precursor_correction_positions, peptides, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
 
-  TEST_EQUAL(spectrum_candidates.size(), 59)
+  TEST_EQUAL(spectrum_candidates.size(), 1680)
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
-  for (Size i = 0; i < spectrum_candidates.size(); ++i)
+  for (Size i = 0; i < spectrum_candidates.size(); i += 200)
   {
-    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + cross_link_mass, precursor_mass)
+    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass)
   }
 
 END_SECTION
@@ -212,20 +214,28 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
   param.setValue("add_isotopes", "false");
   param.setValue("add_metainfo", "true");
   param.setValue("add_first_prefix_ion", "false");
+  param.setValue("add_a_ions", "false");
+  param.setValue("add_losses", "false");
+  param.setValue("add_precursor_peaks", "false");
+  param.setValue("add_k_linked_ions", "false");
   specGen.setParameters(param);
 
   PeakSpectrum theo_spec, exp_spec;
   // Theoretical Spec with metainfo
-  specGen.getCommonIonSpectrum(theo_spec, AASequence::fromString("PEPTEDI"), 4, true);
+  AASequence peptedi = AASequence::fromString("PEPTEDI");
+  specGen.getLinearIonSpectrum(theo_spec, peptedi, 4, true);
 
   param.setValue("add_metainfo", "false");
   specGen.setParameters(param);
 
   // Theoretical Spec without metainfo (Pseudo experimental spectrum)
-  specGen.getCommonIonSpectrum(exp_spec, AASequence::fromString("PEPTIDE"), 3, true);
+  AASequence peptide = AASequence::fromString("PEPTIDE");
+  specGen.getLinearIonSpectrum(exp_spec, peptide, 3, true);
   std::vector <std::pair <Size, Size> > alignment;
 
-  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignment(alignment, theo_spec, exp_spec, 50, true);
+  DataArrays::FloatDataArray dummy_array;
+  DataArrays::IntegerDataArray dummy_charge_array;
+  OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(alignment, 50, true, theo_spec, exp_spec, dummy_charge_array, dummy_charge_array, dummy_array);
 
   std::vector<PeptideHit::PeakAnnotation> frag_annotations;
 
@@ -256,6 +266,87 @@ START_SECTION(static void buildFragmentAnnotations(std::vector<PeptideHit::PeakA
   TEST_EQUAL(frag_annotations[3].intensity, 1)
   TEST_EQUAL(frag_annotations[3].annotation, "[alpha|ci$b3]")
 
+END_SECTION
+
+START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name))
+
+  IntList precursor_correction_steps;
+  precursor_correction_steps.push_back(2);
+  precursor_correction_steps.push_back(1);
+
+  double precursor_mass = 10668.85060;
+  String cross_link_name = "MyLinker";
+  precursor_mass_tolerance = 10;
+
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> spectrum_candidates = OPXLHelper::collectPrecursorCandidates(precursor_correction_steps, precursor_mass, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm, peptides, cross_link_mass, cross_link_mass_mono_link, cross_link_residue1, cross_link_residue2, cross_link_name);
+
+  TEST_EQUAL(spectrum_candidates.size(), 1050)
+  TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
+  for (Size i = 0; i < spectrum_candidates.size(); i += 100)
+  {
+    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass - 1 * Constants::C13C12_MASSDIFF_U)
+  }
+
+END_SECTION
+
+START_SECTION(static double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge))
+
+  OPXLDataStructs::ProteinProteinCrossLink ppcl;
+  ppcl.alpha = AASequence::fromString("TESTPEPTIDE");
+  ppcl.beta = AASequence::fromString("TESTTESTESTE");
+  ppcl.cross_linker_mass = 150.0;
+
+  OPXLDataStructs::CrossLinkSpectrumMatch csm;
+  csm.cross_link = ppcl;
+  csm.precursor_correction = 0;
+
+  double precursor_charge = 3;
+  double precursor_mz = (ppcl.alpha.getMonoWeight() + ppcl.beta.getMonoWeight() + ppcl.cross_linker_mass + precursor_charge * Constants::PROTON_MASS_U) / precursor_charge;
+
+  double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
+  TEST_REAL_SIMILAR(rel_error, 0)
+
+  precursor_mz += 0.05;
+  rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
+  TEST_REAL_SIMILAR(rel_error, 56.21777)
+
+END_SECTION
+
+START_SECTION(static void OPXLHelper::isoPeakMeans(OPXLDataStructs::CrossLinkSpectrumMatch& csm, DataArrays::IntegerDataArray& num_iso_peaks_array, std::vector< std::pair< Size, Size > >& matched_spec_linear_alpha, std::vector< std::pair< Size, Size > >& matched_spec_linear_beta, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_alpha, std::vector< std::pair< Size, Size > >& matched_spec_xlinks_beta))
+
+  DataArrays::IntegerDataArray iso_peaks;
+  iso_peaks.push_back(3);
+  iso_peaks.push_back(5);
+  iso_peaks.push_back(2);
+  iso_peaks.push_back(1);
+  iso_peaks.push_back(1);
+  iso_peaks.push_back(3);
+  iso_peaks.push_back(1);
+  iso_peaks.push_back(3);
+  iso_peaks.push_back(2);
+
+  std::vector< std::pair< Size, Size > > matched_spec_linear_alpha;
+  matched_spec_linear_alpha.push_back(std::make_pair(1,1));
+  matched_spec_linear_alpha.push_back(std::make_pair(2,2));
+  matched_spec_linear_alpha.push_back(std::make_pair(4,3));
+  matched_spec_linear_alpha.push_back(std::make_pair(6,4));
+  matched_spec_linear_alpha.push_back(std::make_pair(7,5));
+  std::vector< std::pair< Size, Size > > matched_spec_linear_beta;
+  std::vector< std::pair< Size, Size > > matched_spec_xlinks_alpha;
+  std::vector< std::pair< Size, Size > > matched_spec_xlinks_beta;
+  matched_spec_xlinks_beta.push_back(std::make_pair(3,1));
+  matched_spec_xlinks_beta.push_back(std::make_pair(5,2));
+  matched_spec_xlinks_beta.push_back(std::make_pair(8,3));
+  matched_spec_xlinks_beta.push_back(std::make_pair(0,4));
+
+  OPXLDataStructs::CrossLinkSpectrumMatch csm;
+  OPXLHelper::isoPeakMeans(csm, iso_peaks, matched_spec_linear_alpha, matched_spec_linear_beta, matched_spec_xlinks_alpha, matched_spec_xlinks_beta);
+
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean, 2.3333)
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_linear_alpha, 2.4)
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_linear_beta, 0)
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_xlinks_alpha, 0)
+  TEST_REAL_SIMILAR(csm.num_iso_peaks_mean_xlinks_beta, 2.25)
 END_SECTION
 
 END_TEST

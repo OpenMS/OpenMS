@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -454,11 +453,7 @@ public:
       if (spectrum_type == "automatic")
       {
         Size idx = spectra_to_average_over.begin()->first; // index of first spectrum to be averaged
-        type = exp[idx].getType();
-        if (type == SpectrumSettings::UNKNOWN)
-        {
-          type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
-        }
+        type = exp[idx].getType(true);
       }
       else if (spectrum_type == "profile")
       {

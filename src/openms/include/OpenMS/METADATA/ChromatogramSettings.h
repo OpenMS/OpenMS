@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,7 @@
 
 namespace OpenMS
 {
+
   /**
       @brief Representation of chromatogram settings, e.g. SRM/MRM chromatograms
 
@@ -83,18 +84,21 @@ public:
     /// Constructor
     ChromatogramSettings();
     /// Copy constructor
-    ChromatogramSettings(const ChromatogramSettings & source);
+    ChromatogramSettings(const ChromatogramSettings &) = default;
+    /// Move constructor
+    ChromatogramSettings(ChromatogramSettings&&) = default;
     /// Destructor
     virtual ~ChromatogramSettings();
 
     // Assignment operator
-    ChromatogramSettings & operator=(const ChromatogramSettings & source);
+    ChromatogramSettings & operator=(const ChromatogramSettings &) = default;
+    /// Move assignment operator
+    ChromatogramSettings& operator=(ChromatogramSettings&&) & = default;
 
     /// Equality operator
     bool operator==(const ChromatogramSettings & rhs) const;
     /// Equality operator
     bool operator!=(const ChromatogramSettings & rhs) const;
-
 
     /// returns the native identifier for the spectrum, used by the acquisition software.
     const String & getNativeID() const;

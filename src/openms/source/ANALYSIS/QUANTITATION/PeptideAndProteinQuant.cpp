@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -638,7 +638,10 @@ namespace OpenMS
   }
 
   // static
-  void PeptideAndProteinQuant::annotateQuantificationsToProteins(const ProteinQuant& protein_quants, ProteinIdentification& proteins)
+  void PeptideAndProteinQuant::annotateQuantificationsToProteins(
+    const ProteinQuant& protein_quants, 
+    ProteinIdentification& proteins,
+    const UInt n_samples)
   {
     auto & id_groups = proteins.getIndistinguishableProteins();
     for (auto q : protein_quants)
@@ -664,11 +667,12 @@ namespace OpenMS
         // TODO: OPENMS_ASSERT(id_group->float_data_arrays.empty(), "Protein group float data array not empty!.");
         id_group->getFloatDataArrays().resize(1);
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
-        abundances.setName("abundances");
-    
+        abundances.setName("abundances");        
+        abundances.resize(n_samples);
         for (auto const & s : total_abundances)
         {
-          abundances.push_back(s.second);
+          // Note: sample indices are one-based
+          abundances[s.first - 1] = s.second;
         }
       }
       else

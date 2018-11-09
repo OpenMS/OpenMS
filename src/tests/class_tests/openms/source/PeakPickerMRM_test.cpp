@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,30 +112,30 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
   picker.pickChromatogram(chrom, picked_chrom);
 
   TEST_EQUAL( picked_chrom.size(), 1);
-  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
+  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), PeakPickerMRM::SIZE_OF_FLOATINDICES);
 
   // Peak picking is done by cubic spline interpolation and searching for the
   // point with zero derivative.
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 9981.93933103869);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1495.11321013749);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 60124.9); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1490.95); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1502.03); // rightWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][0], 60124.9); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][0], 1490.95); // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][0], 1502.03); // rightWidth
 
   // chrom = transition_group.getChromatograms()[1];
   chrom = get_chrom(1);
   picker.pickChromatogram(chrom, picked_chrom);
 
   TEST_EQUAL( picked_chrom.size(), 1);
-  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
+  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), PeakPickerMRM::SIZE_OF_FLOATINDICES);
 
   // Peak picking is done by cubic spline interpolation and searching for the
   // point with zero derivative.
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 78719.134569503);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1492.830608593);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 523378); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1481.84); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1501.23); // rightWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][0], 523378); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][0], 1481.84); // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][0], 1501.23); // rightWidth
 
   ///////////////////////////////////////////////////////////////////////////
   // New method: Peak picking is done on the smoothed data and no minimal peak
@@ -147,20 +147,20 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
   picker.pickChromatogram(chrom, picked_chrom);
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 9981.93933103869);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1495.11368082583);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 60605.7); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1482.64); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1504.8);  // rightWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][0], 60605.7); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][0], 1482.64); // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][0], 1504.8);  // rightWidth
 
   chrom = get_chrom(1);
   picker.pickChromatogram(chrom, picked_chrom);
   TEST_EQUAL( picked_chrom.size(), 1);
-  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
+  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), PeakPickerMRM::SIZE_OF_FLOATINDICES);
 
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 78719.1346);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1492.8305);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 525672.0); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1481.84);  // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1504.0);   // rightWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][0], 525672.0); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][0], 1481.84);  // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][0], 1504.0);   // rightWidth
 
 #ifdef WITH_CRAWDAD
   chrom = get_chrom(0);
@@ -170,9 +170,9 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
   picker.pickChromatogram(chrom, picked_chrom);
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 61366.56640625);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1496.48);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 61366.6); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1479.88); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1510.33); // rightWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][0], 61366.6); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][0], 1479.88); // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][0], 1510.33); // rightWidth
 
   chrom = get_chrom(1);
   picker.pickChromatogram(chrom, picked_chrom);
@@ -181,9 +181,9 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
 
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 533936.875);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1490.15);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 533936.875); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1479.08); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1509.53); // rightWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_ABUNDANCE][0], 533936.875); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][0], 1479.08); // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][0], 1509.53); // rightWidth
 #endif
 }
 END_SECTION
