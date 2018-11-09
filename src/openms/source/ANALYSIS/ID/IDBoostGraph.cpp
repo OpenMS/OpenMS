@@ -57,7 +57,6 @@ using namespace std;
 namespace OpenMS
 {
 
-
   struct MyUIntSetHasher
   {
   public:
@@ -67,22 +66,81 @@ namespace OpenMS
         }
   };
 
-  IDBoostGraph::PeptideCluster IDBoostGraph::staticPC{};
-  IDBoostGraph::ProteinGroup IDBoostGraph::staticPG{};
+  //TODO move to cpp file
+  struct IDBoostGraph::SequenceToReplicateChargeVariantHierarchy
+  {
+    //TODO only add the intermediate nodes if there are more than one "splits"
+    SequenceToReplicateChargeVariantHierarchy(Size nrReplicates, int minCharge, int maxCharge):
+        seq_to_vecs_{},
+        minCharge_(minCharge),
+        nrCharges_(Size(maxCharge - minCharge) + 1u),
+        nrReplicates_(nrReplicates)
+    {}
 
-  IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins, std::vector<PeptideIdentification>& idedSpectra):
+    void insert(String& seq, Size replicate, int charge, vertex_t pepVtx)
+    {
+      auto seq_it = seq_to_vecs_.emplace(std::move(seq), std::vector<std::vector<std::set<vertex_t>>>{nrReplicates_, {nrCharges_, {}}});
+      seq_it.first->second[replicate][charge - minCharge_].insert(pepVtx);
+    }
+
+    void insertToGraph(vertex_t rootProteinVtx, Graph& graph)
+    {
+      for (const auto& seqContainer : seq_to_vecs_)
+      {
+        vertex_t pep = boost::add_vertex(Peptide{seqContainer.first}, graph);
+        boost::add_edge(rootProteinVtx, pep, graph);
+        for (Size s = 0; s < seqContainer.second.size(); ++s)
+        {
+          //TODO Gather prots for this sequence by getting all proteins attached to one of the decendents
+          //std::vector<vertex_t> prots_for_pepseq;
+          // for adjacency iterator: if protein : push_back index
+          vertex_t ri = boost::add_vertex(RunIndex{s},graph);
+          boost::add_edge(pep, ri, graph);
+          for (Size t = 0; t < seqContainer.second[s].size(); ++t)
+          {
+            vertex_t cs = boost::add_vertex(Charge{minCharge_ + int(t)}, graph);
+            boost::add_edge(ri, cs, graph);
+            for (const auto& pepVtx : seqContainer.second[s][t])
+            {
+              //TODO ACTUALLY REWIRE EDGES TO ALL PROTEIN PARENTS
+              //for parent : prots_for_pepseq, do the things below
+              boost::add_edge(cs, pepVtx, graph);
+              boost::remove_edge(rootProteinVtx, pepVtx, graph);
+            }
+          }
+        }
+      }
+    }
+
+    std::unordered_map<std::string, std::vector<std::vector<std::set<vertex_t>>>> seq_to_vecs_;
+
+    int minCharge_;
+    Size nrCharges_;
+    Size nrReplicates_;
+  };
+
+  IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins,
+                             std::vector<PeptideIdentification>& idedSpectra):
+      proteins_(proteins),
+      idedSpectra_(idedSpectra),
+      exp_design_(ExperimentalDesign::fromIdentifications({proteins}))
+  {}
+
+  IDBoostGraph::IDBoostGraph(ProteinIdentification& proteins,
+      std::vector<PeptideIdentification>& idedSpectra,
+      const ExperimentalDesign& ed):
     proteins_(proteins),
-    idedSpectra_(idedSpectra)
+    idedSpectra_(idedSpectra),
+    exp_design_(ed)
   {}
 
   //TODO actually to build the graph, the inputs could be passed const. But if you want to do sth
   //on the graph later it needs to be non-const. Overload this function or somehow make sure it can be used const.
-  void IDBoostGraph::buildGraph(bool use_all_psms /*bool readstore_run_info*/)
+  void IDBoostGraph::buildGraph(Size use_top_psms, bool readstore_run_info = true)
   {
     StringList runs;
     proteins_.getPrimaryMSRunPath(runs);
     Size nrRuns = runs.size();
-    bool readstore_run_info = true;
     //TODO add support for (consensus) feature information
 
     unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>> vertex_map{};
@@ -100,6 +158,7 @@ namespace OpenMS
     for (auto & spectrum : idedSpectra_)
     {
       Size run(0);
+      //TODO check if the spectrum is from one of the runs in the ProtID? or assert that?
       if (readstore_run_info)
       {
         if (spectrum.metaValueExists("map_index"))
@@ -117,9 +176,10 @@ namespace OpenMS
           continue;
         }
       }
-      //TODO add psm nodes here optionally if using all psms
+      //TODO add psm regularizer nodes here optionally if using multiple psms
       auto pepIt = spectrum.getHits().begin();
-      auto pepItEnd = use_all_psms || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + 1;
+      //TODO sort or assume sorted
+      auto pepItEnd = use_top_psms == 0 || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
       for (; pepIt != pepItEnd; ++pepIt)
       {
         IDPointer pepPtr(&(*pepIt));
@@ -644,8 +704,7 @@ namespace OpenMS
         Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(curr_cc);
 
-        //TODO FINISH
-        // Cluster peptides with same sequence
+        // Cluster peptides with same sequence and create a replicate and charge hierarchy underneath
         for (; ui != ui_end; ++ui)
         {
           SequenceToReplicateChargeVariantHierarchy hierarchy{nrReplicates, chargeRange.first, chargeRange.second};
@@ -660,21 +719,15 @@ namespace OpenMS
               {
                 PeptideHit *phitp = boost::get<PeptideHit *>(curr_cc[*adjIt]);
                 String seq = phitp->getSequence().toUnmodifiedString();
-                //TODO we could specify/check in the beginning if it is a multirun experiment and how many runs it has
-                //TODO make sure (prob. best during merging) that different map_indices indeed represent replicates
-                //or pass a lookup table here to get from map_index to replicate.
-                //OR pass a vector of PeptideIdVectors that represent the different replicates. Needs changes in
-                //IDMerger
-                //TODO actually the map_index is probably annotated as MetaValue in the PepID object (the parent of the
-                // hit -> requires changes here again. Probably best to go with the multi vector solution.
-                int rep = phitp->metaValueExists("map_index") ? int(phitp->getMetaValue("map_index")) : 0;
+
+                Size rep = 0; //In case no replicate info was read.
+                if (!pepHitVtx_to_run_.empty()) rep = pepHitVtx_to_run_[*adjIt];
                 int chg = phitp->getCharge();
 
                 hierarchy.insert(seq, rep, chg, *adjIt);
               }
             }
             hierarchy.insertToGraph(*ui, g);
-
           }
         }
 
@@ -794,7 +847,7 @@ namespace OpenMS
           //We can't point to protein groups while we fill them. Pointers invalidate in growing vectors.
           //proteins_.getIndistinguishableProteins().push_back(ProteinGroup{});
           //ProteinGroup& pg = proteins_.getIndistinguishableProteins().back();
-          auto grpVID = boost::add_vertex(&staticPG, curr_cc);
+          auto grpVID = boost::add_vertex(ProteinGroup{}, curr_cc);
 
           for (auto const &proteinVID : pepsToGrps.second)
           {
@@ -854,7 +907,7 @@ namespace OpenMS
         {
           if (protsToPepClusters.first.size() <= 1)
             continue;
-          auto pcVID = boost::add_vertex(&staticPC, curr_cc);
+          auto pcVID = boost::add_vertex(PeptideCluster{}, curr_cc);
           for (auto const& pgVID : protsToPepClusters.first)
           {
             boost::add_edge(pgVID, pcVID, curr_cc);
@@ -931,30 +984,28 @@ namespace OpenMS
   }
 
   ////// Hashers for the strong typedefs
-  std::size_t hash_value(IDBoostGraph::Peptide const& x)
+  std::size_t hash_value(const IDBoostGraph::Peptide& x)
   {
     boost::hash<std::string> hasher;
     return hasher(static_cast<std::string>(x));
   }
-  std::size_t hash_value(IDBoostGraph::RunIndex const& x)
+  std::size_t hash_value(const IDBoostGraph::RunIndex& x)
   {
     boost::hash<Size> hasher;
     return hasher(static_cast<Size>(x));
   }
-  std::size_t hash_value(IDBoostGraph::Charge const& x)
+  std::size_t hash_value(const IDBoostGraph::Charge& x)
   {
     boost::hash<int> hasher;
     return hasher(static_cast<int>(x));
   }
-  std::size_t hash_value(IDBoostGraph::ProteinGroup const& x)
+  std::size_t hash_value(const IDBoostGraph::ProteinGroup&)
   {
-    boost::hash<char> hasher;
-    return hasher(static_cast<char>(x));
+    return 0;
   }
-  std::size_t hash_value(IDBoostGraph::PeptideCluster const& x)
+  std::size_t hash_value(const IDBoostGraph::PeptideCluster&)
   {
-    boost::hash<char> hasher;
-    return hasher(static_cast<char>(x));
+    return 1;
   }
 
 }

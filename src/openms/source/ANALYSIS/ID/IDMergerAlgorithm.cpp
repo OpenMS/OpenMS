@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
-#include <unordered_set>
+
 
 using namespace std;
 namespace OpenMS
@@ -499,8 +499,117 @@ namespace OpenMS
     cmap.setProteinIdentifications(vector<ProteinIdentification>{newProtIDRun});
   }
 
-  //merge proteins across fractions and replicates
-  void IDMergerAlgorithm::mergeAllIDRuns(vector<ProteinIdentification>& protRuns, vector<PeptideIdentification>& pepIDs) const
+  //merge proteins across fractions and replicates. Sort peptides into the same amount of vec<PepIDs>
+  //I think this should only ever work for labelfree since we do not store the labels in the idXML structures
+  //TODO we could need a method to "not split" the peptides (or you just append the results)
+  //TODO we could need a method to merge by origin filenames. Then we could just construct a mapping here,
+  // and assume that all the origin filename in one run map to the same new run and in the end call this method.
+  //TODO we could need a method to split and merge based on the origin filenames. But this requires major
+  // rewriting and should be a new method.
+
+  //TODO docu that oldrunToNewRun should be continuous in the mapped-to indices
+  void IDMergerAlgorithm::mergeIDRunsAndSplitPeptides(
+      vector<ProteinIdentification>& oldProtRuns,
+      vector<PeptideIdentification>& pepIDs,
+      const map<Size, Size>& oldrunToNewrun,
+      vector<vector<PeptideIdentification>>& splitPepIDs) const
+  {
+    //Without any exp. design we assume label-free for checking mods
+    checkOldRunConsistency_(oldProtRuns, "label-free");
+
+    vector<map<Size, Size>> oldToNewFileIdx;
+    vector<ProteinIdentification> newProtIDRuns;
+    initNewRunsAndFileMappings_(oldProtRuns, oldrunToNewrun, oldToNewFileIdx, newProtIDRuns);
+
+    // for each new run collect the set of proteins to quickly check for existence
+    vector<unordered_set<string>> proteinsCollected{newProtIDRuns.size()};
+
+    movePepIDsAndRefProteinsToResult_(
+      pepIDs,
+      oldProtRuns,
+      newProtIDRuns,
+      splitPepIDs,
+      oldrunToNewrun,
+      oldToNewFileIdx,
+      proteinsCollected
+    );
+
+    oldProtRuns.swap(newProtIDRuns);
+    newProtIDRuns.clear();
+  }
+
+  //same as above only for vecs of vecs of pepIDs (e.g. from multiple files)
+  void IDMergerAlgorithm::mergeIDRunsAndSplitPeptides(
+      vector<ProteinIdentification>& oldProtRuns,
+      vector<vector<PeptideIdentification>>& pepIDs,
+      const map<Size, Size>& oldrunToNewrun,
+      vector<vector<PeptideIdentification>>& splitPepIDs) const
+  {
+    //Without any exp. design we assume label-free for checking mods
+    checkOldRunConsistency_(oldProtRuns, "label-free");
+
+    vector<map<Size, Size>> oldToNewFileIdx;
+    vector<ProteinIdentification> newProtIDRuns;
+    initNewRunsAndFileMappings_(oldProtRuns, oldrunToNewrun, oldToNewFileIdx, newProtIDRuns);
+
+    // for each new run collect the set of proteins to quickly check for existence
+    vector<unordered_set<string>> proteinsCollected{newProtIDRuns.size()};
+
+    for (auto& pepID : pepIDs)
+    {
+      movePepIDsAndRefProteinsToResult_(
+          pepID,
+          oldProtRuns,
+          newProtIDRuns,
+          splitPepIDs,
+          oldrunToNewrun,
+          oldToNewFileIdx,
+          proteinsCollected
+      );
+    }
+
+    oldProtRuns.swap(newProtIDRuns);
+    newProtIDRuns.clear();
+  }
+
+  //merge proteins across everything
+  void IDMergerAlgorithm::mergeAllIDRuns(vector<ProteinIdentification>& oldProtRuns, vector<PeptideIdentification>& pepIDs) const
+  {
+    //Without any exp. design we assume label-free for checking mods
+    checkOldRunConsistency_(oldProtRuns, "label-free");
+    map<Size,Size> oldrunToNewrun{};
+    for (Size s = 0; s < oldProtRuns.size(); ++s)
+    {
+      oldrunToNewrun[s] = 0;
+    }
+
+    vector<map<Size, Size>> oldToNewFileIdx;
+    vector<ProteinIdentification> newProtIDRuns;
+    initNewRunsAndFileMappings_(oldProtRuns, oldrunToNewrun, oldToNewFileIdx, newProtIDRuns);
+
+    // for each new run collect the set of proteins to quickly check for existence
+    vector<unordered_set<string>> proteinsCollected{newProtIDRuns.size()};
+
+    vector<vector<PeptideIdentification>> splitPepIDs{1};
+    movePepIDsAndRefProteinsToResult_(
+        pepIDs,
+        oldProtRuns,
+        newProtIDRuns,
+        splitPepIDs,
+        oldrunToNewrun,
+        oldToNewFileIdx,
+        proteinsCollected
+    );
+
+    oldProtRuns.swap(newProtIDRuns);
+    pepIDs.swap(splitPepIDs[0]);
+    newProtIDRuns.clear();
+    pepIDs.clear();
+
+  }
+
+  //merge proteins across everything (old separate version)
+  /*void IDMergerAlgorithm::mergeAllIDRuns(vector<ProteinIdentification>& protRuns, vector<PeptideIdentification>& pepIDs) const
   {
     //Without any exp. design we assume label-free for checking mods
     checkOldRunConsistency_(protRuns, "label-free");
@@ -521,15 +630,6 @@ namespace OpenMS
     {
       StringList toFill;
       protIDRun.getPrimaryMSRunPath(toFill);
-      //TODO I think we can remove that.  We have sensible default now.
-      if (toFill.size() > 1 && annotate_origin)
-      {
-        throw Exception::IllegalArgument(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "Annotating origin not yet supported when merging already merged ID runs.");
-      }
       for (String& s : toFill)
       {
         mergedOriginFiles.insert(s);
@@ -542,71 +642,224 @@ namespace OpenMS
     unordered_set<string> proteinsCollected{};
     for (auto& pid : pepIDs)
     {
-        ProteinIdentification* oldProtIDRun(nullptr);
-        int oldProtRunIdx = -1;
-        const String& runID = pid.getIdentifier();
-        for (auto& protIDRun : protRuns)
+      ProteinIdentification* oldProtIDRun(nullptr);
+      int oldProtRunIdx = -1;
+      const String& runID = pid.getIdentifier();
+      for (auto& protIDRun : protRuns)
+      {
+        if (protIDRun.getIdentifier() == runID)
         {
-          if (protIDRun.getIdentifier() == runID)
+          oldProtIDRun = &protIDRun;
+
+          if (annotate_origin)
           {
-            oldProtIDRun = &protIDRun;
+            StringList runs;
+            oldProtIDRun->getPrimaryMSRunPath(runs);
+            String run = runs[0];
 
-            if (annotate_origin)
+            if (runs.size() > 1 && pid.metaValueExists("map_index"))
             {
-              StringList runs;
-              oldProtIDRun->getPrimaryMSRunPath(runs);
-              String run = runs[0];
+              run = runs[pid.getMetaValue("map_index")];
+            }
 
-              if (runs.size() > 1 && pid.metaValueExists("map_index"))
+            //TODO maybe create lookup table in the beginning
+            for (Size u = 0; u < mergedOriginFilesVec.size(); ++u)
+            {
+              if (mergedOriginFilesVec[u] == run)
               {
-                run = runs[pid.getMetaValue("map_index")];
-              }
-
-              //TODO maybe create lookup table in the beginning
-              for (Size u = 0; u < mergedOriginFilesVec.size(); ++u)
-              {
-                if (mergedOriginFilesVec[u] == run)
-                {
-                  oldProtRunIdx = u;
-                  break;
-                }
+                oldProtRunIdx = u;
+                break;
               }
             }
           }
         }
-        if (!oldProtIDRun)
+      }
+      if (!oldProtIDRun)
+      {
+        throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Old IdentificationRun not found for PeptideIdentification "
+            "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ").");
+
+      }
+
+      pid.setIdentifier(newProtIDRun.getIdentifier());
+
+      //TODO think about a better way to annotate the originating run.
+      // this is borrowed from consensusXML where map_index is used.
+      if (annotate_origin) pid.setMetaValue("map_index", oldProtRunIdx);
+
+      for (auto& phit : pid.getHits())
+      {
+        //TODO think about getting the set first and then look for each acc
+        for (auto& pev : phit.getPeptideEvidences())
+        {
+          auto acc = proteinsCollected.find(pev.getProteinAccession());
+          if (acc == proteinsCollected.end())
+          {
+            newProtIDRun.getHits().emplace_back(*oldProtIDRun->findHit(pev.getProteinAccession()));
+            proteinsCollected.insert(pev.getProteinAccession());
+          }
+        }
+      }
+    }
+
+    protRuns = vector<ProteinIdentification>{newProtIDRun};
+  }*/
+
+  void IDMergerAlgorithm::movePepIDsAndRefProteinsToResult_(
+      vector<PeptideIdentification>& pepIDs,
+      vector<ProteinIdentification>& oldProtRuns,
+      vector<ProteinIdentification>& newProtIDRuns,
+      vector<vector<PeptideIdentification>>& splitPepIDs,
+      const map<Size,Size>& oldrunToNewrun,
+      const vector<map<Size,Size>> oldToNewFileIdx,
+      vector<unordered_set<string>> proteinsCollected
+      ) const
+  {
+    bool annotate_origin(param_.getValue("annotate_origin").toBool());
+
+    for (auto &pid : pepIDs)
+    {
+      const String &runID = pid.getIdentifier();
+
+      //TODO maybe create lookup table in the beginning
+      Size oldProtRunIdx = 0;
+      for (; oldProtRunIdx < oldProtRuns.size(); ++oldProtRunIdx)
+      {
+        ProteinIdentification &protIDRun{oldProtRuns[oldProtRunIdx]};
+        if (protIDRun.getIdentifier() == runID)
+        {
+          break;
+        }
+      }
+      if (oldProtRunIdx == oldProtRuns.size())
+      {
+        throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Old IdentificationRun not found for PeptideIdentification "
+            "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ").");
+
+      }
+
+      Size newRunIdx = oldrunToNewrun.at(oldProtRunIdx);
+      bool annotated = pid.metaValueExists("map_index");
+      if (annotate_origin || annotated)
+      {
+        Size oldFileIdx(0);
+        if (annotated)
+        {
+          oldFileIdx = pid.getMetaValue("map_index");
+        }
+          // If there is more than one possible file it might be from
+          // and it is not annotated -> fail
+        else if (oldToNewFileIdx[oldProtRunIdx].size() > 1)
         {
           throw Exception::MissingInformation(
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "Old IdentificationRun not found for PeptideIdentification "
-              "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ").");
-
+              "Trying to annotate new map_index for PeptideIdentification "
+              "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
+                                                                       "no old map_index present");
         }
-
-        pid.setIdentifier(newProtIDRun.getIdentifier());
-
-        //TODO think about a better way to annotate the originating run.
-        // this is borrowed from consensusXML where map_index is used.
-        if (annotate_origin) pid.setMetaValue("map_index", oldProtRunIdx);
-
-        for (auto& phit : pid.getHits())
+        pid.setMetaValue("map_index", oldToNewFileIdx[oldProtRunIdx].at(oldFileIdx));
+      }
+      pid.setIdentifier(newProtIDRuns[newRunIdx].getIdentifier());
+      for (auto &phit : pid.getHits())
+      {
+        //TODO think about getting the set first and then look for each acc
+        for (auto &acc : phit.extractProteinAccessionsSet())
         {
-          //TODO think about getting the set first and then look for each acc
-          for (auto& pev : phit.getPeptideEvidences())
+          const auto &it = proteinsCollected[newRunIdx].emplace(acc);
+          if (it.second) // was newly inserted
           {
-            auto acc = proteinsCollected.find(pev.getProteinAccession());
-            if (acc == proteinsCollected.end())
-            {
-              newProtIDRun.getHits().emplace_back(*oldProtIDRun->findHit(pev.getProteinAccession()));
-              proteinsCollected.insert(pev.getProteinAccession());
-            }
+            newProtIDRuns[newRunIdx].getHits().emplace_back(std::move(*oldProtRuns[oldProtRunIdx].findHit(acc)));
           }
         }
       }
+      //move peptides into right vector
+      splitPepIDs[newRunIdx].emplace_back(std::move(pid));
+    }
+  }
 
-    protRuns = vector<ProteinIdentification>{newProtIDRun};
+  void IDMergerAlgorithm::initNewRunsAndFileMappings_(
+      const vector<ProteinIdentification>& oldProtRuns,
+      const map<Size,Size>& oldrunToNewrun,
+      vector<map<Size, Size>>& oldToNewFileIdx,
+      vector<ProteinIdentification> & newProtIDRuns) const
+  {
+    //TODO do some precondition checks for the map etc.
+    Size nrNewRuns = 1;
+    for (const auto& runmap : oldrunToNewrun)
+    {
+      if (runmap.second > nrNewRuns)
+      {
+        nrNewRuns = runmap.second;
+      }
+    }
+    nrNewRuns++;
+
+
+    // For each of the files in the old runs, we construct a mapping to the future index
+    // in the new runs
+    //TODO actually could just be a vector instead of map
+    oldToNewFileIdx.clear();
+    oldToNewFileIdx.resize(oldProtRuns.size());
+    // holds the proteins collected for each of the new runs
+    newProtIDRuns.clear();
+    newProtIDRuns.resize(nrNewRuns);
+
+    // For each new set of files of the new runs, we build a map with its future index
+    // If a file is not yet present, it gets inserted with a new index
+    vector<map<String, Size>> newFileToIdx{nrNewRuns};
+    // collect origin files for all new runs
+    for (auto &runmap : oldrunToNewrun)
+    {
+      StringList toFill;
+      oldProtRuns[runmap.first].getPrimaryMSRunPath(toFill);
+      Size c = 0;
+      for (auto &f : toFill)
+      {
+        auto it_inserted = newFileToIdx[runmap.second].emplace(std::move(f), newFileToIdx[runmap.second].size());
+        oldToNewFileIdx[runmap.first].emplace(c, it_inserted.first->second);
+        c++;
+      }
+      toFill.clear();
+    }
+
+    vector<StringList> newRunOriginFiles{nrNewRuns};
+    //transform the map to vectors that will be inserted into the new protein runs
+    // at the index that is stored in the maps that we created
+    for (Size s = 0; s < nrNewRuns; ++s)
+    {
+      StringList &newFiles = newRunOriginFiles[s];
+      newFiles.resize(newFileToIdx[s].size());
+      for (auto &newRunFileIdxMapEntry : newFileToIdx.at(s))
+      {
+        newFiles.at(newRunFileIdxMapEntry.second) = std::move(newRunFileIdxMapEntry.first);
+      }
+    }
+    newFileToIdx.clear();
+
+
+    Size idcount = 0;
+    for (auto &newProtIDRun : newProtIDRuns)
+    {
+      //TODO better ID?
+      newProtIDRun.setIdentifier("merged" + String(idcount));
+      //TODO merge SearchParams e.g. in case of SILAC mods
+      newProtIDRun.setSearchEngine(oldProtRuns[0].getSearchEngine());
+      newProtIDRun.setSearchEngineVersion(oldProtRuns[0].getSearchEngineVersion());
+      newProtIDRun.setSearchParameters(oldProtRuns[0].getSearchParameters());
+      newProtIDRun.setPrimaryMSRunPath(std::move(newRunOriginFiles[idcount]));
+      idcount++;
+    }
+    newRunOriginFiles.clear();
   }
 
   bool IDMergerAlgorithm::checkOldRunConsistency_(const vector<ProteinIdentification> protRuns, String experiment_type) const

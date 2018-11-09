@@ -175,6 +175,17 @@ namespace OpenMS
     *   The (Path, Label) tuples in the experimental design have to be unique, so we can map them
     *   uniquely to the sample number, fraction number, and fraction_group number
     */
+    /// return a condition (unique combination of sample section values except replicate) to Sample index mapping
+    std::map<std::vector<String>, std::set<unsigned>> getConditionToSampleMapping() const;
+
+    /// return <file_path, label> to condition mapping (a condition is a unique combination of all columns in the
+    /// sample section, except for replicates.
+    std::map< std::pair< String, unsigned >, unsigned> getPathLabelToConditionMapping(bool) const;
+
+    /// return Sample index to condition mapping (a condition is a unique combination of all columns in the
+    /// sample section, except for replicates. Numbering of conditions is alphabetical due to map.
+    std::map<unsigned, unsigned> getSampleToConditionMapping() const;
+
     /// return <file_path, label> to sample mapping
     std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool) const;
 
@@ -217,7 +228,8 @@ namespace OpenMS
     static ExperimentalDesign fromFeatureMap(const FeatureMap& f);
 
     /// Extract experimental design from identifications
-    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification> & proteins);
+    static ExperimentalDesign fromIdentifications(const std::vector<ProteinIdentification>& proteins);
+    //TODO create another overload here, that takes two enums outerVec and innerVec with entries Replicate, Fraction, Sample
 
     private:
     // MS filename column, optionally trims to basename

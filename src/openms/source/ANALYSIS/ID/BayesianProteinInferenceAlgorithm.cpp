@@ -220,27 +220,36 @@ namespace OpenMS
     defaults_.setValue("annotate_groups_only",
                        "false",
                        "Skips complex inference completely and just annotates indistinguishable groups.");
-    defaults_.setValue("all_PSMs",
-                       "false",
-                       "Consider all PSMs of each peptide, instead of only the best one.");
+
+    defaults_.setValue("top_PSMs",
+                       1,
+                       "Consider only top X PSMs per spectrum. 0 considers all.");
+    defaults_.setMinInt("top_PSMs", 0);
+
+
     defaults_.addSection("model_parameters","Model parameters for the Bayesian network");
+
     defaults_.setValue("model_parameters:prot_prior",
                        0.9,
                        "Protein prior probability ('gamma' parameter).");
     defaults_.setMinFloat("model_parameters:prot_prior", 0.0);
     defaults_.setMaxFloat("model_parameters:prot_prior", 1.0);
+
     defaults_.setValue("model_parameters:pep_emission",
                        0.1,
                        "Peptide emission probability ('alpha' parameter)");
     defaults_.setMinFloat("model_parameters:pep_emission", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_emission", 1.0);
+
     defaults_.setValue("model_parameters:pep_spurious_emission",
                        0.001,
                        "Spurious peptide identification probability ('beta' parameter). Usually much smaller than emission from proteins");
     defaults_.setMinFloat("model_parameters:pep_spurious_emission", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_spurious_emission", 1.0);
 
+
     defaults_.addSection("loopy_belief_propagation","Settings for the loopy belief propagation algorithm.");
+
     defaults_.setValue("loopy_belief_propagation:scheduling_type",
                        "priority",
                        "How to pick the next message:"
@@ -471,7 +480,8 @@ namespace OpenMS
 
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
-    ibg.buildGraph(param_.getValue("all_PSMs").toBool());
+    //TODO make run info parameter
+    ibg.buildGraph(param_.getValue("all_PSMs").toBool(), true);
     ibg.computeConnectedComponents();
     ibg.clusterIndistProteinsAndPeptides();
 

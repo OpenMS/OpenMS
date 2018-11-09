@@ -136,6 +136,9 @@ public:
     /// copy constructor
     ProteinHit(const ProteinHit & source);
 
+    /// move constructor
+    ProteinHit(ProteinHit && source) = default;
+
     /// destructor
     virtual ~ProteinHit();
     //@}

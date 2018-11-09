@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -48,9 +49,7 @@
 #include <boost/function.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
-#include <boost/graph/subgraph.hpp>
 #include <boost/graph/properties.hpp>
 #include <boost/variant.hpp>
 #include <boost/variant/detail/hash_variant.hpp>
@@ -80,57 +79,31 @@ namespace OpenMS
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wextra-semi"
 
-    BOOST_STRONG_TYPEDEF(char, PeptideCluster)
-    std::size_t hash_value(PeptideCluster const& x)
-    {
-      boost::hash<char> hasher;
-      return hasher(static_cast<char>(x));
-    }
+    BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
 
     // TODO make a double out of it and store the posterior
-    BOOST_STRONG_TYPEDEF(char, ProteinGroup)
-    std::size_t hash_value(ProteinGroup const& x)
-    {
-      boost::hash<char> hasher;
-      return hasher(static_cast<char>(x));
-    }
+    BOOST_STRONG_TYPEDEF(boost::blank, ProteinGroup)
 
     BOOST_STRONG_TYPEDEF(String, Peptide)
-    std::size_t hash_value(Peptide const& x)
-    {
-      boost::hash<std::string> hasher;
-      return hasher(static_cast<std::string>(x));
-    }
 
     BOOST_STRONG_TYPEDEF(Size, RunIndex)
-    std::size_t hash_value(RunIndex const& x)
-    {
-      boost::hash<Size> hasher;
-      return hasher(static_cast<Size>(x));
-    }
 
     BOOST_STRONG_TYPEDEF(int, Charge)
-    std::size_t hash_value(Charge const& x)
-    {
-      boost::hash<int> hasher;
-      return hasher(static_cast<int>(x));
-    }
 
     #pragma clang diagnostic pop
 
     //typedefs
-    //typedef ProteinIdentification::ProteinGroup ProteinGroup;
-
-    typedef boost::variant<ProteinHit*, ProteinGroup*, PeptideCluster*, Peptide, RunIndex, Charge, PeptideHit*> IDPointer;
+    //TODO rename ProteinGroup type since it collides with the actual OpenMS ProteinGroup
+    typedef boost::variant<ProteinHit*, ProteinGroup, PeptideCluster, Peptide, RunIndex, Charge, PeptideHit*> IDPointer;
     typedef boost::variant<const ProteinHit*, const ProteinGroup*, const PeptideCluster*, const Peptide, const RunIndex, const Charge, const PeptideHit*> IDPointerConst;
     //TODO check the impact of different data structures to store nodes/edges
     // Directed graphs would make the internal computations much easier (less in/out edge checking) but boost
     // does not allow computation of "non-strongly" connected components for directed graphs, which is what we would
-    // need
+    // need. We can think about after/while copying to CCs, to insert it into a directed graph!
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> Graph;
-    typedef boost::subgraph<boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer>> SubGraph;
+    //typedef boost::subgraph<boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer>> SubGraph;
     typedef std::vector<Graph> Graphs;
-    typedef std::vector<SubGraph> SubGraphs;
+    //typedef std::vector<SubGraph> SubGraphs;
     typedef boost::adjacency_list <boost::setS, boost::vecS, boost::undirectedS, IDPointer> GraphConst;
     typedef boost::graph_traits<Graph>::vertex_descriptor vertex_t;
     typedef boost::graph_traits<Graph>::edge_descriptor edge_t;
@@ -138,8 +111,12 @@ namespace OpenMS
     typedef std::set<IDBoostGraph::vertex_t> ProteinNodeSet;
     typedef std::set<IDBoostGraph::vertex_t> PeptideNodeSet;
 
-    /// Constructor
+    /// Constructors
     IDBoostGraph(ProteinIdentification &proteins, std::vector<PeptideIdentification>& idedSpectra);
+    IDBoostGraph(
+        ProteinIdentification &proteins,
+        std::vector<PeptideIdentification>& idedSpectra,
+        const ExperimentalDesign& ed);
 
     /// Do sth on connected components (your functor object has to inherit from std::function)
     void applyFunctorOnCCs(std::function<void(Graph&)> functor);
@@ -152,59 +129,6 @@ namespace OpenMS
     /// ProteinIdentification::ProteinGroups object. This has no effect on the graph itself.
     /// @param addSingletons if you want to annotate groups with just one protein entry
     void annotateIndistProteins(bool addSingletons = true) const;
-
-    //TODO move to cpp file
-    struct SequenceToReplicateChargeVariantHierarchy
-    {
-      //TODO only add the intermediate nodes if there are more than one "splits"
-      SequenceToReplicateChargeVariantHierarchy(Size nrReplicates, int minCharge, int maxCharge):
-          seq_to_vecs_{},
-          minCharge_(minCharge),
-          nrCharges_(Size(maxCharge - minCharge) + 1u),
-          nrReplicates_(nrReplicates)
-      {}
-
-      void insert(String& seq, Size replicate, Size charge, vertex_t pepVtx)
-      {
-        auto seq_it = seq_to_vecs_.emplace(std::move(seq), std::vector<std::vector<std::set<vertex_t>>>{nrReplicates_, {nrCharges_, {}}});
-        seq_it.first->second[replicate][charge - minCharge_].insert(pepVtx);
-      }
-
-      void insertToGraph(vertex_t rootProteinVtx, Graph& graph)
-      {
-        for (const auto& seqContainer : seq_to_vecs_)
-        {
-          vertex_t pep = boost::add_vertex(Peptide{seqContainer.first}, graph);
-          boost::add_edge(rootProteinVtx, pep, graph);
-          for (Size s = 0; s < seqContainer.second.size(); ++s)
-          {
-            //TODO Gather prots for this sequence by getting all proteins attached to one of the decendents
-            //std::vector<vertex_t> prots_for_pepseq;
-            // for adjacency iterator: if protein : push_back index
-            vertex_t ri = boost::add_vertex(RunIndex{s},graph);
-            boost::add_edge(pep, ri, graph);
-            for (Size t = 0; t < seqContainer.second[s].size(); ++t)
-            {
-              vertex_t cs = boost::add_vertex(Charge{minCharge_ + int(t)}, graph);
-              boost::add_edge(ri, cs, graph);
-              for (const auto& pepVtx : seqContainer.second[s][t])
-              {
-                //TODO ACTUALLY REWIRE EDGES TO ALL PROTEIN PARENTS
-                //for parent : prots_for_pepseq, do the things below
-                boost::add_edge(cs, pepVtx, graph);
-                boost::remove_edge(rootProteinVtx, pepVtx, graph);
-              }
-            }
-          }
-        }
-      }
-
-      std::unordered_map<std::string, std::vector<std::vector<std::set<vertex_t>>>> seq_to_vecs_;
-
-      int minCharge_;
-      Size nrCharges_;
-      Size nrReplicates_;
-    };
 
     /// A boost dfs visitor that copies connected components into a vector of graphs
     class dfs_ccsplit_visitor:
@@ -251,6 +175,7 @@ namespace OpenMS
         std::map<vertex_t, vertex_t> m;
       };
 
+    //TODO group visitors by templates
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
     class LabelVisitor:
         public boost::static_visitor<OpenMS::String>
@@ -267,12 +192,12 @@ namespace OpenMS
         return prot->getAccession();
       }
 
-      OpenMS::String operator()(const ProteinGroup* /*protgrp*/) const
+      OpenMS::String operator()(const ProteinGroup& /*protgrp*/) const
       {
         return String("PG");
       }
 
-      OpenMS::String operator()(const PeptideCluster* /*pc*/) const
+      OpenMS::String operator()(const PeptideCluster& /*pc*/) const
       {
         return String("PepClust");
       }
@@ -316,12 +241,12 @@ namespace OpenMS
         stream_ << prot->getAccession() << ": " << prot << std::endl;
       }
 
-      void operator()(const ProteinGroup* /*protgrp*/) const
+      void operator()(const ProteinGroup& /*protgrp*/) const
       {
         stream_ << "PG" << std::endl;
       }
 
-      void operator()(const PeptideCluster* /*pc*/) const
+      void operator()(const PeptideCluster& /*pc*/) const
       {
         stream_ << "PepClust" << std::endl;
       }
@@ -364,31 +289,13 @@ namespace OpenMS
         prot->setScore(posterior);
       }
 
-      void operator()(ProteinGroup* /*protgrp*/, double /*posterior*/) const
+      // Everything else, do nothing for now
+      template <class T>
+      void operator()(T& /*protgrp*/, double /*posterior*/) const
       {
         // do nothing
         // TODO we could store posterior here
         // protgrp->probability = posterior;
-      }
-
-      void operator()(const PeptideCluster* /*pc*/, double /*posterior*/) const
-      {
-        // do nothing
-      }
-
-      void operator()(const Peptide&, double) const
-      {
-        // do nothing
-      }
-
-      void operator()(const RunIndex&, double) const
-      {
-        // do nothing
-      }
-
-      void operator()(const Charge&, double) const
-      {
-        // do nothing
       }
 
     };
@@ -401,23 +308,20 @@ namespace OpenMS
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_all_psms If all or just the FIRST psm should be used
-    void buildGraph(bool use_all_psms);
+    void buildGraph(Size use_top_psms, bool readstore_run_info);
 
     //TODO docu
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
   private:
 
+    struct SequenceToReplicateChargeVariantHierarchy;
+
     /// the initial boost Graph
     Graph g;
 
     /// the Graph split into connected components
     Graphs ccs_;
-
-    /// static objects created from a hard typedef to differentiate between different types of nodes.
-    /// they will be reused throughout the graph when necessary
-    static PeptideCluster staticPC;
-    static ProteinGroup staticPG;
 
     //GraphConst gconst;
 
@@ -426,6 +330,9 @@ namespace OpenMS
     ProteinIdentification& proteins_;
     /// underlying peptide identifications
     std::vector<PeptideIdentification>& idedSpectra_;
+    /// underlying experimental design, if not given it will be default constructed
+    //TODO think about using a pointer here instead of copying. But it's usually not too big
+    const ExperimentalDesign exp_design_;
 
     /// if a graph is built with run information, this will store the run, each peptide hit
     /// vertex belongs to. Important for extending the graph.
