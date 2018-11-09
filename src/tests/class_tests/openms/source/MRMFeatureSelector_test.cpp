@@ -216,7 +216,7 @@ END_SECTION
 START_SECTION(weightScore_())
 {
   MRMFeatureSelector_test selector;
-  double score = -1.0;
+  double score;
 
   score = selector.weightScore_(3413.0, "lambda score: score*1.0");
   TEST_REAL_SIMILAR(score, 3413.0)
@@ -278,7 +278,7 @@ END_SECTION
 
 //   MRMFeatureScheduler scheduler;
 //   const std::vector<MRMFeatureScheduler::SelectorParameters> parameters = {params1, params2};
-//   scheduler.setParameters(parameters);
+//   scheduler.setSchedulerParameters(parameters);
 
 //   FeatureMap output_selected;
 //   scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
@@ -344,8 +344,8 @@ START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
   TEST_STRING_EQUAL(output_selected[50].getSubordinates()[0].getMetaValue("native_id"), "gua.gua_1.Heavy");
   TEST_REAL_SIMILAR(output_selected[50].getSubordinates()[0].getRT(), 1.27875684076945);
 
-  // DEBUG
-  // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
+  // // DEBUG
+  // // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
   // for (const Feature& f : output_selected)
   // {
   //   cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
