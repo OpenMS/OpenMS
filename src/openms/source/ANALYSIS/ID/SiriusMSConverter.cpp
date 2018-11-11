@@ -283,10 +283,6 @@ namespace OpenMS
           {
             os << ">rt " << current_rt << "\n";
           }
-
-          std::cout << "fid: " << feature_id << std::endl;
-          std::cout << "frt: " << feature_rt << " crt: " << current_rt << " prt: " << precursor_rt << " index: " << ind << std::endl;
-          std::cout << "fmz: " << feature_mz << " pmz: " << precursor_mz << std::endl;
           
           if(feature_mz != 0 && feature_id != 0)
           {
@@ -472,9 +468,7 @@ namespace OpenMS
         feature_id = feature->getUniqueId();
         feature_charge = feature->getCharge();
         feature_rt = feature->getRT();
-        std::cout << "ofrt: " << feature_rt << std::endl;
         feature_mz = feature->getMZ();
-        std::cout << "ofmz: " << feature_mz << std::endl;
 
         // multiple charged compounds are not allowed in sirius
         if (feature_charge > 1 || feature_charge < -1)
