@@ -154,7 +154,6 @@ protected:
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Additional options for featureXML input");
-    //registerFlag_("feature:use_centroid_rt", "Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces.");
     registerStringOption_("feature:use_centroid_rt", "<choice>", "false", "Use the RT coordinates of the feature centroids for matching, instead of the RT ranges of the features/mass traces.", false);
     setValidStrings_("feature:use_centroid_rt", ListUtils::create<String>("true,false"));
     registerStringOption_("feature:use_centroid_mz", "<choice>", "true", "Use the m/z coordinates of the feature centroids for matching, instead of the m/z ranges of the features/mass traces.\n(If you choose 'peptide' as 'mz_reference', you should usually set this flag to avoid false-positive matches.)", false);
