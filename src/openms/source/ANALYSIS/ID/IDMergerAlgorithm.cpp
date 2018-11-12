@@ -148,7 +148,7 @@ namespace OpenMS
       Size oldProtRunIdx = 0;
       for (; oldProtRunIdx < oldProtRuns.size(); ++oldProtRunIdx)
       {
-        ProteinIdentification &protIDRun{oldProtRuns[oldProtRunIdx]};
+        ProteinIdentification &protIDRun = oldProtRuns[oldProtRunIdx];
         if (protIDRun.getIdentifier() == runID)
         {
           break;

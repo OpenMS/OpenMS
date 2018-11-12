@@ -79,7 +79,7 @@ namespace OpenMS
 
     void insert(String& seq, Size replicate, int charge, vertex_t pepVtx)
     {
-      auto seq_it = seq_to_vecs_.emplace(std::move(seq), std::vector<std::vector<std::set<vertex_t>>>{nrReplicates_, {nrCharges_, {}}});
+      auto seq_it = seq_to_vecs_.emplace(std::move(seq), std::vector<std::vector<std::set<vertex_t>>>{nrReplicates_, {nrCharges_, std::set<vertex_t>()}});
       seq_it.first->second[replicate][charge - minCharge_].insert(pepVtx);
     }
 
@@ -136,7 +136,7 @@ namespace OpenMS
 
   //TODO actually to build the graph, the inputs could be passed const. But if you want to do sth
   //on the graph later it needs to be non-const. Overload this function or somehow make sure it can be used const.
-  void IDBoostGraph::buildGraph(Size use_top_psms, bool readstore_run_info = true)
+  void IDBoostGraph::buildGraph(Size use_top_psms, bool readstore_run_info)
   {
     StringList runs;
     proteins_.getPrimaryMSRunPath(runs);

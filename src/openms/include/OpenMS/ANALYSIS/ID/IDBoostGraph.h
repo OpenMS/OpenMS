@@ -71,7 +71,7 @@ namespace OpenMS
    @ingroup Analysis_ID
    */
    //TODO Add OPENMS_DLLAPI everywhere
-  class IDBoostGraph
+  class OPENMS_DLLAPI IDBoostGraph
   {
 
   public:
@@ -308,7 +308,7 @@ namespace OpenMS
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param idedSpectra vector of ProteinIdentifications with links to the proteins and PSMs in its PeptideHits
     /// @param use_all_psms If all or just the FIRST psm should be used
-    void buildGraph(Size use_top_psms, bool readstore_run_info);
+    void buildGraph(Size use_top_psms, bool readstore_run_info = true);
 
     //TODO docu
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
