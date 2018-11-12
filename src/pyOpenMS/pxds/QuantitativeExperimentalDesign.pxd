@@ -3,7 +3,6 @@ from DefaultParamHandler cimport *
 from PeptideIdentification cimport *
 from TextFile cimport *
 from PeptideAndProteinQuant cimport *
-from ProteinResolver cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/QuantitativeExperimentalDesign.h>" namespace "OpenMS":
     
