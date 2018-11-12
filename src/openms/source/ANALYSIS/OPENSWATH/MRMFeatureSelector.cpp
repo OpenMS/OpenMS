@@ -60,11 +60,11 @@ namespace OpenMS
 
     problem.setColumnName(index, name);
 
-    if (getVariableType() == "integer")
+    if (getVariableType() == VariableType::INTEGER)
     {
       problem.setColumnType(index, LPWrapper::INTEGER);
     }
-    else if (getVariableType() == "continuous")
+    else if (getVariableType() == VariableType::CONTINUOUS)
     {
       problem.setColumnType(index, LPWrapper::CONTINUOUS);
     }
@@ -205,8 +205,8 @@ namespace OpenMS
 
             // The two following problem's variables need the variable type to be "continuous"
             // Save current variable type to later set it back to the same value
-            const String prev_variable_type = getVariableType();
-            setVariableType("continuous");
+            const VariableType prev_variable_type = getVariableType();
+            setVariableType(VariableType::CONTINUOUS);
             const Int index_var_qp = addVariable_(problem, var_qp_name, true, 0);
             const Int index_var_abs = addVariable_(problem, var_qp_name + "-ABS", false, 1);
             setVariableType(prev_variable_type);
@@ -354,10 +354,10 @@ namespace OpenMS
   double MRMFeatureSelector::computeScore_(const Feature& feature) const
   {
     double score_1 = 1.0;
-    for (const std::pair<String,String>& score_weight : score_weights_)
+    for (const std::pair<String, LambdaScore>& score_weight : score_weights_)
     {
       const String& metavalue_name = score_weight.first;
-      const String& lambda_score = score_weight.second;
+      const LambdaScore lambda_score = score_weight.second;
       if (!feature.metaValueExists(metavalue_name))
       {
         LOG_WARN << "computeScore_(): Metavalue \"" << metavalue_name << "\" not found.";
@@ -372,25 +372,25 @@ namespace OpenMS
     return score_1;
   }
 
-  double MRMFeatureSelector::weightScore_(const double score, const String& lambda_score) const
+  double MRMFeatureSelector::weightScore_(const double score, const LambdaScore lambda_score) const
   {
-    if (lambda_score == "lambda score: score*1.0")
+    if (lambda_score == LambdaScore::LINEAR)
     {
       return score;
     }
-    else if (lambda_score == "lambda score: 1/score")
+    else if (lambda_score == LambdaScore::RECIPROCAL)
     {
       return 1.0 / score;
     }
-    else if (lambda_score == "lambda score: log(score)")
+    else if (lambda_score == LambdaScore::LOG)
     {
       return std::log(score);
     }
-    else if (lambda_score == "lambda score: 1/log(score)")
+    else if (lambda_score == LambdaScore::ONE_OVER_LOG)
     {
       return 1.0 / std::log(score);
     }
-    else if (lambda_score == "lambda score: 1/log10(score)")
+    else if (lambda_score == LambdaScore::ONE_OVER_LOG10)
     {
       return 1.0 / std::log10(score);
     }
@@ -451,12 +451,12 @@ namespace OpenMS
     return segment_step_length_;
   }
 
-  void MRMFeatureSelector::setVariableType(const String& variable_type)
+  void MRMFeatureSelector::setVariableType(const VariableType variable_type)
   {
     variable_type_ = variable_type;
   }
 
-  String MRMFeatureSelector::getVariableType() const
+  MRMFeatureSelector::VariableType MRMFeatureSelector::getVariableType() const
   {
     return variable_type_;
   }
@@ -471,12 +471,12 @@ namespace OpenMS
     return optimal_threshold_;
   }
 
-  void MRMFeatureSelector::setScoreWeights(const std::map<String, String>& score_weights)
+  void MRMFeatureSelector::setScoreWeights(const std::map<String, LambdaScore>& score_weights)
   {
     score_weights_ = score_weights;
   }
 
-  std::map<String, String> MRMFeatureSelector::getScoreWeights() const
+  std::map<String, MRMFeatureSelector::LambdaScore> MRMFeatureSelector::getScoreWeights() const
   {
     return score_weights_;
   }

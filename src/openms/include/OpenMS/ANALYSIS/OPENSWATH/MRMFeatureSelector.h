@@ -53,6 +53,21 @@ public:
     MRMFeatureSelector() = default;
     virtual ~MRMFeatureSelector() = default;
 
+    enum class VariableType
+    {
+      INTEGER = 1,
+      CONTINUOUS
+    };
+
+    enum class LambdaScore
+    {
+      LINEAR = 1,
+      RECIPROCAL,
+      LOG,
+      ONE_OVER_LOG,
+      ONE_OVER_LOG10
+    };
+
     /// To test private and protected methods
     friend class MRMFeatureSelector_test;
 
@@ -94,14 +109,14 @@ public:
     void setSegmentStepLength(const Int segment_step_length);
     Int getSegmentStepLength() const;
 
-    void setVariableType(const String& variable_type);
-    String getVariableType() const;
+    void setVariableType(const VariableType variable_type);
+    VariableType getVariableType() const;
 
     void setOptimalThreshold(const double optimal_threshold);
     double getOptimalThreshold() const;
 
-    void setScoreWeights(const std::map<String, String>& score_weights);
-    std::map<String, String> getScoreWeights() const;
+    void setScoreWeights(const std::map<String, LambdaScore>& score_weights);
+    std::map<String, LambdaScore> getScoreWeights() const;
 
 protected:
     /**
@@ -159,9 +174,9 @@ private:
     bool   select_transition_group_ = true;
     Int    segment_window_length_   = 8;
     Int    segment_step_length_     = 4;
-    String variable_type_           = "continuous";
+    VariableType variable_type_     = VariableType::CONTINUOUS;
     double optimal_threshold_       = 0.5;
-    std::map<String, String> score_weights_;
+    std::map<String, LambdaScore> score_weights_;
 
     /**
       Construct the target transition's or transition group's retention times that
@@ -182,11 +197,11 @@ private:
       Transform the given score through the chosen lambda function
 
       Possible values for `lambda_score` are:
-      - "lambda score: score*1.0"
-      - "lambda score: 1/score"
-      - "lambda score: log(score)"
-      - "lambda score: 1/log(score)"
-      - "lambda score: 1/log10(score)"
+      - LambdaScore::LINEAR
+      - LambdaScore::RECIPROCAL
+      - LambdaScore::LOG
+      - LambdaScore::ONE_OVER_LOG
+      - LambdaScore::ONE_OVER_LOG10
 
       @throw Exception::IllegalArgument When an invalid `lambda_score` is passed
 
@@ -195,7 +210,7 @@ private:
 
       @return The weighted value
     */
-    double weightScore_(const double score, const String& lambda_score) const;
+    double weightScore_(const double score, const LambdaScore lambda_score) const;
 
     /// Removes spaces from the given string, not-in-place.
     String removeSpaces_(String str) const;
@@ -246,7 +261,7 @@ public:
       selector_.constructTargTransList_(features, time_to_name, feature_name_map);
     }
 
-    double weightScore_(const double score, const String& lambda_score) const
+    double weightScore_(const double score, const LambdaScore lambda_score) const
     {
       return selector_.weightScore_(score, lambda_score);
     }
@@ -261,7 +276,7 @@ public:
       return selector_.removeSpaces_(str);
     }
 
-    void setScoreWeights(const std::map<String, String>& score_weights)
+    void setScoreWeights(const std::map<String, LambdaScore>& score_weights)
     {
       selector_.setScoreWeights(score_weights);
     }

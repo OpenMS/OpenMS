@@ -64,9 +64,9 @@ public:
         bool stg,
         Int swl,
         Int ssl,
-        String& vt,
+        MRMFeatureSelector::VariableType vt,
         double ot,
-        std::map<String,String>& sw
+        std::map<String, MRMFeatureSelector::LambdaScore>& sw
       ) :
         nn_threshold(nn),
         locality_weight(lw),
@@ -82,9 +82,9 @@ public:
       bool   select_transition_group = true;
       Int    segment_window_length   = 8;
       Int    segment_step_length     = 4;
-      String variable_type           = "continuous";
+      MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS;
       double optimal_threshold       = 0.5;
-      std::map<String, String> score_weights;
+      std::map<String, MRMFeatureSelector::LambdaScore> score_weights;
     };
 
     /**

@@ -116,9 +116,9 @@ END_SECTION
 START_SECTION(getVariableType())
 {
   MRMFeatureSelectorScore selectorScore;
-  TEST_STRING_EQUAL(selectorScore.getVariableType(), "continuous")
-  selectorScore.setVariableType("integer");
-  TEST_STRING_EQUAL(selectorScore.getVariableType(), "integer")
+  TEST_EQUAL(selectorScore.getVariableType() == MRMFeatureSelectorScore::VariableType::CONTINUOUS, true)
+  selectorScore.setVariableType(MRMFeatureSelectorScore::VariableType::INTEGER);
+  TEST_EQUAL(selectorScore.getVariableType() == MRMFeatureSelectorScore::VariableType::INTEGER, true)
 }
 END_SECTION
 
@@ -143,11 +143,11 @@ START_SECTION(MRMFeatureSelectorScore::selectMRMFeature())
   selectorScore.setSelectTransitionGroup(true);
   selectorScore.setSegmentWindowLength(-1);
   selectorScore.setSegmentStepLength(-1);
-  selectorScore.setVariableType("integer");
+  selectorScore.setVariableType(MRMFeatureSelector::VariableType::INTEGER);
   selectorScore.setOptimalThreshold(0.5);
   selectorScore.setScoreWeights({
-    {"sn_ratio", "lambda score: log(score)"},
-    {"peak_apices_sum", "lambda score: log(score)"}
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::LOG},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::LOG}
   });
 
   FeatureMap output_selected;
@@ -218,15 +218,15 @@ START_SECTION(weightScore_())
   MRMFeatureSelector_test selector;
   double score;
 
-  score = selector.weightScore_(3413.0, "lambda score: score*1.0");
+  score = selector.weightScore_(3413.0, MRMFeatureSelector::LambdaScore::LINEAR);
   TEST_REAL_SIMILAR(score, 3413.0)
-  score = selector.weightScore_(341.0, "lambda score: 1/score");
+  score = selector.weightScore_(341.0, MRMFeatureSelector::LambdaScore::RECIPROCAL);
   TEST_REAL_SIMILAR(score, 0.002932551)
-  score = selector.weightScore_(341.0, "lambda score: log(score)");
+  score = selector.weightScore_(341.0, MRMFeatureSelector::LambdaScore::LOG);
   TEST_REAL_SIMILAR(score, 5.831882477)
-  score = selector.weightScore_(96640.0, "lambda score: 1/log(score)");
+  score = selector.weightScore_(96640.0, MRMFeatureSelector::LambdaScore::ONE_OVER_LOG);
   TEST_REAL_SIMILAR(score, 0.087117)
-  score = selector.weightScore_(341.0, "lambda score: 1/log10(score)");
+  score = selector.weightScore_(341.0, MRMFeatureSelector::LambdaScore::ONE_OVER_LOG10);
   TEST_REAL_SIMILAR(score, 0.394827074)
 }
 END_SECTION
@@ -239,15 +239,17 @@ START_SECTION(computeScore_())
   feature.setMetaValue("sn_ratio", 6.84619503982874);
   feature.setMetaValue("peak_apices_sum", 96640.0);
 
-  selector.setScoreWeights({{"sn_ratio", "lambda score: 1/log(score)"}});
+  selector.setScoreWeights({{"sn_ratio", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG}});
   score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.5198334582314795)
 
-  selector.setScoreWeights({{"peak_apices_sum", "lambda score: 1/log10(score)"}});
+  selector.setScoreWeights({{"peak_apices_sum", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG10}});
   score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.20059549093267626)
 
-  selector.setScoreWeights({{"sn_ratio", "lambda score: 1/log(score)"}, {"peak_apices_sum", "lambda score: 1/log10(score)"}});
+  selector.setScoreWeights({
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG10}});
   score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.10427624775717449)
 }
@@ -265,11 +267,11 @@ END_SECTION
 //   params1.select_transition_group = "true";
 //   params1.segment_window_length = 8;
 //   params1.segment_step_length = 4;
-//   params1.variable_type = "integer";
+//   params1.variable_type = MRMFeatureSelector::VariableType::INTEGER;
 //   params1.optimal_threshold = 0.5;
 //   params1.score_weights = {
-//     {"sn_ratio", "lambda score: 1/log(score)"},
-//     {"peak_apices_sum", "lambda score: 1/log10(score)"}
+//     {"sn_ratio", LambdaScore::ONE_OVER_LOG},
+//     {"peak_apices_sum", LambdaScore::ONE_OVER_LOG10}
 //   };
 
 //   MRMFeatureScheduler::SelectorParameters params2 = params1;
@@ -315,11 +317,11 @@ START_SECTION(scheduleMRMFeaturesQMIP() continuous) // continuous variable type
   params1.select_transition_group = true;
   params1.segment_window_length = 8;
   params1.segment_step_length = 4;
-  params1.variable_type = "continuous";
+  params1.variable_type = MRMFeatureSelector::VariableType::CONTINUOUS;
   params1.optimal_threshold = 0.5;
   params1.score_weights = {
-    {"sn_ratio", "lambda score: 1/log(score)"},
-    {"peak_apices_sum", "lambda score: 1/log10(score)"}
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG10}
   };
 
   MRMFeatureScheduler::SelectorParameters params2 = params1;
