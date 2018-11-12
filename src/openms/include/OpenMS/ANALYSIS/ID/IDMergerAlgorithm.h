@@ -40,6 +40,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 
+#include <unordered_set>
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI IDMergerAlgorithm:
@@ -47,38 +49,52 @@ namespace OpenMS
     public ProgressLogger
   {
   public:
-    IDMergerAlgorithm ();
-    /// Takes a cmap with one IDRun per column and merges them to one proteinIDRun per Condition
-    /// while reassociating the PeptideEvidences
-    /// Constructs the mapping based on the exp. design and then uses mergeProteinIDRuns
-    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
-    void mergeProteinsAcrossFractionsAndReplicates(ConsensusMap& cmap, const ExperimentalDesign& exp_design) const;
+    explicit IDMergerAlgorithm (const String& runIdentifier = "merged");
 
-    /// Similar to above, merges every ID Run into one big run. Proteins get only inserted once but Peptides stay unfiltered
-    /// i.e. might occur in several PeptideIdentifications afterwards
-    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
-    void mergeAllIDRuns(ConsensusMap& cmap) const;
+    /// Insert (=move and clear) a run with its peptide IDs into the internal merged data structures,
+    /// based on the initial mapping from fileorigins to new run
+    void insertRun(std::vector<ProteinIdentification>& prots,
+        std::vector<PeptideIdentification>& peps);
 
-    /// Takes a ConsensusMap and a mapping between ConsensusMap column index (map index) and
-    /// the new ProteinIdentificationRun index and merges them. If you know the number of resulting
-    /// ProteinIDRuns, consider specifying new_size.
-    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
-    void mergeProteinIDRuns(ConsensusMap &cmap,
-                            std::map<unsigned, unsigned> const &mapIdx_to_new_protIDRun) const;
+    /// Return the merged results and reset/clear all internal data
+    void returnResultsAndClear(ProteinIdentification& prots,
+                   std::vector<PeptideIdentification>& peps);
 
   private:
-    struct RunDescription
-    {
-      String engine;
-      String version;
-      ProteinIdentification::SearchParameters params;
-    };
+    String getNewIdentifier_() const;
+    void copySearchParams_(ProteinIdentification& from, ProteinIdentification& to);
 
     /// Checks consistency of search engines and settings across runs before merging.
-    /// @return a merged RunDescription about what to put in the new runs
+    /// @param protRuns The runs to check (first = implicit reference)
+    /// @param experiment_type allow some mismatches in case of other experiment types (e.g. SILAC)
+    /// @return all same? TODO: a merged RunDescription about what to put in the new runs (e.g. for SILAC)
     /// @throws BaseException for disagreeing settings
-    bool checkOldRunConsistency_(const ConsensusMap& cmap) const;
+    bool checkOldRunConsistency_(
+        const std::vector<ProteinIdentification>& protRuns,
+        const String& experiment_type) const;
+
+    /// Same as above, if you want to use a specific reference
+    /// @param protRuns The runs to check (first = reference)
+    /// @param ref A possibly external protein run reference
+    /// @param experiment_type allow some mismatches in case of other experiment types (e.g. SILAC)
+    /// @return all same? TODO: a merged RunDescription about what to put in the new runs (e.g. for SILAC)
+    /// @throws BaseException for disagreeing settings
+    bool checkOldRunConsistency_(
+        const std::vector<ProteinIdentification>& protRuns,
+        const ProteinIdentification& ref,
+        const String& experiment_type) const;
 
 
+    void movePepIDsAndRefProteinsToResult_(
+        std::vector<PeptideIdentification>& pepIDs,
+        std::vector<ProteinIdentification>& oldProtRuns
+    );
+
+    ProteinIdentification protResult;
+    std::vector<PeptideIdentification> pepResult;
+    std::unordered_set<std::string> proteinsCollected;
+    bool filled = false;
+    std::map<String, Size> fileOriginToIdx;
+    String id;
   };
 } // namespace OpenMS

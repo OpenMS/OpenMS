@@ -61,17 +61,39 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
-    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML,fasta"));
     registerInputFile_("exp_design", "<file>", "", "Input: experimental design");
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
     //TODO make required of course
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
-    registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.", false);
+    registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately,"
+                                   " don't merge them. Merging results in loss of descriptive information"
+                                   " of the single protein identification runs.", false);
   }
 
   ExitCodes main_(int, const char**) override
   {
+    return ExitCodes::EXECUTION_OK;
+
+    /* That was test code for the old merger
+    ProteinIdentification pi1{};
+    ProteinIdentification pi2{};
+    ProteinIdentification pi3{};
+    ProteinIdentification pi4{};
+    pi1.setPrimaryMSRunPath({"a.mzml", "b.mzml", "c.mzml"});
+    pi2.setPrimaryMSRunPath({"d.mzml", "c.mzml", "e.mzml"});
+    pi3.setPrimaryMSRunPath({"g.mzml", "f.mzml", "e.mzml"});
+    pi4.setPrimaryMSRunPath({"h.mzml", "e.mzml"});
+    vector<ProteinIdentification> pis{pi1,pi2,pi3,pi4};
+    vector<PeptideIdentification> peps1{};
+    IDMergerAlgorithm merger1;
+    vector<vector<PeptideIdentification>> newpeps1{};
+    merger1.mergeIDRunsAndSplitPeptides(pis, peps1, {{0,0},{1,0},{2,1},{3,1}}, newpeps1);
+
+    return ExitCodes::EXECUTION_OK;
+
+
     //TODO remove until ExitCode and allow a (merged) ConsensusXML as input
     vector<PeptideIdentification> peps;
     vector<ProteinIdentification> prots;
@@ -85,7 +107,22 @@ protected:
     cXML.store(getStringOption_("out"), cmap);
 
     return ExitCodes::EXECUTION_OK;
+     */
 
+    // Some thoughts about how to leverage info from different runs.
+    //Fractions: Always merge (not much to leverage, maybe agreement at borders)
+    // - Think about only allowing one/the best PSM per peptidoform across fractions
+    //Replicates: Use matching ID and quant, also a always merge
+    //Samples: In theory they could yield different proteins/pep-protein-associations
+    // 3 options:
+    // - don't merge: -> don't leverage peptide quant profiles (or use them repeatedly -> same as second opt.?)
+    // - merge and assume same proteins: -> You can use the current graph and weigh the associations
+    //   based on deviation in profiles
+    // - merge and don't assume same proteins: -> We need an extended graph, that has multiple versions
+    //   of the proteins for every sample
+
+    vector<PeptideIdentification> peps;
+    vector<ProteinIdentification> prots;
     IdXMLFile idXML;
     idXML.load(getStringOption_("in"), prots, peps);
     //TODO filter unmatched proteins and peptides before!

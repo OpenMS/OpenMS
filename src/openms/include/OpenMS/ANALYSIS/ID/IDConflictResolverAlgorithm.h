@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser, Lucia Espona, Moritz Freidank $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_IDCONFLICTRESOLVERALGORITHM
-#define OPENMS_ANALYSIS_ID_IDCONFLICTRESOLVERALGORITHM
+#pragma once
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -198,7 +197,5 @@ protected:
   
 };
 
-}
-
-#endif
+}// namespace OpenMS
 

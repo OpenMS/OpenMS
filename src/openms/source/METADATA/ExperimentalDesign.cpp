@@ -205,20 +205,14 @@ namespace OpenMS
       StringList ms_run_paths;
       for (const auto &protein : proteins)
       {
+        // Due to merging it is valid to have multiple origins in a ProteinIDRun
         StringList tmp_ms_run_paths;
         protein.getPrimaryMSRunPath(tmp_ms_run_paths);
-        if (tmp_ms_run_paths.size() != 1)
-        {
-          throw Exception::MissingInformation(
-            __FILE__,
-            __LINE__,
-            OPENMS_PRETTY_FUNCTION,
-            "ProteinIdentification annotated with " + String(tmp_ms_run_paths.size()) +
-            " MS files. Must be exactly one.");
-        }
-        ms_run_paths.push_back(tmp_ms_run_paths[0]);
+        ms_run_paths.insert(ms_run_paths.end(), tmp_ms_run_paths.begin(), tmp_ms_run_paths.end());
+        //TODO think about uniquifying or warning if duplicates occur
       }
 
+      // For now and without further info we have to assume a labelfree, unfractionated experiment
       // no fractionation -> as many fraction_groups as samples
       // each identification run corresponds to one sample abundance
       unsigned sample(1);
@@ -256,7 +250,21 @@ namespace OpenMS
       return ret;
     }
 
-    vector<vector<pair<String, unsigned>>> ExperimentalDesign::getSampleWOReplicatesToMSFilesMapping() const
+    map<pair<String, unsigned>, unsigned> ExperimentalDesign::pathLabelMapper_(
+            const bool basename,
+            unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry &entry)) const
+    {
+      map<pair<String, unsigned>, unsigned> ret;
+      for (MSFileSectionEntry const& r : msfile_section_)
+      {
+        const String path = String(r.path);
+        pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
+        ret[tpl] = f(r);
+      }
+      return ret;
+    }
+
+    map<vector<String>, set<unsigned>> ExperimentalDesign::getConditionToSampleMapping() const
     {
       const auto& facset = sample_section_.getFactors();
       set<String> nonRepFacs{};
@@ -269,35 +277,50 @@ namespace OpenMS
         }
       }
 
-      map<vector<String>, set<Size> > rowContent2RowIdx;
+      map<vector<String>, set<unsigned> > rowContent2RowIdx;
       for (unsigned u : sample_section_.getSamples())
       {
-
         std::vector<String> valuesToHash{};
         for (const String& fac : nonRepFacs)
         {
           valuesToHash.emplace_back(sample_section_.getFactorValue(u, fac));
         }
-        if (rowContent2RowIdx.find(valuesToHash) != rowContent2RowIdx.end())
-        {
-          rowContent2RowIdx[valuesToHash].insert(u);
-        }
-        else
-        {
-          rowContent2RowIdx[valuesToHash] = set<Size>{u};
-        }
+        auto emplace_pair = rowContent2RowIdx.emplace(valuesToHash, set<unsigned>{});
+        emplace_pair.first->second.insert(u);
       }
+      return rowContent2RowIdx;
+    }
 
-      const auto& pathLab2Sample = getPathLabelToSampleMapping(false);
+    map<unsigned, unsigned> ExperimentalDesign::getSampleToConditionMapping() const
+    {
+      map<unsigned, unsigned> res;
+      const map<vector<String>, set<unsigned>>& rowContent2RowIdx = getConditionToSampleMapping();
+      Size s(0);
+      for (const auto& condition : rowContent2RowIdx)
+      {
+        for (auto& sample : condition.second)
+        {
+          res.emplace(std::move(sample), s);
+        }
+        ++s;
+      }
+      return res;
+    }
+
+    vector<vector<pair<String, unsigned>>> ExperimentalDesign::getSampleWOReplicatesToMSFilesMapping() const
+    {
+      const map<vector<String>, set<unsigned>>& rowContent2RowIdx = getConditionToSampleMapping();
+
+      const map<pair<String, unsigned>, unsigned>& pathLab2Sample = getPathLabelToSampleMapping(false);
       vector<vector<pair<String, unsigned>>> res{rowContent2RowIdx.size()};
       Size s(0);
-      // ["1","2","1"] -> sample [1, 3]
+      // ["wt","24h","10mg"] -> sample [1, 3]
       for (const auto& rcri : rowContent2RowIdx)
       {
-        //sample 1
+        // sample 1
         for (const auto& ri : rcri.second)
         {
-          // [foo, 1] -> sample 1
+          // [foo.mzml, ch1] -> sample 1
           for (const auto& pl2Sample : pathLab2Sample)
           {
             // sample 1 == sample 1
@@ -313,16 +336,14 @@ namespace OpenMS
       return res;
     }
 
-    map<pair<String, unsigned>, unsigned> ExperimentalDesign::pathLabelMapper_(
-            const bool basename,
-            unsigned (*f)(const ExperimentalDesign::MSFileSectionEntry &entry)) const
+    map<pair<String, unsigned>, unsigned> ExperimentalDesign::getPathLabelToConditionMapping(const bool basename) const
     {
+      const auto& sToC = getSampleToConditionMapping();
+      const auto& pToS = getPathLabelToSampleMapping(basename);
       map<pair<String, unsigned>, unsigned> ret;
-      for (MSFileSectionEntry const& r : msfile_section_)
+      for (const auto& entry : pToS)
       {
-        const String path = String(r.path);
-        pair<String, unsigned> tpl = make_pair((basename ? File::basename(path) : path), r.label);
-        ret[tpl] = f(r);
+        ret.emplace(entry.first, sToC.at(entry.second));
       }
       return ret;
     }

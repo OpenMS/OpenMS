@@ -1442,8 +1442,6 @@ namespace OpenMS
         }
       }
     }
-
-    return *this; // TODO unreachable code
   }
 
   bool Param::ParamIterator::operator==(const ParamIterator& rhs) const

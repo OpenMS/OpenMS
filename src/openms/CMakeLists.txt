@@ -141,6 +141,7 @@ foreach (includedir
 endforeach()
 
 #set(OpenMS_sources ${OpenMS_sources} openms_pch.cpp)
+
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}

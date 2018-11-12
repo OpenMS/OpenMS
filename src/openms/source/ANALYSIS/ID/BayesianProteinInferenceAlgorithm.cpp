@@ -47,17 +47,17 @@ using namespace std;
 namespace OpenMS
 {
   /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
-  class BayesianProteinInferenceAlgorithm::FilteredGraphInferenceFunctor :
-      public std::function<void(IDBoostGraph::FilteredGraph&)>
+  class BayesianProteinInferenceAlgorithm::GraphInferenceFunctor :
+      public std::function<void(IDBoostGraph::Graph&)>
   {
   public:
     const Param& param_;
 
-    explicit FilteredGraphInferenceFunctor(const Param& param):
+    explicit GraphInferenceFunctor(const Param& param):
         param_(param)
     {}
 
-    void operator() (IDBoostGraph::FilteredGraph& fg) {
+    void operator() (IDBoostGraph::Graph& fg) {
       //------------------ Now actual inference ------------------- //
       // Skip cc without peptide or protein
       //TODO this currently does not work because we do not filter edges I think
@@ -71,7 +71,7 @@ namespace OpenMS
                                                  1.0); // the p used for marginalization: 1 = sum product, inf = max product
         BetheInferenceGraphBuilder<unsigned long> bigb;
 
-        boost::filtered_graph<IDBoostGraph::Graph, boost::function<bool(IDBoostGraph::edge_t)>, boost::function<bool(IDBoostGraph::vertex_t)> >::vertex_iterator ui, ui_end;
+        IDBoostGraph::Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
 
         // Store the IDs of the nodes for which you want the posteriors in the end (usually at least proteins)
@@ -86,7 +86,7 @@ namespace OpenMS
 
         for (; ui != ui_end; ++ui)
         {
-          IDBoostGraph::FilteredGraph::adjacency_iterator nbIt, nbIt_end;
+          IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
           boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
           in.clear();
@@ -123,6 +123,8 @@ namespace OpenMS
           else if (fg[*ui].which() == 0) // prot
           {
             //TODO allow an already present prior probability here
+            //TODO modify createProteinFactor to start with a modified prior based on the number of missing
+            // peptides (later tweak to include conditional prob. for that peptide
             bigb.insert_dependency(mpf.createProteinFactor(*ui));
             posteriorVars.push_back({*ui});
           }
@@ -181,7 +183,7 @@ namespace OpenMS
       param_.setValue("model_parameters:prot_prior", gamma);
       param_.setValue("model_parameters:pep_emission", alpha);
       param_.setValue("model_parameters:pep_spurious_emission", beta);
-      ibg_.applyFunctorOnCCs(FilteredGraphInferenceFunctor(const_cast<const Param&>(param_)));
+      ibg_.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
       FalseDiscoveryRate fdr;
       return fdr.applyEvaluateProteinIDs(prots_);
     }
@@ -218,27 +220,36 @@ namespace OpenMS
     defaults_.setValue("annotate_groups_only",
                        "false",
                        "Skips complex inference completely and just annotates indistinguishable groups.");
-    defaults_.setValue("all_PSMs",
-                       "false",
-                       "Consider all PSMs of each peptide, instead of only the best one.");
+
+    defaults_.setValue("top_PSMs",
+                       1,
+                       "Consider only top X PSMs per spectrum. 0 considers all.");
+    defaults_.setMinInt("top_PSMs", 0);
+
+
     defaults_.addSection("model_parameters","Model parameters for the Bayesian network");
+
     defaults_.setValue("model_parameters:prot_prior",
                        0.9,
                        "Protein prior probability ('gamma' parameter).");
     defaults_.setMinFloat("model_parameters:prot_prior", 0.0);
     defaults_.setMaxFloat("model_parameters:prot_prior", 1.0);
+
     defaults_.setValue("model_parameters:pep_emission",
                        0.1,
                        "Peptide emission probability ('alpha' parameter)");
     defaults_.setMinFloat("model_parameters:pep_emission", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_emission", 1.0);
+
     defaults_.setValue("model_parameters:pep_spurious_emission",
                        0.001,
                        "Spurious peptide identification probability ('beta' parameter). Usually much smaller than emission from proteins");
     defaults_.setMinFloat("model_parameters:pep_spurious_emission", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_spurious_emission", 1.0);
 
+
     defaults_.addSection("loopy_belief_propagation","Settings for the loopy belief propagation algorithm.");
+
     defaults_.setValue("loopy_belief_propagation:scheduling_type",
                        "priority",
                        "How to pick the next message:"
@@ -429,6 +440,7 @@ namespace OpenMS
     //TODO let user modify Grid for GridSearch and/or provide some more default settings
   }*/
 
+
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs)
   {
     // get enzyme settings from peptideID
@@ -468,7 +480,8 @@ namespace OpenMS
 
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
-    ibg.buildGraph(param_.getValue("all_PSMs").toBool());
+    //TODO make run info parameter
+    ibg.buildGraph(param_.getValue("all_PSMs").toBool(), true);
     ibg.computeConnectedComponents();
     ibg.clusterIndistProteinsAndPeptides();
 
@@ -494,7 +507,7 @@ namespace OpenMS
 
     GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
 
-    std::array<size_t, 3> bestParams{0, 0, 0};
+    std::array<size_t, 3> bestParams{{0, 0, 0}};
     //TODO run grid search on reduced graph?
     //TODO if not, think about storing results temporary and only keep the best in the end
     gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);

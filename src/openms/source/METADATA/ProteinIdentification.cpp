@@ -143,6 +143,72 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
+  int ProteinIdentification::SearchParameters::getChargeValue_(String& charge_str) const
+  {
+    // We have to do this because some people/tools put the + or - AFTER the number...
+    bool neg = charge_str.hasSubstring('-');
+    neg ? charge_str.remove('-') : charge_str.remove('+');
+    int val = charge_str.toInt();
+    return neg ? -val : val;
+  }
+
+  std::pair<int,int> ProteinIdentification::SearchParameters::getChargeRange() const
+  {
+    std::pair<int,int> result{0,0};
+
+    if (charges.hasSubstring(',')) //it's probably a list
+    {
+      StringList chgs;
+      charges.split(',', chgs);
+      for (String& chg : chgs)
+      {
+        int val = getChargeValue_(chg);
+        if (val < result.first) result.first = val;
+        if (val > result.second) result.second = val;
+      }
+    }
+    else if (charges.hasSubstring(':')) //it's probably a range
+    {
+      StringList chgs;
+      charges.split(':', chgs);
+      if (chgs.size() > 2)
+      {
+        throw OpenMS::Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Charge string in SearchParameters not parseable.");
+      }
+      result.first = getChargeValue_(chgs[0]);
+      result.second = getChargeValue_(chgs[1]);
+    }
+    else
+    {
+      size_t pos = charges.find('-', 0);
+      std::vector<size_t> minus_positions;
+      while (pos != string::npos)
+      {
+        minus_positions.push_back(pos);
+        pos = charges.find('-', pos+1);
+      }
+      if (!minus_positions.empty() && minus_positions.size() <= 3) // it's probably a range with '-'
+      {
+        Size split_pos(0);
+        if (minus_positions.size() <= 1)
+        {
+          //split at first minus
+          split_pos = minus_positions[0];
+        }
+        else
+        {
+          split_pos = minus_positions[1];
+        }
+        String first = charges.substr(0, split_pos);
+        String second = charges.substr(split_pos + 1, string::npos);
+        result.first = getChargeValue_(first);
+        result.second = getChargeValue_(second);
+
+      }
+    }
+    return result;
+  }
+
   ProteinIdentification::ProteinIdentification() :
     MetaInfoInterface(),
     id_(),

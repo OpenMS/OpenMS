@@ -629,8 +629,6 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     default:
       return false;
-
-      break;
     }
 
     if (rewrite_source_file)

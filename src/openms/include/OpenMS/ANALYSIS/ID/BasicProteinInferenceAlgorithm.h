@@ -31,53 +31,49 @@
 // $Maintainer: Julianus Pfeuffer $
 // $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
-#ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
-#define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+#pragma once
 
-
-#include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/MATH/MISC/GridSearch.h>
-#include <vector>
+#include <OpenMS/METADATA/PeptideHit.h>
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI BayesianProteinInferenceAlgorithm :
-      public DefaultParamHandler,
-      public ProgressLogger
+  /// \brief Algorithm class that implements simple protein inference by aggregation of peptide scores
+  /// It has multiple parameter options like the aggregation method, when to distinguish peptidoforms,
+  /// and if you want to use shared peptides.
+  class OPENMS_DLLAPI BasicProteinInferenceAlgorithm :
+    public DefaultParamHandler,
+    public ProgressLogger
   {
-  public:
-    /// Constructor
-    BayesianProteinInferenceAlgorithm();
+    public:
 
-    /// Destructor
-    ~BayesianProteinInferenceAlgorithm() override = default;
+    enum AggregationMethod
+    {
+      PROD, SUM, MAXIMUM
+    };
 
-    /// A function object to pass into the IDBoostGraph class to perform algorithms on
-    /// connected components
-    class GraphInferenceFunctor;
+    /// Default constructor
+    BasicProteinInferenceAlgorithm();
 
-    /// Deprecated: A function object to pass into the IDBoostGraph class to perform algorithms on
-    /// connected components and on the fly finding groups (no preannotation needed)
-    class GraphInferenceFunctorNoGroups;
-
-    /// A function object to pass into the GridSearch;
-    struct GridSearchEvaluator;
-
-    /// Perform inference. Writes its results into proteins (as new score) and peptides.
-    void inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs);
-
-    /// Load and merge ID files one by one from disk. Then perform inference.
-    void inferPosteriorProbabilities(const StringList& idXMLs, const String db,const ExperimentalDesign& expDesign, ProteinIdentification& proteinIDs, std::vector<PeptideIdentification>& peptideIDs);
-    void inferPosteriorProbabilities(std::vector<PeptideIdentification> pepIdReplicates, ProteinIdentification& proteinIds, const String& db);
+    /// main method of BasicProteinInferenceAlgorithm
+    /// inputs are not const, since it will get annotated with results
+    /// annotation of protein groups is currently only possible for a single protein ID run
+    void run(std::vector<PeptideIdentification> &pep_ids, std::vector<ProteinIdentification> &prot_ids) const;
+    void run(std::vector<PeptideIdentification> &pep_ids, ProteinIdentification &prot_id) const;
 
   private:
-    /// The grid search object initialized with a default grid
-    GridSearch<double,double,double> grid{{0.008,0.032,0.128},{0.001},{0.5}};
+    void processRun_(
+      std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
+      std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+      ProteinIdentification prot_run,
+      std::vector<PeptideIdentification> pep_ids,
+      AggregationMethod aggregation_method,
+      String& aggMethodString,
+      bool use_shared_peptides,
+      bool treat_charge_variants_separately,
+      bool treat_modification_variants_separately,
+      bool skip_count_annotation) const;
   };
-}
-#endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
+} //namespace OpenMS

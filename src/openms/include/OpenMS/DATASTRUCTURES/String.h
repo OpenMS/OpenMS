@@ -40,6 +40,7 @@
 #include <algorithm> // for "min"
 #include <string>
 #include <vector>
+#include <utility>
 
 class QString;
 
@@ -495,7 +496,7 @@ public:
     }
 
     // create view on string
-    StringView(const std::string& s) : begin_(s.data()), size_(s.size()) 
+    StringView(const std::string& s) : begin_(s.data()), size_(s.size())
     {
     }
 
@@ -539,7 +540,7 @@ public:
     inline Size size() const
     {
       return size_;
-    }   
+    }
 
     /// create String object from view
     inline String getString() const
