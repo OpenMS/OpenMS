@@ -131,7 +131,7 @@ START_SECTION(getOptimalThreshold())
 }
 END_SECTION
 
-START_SECTION(MRMFeatureSelectorScore::select_MRMFeature())
+START_SECTION(MRMFeatureSelectorScore::selectMRMFeature())
 {
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
@@ -151,7 +151,7 @@ START_SECTION(MRMFeatureSelectorScore::select_MRMFeature())
   });
 
   FeatureMap output_selected;
-  selectorScore.select_MRMFeature(feature_map, output_selected);
+  selectorScore.selectMRMFeature(feature_map, output_selected);
   TEST_EQUAL(output_selected.size(), 117);
   TEST_REAL_SIMILAR(output_selected[0].getSubordinates()[0].getMetaValue("peak_apex_int"), 286.0);
   TEST_STRING_EQUAL(output_selected[0].getSubordinates()[0].getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
@@ -253,7 +253,7 @@ START_SECTION(computeScore_())
 }
 END_SECTION
 
-// START_SECTION(schedule_MRMFeaturesQMIP() integer) // integer variable type
+// START_SECTION(scheduleMRMFeaturesQMIP() integer) // integer variable type
 // {
 //   FeatureMap feature_map;
 //   FeatureXMLFile feature_file;
@@ -281,7 +281,7 @@ END_SECTION
 //   scheduler.setSchedulerParameters(parameters);
 
 //   FeatureMap output_selected;
-//   scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
+//   scheduler.scheduleMRMFeaturesQMIP(feature_map, output_selected);
 
 //   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
 //     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
@@ -303,7 +303,7 @@ END_SECTION
 // }
 // END_SECTION
 
-START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
+START_SECTION(scheduleMRMFeaturesQMIP() continuous) // continuous variable type
 {
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
@@ -331,7 +331,7 @@ START_SECTION(schedule_MRMFeaturesQMIP() continuous) // continuous variable type
   scheduler.setSchedulerParameters(parameters);
 
   FeatureMap output_selected;
-  scheduler.schedule_MRMFeaturesQMIP(feature_map, output_selected);
+  scheduler.scheduleMRMFeaturesQMIP(feature_map, output_selected);
 
   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });

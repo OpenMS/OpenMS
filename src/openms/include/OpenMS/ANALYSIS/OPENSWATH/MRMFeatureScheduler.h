@@ -96,13 +96,13 @@ public:
       @param[in] features Input features
       @param[out] selected_features Selected features
     */
-    void schedule_MRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& selected_features) const;
+    void scheduleMRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& selected_features) const;
 
-    /// Calls `schedule_MRMFeatures()` using a `MRMFeatureSelectorScore` selector
-    void schedule_MRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const;
+    /// Calls `scheduleMRMFeatures()` using a `MRMFeatureSelectorScore` selector
+    void scheduleMRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const;
 
-    /// Calls `schedule_MRMFeatures()` using a `MRMFeatureSelectorQMIP` selector
-    void schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const;
+    /// Calls `scheduleMRMFeatures()` using a `MRMFeatureSelectorQMIP` selector
+    void scheduleMRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const;
 
     /// Setter for the scheduler's parameters
     void setSchedulerParameters(const std::vector<SelectorParameters>& parameters);

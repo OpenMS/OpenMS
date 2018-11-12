@@ -38,7 +38,7 @@
 
 namespace OpenMS
 {
-  void MRMFeatureScheduler::schedule_MRMFeatures(
+  void MRMFeatureScheduler::scheduleMRMFeatures(
     MRMFeatureSelector& feature_selector,
     const FeatureMap& features,
     FeatureMap& selected_features
@@ -57,21 +57,21 @@ namespace OpenMS
       feature_selector.setOptimalThreshold(params.optimal_threshold);
       feature_selector.setScoreWeights(params.score_weights);
 
-      feature_selector.select_MRMFeature(input_features, selected_features);
+      feature_selector.selectMRMFeature(input_features, selected_features);
       input_features = selected_features;
     }
   }
 
-  void MRMFeatureScheduler::schedule_MRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const
+  void MRMFeatureScheduler::scheduleMRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const
   {
     MRMFeatureSelectorQMIP feature_selector;
-    schedule_MRMFeatures(feature_selector, features, selected_features);
+    scheduleMRMFeatures(feature_selector, features, selected_features);
   }
 
-  void MRMFeatureScheduler::schedule_MRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const
+  void MRMFeatureScheduler::scheduleMRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const
   {
     MRMFeatureSelectorScore feature_selector;
-    schedule_MRMFeatures(feature_selector, features, selected_features);
+    scheduleMRMFeatures(feature_selector, features, selected_features);
   }
 
   void MRMFeatureScheduler::setSchedulerParameters(const std::vector<SelectorParameters>& parameters)

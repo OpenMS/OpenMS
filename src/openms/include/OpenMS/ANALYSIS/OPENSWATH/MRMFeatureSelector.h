@@ -71,7 +71,7 @@ public:
       @param[in] features Input features
       @param[out] selected_filtered Output features
     */
-    void select_MRMFeature(const FeatureMap& features, FeatureMap& selected_filtered);
+    void selectMRMFeature(const FeatureMap& features, FeatureMap& selected_filtered);
 
     void setNNThreshold(const Int nn_threshold);
     Int getNNThreshold() const;

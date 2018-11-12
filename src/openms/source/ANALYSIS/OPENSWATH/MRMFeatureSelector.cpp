@@ -296,7 +296,7 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureSelector::select_MRMFeature(const FeatureMap& features, FeatureMap& selected_filtered)
+  void MRMFeatureSelector::selectMRMFeature(const FeatureMap& features, FeatureMap& selected_filtered)
   {
     selected_filtered.clear();
 
