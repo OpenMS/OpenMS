@@ -306,8 +306,9 @@ protected:
       }
     }
 
-    // write msfile
-    SiriusMSFile::store(spectra, tmp_ms_file, feature_mapping, feature_only, isotope_pattern_iterations, no_mt_info);
+    vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
+    // write msfile and stores the compound information in CompoundInfo Object
+    SiriusMSFile::store(spectra, tmp_ms_file, feature_mapping, feature_only, isotope_pattern_iterations, no_mt_info, v_cmpinfo);
 
     // converter_mode enabled 
     if (!out_ms.empty() && converter_mode)

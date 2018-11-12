@@ -48,17 +48,6 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  struct AccessionInfo
-  {
-    String sf_path;
-    String sf_type;
-    String sf_accession;
-    String native_id_accession;
-    String native_id_type;
-  }; 
-
-  // TODO: replace with PrecursorCorrection 
   // precursor correction (highest intensity)
   Int getHighestIntensityPeakInMZRange(double test_mz,
                                        const MSSpectrum& spectrum1,
@@ -130,7 +119,7 @@ namespace OpenMS
   void writeMsFile_(ofstream& os,
                     const PeakMap& spectra,
                     const vector<size_t>& ms2_spectra_index,
-                    const AccessionInfo& ainfo,
+                    const SiriusMSFile::AccessionInfo& ainfo,
                     const StringList& adducts,
                     const String& description,
                     const String& sumformula,
@@ -145,11 +134,14 @@ namespace OpenMS
                     int& count_skipped_spectra,
                     int& count_to_pos,
                     int& count_to_neg,
-                    int& count_no_ms1)
+                    int& count_no_ms1,
+                    std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
   {
+    SiriusMSFile::CompoundInfo cmpinfo;
     for (const size_t& ind : ms2_spectra_index)
     {
-      //write function would have to go here
+      // construct compound info structure
+
       const MSSpectrum &current_ms2 = spectra[ind];
       const double current_rt = current_ms2.getRT();
 
@@ -242,60 +234,79 @@ namespace OpenMS
           // write internal unique .ms data as sirius input
           os << fixed;
           os << ">compound " << query_id << "\n";
+          cmpinfo.cmp = query_id;
 
           if (!f_isotopes.empty() && !no_masstrace_info_isotope_pattern)
           {
             os << ">parentmass " << f_isotopes[0].first << fixed << "\n";
+            cmpinfo.pmass = f_isotopes[0].first;
           }
           else if (!isotopes.empty())
           {
             os << ">parentmass " << isotopes[0].getMZ() << fixed << "\n";
+            cmpinfo.pmass = isotopes[0].getMZ();
           }
           else
           {
             os << ">parentmass " << precursor_mz << fixed << "\n";
+            cmpinfo.pmass = precursor_mz;
           }
   
           if (!adducts.empty())
           {
             os << ">ionization " << ListUtils::concatenate(adducts, ',') << "\n";
+            cmpinfo.ionization = ListUtils::concatenate(adducts, ',');
           }
 
           if (sumformula != "UNKNOWN")
           {
             os << ">formula " << sumformula << "\n";
+            cmpinfo.formula = sumformula;
           }
 
           if (feature_charge != 0)
           {
             os << ">charge " << feature_charge << "\n";
+            cmpinfo.charge = feature_charge;
           }
           else
           {
             os << ">charge " << int_charge << "\n";
+            cmpinfo.charge = int_charge;
           }
 
           if (feature_rt != 0)
           {
             os << ">rt " << feature_rt << "\n";
+            cmpinfo.rt = feature_rt;
           }
           else
           {
             os << ">rt " << current_rt << "\n";
+            cmpinfo.rt = current_rt;
           }
           
           if(feature_mz != 0 && feature_id != 0)
           {
             os << "##fmz " << String(feature_mz) << "\n";
             os << "##fid " << String(feature_id) << "\n";
+            cmpinfo.fmz = feature_mz;
+            cmpinfo.fid = String(feature_id);
           }
           os << "##des " << String(description) << "\n";
+          os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl;
+          os << "##source file " << ainfo.sf_path << endl;
+          os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl;
+          cmpinfo.des = String(description);
+          cmpinfo.specref_format = String("[MS, " + ainfo.native_id_accession + ", " + ainfo.native_id_type + "]");
+          cmpinfo.source_file = ainfo.sf_path;
+          cmpinfo.source_format = String("[MS, " + ainfo.sf_accession + ", "+ ainfo.sf_type + ",]" );
 
           // use precursor m/z & int and no ms1 spectra is available else use values from ms1 spectrum
-          Size no_isotopes = isotopes.size();
-          Size no_f_isotopes = f_isotopes.size();
+          Size num_isotopes = isotopes.size();
+          Size num_f_isotopes = f_isotopes.size();
 
-          if (no_f_isotopes > 0 && !no_masstrace_info_isotope_pattern)
+          if (num_f_isotopes > 0 && !no_masstrace_info_isotope_pattern)
           {
             os << ">ms1merged" << endl;
             // m/z and intensity have to be higher than 1e-10
@@ -304,7 +315,7 @@ namespace OpenMS
               os << it->first << " " << it->second << "\n";
             }
           }
-          else if (no_isotopes > 0) // if ms1 spectrum was present
+          else if (num_isotopes > 0) // if ms1 spectrum was present
           {
             os << ">ms1merged" << endl;
             for (auto it = isotopes.begin(); it != isotopes.end(); ++it)
@@ -349,9 +360,10 @@ namespace OpenMS
         os << "##nid " << native_id << endl;
         os << "##scan " << ind << endl;
         os << "##specref " << "ms_run[?]:" << native_id << endl;
-        os << "##specref_format " << "[MS, " << ainfo.native_id_accession <<", "<< ainfo.native_id_type << "]" << endl; 
-        os << "##source file " << ainfo.sf_path << endl; 
-        os << "##source format " << "[MS, " << ainfo.sf_accession << ", "<< ainfo.sf_type << ",]" << endl; 
+
+        cmpinfo.native_ids.push_back(native_id);
+        cmpinfo.scan_indices.push_back(ind);
+        cmpinfo.specrefs.push_back(String("ms_run[?]:" + native_id));
 
         // single spectrum peaks
         for (Size i = 0; i < current_ms2.size(); ++i)
@@ -368,6 +380,7 @@ namespace OpenMS
         }
       }
     }
+    v_cmpinfo.push_back(cmpinfo);
   }
 
   void SiriusMSFile::store(const PeakMap& spectra,
@@ -375,7 +388,8 @@ namespace OpenMS
                            const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                            const bool& feature_only,
                            const int& isotope_pattern_iterations,
-                           const bool no_masstrace_info_isotope_pattern)
+                           const bool no_masstrace_info_isotope_pattern,
+                           std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
   {
     const map<const BaseFeature*, vector<size_t>>& assigned_ms2 = feature_mapping.assignedMS2;
     const vector<size_t> & unassigned_ms2 = feature_mapping.unassignedMS2;
@@ -453,14 +467,14 @@ namespace OpenMS
 
     // if feature information is available to this first (write features in one compound)
     if (use_feature_information)
-    {
+    { 
       for (auto it = assigned_ms2.begin();
-           it != assigned_ms2.end();
-           ++it)
+                it != assigned_ms2.end();
+                ++it)
       {
         const BaseFeature* feature = it->first;
         const vector<size_t> feature_associated_ms2 = it->second;
-
+        
         // reset feature information with each iteration
         f_isotopes.clear();
         adducts.clear();
@@ -477,12 +491,13 @@ namespace OpenMS
           continue;
         }
 
+        // ffm featureXML
         if (feature->metaValueExists("adducts"))
         {
           adducts = feature->getMetaValue("adducts");
         }
         if (feature->metaValueExists("masstrace_centroid_mz") && feature->metaValueExists("masstrace_intensity"))
-         {
+        {
           vector<double> masstrace_centroid_mz = feature->getMetaValue("masstrace_centroid_mz");
           vector<double> masstrace_intensity = feature->getMetaValue("masstrace_intensity");
           if (masstrace_centroid_mz.size() == masstrace_intensity.size())
@@ -493,52 +508,55 @@ namespace OpenMS
               f_isotopes.push_back(masstrace_mz_int);
             }
           }
-         }
+        }
 
-         // always get the first one if multiple hits were provided
-         // prefer adducts from AccurateMassSearch if MAD and AMS were performed
-         if (!feature->getPeptideIdentifications().empty() && !feature->getPeptideIdentifications()[0].getHits().empty())
-         {
-            String adduct;
+        // always get the first one if multiple hits were provided
+        // prefer adducts from AccurateMassSearch if MAD and AMS were performed
+        if (!feature->getPeptideIdentifications().empty() && !feature->getPeptideIdentifications()[0].getHits().empty())
+        {
+           String adduct;
+           description = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
+           sumformula = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("chemical_formula");
+           adduct = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("modifications");
+           // change format of description [name] to name
+           description.erase(remove_if(begin(description),
+                                       end(description),
+                                       [](char c) { return c == '[' || c == ']'; }), end(description));
+           // change format of adduct information M+H;1+ -> [M+H]1+
+           String adduct_prefix = adduct.prefix(';').trim();
+           String adduct_suffix = adduct.suffix(';').trim();
+           adduct = "[" + adduct_prefix + "]" + adduct_suffix;
+           adducts.insert(adducts.begin(), adduct);
+        }
+        else
+        {
+          // reset description and sumformula to UNKNOWN
+          description = "UNKNOWN";
+          sumformula = "UNKNOWN";
+        }
 
-            description = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
-            sumformula = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("chemical_formula");
-            adduct = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("modifications");
-
-            // change format of description [name] to name
-            description.erase(remove_if(begin(description),
-                                        end(description),
-                                        [](char c) { return c == '[' || c == ']'; }), end(description));
-
-            // change format of adduct information M+H;1+ -> [M+H]1+
-            String adduct_prefix = adduct.prefix(';').trim();
-            String adduct_suffix = adduct.suffix(';').trim();
-            adduct = "[" + adduct_prefix + "]" + adduct_suffix;
-
-            adducts.insert(adducts.begin(), adduct);
-         }
-
-         bool writecompound = true;
-         // call function to writeMsFile to os
-         writeMsFile_(os,
-                     spectra,
-                     feature_associated_ms2,
-                     ainfo,
-                     adducts,
-                     description,
-                     sumformula,
-                     f_isotopes,
-                     feature_charge,
-                     feature_id,
-                     feature_rt,
-                     feature_mz,
-                     writecompound,
-                     no_masstrace_info_isotope_pattern,
-                     isotope_pattern_iterations,
-                     count_skipped_spectra,
-                     count_to_pos,
-                     count_to_neg,
-                     count_no_ms1);
+        bool writecompound = true;
+        // call function to writeMsFile to os
+        writeMsFile_(os,
+                    spectra,
+                    feature_associated_ms2,
+                    ainfo,
+                    adducts,
+                    description,
+                    sumformula,
+                    f_isotopes,
+                    feature_charge,
+                    feature_id,
+                    feature_rt,
+                    feature_mz,
+                    writecompound,
+                    no_masstrace_info_isotope_pattern,
+                    isotope_pattern_iterations,
+                    count_skipped_spectra,
+                    count_to_pos,
+                    count_to_neg,
+                    count_no_ms1,
+                    v_cmpinfo);
 
         }
     }
@@ -573,7 +591,8 @@ namespace OpenMS
                    count_skipped_spectra,
                    count_to_pos,
                    count_to_neg,
-                   count_no_ms1);
+                   count_no_ms1,
+                   v_cmpinfo);
     }
 
     if (no_feautre_information)
@@ -621,7 +640,8 @@ namespace OpenMS
                    count_skipped_spectra,
                    count_to_pos,
                    count_to_neg,
-                   count_no_ms1);
+                   count_no_ms1,
+                   v_cmpinfo);
     }
 
     os.close();
