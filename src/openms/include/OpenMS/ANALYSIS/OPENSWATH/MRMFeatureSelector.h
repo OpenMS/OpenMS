@@ -41,6 +41,12 @@
 
 namespace OpenMS
 {
+
+  /** @class MRMFeatureSelector
+
+    A Base class (it contains a pure virtual function named `optimize()`) for
+    selection of MRM Features through Linear Programming.
+  */
   class OPENMS_DLLAPI MRMFeatureSelector
   {
 public:
