@@ -112,7 +112,7 @@ public:
       bool use_internal_reference = (reference_index >= 0);
       if (use_internal_reference)
       {
-        if (reference_index >= data.size())
+        if (reference_index >= static_cast<Int>(data.size()))
         {
           throw Exception::IndexOverflow(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, reference_index,

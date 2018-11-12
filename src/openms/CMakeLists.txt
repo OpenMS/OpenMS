@@ -107,7 +107,7 @@ if(APPLE)
                            ${CoreServices_LIBRARY})
 endif()
 
-if (OpenMP_CXX_FOUND)
+if (OPENMP_FOUND)
   list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
 endif()
 

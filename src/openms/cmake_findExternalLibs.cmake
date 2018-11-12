@@ -167,5 +167,10 @@ add_definitions(${Qt5Network_DEFINITIONS})
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS} ${Qt5Network_EXECUTABLE_COMPILE_FLAGS}")
 
+#------------------------------------------------------------------------------
+# PTHREAD
+#------------------------------------------------------------------------------
+# at least FFSuperHirn requires linking against pthread
+find_package (Threads REQUIRED)
 
 #------------------------------------------------------------------------------

@@ -303,6 +303,9 @@ namespace OpenMS
     if (all_simple.hasSubstring("<mascot_search_results"))
       return FileTypes::MASCOTXML;
 
+    if (all_simple.hasPrefix("{"))
+      return FileTypes::JSON;
+
     //FASTA file
     // .. check this fairly early on, because other file formats might be less specific
     {

@@ -43,7 +43,7 @@ namespace OpenMS
 {
 
 // static
-void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
+void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spec,
                       double fragment_tolerance,
                       bool fragment_unit_ppm,
                       int min_charge,
@@ -54,7 +54,7 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
                       bool make_single_charged,
                       bool annotate_charge)
 {
-  OPENMS_PRECONDITION(spectra.isSorted(), "Spectrum must be sorted.");
+  OPENMS_PRECONDITION(spec.isSorted(), "Spectrum must be sorted.");
 
   if (min_isopeaks < 2 || max_isopeaks < 2 || min_isopeaks > max_isopeaks)
   {
@@ -64,26 +64,27 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
 		    "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
 
-  if (spectra.empty()) { return; }
-
-  MSSpectrum old_spectrum = spectra;
+  if (spec.empty()) { return; }
 
   // reserve integer data array to store charge of peaks
   if (annotate_charge) 
   {
     // expand to hold one additional integer data array to hold the charge
-    spectra.getIntegerDataArrays().resize(spectra.getIntegerDataArrays().size() + 1);
-    spectra.getIntegerDataArrays().back().setName("charge");
+    spec.getIntegerDataArrays().resize(spec.getIntegerDataArrays().size() + 1);
+    spec.getIntegerDataArrays().back().setName("charge");
   }
 
+  // during discovery phase, work on a constant reference (just to make sure we do not modify spec)
+  const MSSpectrum& old_spectrum = spec;
+
   // determine charge seeds and extend them
-  std::vector<unsigned int> mono_isotopic_peak(old_spectrum.size(), 0);
+  std::vector<size_t> mono_isotopic_peak(old_spectrum.size(), 0);
   std::vector<int> features(old_spectrum.size(), -1);
   int feature_number = 0;
 
-  std::vector<unsigned int> extensions;
+  std::vector<size_t> extensions;
 
-  for (unsigned int current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
+  for (size_t current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
   {
     const double current_mz = old_spectrum[current_peak].getMZ();
 
@@ -136,72 +137,39 @@ void Deisotoper::deisotopeAndSingleCharge(MSSpectrum& spectra,
     }
   }
 
-  spectra.clear(false);
-  for (unsigned int i = 0; i != old_spectrum.size(); ++i)
+  // apply changes, i.e. select the indices which should survive
+  std::vector<Size> select_idx;
+
+  for (size_t i = 0; i != spec.size(); ++i)
   {
-    int z = mono_isotopic_peak[i];
-    if (keep_only_deisotoped)
+    Size z = mono_isotopic_peak[i];
+    if (annotate_charge)
     {
-      if (z == 0) { continue; }
-
-      // if already single charged or no decharging selected keep peak as it is
-      if (!make_single_charged)
-      {
-        spectra.push_back(old_spectrum[i]);
-
-        // add peak charge to annotation array
-        if (annotate_charge)
-        {
-          spectra.getIntegerDataArrays().back().push_back(z);
-        }
-      }
-      else
-      {
-        Peak1D p = old_spectrum[i];
-        p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-        spectra.push_back(p);
-
-        // add peak charge to annotation array
-        if (annotate_charge) { spectra.getIntegerDataArrays().back().push_back(z); }
-      }
+      spec.getIntegerDataArrays().back().push_back((int)z);
     }
-    else
-    {
-      // keep all unassigned peaks
+
+    if (!keep_only_deisotoped)
+    { // keep all unassigned peaks
       if (features[i] < 0)
       {
-        spectra.push_back(old_spectrum[i]);
-
-        // add peak charge to annotation array
-        if (annotate_charge) { spectra.getIntegerDataArrays().back().push_back(z); }
+        select_idx.push_back(i);
         continue;
       }
-
-      // convert mono-isotopic peak with charge assigned by deisotoping
-      if (z != 0)
-      {
-        if (!make_single_charged)
-        {
-          spectra.push_back(old_spectrum[i]);
-
-          if (annotate_charge) { spectra.getIntegerDataArrays().back().push_back(z); }
-        }
-        else // make single charged
-        {
-          Peak1D p = old_spectrum[i];
-          p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
-          spectra.push_back(p);
-
-          // annotate the original charge
-          if (annotate_charge)
-          {
-            spectra.getIntegerDataArrays().back().push_back(z);
-          }
-        }
-      }
     }
+
+    if (z == 0) continue;
+
+    // convert mono-isotopic peak with charge assigned by deisotoping
+    if (make_single_charged)
+    {
+      spec[i].setMZ(spec[i].getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+    }
+    select_idx.push_back(i);
+    
   }
-  spectra.sortByPosition();
+  // properly subsets all datapoints (incl. dataArrays)
+  spec.select(select_idx);
+  spec.sortByPosition();
 }
 } // namespace
 

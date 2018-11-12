@@ -77,6 +77,7 @@ namespace OpenMS
 
     LogStreamBuf::~LogStreamBuf()
     {
+      // Prevent issue on OSX with OpenMP: destructors of global objects seem to be called after tearing down the OpenMP context, we therefore cannot use any locks here.
       syncLF_();
       {
         clearCache();
@@ -424,9 +425,7 @@ namespace OpenMS
     void LogStreamNotifier::registerAt(LogStream & log)
     {
       unregister();
-      {
-        registered_at_ = &log;
-      };
+      registered_at_ = &log;
       log.insertNotification(stream_, *this);
     }
 

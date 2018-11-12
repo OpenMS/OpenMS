@@ -43,6 +43,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringUtils.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -239,20 +240,14 @@ public:
       for (const auto& prot_id : prot_ids)
       {
         if (!msgfplus_fix_parameters && !xtandem_fix_parameters) { break; }
-
-        const std::string& search_engine = prot_id.getSearchEngine();
+        String se = prot_id.getSearchEngine();
+        std::string search_engine = StringUtils::toUpper(se);
         if (search_engine != "XTANDEM") { xtandem_fix_parameters = false; }
         if (search_engine != "MSGFPLUS" || "MS-GF+") { msgfplus_fix_parameters = false; }
       }
 
-      //solely xtandem -> enzyme specificity to semi
-      if (xtandem_fix_parameters)
-      {
-        LOG_WARN << "XTandem used but specificity set to full. Setting enzyme specificity to semi specific cleavage to cope with special cutting rules in XTandem." << std::endl; 
-        enzyme.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
-      }
       // solely MSGFPlus -> Trypsin P as enzyme
-      else if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin") 
+      if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin")
       {
         LOG_WARN << "MSGFPlus detected but enzyme cutting rules were set to Trypsin. Correcting to Trypsin/P to copy with special cutting rule in MSGFPlus." << std::endl;
         enzyme.setEnzyme("Trypsin/P");
@@ -290,7 +285,7 @@ public:
         return PEPTIDE_IDS_EMPTY;
       }
 
-      FoundProteinFunctor func(enzyme); // store the matches
+      FoundProteinFunctor func(enzyme, xtandem_fix_parameters); // store the matches
       Map<String, Size> acc_to_prot; // map: accessions --> FASTA protein index
       std::vector<bool> protein_is_decoy; // protein index -> is decoy?
       std::vector<std::string> protein_accessions; // protein index -> accession
@@ -366,7 +361,7 @@ public:
 #pragma omp parallel
 #endif
         {
-          FoundProteinFunctor func_threads(enzyme);
+          FoundProteinFunctor func_threads(enzyme, xtandem_fix_parameters);
           Map<String, Size> acc_to_prot_thread; // map: accessions --> FASTA protein index
           AhoCorasickAmbiguous fuzzyAC;
           String prot;
@@ -1066,9 +1061,12 @@ public:
     private:
       ProteaseDigestion enzyme_;
 
+      /// are we checking xtandem cleavage rules?
+      bool xtandem_;
+
     public:
-      explicit FoundProteinFunctor(const ProteaseDigestion& enzyme) :
-        pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
+      explicit FoundProteinFunctor(const ProteaseDigestion& enzyme, bool xtandem) :
+        pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme), xtandem_(xtandem)
       {
       }
 
@@ -1099,7 +1097,7 @@ public:
         const OpenMS::String& seq_prot,
         OpenMS::Int position)
       {
-        if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, true))
+        if (enzyme_.isValidProduct(seq_prot, position, len_pep, true, true, xtandem_))
         {
           PeptideProteinMatchInformation match;
           match.protein_index = idx_prot;

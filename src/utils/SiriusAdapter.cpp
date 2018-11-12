@@ -167,7 +167,6 @@ protected:
     registerIntOption_("compound_timeout", "<num>", 10, "Time out in seconds per compound. To disable the timeout set the value to 0", false);
     registerIntOption_("tree_timeout", "<num>", 0, "Time out in seconds per fragmentation tree computation.", false);
     registerIntOption_("top_n_hits", "<num>", 10, "The number of top hits for each compound written to the CSI:FingerID output", false);
-
     registerFlag_("auto_charge", "Use this option if the charge of your compounds is unknown and you do not want to assume [M+H]+ as default. With the auto charge option SIRIUS will not care about charges and allow arbitrary adducts for the precursor peak.", false);
     registerFlag_("ion_tree", "Print molecular formulas and node labels with the ion formula instead of the neutral formula", false);
     registerFlag_("no_recalibration", "If this option is set, SIRIUS will not recalibrate the spectrum during the analysis.", false);
@@ -225,7 +224,9 @@ protected:
     bool no_recalibration = getFlag_("no_recalibration");
     bool ion_tree = getFlag_("ion_tree");
     bool most_intense_ms2 = getFlag_("most_intense_ms2");
-
+   
+    int threads = getIntOption_("threads");
+      
     //-------------------------------------------------------------
     // Determination of the Executable
     //-------------------------------------------------------------
@@ -328,11 +329,12 @@ protected:
                    << "--candidates" << QString::number(candidates)
                    << "--ppm-max" << ppm_max
                    << "--compound-timeout" << compound_timeout
-                   << "--tree-timeout" << tree_timeout 
+                   << "--tree-timeout" << tree_timeout
+                   << "--processors" << QString::number(threads) 
                    << "--quiet"
                    << "--output" << out_dir.toQString(); //internal output folder for temporary SIRIUS output file storage
 
-    // add flags
+    // add flags 
     if (no_recalibration)
     {
       process_params << "--no-recalibration";
@@ -370,7 +372,6 @@ protected:
     writeLog_("Executing: " + String(executable));
     writeLog_("Working Dir is: " + path_to_executable);
     const bool success = qp.waitForFinished(-1); // wait till job is finished
-    qp.close();
 
     if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
@@ -380,9 +381,12 @@ protected:
       writeLog_(sirius_stdout);
       writeLog_(sirius_stderr);
       writeLog_(String(qp.exitCode()));
+      qp.close();
 
       return EXTERNAL_PROGRAM_ERROR;
     }
+
+    qp.close();
 
     //-------------------------------------------------------------
     // writing output
