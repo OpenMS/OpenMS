@@ -36,6 +36,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideHit.h>
 
 namespace OpenMS
 {
@@ -60,5 +61,19 @@ namespace OpenMS
     /// inputs are not const, since it will get annotated with results
     /// annotation of protein groups is currently only possible for a single protein ID run
     void run(std::vector<PeptideIdentification> &pep_ids, std::vector<ProteinIdentification> &prot_ids) const;
+    void run(std::vector<PeptideIdentification> &pep_ids, ProteinIdentification &prot_id) const;
+
+  private:
+    void processRun_(
+      std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
+      std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
+      ProteinIdentification prot_run,
+      std::vector<PeptideIdentification> pep_ids,
+      AggregationMethod aggregation_method,
+      String& aggMethodString,
+      bool use_shared_peptides,
+      bool treat_charge_variants_separately,
+      bool treat_modification_variants_separately,
+      bool skip_count_annotation) const;
   };
 } //namespace OpenMS

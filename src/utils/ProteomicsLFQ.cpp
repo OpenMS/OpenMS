@@ -56,6 +56,9 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
+#include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 
@@ -77,6 +80,7 @@
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -558,7 +562,7 @@ protected:
 
   // determine cooccurance of peptide in different runs
   // returns map sequence+charge -> map index in consensus map 
-  map<pair<String, UInt>, vector<int> > getPeptideOccurance_(const ConsensusMap& cons)
+  map<pair<String, UInt>, vector<int> > getPeptideOccurrence_(const ConsensusMap &cons)
   {
     map<Size, UInt> num_consfeat_of_size;
     map<Size, UInt> num_consfeat_of_size_with_id;
@@ -597,21 +601,21 @@ protected:
   }
 
   // simple transfer between runs
-  // if a peptide has not been quantified in more than min_occurance runs, then take all consensus features that have it identified at least once
+  // if a peptide has not been quantified in more than min_occurrence runs, then take all consensus features that have it identified at least once
   // and transfer the ID with RT of the the consensus feature (the average if we have multiple consensus elements)
-  multimap<Size, PeptideIdentification> transferIDsBetweenSameFraction_(const ConsensusMap& consensus_fraction, Size min_occurance = 3)
+  multimap<Size, PeptideIdentification> transferIDsBetweenSameFraction_(const ConsensusMap& consensus_fraction, Size min_occurrence = 3)
   {
-    // determine occurance of ids
-    map<pair<String, UInt>, vector<int> > occurance = getPeptideOccurance_(consensus_fraction);
+    // determine occurrence of ids
+    map<pair<String, UInt>, vector<int> > occurrence = getPeptideOccurrence_(consensus_fraction);
 
     // build map of missing ids
     map<pair<String, UInt>, set<int> > missing; // set of maps missing the id
-    for (auto & o : occurance)
+    for (auto & o : occurrence)
     {
-      // more than min_occurance elements in consensus map that are non-zero?
-      const Size count_non_zero = std::count_if(o.second.begin(), o.second.end(), [](int i){return i > 0;});
+      // more than min_occurrence elements in consensus map that are non-zero?
+      const Size count_non_zero = (Size) std::count_if(o.second.begin(), o.second.end(), [](int i){return i > 0;});
 
-      if (count_non_zero >= min_occurance 
+      if (count_non_zero >= min_occurrence
        && count_non_zero < o.second.size())
       {
         for (Size i = 0; i != o.second.size(); ++i)
@@ -622,7 +626,7 @@ protected:
       }
     }
 
-    Size n_transfered_ids(0);
+    Size n_transferred_ids(0);
     // create representative id to transfer to missing
     multimap<Size, PeptideIdentification> transfer_ids;
     for (auto & c : consensus_fraction)
@@ -646,10 +650,10 @@ protected:
         pair<Size, PeptideIdentification> p = make_pair(idx, pids[0]);
         p.second.setRT(c.getRT());
         transfer_ids.insert(p);
-        ++n_transfered_ids;        
+        ++n_transferred_ids;
       }
     }
-    LOG_INFO << "Transfered IDs: " << n_transfered_ids << endl;
+    LOG_INFO << "Transfered IDs: " << n_transferred_ids << endl;
     return transfer_ids;
   }
  
@@ -1085,15 +1089,15 @@ protected:
         
       if (getStringOption_("transfer_ids") != "false")
       {  
-        LOG_INFO << "Transfering identification data between runs of the same fraction." << endl; 
+        LOG_INFO << "Transferring identification data between runs of the same fraction." << endl;
         // needs to occur in >= 50% of all runs for transfer
-        const Size min_occurance = (double) (ms_files.second.size() * 0.5 + 0.5);        
-        multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurance); 
+        const Size min_occurrance = (ms_files.second.size() + 1) / 2;
+        multimap<Size, PeptideIdentification> transfered_ids = transferIDsBetweenSameFraction_(consensus_fraction, min_occurrance);
         consensus_fraction.clear();
 
-        // The transfered IDs were calculated on the aligned data
-        // So we make sure we use the aligned IDs and peak maps in the requantification step
-        ExitCodes e = quantifyFraction_(
+        // The transferred IDs were calculated on the aligned data
+        // So we make sure we use the aligned IDs and peak maps in the re-quantification step
+        e = quantifyFraction_(
           ms_files, 
           mzfile2idfile, 
           median_fwhm, 
@@ -1118,59 +1122,46 @@ protected:
       ConsensusXMLFile().store("debug_after_normalization.consensusXML", consensus);
     }
 
-    // TODO: FileMerger merge ids (here? or already earlier? filtered?)
+    IDMergerAlgorithm merger{String("all_merged")};
+
+    IdXMLFile f;
+    for (const auto& idfile : in_ids)
+    {
+      vector<ProteinIdentification> protein_ids;
+      vector<PeptideIdentification> peptide_ids;
+      f.load(idfile, protein_ids, peptide_ids);
+      // TODO: Do and filter for a PSM FDR?
+      merger.insertRun(protein_ids, peptide_ids);
+    }
+
+    vector<ProteinIdentification> inferred_protein_ids{1};
+    vector<PeptideIdentification> inferred_peptide_ids;
+    merger.returnResultsAndClear(inferred_protein_ids[0], inferred_peptide_ids);
+
     // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
 
     //-------------------------------------------------------------
     // Protein inference
     //-------------------------------------------------------------
-    // TODO: ProteinInference on merged ids (how merged?)
+    // TODO: Think about ProteinInference on IDs only merged per condition
     // TODO: Output coverage on protein (and group level?)
+    // TODO: Expose parameters
+    BasicProteinInferenceAlgorithm bpia;
+    bpia.run(inferred_peptide_ids, inferred_protein_ids);
 
-
-    //-------------------------------------------------------------
-    // Protein inference
-    //-------------------------------------------------------------
-    // TODO: Implement inference
-    vector<PeptideIdentification> infered_peptides;
-    vector<ProteinIdentification> infered_protein_groups(1, ProteinIdentification());
-
-    // first handle unique peptides and indistinguishable groups
-    infered_peptides = consensus.getUnassignedPeptideIdentifications();
-    for (ConsensusFeature & c : consensus)
-    {
-      infered_peptides.insert(infered_peptides.end(),
-                      c.getPeptideIdentifications().begin(),
-                      c.getPeptideIdentifications().end());
+    { // graph uses some memory, delete after annotation
+      IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids};
+      ibg.buildGraph(false, false);
+      ibg.computeConnectedComponents();
+      ibg.annotateIndistProteins(true);
     }
 
-    for (auto & p : infered_peptides)
+    bool greedy_group_resolution = true;
+    if (greedy_group_resolution)
     {
-      // annotate experimental design meta data to merged PeptideIdentifications (the infered peptides)
-      // so we can track their origin
-      const String& old_identifier = p.getIdentifier();
-      vector<ProteinIdentification> & protein_ids = consensus.getProteinIdentifications();
-      auto it = std::find_if(protein_ids.begin(), protein_ids.end(), [&old_identifier](const ProteinIdentification & prot_id)
-        {
-          return prot_id.getIdentifier() == old_identifier;
-        });
-     
-      if (it != protein_ids.end())
-      {
-        p.setMetaValue("fraction", it->getMetaValue("fraction"));
-        p.setMetaValue("fraction_group", it->getMetaValue("fraction_group"));
-        StringList spectra_data;
-        it->getPrimaryMSRunPath(spectra_data);
-        p.setMetaValue("spectra_data", spectra_data[0]);
-      }
-      else
-      {
-        // TODO: throw exception
-      }
-
-      // We need to set the common identifier for the final inference result.
-      // see below and in MzTab.cpp
-      p.setIdentifier("Fido"); 
+      PeptideProteinResolution ppr{};
+      ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
+      ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);
     }
 
     // reindex peptides to proteins and keep only unique peptides
@@ -1186,7 +1177,7 @@ protected:
 
       // stream data in fasta file
       FASTAContainer<TFI_File> fasta_db(in_db);
-      PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, infered_protein_groups, infered_peptides);
+      PeptideIndexing::ExitCodes indexer_exit = indexer.run(fasta_db, inferred_protein_ids, inferred_peptide_ids);
 
       if ((indexer_exit != PeptideIndexing::EXECUTION_OK) &&
           (indexer_exit != PeptideIndexing::PEPTIDE_IDS_EMPTY))
@@ -1206,31 +1197,19 @@ protected:
       } 
 
       // ensure that only one final inference result is generated
-      assert(infered_protein_groups.size() == 1);
-
-      // merge (unique) protein identifications
-      for (auto & p : infered_protein_groups)
-      { 
-        // copy hits to protein groups (required for export in mzTab)
-        for (auto & h : p.getHits()) 
-        { 
-          const String & a = h.getAccession();
-          ProteinIdentification::ProteinGroup pg;
-          pg.accessions.push_back(a);
-          infered_protein_groups[0].insertIndistinguishableProteins(pg);
-          infered_protein_groups[0].insertProteinGroup(pg);          
-        }
-        p.setIdentifier("Fido"); 
-      }
+      assert(inferred_protein_ids.size() == 1);
 
       // only keep unique peptides (for now)
-      IDFilter::keepUniquePeptidesPerProtein(infered_peptides);
+      if (!greedy_group_resolution)
+      {
+        IDFilter::keepUniquePeptidesPerProtein(inferred_peptide_ids);
+      }
 
       // compute coverage
-      infered_protein_groups[0].computeCoverage(infered_peptides);
+      inferred_protein_ids[0].computeCoverage(inferred_peptide_ids);
 
       // determine observed modifications (exclude fixed mods)
-      infered_protein_groups[0].computeModifications(infered_peptides, StringList(fixed_modifications.begin(), fixed_modifications.end()));
+      inferred_protein_ids[0].computeModifications(inferred_peptide_ids, StringList(fixed_modifications.begin(), fixed_modifications.end()));
 
       /////////////////////////////////////////
       // annotate some mzTab related protein statistics
@@ -1238,14 +1217,14 @@ protected:
       map<String, map<String, Size >> acc2psms; // map runpath->accession->#PSMs (how many PSMs identify a protein in every run)
       // Note: only helpful if the PSM maps to one protein (or an indistinguishable group) - probably not helpful for shared peptides/PSMs 
 
-      // distinct peptides: different if umodified sequence is different (charge state or modified forms of same peptide are not counted separately) 
+      // distinct peptides: different if unmodified sequence is different (charge state or modified forms of same peptide are not counted separately)
       map<String, map<String, set<String>>> acc2distinct_peptides; // map runpath->accession->set of distinct peptides
       // unique peptides (not shared)
       map<String, map<String, set<String>>> acc2unique_peptides;
-      for (Size pep_i = 0; pep_i != infered_peptides.size(); ++pep_i)
+      for (Size pep_i = 0; pep_i != inferred_peptide_ids.size(); ++pep_i)
       {
         // peptide hits
-        const PeptideIdentification & peptide_id = infered_peptides[pep_i];
+        const PeptideIdentification & peptide_id = inferred_peptide_ids[pep_i];
         const String & runpath = peptide_id.getMetaValue("spectra_data");
         const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
 
@@ -1280,13 +1259,13 @@ protected:
       }
 
       // store run level mzTab statistics in protein hits of inference run (= final result)
-      for (auto & p : infered_protein_groups[0].getHits())
+      for (auto & p : inferred_protein_ids[0].getHits())
       {
         const String acc = p.getAccession();
         
         IntList npsms, ndistinct, nunique;
 
-        // TODO: validate somehow that the order of MS run interation is correct/identical in every part of this tool
+        // TODO: validate somehow that the order of MS run integration is correct/identical in every part of this tool
         for (auto const ms_files : frac2ms) // for each fraction->ms file(s)
         {
           for (const String & runpath : ms_files.second)
@@ -1334,13 +1313,16 @@ protected:
     PeptideAndProteinQuant quantifier;
     quantifier.setParameters(pq_param);
     quantifier.readQuantData(consensus, design);
-    quantifier.quantifyPeptides(infered_peptides);
+
+    // TODO: @timo, Check this. inferred_peptide_ids will hold a superset of the IDs
+    // in the consensusXML. Should work.
+    quantifier.quantifyPeptides(inferred_peptide_ids);
 
     //-------------------------------------------------------------
     // Protein quantification
     //-------------------------------------------------------------
     // TODO: ProteinQuantifier on (merged?) consensusXML (with 1% FDR?) + inference ids (unfiltered?)? 
-    if (infered_protein_groups[0].getIndistinguishableProteins().empty())
+    if (inferred_protein_ids[0].getIndistinguishableProteins().empty())
     {
       throw Exception::MissingInformation(
        __FILE__, 
@@ -1349,7 +1331,7 @@ protected:
        "No information on indistinguishable protein groups found.");
     }
 
-    quantifier.quantifyProteins(infered_protein_groups[0]);
+    quantifier.quantifyProteins(inferred_protein_ids[0]);
     //-------------------------------------------------------------
     // Export of MzTab file as final output
     //-------------------------------------------------------------
@@ -1358,9 +1340,9 @@ protected:
     auto const & protein_quants = quantifier.getProteinResults();
 
     // annotates final quantities to proteins and protein groups in the ID data structure
-    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, infered_protein_groups[0], design.getNumberOfFractionGroups());
+    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
-    proteins.insert(proteins.begin(), infered_protein_groups[0]); // insert inference information as first protein identification
+    proteins.insert(proteins.begin(), inferred_protein_ids[0]); // insert inference information as first protein identification
     proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
 
     consensus.resolveUniqueIdConflicts(); // TODO: find out why this is needed to get proper UIDs in consensus

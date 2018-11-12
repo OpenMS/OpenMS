@@ -49,93 +49,52 @@ namespace OpenMS
     public ProgressLogger
   {
   public:
-    IDMergerAlgorithm ();
-    /// Takes a cmap with one IDRun per column and merges them to one proteinIDRun per Condition
-    /// while reassociating the PeptideEvidences
-    /// Constructs the mapping based on the exp. design and then uses mergeProteinIDRuns
-    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
-    void mergeProteinsAcrossFractionsAndReplicates(ConsensusMap& cmap, const ExperimentalDesign& exp_design) const;
+    explicit IDMergerAlgorithm (const String& runIdentifier = "merged");
 
-    /// Similar to above, merges every ID Run into one big run. Proteins get only inserted once but Peptides stay unfiltered
-    /// i.e. might occur in several PeptideIdentifications afterwards
-    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
-    void mergeAllIDRuns(ConsensusMap& cmap) const;
-    void mergeAllIDRuns(std::vector<ProteinIdentification>& protRuns, std::vector<PeptideIdentification>& pepIDs) const;
+    /// Insert (=move and clear) a run with its peptide IDs into the internal merged data structures,
+    /// based on the initial mapping from fileorigins to new run
+    void insertRun(std::vector<ProteinIdentification>& prots,
+        std::vector<PeptideIdentification>& peps);
 
-    /// Takes a ConsensusMap and a mapping between ConsensusMap column index (map index) and
-    /// the new ProteinIdentificationRun index and merges them. If you know the number of resulting
-    /// ProteinIDRuns, consider specifying new_size.
-    /// @throws MissingInformationException for e.g. missing map_indices in PeptideIDs
-    void mergeProteinIDRuns(ConsensusMap &cmap,
-                            const std::map<unsigned, unsigned>& mapIdx_to_new_protIDRun) const;
-
-    /// Takes a vector of old protein ID runs and old peptide ID runs, which will be moved or overwritten
-    /// and a map from old run to new run, as well as a to-be-filled vector of peptide IDs
-    /// It merges the proteins from runs that map to the same new run (by moving the first occurence to it)
-    /// It concatenates and moves the peptides of those runs into the vector at the according index while updating their
-    /// run references.
-    void mergeIDRunsAndSplitPeptides(
-        std::vector<ProteinIdentification>& oldProtRuns,
-        std::vector<PeptideIdentification>& pepIDs,
-        const std::map<Size, Size>& oldrunToNewrun,
-        std::vector<std::vector<PeptideIdentification>>& splitPepIDs) const;
-
-    void mergeIDRunsAndSplitPeptides(
-        std::vector<ProteinIdentification>& oldProtRuns,
-        std::vector<std::vector<PeptideIdentification>>& pepIDs,
-        const std::map<Size, Size>& oldrunToNewrun,
-        std::vector<std::vector<PeptideIdentification>>& splitPepIDs) const;
-
-    /// Moves multiple ID vectors into a long one
-    template<class Identification>
-    static void concatenateIdentifications(
-        std::vector<std::vector<Identification>>& oldIDs,
-        std::vector<Identification>& newIDs)
-    {
-      for (auto& IDs : oldIDs)
-      {
-        newIDs.reserve(newIDs.size() + IDs.size());
-        std::copy(std::make_move_iterator(begin(IDs)),
-                  std::make_move_iterator(end(IDs)),
-                  std::back_inserter(newIDs));
-      }
-    }
-
-    //TODO Add methods for to merge vectors of PepIDs based on experimental design
+    /// Return the merged results and reset/clear all internal data
+    void returnResultsAndClear(ProteinIdentification& prots,
+                   std::vector<PeptideIdentification>& peps);
 
   private:
-    struct RunDescription
-    {
-      String engine;
-      String version;
-      ProteinIdentification::SearchParameters params;
-    };
+    String getNewIdentifier_() const;
+    void copySearchParams_(ProteinIdentification& from, ProteinIdentification& to);
 
     /// Checks consistency of search engines and settings across runs before merging.
-    /// @return a merged RunDescription about what to put in the new runs
+    /// @param protRuns The runs to check (first = implicit reference)
+    /// @param experiment_type allow some mismatches in case of other experiment types (e.g. SILAC)
+    /// @return all same? TODO: a merged RunDescription about what to put in the new runs (e.g. for SILAC)
     /// @throws BaseException for disagreeing settings
-    bool checkOldRunConsistency_(const std::vector<ProteinIdentification> protRuns, String experiment_type) const;
+    bool checkOldRunConsistency_(
+        const std::vector<ProteinIdentification>& protRuns,
+        const String& experiment_type) const;
 
-    void initNewRunsAndFileMappings_(
-        const std::vector<ProteinIdentification>& oldProtRuns,
-        const std::map<Size,Size>& oldrunToNewrun,
-        std::vector<std::map<Size, Size>>& oldToNewFileIdx,
-        std::vector<ProteinIdentification>& newProtIDRuns) const;
+    /// Same as above, if you want to use a specific reference
+    /// @param protRuns The runs to check (first = reference)
+    /// @param ref A possibly external protein run reference
+    /// @param experiment_type allow some mismatches in case of other experiment types (e.g. SILAC)
+    /// @return all same? TODO: a merged RunDescription about what to put in the new runs (e.g. for SILAC)
+    /// @throws BaseException for disagreeing settings
+    bool checkOldRunConsistency_(
+        const std::vector<ProteinIdentification>& protRuns,
+        const ProteinIdentification& ref,
+        const String& experiment_type) const;
 
-    /// In (will be moved and cleared): pepIDs, oldProtRuns
-    /// Out: newProtIDRuns, splitPepIDs
-    /// Helpers: oldrunToNewrun (mapping of the run itself), oldToNewFileIdx (map of fileidx in old Run to fileidx in
-    /// new run), proteinsCollected (keeps track of already inserted proteins)
+
     void movePepIDsAndRefProteinsToResult_(
         std::vector<PeptideIdentification>& pepIDs,
-        std::vector<ProteinIdentification>& oldProtRuns,
-        std::vector<ProteinIdentification>& newProtIDRuns,
-        std::vector<std::vector<PeptideIdentification>>& splitPepIDs,
-        const std::map<Size,Size>& oldrunToNewrun,
-        const std::vector<std::map<Size,Size>> oldToNewFileIdx,
-        std::vector<std::unordered_set<std::string>> proteinsCollected
-    ) const;
+        std::vector<ProteinIdentification>& oldProtRuns
+    );
 
-
+    ProteinIdentification protResult;
+    std::vector<PeptideIdentification> pepResult;
+    std::unordered_set<std::string> proteinsCollected;
+    bool filled = false;
+    std::map<String, Size> fileOriginToIdx;
+    String id;
   };
 } // namespace OpenMS

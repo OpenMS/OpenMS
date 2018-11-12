@@ -145,20 +145,21 @@ protected:
     std::cout << "Loading input took " << sw.toString() << std::endl;
     sw.reset();
 
-
     bool merge_runs = getStringOption_("merge_runs") == "all";
     if (merge_runs)
     {
       std::cout << "Merging runs..." << std::endl;
       IDMergerAlgorithm merger;
-      merger.mergeAllIDRuns(prot_ids, pep_ids);
+      merger.insertRun(prot_ids, pep_ids);
+      prot_ids.resize(1);
+      merger.returnResultsAndClear(prot_ids[0], pep_ids);
       std::cout << "Merging runs took " << sw.toString() << std::endl;
       sw.reset();
     }
 
     std::cout << "Aggregating protein scores..." << std::endl;
     BasicProteinInferenceAlgorithm pi;
-    pi.setParameters(getParam_().copy("Algorithm:",true));
+    pi.setParameters(getParam_().copy("Algorithm:", true));
     pi.run(pep_ids, prot_ids);
     std::cout << "Aggregating protein scores took " << sw.toString() << std::endl;
     sw.clear();
@@ -173,7 +174,7 @@ protected:
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure
       // but it is quite fast right now.
       IDBoostGraph ibg{prot_ids[0], pep_ids};
-      ibg.buildGraph(false);
+      ibg.buildGraph(false, false);
       sw.start();
       //TODO allow computation without splitting into components. Might be worthwhile in some cases
       std::cout << "Splitting into connected components..." << std::endl;

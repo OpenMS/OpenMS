@@ -74,6 +74,9 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
+    return ExitCodes::EXECUTION_OK;
+
+    /* That was test code for the old merger
     ProteinIdentification pi1{};
     ProteinIdentification pi2{};
     ProteinIdentification pi3{};
@@ -90,6 +93,7 @@ protected:
 
     return ExitCodes::EXECUTION_OK;
 
+
     //TODO remove until ExitCode and allow a (merged) ConsensusXML as input
     vector<PeptideIdentification> peps;
     vector<ProteinIdentification> prots;
@@ -103,6 +107,7 @@ protected:
     cXML.store(getStringOption_("out"), cmap);
 
     return ExitCodes::EXECUTION_OK;
+     */
 
     // Some thoughts about how to leverage info from different runs.
     //Fractions: Always merge (not much to leverage, maybe agreement at borders)
@@ -116,6 +121,8 @@ protected:
     // - merge and don't assume same proteins: -> We need an extended graph, that has multiple versions
     //   of the proteins for every sample
 
+    vector<PeptideIdentification> peps;
+    vector<ProteinIdentification> prots;
     IdXMLFile idXML;
     idXML.load(getStringOption_("in"), prots, peps);
     //TODO filter unmatched proteins and peptides before!
