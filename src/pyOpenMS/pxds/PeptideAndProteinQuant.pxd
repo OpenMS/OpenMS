@@ -8,6 +8,7 @@ from Param cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from ProteinIdentification cimport *
+from ExperimentalDesign cimport *
 
 # ctypedef libcpp_map<UInt64, double> SampleAbundances;
 
@@ -20,10 +21,10 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         PeptideAndProteinQuant() nogil except +
         PeptideAndProteinQuant(PeptideAndProteinQuant) nogil except + #wrap-ignore
 
-        void readQuantData(FeatureMap & map_in) nogil except +
-        void readQuantData(ConsensusMap & map_in) nogil except +
+        void readQuantData(FeatureMap & map_in, ExperimentalDesign & ed) nogil except +
+        void readQuantData(ConsensusMap & map_in, ExperimentalDesign & ed) nogil except +
         void readQuantData(libcpp_vector[ProteinIdentification] & proteins,
-                           libcpp_vector[PeptideIdentification] & peptides) nogil except +
+                           libcpp_vector[PeptideIdentification] & peptides, ExperimentalDesign & ed) nogil except +
 
         void quantifyPeptides(libcpp_vector[PeptideIdentification] & peptides) nogil except +
         void quantifyProteins(ProteinIdentification & proteins) nogil except +

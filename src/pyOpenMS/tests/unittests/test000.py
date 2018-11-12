@@ -1678,19 +1678,6 @@ def testIDFilter():
     # assert pyopenms.IDFilter().apply is not None
 
 @report
-def testProteinResolver():
-    """
-    @tests: ProteinResolver
-     ProteinResolver.__init__
-    """
-    ff = pyopenms.ProteinResolver()
-
-    assert pyopenms.ProteinResolver().resolveConsensus is not None
-    assert pyopenms.ProteinResolver().resolveID is not None
-    assert pyopenms.ProteinResolver().setProteinData is not None
-    assert pyopenms.ProteinResolver().getResults is not None
-
-@report
 def testSvmTheoreticalSpectrumGeneratorTrainer():
     """
     @tests: SvmTheoreticalSpectrumGeneratorTrainer
