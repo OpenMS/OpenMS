@@ -101,7 +101,9 @@ namespace OpenMS
         parent.description = hit.getDescription();
         parent.coverage = hit.getCoverage() / 100.0; // we don't want percents
         static_cast<MetaInfoInterface&>(parent) = hit;
-        parent.scores.push_back(make_pair(score_ref, hit.getScore()));
+        IdentificationData::AppliedProcessingStep applied(step_ref);
+        applied.scores[score_ref] = hit.getScore();
+        parent.steps_and_scores.push_back(applied);
         id_data.registerParentMolecule(parent);
       }
       sublogger.endProgress();
@@ -126,7 +128,7 @@ namespace OpenMS
           ++groups_counter;
           sublogger.setProgress(groups_counter);
           IdentificationData::ParentMoleculeGroup new_group;
-          new_group.scores.push_back(make_pair(score_ref, group.probability));
+          new_group.scores[score_ref] = group.probability;
           for (const String& acc : group.accessions)
           {
             IdentificationData::ParentMolecule parent(acc);
@@ -158,7 +160,7 @@ namespace OpenMS
           ++groups_counter;
           sublogger.setProgress(groups_counter);
           IdentificationData::ParentMoleculeGroup new_group;
-          new_group.scores.push_back(make_pair(score_ref, group.probability));
+          new_group.scores[score_ref] = group.probability;
           for (const String& acc : group.accessions)
           {
             IdentificationData::ParentMolecule parent(acc);
@@ -234,13 +236,13 @@ namespace OpenMS
       {
         if (hit.getSequence().empty()) continue;
         IdentificationData::IdentifiedPeptide peptide(hit.getSequence());
-        peptide.processing_step_refs.push_back(step_ref);
+        peptide.addProcessingStep(step_ref);
         for (const PeptideEvidence& evidence : hit.getPeptideEvidences())
         {
           const String& accession = evidence.getProteinAccession();
           if (accession.empty()) continue;
           IdentificationData::ParentMolecule parent(accession);
-          parent.processing_step_refs.push_back(step_ref);
+          parent.addProcessingStep(step_ref);
           // this will merge information if the protein already exists:
           IdentificationData::ParentMoleculeRef parent_ref =
             id_data.registerParentMolecule(parent);
@@ -259,7 +261,8 @@ namespace OpenMS
         {
           match.peak_annotations[step_ref] = hit.getPeakAnnotations();
         }
-        match.processing_step_refs.push_back(step_ref);
+        IdentificationData::AppliedProcessingStep applied(step_ref);
+        applied.scores[score_ref] = hit.getScore();
 
         // analysis results from pepXML:
         for (const PeptideHit::PepXMLAnalysisResult& ana_res :
@@ -276,7 +279,7 @@ namespace OpenMS
           }
           IdentificationData::ProcessingStepRef sub_step_ref =
             id_data.registerDataProcessingStep(sub_step);
-          match.processing_step_refs.push_back(sub_step_ref);
+          IdentificationData::AppliedProcessingStep sub_applied(sub_step_ref);
           for (const pair<String, double>& sub_pair : ana_res.sub_scores)
           {
             IdentificationData::ScoreType sub_score;
@@ -284,7 +287,7 @@ namespace OpenMS
             sub_score.software_opt = software_ref;
             IdentificationData::ScoreTypeRef sub_score_ref =
               id_data.registerScoreType(sub_score);
-            match.scores.push_back(make_pair(sub_score_ref, sub_pair.second));
+            sub_applied.scores[sub_score_ref] = sub_pair.second;
           }
           IdentificationData::ScoreType main_score;
           main_score.name = ana_res.score_type + "_probability";
@@ -292,11 +295,12 @@ namespace OpenMS
           main_score.software_opt = software_ref;
           IdentificationData::ScoreTypeRef main_score_ref =
             id_data.registerScoreType(main_score);
-          match.scores.push_back(make_pair(main_score_ref, ana_res.main_score));
+          sub_applied.scores[main_score_ref] = ana_res.main_score;
+          match.addProcessingStep(sub_applied);
         }
 
-        // primary score goes last:
-        match.scores.push_back(make_pair(score_ref, hit.getScore()));
+        // most recent step (with primary score) goes last:
+        match.addProcessingStep(applied);
         id_data.registerMoleculeQueryMatch(match);
       }
     }
@@ -315,11 +319,25 @@ namespace OpenMS
     // "DataQuery" roughly corresponds to "PeptideIdentification",
     // "DataProcessingStep" roughly corresponds to "ProteinIdentification":
     map<pair<IdentificationData::DataQueryRef,
-             IdentificationData::ProcessingStepRef>,
+             boost::optional<IdentificationData::ProcessingStepRef>>,
         pair<vector<PeptideHit>, IdentificationData::ScoreTypeRef>> psm_data;
     // we only export peptides and proteins (or oligos and RNAs), so start by
     // getting the PSMs (or OSMs):
     const String& ppm_error_name = Constants::PRECURSOR_ERROR_PPM_USERPARAM;
+
+    IdentificationData::ScoreTypeRef peptide_score_ref =
+      id_data.getScoreTypes().end();
+    if (!peptide_score.empty()) // specific peptide score type requested
+    {
+      peptide_score_ref = id_data.findScoreType(peptide_score).first;
+    }
+    IdentificationData::ScoreTypeRef protein_score_ref =
+      id_data.getScoreTypes().end();
+    if (!protein_score.empty()) // specific protein score type requested
+    {
+      protein_score_ref = id_data.findScoreType(protein_score).first;
+    }
+
     for (const IdentificationData::MoleculeQueryMatch& query_match :
            id_data.getMoleculeQueryMatches())
     {
@@ -376,49 +394,48 @@ namespace OpenMS
       vector<PeptideEvidence> evidences = hit.getPeptideEvidences();
       sort(evidences.begin(), evidences.end());
       hit.setPeptideEvidences(evidences);
-      // find all steps that assigned a score:
-      for (IdentificationData::ProcessingStepRef step_ref :
-             query_match.processing_step_refs)
-      {
-        auto pos = query_match.peak_annotations.find(step_ref);
-        if (pos != query_match.peak_annotations.end())
-        {
-          hit.setPeakAnnotations(pos->second);
-        }
 
-        if (!peptide_score.empty()) // specific score type requested
+      // look for a specific score type?
+      if (peptide_score_ref != id_data.getScoreTypes().end())
+      {
+        auto result = query_match.getScoreAndStep(peptide_score_ref);
+        if (std::get<2>(result)) // score found
         {
-          const auto& pair = id_data.findScoreType(peptide_score,
-                                                   step_ref->software_ref);
-          if (pair.second) // score type found
+          hit.setScore(std::get<0>(result));
+          auto step_ref_opt = std::get<1>(result);
+          auto pos = query_match.peak_annotations.find(step_ref_opt);
+          if (pos != query_match.peak_annotations.end())
           {
-            hit.setScore(query_match.getScore(pair.first).first);
-            auto key = make_pair(query_match.data_query_ref, step_ref);
-            psm_data[key].first.push_back(hit);
-            psm_data[key].second = pair.first;
+            hit.setPeakAnnotations(pos->second);
           }
+          auto key = make_pair(query_match.data_query_ref, step_ref_opt);
+          psm_data[key].first.push_back(hit);
+          psm_data[key].second = peptide_score_ref;
         }
-        else // no specific request - give priority to "later" scores
+      }
+      else // generate hits in different ID runs for different scores
+      {
+        for (IdentificationData::AppliedProcessingStep applied :
+               query_match.steps_and_scores)
         {
-          for (IdentificationData::ScoreList::const_reverse_iterator score_it =
-                 query_match.scores.rbegin(); score_it !=
-                 query_match.scores.rend(); ++score_it)
+          if (applied.scores.empty()) continue;
+          // @TODO: if there are multiple scores, which one should we use?
+          hit.setScore(applied.scores.begin()->second);
+          auto pos =
+            query_match.peak_annotations.find(applied.processing_step_opt);
+          if (pos != query_match.peak_annotations.end())
           {
-            IdentificationData::ScoreTypeRef score_ref = score_it->first;
-            if (score_ref->software_opt == step_ref->software_ref)
-            {
-              hit.setScore(score_it->second);
-              auto key = make_pair(query_match.data_query_ref, step_ref);
-              psm_data[key].first.push_back(hit);
-              psm_data[key].second = score_ref;
-              break;
-            }
+            hit.setPeakAnnotations(pos->second);
           }
+          auto key = make_pair(query_match.data_query_ref,
+                               applied.processing_step_opt);
+          psm_data[key].first.push_back(hit);
+          psm_data[key].second = applied.scores.begin()->first;
         }
       }
     }
 
-    set<IdentificationData::ProcessingStepRef> steps;
+    set<boost::optional<IdentificationData::ProcessingStepRef>> steps;
     for (const auto& psm : psm_data)
     {
       const IdentificationData::DataQuery& query = *psm.first.first;
@@ -431,12 +448,19 @@ namespace OpenMS
       const IdentificationData::ScoreType& score_type = *psm.second.second;
       peptide.setScoreType(score_type.name);
       peptide.setHigherScoreBetter(score_type.higher_better);
-      peptide.setIdentifier(String(Size(&(*psm.first.second))));
+      if (psm.first.second) // processing step given
+      {
+        peptide.setIdentifier(String(Size(&(*psm.first.second))));
+      }
+      else
+      {
+        peptide.setIdentifier("dummy");
+      }
       peptides.push_back(peptide);
       steps.insert(psm.first.second);
     }
 
-    map<IdentificationData::ProcessingStepRef,
+    map<boost::optional<IdentificationData::ProcessingStepRef>,
         pair<vector<ProteinHit>, IdentificationData::ScoreTypeRef>> prot_data;
     for (const auto& parent : id_data.getParentMolecules())
     {
@@ -455,71 +479,77 @@ namespace OpenMS
       {
         hit.setMetaValue("target_decoy", parent.is_decoy ? "decoy" : "target");
       }
-      // find all steps that assigned a score:
-      for (IdentificationData::ProcessingStepRef step_ref :
-             parent.processing_step_refs)
+
+      // look for a specific score type?
+      if (protein_score_ref != id_data.getScoreTypes().end())
       {
-        bool found = false;
-        if (!protein_score.empty()) // specific score type requested
+        auto result = parent.getScoreAndStep(protein_score_ref);
+        if (std::get<2>(result)) // score found
         {
-          const auto& pair = id_data.findScoreType(protein_score,
-                                                   step_ref->software_ref);
-          if (pair.second) // score type found
-          {
-            hit.setScore(parent.getScore(pair.first).first);
-            prot_data[step_ref].first.push_back(hit);
-            prot_data[step_ref].second = pair.first;
-            steps.insert(step_ref);
-            found = true;
-          }
+          hit.setScore(std::get<0>(result));
+          auto step_ref_opt = std::get<1>(result);
+          prot_data[step_ref_opt].first.push_back(hit);
+          prot_data[step_ref_opt].second = peptide_score_ref;
         }
-        else // no specific request - give priority to "later" scores
+      }
+      else // generate hits in different ID runs for different scores
+      {
+        for (IdentificationData::AppliedProcessingStep applied :
+               parent.steps_and_scores)
         {
-          for (IdentificationData::ScoreList::const_reverse_iterator
-                 score_it = parent.scores.rbegin(); score_it !=
-                 parent.scores.rend(); ++score_it)
+          if (!applied.scores.empty())
           {
-            IdentificationData::ScoreTypeRef score_ref = score_it->first;
-            if (score_ref->software_opt == step_ref->software_ref)
+            // @TODO: if there are multiple scores, which one should we use?
+            hit.setScore(applied.scores.begin()->second);
+            prot_data[applied.processing_step_opt].first.push_back(hit);
+            prot_data[applied.processing_step_opt].second =
+              applied.scores.begin()->first;
+
+          }
+          else if (steps.count(applied.processing_step_opt)) // relevant step
+          {
+            auto pos = prot_data.find(applied.processing_step_opt);
+            if (pos != prot_data.end())
             {
-              hit.setScore(score_it->second);
-              prot_data[step_ref].first.push_back(hit);
-              prot_data[step_ref].second = score_ref;
-              steps.insert(step_ref);
-              found = true;
-              break;
+              pos->second.first.push_back(hit);
+              // existing entry, don't overwrite score type
             }
-          }
-        }
-        if (!found && steps.count(step_ref)) // no score, but relevant step
-        {
-          auto pos = prot_data.find(step_ref);
-          if (pos != prot_data.end())
-          {
-            pos->second.first.push_back(hit);
-            // existing entry, don't overwrite score type
-          }
-          else
-          {
-            prot_data[step_ref].first.push_back(hit);
-            prot_data[step_ref].second = id_data.getScoreTypes().end();
+            else
+            {
+              prot_data[applied.processing_step_opt].first.push_back(hit);
+              prot_data[applied.processing_step_opt].second =
+                id_data.getScoreTypes().end();
+            }
           }
         }
       }
     }
 
-    for (IdentificationData::ProcessingStepRef step_ref : steps)
+    for (const auto& step_ref_opt : steps)
     {
       ProteinIdentification protein;
-      protein.setIdentifier(String(Size(&(*step_ref))));
-      protein.setDateTime(step_ref->date_time);
-      protein.setPrimaryMSRunPath(step_ref->primary_files);
-      const Software& software = *step_ref->software_ref;
-      protein.setSearchEngine(software.getName());
-      protein.setSearchEngineVersion(software.getVersion());
-      map<IdentificationData::ProcessingStepRef,
-          pair<vector<ProteinHit>, IdentificationData::ScoreTypeRef>>::
-        const_iterator pd_pos = prot_data.find(step_ref);
+      if (!step_ref_opt) // no processing step given
+      {
+        protein.setIdentifier("dummy");
+      }
+      else
+      {
+        IdentificationData::ProcessingStepRef step_ref = *step_ref_opt;
+        protein.setIdentifier(String(Size(&(*step_ref))));
+        protein.setDateTime(step_ref->date_time);
+        protein.setPrimaryMSRunPath(step_ref->primary_files);
+        const Software& software = *step_ref->software_ref;
+        protein.setSearchEngine(software.getName());
+        protein.setSearchEngineVersion(software.getVersion());
+        IdentificationData::DBSearchSteps::const_iterator ss_pos =
+          id_data.getDBSearchSteps().find(step_ref);
+        if (ss_pos != id_data.getDBSearchSteps().end())
+        {
+          protein.setSearchParameters(exportDBSearchParameters_(ss_pos->
+                                                                second));
+        }
+      }
+      auto pd_pos = prot_data.find(step_ref_opt);
       if (pd_pos != prot_data.end())
       {
         protein.setHits(pd_pos->second.first);
@@ -531,25 +561,22 @@ namespace OpenMS
           protein.setHigherScoreBetter(score_type.higher_better);
         }
       }
-      IdentificationData::DBSearchSteps::const_iterator ss_pos =
-        id_data.getDBSearchSteps().find(step_ref);
-      if (ss_pos != id_data.getDBSearchSteps().end())
-      {
-        protein.setSearchParameters(exportDBSearchParameters_(ss_pos->second));
-      }
 
       // protein groups:
       for (const auto& grouping : id_data.getParentMoleculeGroupings())
       {
         // do these protein groups belong to the current search run?
-        if (find(grouping.processing_step_refs.begin(),
-                 grouping.processing_step_refs.end(), step_ref) !=
-            grouping.processing_step_refs.end())
+        if (grouping.getStepsAndScoresByStep().find(step_ref_opt) !=
+            grouping.getStepsAndScoresByStep().end())
         {
           for (const auto& group : grouping.groups)
           {
             ProteinIdentification::ProteinGroup new_group;
-            new_group.probability = group.scores.back().second;
+            if (!group.scores.empty())
+            {
+              // @TODO: what if there are several scores?
+              new_group.probability = group.scores.begin()->second;
+            }
             for (auto parent_ref : group.parent_molecule_refs)
             {
               new_group.accessions.push_back(parent_ref->accession);
@@ -724,37 +751,40 @@ namespace OpenMS
   }
 
 
-  void IdentificationDataConverter::exportScoresToMzTab_(
-    const IdentificationData::ScoreList& scores, map<Size, MzTabDouble>& output,
+  void IdentificationDataConverter::exportStepsAndScoresToMzTab_(
+    const IdentificationData::AppliedProcessingSteps& steps_and_scores,
+    MzTabParameterList& steps_out, map<Size, MzTabDouble>& scores_out,
     map<IdentificationData::ScoreTypeRef, Size>& score_map)
   {
-    for (const pair<IdentificationData::ScoreTypeRef, double>& score_pair :
-           scores)
-    {
-      if (!score_map.count(score_pair.first)) // new score type
-      {
-        score_map.insert(make_pair(score_pair.first, score_map.size() + 1));
-      }
-      Size index = score_map[score_pair.first];
-      output[index].set(score_pair.second);
-    }
-  }
-
-
-  void IdentificationDataConverter::exportProcessingStepsToMzTab_(
-    const vector<IdentificationData::ProcessingStepRef>& steps,
-    MzTabParameterList& output)
-  {
     vector<MzTabParameter> search_engines;
-    for (const IdentificationData::ProcessingStepRef& step_ref : steps)
+    for (const IdentificationData::AppliedProcessingStep& applied :
+           steps_and_scores)
     {
-      const Software& sw = *step_ref->software_ref;
       MzTabParameter param;
-      param.setName(sw.getName());
-      param.setValue(sw.getVersion());
+      if (applied.processing_step_opt)
+      {
+        const Software& sw = *(*applied.processing_step_opt)->software_ref;
+        param.setName(sw.getName());
+        param.setValue(sw.getVersion());
+      }
+      else
+      {
+        param.setName("unknown");
+      }
       search_engines.push_back(param);
+
+      for (const pair<IdentificationData::ScoreTypeRef, double>& score_pair :
+             applied.scores)
+      {
+        if (!score_map.count(score_pair.first)) // new score type
+        {
+          score_map.insert(make_pair(score_pair.first, score_map.size() + 1));
+        }
+        Size index = score_map[score_pair.first];
+        scores_out[index].set(score_pair.second);
+      }
     }
-    output.set(search_engines);
+    steps_out.set(search_engines);
   }
 
 

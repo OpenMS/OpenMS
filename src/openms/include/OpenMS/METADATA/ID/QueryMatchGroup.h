@@ -82,10 +82,8 @@ namespace OpenMS
 
       bool operator==(const QueryMatchGroup rhs) const
       {
-        if (rhs.query_match_refs == query_match_refs && rhs.processing_step_refs == processing_step_refs && rhs.scores == scores)
-          return true;
-        else
-          return false;
+        return ((rhs.query_match_refs == query_match_refs) &&
+                (rhs.steps_and_scores == steps_and_scores));
       }
 
       bool operator!=(const QueryMatchGroup& rhs) const

@@ -61,12 +61,10 @@ namespace OpenMS
         const String& identifier,
         const EmpiricalFormula& formula = EmpiricalFormula(),
         const String& name = "", const String& smile = "",
-        const String& inchi = "", const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepRef>& processing_step_refs =
-        std::vector<ProcessingStepRef>()):
-        ScoredProcessingResult(scores, processing_step_refs),
-        identifier(identifier), formula(formula), name(name), smile(smile),
-        inchi(inchi)
+        const String& inchi = "", const AppliedProcessingSteps&
+        steps_and_scores = AppliedProcessingSteps()):
+        ScoredProcessingResult(steps_and_scores), identifier(identifier),
+        formula(formula), name(name), smile(smile), inchi(inchi)
       {
       }
 

@@ -81,10 +81,8 @@ namespace OpenMS
     {
       MzTabSectionRow row;
       row.accession.set(parent.accession);
-      exportScoresToMzTab_(parent.scores, row.best_search_engine_score,
-                           score_map);
-      exportProcessingStepsToMzTab_(parent.processing_step_refs,
-                                    row.search_engine);
+      exportStepsAndScoresToMzTab_(parent.steps_and_scores, row.search_engine,
+                                   row.best_search_engine_score, score_map);
       row.description.set(parent.description);
       row.coverage.set(parent.coverage);
       if (!parent.sequence.empty())
@@ -106,10 +104,9 @@ namespace OpenMS
       MzTabSectionRow row;
       // @TODO: handle modifications properly
       row.sequence.set(identified.sequence.toString());
-      exportScoresToMzTab_(identified.scores, row.best_search_engine_score,
-                           score_map);
-      exportProcessingStepsToMzTab_(identified.processing_step_refs,
-                                    row.search_engine);
+      exportStepsAndScoresToMzTab_(identified.steps_and_scores,
+                                   row.search_engine,
+                                   row.best_search_engine_score, score_map);
       // generate one entry (with duplicated data) for every accession:
       bool unique = (identified.parent_matches.size() == 1);
       for (const auto& match_pair : identified.parent_matches)
@@ -145,9 +142,8 @@ namespace OpenMS
       MzTabSectionRow xsm; // PSM or OSM
       // @TODO: handle modifications properly
       xsm.sequence.set(sequence);
-      exportScoresToMzTab_(match.scores, xsm.search_engine_score, score_map);
-      exportProcessingStepsToMzTab_(match.processing_step_refs,
-                                    xsm.search_engine);
+      exportStepsAndScoresToMzTab_(match.steps_and_scores, xsm.search_engine,
+                                   xsm.search_engine_score, score_map);
       const IdentificationData::DataQuery& query = *match.data_query_ref;
       std::vector<MzTabDouble> rts(1);
       rts[0].set(query.rt);
@@ -172,16 +168,11 @@ namespace OpenMS
       output.push_back(xsm);
     }
 
-    /// Helper function to add search engine scores to MzTab
-    static void exportScoresToMzTab_(
-      const IdentificationData::ScoreList& scores,
-      std::map<Size, MzTabDouble>& output,
+    /// Helper function to add processing steps (search engines) and their scores to MzTab
+    static void exportStepsAndScoresToMzTab_(
+      const IdentificationData::AppliedProcessingSteps& steps_and_scores,
+      MzTabParameterList& steps_out, std::map<Size, MzTabDouble>& scores_out,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map);
-
-    /// Helper function to add processing steps (search engines) to MzTab
-    static void exportProcessingStepsToMzTab_(
-      const std::vector<IdentificationData::ProcessingStepRef>& steps,
-      MzTabParameterList& output);
 
     /// Helper function to add search engine score entries to MzTab's meta data section
     static void addMzTabSEScores_(

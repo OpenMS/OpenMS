@@ -115,7 +115,11 @@ namespace OpenMS
     using ScoreType = IdentificationDataInternal::ScoreType;
     using ScoreTypes = IdentificationDataInternal::ScoreTypes;
     using ScoreTypeRef = IdentificationDataInternal::ScoreTypeRef;
-    using ScoreList = IdentificationDataInternal::ScoreList;
+
+    using AppliedProcessingStep =
+      IdentificationDataInternal::AppliedProcessingStep;
+    using AppliedProcessingSteps =
+      IdentificationDataInternal::AppliedProcessingSteps;
 
     using DataQuery = IdentificationDataInternal::DataQuery;
     using DataQueries = IdentificationDataInternal::DataQueries;
@@ -454,14 +458,15 @@ namespace OpenMS
     AddressLookup query_match_lookup_;
 
     /// Helper function to check if all score types are valid
-    void checkScoreTypes_(const ScoreList& scores);
+    void checkScoreTypes_(const std::map<ScoreTypeRef, double>& scores) const;
 
-    /// Helper function to check if all processing steps are valid
-    void checkProcessingSteps_(const std::vector<ProcessingStepRef>& step_refs);
+    /// Helper function to check if all applied processing steps are valid
+    void checkAppliedProcessingSteps_(const AppliedProcessingSteps&
+                                      steps_and_scores) const;
 
     /// Helper function to check if all parent matches are valid
     void checkParentMatches_(const ParentMatches& matches,
-                             MoleculeType expected_type);
+                             MoleculeType expected_type) const;
 
     /*!
       @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
@@ -478,11 +483,7 @@ namespace OpenMS
 
       void operator()(ElementType& element)
       {
-        if (element.processing_step_refs.empty() ||
-            (element.processing_step_refs.back() != step_ref))
-        {
-          element.processing_step_refs.push_back(step_ref);
-        }
+        element.addProcessingStep(step_ref);
       }
 
       ProcessingStepRef step_ref;
@@ -503,11 +504,14 @@ namespace OpenMS
 
       void operator()(ElementType& element)
       {
-        auto pair = std::make_pair(score_type_ref, value);
-        if (std::find(element.scores.begin(), element.scores.end(), pair) ==
-            element.scores.end())
+        if (element.steps_and_scores.empty())
         {
-          element.scores.push_back(pair);
+          element.addScore(score_type_ref, value);
+        }
+        else // add score to most recent step
+        {
+          element.addScore(score_type_ref, value,
+                           element.steps_and_scores.back().processing_step_opt);
         }
       }
 
@@ -546,8 +550,7 @@ namespace OpenMS
     typename ContainerType::iterator insertIntoMultiIndex_(
       ContainerType& container, const ElementType& element)
     {
-      checkScoreTypes_(element.scores);
-      checkProcessingSteps_(element.processing_step_refs);
+      checkAppliedProcessingSteps_(element.steps_and_scores);
 
       auto result = container.insert(element);
       if (!result.second) // existing element - merge in new information

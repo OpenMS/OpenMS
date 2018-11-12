@@ -38,72 +38,199 @@
 #include <OpenMS/METADATA/ID/DataProcessingStep.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
 
+#include <boost/range/adaptor/reversed.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
+
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
+    /*!
+      A processing step that was applied to a data item, possibly with associated scores.
+    */
+    struct AppliedProcessingStep
+    {
+      // if there are only scores, the processing step may be missing:
+      boost::optional<ProcessingStepRef> processing_step_opt;
+      std::map<ScoreTypeRef, double> scores;
+
+      explicit AppliedProcessingStep(
+        const boost::optional<ProcessingStepRef>& processing_step_opt =
+        boost::none, const std::map<ScoreTypeRef, double>& scores =
+        std::map<ScoreTypeRef, double>()):
+        processing_step_opt(processing_step_opt), scores(scores)
+      {
+      }
+
+      bool operator==(const AppliedProcessingStep& other) const
+      {
+        return ((processing_step_opt == other.processing_step_opt) &&
+                (scores == other.scores));
+      }
+    };
+
+    // we want to keep track of the processing steps in sequence (order of
+    // application), but also ensure there are no duplicate steps:
+    typedef boost::multi_index_container<
+      AppliedProcessingStep,
+      boost::multi_index::indexed_by<
+        boost::multi_index::sequenced<>,
+        boost::multi_index::ordered_unique<
+          boost::multi_index::member<
+            AppliedProcessingStep, boost::optional<ProcessingStepRef>,
+            &AppliedProcessingStep::processing_step_opt>>>
+      > AppliedProcessingSteps;
+
     /// Base class for ID data with scores and processing steps (and meta info)
     struct ScoredProcessingResult: public MetaInfoInterface
     {
-      ScoreList scores;
+      AppliedProcessingSteps steps_and_scores;
 
-      // @TODO: use a "boost::multi_index_container" here for efficient look-up?
-      std::vector<ProcessingStepRef> processing_step_refs;
+      /// Return the applied processing steps (incl. scores) as a set ordered by processing step reference (option)
+      AppliedProcessingSteps::nth_index<1>::type& getStepsAndScoresByStep()
+      {
+        return steps_and_scores.get<1>();
+      }
 
-      /// Merge in data from another objects
+      /// Return the applied processing steps (incl. scores) as a set ordered by processing step reference (option) - const variant
+      const AppliedProcessingSteps::nth_index<1>::type&
+      getStepsAndScoresByStep() const
+      {
+        return steps_and_scores.get<1>();
+      }
+
+      /*!
+        Add an applied processing step.
+
+        If the step already exists, scores are merged (existing ones updated).
+      */
+      void addProcessingStep(const AppliedProcessingStep& step)
+      {
+        auto step_pos =
+          steps_and_scores.get<1>().find(step.processing_step_opt);
+        if (step_pos == steps_and_scores.get<1>().end()) // new step
+        {
+          steps_and_scores.push_back(step);
+        }
+        else // existing step - add or update scores
+        {
+          steps_and_scores.get<1>().modify(
+            step_pos, [&](AppliedProcessingStep& old_step)
+            {
+              for (const auto& pair : step.scores)
+              {
+                old_step.scores[pair.first] = pair.second;
+              }
+            });
+        }
+      }
+
+      /// Add a processing step (and associated scores, if any)
+      void addProcessingStep(ProcessingStepRef step_ref,
+                             const std::map<ScoreTypeRef, double>& scores =
+                             std::map<ScoreTypeRef, double>())
+      {
+        AppliedProcessingStep applied(step_ref, scores);
+        addProcessingStep(applied);
+      }
+
+      /// Add a score (possibly connected to a processing step)
+      void addScore(ScoreTypeRef score_type, double score,
+                    const boost::optional<ProcessingStepRef>&
+                    processing_step_opt = boost::none)
+      {
+        AppliedProcessingStep applied(processing_step_opt);
+        applied.scores[score_type] = score;
+        addProcessingStep(applied);
+      }
+
+      /// Merge in data from another object
       ScoredProcessingResult& operator+=(const ScoredProcessingResult& other)
       {
-        // merge processing steps:
-        for (auto step_ref : other.processing_step_refs)
+        // merge applied processing steps and scores:
+        for (const auto& step : other.steps_and_scores)
         {
-          if (std::find(processing_step_refs.begin(),
-                        processing_step_refs.end(), step_ref) ==
-              processing_step_refs.end())
-          {
-            processing_step_refs.push_back(step_ref);
-          }
+          addProcessingStep(step);
         }
-        // merge scores:
-        for (auto score_pair : other.scores)
-        {
-          // @TODO: should we overwrite scores?
-          if (std::find(scores.begin(), scores.end(), score_pair) ==
-              scores.end())
-          {
-            scores.push_back(score_pair);
-          }
-        }
-        // merge meta info:
+        // merge meta info - existing entries may be overwritten:
         std::vector<UInt> keys;
         other.getKeys(keys);
         for (const UInt key : keys)
         {
-          // @TODO: should we overwrite meta values?
-          if (!metaValueExists(key))
-          {
-            setMetaValue(key, other.getMetaValue(key));
-          }
+          setMetaValue(key, other.getMetaValue(key));
         }
 
         return *this;
       }
+
+      /*!
+        Look up a score by score type.
+
+        @return A pair: score (or NaN), success indicator
+
+        All processing steps are considered, in "most recent first" order.
+      */
       std::pair<double, bool> getScore(ScoreTypeRef score_ref) const
       {
-        // give priority to "later" scores in the list:
-        for (ScoreList::const_reverse_iterator it = scores.rbegin();
-             it != scores.rend(); ++it)
+        std::tuple<double, boost::optional<ProcessingStepRef>, bool> result =
+          getScoreAndStep(score_ref);
+        return std::make_pair(std::get<0>(result), std::get<2>(result));
+      }
+
+      /*!
+        Look up a score by score type and processing step.
+
+        @return A pair: score (or NaN), success indicator
+      */
+      std::pair<double, bool> getScore(ScoreTypeRef score_ref,
+                                       boost::optional<ProcessingStepRef>
+                                       processing_step_opt) const
+      {
+        auto step_pos = steps_and_scores.get<1>().find(processing_step_opt);
+        if (step_pos != steps_and_scores.get<1>().end())
         {
-          if (it->first == score_ref) return std::make_pair(it->second, true);
+          auto score_pos = step_pos->scores.find(score_ref);
+          if (score_pos != step_pos->scores.end())
+          {
+            return std::make_pair(score_pos->second, true);
+          }
         }
+        // not found:
         return std::make_pair(std::numeric_limits<double>::quiet_NaN(), false);
+      }
+
+      /*!
+        Look up a score and associated processing step by score type.
+
+        @return A tuple: score (or NaN), processing step reference (option), success indicator
+
+        All processing steps are considered, in "most recent first" order.
+      */
+      std::tuple<double, boost::optional<ProcessingStepRef>, bool>
+      getScoreAndStep(ScoreTypeRef score_ref) const
+      {
+        // give priority to scores from later processing steps:
+        for (const auto& step : boost::adaptors::reverse(steps_and_scores))
+        {
+          auto pos = step.scores.find(score_ref);
+          if (pos != step.scores.end())
+          {
+            return std::make_tuple(pos->second, step.processing_step_opt, true);
+          }
+        }
+        // not found:
+        return std::make_tuple(std::numeric_limits<double>::quiet_NaN(),
+                               boost::none, false);
       }
 
     protected:
       explicit ScoredProcessingResult(
-        const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepRef>& processing_step_refs =
-        std::vector<ProcessingStepRef>()):
-        scores(scores), processing_step_refs(processing_step_refs)
+        const AppliedProcessingSteps& steps_and_scores =
+        AppliedProcessingSteps()):
+        steps_and_scores(steps_and_scores)
       {
       }
 

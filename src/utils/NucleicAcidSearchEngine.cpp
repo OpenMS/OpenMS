@@ -631,7 +631,7 @@ protected:
           if ((charge > 0) && negative_mode) charge = -charge;
           IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
                                                        charge);
-          match.scores.push_back(make_pair(score_ref, score));
+          match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
           match.peak_annotations[id_data.getCurrentProcessingStep()] =
             hit.annotations;
           // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?

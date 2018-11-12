@@ -102,11 +102,6 @@ namespace OpenMS
 
     typedef std::set<ScoreType> ScoreTypes;
     typedef IteratorWrapper<ScoreTypes::iterator> ScoreTypeRef;
-
-    // @TODO: use a "boost::multi_index_container" to allow efficient access in
-    // sequence and by key?
-    typedef std::vector<std::pair<ScoreTypeRef, double>> ScoreList;
-
   }
 }
 

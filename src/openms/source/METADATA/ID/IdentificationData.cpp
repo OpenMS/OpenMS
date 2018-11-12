@@ -40,11 +40,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  void IdentificationData::checkScoreTypes_(const ScoreList& scores)
+  void IdentificationData::checkScoreTypes_(const map<ScoreTypeRef, double>&
+                                            scores) const
   {
-    for (const pair<ScoreTypeRef, double>& score_pair : scores)
+    for (const auto& pair : scores)
     {
-      if (!isValidReference_(score_pair.first, score_types_))
+      if (!isValidReference_(pair.first, score_types_))
       {
         String msg = "invalid reference to a score type - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -53,24 +54,25 @@ namespace OpenMS
     }
   }
 
-
-  void IdentificationData::checkProcessingSteps_(
-    const std::vector<ProcessingStepRef>& step_refs)
+  void IdentificationData::checkAppliedProcessingSteps_(
+    const AppliedProcessingSteps& steps_and_scores) const
   {
-    for (ProcessingStepRef step_ref : step_refs)
+    for (const auto& step : steps_and_scores)
     {
-      if (!isValidReference_(step_ref, processing_steps_))
+      if ((step.processing_step_opt != boost::none) &&
+          (!isValidReference_(*step.processing_step_opt, processing_steps_)))
       {
         String msg = "invalid reference to a data processing step - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
+      checkScoreTypes_(step.scores);
     }
   }
 
 
   void IdentificationData::checkParentMatches_(const ParentMatches& matches,
-                                               MoleculeType expected_type)
+                                               MoleculeType expected_type) const
   {
     for (const auto& pair : matches)
     {
@@ -283,7 +285,7 @@ namespace OpenMS
   void IdentificationData::registerParentMoleculeGrouping(
     const ParentMoleculeGrouping& grouping)
   {
-    checkProcessingSteps_(grouping.processing_step_refs);
+    checkAppliedProcessingSteps_(grouping.steps_and_scores);
 
     for (const auto& group : grouping.groups)
     {
@@ -304,11 +306,11 @@ namespace OpenMS
 
     // add the current processing step?
     if ((current_step_ref_ != processing_steps_.end()) &&
-        (grouping.processing_step_refs.empty() ||
-         (grouping.processing_step_refs.back() != current_step_ref_)))
+        (grouping.steps_and_scores.get<1>().find(current_step_ref_) ==
+         grouping.steps_and_scores.get<1>().end()))
     {
-      parent_molecule_groupings_.back().processing_step_refs.push_back(
-        current_step_ref_);
+      parent_molecule_groupings_.back().steps_and_scores.push_back(
+        IdentificationDataInternal::AppliedProcessingStep(current_step_ref_));
     }
   }
 
