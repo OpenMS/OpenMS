@@ -62,10 +62,10 @@ public:
     enum class LambdaScore
     {
       LINEAR = 1,
-      RECIPROCAL,
+      INVERSE,
       LOG,
-      ONE_OVER_LOG,
-      ONE_OVER_LOG10
+      INVERSE_LOG,
+      INVERSE_LOG10
     };
 
     /// To test private and protected methods
@@ -169,14 +169,14 @@ protected:
     ) const;
 
 private:
-    Int    nn_threshold_            = 4;
-    bool   locality_weight_         = false;
-    bool   select_transition_group_ = true;
-    Int    segment_window_length_   = 8;
-    Int    segment_step_length_     = 4;
-    VariableType variable_type_     = VariableType::CONTINUOUS;
-    double optimal_threshold_       = 0.5;
-    std::map<String, LambdaScore> score_weights_;
+    Int    nn_threshold_            = 4; ///< Nearest neighbor threshold: the number of components or component groups to the left and right to include in the optimization problem (i.e. number of nearest compounds by Tr to include in network)
+    bool   locality_weight_         = false; ///< Weight compounds with a nearer Tr greater than compounds with a further Tr
+    bool   select_transition_group_ = true; ///< Use components groups instead of components for retention time optimization
+    Int    segment_window_length_   = 8; ///< Number of components or component groups to include in the network
+    Int    segment_step_length_     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
+    MRMFeatureSelector::VariableType variable_type_ = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
+    double optimal_threshold_       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
+    std::map<String, MRMFeatureSelector::LambdaScore> score_weights_; ///< Weights for the scores
 
     /**
       Construct the target transition's or transition group's retention times that
@@ -198,10 +198,10 @@ private:
 
       Possible values for `lambda_score` are:
       - LambdaScore::LINEAR
-      - LambdaScore::RECIPROCAL
+      - LambdaScore::INVERSE
       - LambdaScore::LOG
-      - LambdaScore::ONE_OVER_LOG
-      - LambdaScore::ONE_OVER_LOG10
+      - LambdaScore::INVERSE_LOG
+      - LambdaScore::INVERSE_LOG10
 
       @throw Exception::IllegalArgument When an invalid `lambda_score` is passed
 

@@ -77,14 +77,14 @@ public:
         optimal_threshold(ot),
         score_weights(sw) {}
 
-      Int    nn_threshold            = 4;
-      bool   locality_weight         = false;
-      bool   select_transition_group = true;
-      Int    segment_window_length   = 8;
-      Int    segment_step_length     = 4;
-      MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS;
-      double optimal_threshold       = 0.5;
-      std::map<String, MRMFeatureSelector::LambdaScore> score_weights;
+      Int    nn_threshold            = 4; ///< Nearest neighbor threshold: the number of components or component groups to the left and right to include in the optimization problem (i.e. number of nearest compounds by Tr to include in network)
+      bool   locality_weight         = false; ///< Weight compounds with a nearer Tr greater than compounds with a further Tr
+      bool   select_transition_group = true; ///< Use components groups instead of components for retention time optimization
+      Int    segment_window_length   = 8; ///< Number of components or component groups to include in the network
+      Int    segment_step_length     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
+      MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
+      double optimal_threshold       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
+      std::map<String, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
     };
 
     /**

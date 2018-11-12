@@ -220,13 +220,13 @@ START_SECTION(weightScore_())
 
   score = selector.weightScore_(3413.0, MRMFeatureSelector::LambdaScore::LINEAR);
   TEST_REAL_SIMILAR(score, 3413.0)
-  score = selector.weightScore_(341.0, MRMFeatureSelector::LambdaScore::RECIPROCAL);
+  score = selector.weightScore_(341.0, MRMFeatureSelector::LambdaScore::INVERSE);
   TEST_REAL_SIMILAR(score, 0.002932551)
   score = selector.weightScore_(341.0, MRMFeatureSelector::LambdaScore::LOG);
   TEST_REAL_SIMILAR(score, 5.831882477)
-  score = selector.weightScore_(96640.0, MRMFeatureSelector::LambdaScore::ONE_OVER_LOG);
+  score = selector.weightScore_(96640.0, MRMFeatureSelector::LambdaScore::INVERSE_LOG);
   TEST_REAL_SIMILAR(score, 0.087117)
-  score = selector.weightScore_(341.0, MRMFeatureSelector::LambdaScore::ONE_OVER_LOG10);
+  score = selector.weightScore_(341.0, MRMFeatureSelector::LambdaScore::INVERSE_LOG10);
   TEST_REAL_SIMILAR(score, 0.394827074)
 }
 END_SECTION
@@ -239,17 +239,17 @@ START_SECTION(computeScore_())
   feature.setMetaValue("sn_ratio", 6.84619503982874);
   feature.setMetaValue("peak_apices_sum", 96640.0);
 
-  selector.setScoreWeights({{"sn_ratio", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG}});
+  selector.setScoreWeights({{"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG}});
   score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.5198334582314795)
 
-  selector.setScoreWeights({{"peak_apices_sum", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG10}});
+  selector.setScoreWeights({{"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}});
   score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.20059549093267626)
 
   selector.setScoreWeights({
-    {"sn_ratio", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG},
-    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG10}});
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}});
   score = selector.computeScore_(feature);
   TEST_REAL_SIMILAR(score, 0.10427624775717449)
 }
@@ -270,8 +270,8 @@ END_SECTION
 //   params1.variable_type = MRMFeatureSelector::VariableType::INTEGER;
 //   params1.optimal_threshold = 0.5;
 //   params1.score_weights = {
-//     {"sn_ratio", LambdaScore::ONE_OVER_LOG},
-//     {"peak_apices_sum", LambdaScore::ONE_OVER_LOG10}
+//     {"sn_ratio", LambdaScore::INVERSE_LOG},
+//     {"peak_apices_sum", LambdaScore::INVERSE_LOG10}
 //   };
 
 //   MRMFeatureScheduler::SelectorParameters params2 = params1;
@@ -320,8 +320,8 @@ START_SECTION(scheduleMRMFeaturesQMIP() continuous) // continuous variable type
   params1.variable_type = MRMFeatureSelector::VariableType::CONTINUOUS;
   params1.optimal_threshold = 0.5;
   params1.score_weights = {
-    {"sn_ratio", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG},
-    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::ONE_OVER_LOG10}
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
   };
 
   MRMFeatureScheduler::SelectorParameters params2 = params1;

@@ -378,7 +378,7 @@ namespace OpenMS
     {
       return score;
     }
-    else if (lambda_score == LambdaScore::RECIPROCAL)
+    else if (lambda_score == LambdaScore::INVERSE)
     {
       return 1.0 / score;
     }
@@ -386,11 +386,11 @@ namespace OpenMS
     {
       return std::log(score);
     }
-    else if (lambda_score == LambdaScore::ONE_OVER_LOG)
+    else if (lambda_score == LambdaScore::INVERSE_LOG)
     {
       return 1.0 / std::log(score);
     }
-    else if (lambda_score == LambdaScore::ONE_OVER_LOG10)
+    else if (lambda_score == LambdaScore::INVERSE_LOG10)
     {
       return 1.0 / std::log10(score);
     }
