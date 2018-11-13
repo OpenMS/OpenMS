@@ -85,15 +85,26 @@ namespace OpenMS
 
     void insertToGraph(vertex_t rootProteinVtx, Graph& graph)
     {
+
       for (const auto& seqContainer : seq_to_vecs_)
       {
         vertex_t pep = boost::add_vertex(Peptide{seqContainer.first}, graph);
-        boost::add_edge(rootProteinVtx, pep, graph);
+
+        vector<vertex_t> prots_for_pepseq;
+        GraphConst::adjacency_iterator adjIt, adjIt_end;
+        boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(rootProteinVtx, graph);
+        for (; adjIt != adjIt_end; adjIt++)
+        {
+          IDBoostGraph::IDPointer curr_idObj = graph[*adjIt];
+          if (curr_idObj.which() == 0) //protein
+          {
+            boost::add_edge(*adjIt, pep, graph);
+            prots_for_pepseq.push_back(*adjIt);
+          }
+        }
+
         for (Size s = 0; s < seqContainer.second.size(); ++s)
         {
-          //TODO Gather prots for this sequence by getting all proteins attached to one of the decendents
-          //std::vector<vertex_t> prots_for_pepseq;
-          // for adjacency iterator: if protein : push_back index
           vertex_t ri = boost::add_vertex(RunIndex{s},graph);
           boost::add_edge(pep, ri, graph);
           for (Size t = 0; t < seqContainer.second[s].size(); ++t)
@@ -102,10 +113,15 @@ namespace OpenMS
             boost::add_edge(ri, cs, graph);
             for (const auto& pepVtx : seqContainer.second[s][t])
             {
-              //TODO ACTUALLY REWIRE EDGES TO ALL PROTEIN PARENTS
-              //for parent : prots_for_pepseq, do the things below
+              // TODO: Instead of collecting and here in the innermost loop removing
+              // the edges from proteins to PSMs, we could (if we assume that nothing else
+              // was added yet) just clear all (in-)edges for the pepVtx here
+              for (const auto& parent : prots_for_pepseq)
+              {
+                boost::remove_edge(parent, pepVtx, graph);
+              }
+
               boost::add_edge(cs, pepVtx, graph);
-              boost::remove_edge(rootProteinVtx, pepVtx, graph);
             }
           }
         }
@@ -147,15 +163,15 @@ namespace OpenMS
 
     unordered_map<string, ProteinHit*> accession_map{};
 
-    for (auto &prot : proteins_.getHits())
+    for (auto& prot : proteins_.getHits())
     {
       accession_map[prot.getAccession()] = &prot;
     }
 
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
-    pl.startProgress(0,idedSpectra_.size(), "Building graph...");
-    for (auto & spectrum : idedSpectra_)
+    pl.startProgress(0, idedSpectra_.size(), "Building graph...");
+    for (auto& spectrum : idedSpectra_)
     {
       Size run(0);
       //TODO check if the spectrum is from one of the runs in the ProtID? or assert that?
@@ -443,7 +459,7 @@ namespace OpenMS
         boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, fg);
         for (; adjIt != adjIt_end; ++adjIt)
         {
-          if (fg[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
+          if (fg[*adjIt].which() >= 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
           {
             childPeps.insert(*adjIt);
           }
@@ -489,6 +505,8 @@ namespace OpenMS
         }
       }
 
+      // TODO you could allocate as many groups as proteins in the beginning
+      // then you do not need a critical section. Resize afterwards.
       #pragma omp critical (ProteinGroups)
       {proteins_.getIndistinguishableProteins().push_back(pg);};
     }
