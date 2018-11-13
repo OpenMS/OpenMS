@@ -20,10 +20,15 @@ processed.quant <- dataProcess(quant, censoredInt = 'NA')
 dataProcessPlots(data=processed.quant, type="QCPlot",which.Protein="allonly")
 dataProcessPlots(data=processed.quant, type="ProfilePlot",which.Protein="all")
 
-comparison1<-matrix(c(-1,1),nrow=1) # 2/1
-
-comparison <- rbind(comparison1)
-row.names(comparison)<-c("Condition2-Condition1")
+# iPRG2015 study matrix
+comparison1<-matrix(c(-1,1,0,0),nrow=1)
+comparison2<-matrix(c(-1,0,1,0),nrow=1)
+comparison3<-matrix(c(-1,0,0,1),nrow=1)
+comparison4<-matrix(c(0,-1,1,0),nrow=1)
+comparison5<-matrix(c(0,-1,0,1),nrow=1)
+comparison6<-matrix(c(0,0,-1,1),nrow=1)
+comparison <- rbind(comparison1, comparison2, comparison3, comparison4, comparison5, comparison6)
+row.names(comparison)<-c("C2-C1","C3-C1","C4-C1","C3-C2","C4-C2","C4-C3")
 
 ############ also calculate missingness on condition level
 

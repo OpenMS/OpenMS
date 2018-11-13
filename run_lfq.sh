@@ -43,3 +43,4 @@ ${DATA_PATH}/JD_06232014_sample4_A.idXML  ${DATA_PATH}/JD_06232014_sample4_B.idX
 
 FileInfo -in iPRG2015_targeted_only.consensusXML > iPRG2015_targeted_only.fileinfo
 
+Rscript ./home/sachsenb/OpenMS/share/OpenMS/SCRIPTS/ProteomicsLFQ.R iPRG2015_targeted_only.csv iPRG2015_targeted_only.mzTab iPRG2015_targeted_only_final.mzTab
