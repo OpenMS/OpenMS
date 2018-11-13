@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
-#define OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/DataProcessingStep.h>
 #include <OpenMS/METADATA/ID/DataQuery.h>
@@ -645,5 +644,3 @@ namespace OpenMS
     friend class IDFilter;
   };
 }
-
-#endif

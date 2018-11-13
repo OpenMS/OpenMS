@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_DATAPROCESSINGSOFTWARE_H
-#define OPENMS_METADATA_ID_DATAPROCESSINGSOFTWARE_H
+#pragma once
 
 #include <OpenMS/METADATA/Software.h>
 #include <OpenMS/METADATA/ID/ScoreType.h>
@@ -65,13 +64,6 @@ namespace OpenMS
         Software(name, version), assigned_scores(assigned_scores)
       {
       }
-
-      // explicit DataProcessingSoftware(
-      //   const Software& software, std::vector<ScoreTypeRef> assigned_scores =
-      //   std::vector<ScoreTypeRef>()):
-      //   Software(software), assigned_scores(assigned_scores)
-      // {
-      // }
     };
 
     typedef std::set<DataProcessingSoftware> DataProcessingSoftwares;
@@ -79,5 +71,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

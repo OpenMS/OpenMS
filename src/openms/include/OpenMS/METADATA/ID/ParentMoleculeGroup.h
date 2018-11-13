@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_PARENTMOLECULEGROUP_H
-#define OPENMS_METADATA_ID_PARENTMOLECULEGROUP_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/ParentMolecule.h>
 
@@ -79,5 +78,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

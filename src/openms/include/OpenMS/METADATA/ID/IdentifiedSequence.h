@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_IDENTIFIEDSEQUENCE_H
-#define OPENMS_METADATA_ID_IDENTIFIEDSEQUENCE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
@@ -127,5 +126,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

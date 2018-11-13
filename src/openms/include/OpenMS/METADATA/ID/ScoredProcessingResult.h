@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_SCOREDPROCESSINGRESULT_H
-#define OPENMS_METADATA_ID_SCOREDPROCESSINGRESULT_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/AppliedProcessingStep.h>
 
@@ -196,5 +195,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_METADATA_H
-#define OPENMS_METADATA_ID_METADATA_H
+#pragma once
 
 namespace OpenMS
 {
@@ -84,5 +83,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

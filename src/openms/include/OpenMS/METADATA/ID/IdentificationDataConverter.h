@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_IDENTIFICATIONDATACONVERTER_H
-#define OPENMS_METADATA_ID_IDENTIFICATIONDATACONVERTER_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -201,5 +200,3 @@ namespace OpenMS
       IdentificationData::SearchParamRef ref);
   };
 }
-
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_MOLECULEQUERYMATCH_H
-#define OPENMS_METADATA_ID_MOLECULEQUERYMATCH_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
@@ -167,5 +166,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

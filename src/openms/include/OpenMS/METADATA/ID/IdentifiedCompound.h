@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_IDENTIFIEDCOMPOUND_H
-#define OPENMS_METADATA_ID_IDENTIFIEDCOMPOUND_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 
@@ -81,5 +80,3 @@ namespace OpenMS
     typedef IteratorWrapper<IdentifiedCompounds::iterator> IdentifiedCompoundRef;
   }
 }
-
-#endif

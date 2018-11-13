@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_SCORETYPE_H
-#define OPENMS_METADATA_ID_SCORETYPE_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/MetaData.h>
 
@@ -88,5 +87,3 @@ namespace OpenMS
     typedef IteratorWrapper<ScoreTypes::iterator> ScoreTypeRef;
   }
 }
-
-#endif

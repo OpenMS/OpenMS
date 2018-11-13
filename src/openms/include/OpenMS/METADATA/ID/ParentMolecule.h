@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_PARENTMOLECULE_H
-#define OPENMS_METADATA_ID_PARENTMOLECULE_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 
@@ -103,5 +102,3 @@ namespace OpenMS
 
   }
 }
-
-#endif
