@@ -3,7 +3,9 @@ set(directory include/OpenMS/METADATA/ID)
 
 ### list all header files of the directory here
 set(sources_list_h
+AppliedProcessingStep.h
 DBSearchParam.h
+DataProcessingSoftware.h
 DataProcessingStep.h
 DataQuery.h
 IdentificationData.h

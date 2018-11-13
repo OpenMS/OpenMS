@@ -35,55 +35,12 @@
 #ifndef OPENMS_METADATA_ID_SCOREDPROCESSINGRESULT_H
 #define OPENMS_METADATA_ID_SCOREDPROCESSINGRESULT_H
 
-#include <OpenMS/METADATA/ID/DataProcessingStep.h>
-#include <OpenMS/METADATA/ID/ScoreType.h>
-
-#include <boost/range/adaptor/reversed.hpp>
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
+#include <OpenMS/METADATA/ID/AppliedProcessingStep.h>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
-    /*!
-      A processing step that was applied to a data item, possibly with associated scores.
-    */
-    struct AppliedProcessingStep
-    {
-      // if there are only scores, the processing step may be missing:
-      boost::optional<ProcessingStepRef> processing_step_opt;
-      std::map<ScoreTypeRef, double> scores;
-
-      explicit AppliedProcessingStep(
-        const boost::optional<ProcessingStepRef>& processing_step_opt =
-        boost::none, const std::map<ScoreTypeRef, double>& scores =
-        std::map<ScoreTypeRef, double>()):
-        processing_step_opt(processing_step_opt), scores(scores)
-      {
-      }
-
-      bool operator==(const AppliedProcessingStep& other) const
-      {
-        return ((processing_step_opt == other.processing_step_opt) &&
-                (scores == other.scores));
-      }
-    };
-
-    // we want to keep track of the processing steps in sequence (order of
-    // application), but also ensure there are no duplicate steps:
-    typedef boost::multi_index_container<
-      AppliedProcessingStep,
-      boost::multi_index::indexed_by<
-        boost::multi_index::sequenced<>,
-        boost::multi_index::ordered_unique<
-          boost::multi_index::member<
-            AppliedProcessingStep, boost::optional<ProcessingStepRef>,
-            &AppliedProcessingStep::processing_step_opt>>>
-      > AppliedProcessingSteps;
-
     /// Base class for ID data with scores and processing steps (and meta info)
     struct ScoredProcessingResult: public MetaInfoInterface
     {
