@@ -74,7 +74,7 @@ public:
     /**
       Derived classes implement this pure virtual method.
 
-      It setups the linear programming problem and solves it.
+      It sets up the linear programming problem and solves it.
 
       @param[in] time_to_name Pairs representing a mapping of retention times to transition names
       @param[in] feature_name_map Transitions' names to their features objects
@@ -224,9 +224,16 @@ private:
   class OPENMS_DLLAPI MRMFeatureSelectorQMIP : public MRMFeatureSelector
   {
 public:
+    /**
+      Set up the linear programming problem and solve it.
+
+      @param[in] time_to_name Pairs representing a mapping of retention times to transition names
+      @param[in] feature_name_map Transitions' names to their features objects
+      @param[out] result Transitions' names filtered out of the LP problem
+    */
     void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map< String, std::vector<Feature> >& feature_name_map,
+      const std::map<String, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result
     );
   };
@@ -239,9 +246,16 @@ public:
   class OPENMS_DLLAPI MRMFeatureSelectorScore : public MRMFeatureSelector
   {
 public:
+    /**
+      Set up the linear programming problem and solve it.
+
+      @param[in] time_to_name Pairs representing a mapping of retention times to transition names
+      @param[in] feature_name_map Transitions' names to their features objects
+      @param[out] result Transitions' names filtered out of the LP problem
+    */
     void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
-      const std::map< String, std::vector<Feature> >& feature_name_map,
+      const std::map<String, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result
     );
   };
