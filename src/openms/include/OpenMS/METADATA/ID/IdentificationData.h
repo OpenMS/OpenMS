@@ -100,6 +100,8 @@ namespace OpenMS
 
     using DataProcessingSoftware =
       IdentificationDataInternal::DataProcessingSoftware;
+    using DataProcessingSoftwares =
+      IdentificationDataInternal::DataProcessingSoftwares;
     using ProcessingSoftwareRef =
       IdentificationDataInternal::ProcessingSoftwareRef;
 
@@ -197,7 +199,7 @@ namespace OpenMS
       @return Reference to the registered software
     */
     ProcessingSoftwareRef registerDataProcessingSoftware(
-      const Software& software);
+      const DataProcessingSoftware& software);
 
     /*!
       @brief Register database search parameters
@@ -279,9 +281,9 @@ namespace OpenMS
     }
 
     /// Return the registered data processing software (immutable)
-    const DataProcessingSoftware& getDataProcessingSoftware() const
+    const DataProcessingSoftwares& getDataProcessingSoftwares() const
     {
-      return processing_software_;
+      return processing_softwares_;
     }
 
     /// Return the registered data processing steps (immutable)
@@ -391,13 +393,6 @@ namespace OpenMS
     */
     std::pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const;
 
-    /*!
-      @brief Look up a score type by name and associated software
-      @return A pair: 1. Reference to the score type, if found; 2. Boolean indicating success or failure
-    */
-    std::pair<ScoreTypeRef, bool> findScoreType(
-      const String& score_name, ProcessingSoftwareRef software_ref) const;
-
     /// Calculate sequence coverages of parent molecules
     void calculateCoverages(bool check_molecule_length = false);
 
@@ -429,7 +424,7 @@ namespace OpenMS
 
     // containers:
     InputFiles input_files_;
-    DataProcessingSoftware processing_software_;
+    DataProcessingSoftwares processing_softwares_;
     DataProcessingSteps processing_steps_;
     DBSearchParams db_search_params_;
     // @TODO: store SearchParamRef inside ProcessingStep? (may not be required

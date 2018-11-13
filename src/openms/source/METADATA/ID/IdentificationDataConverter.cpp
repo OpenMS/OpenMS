@@ -57,14 +57,16 @@ namespace OpenMS
     {
       proteins_counter++;
       progresslogger.setProgress(proteins_counter);
-      Software software(prot.getSearchEngine(), prot.getSearchEngineVersion());
-      IdentificationData::ProcessingSoftwareRef software_ref =
-        id_data.registerDataProcessingSoftware(software);
-
-      IdentificationData::ScoreType score_type(
-        prot.getScoreType(), prot.isHigherScoreBetter(), software_ref);
+      IdentificationData::ScoreType score_type(prot.getScoreType(),
+                                               prot.isHigherScoreBetter());
       IdentificationData::ScoreTypeRef score_ref =
         id_data.registerScoreType(score_type);
+
+      IdentificationData::DataProcessingSoftware software(
+        prot.getSearchEngine(), prot.getSearchEngineVersion());
+      software.assigned_scores.push_back(score_ref);
+      IdentificationData::ProcessingSoftwareRef software_ref =
+        id_data.registerDataProcessingSoftware(software);
 
       IdentificationData::SearchParamRef search_ref =
         importDBSearchParameters_(prot.getSearchParameters(), id_data);
@@ -226,8 +228,8 @@ namespace OpenMS
       IdentificationData::DataQueryRef query_ref =
         id_data.registerDataQuery(query);
 
-      IdentificationData::ScoreType score_type(
-        pep.getScoreType(), pep.isHigherScoreBetter(), step_ref->software_ref);
+      IdentificationData::ScoreType score_type(pep.getScoreType(),
+                                               pep.isHigherScoreBetter());
       IdentificationData::ScoreTypeRef score_ref =
         id_data.registerScoreType(score_type);
 
@@ -268,8 +270,25 @@ namespace OpenMS
         for (const PeptideHit::PepXMLAnalysisResult& ana_res :
                hit.getAnalysisResults())
         {
-          Software software;
+          IdentificationData::DataProcessingSoftware software;
           software.setName(ana_res.score_type); // e.g. "peptideprophet"
+          IdentificationData::AppliedProcessingStep sub_applied;
+          IdentificationData::ScoreType main_score;
+          main_score.name = ana_res.score_type + "_probability";
+          main_score.higher_better = ana_res.higher_is_better;
+          IdentificationData::ScoreTypeRef main_score_ref =
+            id_data.registerScoreType(main_score);
+          software.assigned_scores.push_back(main_score_ref);
+          sub_applied.scores[main_score_ref] = ana_res.main_score;
+          for (const pair<String, double>& sub_pair : ana_res.sub_scores)
+          {
+            IdentificationData::ScoreType sub_score;
+            sub_score.name = sub_pair.first;
+            IdentificationData::ScoreTypeRef sub_score_ref =
+              id_data.registerScoreType(sub_score);
+            software.assigned_scores.push_back(sub_score_ref);
+            sub_applied.scores[sub_score_ref] = sub_pair.second;
+          }
           IdentificationData::ProcessingSoftwareRef software_ref =
             id_data.registerDataProcessingSoftware(software);
           IdentificationData::DataProcessingStep sub_step(software_ref);
@@ -279,23 +298,7 @@ namespace OpenMS
           }
           IdentificationData::ProcessingStepRef sub_step_ref =
             id_data.registerDataProcessingStep(sub_step);
-          IdentificationData::AppliedProcessingStep sub_applied(sub_step_ref);
-          for (const pair<String, double>& sub_pair : ana_res.sub_scores)
-          {
-            IdentificationData::ScoreType sub_score;
-            sub_score.name = sub_pair.first;
-            sub_score.software_opt = software_ref;
-            IdentificationData::ScoreTypeRef sub_score_ref =
-              id_data.registerScoreType(sub_score);
-            sub_applied.scores[sub_score_ref] = sub_pair.second;
-          }
-          IdentificationData::ScoreType main_score;
-          main_score.name = ana_res.score_type + "_probability";
-          main_score.higher_better = ana_res.higher_is_better;
-          main_score.software_opt = software_ref;
-          IdentificationData::ScoreTypeRef main_score_ref =
-            id_data.registerScoreType(main_score);
-          sub_applied.scores[main_score_ref] = ana_res.main_score;
+          sub_applied.processing_step_opt = sub_step_ref;
           match.addProcessingStep(sub_applied);
         }
 
@@ -607,7 +610,7 @@ namespace OpenMS
   {
     MzTabMetaData meta;
     Size counter = 1;
-    for (const auto& software : id_data.getDataProcessingSoftware())
+    for (const auto& software : id_data.getDataProcessingSoftwares())
     {
       MzTabSoftwareMetaData sw_meta;
       sw_meta.software.setName(software.getName());

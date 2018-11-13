@@ -89,22 +89,22 @@ START_SECTION((InputFileRef registerInputFile(const String& file)))
 }
 END_SECTION
 
-START_SECTION((const DataProcessingSoftware& getDataProcessingSoftware() const))
+START_SECTION((const DataProcessingSoftwares& getDataProcessingSoftwares() const))
 {
-  TEST_EQUAL(data.getDataProcessingSoftware().empty(), true);
+  TEST_EQUAL(data.getDataProcessingSoftwares().empty(), true);
   // tested further below
 }
 END_SECTION
 
 START_SECTION((ProcessingSoftwareRef registerDataProcessingSoftware(const Software& software)))
 {
-  Software sw("Tool", "1.0");
+  IdentificationData::DataProcessingSoftware sw("Tool", "1.0");
   sw_ref = data.registerDataProcessingSoftware(sw);
-  TEST_EQUAL(data.getDataProcessingSoftware().size(), 1);
+  TEST_EQUAL(data.getDataProcessingSoftwares().size(), 1);
   TEST_EQUAL(*sw_ref == sw, true); // "TEST_EQUAL(*sw_ref, sw)" doesn't compile - same below
   // re-registering doesn't lead to redundant entries:
   data.registerDataProcessingSoftware(sw);
-  TEST_EQUAL(data.getDataProcessingSoftware().size(), 1);
+  TEST_EQUAL(data.getDataProcessingSoftwares().size(), 1);
 }
 END_SECTION
 
@@ -181,7 +181,7 @@ END_SECTION
 
 START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
 {
-  IdentificationData::ScoreType score("test_score", true, sw_ref);
+  IdentificationData::ScoreType score("test_score", true);
   score_ref = data.registerScoreType(score);
   TEST_EQUAL(data.getScoreTypes().size(), 1);
   TEST_EQUAL(*score_ref == score, true);
@@ -483,20 +483,6 @@ START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name) 
   TEST_EQUAL(data.findScoreType("fake_score").second, false);
   // registered score:
   auto result = data.findScoreType("test_score");
-  TEST_EQUAL(result.first == score_ref, true);
-  TEST_EQUAL(result.second, true);
-}
-END_SECTION
-
-START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const))
-{
-  Software sw("Other","1.0");
-  IdentificationData::ProcessingSoftwareRef other_ref = data.registerDataProcessingSoftware(sw);
-  // no such score register for this software:
-  auto result = data.findScoreType("test_score", other_ref);
-  TEST_EQUAL(result.second, false);
-  // valid combination:
-  result = data.findScoreType("test_score", sw_ref);
   TEST_EQUAL(result.first == score_ref, true);
   TEST_EQUAL(result.second, true);
 }

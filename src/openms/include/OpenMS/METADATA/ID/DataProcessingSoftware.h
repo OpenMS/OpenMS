@@ -32,67 +32,50 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_DATAPROCESSINGSTEP_H
-#define OPENMS_METADATA_ID_DATAPROCESSINGSTEP_H
+#ifndef OPENMS_METADATA_ID_DATAPROCESSINGSOFTWARE_H
+#define OPENMS_METADATA_ID_DATAPROCESSINGSOFTWARE_H
 
-#include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/DataProcessingSoftware.h>
+#include <OpenMS/METADATA/Software.h>
+#include <OpenMS/METADATA/ID/ScoreType.h>
 
 namespace OpenMS
 {
   namespace IdentificationDataInternal
   {
     /*!
-      Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
+      Information about software used for data processing.
+
+      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
+ software information only once.
     */
-    struct DataProcessingStep: public MetaInfoInterface
+    struct DataProcessingSoftware: public Software
     {
-      ProcessingSoftwareRef software_ref;
+      /*!
+        List of score types assigned by this software, ranked by importance.
 
-      std::vector<InputFileRef> input_file_refs;
+        The "primary" score should be the first in the list.
+      */
+      // @TODO: make this a "list" for cheap "push_front"?
+      std::vector<ScoreTypeRef> assigned_scores;
 
-      std::vector<String> primary_files; // path(s) to primary MS data
-
-      DateTime date_time;
-
-      // @TODO: add processing actions that are relevant for ID data
-      std::set<DataProcessing::ProcessingAction> actions;
-
-      explicit DataProcessingStep(
-        ProcessingSoftwareRef software_ref,
-        const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const std::vector<String>& primary_files =
-        std::vector<String>(), const DateTime& date_time = DateTime::now(),
-        std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
-        software_ref(software_ref), input_file_refs(input_file_refs),
-        primary_files(primary_files), date_time(date_time), actions(actions)
+      explicit DataProcessingSoftware(
+        const String& name = "", const String& version = "",
+        std::vector<ScoreTypeRef> assigned_scores =
+        std::vector<ScoreTypeRef>()):
+        Software(name, version), assigned_scores(assigned_scores)
       {
       }
 
-      DataProcessingStep(const DataProcessingStep& other) = default;
-
-      // don't compare meta data (?):
-      bool operator<(const DataProcessingStep& other) const
-      {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) <
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
-      }
-
-      // don't compare meta data (?):
-      bool operator==(const DataProcessingStep& other) const
-      {
-        return (std::tie(software_ref, input_file_refs, primary_files,
-                         date_time, actions) ==
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.primary_files, other.date_time, other.actions));
-      }
+      // explicit DataProcessingSoftware(
+      //   const Software& software, std::vector<ScoreTypeRef> assigned_scores =
+      //   std::vector<ScoreTypeRef>()):
+      //   Software(software), assigned_scores(assigned_scores)
+      // {
+      // }
     };
 
-    typedef std::set<DataProcessingStep> DataProcessingSteps;
-    typedef IteratorWrapper<DataProcessingSteps::iterator> ProcessingStepRef;
+    typedef std::set<DataProcessingSoftware> DataProcessingSoftwares;
+    typedef IteratorWrapper<DataProcessingSoftwares::iterator> ProcessingSoftwareRef;
 
   }
 }
