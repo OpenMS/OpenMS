@@ -72,12 +72,6 @@ using namespace std;
     defaults_.setValue("write_protein_description", "false", "If set, the protein description is stored as well.");
     defaults_.setValidStrings("write_protein_description", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("annotate_nr_theoretical_peptides", "false", "If set, the max. number of theoretical peptides is annotated.");
-    defaults_.setValidStrings("annotate_nr_theoretical_peptides", ListUtils::create<String>("true,false"));
-
-    defaults_.setValue("add_missing_peptides", "false", "If set, adds the missing peptides with a minimum score (e.g. probability 0) and -1 RT.");
-    defaults_.setValidStrings("add_missing_peptides", ListUtils::create<String>("true,false"));
-
     defaults_.setValue("keep_unreferenced_proteins", "false", "If set, protein hits which are not referenced by any peptide are kept.");
     defaults_.setValidStrings("keep_unreferenced_proteins", ListUtils::create<String>("true,false"));
 
@@ -115,8 +109,6 @@ using namespace std;
 
     write_protein_sequence_ = param_.getValue("write_protein_sequence").toBool();
     write_protein_description_ = param_.getValue("write_protein_description").toBool();
-    annotate_nr_theoretical_peptides_ = param_.getValue("annotate_nr_theoretical_peptides").toBool();
-    add_missing_peptides_ = param_.getValue("add_missing_peptides").toBool();
     keep_unreferenced_proteins_ = param_.getValue("keep_unreferenced_proteins").toBool();
     allow_unmatched_ = param_.getValue("allow_unmatched").toBool();
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();

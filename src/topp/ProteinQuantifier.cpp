@@ -377,7 +377,7 @@ protected:
     Param temp = PeptideAndProteinQuant().getParameters();
     registerFullParam_(temp);
 
-    registerStringOption_("greedy_group_resolution", "<choice>", "false", "Pre-process identifications with greedy resolution of shared peptides based on the protein group probabilities. (Only works with an idXML file given as protein_groups parameter).");
+    registerStringOption_("greedy_group_resolution", "<choice>", "false", "Pre-process identifications with greedy resolution of shared peptides based on the protein group probabilities. (Only works with an idXML file given as protein_groups parameter).", false);
     setValidStrings_("greedy_group_resolution", ListUtils::create<String>("true,false"));
     registerFlag_("ratios", "Add the log2 ratios of the abundance values to the output. Format: log_2(x_0/x_0) <sep> log_2(x_1/x_0) <sep> log_2(x_2/x_0) ...", false);
     registerFlag_("ratiosSILAC", "Add the log2 ratios for a triple SILAC experiment to the output. Only applicable to consensus maps of exactly three sub-maps. Format: log_2(heavy/light) <sep> log_2(heavy/middle) <sep> log_2(middle/light)", false);

@@ -56,10 +56,7 @@
 #include <atomic>
 #include <algorithm>
 #include <fstream>
-#include <OpenMS/DATASTRUCTURES/StringUtils.h>
-#include <unordered_map>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+
 
 namespace OpenMS
 {
@@ -122,8 +119,6 @@ namespace OpenMS
   Threading:
   This tool support multiple threads (@p threads option) to speed up computation, at the cost of little extra memory.
 
-  @TODO Implement option to keep/update old ProteinHits. Useful for reindexing and adding missing peptides.
-  Is it possible to only index the proteins present, or does it always look up in the whole database?
 */
 
  class OPENMS_DLLAPI PeptideIndexing :
@@ -156,41 +151,41 @@ public:
       return run<TFI_Vector>(protein_container, prot_ids, pep_ids);
     }
 
-   /**
-       @brief Re-index peptide identifications honoring enzyme cutting rules, ambiguous amino acids and target/decoy hits.
+    /**
+    @brief Re-index peptide identifications honoring enzyme cutting rules, ambiguous amino acids and target/decoy hits.
+    
+    Template parameter 'T' can be either TFI_File or TFI_Vector. If the data is already available, use TFI_Vector and pass the vector.
+    If the data is still in a FASTA file and its not needed afterwards for additional processing, use TFI_File and pass the filename.
 
-       Template parameter 'T' can be either TFI_File or TFI_Vector. If the data is already available, use TFI_Vector and pass the vector.
-       If the data is still in a FASTA file and its not needed afterwards for additional processing, use TFI_File and pass the filename.
+    PeptideIndexer refreshes target/decoy information and mapping of peptides to proteins.
+    The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
 
-       PeptideIndexer refreshes target/decoy information and mapping of peptides to proteins.
-       The target/decoy information is crucial for the @ref TOPP_FalseDiscoveryRate tool. (For FDR calculations, "target+decoy" peptide hits count as target hits.)
+    PeptideIndexer allows for ambiguous amino acids (B|J|Z|X) in the protein database, but not in the peptide sequences. 
+    For the latter only I/L can be treated as equivalent (see 'IL_equivalent' flag), but 'J' is not allowed.
+  
+    Enzyme cutting rules and partial specificity can be specified.
 
-       PeptideIndexer allows for ambiguous amino acids (B|J|Z|X) in the protein database, but not in the peptide sequences.
-       For the latter only I/L can be treated as equivalent (see 'IL_equivalent' flag), but 'J' is not allowed.
+    Resulting protein hits appear in the order of the FASTA file, except for orphaned proteins, which will appear first with an empty target_decoy metavalue.
+    Duplicate protein accessions & sequences will not raise a warning, but create multiple hits (PeptideIndexer scans over the FASTA file once for efficiency
+    reasons, and thus might not see all accessions & sequences at once).
+      
+    All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy". 
+    For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string) 
+    as a suffix or prefix, respectively (see parameter @p prefix). 
+  
+    Peptide hits are annotated with metavalue 'protein_references', and if matched to at least one protein also with metavalue 'target_decoy'.
+    The possible values for 'target_decoy' are "target", "decoy" and "target+decoy", 
+    depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The metavalue is not present, if the peptide is unmatched.
+  
+    Runtime: PeptideIndexer is usually very fast (loading and storing the data takes the most time) and search speed can be further improved (linearly), but using more threads. 
+    Avoid allowing too many (>=4) ambiguous amino acids if your database contains long stretches of 'X' (exponential search space).
 
-       Enzyme cutting rules and partial specificity can be specified.
+    @param proteins A list of proteins -- either read piecewise from a FASTA file or as existing vector of FASTAEntries.
+    @param prot_ids Resulting protein identifications associated to pep_ids (will be re-written completely)
+    @param pep_ids Peptide identifications which should be search within @p proteins and then linked to @p prot_ids
+    @return Exit status codes.
 
-       Resulting protein hits appear in the order of the FASTA file, except for orphaned proteins, which will appear first with an empty target_decoy metavalue.
-       Duplicate protein accessions & sequences will not raise a warning, but create multiple hits (PeptideIndexer scans over the FASTA file once for efficiency
-       reasons, and thus might not see all accessions & sequences at once).
-
-       All peptide and protein hits are annotated with target/decoy information, using the meta value "target_decoy".
-       For proteins the possible values are "target" and "decoy", depending on whether the protein accession contains the decoy pattern (parameter @p decoy_string)
-       as a suffix or prefix, respectively (see parameter @p prefix).
-
-       Peptide hits are annotated with metavalue 'protein_references', and if matched to at least one protein also with metavalue 'target_decoy'.
-       The possible values for 'target_decoy' are "target", "decoy" and "target+decoy",
-       depending on whether the peptide sequence is found only in target proteins, only in decoy proteins, or in both. The metavalue is not present, if the peptide is unmatched.
-
-       Runtime: PeptideIndexer is usually very fast (loading and storing the data takes the most time) and search speed can be further improved (linearly), but using more threads.
-       Avoid allowing too many (>=4) ambiguous amino acids if your database contains long stretches of 'X' (exponential search space).
-
-       @param proteins A list of proteins -- either read piecewise from a FASTA file or as existing vector of FASTAEntries.
-       @param prot_ids Resulting protein identifications associated to pep_ids (will be re-written completely)
-       @param pep_ids Peptide identifications which should be search within @p proteins and then linked to @p prot_ids
-       @return Exit status codes.
-
-       */
+    */
     template<typename T>
     ExitCodes run(FASTAContainer<T>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
     {
@@ -267,14 +262,11 @@ public:
         return DATABASE_EMPTY;
       }
 
-      bool update_existing_ = true;
-
       if (pep_ids.empty()) // Aho-Corasick requires non-empty input; but we allow this case, since the TOPP tool should not crash when encountering a bad raw file (with no PSMs)
       {
         LOG_WARN << "Warning: An empty set of peptide identifications was provided. Output will be empty as well." << std::endl;
-        if (!keep_unreferenced_proteins_ || update_existing_)
+        if (!keep_unreferenced_proteins_)
         {
-          //TODO is this really expected when you set this flag??
           // delete only protein hits, not whole ID runs incl. meta data:
           for (std::vector<ProteinIdentification>::iterator it = prot_ids.begin();
             it != prot_ids.end(); ++it)
@@ -289,8 +281,6 @@ public:
       Map<String, Size> acc_to_prot; // map: accessions --> FASTA protein index
       std::vector<bool> protein_is_decoy; // protein index -> is decoy?
       std::vector<std::string> protein_accessions; // protein index -> accession
-       // protein index -> theoretical digest (as set of start, length pairs)
-      std::vector<std::vector<std::set<std::pair<Size,Size>>>> protein_found_peptides;
 
       bool invalid_protein_sequence = false; // check for proteins with modifications, i.e. '[' or '(', and throw an exception
 
@@ -374,7 +364,6 @@ public:
               DEBUG_ONLY std::cerr << " activating cache ...\n";
               has_active_data = proteins.activateCache(); // swap in last cache
               protein_accessions.resize(proteins.getChunkOffset() + proteins.chunkSize());
-              protein_found_peptides.resize(proteins.getChunkOffset() + proteins.chunkSize());
             } // implicit barrier here
             
             if (!has_active_data) break; // leave while-loop
@@ -522,16 +511,6 @@ public:
 
       Map<Size, std::set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
 
-      if (annotate_nr_theoretical_peptides_ || add_missing_peptides_)
-      {
-        // initialize vectors of sets
-        for (auto& prot : protein_found_peptides)
-        {
-          prot.resize(prot_ids.size());
-        }
-      }
-
-
       Size pep_idx(0);
       for (std::vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
       {
@@ -557,8 +536,6 @@ public:
             it_i != func.pep_to_prot[pep_idx].end(); ++it_i)
           {
             prot_indices.insert(it_i->protein_index);
-            if (annotate_nr_theoretical_peptides_ || add_missing_peptides_)
-              protein_found_peptides[it_i->protein_index][run_idx].insert(std::make_pair<Size,Size>(it_i->position, it2->getSequence().size()));
             const String& accession = protein_accessions[it_i->protein_index];
             PeptideEvidence pe(accession, it_i->position, it_i->position + (int)it2->getSequence().size() - 1, it_i->AABefore, it_i->AAAfter);
             it2->addPeptideEvidence(pe);
@@ -641,38 +618,27 @@ public:
         std::vector<ProteinHit>& phits = prot_ids[run_idx].getHits();
         {
           // go through existing protein hits and count orphaned proteins (with no peptide hits)
-          std::vector<ProteinHit> takeover_hits;
+          std::vector<ProteinHit> orphaned_hits;
           for (std::vector<ProteinHit>::iterator p_hit = phits.begin(); p_hit != phits.end(); ++p_hit)
           {
             const String& acc = p_hit->getAccession();
-            auto acc_it = acc_to_prot.find(acc);
-            if (acc_it == acc_to_prot.end()) // acc_to_prot only contains found proteins from this current tool run!
+            if (!acc_to_prot.has(acc)) // acc_to_prot only contains found proteins from current run
             { // old hit is orphaned
               ++stats_orphaned_proteins;
               if (keep_unreferenced_proteins_)
               {
-                //TODO is this correct?? Can't we still infer Target-Decoy from the accession?
                 p_hit->setMetaValue("target_decoy", "");
-                takeover_hits.emplace_back(std::move(*p_hit));
+                orphaned_hits.push_back(*p_hit);
               }
             }
-            else if (update_existing_)
-            {
-              //TODO update p_hit with infos (like in the loop below) e.g. factor out as func
-              takeover_hits.emplace_back(std::move(*p_hit));
-              masterset.erase(acc_it->second);
-            }
           }
-
           // only keep orphaned hits (if any)
-          phits = std::move(takeover_hits);
+          phits = orphaned_hits;
         }
 
         // add new protein hits
         FASTAFile::FASTAEntry fe;
         phits.reserve(phits.size() + masterset.size());
-        //TODO This only goes through the non-orphaned ones. Maybe we want to annotate orphaned ones
-        // with sequence etc. too
         for (std::set<Size>::const_iterator it = masterset.begin(); it != masterset.end(); ++it)
         {
           ProteinHit hit;
@@ -689,80 +655,6 @@ public:
             {
               hit.setDescription(fe.description);
             } // no else, since description is empty by default
-            if (annotate_nr_theoretical_peptides_ || add_missing_peptides_)
-            {
-              std::vector<std::pair<Size,Size>> tempDigests{};
-              enzyme.digestUnmodified(fe.sequence, tempDigests);
-              if (annotate_nr_theoretical_peptides_)
-              {
-                hit.setMetaValue("maxNrTheoreticalDigests", tempDigests.size());
-              }
-              if (add_missing_peptides_)
-              {
-                for (const auto& pepStartLength : tempDigests)
-                {
-                  if (protein_found_peptides[*it][run_idx].find(pepStartLength) == protein_found_peptides[*it][run_idx].end())
-                  { //not found -> add to correct run
-                    const ProteinIdentification& piRun = prot_ids[run_idx];
-                    const std::vector<String>& fixedModNames = piRun.getSearchParameters().fixed_modifications;
-                    PeptideIdentification pi;
-                    AASequence pep = AASequence::fromString(fe.sequence.substr(pepStartLength.first, pepStartLength.second));
-                    std::vector<ResidueModification> modifications;
-                    // iterate over modification names and add to vector
-                    for (String modification : fixedModNames)
-                    {
-                      ResidueModification rm;
-                      if (modification.hasSubstring(" (N-term)"))
-                      {
-                        modification.substitute(" (N-term)", "");
-                        rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::N_TERM);
-                      }
-                      else if (modification.hasSubstring(" (C-term)"))
-                      {
-                        modification.substitute(" (C-term)", "");
-                        rm = ModificationsDB::getInstance()->getModification(modification, "", ResidueModification::C_TERM);
-                      }
-                      else
-                      {
-                        rm = ModificationsDB::getInstance()->getModification(modification);
-                      }
-                      modifications.push_back(rm);
-                    }
-
-                    ModifiedPeptideGenerator::applyFixedModifications(modifications.begin(), modifications.end(), pep);
-
-                    //TODO keep track of added missing peptides (e.g in unordered set) -> if already present
-                    // check if same run and only add another PeptideEvidence
-                    //TODO pick the most common charge or add all charges. But in case of all, we should add missing
-                    // charges for present peptides, too.
-                    pi.setMZ(pep.getMonoWeight(Residue::Full, 1));
-                    pi.setRT(-1.0); // -1 (if no prediction, TODO prediction not yet supported)
-                    pi.setHigherScoreBetter(piRun.isHigherScoreBetter()); //from old run
-                    pi.setIdentifier(piRun.getIdentifier()); //from old run
-                    //pi.setExperimentLabel(piRun.); //only works if we can get it from the IDRun
-                    pi.setScoreType(piRun.getScoreType()); //from old run
-                    pi.setBaseName("putative"); //putative
-
-                    PeptideHit ph;
-                    //TODO add more charge states??
-                    //TODO set target decoy annotation for pep?
-
-                    ph.setCharge(1);
-                    PeptideEvidence pe;
-                    pe.setStart(pepStartLength.first);
-                    Size end = pepStartLength.first + pepStartLength.second - 1;
-                    pe.setEnd(end);
-                    pe.setAABefore(fe.sequence[pepStartLength.first - 1]);
-                    pe.setAAAfter(fe.sequence[end + 1]);
-
-                    pe.setProteinAccession(fe.identifier);
-                    ph.addPeptideEvidence(pe);
-                    pi.insertHit(ph);
-                    pep_ids.push_back(pi);
-                  }
-                }
-              }
-            }
           }
           if (protein_is_decoy[*it])
           {
@@ -1138,8 +1030,6 @@ public:
 
     bool write_protein_sequence_;
     bool write_protein_description_;
-    bool annotate_nr_theoretical_peptides_;
-    bool add_missing_peptides_;
     bool keep_unreferenced_proteins_;
     bool allow_unmatched_;
     bool IL_equivalent_;
