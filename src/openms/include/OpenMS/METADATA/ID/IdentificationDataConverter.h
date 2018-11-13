@@ -55,8 +55,6 @@ namespace OpenMS
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
                           std::vector<PeptideIdentification>& peptides,
-                          const String& protein_score = "",
-                          const String& peptide_score = "",
                           bool export_oligonucleotides = false);
 
     /// Export to mzTab format

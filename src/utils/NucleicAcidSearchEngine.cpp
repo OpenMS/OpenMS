@@ -1153,8 +1153,7 @@ protected:
     {
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, "",
-                                             "hyperscore", true);
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
       // proteins[0].setDateTime(DateTime::now());
       // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
