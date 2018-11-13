@@ -1,8 +1,8 @@
 #!bin/bash
 export PATH="$PATH:/home/sachsenb/OpenMS/openms-build/bin"
-export PATH="$PATH:/home/sachsenb/OpenMS/THIRDPARTY/All/MSGFPlus"
 export PATH="$PATH:/home/sachsenb/OpenMS/THIRDPARTY/Linux/64bit/Percolator"
 
+export MSGF_PATH="/home/sachsenb/OpenMS/THIRDPARTY/All/MSGFPlus/MSGFPlus.jar"
 #input data
 export DATA_PATH="/home/sachsenb/OpenMS/openms-build/yasset_iPRG2015"
 
@@ -10,7 +10,7 @@ export DATA_PATH="/home/sachsenb/OpenMS/openms-build/yasset_iPRG2015"
 for f in ${DATA_PATH}/*.mzML; do
   echo $f
   # search
-  MSGFPlusAdapter -in ${f} -out ${f}.idXML -database ${DATA_PATH}/iPRG2015_decoy.fasta -max_precursor_charge 5 -threads 10
+  MSGFPlusAdapter -in ${f} -out ${f}.idXML -database ${DATA_PATH}/iPRG2015_decoy.fasta -executable ${MSGF_PATH} -max_precursor_charge 5 -threads 10
   # annotate target/decoy and protein links
   PeptideIndexer -fasta ${DATA_PATH}/iPRG2015_decoy.fasta  -in ${f}.idXML -out ${f}.idXML
   # run percolator so we get well calibrated PEPs and q-values
