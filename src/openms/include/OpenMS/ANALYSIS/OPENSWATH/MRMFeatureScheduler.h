@@ -52,42 +52,6 @@ public:
     ~MRMFeatureScheduler() = default;
 
     /**
-      Structure to easily feed the parameters to the `MRMFeatureSelector` derived classes
-    */
-    struct SelectorParameters
-    {
-      SelectorParameters() = default;
-
-      SelectorParameters(
-        Int nn,
-        bool lw,
-        bool stg,
-        Int swl,
-        Int ssl,
-        MRMFeatureSelector::VariableType vt,
-        double ot,
-        std::map<String, MRMFeatureSelector::LambdaScore>& sw
-      ) :
-        nn_threshold(nn),
-        locality_weight(lw),
-        select_transition_group(stg),
-        segment_window_length(swl),
-        segment_step_length(ssl),
-        variable_type(vt),
-        optimal_threshold(ot),
-        score_weights(sw) {}
-
-      Int    nn_threshold            = 4; ///< Nearest neighbor threshold: the number of components or component groups to the left and right to include in the optimization problem (i.e. number of nearest compounds by Tr to include in network)
-      bool   locality_weight         = false; ///< Weight compounds with a nearer Tr greater than compounds with a further Tr
-      bool   select_transition_group = true; ///< Use components groups instead of components for retention time optimization
-      Int    segment_window_length   = 8; ///< Number of components or component groups to include in the network
-      Int    segment_step_length     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
-      MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
-      double optimal_threshold       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
-      std::map<String, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
-    };
-
-    /**
       Calls `feature_selector.select_MRMFeature()` feeding it the parameters found in `parameters_`.
       It calls said method `parameters_.size()` times, using the result of each cycle as input
       for the next cycle.
@@ -105,13 +69,13 @@ public:
     void scheduleMRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const;
 
     /// Setter for the scheduler's parameters
-    void setSchedulerParameters(const std::vector<SelectorParameters>& parameters);
+    void setSchedulerParameters(const std::vector<MRMFeatureSelector::SelectorParameters>& parameters);
 
     /// Getter for the scheduler's parameters
-    std::vector<SelectorParameters>& getSchedulerParameters(void);
+    std::vector<MRMFeatureSelector::SelectorParameters>& getSchedulerParameters(void);
 
 private:
     /// Parameters for a single call to the scheduler. All elements will be consumed.
-    std::vector<SelectorParameters> parameters_;
+    std::vector<MRMFeatureSelector::SelectorParameters> parameters_;
   };
 }

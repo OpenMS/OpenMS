@@ -46,17 +46,9 @@ namespace OpenMS
   {
     FeatureMap input_features = features;
     selected_features.clear();
-    for (const SelectorParameters& params : parameters_)
+    for (const MRMFeatureSelector::SelectorParameters& params : parameters_)
     {
-      feature_selector.setNNThreshold(params.nn_threshold);
-      feature_selector.setLocalityWeight(params.locality_weight);
-      feature_selector.setSelectTransitionGroup(params.select_transition_group);
-      feature_selector.setSegmentWindowLength(params.segment_window_length);
-      feature_selector.setSegmentStepLength(params.segment_step_length);
-      feature_selector.setVariableType(params.variable_type);
-      feature_selector.setOptimalThreshold(params.optimal_threshold);
-      feature_selector.setScoreWeights(params.score_weights);
-
+      feature_selector.setSelectorParameters(params);
       feature_selector.selectMRMFeature(input_features, selected_features);
       input_features = selected_features;
     }
@@ -74,12 +66,12 @@ namespace OpenMS
     scheduleMRMFeatures(feature_selector, features, selected_features);
   }
 
-  void MRMFeatureScheduler::setSchedulerParameters(const std::vector<SelectorParameters>& parameters)
+  void MRMFeatureScheduler::setSchedulerParameters(const std::vector<MRMFeatureSelector::SelectorParameters>& parameters)
   {
     parameters_ = parameters;
   }
 
-  std::vector<MRMFeatureScheduler::SelectorParameters>& MRMFeatureScheduler::getSchedulerParameters()
+  std::vector<MRMFeatureSelector::SelectorParameters>& MRMFeatureScheduler::getSchedulerParameters()
   {
     return parameters_;
   }

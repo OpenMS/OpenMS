@@ -149,7 +149,7 @@ namespace OpenMS
     for (Int cnt1 = 0; static_cast<Size>(cnt1) < time_to_name.size(); ++cnt1)
     {
       const Size start_iter = std::max(cnt1 - getNNThreshold(), 0);
-      const Size stop_iter = std::min(static_cast<Size>(cnt1 + getNNThreshold() + 1), time_to_name.size()); // assuming nn_threshold_ >= -1
+      const Size stop_iter = std::min(static_cast<Size>(cnt1 + getNNThreshold() + 1), time_to_name.size()); // assuming getNNThreshold() >= -1
       std::vector<Int> constraints;
       const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
 
@@ -169,7 +169,7 @@ namespace OpenMS
         }
 
         double score_1 = computeScore_(feature_row1[i]);
-        const Size n_score_weights = getScoreWeights().size();
+        const Size n_score_weights = parameters_.score_weights.size();
 
         if (n_score_weights > 1)
         {
@@ -354,7 +354,7 @@ namespace OpenMS
   double MRMFeatureSelector::computeScore_(const Feature& feature) const
   {
     double score_1 = 1.0;
-    for (const std::pair<String, LambdaScore>& score_weight : score_weights_)
+    for (const std::pair<String, LambdaScore>& score_weight : parameters_.score_weights)
     {
       const String& metavalue_name = score_weight.first;
       const LambdaScore lambda_score = score_weight.second;
@@ -401,83 +401,93 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureSelector::setNNThreshold(const Int nn_threshold)
+  void MRMFeatureSelectorQMIP::setNNThreshold(const Int nn_threshold)
   {
-    nn_threshold_ = nn_threshold;
+    parameters_.nn_threshold = nn_threshold;
   }
 
-  Int MRMFeatureSelector::getNNThreshold() const
+  Int MRMFeatureSelectorQMIP::getNNThreshold() const
   {
-    return nn_threshold_;
+    return parameters_.nn_threshold;
   }
 
-  void MRMFeatureSelector::setLocalityWeight(const bool locality_weight)
+  void MRMFeatureSelectorQMIP::setLocalityWeight(const bool locality_weight)
   {
-    locality_weight_ = locality_weight;
+    parameters_.locality_weight = locality_weight;
   }
 
-  bool MRMFeatureSelector::getLocalityWeight() const
+  bool MRMFeatureSelectorQMIP::getLocalityWeight() const
   {
-    return locality_weight_;
+    return parameters_.locality_weight;
   }
 
   void MRMFeatureSelector::setSelectTransitionGroup(const bool select_transition_group)
   {
-    select_transition_group_ = select_transition_group;
+    parameters_.select_transition_group = select_transition_group;
   }
 
   bool MRMFeatureSelector::getSelectTransitionGroup() const
   {
-    return select_transition_group_;
+    return parameters_.select_transition_group;
   }
 
   void MRMFeatureSelector::setSegmentWindowLength(const Int segment_window_length)
   {
-    segment_window_length_ = segment_window_length;
+    parameters_.segment_window_length = segment_window_length;
   }
 
   Int MRMFeatureSelector::getSegmentWindowLength() const
   {
-    return segment_window_length_;
+    return parameters_.segment_window_length;
   }
 
   void MRMFeatureSelector::setSegmentStepLength(const Int segment_step_length)
   {
-    segment_step_length_ = segment_step_length;
+    parameters_.segment_step_length = segment_step_length;
   }
 
   Int MRMFeatureSelector::getSegmentStepLength() const
   {
-    return segment_step_length_;
+    return parameters_.segment_step_length;
   }
 
   void MRMFeatureSelector::setVariableType(const VariableType variable_type)
   {
-    variable_type_ = variable_type;
+    parameters_.variable_type = variable_type;
   }
 
   MRMFeatureSelector::VariableType MRMFeatureSelector::getVariableType() const
   {
-    return variable_type_;
+    return parameters_.variable_type;
   }
 
   void MRMFeatureSelector::setOptimalThreshold(const double optimal_threshold)
   {
-    optimal_threshold_ = optimal_threshold;
+    parameters_.optimal_threshold = optimal_threshold;
   }
 
   double MRMFeatureSelector::getOptimalThreshold() const
   {
-    return optimal_threshold_;
+    return parameters_.optimal_threshold;
   }
 
   void MRMFeatureSelector::setScoreWeights(const std::map<String, LambdaScore>& score_weights)
   {
-    score_weights_ = score_weights;
+    parameters_.score_weights = score_weights;
   }
 
   std::map<String, MRMFeatureSelector::LambdaScore> MRMFeatureSelector::getScoreWeights() const
   {
-    return score_weights_;
+    return parameters_.score_weights;
+  }
+
+  void MRMFeatureSelector::setSelectorParameters(const SelectorParameters& parameters)
+  {
+    parameters_ = parameters;
+  }
+
+  MRMFeatureSelector::SelectorParameters MRMFeatureSelector::getSelectorParameters() const
+  {
+    return parameters_;
   }
 }

@@ -72,6 +72,42 @@ public:
     friend class MRMFeatureSelector_test;
 
     /**
+      Structure to easily feed the parameters to the `MRMFeatureSelector` derived classes
+    */
+    struct SelectorParameters
+    {
+      SelectorParameters() = default;
+
+      SelectorParameters(
+        Int nn,
+        bool lw,
+        bool stg,
+        Int swl,
+        Int ssl,
+        MRMFeatureSelector::VariableType vt,
+        double ot,
+        std::map<String, MRMFeatureSelector::LambdaScore>& sw
+      ) :
+        nn_threshold(nn),
+        locality_weight(lw),
+        select_transition_group(stg),
+        segment_window_length(swl),
+        segment_step_length(ssl),
+        variable_type(vt),
+        optimal_threshold(ot),
+        score_weights(sw) {}
+
+      Int    nn_threshold            = 4; ///< Nearest neighbor threshold: the number of components or component groups to the left and right to include in the optimization problem (i.e. number of nearest compounds by Tr to include in network)
+      bool   locality_weight         = false; ///< Weight compounds with a nearer Tr greater than compounds with a further Tr
+      bool   select_transition_group = true; ///< Use components groups instead of components for retention time optimization
+      Int    segment_window_length   = 8; ///< Number of components or component groups to include in the network
+      Int    segment_step_length     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
+      MRMFeatureSelector::VariableType variable_type = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
+      double optimal_threshold       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
+      std::map<String, MRMFeatureSelector::LambdaScore> score_weights; ///< Weights for the scores
+    };
+
+    /**
       Derived classes implement this pure virtual method.
 
       It sets up the linear programming problem and solves it.
@@ -87,18 +123,15 @@ public:
     ) = 0;
 
     /**
-      Splits the features into time segments. `optimize()` method is run on each of these segments.
+      The features are sorted by retention time and splitted into segments with
+      the given step and window length. The features are then selected based on
+      the results of `optimize()` method applied to each segment. The segments
+      may overlap.
 
       @param[in] features Input features
       @param[out] selected_filtered Output features
     */
     void selectMRMFeature(const FeatureMap& features, FeatureMap& selected_filtered);
-
-    void setNNThreshold(const Int nn_threshold);
-    Int getNNThreshold() const;
-
-    void setLocalityWeight(const bool locality_weight);
-    bool getLocalityWeight() const;
 
     void setSelectTransitionGroup(const bool select_transition_group);
     bool getSelectTransitionGroup() const;
@@ -118,7 +151,12 @@ public:
     void setScoreWeights(const std::map<String, LambdaScore>& score_weights);
     std::map<String, LambdaScore> getScoreWeights() const;
 
+    void setSelectorParameters(const SelectorParameters& parameters);
+    SelectorParameters getSelectorParameters() const;
+
 protected:
+    SelectorParameters parameters_; ///< Stores the parameters for the MRMFeatureSelector (and derived) class
+
     /**
       Add variable to the LP problem instantiated in `optimize()`
 
@@ -169,15 +207,6 @@ protected:
     ) const;
 
 private:
-    Int    nn_threshold_            = 4; ///< Nearest neighbor threshold: the number of components or component groups to the left and right to include in the optimization problem (i.e. number of nearest compounds by Tr to include in network)
-    bool   locality_weight_         = false; ///< Weight compounds with a nearer Tr greater than compounds with a further Tr
-    bool   select_transition_group_ = true; ///< Use components groups instead of components for retention time optimization
-    Int    segment_window_length_   = 8; ///< Number of components or component groups to include in the network
-    Int    segment_step_length_     = 4; ///< Number of of components or component groups to shift the `segment_window_length` at each loop
-    MRMFeatureSelector::VariableType variable_type_ = MRMFeatureSelector::VariableType::CONTINUOUS; ///< INTEGER or CONTINUOUS
-    double optimal_threshold_       = 0.5; ///< Value above which the transition group or transition is considered optimal (0 < x < 1)
-    std::map<String, MRMFeatureSelector::LambdaScore> score_weights_; ///< Weights for the scores
-
     /**
       Construct the target transition's or transition group's retention times that
       will be used to score candidate features based on their deviation from the
@@ -236,6 +265,12 @@ public:
       const std::map<String, std::vector<Feature>>& feature_name_map,
       std::vector<String>& result
     );
+
+    void setNNThreshold(const Int nn_threshold);
+    Int getNNThreshold() const;
+
+    void setLocalityWeight(const bool locality_weight);
+    bool getLocalityWeight() const;
   };
 
   /**
