@@ -60,7 +60,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "Input: identification results");
+    registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
     setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML,fasta"));
     registerInputFile_("exp_design", "<file>", "", "Input: experimental design");
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
@@ -74,6 +74,20 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
+    StringList files = getStringList_("in");
+    IdXMLFile idXMLf;
+    IDMergerAlgorithm merger{};
+    for (String& file : files)
+    {
+      vector<ProteinIdentification> prots;
+      vector<PeptideIdentification> peps;
+      idXMLf.load(file,prots,peps);
+      merger.insertRun(prots,peps);
+    }
+    vector<ProteinIdentification> mergedprots{1};
+    vector<PeptideIdentification> mergedpeps;
+    merger.returnResultsAndClear(mergedprots[0], mergedpeps);
+    idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
     return ExitCodes::EXECUTION_OK;
 
     /* That was test code for the old merger

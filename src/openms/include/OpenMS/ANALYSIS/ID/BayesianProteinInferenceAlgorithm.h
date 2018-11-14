@@ -61,6 +61,7 @@ namespace OpenMS
     /// connected components
     class GraphInferenceFunctor;
 
+
     /// Deprecated: A function object to pass into the IDBoostGraph class to perform algorithms on
     /// connected components and on the fly finding groups (no preannotation needed)
     class GraphInferenceFunctorNoGroups;
@@ -76,8 +77,11 @@ namespace OpenMS
     void inferPosteriorProbabilities(std::vector<PeptideIdentification> pepIdReplicates, ProteinIdentification& proteinIds, const String& db);
 
   private:
+    class AnnotateIndistGroupsFunctor;
+
     /// The grid search object initialized with a default grid
     GridSearch<double,double,double> grid{{0.008,0.032,0.128},{0.001},{0.5}};
+
   };
 }
 #endif // OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H

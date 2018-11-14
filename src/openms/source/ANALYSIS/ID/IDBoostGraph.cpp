@@ -152,7 +152,7 @@ namespace OpenMS
 
   //TODO actually to build the graph, the inputs could be passed const. But if you want to do sth
   //on the graph later it needs to be non-const. Overload this function or somehow make sure it can be used const.
-  void IDBoostGraph::buildGraph(Size use_top_psms, bool readstore_run_info)
+  void IDBoostGraph::buildGraphWithRunInfo(Size use_top_psms, bool readstore_run_info)
   {
     StringList runs;
     proteins_.getPrimaryMSRunPath(runs);
@@ -201,6 +201,60 @@ namespace OpenMS
         IDPointer pepPtr(&(*pepIt));
         vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
         pepHitVtx_to_run_[pepV] = run;
+
+        for (auto const & proteinAcc : pepIt->extractProteinAccessionsSet())
+        {
+          // assumes protein is present
+          auto accToPHit = accession_map.find(std::string(proteinAcc));
+          if (accToPHit == accession_map.end())
+          {
+            std::cout << "Warning: Building graph: skipping pep that maps to a non existent protein accession.";
+            continue;
+          }
+          //TODO consider/calculate missing digests. Probably not here though!
+          //int missingTheorDigests = accToPHit->second->getMetaValue("missingTheorDigests");
+          //accToPHit->second->setMetaValue("missingTheorDigests", missingTheorDigests);
+
+          IDPointer prot(accToPHit->second);
+          vertex_t protV = addVertexWithLookup_(prot, vertex_map);
+          boost::add_edge(protV, pepV, g);
+        }
+      }
+      pl.nextProgress();
+    }
+    pl.endProgress();
+  }
+
+  //TODO actually to build the graph, the inputs could be passed const. But if you want to do sth
+  //on the graph later it needs to be non-const. Overload this function or somehow make sure it can be used const.
+  void IDBoostGraph::buildGraph(Size use_top_psms)
+  {
+    StringList runs;
+    proteins_.getPrimaryMSRunPath(runs);
+    //TODO add support for (consensus) feature information
+
+    unordered_map<IDPointer, vertex_t, boost::hash<IDPointer>> vertex_map{};
+
+    unordered_map<string, ProteinHit*> accession_map{};
+
+    for (auto& prot : proteins_.getHits())
+    {
+      accession_map[prot.getAccession()] = &prot;
+    }
+
+    ProgressLogger pl;
+    pl.setLogType(ProgressLogger::CMD);
+    pl.startProgress(0, idedSpectra_.size(), "Building graph...");
+    for (auto& spectrum : idedSpectra_)
+    {
+      //TODO add psm regularizer nodes here optionally if using multiple psms (i.e. forcing them, so that only 1 or maybe 2 are present per spectrum)
+      auto pepIt = spectrum.getHits().begin();
+      //TODO sort or assume sorted
+      auto pepItEnd = use_top_psms == 0 || spectrum.getHits().empty() ? spectrum.getHits().end() : spectrum.getHits().begin() + use_top_psms;
+      for (; pepIt != pepItEnd; ++pepIt)
+      {
+        IDPointer pepPtr(&(*pepIt));
+        vertex_t pepV = addVertexWithLookup_(pepPtr, vertex_map);
 
         for (auto const & proteinAcc : pepIt->extractProteinAccessionsSet())
         {

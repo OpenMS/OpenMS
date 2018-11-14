@@ -298,6 +298,8 @@ namespace OpenMS
         entry.second.first->setMetaValue("nr_found_peptides", entry.second.second);
       }
     }
+     prot_run.setScoreType("Posterior Probability");
+     prot_run.setHigherScoreBetter(true);
     //TODO Allow count as aggregation method -> i.e. set as protein score?
   }
 } //namespace OpenMS

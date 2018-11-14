@@ -46,6 +46,47 @@ using namespace std;
 
 namespace OpenMS
 {
+  /// Only works if ProteinGroup nodes are present, which is the case when used in this class
+  //TODO private
+  class BayesianProteinInferenceAlgorithm::AnnotateIndistGroupsFunctor :
+      public std::function<void(IDBoostGraph::Graph&)>
+  {
+  public:
+    void operator() (IDBoostGraph::Graph& fg) {
+      // this skips CCs with just peps or prots. We only add edges between different types.
+      // and if there were no edges, it would not be a CC.
+      if (boost::num_vertices(fg) >= 2)
+      {
+        IDBoostGraph::Graph::vertex_iterator ui, ui_end;
+        boost::tie(ui,ui_end) = boost::vertices(fg);
+
+        for (; ui != ui_end; ++ui)
+        {
+          if (fg[*ui].which() == 1) //prot group
+          {
+            ProteinIdentification::ProteinGroup pg{};
+            pg.probability = -1.0; //init
+            IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
+            boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
+
+            ProteinHit *proteinPtr = nullptr;
+            for (; nbIt != nbIt_end; ++nbIt)
+            {
+              if (fg[*nbIt].which() == 0)
+              {
+                proteinPtr = boost::get<ProteinHit*>(fg[*nbIt]);
+                pg.accessions.push_back(proteinPtr->getAccession());
+              }
+            }
+            // TODO this takes score of last protein of group as representative
+            // currently the scores should all be the same, so this is okay.
+            pg.probability = proteinPtr->getScore();
+          }
+        }
+      }
+    }
+  };
+
   /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
   class BayesianProteinInferenceAlgorithm::GraphInferenceFunctor :
       public std::function<void(IDBoostGraph::Graph&)>
@@ -58,12 +99,11 @@ namespace OpenMS
     {}
 
     void operator() (IDBoostGraph::Graph& fg) {
-      //------------------ Now actual inference ------------------- //
-      // Skip cc without peptide or protein
-      //TODO this currently does not work because we do not filter edges I think
-      //TODO introduce edge types or skip nodes without neighbors inside the if instead
       //TODO do quick bruteforce calculation if the cc is really small
-      if (boost::num_vertices(fg) >= 3)
+
+      // this skips CCs with just peps or prots. We only add edges between different types.
+      // and if there were no edges, it would not be a CC.
+      if (boost::num_vertices(fg) >= 2)
       {
         MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:pep_emission"),
                                                  param_.getValue("model_parameters:pep_spurious_emission"),
@@ -128,7 +168,6 @@ namespace OpenMS
             bigb.insert_dependency(mpf.createProteinFactor(*ui));
             posteriorVars.push_back({*ui});
           }
-
         }
 
         // create factor graph for Bayesian network
@@ -143,7 +182,7 @@ namespace OpenMS
         BeliefPropagationInferenceEngine<unsigned long> bpie(scheduler, ig);
         auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
 
-        //TODO play around with adjusted peptide posteriors that you could also easily request here.
+        //TODO you could also save the indices of the peptides here and request + update their posteriors, too.
         for (auto const& posteriorFactor : posteriorFactors)
         {
           double posterior = 0.0;
@@ -157,6 +196,8 @@ namespace OpenMS
           auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
           boost::apply_visitor(bound_visitor, fg[nodeId]);
         }
+        //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
+
       }
       else
       {
@@ -327,7 +368,7 @@ namespace OpenMS
 
     // init empty graph
     IDBoostGraph ibg(proteinIds, pepIdConcatReplicates);
-    ibg.buildGraph(param_.getValue("all_PSMs").toBool());
+    ibg.buildGraph(param_.getValue("nr_PSMs").toBool());
     ibg.computeConnectedComponents();
     ibg.clusterIndistProteinsAndPeptides();
 
@@ -403,7 +444,7 @@ namespace OpenMS
 
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
-    ibg.buildGraph(param_.getValue("all_PSMs").toBool());
+    ibg.buildGraph(param_.getValue("nr_PSMs").toInt());
     ibg.computeConnectedComponents();
     ibg.clusterIndistProteinsAndPeptides();
 
@@ -443,6 +484,9 @@ namespace OpenMS
 
   void BayesianProteinInferenceAlgorithm::inferPosteriorProbabilities(std::vector<ProteinIdentification>& proteinIDs, std::vector<PeptideIdentification>& peptideIDs)
   {
+
+    //TODO think about how to include missing peptides
+    /*
     // get enzyme settings from peptideID
     const DigestionEnzymeProtein enzyme = proteinIDs[0].getSearchParameters().digestion_enzyme;
     Size missed_cleavages = proteinIDs[0].getSearchParameters().missed_cleavages;
@@ -461,7 +505,8 @@ namespace OpenMS
         {
           tempDigests.clear();
           //TODO check which peptide lengths we should support. Parameter?
-          /*Size nrDiscarded = */ ed.digestUnmodified(protein.getSequence(), tempDigests);
+          //Size nrDiscarded =
+          ed.digestUnmodified(protein.getSequence(), tempDigests);
           //TODO add the discarded digestions products, too?
           protein.setMetaValue("missingTheorDigests", tempDigests.size());
         }
@@ -471,7 +516,7 @@ namespace OpenMS
           std::cerr << "Protein sequence not annotated" << std::endl;
         }
       }
-    }
+    }*/
 
     //TODO would be better if we set this after inference but only here we currently have
     // non-const access.
@@ -481,7 +526,7 @@ namespace OpenMS
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
     //TODO make run info parameter
-    ibg.buildGraph(param_.getValue("all_PSMs").toBool(), true);
+    ibg.buildGraph(param_.getValue("nr_PSMs"));
     ibg.computeConnectedComponents();
     ibg.clusterIndistProteinsAndPeptides();
 
@@ -497,7 +542,7 @@ namespace OpenMS
     //We have to do it on a whole dataset basis though (all CCs). -> I have to refactor to actually store as much
     //as possible (it would be cool to store the inference graph but this is probably not possible bc that is why
     //I split up in CCs.
-    // OR I could save the outputs! One value for every protein, per parameter set.
+    // OR you could save the outputs! One value for every protein, per parameter set.
 
     vector<double> gamma_search{0.5};
     vector<double> beta_search{0.001};
@@ -509,10 +554,19 @@ namespace OpenMS
 
     std::array<size_t, 3> bestParams{{0, 0, 0}};
     //TODO run grid search on reduced graph?
-    //TODO if not, think about storing results temporary and only keep the best in the end
+    //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
     gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
 
     std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
+    double bestGamma = gamma_search[bestParams[0]];
+    double bestBeta = gamma_search[bestParams[1]];
+    double bestAlpha = gamma_search[bestParams[2]];
+    std::cout << "Running with best parameters again." << std::endl;
+    param_.setValue("model_parameters:prot_prior", bestGamma);
+    param_.setValue("model_parameters:pep_emission", bestAlpha);
+    param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
+    ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
+    ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor());
 
     //TODO write graphfile?
     //TODO let user modify Grid for GridSearch and/or provide some more default settings

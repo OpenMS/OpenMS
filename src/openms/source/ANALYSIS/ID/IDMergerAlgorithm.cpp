@@ -94,17 +94,23 @@ namespace OpenMS
       ProteinIdentification& prots,
       vector<PeptideIdentification>& peps)
   {
-    StringList newOrigins{fileOriginToIdx.size()};
+    // convert the map from file origin to idx into
+    // a vector
+    StringList newOrigins(fileOriginToIdx.size());
     for (auto& entry : fileOriginToIdx)
     {
       newOrigins[entry.second] = std::move(entry.first);
     }
+    // currently setPrimaryMSRunPath does not support move (const ref)
     protResult.setPrimaryMSRunPath(std::move(newOrigins));
     std::swap(prots, protResult);
     std::swap(peps, pepResult);
+    //reset so the new result is usable right away
     protResult = ProteinIdentification{};
     protResult.setIdentifier(getNewIdentifier_());
+    //clear, if user gave non-empty vector
     pepResult.clear();
+    //reset internals
     fileOriginToIdx.clear();
     proteinsCollected.clear();
   }
@@ -132,6 +138,15 @@ namespace OpenMS
     {
       StringList toFill{};
       protRun.getPrimaryMSRunPath(toFill);
+      if (toFill.empty() && annotate_origin)
+      {
+        throw Exception::MissingInformation(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "Annotation of origin requested during merge, but no origin present in run "
+            + protRun.getIdentifier() + ".");
+      }
       originFiles.push_back(toFill);
       for (String& f : toFill)
       {

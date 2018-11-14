@@ -1055,6 +1055,96 @@ public:
                                  all_peptides);
     }
 
+    /// Filters PeptideIdentifications with no hits
+    static void filterEmptyPeptideIDs(std::vector<PeptideIdentification>& pep_ids)
+    {
+      pep_ids.erase(std::remove_if(pep_ids.begin(), pep_ids.end(),
+                                  [](PeptideIdentification& p){return p.getHits().empty();}));
+
+    }
+
+    /// Filters PeptideHits from PeptideIdentification by keeping only the best peptide hits for every peptide sequence
+    static void filterBestPerPeptide(std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+
+      annotateBestPerPeptide(pep_ids, ignore_mods, ignore_charges, nr_best_spectrum);
+
+      for (auto &pep : pep_ids)
+      {
+        auto& hits = pep.getHits();
+        hits.erase(std::remove_if(hits.begin(), hits.end(),
+                                     [](PeptideHit& p){return !p.metaValueExists("bestForItsPep") || !p.getMetaValue("bestForItsPep").toBool();}));
+      }
+
+    }
+
+    /// Annotates PeptideHits from PeptideIdentification if it is the best peptide hit for its peptide sequence
+    /// Adds metavalue "bestForItsPeps" which can be used for additional filtering.
+    static void annotateBestPerPeptide(std::vector<PeptideIdentification>& pep_ids, bool ignore_mods, bool ignore_charges, Size nr_best_spectrum)
+    {
+      std::unordered_map<std::string, std::map<Int, PeptideHit*>> best_pep;
+      for (auto &pep : pep_ids)
+      {
+        bool higher_score_better = pep.isHigherScoreBetter();
+        //skip if no hits (which almost could be considered and error or warning.
+        if (pep.getHits().empty())
+          continue;
+        //make sure that first = best hit
+        pep.sort();
+
+        //TODO think about if using any but the best PSM per spectrum makes sense in such a simple aggregation scheme
+        //for (auto& hit : pep.getHits())
+        //{
+        auto pepIt = pep.getHits().begin();
+        //TODO sort or assume sorted
+        auto pepItEnd = nr_best_spectrum == 0 || pep.getHits().empty() ? pep.getHits().end() : pep.getHits().begin() + nr_best_spectrum;
+        for (; pepIt != pepItEnd; ++pepIt)
+        {
+          PeptideHit &hit = pep.getHits()[0];
+
+          String lookup_seq;
+          if (ignore_mods)
+          {
+            lookup_seq = hit.getSequence().toUnmodifiedString();
+          }
+          else
+          {
+            lookup_seq = hit.getSequence().toString();
+          }
+
+          int lookup_charge = 0;
+          if (!ignore_charges)
+          {
+            lookup_charge = hit.getCharge();
+          }
+
+          auto it_inserted = best_pep.emplace(std::move(lookup_seq), std::map<Int, PeptideHit*>());
+          auto it_inserted_chg = it_inserted.first->second.emplace(lookup_charge, &hit);
+          PeptideHit* &p = it_inserted_chg.first->second; //either the old one if already present, or this
+          if (!it_inserted_chg.second) //was already present -> possibly update
+          {
+            if (
+                (higher_score_better && (hit.getScore() > p->getScore())) ||
+                (!higher_score_better && (hit.getScore() < p->getScore()))
+                )
+            {
+              p->setMetaValue("bestForItsPep", false);
+              hit.setMetaValue("bestForItsPep", true);
+              p = &hit;
+            }
+            else //note that this was def. not the best
+            {
+              hit.setMetaValue("bestForItsPep", false);
+            }
+          }
+          else //first for that sequence (and optionally charge)
+          {
+            hit.setMetaValue("bestForItsPep", true);
+          }
+        }
+      }
+    }
+
     /// Filters an MS/MS experiment according to the given proteins
     static void keepHitsMatchingProteins(
       PeakMap& experiment,

@@ -57,6 +57,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDBoostGraph.h>
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
@@ -1175,19 +1176,29 @@ protected:
     //-------------------------------------------------------------
     // TODO: Think about ProteinInference on IDs only merged per condition
     // TODO: Output coverage on protein (and group level?)
-    // TODO: Expose parameters
+    // TODO: Expose algorithm choice and their parameters
+    bool bayesian = true;
+    bool fido = false;
+    if (!bayesian)
     {
       BasicProteinInferenceAlgorithm bpia;
       bpia.run(inferred_peptide_ids, inferred_protein_ids);
-    }
 
-    { // graph uses some memory, delete after annotation
       IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids};
-      ibg.buildGraph(0, false);
+      ibg.buildGraph(0);
       ibg.computeConnectedComponents();
       ibg.annotateIndistProteins(true);
     }
-
+    else if (!fido)
+    {
+      //should be okay if we filter the hits here. protein quantifier
+      //uses the annotations in the consensusXML anyway
+      IDFilter::filterBestPerPeptide(inferred_peptide_ids, true, true, 1);
+      IDFilter::filterEmptyPeptideIDs(inferred_peptide_ids);
+      BayesianProteinInferenceAlgorithm bayes;
+      //bayesian inference automatically annotates groups
+      bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids);
+    }
 
     //-------------------------------------------------------------
     // Protein (and additional peptide) FDR
