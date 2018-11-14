@@ -104,26 +104,23 @@ namespace OpenMS
       exportStepsAndScoresToMzTab_(identified.steps_and_scores,
                                    row.search_engine,
                                    row.best_search_engine_score, score_map);
-      // generate one entry (with duplicated data) for every accession:
-      bool unique = (identified.parent_matches.size() == 1);
-      for (const auto& match_pair : identified.parent_matches)
-      {
-        const String& accession = match_pair.first->accession;
-        row.accession.set(accession);
-        row.unique.set(unique);
-        if (match_pair.second.empty())
-        {
-          output.push_back(row);
-        }
-        else
-        {
-          addMzTabMoleculeParentContext_(match_pair.second, row, output);
-        }
-      }
-      if (identified.parent_matches.empty())
+      if (identified.parent_matches.empty()) // no parent information given
       {
         // row.unique.set(false); // leave this unset?
         output.push_back(row);
+      }
+      else // generate entries (with duplicated data) for every accession
+      {
+        bool unique = (identified.parent_matches.size() == 1);
+        for (const auto& match_pair : identified.parent_matches)
+        {
+          const String& accession = match_pair.first->accession;
+          MzTabSectionRow copy = row;
+          copy.accession.set(accession);
+          copy.unique.set(unique);
+          addMzTabMoleculeParentContext_(match_pair.second, copy);
+          output.push_back(copy);
+        }
       }
     }
 
@@ -179,14 +176,12 @@ namespace OpenMS
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - oligonucleotide variant
     static void addMzTabMoleculeParentContext_(
       const std::set<IdentificationData::MoleculeParentMatch>& matches,
-      const MzTabOligonucleotideSectionRow& row,
-      std::vector<MzTabOligonucleotideSectionRow>& output);
+      MzTabOligonucleotideSectionRow& row);
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - peptide variant
     static void addMzTabMoleculeParentContext_(
       const std::set<IdentificationData::MoleculeParentMatch>& matches,
-      const MzTabPeptideSectionRow& row,
-      std::vector<MzTabPeptideSectionRow>& output);
+      MzTabPeptideSectionRow& row);
 
     /// Helper function to import DB search parameters from legacy format
     static IdentificationData::SearchParamRef importDBSearchParameters_(

@@ -693,6 +693,18 @@ namespace OpenMS
                       meta.oligonucleotide_search_engine_score);
     addMzTabSEScores_(osm_scores, meta.osm_search_engine_score);
 
+    // sort rows:
+    sort(proteins.begin(), proteins.end(),
+         MzTabProteinSectionRow::RowCompare());
+    sort(peptides.begin(), peptides.end(),
+         MzTabPeptideSectionRow::RowCompare());
+    sort(psms.begin(), psms.end(), MzTabPSMSectionRow::RowCompare());
+    sort(nucleic_acids.begin(), nucleic_acids.end(),
+         MzTabNucleicAcidSectionRow::RowCompare());
+    sort(oligos.begin(), oligos.end(),
+         MzTabOligonucleotideSectionRow::RowCompare());
+    sort(osms.begin(), osms.end(), MzTabOSMSectionRow::RowCompare());
+
     MzTab output;
     output.setMetaData(meta);
     output.setProteinSectionRows(proteins);
@@ -781,53 +793,49 @@ namespace OpenMS
 
   void IdentificationDataConverter::addMzTabMoleculeParentContext_(
     const set<IdentificationData::MoleculeParentMatch>& matches,
-    const MzTabOligonucleotideSectionRow& row,
-    vector<MzTabOligonucleotideSectionRow>& output)
+    MzTabOligonucleotideSectionRow& row)
   {
     for (const IdentificationData::MoleculeParentMatch& match : matches)
     {
-      MzTabOligonucleotideSectionRow copy = row;
       if (match.left_neighbor ==
           String(IdentificationData::MoleculeParentMatch::LEFT_TERMINUS))
       {
-        copy.pre.set("-");
+        row.pre.set("-");
       }
       else if (match.left_neighbor != String(
                  IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
       {
-        copy.pre.set(match.left_neighbor);
+        row.pre.set(match.left_neighbor);
       }
       if (match.right_neighbor ==
           String(IdentificationData::MoleculeParentMatch::RIGHT_TERMINUS))
       {
-        copy.post.set("-");
+        row.post.set("-");
       }
       else if (match.right_neighbor != String(
                  IdentificationData::MoleculeParentMatch::UNKNOWN_NEIGHBOR))
       {
-        copy.post.set(match.right_neighbor);
+        row.post.set(match.right_neighbor);
       }
       if (match.start_pos !=
           IdentificationData::MoleculeParentMatch::UNKNOWN_POSITION)
       {
-        copy.start.set(String(match.start_pos + 1));
+        row.start.set(String(match.start_pos + 1));
       }
       if (match.end_pos !=
           IdentificationData::MoleculeParentMatch::UNKNOWN_POSITION)
       {
-        copy.end.set(String(match.end_pos + 1));
+        row.end.set(String(match.end_pos + 1));
       }
-      output.push_back(copy);
     }
   }
 
 
   void IdentificationDataConverter::addMzTabMoleculeParentContext_(
     const set<IdentificationData::MoleculeParentMatch>& /* matches */,
-    const MzTabPeptideSectionRow& row,
-    vector<MzTabPeptideSectionRow>& output)
+    MzTabPeptideSectionRow& /* row */)
   {
-    output.push_back(row);
+    // nothing to do here
   }
 
 
