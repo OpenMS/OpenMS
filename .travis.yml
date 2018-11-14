@@ -21,6 +21,7 @@ addons:
          - sourceline: 'ppa:beineri/opt-qt593-xenial'
       packages:
          - cmake
+         - libgl1-mesa-dev
          - qt59base
          - qt59svg
          - cmake-data
