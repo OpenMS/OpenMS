@@ -12,6 +12,7 @@ cache:
 env:
   globale:
     - CCACHE_TEMPDIR=/tmp/.ccache-temp
+    - CXX=g++-7
 addons:
    apt:
       sources:
