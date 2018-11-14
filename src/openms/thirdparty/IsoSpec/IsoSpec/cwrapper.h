@@ -110,6 +110,8 @@ const double* probsLayeredTabulator(void* tabulator);
 const int*    confsLayeredTabulator(void* tabulator);
 int confs_noLayeredTabulator(void* tabulator);
 
+void freeReleasedArray(void* array);
+
 #ifdef __cplusplus
 }
 #endif

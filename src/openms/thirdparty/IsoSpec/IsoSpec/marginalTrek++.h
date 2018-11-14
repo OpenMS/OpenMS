@@ -218,7 +218,7 @@ protected:
     unsigned int no_confs;
     double* masses;
     double* lProbs;
-    double* eProbs;
+    double* probs;
     Allocator<int> allocator;
 public:
     //! The move constructor (disowns the Marginal).
@@ -258,7 +258,7 @@ public:
         \param idx The number of the considered subisotopologue.
         \return The probability of the idx-th subisotopologue.
     */
-    inline const double& get_eProb(int idx) const { return eProbs[idx]; };
+    inline const double& get_prob(int idx) const { return probs[idx]; };
 
     //! Get the mass of the idx-th subisotopologue.
     /*!

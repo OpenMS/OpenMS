@@ -24,14 +24,14 @@ public:
 
     ~Tabulator();
 
-    inline double*   masses()   { return _masses; };
-    inline double*   lprobs()   { return _lprobs; };
-    inline double*   probs()    { return _probs; };
-    inline int*      confs()    { return _confs; };
+    inline double*   masses(bool release = false)   { double* ret = _masses; if(release) _masses = nullptr; return ret; };
+    inline double*   lprobs(bool release = false)   { double* ret = _lprobs; if(release) _lprobs = nullptr; return ret; };
+    inline double*   probs(bool release = false)    { double* ret = _probs;  if(release) _probs  = nullptr; return ret; };
+    inline int*      confs(bool release = false)    { int*    ret = _confs;  if(release) _confs  = nullptr; return ret; };
     inline size_t    confs_no() { return _confs_no; };
 };
 
-void reallocate(double **array, int new_size){
+inline void reallocate(double **array, int new_size){
     if( *array != nullptr ){
         *array = (double *) realloc(*array, new_size);
     }

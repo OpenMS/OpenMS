@@ -321,7 +321,7 @@ public:
             if(partialLProbs[idx] + maxConfsLPSum[idx-1] >= Lcutoff)
             {
                 partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-                partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+                partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
                 recalc(idx-1);
                 return true;
             }
@@ -334,7 +334,7 @@ public:
 
     ISOSPEC_FORCE_INLINE double lprob() const override final { return partialLProbs_second_val + (*(lProbs_ptr)); };
     ISOSPEC_FORCE_INLINE double mass()  const override final { return partialMasses[1] + marginalResults[0]->get_mass(lProbs_ptr - lProbs_ptr_start); };
-    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_eProb(lProbs_ptr - lProbs_ptr_start); };
+    ISOSPEC_FORCE_INLINE double prob()  const override final { return partialProbs[1] * marginalResults[0]->get_prob(lProbs_ptr - lProbs_ptr_start); };
 
     //! Block the subsequent search of isotopologues.
     void terminate_search();
@@ -359,7 +359,7 @@ private:
         {
             partialLProbs[idx] = partialLProbs[idx+1] + marginalResults[idx]->get_lProb(counter[idx]);
             partialMasses[idx] = partialMasses[idx+1] + marginalResults[idx]->get_mass(counter[idx]);
-            partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_eProb(counter[idx]);
+            partialProbs[idx] = partialProbs[idx+1] * marginalResults[idx]->get_prob(counter[idx]);
         }
         partialLProbs_second_val = *partialLProbs_second;
         partialLProbs[0] = *partialLProbs_second + marginalResults[0]->get_lProb(counter[0]);

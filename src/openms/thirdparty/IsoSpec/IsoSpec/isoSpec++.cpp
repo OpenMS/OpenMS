@@ -586,7 +586,9 @@ IsoLayeredGenerator::IsoLayeredGenerator( Iso&&     iso,
 ) : IsoGenerator(std::move(iso)),
 allocator(dimNumber, _tabSize),
 candidate(new int[dimNumber]),
-targetCoverage(_targetCoverage),
+targetCoverage(_targetCoverage >= 1.0 ? 10000.0 : _targetCoverage), // If the user wants the entire spectrum,
+                                                                    // give it to him - and make sure we don't terminate
+                                                                    // early because of rounding errors
 percentageToExpand(_percentageToExpand),
 do_trim(trim),
 layers(0),
@@ -744,7 +746,7 @@ bool IsoLayeredGenerator::advanceToNextLayer()
                     // Partition part
 
                     int len = end - start;
-#ifdef BUILDING_R
+#if ISOSPEC_BUILDING_R
             int pivot = len/2 + start;  // We're very definitely NOT switching to R to use a RNG, and if R sees us use C RNG it complains...
 #else
             int pivot = rand() % len + start;
