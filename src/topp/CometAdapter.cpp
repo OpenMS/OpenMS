@@ -125,7 +125,6 @@ protected:
       "comet.exe",
       "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
     registerStringOption_("comet_version","<choice>", "2016.01 rev. 2","comet version: (year,version,revision)",false,false); //required as first line in the param file
-    setValidStrings_("comet_version", ListUtils::create<String>("2016.01 rev. 2,2016.01 rev. 3,2017.01 rev. 0beta"));
 
     //
     // Optional parameters
