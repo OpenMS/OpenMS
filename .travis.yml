@@ -26,16 +26,16 @@ addons:
          - cmake-data
          - g++-4.8
          - python-dev
-         - libboost-chrono1.55-dev
-         - libboost-date-time1.55-dev
-         - libboost-filesystem1.55-dev
-         - libboost-iostreams1.55-dev
-         - libboost-math1.55-dev
-         - libboost-python1.55-dev
-         - libboost-regex1.55-dev
-         - libboost-serialization1.55-dev
-         - libboost-system1.55-dev
-         - libboost-thread1.55-dev
+         - libboost-chrono1.58-dev
+         - libboost-date-time1.58-dev
+         - libboost-filesystem1.58-dev
+         - libboost-iostreams1.58-dev
+         - libboost-math1.58-dev
+         - libboost-python1.58-dev
+         - libboost-regex1.58-dev
+         - libboost-serialization1.58-dev
+         - libboost-system1.58-dev
+         - libboost-thread1.58-dev
          - libxerces-c3.1
          - libxerces-c-dev
          - libicu-dev
