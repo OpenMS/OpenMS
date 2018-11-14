@@ -1137,8 +1137,6 @@ protected:
       }
     }
 
-      // TODO: check if it makes sense to integrate SVT imputation algorithm (branch)
-
     //-------------------------------------------------------------
     // Protein inference
     //-------------------------------------------------------------

@@ -1128,18 +1128,18 @@ public:
                 (!higher_score_better && (hit.getScore() < p->getScore()))
                 )
             {
-              p->setMetaValue("bestForItsPep", false);
-              hit.setMetaValue("bestForItsPep", true);
+              p->setMetaValue("bestForItsPep", "false");
+              hit.setMetaValue("bestForItsPep", "true");
               p = &hit;
             }
             else //note that this was def. not the best
             {
-              hit.setMetaValue("bestForItsPep", false);
+              hit.setMetaValue("bestForItsPep", "false");
             }
           }
           else //first for that sequence (and optionally charge)
           {
-            hit.setMetaValue("bestForItsPep", true);
+            hit.setMetaValue("bestForItsPep", "true");
           }
         }
       }
