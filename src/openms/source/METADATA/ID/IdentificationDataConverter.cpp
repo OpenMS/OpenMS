@@ -478,7 +478,7 @@ namespace OpenMS
           {
             hit_copy.setMetaValue(it->first->name, it->second);
           }
-          prot_data[applied.processing_step_opt].first.push_back(hit);
+          prot_data[applied.processing_step_opt].first.push_back(hit_copy);
           prot_data[applied.processing_step_opt].second = scores[0].first;
           continue;
         }
