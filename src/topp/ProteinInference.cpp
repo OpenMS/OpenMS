@@ -174,7 +174,7 @@ protected:
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure
       // but it is quite fast right now.
       IDBoostGraph ibg{prot_ids[0], pep_ids};
-      ibg.buildGraph(false, false);
+      ibg.buildGraph(0);
       sw.start();
       //TODO allow computation without splitting into components. Might be worthwhile in some cases
       std::cout << "Splitting into connected components..." << std::endl;
