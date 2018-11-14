@@ -1,4 +1,4 @@
-dist: trusty
+dist: xenial
 sudo: false
 language: cpp
 os:
@@ -18,7 +18,7 @@ addons:
       sources:
          - ubuntu-toolchain-r-test
          - boost-latest
-         - sourceline: 'ppa:beineri/opt-qt591-trusty'
+         - sourceline: 'ppa:beineri/opt-qt593-xenial'
       packages:
          - cmake
          - qt59base
