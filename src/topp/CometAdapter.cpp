@@ -72,7 +72,7 @@ using namespace std;
 </CENTER>
 
     @em Comet must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with version 2016.01.2 of Comet.
+    has been successfully tested with version 2016.01.2, 2016.01.3 and 2017.01.0beta of Comet.
 
     Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
     By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
