@@ -53,14 +53,14 @@ public:
     /// Constructor
     Acquisition() = default;
     /// Copy constructor
-    Acquisition(const Acquisition & source) = default;
+    Acquisition(const Acquisition &) = default;
     /// Move constructor
     Acquisition(Acquisition&&) = default;
     /// Destructor
     ~Acquisition() = default;
 
     /// Assignment operator
-    Acquisition & operator=(const Acquisition & source) = default;
+    Acquisition & operator=(const Acquisition &) = default;
     /// Move assignment operator
     Acquisition& operator=(Acquisition&&) & = default;
 

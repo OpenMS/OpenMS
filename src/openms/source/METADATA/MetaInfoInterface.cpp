@@ -44,6 +44,7 @@ namespace OpenMS
   {
   }
 
+  /// Copy constructor
   MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs) :
     meta_(nullptr)
   {
@@ -53,8 +54,9 @@ namespace OpenMS
     }
   }
 
-  MetaInfoInterface::MetaInfoInterface(MetaInfoInterface&& rhs) :
-    meta_(rhs.meta_)
+  /// Move constructor
+  MetaInfoInterface::MetaInfoInterface(MetaInfoInterface&& rhs) noexcept :
+    meta_(std::move(rhs.meta_))
   {
     // take ownership
     rhs.meta_ = nullptr;
@@ -89,7 +91,7 @@ namespace OpenMS
     return *this;
   }
 
-  MetaInfoInterface& MetaInfoInterface::operator=(MetaInfoInterface&& rhs)
+  MetaInfoInterface& MetaInfoInterface::operator=(MetaInfoInterface&& rhs) noexcept
   {
     if (this == &rhs)
     {

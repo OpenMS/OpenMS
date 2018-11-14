@@ -201,7 +201,7 @@ protected:
       {}
 
       // By convention, if there is no (metabolic) compound name, it is a peptide 
-      bool isPeptide() 
+      bool isPeptide() const
       {
         return CompoundName.empty();
       }
@@ -259,11 +259,10 @@ private:
      *
      * @param line The header to be parsed
      * @param delimiter The delimiter which will be determined from the input
-     * @param header The fields of the header
      * @param header_dict The map which maps the fields in the header to their position
      *
     */
-    void getTSVHeader_(const std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
+    void getTSVHeader_(const std::string& line, char& delimiter, std::map<std::string, int>& header_dict) const;
 
     /** @brief Read tab or comma separated input with columns defined by their column headers only
      *
@@ -306,10 +305,10 @@ private:
     void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value);
 
     /// Populate a new TargetedExperiment::Peptide object from a row in the csv
-    void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
+    void createPeptide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
     /// Populate a new TargetedExperiment::Compound object (a metabolite) from a row in the csv
-    void createCompound_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Compound& compound);
+    void createCompound_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Compound& compound);
 
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
                           int location, const ResidueModification& rmod);
