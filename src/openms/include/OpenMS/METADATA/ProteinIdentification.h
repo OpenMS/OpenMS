@@ -127,14 +127,14 @@ public:
 
       SearchParameters();
       /// Copy constructor
-      SearchParameters(const SearchParameters & source) = default;
+      SearchParameters(const SearchParameters &) = default;
       /// Move constructor
       SearchParameters(SearchParameters&&) = default;
       /// Destructor
       ~SearchParameters() = default;
 
       /// Assignment operator
-      SearchParameters & operator=(const SearchParameters & source) = default;
+      SearchParameters & operator=(const SearchParameters &) = default;
       /// Move assignment operator
       SearchParameters& operator=(SearchParameters&&) & = default;
 
@@ -149,16 +149,16 @@ public:
     /// Default constructor
     ProteinIdentification();
     /// Copy constructor
-    ProteinIdentification(const ProteinIdentification& source) = default;
+    ProteinIdentification(const ProteinIdentification&) = default;
     /// Move constructor
     ProteinIdentification(ProteinIdentification&&) = default;
     /// Destructor
     virtual ~ProteinIdentification();
 
     /// Assignment operator
-    ProteinIdentification& operator=(const ProteinIdentification& source) = default;
+    ProteinIdentification& operator=(const ProteinIdentification&) = default;
     /// Move assignment operator
-    ProteinIdentification& operator=(ProteinIdentification&&) & = default;
+    ProteinIdentification& operator=(ProteinIdentification&&) = default;
 
     /// Equality operator
     bool operator==(const ProteinIdentification& rhs) const;
@@ -174,6 +174,8 @@ public:
     std::vector<ProteinHit> & getHits();
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
+    /// Appends a protein hit
+    void insertHit(ProteinHit && input);
 
     /**
         @brief Sets the protein hits

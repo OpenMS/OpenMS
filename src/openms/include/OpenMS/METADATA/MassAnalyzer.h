@@ -136,14 +136,14 @@ public:
     /// Constructor
     MassAnalyzer();
     /// Copy constructor
-    MassAnalyzer(const MassAnalyzer & source) = default;
+    MassAnalyzer(const MassAnalyzer &) = default;
     /// Move constructor
     MassAnalyzer(MassAnalyzer&&) = default;
     /// Destructor
     ~MassAnalyzer();
 
     /// Assignment operator
-    MassAnalyzer & operator=(const MassAnalyzer & source) = default;
+    MassAnalyzer & operator=(const MassAnalyzer&) = default;
     /// Move assignment operator
     MassAnalyzer& operator=(MassAnalyzer&&) & = default;
 

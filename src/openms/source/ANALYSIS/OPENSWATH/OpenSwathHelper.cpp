@@ -56,18 +56,18 @@ namespace OpenMS
   void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
                                       double& lower, double& upper)
   {
-    if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
+    if (swath_map.empty() || swath_map[0].getPrecursors().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Swath map has no Spectra");
     }
-    const std::vector<Precursor> first_prec = swath_map[0].getPrecursors();
+    const std::vector<Precursor>& first_prec = swath_map[0].getPrecursors();
     lower = first_prec[0].getMZ() - first_prec[0].getIsolationWindowLowerOffset();
     upper = first_prec[0].getMZ() + first_prec[0].getIsolationWindowUpperOffset();
     UInt expected_mslevel = swath_map[0].getMSLevel();
 
     for (Size index = 0; index < swath_map.size(); index++)
     {
-      const std::vector<Precursor> prec = swath_map[index].getPrecursors();
+      const std::vector<Precursor>& prec = swath_map[index].getPrecursors();
       if (prec.size() != 1)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " does not have exactly one precursor.");

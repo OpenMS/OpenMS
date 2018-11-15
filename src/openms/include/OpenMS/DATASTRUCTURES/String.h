@@ -154,7 +154,7 @@ public:
     //@}
 
     /// Assignment operator
-    OPENMS_DLLAPI String& operator=(const String& source) = default;
+    OPENMS_DLLAPI String& operator=(const String&) = default;
     /// Move assignment operator
     OPENMS_DLLAPI String& operator=(String&&) & = default;
 

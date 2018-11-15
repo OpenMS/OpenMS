@@ -51,76 +51,81 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment& exp_picked, const std::vector<MultiplexIsotopicPeakPattern>& patterns,
+  MultiplexFiltering::MultiplexFiltering(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns,
                                          int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band,
                                          double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity,
                                          double averagine_similarity_scaling, String averagine_type) :
-  exp_picked_(exp_picked), patterns_(patterns), isotopes_per_peptide_min_(isotopes_per_peptide_min), isotopes_per_peptide_max_(isotopes_per_peptide_max),
+  patterns_(patterns), isotopes_per_peptide_min_(isotopes_per_peptide_min), isotopes_per_peptide_max_(isotopes_per_peptide_max),
   intensity_cutoff_(intensity_cutoff), rt_band_(rt_band), mz_tolerance_(mz_tolerance), mz_tolerance_unit_in_ppm_(mz_tolerance_unit),
   peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity),
   averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averagine_type)
   {
-    // initialise blacklist <blacklist_>
-    blacklist_.reserve(exp_picked_.getNrSpectra());
+    // initialise experiment exp_centroided_
+    // Any peaks below the intensity cutoff cannot be relevant. They are therefore removed resulting in reduced memory footprint and runtime.
+    exp_centroided_.reserve(exp_centroided.getNrSpectra());
     // loop over spectra
-    for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
+    for (const auto &it_rt : exp_centroided)
     {
-      std::vector<int> blacklist_spectrum;
-      blacklist_spectrum.reserve(it_rt->size());
+      MSSpectrum spectrum;
+      spectrum.setRT(it_rt.getRT());
       // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (const auto &it_mz : it_rt)
       {
-        blacklist_spectrum.push_back(-1);
+        if (it_mz.getIntensity() > intensity_cutoff_)
+        {
+          spectrum.push_back(it_mz);
+        }
       }
+      exp_centroided_.addSpectrum(std::move(spectrum));
+    }
+    exp_centroided_.updateRanges();
+    exp_centroided_.sortSpectra();
+    
+    // initialise blacklist <blacklist_>
+    blacklist_.reserve(exp_centroided_.getNrSpectra());
+    // loop over spectra
+    for (const auto &it_rt : exp_centroided_)
+    {
+      std::vector<int> blacklist_spectrum(it_rt.size(), -1);
       blacklist_.push_back(blacklist_spectrum);
     }
     
-    // blacklist low-intensity peaks
-    for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
-    {
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
-      {
-        if (it_mz->getIntensity() < intensity_cutoff_)
-        {
-          blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] = 666;
-        }
-      }
-    }
-    
+  }
+  
+  MSExperiment& MultiplexFiltering::getCentroidedExperiment()
+  {
+    return exp_centroided_;
   }
 
   void MultiplexFiltering::updateWhiteMSExperiment_()
   {
     // reset both the white MS experiment and the corresponding mapping to the complete i.e. original MS experiment
-    exp_picked_white_.clear(true);
-    exp_picked_mapping_.clear();
+    exp_centroided_white_.clear(true);
+    exp_centroided_mapping_.clear();
     
     // loop over spectra
-    for (MSExperiment::ConstIterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
+    for (const auto &it_rt : exp_centroided_)
     {
       MSSpectrum spectrum_picked_white;
-      spectrum_picked_white.setRT(it_rt->getRT());
+      spectrum_picked_white.setRT(it_rt.getRT());
       
       std::map<int, int> mapping_spectrum;
       int count = 0;
       // loop over m/z
-      for (MSSpectrum::ConstIterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (const auto &it_mz : it_rt)
       {
-        if (blacklist_[it_rt - exp_picked_.begin()][it_mz - it_rt->begin()] == -1)
+        if (blacklist_[&it_rt - &exp_centroided_[0]][&it_mz - &it_rt[0]] == -1)
         {
-          Peak1D peak;
-          peak.setMZ(it_mz->getMZ());
-          peak.setIntensity(it_mz->getIntensity());
-          spectrum_picked_white.push_back(peak);
+          spectrum_picked_white.push_back(it_mz);
           
-          mapping_spectrum[count] = it_mz - it_rt->begin();
+          mapping_spectrum[count] = &it_mz - &it_rt[0];
           ++count;
         }
       }
-      exp_picked_white_.addSpectrum(spectrum_picked_white);
-      exp_picked_mapping_.push_back(mapping_spectrum);
+      exp_centroided_white_.addSpectrum(spectrum_picked_white);
+      exp_centroided_mapping_.push_back(mapping_spectrum);
     }
-    exp_picked_white_.updateRanges();
+    exp_centroided_white_.updateRanges();
   }
   
   bool MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const
@@ -201,10 +206,10 @@ namespace OpenMS
             // Note that as primary peaks, satellite peaks are also restricted by the blacklist.
             // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
             size_t rt_idx = it_rt - it_rt_begin;
-            size_t mz_idx = exp_picked_mapping_.at(it_rt - it_rt_begin).at(i);
+            size_t mz_idx = exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i);
             if ((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(idx_mz_shift)))
             {
-              peak.addSatellite(it_rt - it_rt_begin, exp_picked_mapping_.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
+              peak.addSatellite(it_rt - it_rt_begin, exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
               found = true;
             }
           }
@@ -354,15 +359,15 @@ namespace OpenMS
       double mz = peak.getMZ() + patterns_[pattern_idx].getMZShiftAt(it.first);
       
       // Extend the RT boundary by rt_band_ earlier
-      MSExperiment::ConstIterator it_rt_begin = exp_picked_.begin() + (it.second).first;
-      it_rt_begin = exp_picked_.RTBegin(it_rt_begin->getRT() - 2 * rt_band_);
+      MSExperiment::ConstIterator it_rt_begin = exp_centroided_.begin() + (it.second).first;
+      it_rt_begin = exp_centroided_.RTBegin(it_rt_begin->getRT() - 2 * rt_band_);
       
       // Extend the RT boundary by rt_band_ later
-      MSExperiment::ConstIterator it_rt_end = exp_picked_.begin() + (it.second).second;
-      it_rt_end = exp_picked_.RTBegin(it_rt_end->getRT() + 2 * rt_band_);
+      MSExperiment::ConstIterator it_rt_end = exp_centroided_.begin() + (it.second).second;
+      it_rt_end = exp_centroided_.RTBegin(it_rt_end->getRT() + 2 * rt_band_);
       
       // prepare for loop
-      if (it_rt_end != exp_picked_.end())
+      if (it_rt_end != exp_centroided_.end())
       {
         ++it_rt_end;
       }
@@ -375,7 +380,7 @@ namespace OpenMS
         if (idx_mz != -1)
         {
           // blacklist entries: -1 = white, any isotope pattern index (it.first) = black
-          blacklist_[it_rt - exp_picked_.begin()][idx_mz] = it.first;
+          blacklist_[it_rt - exp_centroided_.begin()][idx_mz] = it.first;
         }
       }
       
@@ -431,7 +436,7 @@ namespace OpenMS
           size_t mz_idx = (satellite_it->second).getMZidx();
           
           // find peak itself
-          MSExperiment::ConstIterator it_rt = exp_picked_.begin();
+          MSExperiment::ConstIterator it_rt = exp_centroided_.begin();
           std::advance(it_rt, rt_idx);
           MSSpectrum::ConstIterator it_mz = it_rt->begin();
           std::advance(it_mz, mz_idx);
@@ -514,8 +519,8 @@ namespace OpenMS
                 size_t mz_idx_2 = (satellite_it_2->second).getMZidx();
                 
                 // find peak itself
-                MSExperiment::ConstIterator it_rt_1 = exp_picked_.begin();
-                MSExperiment::ConstIterator it_rt_2 = exp_picked_.begin();
+                MSExperiment::ConstIterator it_rt_1 = exp_centroided_.begin();
+                MSExperiment::ConstIterator it_rt_2 = exp_centroided_.begin();
                 std::advance(it_rt_1, rt_idx_1);
                 std::advance(it_rt_2, rt_idx_2);
                 MSSpectrum::ConstIterator it_mz_1 = it_rt_1->begin();

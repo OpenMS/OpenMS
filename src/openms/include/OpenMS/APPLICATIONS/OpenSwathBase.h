@@ -81,27 +81,8 @@
 
 
 
-//-------------------------------------------------------------
-// Doxygen docu
-//-------------------------------------------------------------
-
-/**
-    @page TOPP_MapAlignerBase MapAlignerBase
-
-    @brief Base class for different MapAligner TOPP tools.
-*/
-
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
-
 namespace OpenMS
 {
-
-static bool SortPairDoubleByFirst(const std::pair<double,double> & left, const std::pair<double,double> & right)
-{
-  return left.first < right.first;
-}
-
 
 class TOPPOpenSwathBase :
   public TOPPBase
@@ -121,7 +102,8 @@ private:
                        const String& tmp,
                        const String& readoptions,
                        boost::shared_ptr<ExperimentalSettings > & exp_meta,
-                       std::vector< OpenSwath::SwathMap > & swath_maps)
+                       std::vector< OpenSwath::SwathMap > & swath_maps,
+                       Interfaces::IMSDataConsumer* plugin_consumer)
   {
     SwathFile swath_file;
     swath_file.setLogType(log_type_);
@@ -136,7 +118,7 @@ private:
       FileTypes::Type in_file_type = FileHandler::getTypeByFileName(file_list[0]);
       if (in_file_type == FileTypes::MZML)
       {
-        swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions);
+        swath_maps = swath_file.loadMzML(file_list[0], tmp, exp_meta, readoptions, plugin_consumer);
       }
       else if (in_file_type == FileTypes::MZXML)
       {
@@ -181,8 +163,8 @@ protected:
    *
    */
   bool loadSwathFiles(const StringList& file_list,
-                      boost::shared_ptr<ExperimentalSettings > & exp_meta,
-                      std::vector< OpenSwath::SwathMap > & swath_maps,
+                      boost::shared_ptr<ExperimentalSettings >& exp_meta,
+                      std::vector< OpenSwath::SwathMap >& swath_maps,
                       const bool split_file,
                       const String& tmp,
                       const String& readoptions,
@@ -190,15 +172,16 @@ protected:
                       const double min_upper_edge_dist,
                       const bool force,
                       const bool sort_swath_maps,
-                      const bool sonar)
+                      const bool sonar,
+                      Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     // (i) Load files
-    loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps);
+    loadSwathFiles_(file_list, split_file, tmp, readoptions, exp_meta, swath_maps, plugin_consumer);
 
     // (ii) Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
     {
-      SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
+      SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps, force);
     }
 
     for (Size i = 0; i < swath_maps.size(); i++)
@@ -211,7 +194,7 @@ protected:
     }
 
     // (iii) Sanity check: there should be no overlap between the windows:
-    std::vector<std::pair<double, double> > sw_windows;
+    std::vector<std::pair<double, double>> sw_windows;
     for (Size i = 0; i < swath_maps.size(); i++)
     {
       if (!swath_maps[i].ms1)
@@ -219,7 +202,8 @@ protected:
         sw_windows.push_back(std::make_pair(swath_maps[i].lower, swath_maps[i].upper));
       }
     }
-    std::sort(sw_windows.begin(), sw_windows.end(), SortPairDoubleByFirst);
+    // sort by lower bound (first entry in pair)
+    std::sort(sw_windows.begin(), sw_windows.end());
 
     for (Size i = 1; i < sw_windows.size(); i++)
     {
@@ -241,10 +225,10 @@ protected:
 
       if (lower_map_end - upper_map_start > 0.01)
       {
-        LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << std::endl;
-        LOG_WARN << "This will lead to multiple extraction of the transitions in the overlapping region" <<
-                    "which will lead to duplicated output. It is very unlikely that you want this." << std::endl;
-        LOG_WARN << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
+        LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << "!\n"
+                 << "This will lead to multiple extraction of the transitions in the overlapping region "
+                 << "which will lead to duplicated output. It is very unlikely that you want this." << "\n"
+                 << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
         if (!force)
         {
           LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
