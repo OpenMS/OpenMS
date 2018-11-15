@@ -889,9 +889,10 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintIdentifications_(Size layer_index, QPainter & painter)
+  void Spectrum2DCanvas::paintIdentifications_(Size layer_index, QPainter& painter)
   {
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
+    bool show_labels = getLayerFlag(layer_index, LayerData::I_LABELS);
     vector<PeptideIdentification>::const_iterator pep_begin, pep_end;
     if (layer.type == LayerData::DT_FEATURE)
     {
@@ -910,7 +911,7 @@ namespace OpenMS
 
     for (; pep_begin != pep_end; ++pep_begin)
     {
-      if (!pep_begin->getHits().empty())
+      if (!pep_begin->getHits().empty() || show_labels)
       {
         if (!pep_begin->hasRT() ||
             !pep_begin->hasMZ())
@@ -932,8 +933,16 @@ namespace OpenMS
         painter.drawLine(pos.x() - 1.0, pos.y(), pos.x() + 1.0, pos.y());
 
         //draw sequence
-        String sequence = pep_begin->getHits()[0].getSequence().toString();
-        if (sequence.empty())
+        String sequence;
+        if (show_labels)
+        {
+          sequence = pep_begin->getMetaValue("label");
+        }
+        else
+        {
+          sequence = pep_begin->getHits()[0].getSequence().toString();
+        }
+        if (sequence.empty() && !pep_begin->getHits().empty())
         {
           sequence = pep_begin->getHits()[0].getMetaValue("label");
         }

@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_IDENTIFIEDSEQUENCE_H
-#define OPENMS_METADATA_ID_IDENTIFIEDSEQUENCE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
@@ -59,11 +58,10 @@ namespace OpenMS
       explicit IdentifiedSequence(
         const SeqType& sequence,
         const ParentMatches& parent_matches = ParentMatches(),
-        const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepRef>& processing_step_refs =
-        std::vector<ProcessingStepRef>()):
-        ScoredProcessingResult(scores, processing_step_refs),
-        sequence(sequence), parent_matches(parent_matches)
+        const AppliedProcessingSteps& steps_and_scores =
+        AppliedProcessingSteps()):
+        ScoredProcessingResult(steps_and_scores), sequence(sequence),
+        parent_matches(parent_matches)
       {
       }
 
@@ -128,5 +126,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

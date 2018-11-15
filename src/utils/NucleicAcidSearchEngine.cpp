@@ -162,6 +162,8 @@ protected:
     registerOutputFile_("exp_ms2_out", "<file>", "", "Output file: experimental MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("exp_ms2_out", ListUtils::create<String>("mzML"));
 
+    registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", true);
+
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around uncharged precursor mass)", false);
 
@@ -169,7 +171,7 @@ protected:
     setValidStrings_("precursor:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
     registerIntOption_("precursor:min_charge", "<num>", -1, "Minimum precursor charge to be considered", false, false);
-    registerIntOption_("precursor:max_charge", "<num>", -9, "Maximum precursor charge to be considered", false, false);
+    registerIntOption_("precursor:max_charge", "<num>", -20, "Maximum precursor charge to be considered", false, false);
 
     registerFlag_("precursor:include_unknown_charge", "Include MS2 spectra with unknown precursor charge - try to match them in any possible charge between 'min_charge' and 'max_charge', at the risk of a higher error rate", false);
 
@@ -177,13 +179,9 @@ protected:
 
     // Whether to look for precursors with salt adducts
     registerFlag_("precursor:use_adducts", "Consider possible salt adducts (see 'precursor:potential_adducts') when matching precursor masses", false);
-    registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("K:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
+    registerStringList_("precursor:potential_adducts", "<list>", ListUtils::create<String>("Na:+"), "Adducts considered to explain mass differences. Format: 'Element:Charge(+/-)', i.e. the number of '+' or '-' indicates the charge, e.g. 'Ca:++' indicates +2. Only used if 'precursor:use_adducts' is set.", false, false);
 
-    // Whether we single charge the MS2s prior to scoring
-    registerFlag_("decharge_ms2", "Decharge the MS2 spectra for scoring", false);
-
-    // consider one before annotated monoisotopic peak and the annotated one
-    IntList isotopes = {0, 1};
+    IntList isotopes = {0, 1, 2, 3, 4};
     registerIntList_("precursor:isotopes", "<list>", isotopes, "Correct for mono-isotopic peak misassignments. E.g.: 1 = precursor may be misassigned to the first isotopic peak. Ignored if 'use_avg_mass' is set.", false, false);
 
     registerTOPPSubsection_("fragment", "Fragment (Product Ion) Options");
@@ -192,7 +190,7 @@ protected:
     registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment mass tolerance", false, false);
     setValidStrings_("fragment:mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
-    registerStringList_("fragment:ions", "<choice>", ListUtils::create<String>("a-B,a,b,c,d,w,x,y,z"), "Fragment ions to include in theoretical spectra", false);
+    registerStringList_("fragment:ions", "<choice>", fragment_ion_codes_, "Fragment ions to include in theoretical spectra", false);
     setValidStrings_("fragment:ions", fragment_ion_codes_);
 
     registerTOPPSubsection_("modifications", "Modifications Options");
@@ -589,14 +587,14 @@ protected:
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
-                        IdentificationData::InputFileRef file_ref,
                         const vector<ConstRibonucleotidePtr>& fixed_mods,
                         const vector<ConstRibonucleotidePtr>& variable_mods,
                         Size max_variable_mods_per_oligo,
                         bool negative_mode)
   {
-    IdentificationData::ScoreType score("hyperscore", true);
-    IdentificationData::ScoreTypeRef score_ref = id_data.registerScoreType(score);
+    IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
+    IdentificationData::ScoreTypeRef score_ref =
+      id_data.getScoreTypes().begin();
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -633,7 +631,7 @@ protected:
           if ((charge > 0) && negative_mode) charge = -charge;
           IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
                                                        charge);
-          match.scores.push_back(make_pair(score_ref, score));
+          match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
           match.peak_annotations[id_data.getCurrentProcessingStep()] =
             hit.annotations;
           // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
@@ -648,19 +646,23 @@ protected:
   }
 
 
-  IdentificationData::InputFileRef registerIDMetaData_(
+  void registerIDMetaData_(
     IdentificationData& id_data, const String& in_mzml,
     const vector<String>& primary_files,
     const IdentificationData::DBSearchParam& search_param)
   {
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(in_mzml);
-    Software software(toolName_(), version_);
+    IdentificationData::ScoreType score("hyperscore", true);
+    IdentificationData::ScoreTypeRef score_ref =
+      id_data.registerScoreType(score);
+    IdentificationData::DataProcessingSoftware software(toolName_(), version_);
     // if we are in test mode just overwrite with a generic version
     if (test_mode_)
     {
       software.setVersion("test");
     }
+    software.assigned_scores.push_back(score_ref);
 
     IdentificationData::ProcessingSoftwareRef software_ref = id_data.registerDataProcessingSoftware(software);
     IdentificationData::SearchParamRef search_ref = id_data.registerDBSearchParam(search_param);
@@ -669,7 +671,6 @@ protected:
     IdentificationData::ProcessingStepRef step_ref = id_data.registerDataProcessingStep(step, search_ref);
     // reference this step in all following ID data items, if applicable:
     id_data.setCurrentProcessingStep(step_ref);
-    return file_ref;
   }
 
 
@@ -952,8 +953,7 @@ protected:
     vector<String> primary_files;
     spectra.getPrimaryMSRunPath(primary_files);
     // this also sets the current processing step in "id_data":
-    IdentificationData::InputFileRef file_ref =
-      registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
+    registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
     String decoy_pattern = getStringOption_("fdr:decoy_pattern");
 
     LOG_INFO << "Performing in-silico digestion..." << endl;
@@ -1124,9 +1124,9 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, file_ref,
-                     fixed_modifications, variable_modifications,
-                     max_variable_mods_per_oligo, negative_mode);
+    postProcessHits_(spectra, annotated_hits, id_data, fixed_modifications,
+                     variable_modifications, max_variable_mods_per_oligo,
+                     negative_mode);
     progresslogger.endProgress();
 
     // FDR:
@@ -1153,8 +1153,7 @@ protected:
     {
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, "",
-                                             "hyperscore", true);
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
       // proteins[0].setDateTime(DateTime::now());
       // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);

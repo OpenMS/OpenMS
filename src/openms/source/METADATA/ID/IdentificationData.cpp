@@ -40,11 +40,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  void IdentificationData::checkScoreTypes_(const ScoreList& scores)
+  void IdentificationData::checkScoreTypes_(const map<ScoreTypeRef, double>&
+                                            scores) const
   {
-    for (const pair<ScoreTypeRef, double>& score_pair : scores)
+    for (const auto& pair : scores)
     {
-      if (!isValidReference_(score_pair.first, score_types_))
+      if (!isValidReference_(pair.first, score_types_))
       {
         String msg = "invalid reference to a score type - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -53,24 +54,25 @@ namespace OpenMS
     }
   }
 
-
-  void IdentificationData::checkProcessingSteps_(
-    const std::vector<ProcessingStepRef>& step_refs)
+  void IdentificationData::checkAppliedProcessingSteps_(
+    const AppliedProcessingSteps& steps_and_scores) const
   {
-    for (ProcessingStepRef step_ref : step_refs)
+    for (const auto& step : steps_and_scores)
     {
-      if (!isValidReference_(step_ref, processing_steps_))
+      if ((step.processing_step_opt != boost::none) &&
+          (!isValidReference_(*step.processing_step_opt, processing_steps_)))
       {
         String msg = "invalid reference to a data processing step - register that first";
         throw Exception::IllegalArgument(__FILE__, __LINE__,
                                          OPENMS_PRETTY_FUNCTION, msg);
       }
+      checkScoreTypes_(step.scores);
     }
   }
 
 
   void IdentificationData::checkParentMatches_(const ParentMatches& matches,
-                                               MoleculeType expected_type)
+                                               MoleculeType expected_type) const
   {
     for (const auto& pair : matches)
     {
@@ -98,9 +100,19 @@ namespace OpenMS
 
 
   IdentificationData::ProcessingSoftwareRef
-  IdentificationData::registerDataProcessingSoftware(const Software& software)
+  IdentificationData::registerDataProcessingSoftware(
+    const DataProcessingSoftware& software)
   {
-    return processing_software_.insert(software).first;
+    for (ScoreTypeRef score_ref : software.assigned_scores)
+    {
+      if (!isValidReference_(score_ref, score_types_))
+      {
+        String msg = "invalid reference to a score type - register that first";
+        throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                         OPENMS_PRETTY_FUNCTION, msg);
+      }
+    }
+    return processing_softwares_.insert(software).first;
   }
 
 
@@ -125,7 +137,7 @@ namespace OpenMS
     const DataProcessingStep& step, SearchParamRef search_ref)
   {
     // valid reference to software is required:
-    if (!isValidReference_(step.software_ref, processing_software_))
+    if (!isValidReference_(step.software_ref, processing_softwares_))
     {
       String msg = "invalid reference to data processing software - register that first";
       throw Exception::IllegalArgument(__FILE__, __LINE__,
@@ -162,26 +174,7 @@ namespace OpenMS
   IdentificationData::registerScoreType(const ScoreType& score)
   {
     pair<ScoreTypes::iterator, bool> result;
-    if ((!score.software_opt) && (current_step_ref_ != processing_steps_.end()))
-    {
-      // transfer the software ref. from the current data processing step:
-      const DataProcessingStep& step = *current_step_ref_;
-      ScoreType copy(score); // need a copy so we can modify it
-      copy.software_opt = step.software_ref;
-      result = score_types_.insert(copy);
-    }
-    else
-    {
-      // ref. to software may be missing, but must otherwise be valid:
-      if (score.software_opt && !isValidReference_(*score.software_opt,
-                                                   processing_software_))
-      {
-        String msg = "invalid reference to data processing software - register that first";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-      result = score_types_.insert(score);
-    }
+    result = score_types_.insert(score);
     if (!result.second && (score.higher_better != result.first->higher_better))
     {
       String msg = "score type already exists with opposite orientation";
@@ -283,7 +276,7 @@ namespace OpenMS
   void IdentificationData::registerParentMoleculeGrouping(
     const ParentMoleculeGrouping& grouping)
   {
-    checkProcessingSteps_(grouping.processing_step_refs);
+    checkAppliedProcessingSteps_(grouping.steps_and_scores);
 
     for (const auto& group : grouping.groups)
     {
@@ -304,11 +297,11 @@ namespace OpenMS
 
     // add the current processing step?
     if ((current_step_ref_ != processing_steps_.end()) &&
-        (grouping.processing_step_refs.empty() ||
-         (grouping.processing_step_refs.back() != current_step_ref_)))
+        (grouping.steps_and_scores.get<1>().find(current_step_ref_) ==
+         grouping.steps_and_scores.get<1>().end()))
     {
-      parent_molecule_groupings_.back().processing_step_refs.push_back(
-        current_step_ref_);
+      parent_molecule_groupings_.back().steps_and_scores.push_back(
+        IdentificationDataInternal::AppliedProcessingStep(current_step_ref_));
     }
   }
 
@@ -419,19 +412,9 @@ namespace OpenMS
   pair<IdentificationData::ScoreTypeRef, bool>
   IdentificationData::findScoreType(const String& score_name) const
   {
-    return findScoreType(score_name, processing_software_.end());
-  }
-
-
-  pair<IdentificationData::ScoreTypeRef, bool>
-  IdentificationData::findScoreType(const String& score_name,
-                                    ProcessingSoftwareRef software_ref) const
-  {
     for (ScoreTypeRef it = score_types_.begin(); it != score_types_.end(); ++it)
     {
-      if ((it->name == score_name) &&
-          ((software_ref == processing_software_.end()) ||
-           (it->software_opt == software_ref)))
+      if (it->name == score_name)
       {
         return make_pair(it, true);
       }

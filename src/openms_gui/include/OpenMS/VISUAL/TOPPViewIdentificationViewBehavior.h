@@ -114,6 +114,9 @@ namespace OpenMS
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
 
+    /// remove all graphical peak annotations
+    void removeGraphicalPeakAnnotations_(int spectrum_index);
+
     /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
     void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
 
@@ -143,4 +146,3 @@ namespace OpenMS
     std::vector<Annotation1DItem*> temporary_annotations_;
   };
 }
-

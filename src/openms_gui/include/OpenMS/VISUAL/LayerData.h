@@ -108,6 +108,7 @@ public:
       P_PROJECTIONS,   ///< Peaks: Show projections
       C_ELEMENTS,      ///< Consensus features: Show elements
       I_PEPTIDEMZ,     ///< Identifications: m/z source
+      I_LABELS,        ///< Identifications: Show labels (not sequences)
       SIZE_OF_FLAGS
     };
 
@@ -117,11 +118,11 @@ public:
     /// Label used in visualization
     enum LabelType
     {
-      L_NONE,             ///< No label is displayed
-      L_INDEX,            ///< The element number is used
-      L_META_LABEL,       ///< The 'label' meta information is used
-      L_ID,               ///< The best peptide hit of the first identification run is used
-      L_ID_ALL,           ///< All peptide hits of the first identification run are used
+      L_NONE,          ///< No label is displayed
+      L_INDEX,         ///< The element number is used
+      L_META_LABEL,    ///< The 'label' meta information is used
+      L_ID,            ///< The best peptide hit of the first identification run is used
+      L_ID_ALL,        ///< All peptide hits of the first identification run are used
       SIZE_OF_LABEL_TYPE
     };
 

@@ -89,22 +89,22 @@ START_SECTION((InputFileRef registerInputFile(const String& file)))
 }
 END_SECTION
 
-START_SECTION((const DataProcessingSoftware& getDataProcessingSoftware() const))
+START_SECTION((const DataProcessingSoftwares& getDataProcessingSoftwares() const))
 {
-  TEST_EQUAL(data.getDataProcessingSoftware().empty(), true);
+  TEST_EQUAL(data.getDataProcessingSoftwares().empty(), true);
   // tested further below
 }
 END_SECTION
 
 START_SECTION((ProcessingSoftwareRef registerDataProcessingSoftware(const Software& software)))
 {
-  Software sw("Tool", "1.0");
+  IdentificationData::DataProcessingSoftware sw("Tool", "1.0");
   sw_ref = data.registerDataProcessingSoftware(sw);
-  TEST_EQUAL(data.getDataProcessingSoftware().size(), 1);
+  TEST_EQUAL(data.getDataProcessingSoftwares().size(), 1);
   TEST_EQUAL(*sw_ref == sw, true); // "TEST_EQUAL(*sw_ref, sw)" doesn't compile - same below
   // re-registering doesn't lead to redundant entries:
   data.registerDataProcessingSoftware(sw);
-  TEST_EQUAL(data.getDataProcessingSoftware().size(), 1);
+  TEST_EQUAL(data.getDataProcessingSoftwares().size(), 1);
 }
 END_SECTION
 
@@ -181,7 +181,7 @@ END_SECTION
 
 START_SECTION((ScoreTypeRef registerScoreType(const ScoreType& score)))
 {
-  IdentificationData::ScoreType score("test_score", true, sw_ref);
+  IdentificationData::ScoreType score("test_score", true);
   score_ref = data.registerScoreType(score);
   TEST_EQUAL(data.getScoreTypes().size(), 1);
   TEST_EQUAL(*score_ref == score, true);
@@ -426,16 +426,18 @@ END_SECTION
 
 START_SECTION((void addScore(QueryMatchRef match_ref, ScoreTypeRef score_ref, double value)))
 {
-  TEST_EQUAL(match_ref1->scores.empty(), true);
+  TEST_EQUAL(match_ref1->steps_and_scores.empty(), true);
   data.addScore(match_ref1, score_ref, 100.0);
-  TEST_EQUAL(match_ref1->scores.size(), 1);
-  TEST_EQUAL(match_ref1->scores[0].first, score_ref);
-  TEST_EQUAL(match_ref1->scores[0].second, 100.0);
-  TEST_EQUAL(match_ref2->scores.empty(), true);
+  TEST_EQUAL(match_ref1->steps_and_scores.size(), 1);
+  TEST_EQUAL(match_ref1->steps_and_scores.back().scores.begin()->first,
+             score_ref);
+  TEST_EQUAL(match_ref1->steps_and_scores.back().scores.begin()->second, 100.0);
+  TEST_EQUAL(match_ref2->steps_and_scores.empty(), true);
   data.addScore(match_ref2, score_ref, 200.0);
-  TEST_EQUAL(match_ref2->scores.size(), 1);
-  TEST_EQUAL(match_ref2->scores[0].first, score_ref);
-  TEST_EQUAL(match_ref2->scores[0].second, 200.0);
+  TEST_EQUAL(match_ref2->steps_and_scores.size(), 1);
+  TEST_EQUAL(match_ref2->steps_and_scores.back().scores.begin()->first,
+             score_ref);
+  TEST_EQUAL(match_ref2->steps_and_scores.back().scores.begin()->second, 200.0);
 }
 END_SECTION
 
@@ -454,8 +456,9 @@ START_SECTION((void setCurrentProcessingStep(ProcessingStepRef step_ref)))
   IdentificationData::IdentifiedPeptide peptide(AASequence::fromString("EDIT"));
   peptide.parent_matches[protein_ref];
   peptide_ref = data.registerIdentifiedPeptide(peptide);
-  TEST_EQUAL(peptide_ref->processing_step_refs.size(), 1);
-  TEST_EQUAL(peptide_ref->processing_step_refs[0] == step_ref, true);
+  TEST_EQUAL(peptide_ref->steps_and_scores.size(), 1);
+  TEST_EQUAL(peptide_ref->steps_and_scores.front().processing_step_opt ==
+             step_ref, true);
 }
 END_SECTION
 
@@ -480,20 +483,6 @@ START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name) 
   TEST_EQUAL(data.findScoreType("fake_score").second, false);
   // registered score:
   auto result = data.findScoreType("test_score");
-  TEST_EQUAL(result.first == score_ref, true);
-  TEST_EQUAL(result.second, true);
-}
-END_SECTION
-
-START_SECTION((pair<ScoreTypeRef, bool> findScoreType(const String& score_name, ProcessingSoftwareRef software_ref) const))
-{
-  Software sw("Other","1.0");
-  IdentificationData::ProcessingSoftwareRef other_ref = data.registerDataProcessingSoftware(sw);
-  // no such score register for this software:
-  auto result = data.findScoreType("test_score", other_ref);
-  TEST_EQUAL(result.second, false);
-  // valid combination:
-  result = data.findScoreType("test_score", sw_ref);
   TEST_EQUAL(result.first == score_ref, true);
   TEST_EQUAL(result.second, true);
 }

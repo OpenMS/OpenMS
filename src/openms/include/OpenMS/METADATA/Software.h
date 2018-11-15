@@ -52,19 +52,16 @@ public:
     /// Constructor
     explicit Software(const String& name = "", const String& version = "");
     /// Copy constructor
-
-    Software(const Software &) = default;
+    Software(const Software&) = default;
     /// Move constructor
     Software(Software&&) = default;
     /// Destructor
     ~Software() override;
 
     /// Assignment operator
-
-    Software & operator=(const Software &) = default;
+    Software& operator=(const Software&) = default;
     /// Move assignment operator
-    Software& operator=(Software&&) & = default;
-
+    Software& operator=(Software&&)& = default;
 
     /// Equality operator
     bool operator==(const Software& rhs) const;

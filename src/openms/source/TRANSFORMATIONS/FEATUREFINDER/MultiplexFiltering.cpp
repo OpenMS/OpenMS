@@ -86,13 +86,7 @@ namespace OpenMS
     // loop over spectra
     for (const auto &it_rt : exp_centroided_)
     {
-      std::vector<int> blacklist_spectrum;
-      blacklist_spectrum.reserve(it_rt.size());
-      // loop over m/z
-      for (const auto &it_mz : it_rt)
-      {
-        blacklist_spectrum.push_back(-1);
-      }
+      std::vector<int> blacklist_spectrum(it_rt.size(), -1);
       blacklist_.push_back(blacklist_spectrum);
     }
     

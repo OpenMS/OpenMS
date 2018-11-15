@@ -32,6 +32,9 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #pragma once
 
 namespace OpenMS
@@ -55,6 +58,7 @@ namespace OpenMS
     }
     return it;
   }
+  
   template <class DataArrayT>
   typename DataArrayT::const_iterator getDataArrayByName(const DataArrayT& a, const String& name)
   {
@@ -133,6 +137,82 @@ namespace OpenMS
     }
     // Note: data arrays are not updated
   }
+  
+  /**
+   * @brief Possible methods for merging peak intensities.
+   * 
+   * @see makePeakPositionUnique() 
+   **/
+  enum class IntensityAveragingMethod : int { MEDIAN, MEAN, SUM, MIN, MAX };
+  
+  /**
+   * @brief Make peak positions unique.
+   * 
+   * A peak container may contain multiple peaks with the same position, i.e. either
+   * an MSSpectrum containing peaks with the same m/z position, or an MSChromatogram
+   * containing peaks with identical RT position. One scenario where this might happen
+   * is when multiple spectra are merged to a single one.
+   * 
+   * The method combines peaks with the same position to a single one with the
+   * intensity determined by method m.
+   *
+   * @param[in] p The peak container to be manipulated.
+   * @param[in] m The method for determining peak intensity from peaks with same position (median, mean, sum, min, max).
+   **/
+  template <typename PeakContainerT>
+  void makePeakPositionUnique(PeakContainerT& p, const IntensityAveragingMethod m = IntensityAveragingMethod::MEDIAN)
+  {
+    if (!p.getFloatDataArrays().empty() || !p.getStringDataArrays().empty() || !p.getIntegerDataArrays().empty())
+    {
+      LOG_WARN << "Warning: data arrays are being ignored in the method SpectrumHelper::makePeakPositionUnique().\n";
+    }
+    
+    if (p.empty()) return;
+    
+    p.sortByPosition();
+    
+    double current_position = p.begin()->getPos();
+    PeakContainerT p_new;
+    double intensity_new(0);
+    std::vector<double> intensities_at_same_position;
+    for (typename PeakContainerT::PeakType& peak : p)
+    {
+      if (peak.getPos() > current_position)
+      {
+        // add a peak to the new peak container
+        switch(m)
+        {
+          case IntensityAveragingMethod::MEDIAN: intensity_new = Math::median(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+          case IntensityAveragingMethod::MEAN: intensity_new = Math::mean(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+          case IntensityAveragingMethod::SUM: intensity_new = Math::sum(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+          case IntensityAveragingMethod::MIN: intensity_new = *std::min_element(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+          case IntensityAveragingMethod::MAX: intensity_new = *std::max_element(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+        }
+        typename PeakContainerT::PeakType peak_new(current_position, intensity_new);
+        p_new.push_back(peak_new);
+        
+        current_position = peak.getPos();
+        intensities_at_same_position.clear();
+      }
+      
+      intensities_at_same_position.push_back(peak.getIntensity());
+    }
+    
+    // add the very last peak to the new peak container
+    switch(m)
+    {
+      case IntensityAveragingMethod::MEDIAN : intensity_new = Math::median(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+      case IntensityAveragingMethod::MEAN : intensity_new = Math::mean(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+      case IntensityAveragingMethod::SUM : intensity_new = Math::sum(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+      case IntensityAveragingMethod::MIN : intensity_new = *std::min_element(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+      case IntensityAveragingMethod::MAX : intensity_new = *std::max_element(intensities_at_same_position.begin(), intensities_at_same_position.end()); break;
+    }
+    typename PeakContainerT::PeakType peak_new(current_position, intensity_new);
+    p_new.push_back(peak_new);
+
+    std::swap(p_new, p);
+  }
+  
 } // namespace OpenMS
 
 

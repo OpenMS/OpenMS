@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_DATAQUERY_H
-#define OPENMS_METADATA_ID_DATAQUERY_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/MetaData.h>
 
@@ -93,5 +92,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_PARENTMOLECULEGROUP_H
-#define OPENMS_METADATA_ID_PARENTMOLECULEGROUP_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/ParentMolecule.h>
 
@@ -51,7 +50,7 @@ namespace OpenMS
     // @TODO: derive from MetaInfoInterface?
     struct ParentMoleculeGroup
     {
-      ScoreList scores;
+      std::map<ScoreTypeRef, double> scores;
       // @TODO: does this need a "leader" or some such?
       std::set<ParentMoleculeRef> parent_molecule_refs;
     };
@@ -69,10 +68,9 @@ namespace OpenMS
     /*!
       Set of groups of ambiguously identified parent molecules (e.g. results of running a protein inference algorithm)
     */
-    struct ParentMoleculeGrouping
+    struct ParentMoleculeGrouping: public ScoredProcessingResult
     {
       String label; // @TODO: use "label" as a uniqueness constraint?
-      std::vector<ProcessingStepRef> processing_step_refs;
       ParentMoleculeGroups groups;
     };
 
@@ -80,5 +78,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

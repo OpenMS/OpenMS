@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_IDENTIFICATIONDATACONVERTER_H
-#define OPENMS_METADATA_ID_IDENTIFICATIONDATACONVERTER_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -56,8 +55,6 @@ namespace OpenMS
     static void exportIDs(const IdentificationData& id_data,
                           std::vector<ProteinIdentification>& proteins,
                           std::vector<PeptideIdentification>& peptides,
-                          const String& protein_score = "",
-                          const String& peptide_score = "",
                           bool export_oligonucleotides = false);
 
     /// Export to mzTab format
@@ -81,10 +78,8 @@ namespace OpenMS
     {
       MzTabSectionRow row;
       row.accession.set(parent.accession);
-      exportScoresToMzTab_(parent.scores, row.best_search_engine_score,
-                           score_map);
-      exportProcessingStepsToMzTab_(parent.processing_step_refs,
-                                    row.search_engine);
+      exportStepsAndScoresToMzTab_(parent.steps_and_scores, row.search_engine,
+                                   row.best_search_engine_score, score_map);
       row.description.set(parent.description);
       row.coverage.set(parent.coverage);
       if (!parent.sequence.empty())
@@ -106,30 +101,26 @@ namespace OpenMS
       MzTabSectionRow row;
       // @TODO: handle modifications properly
       row.sequence.set(identified.sequence.toString());
-      exportScoresToMzTab_(identified.scores, row.best_search_engine_score,
-                           score_map);
-      exportProcessingStepsToMzTab_(identified.processing_step_refs,
-                                    row.search_engine);
-      // generate one entry (with duplicated data) for every accession:
-      bool unique = (identified.parent_matches.size() == 1);
-      for (const auto& match_pair : identified.parent_matches)
-      {
-        const String& accession = match_pair.first->accession;
-        row.accession.set(accession);
-        row.unique.set(unique);
-        if (match_pair.second.empty())
-        {
-          output.push_back(row);
-        }
-        else
-        {
-          addMzTabMoleculeParentContext_(match_pair.second, row, output);
-        }
-      }
-      if (identified.parent_matches.empty())
+      exportStepsAndScoresToMzTab_(identified.steps_and_scores,
+                                   row.search_engine,
+                                   row.best_search_engine_score, score_map);
+      if (identified.parent_matches.empty()) // no parent information given
       {
         // row.unique.set(false); // leave this unset?
         output.push_back(row);
+      }
+      else // generate entries (with duplicated data) for every accession
+      {
+        bool unique = (identified.parent_matches.size() == 1);
+        for (const auto& match_pair : identified.parent_matches)
+        {
+          const String& accession = match_pair.first->accession;
+          MzTabSectionRow copy = row;
+          copy.accession.set(accession);
+          copy.unique.set(unique);
+          addMzTabMoleculeParentContext_(match_pair.second, copy);
+          output.push_back(copy);
+        }
       }
     }
 
@@ -145,9 +136,8 @@ namespace OpenMS
       MzTabSectionRow xsm; // PSM or OSM
       // @TODO: handle modifications properly
       xsm.sequence.set(sequence);
-      exportScoresToMzTab_(match.scores, xsm.search_engine_score, score_map);
-      exportProcessingStepsToMzTab_(match.processing_step_refs,
-                                    xsm.search_engine);
+      exportStepsAndScoresToMzTab_(match.steps_and_scores, xsm.search_engine,
+                                   xsm.search_engine_score, score_map);
       const IdentificationData::DataQuery& query = *match.data_query_ref;
       std::vector<MzTabDouble> rts(1);
       rts[0].set(query.rt);
@@ -160,21 +150,23 @@ namespace OpenMS
         xsm.spectra_ref.setMSFile(file_map[*query.input_file_opt]);
       }
       xsm.spectra_ref.setSpecRef(query.data_id);
+      if (match.metaValueExists("adduct"))
+      {
+        MzTabOptionalColumnEntry opt_adduct;
+        opt_adduct.first = "opt_adduct";
+        opt_adduct.second.set(match.getMetaValue("adduct"));
+        xsm.opt_.push_back(opt_adduct);
+      }
       // don't repeat data from the peptide section (e.g. accessions)
       // why are "pre"/"post"/"start"/"end" not in the peptide section?!
       output.push_back(xsm);
     }
 
-    /// Helper function to add search engine scores to MzTab
-    static void exportScoresToMzTab_(
-      const IdentificationData::ScoreList& scores,
-      std::map<Size, MzTabDouble>& output,
+    /// Helper function to add processing steps (search engines) and their scores to MzTab
+    static void exportStepsAndScoresToMzTab_(
+      const IdentificationData::AppliedProcessingSteps& steps_and_scores,
+      MzTabParameterList& steps_out, std::map<Size, MzTabDouble>& scores_out,
       std::map<IdentificationData::ScoreTypeRef, Size>& score_map);
-
-    /// Helper function to add processing steps (search engines) to MzTab
-    static void exportProcessingStepsToMzTab_(
-      const std::vector<IdentificationData::ProcessingStepRef>& steps,
-      MzTabParameterList& output);
 
     /// Helper function to add search engine score entries to MzTab's meta data section
     static void addMzTabSEScores_(
@@ -184,14 +176,12 @@ namespace OpenMS
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - oligonucleotide variant
     static void addMzTabMoleculeParentContext_(
       const std::set<IdentificationData::MoleculeParentMatch>& matches,
-      const MzTabOligonucleotideSectionRow& row,
-      std::vector<MzTabOligonucleotideSectionRow>& output);
+      MzTabOligonucleotideSectionRow& row);
 
     /// Helper function for @ref exportPeptideOrOligoToMzTab_() - peptide variant
     static void addMzTabMoleculeParentContext_(
       const std::set<IdentificationData::MoleculeParentMatch>& matches,
-      const MzTabPeptideSectionRow& row,
-      std::vector<MzTabPeptideSectionRow>& output);
+      MzTabPeptideSectionRow& row);
 
     /// Helper function to import DB search parameters from legacy format
     static IdentificationData::SearchParamRef importDBSearchParameters_(
@@ -203,5 +193,3 @@ namespace OpenMS
       IdentificationData::SearchParamRef ref);
   };
 }
-
-#endif

@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_MOLECULEQUERYMATCH_H
-#define OPENMS_METADATA_ID_MOLECULEQUERYMATCH_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/MetaData.h>
 #include <OpenMS/METADATA/ID/IdentifiedCompound.h>
@@ -51,7 +50,8 @@ namespace OpenMS
   {
     // @TODO: move "PeakAnnotation" out of "PeptideHit"
     typedef std::vector<PeptideHit::PeakAnnotation> PeakAnnotations;
-    typedef std::map<ProcessingStepRef, PeakAnnotations> PeakAnnotationSteps;
+    typedef std::map<boost::optional<ProcessingStepRef>,
+                     PeakAnnotations> PeakAnnotationSteps;
 
     typedef boost::variant<IdentifiedPeptideRef, IdentifiedCompoundRef,
                            IdentifiedOligoRef> IdentifiedMoleculeRef;
@@ -74,11 +74,10 @@ namespace OpenMS
       explicit MoleculeQueryMatch(
         IdentifiedMoleculeRef identified_molecule_ref,
         DataQueryRef data_query_ref, Int charge = 0,
-        const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepRef>& processing_step_refs =
-        std::vector<ProcessingStepRef>(),
+        const AppliedProcessingSteps& steps_and_scores =
+        AppliedProcessingSteps(),
         const PeakAnnotationSteps& peak_annotations = PeakAnnotationSteps()):
-        ScoredProcessingResult(scores, processing_step_refs),
+        ScoredProcessingResult(steps_and_scores),
         identified_molecule_ref(identified_molecule_ref),
         data_query_ref(data_query_ref), charge(charge),
         peak_annotations(peak_annotations)
@@ -167,5 +166,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

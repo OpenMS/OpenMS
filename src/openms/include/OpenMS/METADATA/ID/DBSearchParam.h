@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_DBSEARCHPARAM_H
-#define OPENMS_METADATA_ID_DBSEARCHPARAM_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
 #include <OpenMS/METADATA/ID/MetaData.h>
@@ -126,5 +125,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

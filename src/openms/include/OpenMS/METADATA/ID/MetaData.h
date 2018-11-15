@@ -32,10 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_METADATA_H
-#define OPENMS_METADATA_ID_METADATA_H
-
-#include <OpenMS/METADATA/Software.h>
+#pragma once
 
 namespace OpenMS
 {
@@ -84,17 +81,5 @@ namespace OpenMS
     typedef std::set<String> InputFiles;
     typedef IteratorWrapper<InputFiles::iterator> InputFileRef;
 
-
-    /*!
-      Information about software used for data processing.
-
-      If the same processing is applied to multiple ID runs, e.g. if multiple files (fractions, replicates) are searched with the same search engine, store the
- software information only once.
-    */
-    typedef std::set<Software> DataProcessingSoftware;
-    typedef IteratorWrapper<DataProcessingSoftware::iterator> ProcessingSoftwareRef;
-
   }
 }
-
-#endif
