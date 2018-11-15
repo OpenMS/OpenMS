@@ -445,7 +445,7 @@ namespace OpenMS
     group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
     menu = new QMenu(dm_unassigned_2d_);
     StringList options = ListUtils::create<String>(
-      "Don't show,Show by precursor m/z,Show by peptide mass");
+      "Don't show,Show by precursor m/z,Show by peptide mass,Show label meta data");
     for (StringList::iterator opt_it = options.begin(); opt_it != options.end();
          ++opt_it)
     {
@@ -1804,18 +1804,28 @@ namespace OpenMS
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
       set = true;
     }
     else if (action->text().toStdString() == "Show by precursor m/z")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
       set = true;
     }
     else if (action->text().toStdString() == "Show by peptide mass")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
+      set = true;
+    }
+    else if (action->text().toStdString() == "Show label meta data")
+    {
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, true);
       set = true;
     }
 

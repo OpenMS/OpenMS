@@ -72,7 +72,7 @@ using namespace std;
 </CENTER>
 
     @em Comet must be installed before this wrapper can be used. This wrapper
-    has been successfully tested with version 2016.01.2 of Comet.
+    has been successfully tested with version 2016.01.2, 2016.01.3 and 2017.01.0beta of Comet.
 
     Comet settings not exposed by this adapter can be directly adjusted using a param file, which can be generated using comet -p.
     By default, All (!) parameters available explicitly via this param file will take precedence over the wrapper parameters.
@@ -125,7 +125,6 @@ protected:
       "comet.exe",
       "Comet executable of the installation e.g. 'comet.exe'", true, false, ListUtils::create<String>("skipexists"));
     registerStringOption_("comet_version","<choice>", "2016.01 rev. 2","comet version: (year,version,revision)",false,false); //required as first line in the param file
-    setValidStrings_("comet_version", ListUtils::create<String>("2016.01 rev. 2,2016.01 rev. 3,2017.01 rev. 0beta"));
 
     //
     // Optional parameters

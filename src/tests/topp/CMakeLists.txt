@@ -1887,13 +1887,13 @@ set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_3_out1" PROPERTIES DEPENDS "
 
 #------------------------------------------------------------------------------
 # IDMapper tests
-add_test("TOPP_IDMapper_1" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_1_input.featureXML -out IDMapper_1_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_1_input.idXML -mz_measure Da -mz_tolerance 1 -ignore_charge)
+add_test("TOPP_IDMapper_1" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_1_input.featureXML -out IDMapper_1_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_1_input.idXML -mz_measure Da -mz_tolerance 1 -ignore_charge -mz_reference precursor -feature:use_centroid_mz false)
 add_test("TOPP_IDMapper_1_out1" ${DIFF} -in1 IDMapper_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_1_output.featureXML )
 set_tests_properties("TOPP_IDMapper_1_out1" PROPERTIES DEPENDS "TOPP_IDMapper_1")
-add_test("TOPP_IDMapper_2" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_2_input.consensusXML -out IDMapper_2_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_2_input.idXML  -mz_measure Da -mz_tolerance 1)
+add_test("TOPP_IDMapper_2" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_2_input.consensusXML -out IDMapper_2_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_2_input.idXML  -mz_measure Da -mz_tolerance 1 -mz_reference precursor)
 add_test("TOPP_IDMapper_2_out1" ${DIFF} -in1 IDMapper_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_2_output.consensusXML )
 set_tests_properties("TOPP_IDMapper_2_out1" PROPERTIES DEPENDS "TOPP_IDMapper_2")
-add_test("TOPP_IDMapper_3" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_3_input.featureXML -out IDMapper_3_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_3_input.idXML  -mz_measure ppm -mz_tolerance 3 -rt_tolerance 4 -ignore_charge)
+add_test("TOPP_IDMapper_3" ${TOPP_BIN_PATH}/IDMapper -test -in ${DATA_DIR_TOPP}/IDMapper_3_input.featureXML -out IDMapper_3_output.tmp -id ${DATA_DIR_TOPP}/IDMapper_3_input.idXML  -mz_measure ppm -mz_tolerance 3 -rt_tolerance 4 -ignore_charge -mz_reference precursor)
 add_test("TOPP_IDMapper_3_out1" ${DIFF} -in1 IDMapper_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_3_output.featureXML )
 set_tests_properties("TOPP_IDMapper_3_out1" PROPERTIES DEPENDS "TOPP_IDMapper_3")
 add_test("TOPP_IDMapper_4" ${TOPP_BIN_PATH}/IDMapper -test -in
@@ -1907,7 +1907,7 @@ add_test("TOPP_IDMapper_5" ${TOPP_BIN_PATH}/IDMapper -test -in
 ${DATA_DIR_TOPP}/IDMapper_5_input.featureXML -out IDMapper_5_output.tmp -id
 ${DATA_DIR_TOPP}/IDMapper_5_input.idXML -spectra:in
 ${DATA_DIR_TOPP}/IDMapper_5_input.mzML -mz_measure ppm -mz_tolerance 10
--rt_tolerance 20)
+-rt_tolerance 20 -feature:use_centroid_mz false)
 add_test("TOPP_IDMapper_5_out1" ${DIFF} -in1 IDMapper_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_5_output.featureXML )
 set_tests_properties("TOPP_IDMapper_5_out1" PROPERTIES DEPENDS "TOPP_IDMapper_5")
 
@@ -2339,7 +2339,6 @@ add_test("UTILS_DatabaseFilter_4" ${TOPP_BIN_PATH}/DatabaseFilter -test -in ${DA
 add_test("UTILS_DatabaseFilter_4_out" ${DIFF} -in1 DatabaseFilter_4_out.fasta.tmp -in2 ${DATA_DIR_TOPP}/DatabaseFilter_4_out.fasta )
 set_tests_properties("UTILS_DatabaseFilter_4_out" PROPERTIES DEPENDS "UTILS_DatabaseFilter_4")
 
-
 # DecoyDatabase:
 add_test("UTILS_DecoyDatabase_1" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_1.fasta.tmp -only_decoy)
 add_test("UTILS_DecoyDatabase_1_out" ${DIFF} -in1 DecoyDatabase_1.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_1_out.fasta )
@@ -2359,6 +2358,11 @@ ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out SimpleSearchEngine_1_out.tmp
 add_test("UTILS_SimpleSearchEngine_1_out" ${DIFF} -in1 SimpleSearchEngine_1_out.tmp -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 set_tests_properties("UTILS_SimpleSearchEngine_1_out" PROPERTIES DEPENDS
 "UTILS_SimpleSearchEngine_1")
+
+# FeatureFinderMetaboIdent:
+add_test("UTILS_FeatureFinderMetaboIdent_1" ${TOPP_BIN_PATH}/FeatureFinderMetaboIdent -test -in ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.mzML -id ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_input.tsv -out FeatureFinderMetaboIdent_1_output.tmp -extract:mz_window 5 -extract:rt_window 20 -detect:peak_width 3)
+add_test("UTILS_FeatureFinderMetaboIdent_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetaboIdent_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetaboIdent_1_output.featureXML)
+set_tests_properties("UTILS_FeatureFinderMetaboIdent_1_out1" PROPERTIES DEPENDS "UTILS_FeatureFinderMetaboIdent_1")
 
 # FeatureFinderSuperHirn - test on centroided data:
 add_test("UTILS_FeatureFinderSuperHirn_1" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_1.mzML -out FeatureFinderSuperHirn_1_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_parameters.ini)
