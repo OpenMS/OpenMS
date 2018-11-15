@@ -657,7 +657,6 @@ namespace OpenMS
 
     MzTabPSMSectionRows psms;
     MzTabOSMSectionRows osms;
-    counter = 1;
     for (const auto& query_match : id_data.getMoleculeQueryMatches())
     {
       IdentificationData::IdentifiedMoleculeRef molecule_ref =
@@ -671,8 +670,7 @@ namespace OpenMS
         double calc_mass = seq.getMonoWeight(Residue::Full, query_match.charge);
         exportQueryMatchToMzTab_(seq.toString(), query_match, calc_mass, psms,
                                  psm_scores, file_map);
-        psms.back().PSM_ID.set(counter);
-        ++counter;
+        // "PSM_ID" field is set at the end, after sorting
       }
       else if (molecule_type == IdentificationData::MoleculeType::RNA)
       {
@@ -699,6 +697,13 @@ namespace OpenMS
     sort(peptides.begin(), peptides.end(),
          MzTabPeptideSectionRow::RowCompare());
     sort(psms.begin(), psms.end(), MzTabPSMSectionRow::RowCompare());
+    // set "PSM_ID" fields - the IDs are repeated for peptides with multiple
+    // protein accessions; however, we don't write out the accessions on PSM
+    // level (only on peptide level), so just number consecutively:
+    for (Size i = 0; i < psms.size(); ++i)
+    {
+      psms[i].PSM_ID.set(i + 1);
+    }
     sort(nucleic_acids.begin(), nucleic_acids.end(),
          MzTabNucleicAcidSectionRow::RowCompare());
     sort(oligos.begin(), oligos.end(),
