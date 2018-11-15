@@ -46,33 +46,50 @@
 
 namespace OpenMS
 {
+/**
+   * @brief Representation of a nucleic acid sequence
+   *
+   * NASequence represents nucleic acid sequences (RNA) in %OpenMS. Each NASequence consists
+   * of a vector of pointers to Ribonucleotides as well as RibonucleotideChainEnds representing
+   * the 5' and 3' ends of the sequence. Each Ribonucleotide has only a single instance.
+   * These are accessible through RibonucleotideDB. Modified Ribonucleotides are included in RibonucleotideDB
+   * and are expressed as the Modomics Short name surrounded by brackets when converted to string.
+   *
+   * @ingroup Chemistry
+   */
+
+
 
   class OPENMS_DLLAPI NASequence
   {
 
+/**
+  @brief an enum of all possible fragment ion types
+  */
+
   public:
     enum NASFragmentType
     {                 //< NB: Not all fragments types are valid for all residue types, this class should probably get split
-      Full = 0,       //< with N-terminus and C-terminus
-      Internal,       //< internal, without any termini
-      FivePrime,      //< only 5' terminus
-      ThreePrime,     //< only 3' terminus
-      AIon,           //< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           //< MS:1001224 N-terminus up to the peptide bond
-      CIon,           //< MS:1001231 N-terminus up to the amide/C-alpha bond
-      XIon,           //< MS:1001228 amide/C-alpha bond up to the C-terminus
-      YIon,           //< MS:1001220 peptide bond up to the C-terminus
-      ZIon,           //< MS:1001230 C-alpha/carbonyl carbon bond
-      Precursor,      //< MS:1001523 Precursor ion
-      BIonMinusH20,   //< MS:1001222 b ion without water
-      YIonMinusH20,   //< MS:1001223 y ion without water
-      BIonMinusNH3,   //< MS:1001232 b ion without ammonia
-      YIonMinusNH3,   //< MS:1001233 y ion without ammonia
-      NonIdentified,  //< MS:1001240 Non-identified ion
-      Unannotated,    //< no stored annotation
-      WIon,           //< W ion, added for nucleic acid support
-      AminusB,        //< A ion with base loss, added for nucleic acid support
-      DIon,           //< D ion, added for nucleic acid support
+      Full = 0,       ///< with N-terminus and C-terminus
+      Internal,       ///< internal, without any termini
+      FivePrime,      ///< only 5' terminus
+      ThreePrime,     ///< only 3' terminus
+      AIon,           ///< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,           ///< MS:1001224 N-terminus up to the peptide bond
+      CIon,           ///< MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,           ///< MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,           ///< MS:1001220 peptide bond up to the C-terminus
+      ZIon,           ///< MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor,      ///< MS:1001523 Precursor ion
+      BIonMinusH20,   ///< MS:1001222 b ion without water
+      YIonMinusH20,   ///< MS:1001223 y ion without water
+      BIonMinusNH3,   ///< MS:1001232 b ion without ammonia
+      YIonMinusNH3,   ///< MS:1001233 y ion without ammonia
+      NonIdentified,  ///< MS:1001240 Non-identified ion
+      Unannotated,    ///< no stored annotation
+      WIon,           ///< W ion, added for nucleic acid support
+      AminusB,        ///< A ion with base loss, added for nucleic acid support
+      DIon,           ///< D ion, added for nucleic acid support
       SizeOfNASFragmentType
     };
 
@@ -345,23 +362,23 @@ namespace OpenMS
      * Default constructors and assignment operators.
      */
     NASequence() = default; /// default constructor
-    NASequence(const NASequence&) = default; // Copy constructor
-    NASequence(NASequence&&) = default; // Move constructor
-    NASequence& operator=(const NASequence&) & = default;  // Copy assignment operator
-    NASequence& operator=(NASequence&&) & = default; // Move assignment operator
+    NASequence(const NASequence&) = default; ///< Copy constructor
+    NASequence(NASequence&&) = default; ///< Move constructor
+    NASequence& operator=(const NASequence&) & = default;  ///< Copy assignment operator
+    NASequence& operator=(NASequence&&) & = default; ///< Move assignment operator
 
     /// full constructor
     NASequence(std::vector<const Ribonucleotide*> s,
                const RibonucleotideChainEnd* five_prime,
                const RibonucleotideChainEnd* three_prime);
 
-    virtual ~NASequence() = default; // destructor
+    virtual ~NASequence() = default; /// destructor
 
-    bool operator==(const NASequence& rhs) const; // element-wise equality
-    bool operator!=(const NASequence& rhs) const; // not quality
-    bool operator<(const NASequence& rhs) const; // less operator
+    bool operator==(const NASequence& rhs) const; ///< element-wise equality
+    bool operator!=(const NASequence& rhs) const; ///< not quality
+    bool operator<(const NASequence& rhs) const; ///< less operator
 
-    // getter / setter for sequence
+    /// getter / setter for sequence
     void setSequence(const std::vector<const Ribonucleotide*>& seq);
 
     const std::vector<const Ribonucleotide*>& getSequence() const
@@ -374,7 +391,7 @@ namespace OpenMS
       return seq_;
     }
 
-    // getter / setter for ribonucleotide elements (easily wrapped using pyOpenMS)
+    /// getter / setter for ribonucleotide elements (easily wrapped using pyOpenMS)
     void set(size_t index, const Ribonucleotide* r);
 
     const Ribonucleotide* get(size_t index)
@@ -382,7 +399,7 @@ namespace OpenMS
       return seq_[index];
     }
 
-    // getter / setter for sequence elements (C++ container style)
+    /// getter / setter for sequence elements (C++ container style)
     inline const Ribonucleotide*& operator[](size_t index)
     {
       return seq_[index];
@@ -397,7 +414,7 @@ namespace OpenMS
     size_t size() const;
     void clear();
 
-    // 5' and 3' modifications
+    /// 5' and 3' modifications
     bool hasFivePrimeMod() const;
     void setFivePrimeMod(const RibonucleotideChainEnd* r);
     const RibonucleotideChainEnd* getFivePrimeMod() const;
@@ -405,7 +422,7 @@ namespace OpenMS
     void setThreePrimeMod(const RibonucleotideChainEnd* r);
     const RibonucleotideChainEnd* getThreePrimeMod() const;
 
-    // iterators
+    /// iterators
     inline Iterator begin()
     {
       return Iterator(&seq_, 0);
@@ -436,7 +453,7 @@ namespace OpenMS
       return ConstIterator(&seq_, (Int) seq_.size());
     }
 
-    // utility functions
+    /// utility functions
     double getMonoWeight(NASFragmentType type = Full, Int charge = 0) const;
     double getAverageWeight(NASFragmentType type = Full, Int charge = 0) const;
     EmpiricalFormula getFormula(NASFragmentType type = Full, Int charge = 0) const;

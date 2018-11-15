@@ -55,7 +55,7 @@ namespace OpenMS
     friend class RibonucleotideDB;
   public:
 
-    enum TermSpecificity
+    enum TermSpecificityNuc
     {
       ANYWHERE,
       FIVE_PRIME,
@@ -75,7 +75,7 @@ namespace OpenMS
                    char origin = '.',
                    double mono_mass = 0.0,
                    double avg_mass = 0.0,
-                   enum TermSpecificity term_spec = ANYWHERE,
+                   enum TermSpecificityNuc term_spec = ANYWHERE,
                    const EmpiricalFormula& baseloss_formula = EmpiricalFormula());
 
     /// Copy constructor
@@ -156,10 +156,10 @@ namespace OpenMS
     void setHTMLCode(const String& html_code);
 
     /// Get the terminal specificity
-    enum TermSpecificity getTermSpecificity() const;
+    enum TermSpecificityNuc getTermSpecificity() const;
 
     /// Set the terminal specificity
-    void setTermSpecificity(enum TermSpecificity term_spec);
+    void setTermSpecificity(enum TermSpecificityNuc term_spec);
 
     /// Get sum formula after loss of the nucleobase
     const EmpiricalFormula getBaselossFormula() const;
@@ -173,16 +173,16 @@ namespace OpenMS
     bool isModified() const;
 
   protected:
-    String name_; //< full name
-    String code_; //< short name
-    String new_code_; //< Modomics code
-    String html_code_; //< RNAMods code
-    EmpiricalFormula formula_; //< sum formula
-    char origin_; //< character of unmodified version of ribonucleotide
-    double mono_mass_; //< monoisotopic mass
-    double avg_mass_; //< average mass
-    enum TermSpecificity term_spec_; //< terminal specificity
-    EmpiricalFormula baseloss_formula_; //< sum formula after loss of the nucleobase
+    String name_; ///< full name
+    String code_; ///< short name
+    String new_code_; ///< Modomics code
+    String html_code_; ///< RNAMods code
+    EmpiricalFormula formula_; ///< sum formula
+    char origin_; ///< character of unmodified version of ribonucleotide
+    double mono_mass_; ///< monoisotopic mass
+    double avg_mass_; ///< average mass
+    enum TermSpecificityNuc term_spec_; ///< terminal specificity
+    EmpiricalFormula baseloss_formula_; ///< sum formula after loss of the nucleobase
   };
 
   /// Stream output operator
