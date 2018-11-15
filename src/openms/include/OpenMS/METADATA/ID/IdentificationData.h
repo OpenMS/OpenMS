@@ -189,7 +189,7 @@ namespace OpenMS
       current_step_ref_(other.current_step_ref_)
     {
       input_files_.swap(other.input_files_);
-      processing_software_.swap(other.processing_software_);
+      processing_softwares_.swap(other.processing_softwares_);
       processing_steps_.swap(other.processing_steps_);
       db_search_params_.swap(other.db_search_params_);
       db_search_steps_.swap(other.db_search_steps_);
