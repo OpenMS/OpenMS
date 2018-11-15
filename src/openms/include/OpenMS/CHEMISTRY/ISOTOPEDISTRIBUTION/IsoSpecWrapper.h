@@ -86,7 +86,7 @@ public:
       * used instead.
       *
       * This method is provided for convience. As calling that method invalidates the object (the method should
-      * not be called again, nor anythong other than destroying the object should be done with it), the most common
+      * not be called again, nor anything other than destroying the object should be done with it), the most common
       * usage pattern of IsoSpecWrapper classes with the run method is:
       *
       * IsotopeDistribution dist = IsoSpecWrapperSubclass(...).run();
