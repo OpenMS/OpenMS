@@ -152,6 +152,9 @@ public:
     /**
      * @brief Obtain the natural logarithm of the intensity (probability, relative peak height) of the current configuration
      *
+     * This will be more precise (and faster) than just calling std::log(getIntensity()) - it will produce correct results even
+     * for configurations so unlikely that the double-precision floating point number returned from getIntensity() underflows to zero.
+     *
      * @return The natural logarithm of intensity (probability) of the current isotopologue
      *
      * @note It is invalid (undefined results) to call this method before the first call to nextConf(), or after it returns false
