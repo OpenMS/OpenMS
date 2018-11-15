@@ -131,23 +131,19 @@ START_SECTION((void digest(const NASequence& rna, vector<NASequence>& output, Si
   TEST_STRING_EQUAL(out[0].toString(), "CCCAUCCG");
 
   rd.setEnzyme("unspecific cleavage");
-  rd.setMissedCleavages(0);
+  rd.setMissedCleavages(0); // shouldn't matter for the result
   rd.digest(NASequence::fromString("ACGU"), out);
-  TEST_EQUAL(out.size(), 4);
-  TEST_STRING_EQUAL(out[0].toString(), "A");
-  TEST_STRING_EQUAL(out[1].toString(), "C");
-  TEST_STRING_EQUAL(out[2].toString(), "G");
-  TEST_STRING_EQUAL(out[3].toString(), "U");
-  rd.setMissedCleavages(1);
-  rd.digest(NASequence::fromString("ACGU"), out);
-  TEST_EQUAL(out.size(), 7);
+  TEST_EQUAL(out.size(), 10);
   TEST_STRING_EQUAL(out[0].toString(), "A");
   TEST_STRING_EQUAL(out[1].toString(), "AC");
-  TEST_STRING_EQUAL(out[2].toString(), "C");
-  TEST_STRING_EQUAL(out[3].toString(), "CG");
-  TEST_STRING_EQUAL(out[4].toString(), "G");
-  TEST_STRING_EQUAL(out[5].toString(), "GU");
-  TEST_STRING_EQUAL(out[6].toString(), "U");
+  TEST_STRING_EQUAL(out[2].toString(), "ACG");
+  TEST_STRING_EQUAL(out[3].toString(), "ACGU");
+  TEST_STRING_EQUAL(out[4].toString(), "C");
+  TEST_STRING_EQUAL(out[5].toString(), "CG");
+  TEST_STRING_EQUAL(out[6].toString(), "CGU");
+  TEST_STRING_EQUAL(out[7].toString(), "G");
+  TEST_STRING_EQUAL(out[8].toString(), "GU");
+  TEST_STRING_EQUAL(out[9].toString(), "U");
 }
 END_SECTION
 

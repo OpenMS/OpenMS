@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h> // for "median"
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -51,6 +52,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/SVOutStream.h>
 
 // digestion enzymes
 #include <OpenMS/CHEMISTRY/RNaseDigestion.h>
@@ -156,6 +158,9 @@ protected:
 
     registerOutputFile_("id_out", "<file>", "", "Output file: idXML (for visualization in TOPPView)", false);
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
+
+    registerOutputFile_("lfq_out", "<file>", "", "Output file: Targets for label-free quantification using FeatureFinderMetaboIdent ('id' input)", false);
+    setValidFormats_("lfq_out", vector<String>(1, "tsv"));
 
     registerOutputFile_("theo_ms2_out", "<file>", "", "Output file: theoretical MS2 spectra for precursor mass matches", false, true);
     setValidFormats_("theo_ms2_out", ListUtils::create<String>("mzML"));
@@ -275,7 +280,6 @@ protected:
     return modifications;
   }
 
-
   // check for minimum size
   class HasInvalidLength
   {
@@ -288,6 +292,42 @@ protected:
     bool operator()(const NASequence& s) { return s.size() < min_size_; }
   };
 
+  // turn an adduct string (param. "precursor:potential_adducts") into a formula
+  EmpiricalFormula parseAdduct_(const String& adduct)
+  {
+    StringList parts;
+    adduct.split(':', parts);
+    if (parts.size() != 2)
+    {
+      String error = "entry in parameter 'precursor:potential_adducts' does not have two parts separated by ':'";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    error, adduct);
+    }
+
+    // determine charge of adduct (by number of '+' or '-')
+    Int pos_charge = parts[1].size() - parts[1].remove('+').size();
+    Int neg_charge = parts[1].size() - parts[1].remove('-').size();
+    LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
+    if (pos_charge > 0 && neg_charge > 0)
+    {
+      String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                    error, adduct);
+    }
+
+    // generate the formula for the adduct at neutral charge (!) -
+    // compensate for intrinsic charge by adding/removing hydrogens:
+    EmpiricalFormula ef(parts[0]);
+    if (pos_charge > 0)
+    {
+      ef -= EmpiricalFormula("H" + String(pos_charge));
+    }
+    else if ((neg_charge > 0) && (parts[0] != "H-1"))
+    {
+      ef += EmpiricalFormula("H" + String(neg_charge));
+    }
+    return ef;
+  }
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   void deisotopeAndSingleChargeMSSpectrum_(
@@ -700,6 +740,46 @@ protected:
   }
 
 
+  void generateLFQInput_(IdentificationData& id_data, const String& out_file)
+  {
+    // mapping: (oligo, adduct) -> charge -> RTs
+    map<pair<NASequence, String>, map<Int, vector<double>>> rt_info;
+    for (const IdentificationData::MoleculeQueryMatch& match :
+           id_data.getMoleculeQueryMatches())
+    {
+      auto key = make_pair(match.getIdentifiedOligoRef()->sequence,
+                           match.getMetaValue("adduct"));
+      rt_info[key][match.charge].push_back(match.data_query_ref->rt);
+    }
+
+    SVOutStream tsv(out_file);
+    tsv.modifyStrings(false);
+    tsv << "CompoundName" << "SumFormula" << "Mass" << "Charge"
+        << "RetentionTime" << "RetentionTimeRange" << "IsoDistribution" << endl;
+    for (const auto& entry : rt_info)
+    {
+      String name = entry.first.first.toString();
+      EmpiricalFormula ef = entry.first.first.getFormula();
+      if (!entry.first.second.empty()) // adduct given
+      {
+        name += "+[" + entry.first.second + "]";
+        ef += parseAdduct_(entry.first.second);
+      }
+      // @TODO: use charge-specific RTs?
+      vector<Int> charges;
+      vector<double> rts;
+      for (const auto& pair : entry.second)
+      {
+        charges.push_back(pair.first);
+        rts.insert(rts.end(), pair.second.begin(), pair.second.end());
+      }
+      tsv << name << ef << 0 << ListUtils::concatenate(charges, ",");
+      // @TODO: do something more sophisticated for the RT?
+      tsv << Math::median(rts.begin(), rts.end(), false) << 0 << 0 << endl;
+    }
+  }
+
+
   ExitCodes main_(int, const char**)
   {
     ProgressLogger progresslogger;
@@ -708,6 +788,7 @@ protected:
     String in_db = getStringOption_("database");
     String out = getStringOption_("out");
     String id_out = getStringOption_("id_out");
+    String lfq_out = getStringOption_("lfq_out");
     String theo_ms2_out = getStringOption_("theo_ms2_out");
     String exp_ms2_out = getStringOption_("exp_ms2_out");
     bool use_avg_mass = getFlag_("precursor:use_avg_mass");
@@ -774,50 +855,7 @@ protected:
     {
       for (const String& adduct : potential_adducts)
       {
-        StringList parts;
-        adduct.split(':', parts);
-        if (parts.size() != 2)
-        {
-          String error = "entry in parameter 'precursor:potential_adducts' does not have two parts separated by ':'";
-          throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, error, adduct);
-        }
-
-        // determine charge of adduct (by # of '+' or '-')
-        Int pos_charge = parts[1].size() - parts[1].remove('+').size();
-        Int neg_charge = parts[1].size() - parts[1].remove('-').size();
-        LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
-        if (pos_charge > 0 && neg_charge > 0)
-        {
-          String error = "entry in parameter 'precursor:potential_adducts' mixes positive and negative charges";
-          throw Exception::InvalidValue(__FILE__, __LINE__,
-                                        OPENMS_PRETTY_FUNCTION, error, adduct);
-        }
-
-        // generate the formula for the adduct at neutral charge (!) -
-        // compensate for intrinsic charge by adding/removing hydrogens:
-        EmpiricalFormula ef(parts[0]);
-        if (pos_charge > 0)
-        {
-          ef -= EmpiricalFormula("H" + String(pos_charge));
-          // ef.setCharge(pos_charge); // effectively subtract electron masses
-        }
-        else if (neg_charge > 0)
-        {
-          if (parts[0] == "H-1") // @TODO: does this need a special case?
-          {
-            adduct_masses[-Constants::PROTON_MASS_U] = adduct;
-            LOG_DEBUG << "Added adduct: " << adduct << ", mass: "
-                      << -Constants::PROTON_MASS_U << endl;
-            continue;
-          }
-          else
-          {
-            ef.setCharge(0); // ensures we get without additional protons, now just add electron masses
-            //TODO triple check salt proton correctness
-            ef += EmpiricalFormula("H" + String(neg_charge));
-          }
-        }
+        EmpiricalFormula ef = parseAdduct_(adduct);
         double mass = use_avg_mass ? ef.getAverageWeight() : ef.getMonoWeight();
         adduct_masses[mass] = adduct;
         LOG_DEBUG << "Added adduct: " << adduct << ", mass: " << mass << endl;
@@ -1157,6 +1195,11 @@ protected:
       // proteins[0].setDateTime(DateTime::now());
       // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);
+    }
+
+    if (!lfq_out.empty())
+    {
+      generateLFQInput_(id_data, lfq_out);
     }
 
     return EXECUTION_OK;

@@ -52,22 +52,11 @@ namespace OpenMS
   class OPENMS_DLLAPI RNaseDigestion: public EnzymaticDigestion
   {
   public:
-    using EnzymaticDigestion::setEnzyme;
+    /// Sets the enzyme for the digestion
+    void setEnzyme(const DigestionEnzyme* enzyme) override;
 
     /// Sets the enzyme for the digestion (by name)
     void setEnzyme(const String& name);
-
-    /**
-       @brief Performs the enzymatic digestion of an (unmodified) RNA
-
-       Only fragments of appropriate length (between @p min_length and @p max_length) are returned.
-
-       There are two complications:
-       1. The original RNA may have terminal phosphates ("p"), which we want to ignore, but not remove.
-       2. The enzyme may add modifications (e.g. "p") on the 5' or 3' ends of cleavage products, but NOT on the original 5' or 3' ends of the RNA.
-    */
-    void digest(const String& rna, std::vector<String>& output,
-                Size min_length = 0, Size max_length = 0) const;
 
     /**
        @brief Performs the enzymatic digestion of a (potentially modified) RNA
@@ -87,13 +76,17 @@ namespace OpenMS
                 Size max_length = 0) const;
 
   protected:
+    const Ribonucleotide* five_prime_gain_; //< 5' mod added by the enzyme
+    const Ribonucleotide* three_prime_gain_; //< 3' mod added by the enzyme
+    boost::regex cuts_after_regex_; //< reg. exp. for enzyme cutting pattern
+    boost::regex cuts_before_regex_; //< reg. exp. for enzyme cutting pattern
+
     /**
        @brief Returns the positions of digestion products in the RNA as pairs: (start, length)
      */
     std::vector<std::pair<Size, Size>> getFragmentPositions_(
-      const NASequence& rna, Size min_length, Size max_length,
-      const boost::regex& cuts_after_regex,
-      const boost::regex& cuts_before_regex) const;
+      const NASequence& rna, Size min_length, Size max_length)
+      const;
   };
 
 } // namespace OpenMS
