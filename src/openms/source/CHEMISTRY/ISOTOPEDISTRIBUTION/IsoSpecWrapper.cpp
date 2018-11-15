@@ -127,6 +127,58 @@ namespace OpenMS
 
 
 
+  IsoSpecThresholdGeneratorWrapper::IsoSpecThresholdGeneratorWrapper(const std::vector<int>& isotopeNr,
+                    const std::vector<int>& atomCounts,
+                    const std::vector<std::vector<double> >& isotopeMasses,
+                    const std::vector<std::vector<double> >& isotopeProbabilities,
+                    double threshold,
+                    bool absolute) :
+  ITG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)), threshold, absolute)
+  {};
+
+  IsoSpecThresholdGeneratorWrapper::IsoSpecThresholdGeneratorWrapper(const EmpiricalFormula& formula,
+                    double threshold,
+                    bool absolute) :
+  ITG(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute)
+  {};
+
+
+//  --------------------------------------------------------------------------------
+
+
+
+  IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const std::vector<int>& isotopeNr,
+                    const std::vector<int>& atomCounts,
+                    const std::vector<std::vector<double> >& isotopeMasses,
+                    const std::vector<std::vector<double> >& isotopeProbabilities,
+                    double total_prob,
+                    bool do_p_trim) :
+  ILG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)), total_prob, 0.3, 1024, 1024, do_p_trim)
+  {};
+
+  IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula& formula,
+                    double total_prob,
+                    bool do_p_trim) :
+  ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
+  {};
+
+
+//  --------------------------------------------------------------------------------
+
+
+  IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNr,
+                    const std::vector<int>& atomCounts,
+                    const std::vector<std::vector<double> >& isotopeMasses,
+                    const std::vector<std::vector<double> >& isotopeProbabilities) :
+  IOG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)))
+  {};
+
+  IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula) :
+  IOG(_OMS_IsoFromEmpiricalFormula(formula))
+  {};
+
+//  --------------------------------------------------------------------------------
+
   IsoSpecThresholdWrapper::IsoSpecThresholdWrapper(const std::vector<int>& isotopeNr,
                     const std::vector<int>& atomCounts,
                     const std::vector<std::vector<double> >& isotopeMasses,
@@ -141,6 +193,7 @@ namespace OpenMS
                     bool absolute) :
   ITG(_OMS_IsoFromEmpiricalFormula(formula), threshold, absolute)
   {};
+
 
   IsotopeDistribution IsoSpecThresholdWrapper::run()
   {
@@ -159,9 +212,7 @@ namespace OpenMS
     return ID;
   }
 
-
 //  --------------------------------------------------------------------------------
-
 
 
   IsoSpecTotalProbWrapper::IsoSpecTotalProbWrapper(const std::vector<int>& isotopeNr,
@@ -179,6 +230,7 @@ namespace OpenMS
   ILG(_OMS_IsoFromEmpiricalFormula(formula), total_prob, 0.3, 1024, 1024, do_p_trim)
   {};
 
+
   IsotopeDistribution IsoSpecTotalProbWrapper::run()
   {
     std::vector<Peak1D> distribution;
@@ -194,22 +246,6 @@ namespace OpenMS
 
     return ID;
   }
-
-
-//  --------------------------------------------------------------------------------
-
-
-  IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const std::vector<int>& isotopeNr,
-                    const std::vector<int>& atomCounts,
-                    const std::vector<std::vector<double> >& isotopeMasses,
-                    const std::vector<std::vector<double> >& isotopeProbabilities) :
-  IOG(std::move(_OMS_IsoFromParameters(isotopeNr, atomCounts, isotopeMasses, isotopeProbabilities)))
-  {};
-
-  IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula& formula) :
-  IOG(_OMS_IsoFromEmpiricalFormula(formula))
-  {};
-
 
 }
 

@@ -81,7 +81,7 @@ bool compare_to_reference(IsotopeDistribution& ID, const std::vector<Peak1D>& re
 }
 
 
-Size generator_length(IsoSpecWrapper& IW)
+Size generator_length(IsoSpecGeneratorWrapper& IW)
 {
   Size i = 0;
   while(IW.nextConf())
@@ -91,7 +91,7 @@ Size generator_length(IsoSpecWrapper& IW)
 
 // With empty vector as reference this function will just run some sanity checks on the generator output
 // confs_to_extract == -1 will test the generator until exhaustion, >0 will just test the initial n confs.
-bool compare_generator_to_reference(IsoSpecWrapper& IW, const std::vector<Peak1D>& reference, UInt32 confs_to_extract)
+bool compare_generator_to_reference(IsoSpecGeneratorWrapper& IW, const std::vector<Peak1D>& reference, UInt32 confs_to_extract)
 {
   Size matches_count = 0;
   std::vector<Peak1D> isoResult;
@@ -172,6 +172,223 @@ invalid_isotopeProbabilities[0].push_back(0.0);
 
 
 // ----------------------------------------------------------------------------------------------------------------------
+// Tests: IsoSpecThresholdGeneratorWrapper
+// ----------------------------------------------------------------------------------------------------------------------
+
+
+{
+  IsoSpecGeneratorWrapper* ptr = nullptr;
+  IsoSpecGeneratorWrapper* ptr2 = nullptr;
+  IsoSpecGeneratorWrapper* nullPointer = nullptr;
+  START_SECTION((IsoSpecThresholdGeneratorWrapper::IsoSpecThresholdGeneratorWrapper(const EmpiricalFormula&, double, bool)))
+    ptr = new IsoSpecThresholdGeneratorWrapper(EmpiricalFormula("C10"), 0.5, false);
+    TEST_NOT_EQUAL(ptr, nullPointer)
+  END_SECTION
+
+  START_SECTION((IsoSpecThresholdGeneratorWrapper(std::vector<int>, std::vector<int>,
+                                         std::vector<std::vector<double> >,
+                                         std::vector<std::vector<double> >, 
+                                         double, bool)))
+    ptr2 = new IsoSpecThresholdGeneratorWrapper(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses,
+                                       fructose_isotopeProbabilities, 0.5, false);
+    TEST_NOT_EQUAL(ptr2, nullPointer)
+    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecThresholdGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, invalid_isotopeMasses, invalid_isotopeProbabilities, 0.5, false));
+  END_SECTION
+
+  START_SECTION((IsoSpecThresholdGeneratorWrapper::~IsoSpecThresholdGeneratorWrapper()))
+    delete ptr;
+    delete ptr2;
+  END_SECTION
+}
+
+START_SECTION(( bool IsoSpecThresholdGeneratorWrapper::nextConf() ))
+{
+  double threshold = 1e-5;
+  bool absolute = false;
+
+
+  IsoSpecThresholdGeneratorWrapper ITW(EmpiricalFormula("C6H12O6"), threshold, absolute);
+  TEST_EQUAL(compare_generator_to_reference(ITW, fructose_expected_oms, -1), true);
+
+  IsoSpecThresholdGeneratorWrapper ITW2(EmpiricalFormula("C6H12O6"), threshold, absolute);
+  TEST_EQUAL(generator_length(ITW2), 14);
+
+  IsoSpecThresholdGeneratorWrapper ITW3(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses,
+                   fructose_isotopeProbabilities, threshold, absolute);
+  TEST_EQUAL(compare_generator_to_reference(ITW3, fructose_expected_oms, -1), true);
+
+
+  // human insulin
+  IsoSpecThresholdGeneratorWrapper ITW4(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute);
+  TEST_EQUAL(generator_length(ITW4), 5513);
+
+  IsoSpecThresholdGeneratorWrapper ITW5(EmpiricalFormula("C520H817N139O147S8"), 0.01, absolute);
+  TEST_EQUAL(generator_length(ITW5), 267)
+}
+END_SECTION
+
+START_SECTION(( Peak1D IsoSpecThresholdGeneratorWrapper::getConf() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecThresholdGeneratorWrapper::getMass() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecThresholdGeneratorWrapper::getIntensity() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecThresholdGeneratorWrapper::getLogIntensity() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+
+// ----------------------------------------------------------------------------------------------------------------------
+// Tests: IsoSpecTotalProbGeneratorWrapper
+// ----------------------------------------------------------------------------------------------------------------------
+
+
+{
+  IsoSpecGeneratorWrapper* ptr = nullptr;
+  IsoSpecGeneratorWrapper* ptr2 = nullptr;
+  IsoSpecGeneratorWrapper* nullPointer = nullptr;
+  START_SECTION((IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(const EmpiricalFormula&, double, bool)))
+    ptr = new IsoSpecTotalProbGeneratorWrapper(EmpiricalFormula("C10"), 0.5, true);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+  END_SECTION
+
+  START_SECTION((IsoSpecTotalProbGeneratorWrapper::IsoSpecTotalProbGeneratorWrapper(std::vector<int>, std::vector<int>,
+                                         std::vector<std::vector<double> >,
+                                         std::vector<std::vector<double> >,
+                                         double, bool)))
+    ptr2 = new IsoSpecTotalProbGeneratorWrapper(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses,
+                                    fructose_isotopeProbabilities, 0.5, false);
+    TEST_NOT_EQUAL(ptr2, nullPointer);
+
+    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecTotalProbGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, 
+                                                          invalid_isotopeMasses, invalid_isotopeProbabilities, 0.5, false));
+
+  END_SECTION
+
+
+  START_SECTION((IsoSpecTotalProbGeneratorWrapper::~IsoSpecTotalProbGeneratorWrapper()))
+    delete ptr;
+    delete ptr2;
+  END_SECTION
+}
+
+
+START_SECTION(( bool IsoSpecTotalProbGeneratorWrapper::nextConf() ))
+{
+  double total_prob = 0.99999;
+  bool do_trim = true;
+
+  IsoSpecTotalProbGeneratorWrapper ITPW(EmpiricalFormula("C6H12O6"), total_prob, do_trim);
+  TEST_EQUAL(compare_generator_to_reference(ITPW, fructose_expected_oms, -1), true);
+
+  IsoSpecTotalProbGeneratorWrapper ITPW2(EmpiricalFormula("C6H12O6"), total_prob, do_trim);
+  TEST_EQUAL(generator_length(ITPW2), 17);
+
+  IsoSpecTotalProbGeneratorWrapper ITPW3(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses, 
+                               fructose_isotopeProbabilities, total_prob, do_trim);
+  TEST_EQUAL(compare_generator_to_reference(ITPW3, fructose_expected_oms, -1), true);
+
+  // human insulin
+  IsoSpecTotalProbGeneratorWrapper ITPW4(EmpiricalFormula("C520H817N139O147S8"), total_prob, do_trim);
+  TEST_EQUAL(generator_length(ITPW4), 19616);
+
+  IsoSpecTotalProbGeneratorWrapper ITPW5(EmpiricalFormula("C520H817N139O147S8"), 0.99, do_trim);
+  TEST_EQUAL(generator_length(ITPW5), 1756);
+}
+END_SECTION
+
+
+START_SECTION(( Peak1D IsoSpecTotalProbGeneratorWrapper::getConf() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecTotalProbGeneratorWrapper::getMass() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecTotalProbGeneratorWrapper::getIntensity() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecTotalProbGeneratorWrapper::getLogIntensity() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+// ----------------------------------------------------------------------------------------------------------------------
+
+
+{
+  IsoSpecGeneratorWrapper* ptr = nullptr;
+  IsoSpecGeneratorWrapper* ptr2 = nullptr;
+  IsoSpecGeneratorWrapper* nullPointer = nullptr;
+  START_SECTION((IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula&)))
+    ptr = new IsoSpecOrderedGeneratorWrapper(EmpiricalFormula("C10"));
+    TEST_NOT_EQUAL(ptr, nullPointer)
+  END_SECTION
+
+  START_SECTION((IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(std::vector<int>, std::vector<int>,
+                                         std::vector<std::vector<double> >,
+                                         std::vector<std::vector<double> >)))
+    ptr2 = new IsoSpecOrderedGeneratorWrapper(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses,
+                                    fructose_isotopeProbabilities);
+    TEST_NOT_EQUAL(ptr2, nullPointer);
+
+    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecOrderedGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, 
+                                                          invalid_isotopeMasses, invalid_isotopeProbabilities));
+
+  END_SECTION
+
+  START_SECTION((~IsoSpecOrderedGeneratorWrapper()))
+    delete ptr;
+    delete ptr2;
+  END_SECTION
+}
+
+
+START_SECTION(( bool IsoSpecOrderedGeneratorWrapper::nextConf() ))
+{
+  IsoSpecOrderedGeneratorWrapper IOGW(EmpiricalFormula("C6H12O6"));
+  TEST_EQUAL(compare_generator_to_reference(IOGW, fructose_expected_oms, fructose_expected_oms.size()), true);
+
+  IsoSpecOrderedGeneratorWrapper IOGW2(EmpiricalFormula("C6H12O6"));
+  TEST_EQUAL(generator_length(IOGW2), 2548);
+
+  IsoSpecOrderedGeneratorWrapper IOGW3(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses, 
+                                       fructose_isotopeProbabilities);
+  TEST_EQUAL(compare_generator_to_reference(IOGW3, fructose_expected_oms, -1), true);
+
+  // human insulin
+  IsoSpecOrderedGeneratorWrapper IOGW4(EmpiricalFormula("C520H817N139O147S8"));
+  TEST_EQUAL(compare_generator_to_reference(IOGW4, std::vector<Peak1D>(), 10000), true);
+}
+END_SECTION
+
+
+START_SECTION(( Peak1D IsoSpecOrderedGeneratorWrapper::getConf() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecOrderedGeneratorWrapper::getMass() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecOrderedGeneratorWrapper::getIntensity() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+START_SECTION(( double IsoSpecOrderedGeneratorWrapper::getLogIntensity() ))
+  NOT_TESTABLE; // Tested with nextConf(), above
+END_SECTION
+
+
+
+// ----------------------------------------------------------------------------------------------------------------------
 // Tests: IsoSpecThresholdWrapper
 // ----------------------------------------------------------------------------------------------------------------------
 
@@ -200,6 +417,7 @@ invalid_isotopeProbabilities[0].push_back(0.0);
     delete ptr2;
   END_SECTION
 }
+
 
 START_SECTION(( void IsoSpecThresholdWrapper::run() ))
 {
@@ -247,47 +465,7 @@ START_SECTION(( void IsoSpecThresholdWrapper::run() ))
 }
 END_SECTION
 
-START_SECTION(( bool IsoSpecThresholdWrapper::nextConf() ))
-{
-  double threshold = 1e-5;
-  bool absolute = false;
 
-
-  IsoSpecThresholdWrapper ITW(EmpiricalFormula("C6H12O6"), threshold, absolute);
-  TEST_EQUAL(compare_generator_to_reference(ITW, fructose_expected_oms, -1), true);
-
-  IsoSpecThresholdWrapper ITW2(EmpiricalFormula("C6H12O6"), threshold, absolute);
-  TEST_EQUAL(generator_length(ITW2), 14);
-
-  IsoSpecThresholdWrapper ITW3(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses,
-                   fructose_isotopeProbabilities, threshold, absolute);
-  TEST_EQUAL(compare_generator_to_reference(ITW3, fructose_expected_oms, -1), true);
-
-
-  // human insulin
-  IsoSpecThresholdWrapper ITW4(EmpiricalFormula("C520H817N139O147S8"), threshold, absolute);
-  TEST_EQUAL(generator_length(ITW4), 5513);
-
-  IsoSpecThresholdWrapper ITW5(EmpiricalFormula("C520H817N139O147S8"), 0.01, absolute);
-  TEST_EQUAL(generator_length(ITW5), 267)
-}
-END_SECTION
-
-START_SECTION(( Peak1D IsoSpecThresholdWrapper::getConf() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecThresholdWrapper::getMass() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecThresholdWrapper::getIntensity() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecThresholdWrapper::getLogIntensity() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
 
 
 // ----------------------------------------------------------------------------------------------------------------------
@@ -324,6 +502,8 @@ END_SECTION
   END_SECTION
 }
 
+
+
 START_SECTION(( void IsoSpecTotalProbWrapper::run() ))
 {
   double total_prob = 0.99999;
@@ -348,120 +528,6 @@ START_SECTION(( void IsoSpecTotalProbWrapper::run() ))
 }
 END_SECTION
 
-
-START_SECTION(( bool IsoSpecTotalProbWrapper::nextConf() ))
-{
-  double total_prob = 0.99999;
-  bool do_trim = true;
-
-  IsoSpecTotalProbWrapper ITPW(EmpiricalFormula("C6H12O6"), total_prob, do_trim);
-  TEST_EQUAL(compare_generator_to_reference(ITPW, fructose_expected_oms, -1), true);
-
-  IsoSpecTotalProbWrapper ITPW2(EmpiricalFormula("C6H12O6"), total_prob, do_trim);
-  TEST_EQUAL(generator_length(ITPW2), 17);
-
-  IsoSpecTotalProbWrapper ITPW3(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses, 
-                               fructose_isotopeProbabilities, total_prob, do_trim);
-  TEST_EQUAL(compare_generator_to_reference(ITPW3, fructose_expected_oms, -1), true);
-
-  // human insulin
-  IsoSpecTotalProbWrapper ITPW4(EmpiricalFormula("C520H817N139O147S8"), total_prob, do_trim);
-  TEST_EQUAL(generator_length(ITPW4), 19616);
-
-  IsoSpecTotalProbWrapper ITPW5(EmpiricalFormula("C520H817N139O147S8"), 0.99, do_trim);
-  TEST_EQUAL(generator_length(ITPW5), 1756);
-}
-END_SECTION
-
-
-START_SECTION(( Peak1D IsoSpecTotalProbWrapper::getConf() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecTotalProbWrapper::getMass() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecTotalProbWrapper::getIntensity() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecTotalProbWrapper::getLogIntensity() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-// ----------------------------------------------------------------------------------------------------------------------
-
-
-{
-  IsoSpecWrapper* ptr = nullptr;
-  IsoSpecWrapper* ptr2 = nullptr;
-  IsoSpecWrapper* nullPointer = nullptr;
-  START_SECTION((IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(const EmpiricalFormula&)))
-    ptr = new IsoSpecOrderedGeneratorWrapper(EmpiricalFormula("C10"));
-    TEST_NOT_EQUAL(ptr, nullPointer)
-  END_SECTION
-
-  START_SECTION((IsoSpecOrderedGeneratorWrapper::IsoSpecOrderedGeneratorWrapper(std::vector<int>, std::vector<int>,
-                                         std::vector<std::vector<double> >,
-                                         std::vector<std::vector<double> >)))
-    ptr2 = new IsoSpecOrderedGeneratorWrapper(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses,
-                                    fructose_isotopeProbabilities);
-    TEST_NOT_EQUAL(ptr2, nullPointer);
-
-    TEST_EXCEPTION(Exception::IllegalArgument&, IsoSpecOrderedGeneratorWrapper(invalid_isotopeNumbers, invalid_atomCounts, 
-                                                          invalid_isotopeMasses, invalid_isotopeProbabilities));
-
-  END_SECTION
-
-  START_SECTION((~IsoSpecOrderedGeneratorWrapper()))
-    delete ptr;
-    delete ptr2;
-  END_SECTION
-}
-
-
-START_SECTION(( void IsoSpecOrderedGeneratorWrapper::run() ))
-{
-  IsoSpecOrderedGeneratorWrapper IOGW(EmpiricalFormula("C6H12O6"));
-  TEST_EXCEPTION(Exception::NotImplemented&, IOGW.run());
-}
-END_SECTION
-
-START_SECTION(( bool IsoSpecOrderedGeneratorWrapper::nextConf() ))
-{
-  IsoSpecOrderedGeneratorWrapper IOGW(EmpiricalFormula("C6H12O6"));
-  TEST_EQUAL(compare_generator_to_reference(IOGW, fructose_expected_oms, fructose_expected_oms.size()), true);
-
-  IsoSpecOrderedGeneratorWrapper IOGW2(EmpiricalFormula("C6H12O6"));
-  TEST_EQUAL(generator_length(IOGW2), 2548);
-
-  IsoSpecOrderedGeneratorWrapper IOGW3(fructose_isotopeNumbers, fructose_atomCounts, fructose_isotopeMasses, 
-                                       fructose_isotopeProbabilities);
-  TEST_EQUAL(compare_generator_to_reference(IOGW3, fructose_expected_oms, -1), true);
-
-  // human insulin
-  IsoSpecOrderedGeneratorWrapper IOGW4(EmpiricalFormula("C520H817N139O147S8"));
-  TEST_EQUAL(compare_generator_to_reference(IOGW4, std::vector<Peak1D>(), 10000), true);
-}
-END_SECTION
-
-
-START_SECTION(( Peak1D IsoSpecOrderedGeneratorWrapper::getConf() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecOrderedGeneratorWrapper::getMass() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecOrderedGeneratorWrapper::getIntensity() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
-
-START_SECTION(( double IsoSpecOrderedGeneratorWrapper::getLogIntensity() ))
-  NOT_TESTABLE; // Tested with nextConf(), above
-END_SECTION
 
 
 #if 0
