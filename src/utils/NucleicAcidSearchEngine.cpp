@@ -627,14 +627,14 @@ protected:
   void postProcessHits_(const PeakMap& exp,
                         vector<HitsByScore>& annotated_hits,
                         IdentificationData& id_data,
-                        IdentificationData::InputFileRef file_ref,
                         const vector<ConstRibonucleotidePtr>& fixed_mods,
                         const vector<ConstRibonucleotidePtr>& variable_mods,
                         Size max_variable_mods_per_oligo,
                         bool negative_mode)
   {
-    IdentificationData::ScoreType score("hyperscore", true);
-    IdentificationData::ScoreTypeRef score_ref = id_data.registerScoreType(score);
+    IdentificationData::InputFileRef file_ref = id_data.getInputFiles().begin();
+    IdentificationData::ScoreTypeRef score_ref =
+      id_data.getScoreTypes().begin();
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -671,7 +671,7 @@ protected:
           if ((charge > 0) && negative_mode) charge = -charge;
           IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
                                                        charge);
-          match.scores.push_back(make_pair(score_ref, score));
+          match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
           match.peak_annotations[id_data.getCurrentProcessingStep()] =
             hit.annotations;
           // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
@@ -686,19 +686,23 @@ protected:
   }
 
 
-  IdentificationData::InputFileRef registerIDMetaData_(
+  void registerIDMetaData_(
     IdentificationData& id_data, const String& in_mzml,
     const vector<String>& primary_files,
     const IdentificationData::DBSearchParam& search_param)
   {
     IdentificationData::InputFileRef file_ref =
       id_data.registerInputFile(in_mzml);
-    Software software(toolName_(), version_);
+    IdentificationData::ScoreType score("hyperscore", true);
+    IdentificationData::ScoreTypeRef score_ref =
+      id_data.registerScoreType(score);
+    IdentificationData::DataProcessingSoftware software(toolName_(), version_);
     // if we are in test mode just overwrite with a generic version
     if (test_mode_)
     {
       software.setVersion("test");
     }
+    software.assigned_scores.push_back(score_ref);
 
     IdentificationData::ProcessingSoftwareRef software_ref = id_data.registerDataProcessingSoftware(software);
     IdentificationData::SearchParamRef search_ref = id_data.registerDBSearchParam(search_param);
@@ -707,7 +711,6 @@ protected:
     IdentificationData::ProcessingStepRef step_ref = id_data.registerDataProcessingStep(step, search_ref);
     // reference this step in all following ID data items, if applicable:
     id_data.setCurrentProcessingStep(step_ref);
-    return file_ref;
   }
 
 
@@ -988,8 +991,7 @@ protected:
     vector<String> primary_files;
     spectra.getPrimaryMSRunPath(primary_files);
     // this also sets the current processing step in "id_data":
-    IdentificationData::InputFileRef file_ref =
-      registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
+    registerIDMetaData_(id_data, in_mzml, primary_files, search_param);
     String decoy_pattern = getStringOption_("fdr:decoy_pattern");
 
     LOG_INFO << "Performing in-silico digestion..." << endl;
@@ -1160,9 +1162,9 @@ protected:
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");
-    postProcessHits_(spectra, annotated_hits, id_data, file_ref,
-                     fixed_modifications, variable_modifications,
-                     max_variable_mods_per_oligo, negative_mode);
+    postProcessHits_(spectra, annotated_hits, id_data, fixed_modifications,
+                     variable_modifications, max_variable_mods_per_oligo,
+                     negative_mode);
     progresslogger.endProgress();
 
     // FDR:
@@ -1189,8 +1191,7 @@ protected:
     {
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, "",
-                                             "hyperscore", true);
+      IdentificationDataConverter::exportIDs(id_data, proteins, peptides, true);
       // proteins[0].setDateTime(DateTime::now());
       // proteins[0].setSearchEngine(toolName_());
       IdXMLFile().store(id_out, proteins, peptides);

@@ -44,7 +44,9 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathTSVWriter.h>
@@ -158,7 +160,7 @@ using namespace OpenMS;
   peaks and adjust the @p -rt_extraction_window to use a different extraction
   window for the retention time. In m/z domain, consider adjusting
   @p -mz_extraction_window to your instrument resolution, which can be in Th or
-  ppm (using @p -ppm ).
+  ppm.
 
   Furthermore, if you wish to use MS1 information, use the @p -use_ms1_traces flag
   and provide an MS1 map in addition to the SWATH data.
@@ -481,6 +483,11 @@ protected:
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms output in mzML (chrom.mzML) or sqMass (SQLite format)", false, true);
     setValidFormats_("out_chrom", ListUtils::create<String>("mzML,sqMass"));
 
+    // additional QC data
+    registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
+    setValidFormats_("out_qc", ListUtils::create<String>("json"));
+    
+
     // misc options
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the upper edge of a Swath window to still consider a precursor, in Thomson", false, true);
     registerFlag_("sonar", "data is scanning SWATH data");
@@ -490,13 +497,13 @@ protected:
     registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
     setMinFloat_("extra_rt_extraction_window", 0.0);
     registerDoubleOption_("ion_mobility_window", "<double>", -1, "Extraction window in ion mobility dimension (in milliseconds). This is the full window size, e.g. a value of 10 milliseconds would extract 5 milliseconds on either side.", false);
-    registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
+    registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window in Thomson or ppm (see mz_extraction_window_unit)", false);
     setMinFloat_("mz_extraction_window", 0.0);
     registerStringOption_("mz_extraction_window_unit", "<name>", "Th", "Unit for mz extraction", false, true);
     setValidStrings_("mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
 
     // MS1 mz windows and ion mobility
-    registerDoubleOption_("mz_extraction_window_ms1", "<double>", 0.05, "Extraction window used in MS1 (in ppm)", false);
+    registerDoubleOption_("mz_extraction_window_ms1", "<double>", 0.05, "Extraction window used in MS1 in Thomson or ppm (see mz_extraction_window_ms1_unit)", false);
     setMinFloat_("mz_extraction_window_ms1", 0.0);
     registerStringOption_("mz_extraction_window_ms1_unit", "<name>", "Th", "Unit of the MS1 m/z extraction window", false, true);
     setValidStrings_("mz_extraction_window_ms1_unit", ListUtils::create<String>("ppm,Th"));
@@ -506,11 +513,11 @@ protected:
     setValidStrings_("use_ms1_ion_mobility", ListUtils::create<String>("true,false"));
 
     // iRT mz and IM windows
-    registerDoubleOption_("irt_mz_extraction_window", "<double>", 0.05, "Extraction window used for iRT and m/z correction (in Thomson, use ppm use -ppm flag)", false, true);
+    registerDoubleOption_("irt_mz_extraction_window", "<double>", 0.05, "Extraction window used for iRT and m/z correction in Thomson or ppm (see irt_mz_extraction_window_unit)", false, true);
     setMinFloat_("irt_mz_extraction_window", 0.0);
-    registerDoubleOption_("irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT (in 1/K0 or milliseconds)", false, true);
     registerStringOption_("irt_mz_extraction_window_unit", "<name>", "Th", "Unit for mz extraction", false, true);
     setValidStrings_("irt_mz_extraction_window_unit", ListUtils::create<String>("Th,ppm"));
+    registerDoubleOption_("irt_im_extraction_window", "<double>", -1, "Ion mobility extraction window used for iRT (in 1/K0 or milliseconds)", false, true);
 
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
@@ -666,6 +673,9 @@ protected:
     String out_tsv = getStringOption_("out_tsv");
     String out_osw = getStringOption_("out_osw");
 
+    String out_qc = getStringOption_("out_qc");
+
+
     String irt_tr_file = getStringOption_("tr_irt");
     String nonlinear_irt_tr_file = getStringOption_("tr_irt_nonlinear");
     String trafo_in = getStringOption_("rt_norm");
@@ -815,12 +825,32 @@ protected:
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
     std::vector< OpenSwath::SwathMap > swath_maps;
-    if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
-                        swath_windows_file, min_upper_edge_dist, force,
-                        sort_swath_maps, sonar))
+
+    // collect some QC data
+    if (!out_qc.empty())
     {
-      return PARSE_ERROR;
+      OpenSwath::SwathQC qc(30, 0.04);
+      MSDataTransformingConsumer qc_consumer; // apply some transformation
+      qc_consumer.setSpectraProcessingFunc(qc.getSpectraProcessingFunc());
+      qc_consumer.setExperimentalSettingsFunc(qc.getExpSettingsFunc());
+      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
+                          swath_windows_file, min_upper_edge_dist, force,
+                          sort_swath_maps, sonar, &qc_consumer))
+      {
+        return PARSE_ERROR;
+      }
+      qc.storeJSON(out_qc);
     }
+    else
+    {
+      if (!loadSwathFiles(file_list, exp_meta, swath_maps, split_file, tmp_dir, readoptions, 
+                          swath_windows_file, min_upper_edge_dist, force,
+                          sort_swath_maps, sonar))
+      {
+        return PARSE_ERROR;
+      }
+    }
+
 
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)

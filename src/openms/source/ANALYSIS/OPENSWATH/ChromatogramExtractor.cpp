@@ -111,7 +111,6 @@ namespace OpenMS
                                                                         Size i,
                                                                         bool do_peptides)
   {
-    OPENMS_PRECONDITION(i >= 0, "Index i must be larger than zero")
     OPENMS_PRECONDITION(IMPLIES(do_peptides, i < transition_exp_used.getPeptides().size()), "Index i must be smaller than the number of peptides")
     OPENMS_PRECONDITION(IMPLIES(!do_peptides, i < transition_exp_used.getCompounds().size()), "Index i must be smaller than the number of compounds")
 

@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
-#define OPENMS_METADATA_ID_IDENTIFICATIONDATA_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/DataProcessingStep.h>
 #include <OpenMS/METADATA/ID/DataQuery.h>
@@ -100,6 +99,8 @@ namespace OpenMS
 
     using DataProcessingSoftware =
       IdentificationDataInternal::DataProcessingSoftware;
+    using DataProcessingSoftwares =
+      IdentificationDataInternal::DataProcessingSoftwares;
     using ProcessingSoftwareRef =
       IdentificationDataInternal::ProcessingSoftwareRef;
 
@@ -115,7 +116,11 @@ namespace OpenMS
     using ScoreType = IdentificationDataInternal::ScoreType;
     using ScoreTypes = IdentificationDataInternal::ScoreTypes;
     using ScoreTypeRef = IdentificationDataInternal::ScoreTypeRef;
-    using ScoreList = IdentificationDataInternal::ScoreList;
+
+    using AppliedProcessingStep =
+      IdentificationDataInternal::AppliedProcessingStep;
+    using AppliedProcessingSteps =
+      IdentificationDataInternal::AppliedProcessingSteps;
 
     using DataQuery = IdentificationDataInternal::DataQuery;
     using DataQueries = IdentificationDataInternal::DataQueries;
@@ -180,8 +185,32 @@ namespace OpenMS
     IdentificationData(const IdentificationData& other) = delete;
 
     /// Move constructor
-    IdentificationData(IdentificationData&& other) noexcept = default;
-
+    IdentificationData(IdentificationData&& other):
+      current_step_ref_(other.current_step_ref_)
+    {
+      input_files_.swap(other.input_files_);
+      processing_software_.swap(other.processing_software_);
+      processing_steps_.swap(other.processing_steps_);
+      db_search_params_.swap(other.db_search_params_);
+      db_search_steps_.swap(other.db_search_steps_);
+      score_types_.swap(other.score_types_);
+      data_queries_.swap(other.data_queries_);
+      parent_molecules_.swap(other.parent_molecules_);
+      parent_molecule_groupings_.swap(other.parent_molecule_groupings_);
+      identified_peptides_.swap(other.identified_peptides_);
+      identified_compounds_.swap(other.identified_compounds_);
+      identified_oligos_.swap(other.identified_oligos_);
+      query_matches_.swap(other.query_matches_);
+      query_match_groups_.swap(other.query_match_groups_);
+      swap(current_step_ref_, other.current_step_ref_);
+      // look-up tables:
+      data_query_lookup_.swap(other.data_query_lookup_);
+      parent_molecule_lookup_.swap(other.parent_molecule_lookup_);
+      identified_peptide_lookup_.swap(other.identified_peptide_lookup_);
+      identified_compound_lookup_.swap(other.identified_compound_lookup_);
+      identified_oligo_lookup_.swap(other.identified_oligo_lookup_);
+      query_match_lookup_.swap(other.query_match_lookup_);
+}
     /*!
       @brief Register an input file
       @return Reference to the registered file
@@ -193,7 +222,7 @@ namespace OpenMS
       @return Reference to the registered software
     */
     ProcessingSoftwareRef registerDataProcessingSoftware(
-      const Software& software);
+      const DataProcessingSoftware& software);
 
     /*!
       @brief Register database search parameters
@@ -275,9 +304,9 @@ namespace OpenMS
     }
 
     /// Return the registered data processing software (immutable)
-    const DataProcessingSoftware& getDataProcessingSoftware() const
+    const DataProcessingSoftwares& getDataProcessingSoftwares() const
     {
-      return processing_software_;
+      return processing_softwares_;
     }
 
     /// Return the registered data processing steps (immutable)
@@ -387,13 +416,6 @@ namespace OpenMS
     */
     std::pair<ScoreTypeRef, bool> findScoreType(const String& score_name) const;
 
-    /*!
-      @brief Look up a score type by name and associated software
-      @return A pair: 1. Reference to the score type, if found; 2. Boolean indicating success or failure
-    */
-    std::pair<ScoreTypeRef, bool> findScoreType(
-      const String& score_name, ProcessingSoftwareRef software_ref) const;
-
     /// Calculate sequence coverages of parent molecules
     void calculateCoverages(bool check_molecule_length = false);
 
@@ -425,7 +447,7 @@ namespace OpenMS
 
     // containers:
     InputFiles input_files_;
-    DataProcessingSoftware processing_software_;
+    DataProcessingSoftwares processing_softwares_;
     DataProcessingSteps processing_steps_;
     DBSearchParams db_search_params_;
     // @TODO: store SearchParamRef inside ProcessingStep? (may not be required
@@ -454,14 +476,15 @@ namespace OpenMS
     AddressLookup query_match_lookup_;
 
     /// Helper function to check if all score types are valid
-    void checkScoreTypes_(const ScoreList& scores);
+    void checkScoreTypes_(const std::map<ScoreTypeRef, double>& scores) const;
 
-    /// Helper function to check if all processing steps are valid
-    void checkProcessingSteps_(const std::vector<ProcessingStepRef>& step_refs);
+    /// Helper function to check if all applied processing steps are valid
+    void checkAppliedProcessingSteps_(const AppliedProcessingSteps&
+                                      steps_and_scores) const;
 
     /// Helper function to check if all parent matches are valid
     void checkParentMatches_(const ParentMatches& matches,
-                             MoleculeType expected_type);
+                             MoleculeType expected_type) const;
 
     /*!
       @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
@@ -478,11 +501,7 @@ namespace OpenMS
 
       void operator()(ElementType& element)
       {
-        if (element.processing_step_refs.empty() ||
-            (element.processing_step_refs.back() != step_ref))
-        {
-          element.processing_step_refs.push_back(step_ref);
-        }
+        element.addProcessingStep(step_ref);
       }
 
       ProcessingStepRef step_ref;
@@ -503,11 +522,14 @@ namespace OpenMS
 
       void operator()(ElementType& element)
       {
-        auto pair = std::make_pair(score_type_ref, value);
-        if (std::find(element.scores.begin(), element.scores.end(), pair) ==
-            element.scores.end())
+        if (element.steps_and_scores.empty())
         {
-          element.scores.push_back(pair);
+          element.addScore(score_type_ref, value);
+        }
+        else // add score to most recent step
+        {
+          element.addScore(score_type_ref, value,
+                           element.steps_and_scores.back().processing_step_opt);
         }
       }
 
@@ -546,8 +568,7 @@ namespace OpenMS
     typename ContainerType::iterator insertIntoMultiIndex_(
       ContainerType& container, const ElementType& element)
     {
-      checkScoreTypes_(element.scores);
-      checkProcessingSteps_(element.processing_step_refs);
+      checkAppliedProcessingSteps_(element.steps_and_scores);
 
       auto result = container.insert(element);
       if (!result.second) // existing element - merge in new information
@@ -647,5 +668,3 @@ namespace OpenMS
     friend class IDFilter;
   };
 }
-
-#endif

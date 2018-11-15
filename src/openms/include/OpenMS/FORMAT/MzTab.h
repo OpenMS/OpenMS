@@ -604,6 +604,16 @@ public:
     std::map<Size, MzTabDouble> protein_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> protein_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
+
+    /// Comparison operator for sorting rows
+    struct RowCompare
+    {
+      bool operator()(const MzTabProteinSectionRow& row1,
+                      const MzTabProteinSectionRow& row2) const
+      {
+        return row1.accession.get() < row2.accession.get();
+      }
+    };
   };
 
 // PEP - Peptide section (Table based)
@@ -630,6 +640,17 @@ public:
     std::map<Size, MzTabDouble> peptide_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> peptide_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
+
+    /// Comparison operator for sorting rows
+    struct RowCompare
+    {
+      bool operator()(const MzTabPeptideSectionRow& row1,
+                      const MzTabPeptideSectionRow& row2) const
+      {
+        return (std::make_pair(row1.sequence.get(), row1.accession.get()) <
+                std::make_pair(row2.sequence.get(), row2.accession.get()));
+      }
+    };
   };
 
 // PSM - PSM section (Table based)
@@ -656,6 +677,24 @@ public:
     MzTabString start;
     MzTabString end;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
+
+    /// Comparison operator for sorting rows
+    struct RowCompare
+    {
+      bool operator()(const MzTabPSMSectionRow& row1,
+                      const MzTabPSMSectionRow& row2) const
+      {
+        // @TODO: sort by "PSM_ID"? what's the point of that field?
+        return (std::make_tuple(row1.sequence.get(),
+                                row1.spectra_ref.getMSFile(),
+                                row1.spectra_ref.getSpecRef(),
+                                row1.accession.get()) <
+                std::make_tuple(row2.sequence.get(),
+                                row2.spectra_ref.getMSFile(),
+                                row2.spectra_ref.getSpecRef(),
+                                row2.accession.get()));
+      }
+    };
   };
 
 // SML Small molecule section (table based)
@@ -711,6 +750,16 @@ public:
     MzTabStringList go_terms; //< List of GO terms for the nucleic acid.
     MzTabDouble coverage; //< (0-1) Fraction of nucleic acid sequence identified.
     std::vector<MzTabOptionalColumnEntry> opt_; //< Optional Columns must start with “opt_”
+
+    /// Comparison operator for sorting rows
+    struct RowCompare
+    {
+      bool operator()(const MzTabNucleicAcidSectionRow& row1,
+                      const MzTabNucleicAcidSectionRow& row2) const
+      {
+        return row1.accession.get() < row2.accession.get();
+      }
+    };
   };
 
   /// OLI - Oligonucleotide section (table-based)
@@ -732,6 +781,20 @@ public:
     MzTabString start;
     MzTabString end;
     std::vector<MzTabOptionalColumnEntry> opt_; //< Optional columns must start with “opt_”.
+
+    /// Comparison operator for sorting rows
+    struct RowCompare
+    {
+      bool operator()(const MzTabOligonucleotideSectionRow& row1,
+                      const MzTabOligonucleotideSectionRow& row2) const
+        {
+          return (std::make_tuple(row1.sequence.get(), row1.accession.get(),
+                                  row1.start.get(), row1.end.get()) <
+                  std::make_tuple(row2.sequence.get(), row2.accession.get(),
+                                  row2.start.get(), row2.end.get()));
+        }
+    };
+
   };
 
   /// OSM - OSM (oligonucleotide-spectrum match) section (table-based)
@@ -749,6 +812,21 @@ public:
     MzTabString uri; //< Location of the OSM’s source entry.
     MzTabSpectraRef spectra_ref; //< Reference to the spectrum underlying the match.
     std::vector<MzTabOptionalColumnEntry> opt_; //< Optional columns must start with “opt_”.
+
+    /// Comparison operator for sorting rows
+    struct RowCompare
+    {
+      bool operator()(const MzTabOSMSectionRow& row1,
+                      const MzTabOSMSectionRow& row2) const
+      {
+        return (std::make_tuple(row1.sequence.get(),
+                                row1.spectra_ref.getMSFile(),
+                                row1.spectra_ref.getSpecRef()) <
+                std::make_tuple(row2.sequence.get(),
+                                row2.spectra_ref.getMSFile(),
+                                row2.spectra_ref.getSpecRef()));
+      }
+    };
   };
 
   typedef std::vector<MzTabProteinSectionRow> MzTabProteinSectionRows;

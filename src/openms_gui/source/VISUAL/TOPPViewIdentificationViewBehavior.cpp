@@ -393,35 +393,56 @@ namespace OpenMS
                 box_text += String(alpha_space, ' ') + alpha_cov + "<br>" + String(alpha_space, ' ') + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar + "<br>" + String(beta_space, ' ') + seq_beta + "<br>" + String(beta_space, ' ') + beta_cov;
                 // color: <font color=\"green\">&boxur;</font>
               }
-              else if (widget_1D->canvas()->isIonLadderVisible())
+              else // no value in xl_pos2 and no second PeptideHit, should be a mono-link
               {
-                if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+                String seq_alpha = ph.getSequence().toUnmodifiedString();
+                int xl_pos_alpha = String(ph.getMetaValue("xl_pos")).toInt();
+                Size prefix_length = xl_pos_alpha;
+
+                String alpha_cov;
+                String beta_cov;
+                extractCoverageStrings(ph.getPeakAnnotations(), alpha_cov, beta_cov, seq_alpha.size(), 0);
+
+                box_text += alpha_cov + "<br>" + seq_alpha + "<br>" + String(prefix_length, ' ') + vert_bar;
+
+              }
+              box_text = "<font size=\"5\" style=\"background-color:white;\"><pre>" + box_text + "</pre></font> ";
+              widget_1D->canvas()->setTextBox(box_text.toQString());
+            }
+            else if (ph.getPeakAnnotations().empty()) // only write the sequence
+            {
+              String seq = ph.getSequence().toString();
+              if (seq.empty()) seq = ph.getMetaValue("label"); // e.g. for RNA sequences
+              widget_1D->canvas()->setTextBox(seq.toQString());
+            }
+            else if (widget_1D->canvas()->isIonLadderVisible())
+            {
+              if (!ph.getSequence().empty()) // generate sequence diagram for a peptide
+              {
+                // @TODO: read ion list from the input file (meta value)
+                static vector<String> top_ions = ListUtils::create<String>("a,b,c");
+                static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
+                String diagram = generateSequenceDiagram_(
+                  ph.getSequence(),
+                  ph.getPeakAnnotations(),
+                  top_ions,
+                  bottom_ions);
+                widget_1D->canvas()->setTextBox(diagram.toQString());
+              }
+              else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
+              {
+                try
                 {
                   // @TODO: read ion list from the input file (meta value)
-                  static vector<String> top_ions = ListUtils::create<String>("a,b,c");
-                  static vector<String> bottom_ions = ListUtils::create<String>("x,y,z");
-                  String diagram = generateSequenceDiagram_(
-                        ph.getSequence(),
-                        ph.getPeakAnnotations(),
-                        top_ions,
-                        bottom_ions);
+                  NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
+                  static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
+                  static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
+                  String diagram = generateSequenceDiagram_(na_seq, ph.getPeakAnnotations(),
+                                                            top_ions, bottom_ions);
                   widget_1D->canvas()->setTextBox(diagram.toQString());
                 }
-                else if (ph.metaValueExists("label")) // generate sequence diagram for RNA
+                catch (Exception::ParseError) // label doesn't contain have a valid seq.
                 {
-                  try
-                  {
-                    // @TODO: read ion list from the input file (meta value)
-                    NASequence na_seq = NASequence::fromString(ph.getMetaValue("label"));
-                    static vector<String> top_ions = ListUtils::create<String>("a-B,a,b,c,d");
-                    static vector<String> bottom_ions = ListUtils::create<String>("w,x,y,z");
-                    String diagram = generateSequenceDiagram_(
-                          na_seq, ph.getPeakAnnotations(), top_ions, bottom_ions);
-                    widget_1D->canvas()->setTextBox(diagram.toQString());
-                  }
-                  catch (Exception::ParseError) // label doesn't contain have a valid seq.
-                  {
-                  }
                 }
               }
             }

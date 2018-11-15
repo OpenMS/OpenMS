@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_PARENTMOLECULE_H
-#define OPENMS_METADATA_ID_PARENTMOLECULE_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/ScoredProcessingResult.h>
 
@@ -69,11 +68,10 @@ namespace OpenMS
         MoleculeType molecule_type = MoleculeType::PROTEIN,
         const String& sequence = "", const String& description = "",
         double coverage = 0.0, bool is_decoy = false,
-        const ScoreList& scores = ScoreList(),
-        const std::vector<ProcessingStepRef>& processing_step_refs =
-        std::vector<ProcessingStepRef>()):
-        ScoredProcessingResult(scores, processing_step_refs),
-        accession(accession), molecule_type(molecule_type), sequence(sequence),
+        const AppliedProcessingSteps& steps_and_scores =
+        AppliedProcessingSteps()):
+        ScoredProcessingResult(steps_and_scores), accession(accession),
+        molecule_type(molecule_type), sequence(sequence),
         description(description), coverage(coverage), is_decoy(is_decoy)
       {
       }
@@ -104,5 +102,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

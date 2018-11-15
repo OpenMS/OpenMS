@@ -32,11 +32,10 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_DATAPROCESSINGSTEP_H
-#define OPENMS_METADATA_ID_DATAPROCESSINGSTEP_H
+#pragma once
 
 #include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/MetaData.h>
+#include <OpenMS/METADATA/ID/DataProcessingSoftware.h>
 
 namespace OpenMS
 {
@@ -96,5 +95,3 @@ namespace OpenMS
 
   }
 }
-
-#endif

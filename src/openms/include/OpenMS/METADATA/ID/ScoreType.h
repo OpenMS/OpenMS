@@ -32,12 +32,9 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_METADATA_ID_SCORETYPE_H
-#define OPENMS_METADATA_ID_SCORETYPE_H
+#pragma once
 
 #include <OpenMS/METADATA/ID/MetaData.h>
-
-#include <boost/optional.hpp>
 
 namespace OpenMS
 {
@@ -54,30 +51,18 @@ namespace OpenMS
 
       bool higher_better;
 
-      // reference to the software that assigned the score:
-      boost::optional<ProcessingSoftwareRef> software_opt;
-      // @TODO: scores assigned by different software tools/versions are
-      // considered as different scores (even if they have the same name) -
-      // does that make sense?
-
       ScoreType():
-        higher_better(true), software_opt()
+        higher_better(true)
       {
       }
 
-      explicit ScoreType(const CVTerm& cv_term, bool higher_better,
-                         boost::optional<ProcessingSoftwareRef> software_opt =
-                         boost::none):
-        cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better),
-        software_opt(software_opt)
+      explicit ScoreType(const CVTerm& cv_term, bool higher_better):
+        cv_term(cv_term), name(cv_term.getName()), higher_better(higher_better)
       {
       }
 
-      explicit ScoreType(const String& name, bool higher_better,
-                         boost::optional<ProcessingSoftwareRef> software_opt =
-                         boost::none):
-        cv_term(), name(name), higher_better(higher_better),
-        software_opt(software_opt)
+      explicit ScoreType(const String& name, bool higher_better):
+        cv_term(), name(name), higher_better(higher_better)
       {
       }
 
@@ -86,28 +71,19 @@ namespace OpenMS
       // don't include "higher_better" in the comparison:
       bool operator<(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name, software_opt) <
-                std::tie(other.cv_term.getAccession(), other.name,
-                         other.software_opt));
+        return (std::tie(cv_term.getAccession(), name) <
+                std::tie(other.cv_term.getAccession(), other.name));
       }
 
       // don't include "higher_better" in the comparison:
       bool operator==(const ScoreType& other) const
       {
-        return (std::tie(cv_term.getAccession(), name, software_opt) ==
-                std::tie(other.cv_term.getAccession(), other.name,
-                         other.software_opt));
+        return (std::tie(cv_term.getAccession(), name) ==
+                std::tie(other.cv_term.getAccession(), other.name));
       }
     };
 
     typedef std::set<ScoreType> ScoreTypes;
     typedef IteratorWrapper<ScoreTypes::iterator> ScoreTypeRef;
-
-    // @TODO: use a "boost::multi_index_container" to allow efficient access in
-    // sequence and by key?
-    typedef std::vector<std::pair<ScoreTypeRef, double>> ScoreList;
-
   }
 }
-
-#endif
