@@ -347,9 +347,6 @@ public:
       *
       * @note Calling this method invalidates the object! In future versions this limitation might be removed.
       *
-      * @note This method should not be mixed with the generator methods - a given object should only ever have
-      * its run method used, or only its generator methods used.
-      *
       **/
     virtual IsotopeDistribution run() = 0;
 
