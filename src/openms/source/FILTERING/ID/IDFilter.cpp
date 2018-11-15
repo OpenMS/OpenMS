@@ -52,15 +52,15 @@ namespace OpenMS
   {
     typedef PeptideHit argument_type; // for use as a predicate
 
-    Size length;
+    Size length_;
 
     explicit HasMinPeptideLength(Size length):
-      length(length)
+      length_(length)
     {}
 
     bool operator()(const PeptideHit& hit) const
     {
-      return hit.getSequence().size() >= length;
+      return hit.getSequence().size() >= length_;
     }
   };
 
@@ -69,15 +69,15 @@ namespace OpenMS
   {
     typedef PeptideHit argument_type; // for use as a predicate
 
-    Int charge;
+    Int charge_;
 
     explicit HasMinCharge(Int charge):
-      charge(charge)
+      charge_(charge)
     {}
 
     bool operator()(const PeptideHit& hit) const
     {
-      return hit.getCharge() >= charge;
+      return hit.getCharge() >= charge_;
     }
   };
 
@@ -86,12 +86,12 @@ namespace OpenMS
   {
     typedef PeptideHit argument_type; // for use as a predicate
 
-    double precursor_mz, tolerance;
+    double precursor_mz_, tolerance_;
 
     HasLowMZError(double precursor_mz, double tolerance, bool unit_ppm):
-      precursor_mz(precursor_mz), tolerance(tolerance)
+      precursor_mz_(precursor_mz), tolerance_(tolerance)
     {
-      if (unit_ppm) this->tolerance *= precursor_mz / 1.0e6;
+      if (unit_ppm) this->tolerance_ *= precursor_mz / 1.0e6;
     }
 
     bool operator()(const PeptideHit& hit) const
@@ -100,7 +100,7 @@ namespace OpenMS
       if (z == 0) z = 1;
       double peptide_mz = (hit.getSequence().getMonoWeight(Residue::Full, z) /
                            double(z));
-      return fabs(precursor_mz - peptide_mz) <= tolerance;
+      return fabs(precursor_mz_ - peptide_mz) <= tolerance_;
     }
   };
 
@@ -109,23 +109,23 @@ namespace OpenMS
   {
     typedef PeptideHit argument_type; // for use as a predicate
 
-    const set<String>& mods;
+    const set<String>& mods_;
 
     explicit HasMatchingModification(const set<String>& mods):
-      mods(mods)
+      mods_(mods)
     {}
 
     bool operator()(const PeptideHit& hit) const
     {
       const AASequence& seq = hit.getSequence();
-      if (mods.empty()) return seq.isModified();
+      if (mods_.empty()) return seq.isModified();
 
       for (Size i = 0; i < seq.size(); ++i)
       {
         if (seq[i].isModified())
         {
           String mod_name = seq[i].getModification()->getFullId();
-          if (mods.count(mod_name) > 0) return true;
+          if (mods_.count(mod_name) > 0) return true;
         }
       }
 
@@ -133,12 +133,12 @@ namespace OpenMS
       if (seq.hasNTerminalModification())
       {
         String mod_name = seq.getNTerminalModification()->getFullId();
-        if (mods.count(mod_name) > 0) return true;
+        if (mods_.count(mod_name) > 0) return true;
       }
       if (seq.hasCTerminalModification())
       {
         String mod_name = seq.getCTerminalModification()->getFullId();
-        if (mods.count(mod_name) > 0) return true;
+        if (mods_.count(mod_name) > 0) return true;
       }
 
       return false;
@@ -150,19 +150,19 @@ namespace OpenMS
   {
     typedef PeptideHit argument_type; // for use as a predicate
 
-    const set<String>& sequences;
-    bool ignore_mods;
+    const set<String>& sequences_;
+    bool ignore_mods_;
 
     explicit HasMatchingSequence(const set<String>& sequences, bool ignore_mods = false):
-      sequences(sequences), ignore_mods(ignore_mods)
+      sequences_(sequences), ignore_mods_(ignore_mods)
     {}
 
     bool operator()(const PeptideHit& hit) const
     {
-      const String& query = (ignore_mods ?
+      const String& query = (ignore_mods_ ?
                              hit.getSequence().toUnmodifiedString() :
                              hit.getSequence().toString());
-      return (sequences.count(query) > 0);
+      return (sequences_.count(query) > 0);
     }
   };
 
@@ -181,16 +181,16 @@ namespace OpenMS
   {
     typedef PeptideIdentification argument_type; // for use as a predicate
 
-    double rt_min, rt_max;
+    double rt_min_, rt_max_;
 
     HasRTInRange(double rt_min, double rt_max):
-      rt_min(rt_min), rt_max(rt_max)
+      rt_min_(rt_min), rt_max_(rt_max)
     {}
 
     bool operator()(const PeptideIdentification& id) const
     {
       double rt = id.getRT();
-      return (rt >= rt_min) && (rt <= rt_max);
+      return (rt >= rt_min_) && (rt <= rt_max_);
     }
   };
 
@@ -199,16 +199,16 @@ namespace OpenMS
   {
     typedef PeptideIdentification argument_type; // for use as a predicate
 
-    double mz_min, mz_max;
+    double mz_min_, mz_max_;
 
     HasMZInRange(double mz_min, double mz_max):
-      mz_min(mz_min), mz_max(mz_max)
+      mz_min_(mz_min), mz_max_(mz_max)
     {}
 
     bool operator()(const PeptideIdentification& id) const
     {
       double mz = id.getMZ();
-      return (mz >= mz_min) && (mz <= mz_max);
+      return (mz >= mz_min_) && (mz <= mz_max_);
     }
   };
 

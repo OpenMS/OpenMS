@@ -88,6 +88,8 @@ protected:
     vector<PeptideIdentification> mergedpeps;
     merger.returnResultsAndClear(mergedprots[0], mergedpeps);
     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
+    BayesianProteinInferenceAlgorithm bpi1;
+    bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
     return ExitCodes::EXECUTION_OK;
 
     /* That was test code for the old merger
