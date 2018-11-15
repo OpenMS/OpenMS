@@ -526,7 +526,7 @@ namespace OpenMS
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
     //TODO make run info parameter
-    ibg.buildGraph(param_.getValue("nr_PSMs"));
+    ibg.buildGraph(param_.getValue("top_PSMs"));
     ibg.computeConnectedComponents();
     ibg.clusterIndistProteinsAndPeptides();
 
