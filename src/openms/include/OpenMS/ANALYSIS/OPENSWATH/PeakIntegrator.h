@@ -64,6 +64,10 @@ namespace OpenMS
     metrics are supported.
 
     The containers supported by the methods are MSChromatogram and MSSpectrum.
+    
+    NB: integratePeak() using Simpson's rule can result in negative areas despite
+    strictly postive intensities in the input dataset. An example is given in
+    the class test (see area = -665788.77). 
   */
   class OPENMS_DLLAPI PeakIntegrator :
     public DefaultParamHandler
