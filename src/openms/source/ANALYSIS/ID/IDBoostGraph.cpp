@@ -48,7 +48,7 @@
 #endif
 
 //#define INFERENCE_DEBUG
-#define INFERENCE_MT_DEBUG
+//#define INFERENCE_MT_DEBUG
 
 using namespace OpenMS;
 using namespace std;
@@ -439,7 +439,7 @@ namespace OpenMS
 
       #ifdef INFERENCE_DEBUG
       LOG_INFO << "Printing cc " << i << std::endl;
-      printGraph(LOG_INFO, *g_it);
+      printGraph(LOG_INFO, curr_cc);
       LOG_INFO << "Printed cc " << i << std::endl;
       #endif
 
@@ -479,7 +479,7 @@ namespace OpenMS
 
         #ifdef INFERENCE_DEBUG
         LOG_INFO << "Printing cc " << i << std::endl;
-        printGraph(LOG_INFO, *g_it);
+        printGraph(LOG_INFO, curr_cc);
         LOG_INFO << "Printed cc " << i << std::endl;
         #endif
 
@@ -735,8 +735,12 @@ namespace OpenMS
     }
   }*/
 
-  void IDBoostGraph::clusterIndistProteinsAndPeptides()
+  //needs run info annotated.
+  //TODO new idea! Create GraphExtendedType. Every CC can be a different kind of graph then
+  // and different functions work on different types or all types by templates
+  void IDBoostGraph::clusterIndistProteinsAndPeptidesAndExtendGraph()
   {
+
     Size nrReplicates = 1;
     if (!pepHitVtx_to_run_.empty()) //graph built with run info
     {
@@ -787,7 +791,7 @@ namespace OpenMS
             for (; adjIt != adjIt_end; ++adjIt)
             {
               //pepHit, this also makes sure that pepHits already in hierarchy are masked
-              if (curr_cc[*adjIt].which() == 3)
+              if (curr_cc[*adjIt].which() == 6)
               {
                 PeptideHit *phitp = boost::get<PeptideHit *>(curr_cc[*adjIt]);
                 String seq = phitp->getSequence().toUnmodifiedString();
@@ -802,74 +806,6 @@ namespace OpenMS
             hierarchy.insertToGraph(*ui, g);
           }
         }
-
-        /*boost::tie(ui,ui_end) = boost::vertices(curr_cc);
-
-         //TODO FINISH OR MOVE TO BUILD_THEORETICAL_GRAPH
-        // Cluster peptides with same sequence
-        for (; ui != ui_end; ++ui)
-        {
-          IDBoostGraph::IDPointer curr_idObj = curr_cc[*ui];
-          unordered_map<string, map<pair<unsigned int, int>, set<vertex_t>>> seq_to_rep_chg_to_pepVariantNodes{};
-          if (curr_idObj.which() == 0) //protein: same seq peptideHits have to be at a single protein
-          {
-            Graph::adjacency_iterator adjIt, adjIt_end;
-            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, curr_cc);
-            for (; adjIt != adjIt_end; ++adjIt)
-            {
-              if (curr_cc[*adjIt].which() == 3) //pepHit
-              {
-                PeptideHit* phitp = boost::get<PeptideHit*>(curr_cc[*adjIt]);
-                String seq = phitp->getSequence().toUnmodifiedString();
-                //TODO we could specify/check in the beginning if it is a multirun experiment and how many runs it has
-                //TODO make sure (prob. best during merging) that different map_indices indeed represent replicates
-                //or pass a lookup table here to get from map_index to replicate.
-                int rep = phitp->metaValueExists("map_index") ? int(phitp->getMetaValue("map_index")) : 0;
-                int chg = phitp->getCharge();
-                auto seq_it = seq_to_rep_chg_to_pepVariantNodes.find(seq);
-                if (seq_it == seq_to_rep_chg_to_pepVariantNodes.end())
-                {
-                  map<pair<unsigned int, int>, set<vertex_t>> initMap{};
-                  initMap.insert({{rep,chg}, set<vertex_t>{*adjIt}});
-                  seq_to_rep_chg_to_pepVariantNodes.insert({seq, initMap});
-                }
-                else
-                {
-                  auto rep_chg_it = seq_it->second.find({rep,chg});
-                  if (rep_chg_it == seq_it->second.end())
-                  {
-                    seq_it->second.insert({{rep,chg}, set<vertex_t>{*adjIt}});
-                  }
-                  else
-                  {
-                    rep_chg_it->second.insert(*adjIt);
-                  }
-                }
-              }
-            }
-            //TODO finish converting the hierarchy into graph nodes.
-            //TODO only add the intermediate nodes if there are more than one "splits"
-            for (auto seq_to_map : seq_to_rep_chg_to_pepVariantNodes)
-            {
-              auto seqVID = boost::add_vertex(seq_to_map.first, curr_cc);
-              for (int poss_rep : poss_reps)
-              {
-                auto begin = seq_to_map.second.lower_bound({poss_rep, INT_MIN});
-                auto end = seq_to_map.second.upper_bound({poss_rep, INT_MAX});
-                if (begin != end) // we have more than one replicate
-                {
-
-                }
-                auto repVID = boost::add_vertex(seq_to_map.first, curr_cc);
-              }
-              for (auto rep_chg_to_vtcs : seq_to_map.second)
-              {
-                //TODO remove the edge from ui (prot) to the peptides in the set
-              }
-            }
-
-          }
-        }*/
 
         // Cluster peptides with same parents
         unordered_map< ProteinNodeSet, PeptideNodeSet, MyUIntSetHasher > pepClusters; //maps the parent (protein) set to peptides that have the same
@@ -891,7 +827,7 @@ namespace OpenMS
             boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, curr_cc);
             for (; adjIt != adjIt_end; ++adjIt)
             {
-              if (curr_cc[*adjIt].which() == 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
+              if (curr_cc[*adjIt].which() >= 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
               {
                 childPeps.insert(*adjIt);
               }
@@ -946,7 +882,174 @@ namespace OpenMS
         for (; ui != ui_end; ++ui)
         {
           //TODO introduce an enum for the types to make it more clear.
-          if (curr_cc[*ui].which() == 3) //peptide: find peptide clusters
+          if (curr_cc[*ui].which() == 6) //peptide: find peptide clusters
+          {
+            //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
+            //Or just check rigorously here.
+            ProteinNodeSet parents;
+            Graph::adjacency_iterator adjIt, adjIt_end;
+            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, curr_cc);
+            for (; adjIt != adjIt_end; ++adjIt)
+            {
+              if (curr_cc[*adjIt].which() <= 1) // Either protein or protein group
+              {
+                parents.insert(*adjIt);
+              }
+            }
+
+            auto clusterIt = pepClusters.find(parents);
+            if (clusterIt != pepClusters.end())
+            {
+              clusterIt->second.insert(*ui);
+            }
+            else
+            {
+              pepClusters[parents] = PeptideNodeSet({*ui});
+            }
+          }
+        }
+
+        // we add an edge from protein to pepCluster and from pepCluster to peptides
+        // peptides can use the same info from there.
+        for (auto const& protsToPepClusters : pepClusters)
+        {
+          if (protsToPepClusters.first.size() <= 1)
+            continue;
+          auto pcVID = boost::add_vertex(PeptideCluster{}, curr_cc);
+          for (auto const& pgVID : protsToPepClusters.first)
+          {
+            boost::add_edge(pgVID, pcVID, curr_cc);
+            for (auto const& peptideVID : protsToPepClusters.second)
+            {
+              boost::remove_edge(pgVID, peptideVID, curr_cc);
+            }
+          }
+          for (auto const& peptideVID : protsToPepClusters.second)
+          {
+            boost::add_edge(pcVID, peptideVID, curr_cc);
+          }
+        }
+
+        #ifdef INFERENCE_DEBUG
+        LOG_INFO << "Printing cc " << i << "with intermediate nodes." << std::endl;
+        printGraph(LOG_INFO, curr_cc);
+        LOG_INFO << "Printed cc " << i << "with intermediate nodes." << std::endl;
+        #endif
+
+      }
+      else
+      {
+        LOG_INFO << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+      }
+    }
+  }
+
+  void IDBoostGraph::clusterIndistProteinsAndPeptides()
+  {
+
+    if (ccs_.empty()) {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
+    {
+      Graph& curr_cc = ccs_[i];
+
+      LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
+
+      #ifdef INFERENCE_MT_DEBUG
+      LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+      #endif
+
+      #ifdef INFERENCE_DEBUG
+      LOG_INFO << "Printing cc " << i << std::endl;
+      printGraph(LOG_INFO, curr_cc);
+      LOG_INFO << "Printed cc " << i << std::endl;
+      #endif
+
+      // Skip cc without peptide or protein
+      //TODO better to do quick bruteforce calculation if the cc is really small
+      if (boost::num_edges(curr_cc) >= 1)
+      {
+
+        Graph::vertex_iterator ui, ui_end;
+        boost::tie(ui,ui_end) = boost::vertices(curr_cc);
+
+        // Cluster peptides with same parents
+        unordered_map< ProteinNodeSet, PeptideNodeSet, MyUIntSetHasher > pepClusters; //maps the parent (protein) set to peptides that have the same
+        unordered_map< PeptideNodeSet, ProteinNodeSet, MyUIntSetHasher > indistProteins; //find indist proteins
+
+        boost::tie(ui,ui_end) = boost::vertices(curr_cc);
+
+        // Cluster proteins
+        for (; ui != ui_end; ++ui)
+        {
+          //TODO introduce an enum for the types to make it more clear.
+          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+          if (curr_cc[*ui].which() == 0) //protein: find indist. ones
+          {
+            //TODO assert that there is at least one peptide mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
+            //Or just check rigorously here.
+            PeptideNodeSet childPeps;
+            Graph::adjacency_iterator adjIt, adjIt_end;
+            boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(*ui, curr_cc);
+            for (; adjIt != adjIt_end; ++adjIt)
+            {
+              if (curr_cc[*adjIt].which() >= 3) //if there are only two types (pep,prot) this check for pep is actually unnecessary
+              {
+                childPeps.insert(*adjIt);
+              }
+            }
+
+            auto clusterIt = indistProteins.find(childPeps);
+            if (clusterIt != indistProteins.end())
+            {
+              clusterIt->second.insert(*ui);
+            }
+            else
+            {
+              indistProteins[childPeps] = ProteinNodeSet({*ui});
+            }
+          }
+        }
+
+        // add the protein groups to the graph
+        // and edges from the groups to the proteins for quick access
+        for (auto const& pepsToGrps : indistProteins)
+        {
+          if (pepsToGrps.second.size() <= 1)
+            continue;
+
+          //We can't point to protein groups while we fill them. Pointers invalidate in growing vectors.
+          //proteins_.getIndistinguishableProteins().push_back(ProteinGroup{});
+          //ProteinGroup& pg = proteins_.getIndistinguishableProteins().back();
+          auto grpVID = boost::add_vertex(ProteinGroup{}, curr_cc);
+
+          for (auto const &proteinVID : pepsToGrps.second)
+          {
+            //ProteinHit *proteinPtr = boost::get<ProteinHit*>(curr_cc[proteinVID]);
+            //pg.accessions.push_back(proteinPtr->getAccession());
+            boost::add_edge(proteinVID, grpVID, curr_cc);
+            for (auto const &pepVID : pepsToGrps.first)
+            {
+              boost::remove_edge(proteinVID, pepVID, curr_cc);
+            }
+          }
+          for (auto const &pepVID : pepsToGrps.first)
+          {
+            boost::add_edge(grpVID, pepVID, curr_cc);
+          }
+          //pg.probability = -1.0;
+        }
+
+        // reset iterator to loop through vertices again for peptide clusters
+        boost::tie(ui,ui_end) = boost::vertices(curr_cc);
+
+        for (; ui != ui_end; ++ui)
+        {
+          //TODO introduce an enum for the types to make it more clear.
+          if (curr_cc[*ui].which() == 6) //peptide: find peptide clusters
           {
             //TODO assert that there is at least one protein mapping to this peptide! Eg. Require IDFilter removeUnmatched before.
             //Or just check rigorously here.
@@ -1035,6 +1138,7 @@ namespace OpenMS
     return v;
   }
 
+  // TODO templatize
   void IDBoostGraph::printFilteredGraph(std::ostream& out, const FilteredGraph& fg) const
   {
     // Also tried to save the labels in a member after build_graph. But could not get the type right for a member that would store them.

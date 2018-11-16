@@ -111,69 +111,51 @@ namespace OpenMS
     typedef std::set<IDBoostGraph::vertex_t> ProteinNodeSet;
     typedef std::set<IDBoostGraph::vertex_t> PeptideNodeSet;
 
-    /// Constructors
-    IDBoostGraph(ProteinIdentification &proteins, std::vector<PeptideIdentification>& idedSpectra);
-    IDBoostGraph(
-        ProteinIdentification &proteins,
-        std::vector<PeptideIdentification>& idedSpectra,
-        const ExperimentalDesign& ed);
-
-    /// Do sth on connected components (your functor object has to inherit from std::function)
-    void applyFunctorOnCCs(std::function<void(Graph&)> functor);
-
-    /// Add intermediate nodes to the graph that represent indist. protein groups and peptides with the same parents
-    /// this will save computation time and oscillations later on.
-    void clusterIndistProteinsAndPeptides();
-
-    /// Annotate indistinguishable proteins by adding the groups to the underlying
-    /// ProteinIdentification::ProteinGroups object. This has no effect on the graph itself.
-    /// @param addSingletons if you want to annotate groups with just one protein entry
-    void annotateIndistProteins(bool addSingletons = true) const;
 
     /// A boost dfs visitor that copies connected components into a vector of graphs
     class dfs_ccsplit_visitor:
-      public boost::default_dfs_visitor
-        {
-        public:
-        dfs_ccsplit_visitor(Graphs& vgs)
-            :  gs(vgs), curr_v(0), next_v(0), m()
-            {}
+        public boost::default_dfs_visitor
+    {
+    public:
+      dfs_ccsplit_visitor(Graphs& vgs)
+          :  gs(vgs), curr_v(0), next_v(0), m()
+      {}
 
-        template < typename Vertex, typename Graph >
-        void start_vertex(Vertex u, const Graph & tg)
+      template < typename Vertex, typename Graph >
+      void start_vertex(Vertex u, const Graph & tg)
+      {
+        gs.emplace_back();
+        next_v = boost::add_vertex(tg[u], gs.back());
+        m[u] = next_v;
+      }
+
+      template < typename Vertex, typename Graph >
+      void discover_vertex(Vertex /*u*/, const Graph & /*tg*/)
+      {
+        curr_v = next_v;
+      }
+
+      template < typename Edge, typename Graph >
+      void examine_edge(Edge e, const Graph & tg)
+      {
+        if (m.find(e.m_target) == m.end())
         {
-          gs.emplace_back();
-          next_v = boost::add_vertex(tg[u], gs.back());
-          m[u] = next_v;
+          next_v = boost::add_vertex(tg[e.m_target], gs.back());
+          m[e.m_target] = next_v;
+        }
+        else
+        {
+          next_v = m[e.m_target];
         }
 
-        template < typename Vertex, typename Graph >
-        void discover_vertex(Vertex /*u*/, const Graph & /*tg*/)
-        {
-          curr_v = next_v;
-        }
+        boost::add_edge(m[e.m_source], next_v, gs.back());
+      }
 
-        template < typename Edge, typename Graph >
-        void examine_edge(Edge e, const Graph & tg)
-        {
-          if (m.find(e.m_target) == m.end())
-          {
-            next_v = boost::add_vertex(tg[e.m_target], gs.back());
-            m[e.m_target] = next_v;
-          }
-          else
-          {
-            next_v = m[e.m_target];
-          }
-
-          boost::add_edge(m[e.m_source], next_v, gs.back());
-        }
-
-        Graphs& gs;
-        vertex_t curr_v, next_v;
-        /// A mapping from old node id to new node id to not duplicate existing ones in the new graph
-        std::map<vertex_t, vertex_t> m;
-      };
+      Graphs& gs;
+      vertex_t curr_v, next_v;
+      /// A mapping from old node id to new node id to not duplicate existing ones in the new graph
+      std::map<vertex_t, vertex_t> m;
+    };
 
     //TODO group visitors by templates
     /// Visits nodes in the boost graph (ptrs to an ID Object) and depending on their type creates a label
@@ -228,7 +210,7 @@ namespace OpenMS
     public:
 
       explicit PrintAddressVisitor(std::basic_ostream<CharT> stream):
-       stream_(stream)
+          stream_(stream)
       {}
 
       void operator()(PeptideHit* pep) const
@@ -299,6 +281,27 @@ namespace OpenMS
       }
 
     };
+
+    /// Constructors
+    IDBoostGraph(ProteinIdentification &proteins, std::vector<PeptideIdentification>& idedSpectra);
+    IDBoostGraph(
+        ProteinIdentification &proteins,
+        std::vector<PeptideIdentification>& idedSpectra,
+        const ExperimentalDesign& ed);
+
+    /// Do sth on connected components (your functor object has to inherit from std::function)
+    void applyFunctorOnCCs(std::function<void(Graph&)> functor);
+
+    /// Add intermediate nodes to the graph that represent indist. protein groups and peptides with the same parents
+    /// this will save computation time and oscillations later on.
+    void clusterIndistProteinsAndPeptides();
+    /// As above but adds charge, replicate and sequence layer of nodes (untested)
+    void clusterIndistProteinsAndPeptidesAndExtendGraph();
+
+    /// Annotate indistinguishable proteins by adding the groups to the underlying
+    /// ProteinIdentification::ProteinGroups object. This has no effect on the graph itself.
+    /// @param addSingletons if you want to annotate groups with just one protein entry
+    void annotateIndistProteins(bool addSingletons = true) const;
 
     /// Splits the initialized graph into connected components and clears it.
     void computeConnectedComponents();
