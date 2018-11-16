@@ -175,7 +175,7 @@ protected:
     Param pp_defaults = PeakPickerHiRes().getDefaults();
     Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
-    Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
+    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     pq_defaults.setValue("include_all", "true"); // overwrite default so we export everything (important for copying back MSstats results)
 
@@ -468,9 +468,11 @@ protected:
   )
   {
     Param fl_param = getParam_().copy("Linking:", true);
-    writeDebug_("Parameters passed to FeatureGroupingAlgorithmQT algorithm", fl_param, 3);
+    writeDebug_("Parameters passed to feature grouping algorithm", fl_param, 3);
 
     writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
+
+/*
     // grouping tolerance = max alignment error + median FWHM
     FeatureGroupingAlgorithmQT linker;
     fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
@@ -479,14 +481,13 @@ protected:
     fl_param.setValue("distance_MZ:weight", 5.0);
     fl_param.setValue("distance_intensity:weight", 0.1); 
     fl_param.setValue("use_identifications", "true"); 
-
-    /*
+*/
     FeatureGroupingAlgorithmKD linker;
     fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:mz_tol", 10.0);
     fl_param.setValue("mz_unit", "ppm");
-    */
+
     linker.setParameters(fl_param);      
     linker.group(feature_maps, consensus_fraction);
   }
@@ -1104,6 +1105,11 @@ protected:
     vector<PeptideIdentification> inferred_peptide_ids;
     merger.returnResultsAndClear(inferred_protein_ids[0], inferred_peptide_ids);
 
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_mergedIDs.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
+
     //TODO We currently do not assume that each of the ID files are correctly indexed
     if (!in_db.empty())
     {
@@ -1143,8 +1149,8 @@ protected:
     // TODO: Think about ProteinInference on IDs only merged per condition
     // TODO: Output coverage on protein (and group level?)
     // TODO: Expose algorithm choice and their parameters
-    bool bayesian = true;
-    bool fido = false;
+    bool bayesian = false;
+    bool fido = true;
     if (!bayesian)
     {
       BasicProteinInferenceAlgorithm bpia;
@@ -1166,17 +1172,33 @@ protected:
       bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids);
     }
 
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_mergedIDs_inference.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
+
     //-------------------------------------------------------------
     // Protein (and additional peptide) FDR
     //-------------------------------------------------------------
     const double maxFDR = getDoubleOption_("proteinFDR");
     FalseDiscoveryRate fdr;
-    fdr.applyBasic(inferred_peptide_ids);
+    //fdr.applyBasic(inferred_peptide_ids); TODO: check why this doesn't work
     fdr.applyBasic(inferred_protein_ids[0]);
-    IDFilter::filterHitsByScore(inferred_peptide_ids, maxFDR); // probably not required but shouldn't hurt
+
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_mergedIDsFDR.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
+
+    //IDFilter::filterHitsByScore(inferred_peptide_ids, maxFDR); // probably not required but shouldn't hurt
     IDFilter::filterHitsByScore(inferred_protein_ids, maxFDR);
     IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
     IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
+
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_mergedIDsFDRFiltered.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
 
     bool greedy_group_resolution = true;
     if (greedy_group_resolution)
@@ -1184,6 +1206,11 @@ protected:
       PeptideProteinResolution ppr{};
       ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
       ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);
+    }
+
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_mergedIDsFDRFilteredGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
     // ensure that only one final inference result is generated
