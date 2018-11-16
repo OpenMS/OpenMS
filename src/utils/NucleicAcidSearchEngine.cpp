@@ -88,11 +88,9 @@
 #include <vector>
 #include <map>
 
-
+// multithreading
 #ifdef _OPENMP
 #include <omp.h>
-#include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
-
 #define NUMBER_OF_THREADS (omp_get_num_threads())
 #else
 #define NUMBER_OF_THREADS (1)
@@ -513,10 +511,10 @@ protected:
     NLargest nlargest_filter = NLargest(1000);
 
     Size n_zero_charge = 0, n_inferred_charge = 0;
-#ifdef _OPENMP
+
 #pragma omp parallel for
-#endif
-    for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
+    for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size();
+         ++exp_index)
     {
       MSSpectrum& spec = exp[exp_index];
 
@@ -636,50 +634,58 @@ protected:
     IdentificationData::ScoreTypeRef score_ref =
       id_data.getScoreTypes().begin();
 
-#ifdef _OPENMP
+// @TODO: change OpenMP schedule from default ("static") to "dynamic"/"guided"?
 #pragma omp parallel for
-#endif
-    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    for (SignedSize scan_index = 0;
+         scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
-      if (!annotated_hits[scan_index].empty())
+      if (annotated_hits[scan_index].empty()) continue;
+
+      const MSSpectrum& spectrum = exp[scan_index];
+      IdentificationData::DataQuery query(spectrum.getNativeID(), file_ref,
+                                          spectrum.getRT(),
+                                          spectrum.getPrecursors()[0].getMZ());
+      query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+      IdentificationData::DataQueryRef query_ref;
+#pragma omp critical (id_data_access)
+      query_ref = id_data.registerDataQuery(query);
+
+      // create full oligo hit structure from annotated hits
+      for (const auto& pair : annotated_hits[scan_index])
       {
-        const MSSpectrum& spectrum = exp[scan_index];
-        IdentificationData::DataQuery query(spectrum.getNativeID(), file_ref, spectrum.getRT(), spectrum.getPrecursors()[0].getMZ());
-        query.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
-        IdentificationData::DataQueryRef query_ref = id_data.registerDataQuery(query);
+        const AnnotatedHit& hit = pair.second;
+        double score = pair.first;
+        // get unmodified string
+        NASequence seq = hit.oligo_ref->sequence;
+        LOG_DEBUG << "Hit sequence: " << seq << endl;
+        // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
+        vector<NASequence> all_modified_oligos;
+        ModifiedNASequenceGenerator::applyFixedModifications(
+          fixed_mods.begin(), fixed_mods.end(), seq);
+        ModifiedNASequenceGenerator::applyVariableModifications(
+          variable_mods.begin(), variable_mods.end(), seq,
+          max_variable_mods_per_oligo, all_modified_oligos);
 
-        // create full oligo hit structure from annotated hits
-        for (const auto& pair : annotated_hits[scan_index])
-        {
-          const AnnotatedHit& hit = pair.second;
-          double score = pair.first;
-          // get unmodified string
-          NASequence seq = hit.oligo_ref->sequence;
-          LOG_DEBUG << "Hit sequence: " << seq << endl;
-          // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
-          vector<NASequence> all_modified_oligos;
-          ModifiedNASequenceGenerator::applyFixedModifications(fixed_mods.begin(), fixed_mods.end(), seq);
-          ModifiedNASequenceGenerator::applyVariableModifications(variable_mods.begin(), variable_mods.end(), seq, max_variable_mods_per_oligo, all_modified_oligos);
+        // transfer parent matches from unmodified oligo:
+        IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
+        oligo.sequence = all_modified_oligos[hit.mod_index];
+        IdentificationData::IdentifiedOligoRef oligo_ref;
+#pragma omp critical (id_data_access)
+        oligo_ref = id_data.registerIdentifiedOligo(oligo);
 
-          // transfer parent matches from unmodified oligo:
-          IdentificationData::IdentifiedOligo oligo = *hit.oligo_ref;
-          oligo.sequence = all_modified_oligos[hit.mod_index];
-          IdentificationData::IdentifiedOligoRef oligo_ref =
-            id_data.registerIdentifiedOligo(oligo);
-
-          Int charge = hit.charge;
-          if ((charge > 0) && negative_mode) charge = -charge;
-          IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
-                                                       charge);
-          match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
-          match.peak_annotations[id_data.getCurrentProcessingStep()] =
-            hit.annotations;
-          // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
-          match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
-                             hit.precursor_error_ppm);
-          if (!hit.adduct.empty()) match.setMetaValue("adduct", hit.adduct);
-          id_data.registerMoleculeQueryMatch(match);
-        }
+        Int charge = hit.charge;
+        if ((charge > 0) && negative_mode) charge = -charge;
+        IdentificationData::MoleculeQueryMatch match(oligo_ref, query_ref,
+                                                     charge);
+        match.addScore(score_ref, score, id_data.getCurrentProcessingStep());
+        match.peak_annotations[id_data.getCurrentProcessingStep()] =
+          hit.annotations;
+        // @TODO: add a field for this to "IdentificationData::MoleculeQueryMatch"?
+        match.setMetaValue(Constants::PRECURSOR_ERROR_PPM_USERPARAM,
+                           hit.precursor_error_ppm);
+        if (!hit.adduct.empty()) match.setMetaValue("adduct", hit.adduct);
+#pragma omp critical (id_data_access)
+        id_data.registerMoleculeQueryMatch(match);
       }
     }
     id_data.cleanup();
@@ -704,11 +710,16 @@ protected:
     }
     software.assigned_scores.push_back(score_ref);
 
-    IdentificationData::ProcessingSoftwareRef software_ref = id_data.registerDataProcessingSoftware(software);
-    IdentificationData::SearchParamRef search_ref = id_data.registerDBSearchParam(search_param);
+    IdentificationData::ProcessingSoftwareRef software_ref =
+      id_data.registerDataProcessingSoftware(software);
+    IdentificationData::SearchParamRef search_ref =
+      id_data.registerDBSearchParam(search_param);
     // @TODO: add suitable data processing action
-    IdentificationData::DataProcessingStep step(software_ref, vector<IdentificationData::InputFileRef>(1, file_ref), primary_files);
-    IdentificationData::ProcessingStepRef step_ref = id_data.registerDataProcessingStep(step, search_ref);
+    IdentificationData::DataProcessingStep step(
+      software_ref, vector<IdentificationData::InputFileRef>(1, file_ref),
+      primary_files);
+    IdentificationData::ProcessingStepRef step_ref =
+      id_data.registerDataProcessingStep(step, search_ref);
     // reference this step in all following ID data items, if applicable:
     id_data.setCurrentProcessingStep(step_ref);
   }
@@ -824,28 +835,38 @@ protected:
     {
       search_param.charges.insert(charge);
     }
-    search_param.precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
-    search_param.precursor_tolerance_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
-    search_param.fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
-    search_param.fragment_tolerance_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
+    search_param.precursor_mass_tolerance =
+      getDoubleOption_("precursor:mass_tolerance");
+    search_param.precursor_tolerance_ppm =
+      (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
+    search_param.fragment_mass_tolerance =
+      getDoubleOption_("fragment:mass_tolerance");
+    search_param.fragment_tolerance_ppm =
+      (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
     search_param.min_length = getIntOption_("oligo:min_size");
 
     StringList fixed_mod_names = getStringList_("modifications:fixed");
-    search_param.fixed_mods.insert(fixed_mod_names.begin(), fixed_mod_names.end());
+    search_param.fixed_mods.insert(fixed_mod_names.begin(),
+                                   fixed_mod_names.end());
 
     StringList var_mod_names = getStringList_("modifications:variable");
-    search_param.variable_mods.insert(var_mod_names.begin(), var_mod_names.end());
+    search_param.variable_mods.insert(var_mod_names.begin(),
+                                      var_mod_names.end());
 
-    vector<ConstRibonucleotidePtr> fixed_modifications = getModifications_(search_param.fixed_mods);
-    vector<ConstRibonucleotidePtr> variable_modifications = getModifications_(search_param.variable_mods);
+    vector<ConstRibonucleotidePtr> fixed_modifications =
+      getModifications_(search_param.fixed_mods);
+    vector<ConstRibonucleotidePtr> variable_modifications =
+      getModifications_(search_param.variable_mods);
 
     // @TODO: add slots for these to "IdentificationData::DBSearchParam"?
     IntList precursor_isotopes = (use_avg_mass ? vector<Int>(1, 0) :
                                   getIntList_("precursor:isotopes"));
-    Size max_variable_mods_per_oligo = getIntOption_("modifications:variable_max_per_oligo");
+    Size max_variable_mods_per_oligo =
+      getIntOption_("modifications:variable_max_per_oligo");
     Size report_top_hits = getIntOption_("report:top_hits");
 
-    StringList potential_adducts = getStringList_("precursor:potential_adducts");
+    StringList potential_adducts =
+      getStringList_("precursor:potential_adducts");
     map<double, String> adduct_masses;
     adduct_masses[0.0] = ""; // always consider "no adduct"
     bool use_adducts = getFlag_("precursor:use_adducts");
@@ -999,7 +1020,8 @@ protected:
       id_data, fasta_db, IdentificationData::MoleculeType::RNA, decoy_pattern);
     digestor.digest(id_data, min_oligo_length);
 
-    progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), "scoring oligonucleotide models against spectra...");
+    String msg =  "scoring oligonucleotide models against spectra...";
+    progresslogger.startProgress(0, id_data.getIdentifiedOligos().size(), msg);
     Size hit_counter = 0;
 
     // keep a list of (references to) oligos in the original digest:
@@ -1012,10 +1034,11 @@ protected:
       digest.push_back(it);
     }
 
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-    for (Int index = 0; index < digest.size(); ++index) // use "Int" for OpenMP
+// shorter oligos take (possibly much) less time to process than longer ones;
+// due to the sorting order of "NASequence", they also appear earlier in the
+// container - therefore use dynamic scheduling to distribute work evenly:
+#pragma omp parallel for schedule(dynamic)
+    for (SignedSize index = 0; index < SignedSize(digest.size()); ++index)
     {
       IF_MASTERTHREAD
       {
@@ -1031,7 +1054,8 @@ protected:
         variable_modifications.begin(), variable_modifications.end(), ns,
         max_variable_mods_per_oligo, all_modified_oligos, true);
 
-      for (SignedSize mod_idx = 0; mod_idx < (SignedSize)all_modified_oligos.size(); ++mod_idx)
+      for (SignedSize mod_idx = 0;
+           mod_idx < SignedSize(all_modified_oligos.size()); ++mod_idx)
       {
         const NASequence& candidate = all_modified_oligos[mod_idx];
         double candidate_mass = (use_avg_mass ? candidate.getAverageWeight() :
@@ -1085,18 +1109,16 @@ protected:
 
           if (!exp_ms2_out.empty())
           {
+#pragma omp critical (exp_ms2_out)
             exp_ms2_spectra.addSpectrum(exp_spectrum);
           }
           if (!theo_ms2_out.empty())
           {
+#pragma omp critical (theo_ms2_out)
             theo_ms2_spectra.addSpectrum(theo_spectrum);
           }
 
-          // no hit
-          if (score < 1e-16)
-          {
-            continue;
-          }
+          if (score < 1e-16) continue; // no hit
 
           // add oligo hit
           AnnotatedHit ah;
@@ -1109,18 +1131,14 @@ protected:
           ah.charge = charge;
           ah.adduct = low_it->second.adduct;
 
-#ifdef _OPENMP
 #pragma omp atomic
-#endif
           ++hit_counter;
 
 #ifdef DEBUG_NASEARCH
           cout << "best score in pre-score: " << score << endl;
 #endif
 
-#ifdef _OPENMP
 #pragma omp critical (annotated_hits_access)
-#endif
           {
             HitsByScore& scan_hits = annotated_hits[scan_index];
             if ((report_top_hits == 0) || (scan_hits.size() < report_top_hits))
