@@ -1042,7 +1042,7 @@ protected:
     {
       IF_MASTERTHREAD
       {
-        progresslogger.setProgress(index * NUMBER_OF_THREADS);
+        progresslogger.setProgress(index);
       }
 
       IdentificationData::IdentifiedOligoRef oligo_ref = digest[index];
