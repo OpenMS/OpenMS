@@ -44,19 +44,10 @@
 using namespace OpenMS;
 using namespace std;
 
-
 int SiriusMzTabWriter::extract_scan_index(const String &path)
 {
   return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
 }
-
-// TODO: Method to extract metadata from .ms file and put it in a "Metadata converter struct"
-// proably method will be used within the read function to process the data in .ms file
-// how to reference to the specturm.ms -- have a look at internal datastructure
-// maybe can be user later for mapping of feature mz/rt
-
-// TODO: Add method to read identifier from spectum.ms (e.g. compundname) and
-// then extract the specfic fragment annotations
 
 void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
                              const String & original_input_mzml,
@@ -68,21 +59,10 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
-    // TODO: look if needed see CompoundInfo struct
-    // needed to extract fragment annotation
-    // extract comments form spectrumms and save in SpectrumMSComments
-    const std::string pathtospectrumms = *it + "/spectrum.ms";
-    ifstream spectrummsfile();
-    if (spectrummsfile)
-    {
-       std::cout << "spectrum.ms for extraction" << std::endl;
-    }
-
     // extract data from summary_sirius.csv
     const std::string pathtosiriuscsv = *it + "/summary_sirius.csv";
 
     ifstream file(pathtosiriuscsv);
-
     if (file) 
     {
       CsvFile compounds(pathtosiriuscsv, '\t');
@@ -220,6 +200,7 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         }  
         result.setSmallMoleculeSectionRows(smsd);
       }
+      file.close();
     }
   }
 }
