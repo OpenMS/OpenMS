@@ -20,6 +20,8 @@ for f in ${DATA_PATH}/*.mzML; do
   FalseDiscoveryRate -in ${fn}.idXML -out ${fn}.idXML -algorithm:add_decoy_peptides -algorithm:add_decoy_proteins 
   # pre-filter to 5% PSM-level FDR to reduce data
   IDFilter -in ${fn}.idXML -out ${fn}.idXML -score:pep 0.05 
+  # switch to PEP score
+  IDScoreSwitcher -in ${fn}.idXML -out ${fn}.idXML -old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score "Posterior Error Probability" 
 done
 
 ###########################
