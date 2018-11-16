@@ -130,7 +130,7 @@ namespace OpenMS
           boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
           in.clear();
-          //out.clear();
+          //out.clear(); // we dont need out edges currently
 
           for (; nbIt != nbIt_end; ++nbIt)
           {
@@ -147,7 +147,7 @@ namespace OpenMS
           //TODO introduce an enum for the types to make it more clear.
           //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
 
-          if (fg[*ui].which() == 3) // pep
+          if (fg[*ui].which() == 6) // pep hit = psm
           {
             bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[*ui])->getPeptideEvidences().size(), in[0], *ui));
             bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<PeptideHit*>(fg[*ui])->getScore()));
@@ -559,8 +559,8 @@ namespace OpenMS
 
     std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
     double bestGamma = gamma_search[bestParams[0]];
-    double bestBeta = gamma_search[bestParams[1]];
-    double bestAlpha = gamma_search[bestParams[2]];
+    double bestBeta = beta_search[bestParams[1]];
+    double bestAlpha = alpha_search[bestParams[2]];
     std::cout << "Running with best parameters again." << std::endl;
     param_.setValue("model_parameters:prot_prior", bestGamma);
     param_.setValue("model_parameters:pep_emission", bestAlpha);

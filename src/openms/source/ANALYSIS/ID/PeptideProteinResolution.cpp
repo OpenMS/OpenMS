@@ -99,20 +99,27 @@ namespace OpenMS
          ++pep_it)
     {
       Size pep_index = pep_it - peptides.begin();
-      
-      PeptideHit best_hit = pep_it->getHits()[0];
-      const vector<PeptideEvidence> pepev = best_hit.getPeptideEvidences();
-      
-      for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
-           pepev_it != pepev.end(); ++pepev_it)
+
+      const vector<PeptideHit>& hits = pep_it->getHits();
+      if (!hits.empty())
       {
-        String acc = pepev_it->getProteinAccession();
-        Size prot_group_index = prot_acc_to_indist_prot_grp_[acc];
-        pep_to_indist_prot_grp_[pep_index].insert(prot_group_index);
-        indist_prot_grp_to_pep_[prot_group_index];
-        indist_prot_grp_to_pep_[prot_group_index].insert(pep_index);
+        PeptideHit best_hit = hits[0];
+        const vector<PeptideEvidence> pepev = best_hit.getPeptideEvidences();
+
+        for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
+             pepev_it != pepev.end(); ++pepev_it)
+        {
+          String acc = pepev_it->getProteinAccession();
+          Size prot_group_index = prot_acc_to_indist_prot_grp_[acc];
+          pep_to_indist_prot_grp_[pep_index].insert(prot_group_index);
+          indist_prot_grp_to_pep_[prot_group_index];
+          indist_prot_grp_to_pep_[prot_group_index].insert(pep_index);
+        }
       }
-      
+      else
+      {
+        LOG_WARN << "Warning PeptideProteinResolution: Skipping spectrum without hits." << std::endl;
+      }
     }
   }
 
