@@ -270,7 +270,8 @@ protected:
     registerStringOption_("decoy-pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein-level-fdrs is active).", !is_required, is_advanced_option);
     registerStringOption_("post-processing-tdc", "<value>", "true", "Use target-decoy competition to assign q-values and PEPs.", !is_required, is_advanced_option);
     setValidStrings_("post-processing-tdc", ListUtils::create<String>("true,false"));
-     registerFlag_("train-best-positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
+    registerStringOption_("train-best-positive", "<value>", "false", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", !is_required, is_advanced_option);
+    setValidStrings_("train-best-positive", ListUtils::create<String>("true,false"));
 
     //OSW/IPF parameters
     registerDoubleOption_("ipf_max_peakgroup_pep", "<value>", 0.7, "OSW/IPF: Assess transitions only for candidate peak groups until maximum posterior error probability.", !is_required, is_advanced_option);
@@ -970,7 +971,7 @@ protected:
       if (subset_max_train > 0) arguments << "-N" << String(subset_max_train).toQString();
       if (getFlag_("quick-validation")) arguments << "-x";
       if (getStringOption_("post-processing-tdc") == "true") arguments << "-Y";
-      if (getFlag_("train-best-positive")) arguments << "--train-best-positive";
+      if (getStringOption_("train-best-positive") == "true") arguments << "--train-best-positive";
       
       String weights_file = getStringOption_("weights");
       String init_weights_file = getStringOption_("init-weights");
