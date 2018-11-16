@@ -359,11 +359,11 @@ namespace OpenMS
         }
         os << "##nid " << native_id << endl;
         os << "##scan " << ind << endl;
-        os << "##specref " << "ms_run[?]:" << native_id << endl;
+        os << "##specref " << "ms_run[1]:" << native_id << endl;
 
         cmpinfo.native_ids.push_back(native_id);
         cmpinfo.scan_indices.push_back(ind);
-        cmpinfo.specrefs.push_back(String("ms_run[?]:" + native_id));
+        cmpinfo.specrefs.push_back(String("ms_run[1]:" + native_id));
 
         // single spectrum peaks
         for (Size i = 0; i < current_ms2.size(); ++i)

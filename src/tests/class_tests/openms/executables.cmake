@@ -237,6 +237,7 @@ set(format_executables_list
   XTandemXMLFile_test
   ZlibCompression_test
   # DATAACCESS
+  FragmentAnnotation_test
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
   MSDataChainingConsumer_test
