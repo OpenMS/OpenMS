@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/METADATA/ID/IdentificationDataConverter.h>" namespace 
         IdentificationDataConverter() nogil except +
         IdentificationDataConverter(IdentificationDataConverter) nogil except + #wrap-ignore
         void importIDs(IdentificationData & id_data, const libcpp_vector[ ProteinIdentification ] & proteins, const libcpp_vector[ PeptideIdentification ] & peptides) nogil except +
-        void exportIDs(const IdentificationData & id_data, libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides, const String & protein_score, const String & peptide_score, bool export_oligonucleotides) nogil except +
+        void exportIDs(const IdentificationData & id_data, libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides, bool export_oligonucleotides) nogil except +
         MzTab exportMzTab(const IdentificationData & id_data) nogil except +
         #void importSequences(IdentificationData & id_data, const libcpp_vector[ FASTAFile::FASTAEntry ] & fasta, IdentificationData::MoleculeType type_, const String & decoy_pattern) nogil except +
 
