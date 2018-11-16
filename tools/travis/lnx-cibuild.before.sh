@@ -1,5 +1,9 @@
 #!/bin/bash
 
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+                         --slave /usr/bin/g++ g++ /usr/bin/g++-7 
+sudo update-alternatives --config gcc
+
 function build_contrib {
   cmake . -DBUILD_TYPE=$1
 
