@@ -124,7 +124,7 @@ namespace OpenMS
 
     defaults_.setValue("mass_max_diff", 0.05, "Maximum allowed mass difference [in Th] for a single feature.");
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
-    defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.4,Na:+:0.25,NH4:+:0.25,K:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
+    defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.4,Na:+:0.25,NH4:+:0.25,K:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Elements:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. The optional RTShift param indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As fifth parameter you can add a label for every feature with this adduct. This also determines the map number in the consensus file. Adduct element losses are written in the form 'H-2'. All provided adducts need to have the same charge sign or be neutral! Mixing of adducts with different charge directions is only allowed as neutral complexes. For example, 'H-1Na:0:0.05' can be used to model Sodium gains (with balancing deprotonation) in negative mode.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
     defaults_.setValue("use_minority_bound", "true", "Prune the considered adduct transitions by transition probabilities.");
@@ -491,7 +491,9 @@ namespace OpenMS
 
         for (Int q1 = q_min; q1 <= q_max; ++q1) // ** q1
         {
-          //We assume that ionization modes won't get mixed in pipeline -> detected features should have same charge sign as provided to decharger settings.
+          //We assume that ionization modes won't get mixed in pipeline ->
+          //detected features should have same charge sign as provided to decharger settings for positive mode.
+          //For negative mode, this requirement is relaxed.
           if (!chargeTestworthy_(f1.getCharge(), q1, true))
             continue;
 
@@ -501,7 +503,8 @@ namespace OpenMS
                ; (q2 <= q_max) && (q2 <= q1 + q_span - 1)
                ; ++q2)
           { // ** q2
-            if (!chargeTestworthy_(f2.getCharge(), q2, f1.getCharge() == q1))
+            //again, for negative mode relaxed, thus we consider the absolute of charge
+            if (!chargeTestworthy_(f2.getCharge(), q2, abs(f1.getCharge()) == abs(q1)))
               continue;
 
             ++possibleEdges; // internal count, not vital
@@ -982,7 +985,31 @@ namespace OpenMS
 
       FeatureMapType::FeatureType f_single = fm_out_untouched[i];
       f_single.setMetaValue("is_single_feature", 1);
+
+      if (is_neg)
+      {
+        //if negative mode, we report only negative charges. abs() for chains of negative mode dechargers.
+        f_single.setCharge(- abs(f_single.getCharge()));
+      }
       f_single.setMetaValue("charge", f_single.getCharge());
+
+      //if negative mode, replace former positive charges with their negative sign version?
+      //If singleton, set dc_charge_adduct to default, and charge negative in neg mode?,
+      //first try without modifying charge, maybe already there.
+      // that should help get the correct mass for charged features at least.
+      //adduct mass can already be negative, will be multiplied in consensusfeaturemethod with absolute charge
+      if (f_single.getCharge() != 0)
+      {
+        EmpiricalFormula default_ef(default_adduct.getFormula());
+        f_single.setMetaValue("dc_charge_adducts", (default_ef  * abs(f_single.getCharge())).toString());
+        f_single.setMetaValue("dc_charge_adduct_mass", (default_adduct.getSingleMass() * abs(f_single.getCharge())));
+      }
+      //What happens with charge 0 features? We can do normal annotation and at end set mz to feature mz?
+      //something like
+      //const double orig_mz = f_single.getMZ();
+      //and set consensusmz at end to that?
+
+
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 
       ConsensusFeature cf(f_single);
@@ -991,11 +1018,13 @@ namespace OpenMS
       cf.insert(0, f_single);
 
       cons_map.push_back(cf);
-      cons_map.back().computeDechargeConsensus(fm_out_untouched);
+      cons_map.back().computeDechargeConsensus(fm_out);//previously used fm_out_untouched. does fm_out also work?
       ++singletons_count;
     }
-
-    LOG_INFO << "Single features without charge ladder: " << singletons_count << " of " << fm_out.size() << "\n";
+    if (verbose_level_ > 2)
+    {
+      LOG_INFO << "Single features without charge ladder: " << singletons_count << " of " << fm_out.size() << "\n";
+    }
 
 
     // fill the header
@@ -1189,37 +1218,48 @@ namespace OpenMS
 
   bool MetaboliteFeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge, const bool other_unchanged) const
   {
-    //Switches of charge signs in one ionization mode should logically not occur. The assumed decharger charge settings should fit to feature charges
-    if (feature_charge * putative_charge < 0)
+    //Switches of charge signs in one ionization mode should logically not occur.
+    //The assumed decharger charge settings should fit to feature charges.
+    //However, FFM (and other tools?) doesn't know about negative charges, thus for negative charges,
+    //we have to verify that positive Feature charges match negative adduct charges.
+    //Further, we have two scenarios: 1. The features come from FFM, then all charges are absolute.
+    // 2. We iteratively decharge negative mode, leading to decharger featureXML outputs with new negative charges.
+    //Thus, we restrict this check for testworthiness to positive mode, as for negative mode both charge signs are valid.
+    bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
+    if (!is_neg && (feature_charge * putative_charge < 0))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative positive mode charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
     }
 
+    //From here, we checked whether we are fine with charge signs, so for now simply look only at absolute charges.
+    const Int abs_feature_charge = abs(feature_charge);
+    const Int abs_putative_charge = abs(putative_charge);
+
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
-    if ((feature_charge == 0) || (q_try_ == QALL))
+    if ((abs_feature_charge == 0) || (q_try_ == QALL))
     {
       return true;
     }
     else if (q_try_ == QHEURISTIC)
     {
       // do not allow two charges to change at the same time
-      if (!other_unchanged && feature_charge != putative_charge)
+      if (!other_unchanged && abs_feature_charge != abs_putative_charge)
         return false;
 
       // test two adjacent charges:
-      if (abs(feature_charge - putative_charge) <= 2)
+      if (abs(abs_feature_charge - abs_putative_charge) <= 2)
         return true;
 
       // test two multiples
-      if (feature_charge * 2 == putative_charge || feature_charge * 3 == putative_charge
-         || feature_charge == putative_charge * 2 || feature_charge == putative_charge * 3)
+      if (abs_feature_charge * 2 == abs_putative_charge || abs_feature_charge * 3 == abs_putative_charge
+         || abs_feature_charge == abs_putative_charge * 2 || abs_feature_charge == abs_putative_charge * 3)
         return true;
 
       return false;
     }
     else if (q_try_ == QFROMFEATURE)
     {
-      return feature_charge == putative_charge;
+      return abs_feature_charge == abs_putative_charge;
     }
 
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!", String((Int)q_try_));

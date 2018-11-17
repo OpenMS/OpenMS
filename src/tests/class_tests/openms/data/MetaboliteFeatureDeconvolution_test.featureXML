@@ -38,7 +38,7 @@
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
-			<charge>0</charge>
+			<charge>1</charge>
 			<userParam type="string" name="label" value="M+K"/>
 		</feature>
 		<feature id="f_4">
@@ -78,7 +78,7 @@
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
-			<charge>0</charge>
+			<charge>2</charge>
 			<userParam type="string" name="label" value="M+H+K"/>
 		</feature>
 		<feature id="f_8">
@@ -168,8 +168,8 @@
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
-			<charge>0</charge>
-			<userParam type="string" name="label" value="M-2H"/>
+			<charge>2</charge>
+			<userParam type="string" name="label" value="M-2H. FFM only knows of positive charges."/>
 		</feature>
 		<feature id="f_102">
 			<position dim="0">102</position>
@@ -188,8 +188,8 @@
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
-			<charge>0</charge>
-			<userParam type="string" name="label" value="M+Na-2H"/>
+			<charge>1</charge>
+			<userParam type="string" name="label" value="M+Na-2H. FFM only knows of positive charges."/>
 		</feature>
 		<feature id="f_104">
 			<position dim="0">102</position>
@@ -198,8 +198,8 @@
 			<quality dim="0">1</quality>
 			<quality dim="1">1</quality>
 			<overallquality>1</overallquality>
-			<charge>0</charge>
-			<userParam type="string" name="label" value="M+Cl"/>
+			<charge>1</charge>
+			<userParam type="string" name="label" value="M+Cl. FFM only knows of positive charges."/>
 		</feature>
 		<feature id="f_105">
 			<position dim="0">102</position>
