@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Samuel Wein $
-// $Authors: Samuel Wein, Timo Sachsenberg $
+// $Authors: Samuel Wein, Timo Sachsenberg, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>

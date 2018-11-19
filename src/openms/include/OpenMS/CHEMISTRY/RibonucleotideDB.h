@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RIBONUCLEOTIDEDB_H
-#define OPENMS_CHEMISTRY_RIBONUCLEOTIDEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -121,5 +120,3 @@ namespace OpenMS
     Size max_code_length_;
   };
 }
-
-#endif

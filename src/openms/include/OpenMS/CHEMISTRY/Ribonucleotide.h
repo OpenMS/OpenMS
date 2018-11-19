@@ -31,10 +31,8 @@
 // $Maintainer: Hendrik Weisser $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
-//
 
-#ifndef OPENMS_CHEMISTRY_RIBONUCLEOTIDE_H
-#define OPENMS_CHEMISTRY_RIBONUCLEOTIDE_H
+#pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
@@ -192,5 +190,3 @@ namespace OpenMS
   using RibonucleotideChainEnd = Ribonucleotide;
 
 }
-
-#endif
