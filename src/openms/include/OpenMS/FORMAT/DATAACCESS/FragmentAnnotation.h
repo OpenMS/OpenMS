@@ -43,40 +43,6 @@ namespace OpenMS
       public:
 
           /**
-          @brief FragmentAnnotation 
-          Annotation extracted from SIRIUS analysis and mapped with the native ID of the MS spectrum
-       
-          @ingroup DATAACCESS
-          */
-
-          /// Constructor
-          FragmentAnnotation();
-
-          /// Copy constructor
-          FragmentAnnotation(const FragmentAnnotation& source);
-
-          /// Move constructor
-          FragmentAnnotation(FragmentAnnotation&&) = default;
-
-          /// Destructor
-          virtual ~FragmentAnnotation();
-
-          /// Assignment operator
-          FragmentAnnotation& operator=(const FragmentAnnotation& source);
-
-          /// Move assignment operator
-          FragmentAnnotation& operator=(FragmentAnnotation&&) & = default;
-
-          // getter & setter
-          String getNativeID() const; 
-          
-          MSSpectrum getAnnotatedSpectrum() const;
-          
-          void setNativeID(String native_id);
-
-          void setAnnotatedSpectrum(MSSpectrum annotated_msspectrum_);
-
-          /**
           @brief extractFragmentAnnotationMapping  
           Extract native id and fragment annotation from SIRIUS output (spectrum.ms) for 
           one compound.
@@ -87,8 +53,10 @@ namespace OpenMS
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
           */
 
-          static OpenMS::FragmentAnnotation extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, bool use_exact_mass = false); 
-      
+          static void extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false);
+
+      protected:
+
           /**
           @brief extractNativeIDFromSiriusMS  
           Extract native id from SIRIUS output (spectrum.ms).
@@ -101,7 +69,7 @@ namespace OpenMS
            // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
            // first native id in the spectrum.ms (only one native id is used fro matching later)
            // returns pair (String, bool)
-          static OpenMS::String extractNativeIDFromSiriusMS(const OpenMS::String& path_to_sirius_workspace);
+          static OpenMS::String extractNativeIDFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
 
           /**
           @brief extractAnnotationFromSiriusFile  
@@ -113,12 +81,6 @@ namespace OpenMS
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
           */
 
-          static OpenMS::MSSpectrum extractAnnotationFromSiriusFile(const String& path_to_sirius_workspace, bool use_exact_mass = false);
-
-      protected:
-
-            String native_id_;
-            MSSpectrum annotated_msspectrum_;
-
+          static void extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false); 
   };
 }

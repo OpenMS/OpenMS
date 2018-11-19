@@ -44,51 +44,18 @@ using namespace std;
 namespace OpenMS
 {
 
-  FragmentAnnotation::FragmentAnnotation() :
-  native_id_() ,
-  annotated_msspectrum_()
+  void FragmentAnnotation::extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   {
-  }
-
-  FragmentAnnotation::~FragmentAnnotation()
-  {
-  }
-
-  String FragmentAnnotation::getNativeID() const
-  {
-    return native_id_;
-  }
-          
-  MSSpectrum FragmentAnnotation::getAnnotatedSpectrum() const
-  {
-    return annotated_msspectrum_;
-  }
-          
-  void FragmentAnnotation::setNativeID(String native_id)
-  {
-    native_id_ = native_id;
-  }
-
-  void FragmentAnnotation::setAnnotatedSpectrum(MSSpectrum annotated_msspectrum)
-  {
-    annotated_msspectrum_ = annotated_msspectrum;
-  }
-
-  OpenMS::FragmentAnnotation FragmentAnnotation::extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, bool use_exact_mass)
-  {
-    FragmentAnnotation mapping;
-    OpenMS::String native_id = FragmentAnnotation::extractNativeIDFromSiriusMS(path_to_sirius_workspace);
-    OpenMS::MSSpectrum annotated_spectrum = FragmentAnnotation::extractAnnotationFromSiriusFile(path_to_sirius_workspace, use_exact_mass);
+    OpenMS::String native_id = FragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
+    FragmentAnnotation::extractAnnotationFromSiriusFile_(path_to_sirius_workspace, msspectrum_to_fill, use_exact_mass);
     
-    mapping.setNativeID(native_id);
-    mapping.setAnnotatedSpectrum(annotated_spectrum);
-    return mapping;
+    msspectrum_to_fill.setNativeID(native_id);
   }
   
   // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
   // first native id in the spectrum.ms (only one native id is used fro matching later)
   // returns pair (String, bool)
-  OpenMS::String FragmentAnnotation::extractNativeIDFromSiriusMS(const String& path_to_sirius_workspace)
+  OpenMS::String FragmentAnnotation::extractNativeIDFromSiriusMS_(const String& path_to_sirius_workspace)
   {
     String ext_nid;
     const String sirius_spectrum_ms = path_to_sirius_workspace + "/spectrum.ms";
@@ -118,11 +85,10 @@ namespace OpenMS
   
   //FragmentAnnotation 
   // always use the first ranked sumformula (works for known and known_unkowns)
-  OpenMS::MSSpectrum FragmentAnnotation::extractAnnotationFromSiriusFile(const String& path_to_sirius_workspace, bool use_exact_mass)
+  void FragmentAnnotation::extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   { 
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/spectra/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
-    MSSpectrum fragment_annotations;
     if (dir.exists())
     {
       dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
@@ -158,16 +124,15 @@ namespace OpenMS
           fragments_mzs_ints.push_back(fragment_mz_int);
           fragments_explanations.push_back(splitted_line[4]); 
         }
-        fragment_annotations.setMSLevel(2);
+        msspectrum_to_fill.setMSLevel(2);
         for (auto peak_it : fragments_mzs_ints)
         {
-          fragment_annotations.push_back(peak_it);
+          msspectrum_to_fill.push_back(peak_it);
         }
-        fragment_annotations.getFloatDataArrays().push_back(fragments_exactmasses);
-        fragment_annotations.getStringDataArrays().push_back(fragments_explanations);
+        msspectrum_to_fill.getFloatDataArrays().push_back(fragments_exactmasses);
+        msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
       } 
     }
-    return fragment_annotations;
   }
 
 }
