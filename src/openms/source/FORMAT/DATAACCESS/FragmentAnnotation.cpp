@@ -53,8 +53,7 @@ namespace OpenMS
   }
   
   // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
-  // first native id in the spectrum.ms (only one native id is used fro matching later)
-  // returns pair (String, bool)
+  // first native id in the spectrum.ms
   OpenMS::String FragmentAnnotation::extractNativeIDFromSiriusMS_(const String& path_to_sirius_workspace)
   {
     String ext_nid;
@@ -83,10 +82,10 @@ namespace OpenMS
     return ext_nid;
   }
   
-  //FragmentAnnotation 
-  // always use the first ranked sumformula (works for known and known_unkowns)
+  // use the first ranked sumformula (works for known and known_unkowns)
   void FragmentAnnotation::extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   { 
+    if (!msspectrum_to_fill.empty()) throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSspectrum was provided");
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/spectra/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
     if (dir.exists())
@@ -102,6 +101,15 @@ namespace OpenMS
         std::vector<Peak1D> fragments_mzs_ints;
         MSSpectrum::FloatDataArray fragments_exactmasses;
         MSSpectrum::StringDataArray fragments_explanations;
+        if (use_exact_mass)
+        {
+          fragments_exactmasses.setName("mass");
+        }
+        else
+        {
+          fragments_exactmasses.setName("exact_mass");
+        }
+        fragments_explanations.setName("explanation");
         String line;
         std::getline(fragment_annotation_file, line); // skip header
         while (std::getline(fragment_annotation_file, line))
@@ -120,21 +128,21 @@ namespace OpenMS
             fragment_mz_int.setMZ(splitted_line[0].toDouble());
             fragments_exactmasses.push_back(splitted_line[3].toDouble());
           }
-          fragment_mz_int.setIntensity(splitted_line[1].toFloat());
+          fragment_mz_int.setIntensity(splitted_line[1].toDouble());
           fragments_mzs_ints.push_back(fragment_mz_int);
           fragments_explanations.push_back(splitted_line[4]); 
         }
         msspectrum_to_fill.setMSLevel(2);
-        for (auto peak_it : fragments_mzs_ints)
-        {
-          msspectrum_to_fill.push_back(peak_it);
-        }
+        msspectrum_to_fill.insert(msspectrum_to_fill.begin(), fragments_mzs_ints.begin(), fragments_mzs_ints.end());
         msspectrum_to_fill.getFloatDataArrays().push_back(fragments_exactmasses);
         msspectrum_to_fill.getStringDataArrays().push_back(fragments_explanations);
       } 
     }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Directory 'spectra' was not found - please check the path " + sirius_spectra_dir);
+    }
   }
-
 }
 
 /// @endcond

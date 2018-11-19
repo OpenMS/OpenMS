@@ -36,16 +36,15 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/DATAACCESS/FragmentAnnotation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 #include <QtCore/QDir>
 #include <QtCore/QString>
+///////////////////////////
+
 using namespace OpenMS;
 using namespace std;
-
-///////////////////////////
 
 START_TEST(FragmentAnnotation, "$Id$")
 
@@ -54,13 +53,63 @@ START_TEST(FragmentAnnotation, "$Id$")
 FragmentAnnotation* fa_ptr = nullptr;
 FragmentAnnotation* fa_null = nullptr;
 
-START_SECTION((FragmentAnnotation()))
+START_SECTION(FragmentAnnotation())
+{
     fa_ptr = new FragmentAnnotation;
-    TEST_NOT_EQUAL(fa_ptr, fa_null)
+    TEST_NOT_EQUAL(fa_ptr, fa_null);
+}
 END_SECTION
 
-START_SECTION([EXTRA] virtual ~FragmentAnnotation())
+START_SECTION(~FragmentAnnotation())
+{
     delete fa_ptr;
+}
+END_SECTION
+
+// non empty spectrum
+Peak1D p1;
+p1.setIntensity(250.0f);
+p1.setMZ(510.0001);
+MSSpectrum not_empty_msspectrum;
+not_empty_msspectrum.push_back(p1);
+
+// mz  intensity   rel.intensity   exactmass   explanation
+// 123.000363  65857.38    3.36    122.999604  C7H3Cl
+
+// test function 
+START_SECTION(static void extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
+{
+    String test_path = OPENMS_GET_TEST_DATA_PATH("FragmentAnnotation_test");
+    MSSpectrum annotated_msspectrum;
+
+    FragmentAnnotation::extractFragmentAnnotationMapping(test_path, annotated_msspectrum);
+    TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=2056 experiment=3");
+    TEST_EQUAL(annotated_msspectrum.getMSLevel(), 2);
+
+    TEST_EQUAL(annotated_msspectrum.empty(), false);
+    TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 123.000363);
+    TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "exact_mass");
+    TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 122.999604);
+    TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C7H3Cl");
+}
+END_SECTION
+
+// test exact mass output 
+START_SECTION(static void extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
+{
+    String test_path = OPENMS_GET_TEST_DATA_PATH("FragmentAnnotation_test");
+    MSSpectrum annotated_msspectrum;
+
+    FragmentAnnotation::extractFragmentAnnotationMapping(test_path, annotated_msspectrum, true);    
+    TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=2056 experiment=3");
+    TEST_EQUAL(annotated_msspectrum.getMSLevel(), 2);
+
+    TEST_EQUAL(annotated_msspectrum.empty(), false);
+    TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 122.999604)
+    TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "mass");
+    TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 123.000363);
+    TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C7H3Cl");
+}
 END_SECTION
 
 

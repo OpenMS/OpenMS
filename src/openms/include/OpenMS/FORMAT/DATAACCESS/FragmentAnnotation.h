@@ -68,7 +68,6 @@ namespace OpenMS
 
            // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
            // first native id in the spectrum.ms (only one native id is used fro matching later)
-           // returns pair (String, bool)
           static OpenMS::String extractNativeIDFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
 
           /**

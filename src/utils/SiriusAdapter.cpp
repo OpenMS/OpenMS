@@ -307,6 +307,29 @@ protected:
       }
     }
 
+    // number of features to be processed 
+    if (feature_only && !featureinfo.empty())
+    {
+      LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+    }
+    else if (!featureinfo.empty())
+    {
+      LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+      LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+    } 
+    else
+    {
+      int count_ms2 = 0;
+      for (auto spec_it : spectra)
+      {
+        if (spec_it.getMSLevel() == 2)
+        {
+          count_ms2++;
+        }
+      }
+      LOG_WARN << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+    }
+
     vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
     // write msfile and stores the compound information in CompoundInfo Object
     SiriusMSFile::store(spectra, tmp_ms_file, feature_mapping, feature_only, isotope_pattern_iterations, no_mt_info, v_cmpinfo);
