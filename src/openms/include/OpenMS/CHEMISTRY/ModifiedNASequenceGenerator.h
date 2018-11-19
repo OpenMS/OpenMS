@@ -43,12 +43,11 @@
 
 namespace OpenMS
 {
+  /*
+   * @brief This class applies fixed and variable modifications to (unmodified) nucleic acid sequences, combinatorically generating modified sequences.
+   */
   class OPENMS_DLLAPI ModifiedNASequenceGenerator
   {
-   /*
-    * @brief Modifications can be generated and combinatorically applied to NASequences.
-    */
-
   public:
     using ConstRibonucleotidePtr = const Ribonucleotide*;
 

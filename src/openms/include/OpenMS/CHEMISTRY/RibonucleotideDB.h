@@ -44,8 +44,7 @@ namespace OpenMS
 
       @brief Database of ribonucleotides (modified and unmodified)
 
-      The information in this class comes from the Modomics database (http://modomics.genesilico.pl/modifications/)
-      and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
+      The information in this class comes from the Modomics database (http://modomics.genesilico.pl/modifications/) and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
   */
   class OPENMS_DLLAPI RibonucleotideDB
   {
