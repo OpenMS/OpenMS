@@ -28,12 +28,11 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser, Sam Wein $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_CHEMISTRY_MODIFIEDNASEQUENCEGENERATOR_H
-#define OPENMS_ANALYSIS_CHEMISTRY_MODIFIEDNASEQUENCEGENERATOR_H
+#pragma once
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
@@ -44,14 +43,13 @@
 
 namespace OpenMS
 {
+  /*
+   * @brief This class applies fixed and variable modifications to (unmodified) nucleic acid sequences, combinatorically generating modified sequences.
+   */
   class OPENMS_DLLAPI ModifiedNASequenceGenerator
   {
-   /*
-    * @brief Modifications can be generated and combinatorically applied to NASequences. 
-    */
-
   public:
-    using ConstRibonucleotidePtr = const Ribonucleotide *;
+    using ConstRibonucleotidePtr = const Ribonucleotide*;
 
     // Applies fixed modifications to a single NASequence
     static void applyFixedModifications(
@@ -71,8 +69,8 @@ namespace OpenMS
     // Recursively generate all combinatoric placements at compatible sites
     static void recurseAndGenerateVariableModifiedSequences_(
       const std::vector<int>& subset_indices,
-      const std::map<int, std::vector<ConstRibonucleotidePtr> >& map_compatibility,
-      int depth, 
+      const std::map<int, std::vector<ConstRibonucleotidePtr>>& map_compatibility,
+      int depth,
       const NASequence& current_NASequence,
       std::vector<NASequence>& modified_NASequences);
 
@@ -87,5 +85,3 @@ namespace OpenMS
       bool keep_original = true);
   };
 }
-
-#endif

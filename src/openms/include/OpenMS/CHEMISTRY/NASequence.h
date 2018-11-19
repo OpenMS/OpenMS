@@ -29,11 +29,10 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Samuel Wein $
-// $Authors: Samuel Wein, Timo Sachsenberg $
+// $Authors: Samuel Wein, Timo Sachsenberg, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_NASEQUENCE_H
-#define OPENMS_CHEMISTRY_NASEQUENCE_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -517,5 +516,3 @@ namespace OpenMS
   };
 
 }
-
-#endif // OPENMS_CHEMISTRY_NASEQUENCE_H

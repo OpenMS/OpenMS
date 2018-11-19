@@ -32,8 +32,7 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_RIBONUCLEOTIDEDB_H
-#define OPENMS_CHEMISTRY_RIBONUCLEOTIDEDB_H
+#pragma once
 
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -45,8 +44,7 @@ namespace OpenMS
 
       @brief Database of ribonucleotides (modified and unmodified)
 
-      The information in this class comes from the Modomics database (http://modomics.genesilico.pl/modifications/)
-      and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
+      The information in this class comes from the Modomics database (http://modomics.genesilico.pl/modifications/) and is read from a tab-separated text file in @p data/CHEMISTRY/Modomics.tsv.
   */
   class OPENMS_DLLAPI RibonucleotideDB
   {
@@ -121,5 +119,3 @@ namespace OpenMS
     Size max_code_length_;
   };
 }
-
-#endif
