@@ -179,38 +179,37 @@ namespace OpenMS
       current_step_ref_(processing_steps_.end())
     {
     }
-
     // Copy constructor - not allowed, as references would be invalidated:
     // @TODO: implement using deep copy
     IdentificationData(const IdentificationData& other) = delete;
 
     /// Move constructor
     IdentificationData(IdentificationData&& other):
-      current_step_ref_(other.current_step_ref_)
-    {
-      input_files_.swap(other.input_files_);
-      processing_softwares_.swap(other.processing_softwares_);
-      processing_steps_.swap(other.processing_steps_);
-      db_search_params_.swap(other.db_search_params_);
-      db_search_steps_.swap(other.db_search_steps_);
-      score_types_.swap(other.score_types_);
-      data_queries_.swap(other.data_queries_);
-      parent_molecules_.swap(other.parent_molecules_);
-      parent_molecule_groupings_.swap(other.parent_molecule_groupings_);
-      identified_peptides_.swap(other.identified_peptides_);
-      identified_compounds_.swap(other.identified_compounds_);
-      identified_oligos_.swap(other.identified_oligos_);
-      query_matches_.swap(other.query_matches_);
-      query_match_groups_.swap(other.query_match_groups_);
-      swap(current_step_ref_, other.current_step_ref_);
+      input_files_(std::move(other.input_files_)),
+      processing_softwares_(std::move(other.processing_softwares_)),
+      processing_steps_(std::move(other.processing_steps_)),
+      db_search_params_(std::move(other.db_search_params_)),
+      db_search_steps_(std::move(other.db_search_steps_)),
+      score_types_(std::move(other.score_types_)),
+      data_queries_(std::move(other.data_queries_)),
+      parent_molecules_(std::move(other.parent_molecules_)),
+      parent_molecule_groupings_(std::move(other.parent_molecule_groupings_)),
+      identified_peptides_(std::move(other.identified_peptides_)),
+      identified_compounds_(std::move(other.identified_compounds_)),
+      identified_oligos_(std::move(other.identified_oligos_)),
+      query_matches_(std::move(other.query_matches_)),
+      query_match_groups_(std::move(other.query_match_groups_)),
+      current_step_ref_(std::move(other.current_step_ref_)),
       // look-up tables:
-      data_query_lookup_.swap(other.data_query_lookup_);
-      parent_molecule_lookup_.swap(other.parent_molecule_lookup_);
-      identified_peptide_lookup_.swap(other.identified_peptide_lookup_);
-      identified_compound_lookup_.swap(other.identified_compound_lookup_);
-      identified_oligo_lookup_.swap(other.identified_oligo_lookup_);
-      query_match_lookup_.swap(other.query_match_lookup_);
-}
+      data_query_lookup_(std::move(other.data_query_lookup_)),
+      parent_molecule_lookup_(std::move(other.parent_molecule_lookup_)),
+      identified_peptide_lookup_(std::move(other.identified_peptide_lookup_)),
+      identified_compound_lookup_(std::move(other.identified_compound_lookup_)),
+      identified_oligo_lookup_(std::move(other.identified_oligo_lookup_)),
+      query_match_lookup_(std::move(other.query_match_lookup_))
+    {
+    }
+
     /*!
       @brief Register an input file
       @return Reference to the registered file
