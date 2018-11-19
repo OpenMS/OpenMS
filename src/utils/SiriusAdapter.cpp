@@ -372,7 +372,6 @@ protected:
     writeLog_("Executing: " + String(executable));
     writeLog_("Working Dir is: " + path_to_executable);
     const bool success = qp.waitForFinished(-1); // wait till job is finished
-    qp.close();
 
     if (!success || qp.exitStatus() != 0 || qp.exitCode() != 0)
     {
@@ -382,9 +381,12 @@ protected:
       writeLog_(sirius_stdout);
       writeLog_(sirius_stderr);
       writeLog_(String(qp.exitCode()));
+      qp.close();
 
       return EXTERNAL_PROGRAM_ERROR;
     }
+
+    qp.close();
 
     //-------------------------------------------------------------
     // writing output
