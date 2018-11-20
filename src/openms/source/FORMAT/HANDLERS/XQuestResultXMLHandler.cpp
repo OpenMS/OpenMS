@@ -327,11 +327,11 @@ namespace OpenMS
 
         // Meta Values
         String database_dc;
-        if (this->optionalAttributeAsString_(current_decoy_string, attributes, "decoy_string"))
+        if (this->optionalAttributeAsString_(database_dc, attributes, "database_dc"))
         {
           search_params.setMetaValue("input_decoys", DataValue(database_dc));
           search_params.setMetaValue("decoy_prefix", DataValue(decoy_prefix_bool));
-          search_params.setMetaValue("decoy_string", DataValue(decoy_string_));
+          search_params.setMetaValue("decoy_string", DataValue(this->decoy_string_));
         }
 
         search_params.setMetaValue("fragment:mass_tolerance_xlinks", DataValue(this->attributeAsDouble_(attributes, "xlink_ms2tolerance")));
