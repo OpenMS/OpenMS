@@ -43,7 +43,11 @@
 namespace OpenMS
 {
   /**
-    Class used to schedule multiple calls to `MRMFeatureSelector`
+    Class used to schedule multiple calls to `MRMFeatureSelector`. It helps with
+    settings the parameters for each call to the selector, through the
+    `setSchedulerParameters()` method. The class offers a generic scheduler
+    (where the user is supposed to pass a `MRMFeatureSelector` derived object) and
+    two specialized versions (Score and QMIP).
   */
   class OPENMS_DLLAPI MRMFeatureScheduler
   {
@@ -75,7 +79,12 @@ public:
     std::vector<MRMFeatureSelector::SelectorParameters>& getSchedulerParameters(void);
 
 private:
-    /// Parameters for a single call to the scheduler. All elements will be consumed.
+    /**
+      Parameters for a single call to the scheduler.
+
+      The scheduler goes through each element of this vector. Each of these elements
+      contains the parameters' values for a single run of the chosen selector.
+    */
     std::vector<MRMFeatureSelector::SelectorParameters> parameters_;
   };
 }
