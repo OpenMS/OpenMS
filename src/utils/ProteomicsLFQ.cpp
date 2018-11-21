@@ -297,8 +297,12 @@ protected:
     InternalCalibration ic;
     ic.setLogType(log_type_);
     ic.fillCalibrants(peptide_ids, 25.0); // >25 ppm maximum deviation defines an outlier TODO: check if we need to adapt this
-    MZTrafoModel::MODELTYPE md = MZTrafoModel::QUADRATIC; // TODO: check if it makes sense to choose the quadratic model
+    if (ic.getCalibrationPoints().size() <= 1) return;
+
+    // choose calibration model based on number of calibration points
+    MZTrafoModel::MODELTYPE md = (ic.getCalibrationPoints().size() == 2) ? MZTrafoModel::LINEAR : MZTrafoModel::QUADRATIC;
     bool use_RANSAC = (md == MZTrafoModel::LINEAR || md == MZTrafoModel::QUADRATIC);
+
     Size RANSAC_initial_points = (md == MZTrafoModel::LINEAR) ? 2 : 3;
     Math::RANSACParam p(RANSAC_initial_points, 70, 10, 30, true); // TODO: check defaults (taken from tool)
     MZTrafoModel::setRANSACParams(p);
@@ -428,7 +432,7 @@ protected:
               [](TrafoStat a, TrafoStat b) 
               { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
       // sometimes, very good alignments might lead to bad overall performance. Choose 2 minutes as minimum.
-      LOG_INFO << "Max alignment difference: " << max_alignment_diff << endl;
+      LOG_INFO << "Max alignment difference (seconds): " << max_alignment_diff << endl;
       max_alignment_diff = std::max(max_alignment_diff, 120.0);
       return max_alignment_diff;
     }
@@ -445,8 +449,15 @@ protected:
       // Apply transformations
       for (Size i = 0; i < feature_maps.size(); ++i)
       {
-        MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
-          transformations[i]);
+        try 
+        {
+          MapAlignmentTransformer::transformRetentionTimes(feature_maps[i],
+            transformations[i]);
+        } catch (Exception::IllegalArgument e)
+        {
+          LOG_WARN << e.getMessage() << endl;
+        }
+          
         if (debug_level_ > 666)
         {
           // plot with e.g.:
@@ -1230,7 +1241,7 @@ protected:
 
     /////////////////////////////////////////
     // annotate some mzTab related protein statistics
-
+/*
     map<String, map<String, Size >> acc2psms; // map runpath->accession->#PSMs (how many PSMs identify a protein in every run)
     // Note: only helpful if the PSM maps to one protein (or an indistinguishable group) - probably not helpful for shared peptides/PSMs
 
@@ -1322,6 +1333,7 @@ protected:
       p.setMetaValue("num_peptides_distinct_ms_run", ndistinct);
       p.setMetaValue("num_peptides_unique_ms_run", nunique);
     }
+*/
 
     //-------------------------------------------------------------
     // Peptide quantification
