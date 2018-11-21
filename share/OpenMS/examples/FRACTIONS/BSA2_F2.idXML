@@ -22,6 +22,7 @@
 			<ProteinHit id="PH_4" accession="tr|A9GPT8|A9GPT8_SORC5" score="0" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
+                        <UserParam type="stringList" name="spectra_data" value="[share/OpenMS/examples/FRACTIONS/BSA2_F2.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="409.209625244141" RT="2125.17431640625" >
 			<PeptideHit score="0" sequence="KM(Oxidation)NALPK" charge="2" aa_before="R" aa_after="V" protein_refs="PH_4" >

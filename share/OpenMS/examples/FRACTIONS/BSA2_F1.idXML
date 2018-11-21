@@ -31,6 +31,7 @@
 			<ProteinHit id="PH_7" accession="tr|A9GID7|A9GID7_SORC5" score="0" sequence="" >
 				<UserParam type="float" name="OMSSA_score" value="0"/>
 			</ProteinHit>
+                        <UserParam type="stringList" name="spectra_data" value="[share/OpenMS/examples/FRACTIONS/BSA2_F1.mzML]"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="368.832366943359" RT="1517.88525390625" >
 			<PeptideHit score="0" sequence="DGDIEAEISR" charge="3" aa_before="K" aa_after="E" protein_refs="PH_2" >
