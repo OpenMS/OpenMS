@@ -47,7 +47,7 @@
 #include <omp.h>
 #endif
 
-//#define INFERENCE_DEBUG
+#define INFERENCE_DEBUG
 //#define INFERENCE_MT_DEBUG
 
 using namespace OpenMS;
@@ -79,8 +79,12 @@ namespace OpenMS
 
     void insert(String& seq, Size replicate, int charge, vertex_t pepVtx)
     {
-      auto seq_it = seq_to_vecs_.emplace(std::move(seq), std::vector<std::vector<std::set<vertex_t>>>{nrReplicates_, {nrCharges_, std::set<vertex_t>()}});
-      seq_it.first->second[replicate][charge - minCharge_].insert(pepVtx);
+      int chargeToPut = charge - minCharge_;
+      OPENMS_PRECONDITION(replicate < nrReplicates_, "Replicate OOR");
+      OPENMS_PRECONDITION(chargeToPut < nrCharges_, "Charge OOR");
+
+      auto seq_it = seq_to_vecs_.emplace(std::move(seq), std::vector<std::vector<std::set<vertex_t>>>{nrReplicates_, std::vector<std::set<vertex_t>>(nrCharges_, std::set<vertex_t>())});
+      seq_it.first->second[replicate][chargeToPut].insert(pepVtx);
     }
 
     void insertToGraph(vertex_t rootProteinVtx, Graph& graph)
@@ -92,7 +96,8 @@ namespace OpenMS
 
         vector<vertex_t> prots_for_pepseq;
         GraphConst::adjacency_iterator adjIt, adjIt_end;
-        boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(rootProteinVtx, graph);
+        // This assumes, that at this point, only proteins are connected to peptides
+        boost::tie(adjIt, adjIt_end) = boost::adjacent_vertices(pep, graph);
         for (; adjIt != adjIt_end; adjIt++)
         {
           IDBoostGraph::IDPointer curr_idObj = graph[*adjIt];
