@@ -366,6 +366,17 @@ protected:
     }
   };
 
+  static double calculateCombinedScore(const AnnotatedHit& ah)
+  {
+	return 
+	  2.493
+	  + 7.239 * (0.058 * ah.total_loss_score - 0.900)
+	  + 1.381 * (26.965 * ah.marker_ions_score - 0.300)
+	  + 1.178 * (0.043 * ah.partial_loss_score - 0.472)
+	  - 1.934 * (300.828 * ah.err - 1.774)
+	  - 0.358 * (240.441 * ah.pl_err - 1.316);
+  }
+
 
 
   /* @brief Filter spectra to remove noise.
@@ -1956,12 +1967,7 @@ protected:
                   ah.isotope_error = isotope_error;
 
                   // combined score
-                  ah.score = + 2.493
-                             + 7.239 * (  0.058 * ah.total_loss_score   - 0.900)
-                             + 1.381 * ( 26.965 * ah.marker_ions_score  - 0.300)
-                             + 1.178 * (  0.043 * ah.partial_loss_score - 0.472) 
-                             - 1.934 * (300.828 * ah.err                - 1.774)
-                             - 0.358 * (240.441 * ah.pl_err             - 1.316);
+				  ah.score = RNPxlSearch::calculateCombinedScore(ah);
 
 #ifdef DEBUG_RNPXLSEARCH
                   LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -2107,12 +2113,8 @@ protected:
                     ah.rna_mod_index = rna_mod_index;
                     ah.isotope_error = isotope_error;
 
-                    ah.score = + 2.493
-                               + 7.239 * (  0.058 * ah.total_loss_score   - 0.900)
-                               + 1.381 * ( 26.965 * ah.marker_ions_score  - 0.300)
-                               + 1.178 * (  0.043 * ah.partial_loss_score - 0.472) 
-                               - 1.934 * (300.828 * ah.err                - 1.774)
-                               - 0.358 * (240.441 * ah.pl_err             - 1.316);
+					// combined score
+					ah.score = RNPxlSearch::calculateCombinedScore(ah);
 
 #ifdef DEBUG_RNPXLSEARCH
                     LOG_DEBUG << "best score in pre-score: " << score << endl;
