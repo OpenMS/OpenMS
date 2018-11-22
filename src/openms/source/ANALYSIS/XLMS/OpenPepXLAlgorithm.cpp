@@ -935,6 +935,8 @@ using namespace OpenMS;
 
     LOG_DEBUG << "# Peptide IDs: " << peptide_ids.size() << " | # all_top_csms: " << all_top_csms.size() << endl;
 
+    peptide_ids = OPXLHelper::combineTopRanksFromPairs(peptide_ids, number_top_hits_);
+
     // Add protein identifications
     PeptideIndexing pep_indexing;
     Param indexing_param = pep_indexing.getParameters();

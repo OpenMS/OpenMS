@@ -855,6 +855,7 @@ namespace OpenMS
         ph_beta.setMetaValue("spectrum_reference", spectra[scan_index].getNativeID());
         ph_beta.setMetaValue("spectrum_index", scan_index);
         ph_beta.setMetaValue("xl_type", xltype);
+        ph_beta.setMetaValue("xl_rank", DataValue(i + 1));
         ph_beta.setMetaValue("xl_term_spec", beta_term);
         ph_beta.setMetaValue("precursor_correction", top_csms_spectrum[i].precursor_correction);
 
@@ -962,6 +963,10 @@ namespace OpenMS
       // remove leading "," of first position
       prot1_pos = prot1_pos.suffix(prot1_pos.size()-1);
       ph_alpha.setMetaValue("XL_Protein_position_alpha", prot1_pos);
+      if (String(ph_alpha.getMetaValue("target_decoy")).hasSubstring("decoy"))
+      {
+        ph_alpha.setMetaValue("xl_target_decoy", "decoy");
+      }
 
       // cross-link position in Protein (beta)
       if (id.getHits().size() == 2)
@@ -987,6 +992,11 @@ namespace OpenMS
         prot2_accessions = prot2_accessions.suffix(prot2_accessions.size()-1);
         ph_alpha.setMetaValue("accessions_beta", prot2_accessions);
         ph_beta.setMetaValue("accessions_beta", prot2_accessions);
+        if (String(ph_beta.getMetaValue("target_decoy")).hasSubstring("decoy"))
+        {
+          ph_alpha.setMetaValue("xl_target_decoy", "decoy");
+          ph_beta.setMetaValue("xl_target_decoy", "decoy");
+        }
       }
       else
       {
@@ -1011,6 +1021,51 @@ namespace OpenMS
         }
       }
     }
+  }
+
+  std::vector< PeptideIdentification > OPXLHelper::combineTopRanksFromPairs(std::vector< PeptideIdentification > & peptide_ids, Size number_top_hits)
+  {
+    std::vector< PeptideIdentification > new_peptide_ids;
+    std::vector< PeptideIdentification > current_spectrum_peptide_ids;
+    std::set< String > spectrum_indices;
+
+    for (PeptideIdentification& id : peptide_ids)
+    {
+      spectrum_indices.insert(id.getHits()[0].getMetaValue("spectrum_index"));
+    }
+
+    for (String index : spectrum_indices)
+    {
+      for (PeptideIdentification& id : peptide_ids)
+      {
+        if (String(id.getHits()[0].getMetaValue("spectrum_index")) == index)
+        {
+          current_spectrum_peptide_ids.push_back(id);
+        }
+      }
+
+      std::sort(current_spectrum_peptide_ids.rbegin(), current_spectrum_peptide_ids.rend(), OPXLHelper::PeptideIDScoreComparator());
+      current_spectrum_peptide_ids.erase( std::unique( current_spectrum_peptide_ids.begin(), current_spectrum_peptide_ids.end() ), current_spectrum_peptide_ids.end() );
+
+      if (current_spectrum_peptide_ids.size() > number_top_hits)
+      {
+        current_spectrum_peptide_ids.resize(number_top_hits);
+      }
+
+      Size rank_count(1);
+      for (PeptideIdentification& current_id : current_spectrum_peptide_ids)
+      {
+        current_id.getHits()[0].setMetaValue("xl_rank", rank_count);
+        if (current_id.getHits().size() > 1)
+        {
+          current_id.getHits()[1].setMetaValue("xl_rank", rank_count);
+        }
+        rank_count++;
+      }
+      new_peptide_ids.insert(new_peptide_ids.end(), current_spectrum_peptide_ids.begin(), current_spectrum_peptide_ids.end());
+      current_spectrum_peptide_ids.clear();
+    }
+    return new_peptide_ids;
   }
 
   std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name)
