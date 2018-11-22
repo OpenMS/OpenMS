@@ -4,7 +4,7 @@
 	xmlns="http://psidev.info/psi/pi/mzIdentML/1.2"
 	version="1.2.0"
 	id="OpenMS_15339728194307237405"
-	creationDate="2018-11-20T12:27:19">
+	creationDate="2018-11-21T16:38:27">
 <cvList>
 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies" uri="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="3.15.0"></cv>
  	<cv id="UNIMOD" fullName="UNIMOD" uri="http://www.unimod.org/obo/unimod.obo"></cv>
@@ -12,12 +12,12 @@
 	<cv id="XLMOD" fullName="PSI cross-link modifications" uri="https://raw.githubusercontent.com/HUPO-PSI/mzIdentML/master/cv/XLMOD-1.0.0.obo"></cv>
 </cvList>
 <AnalysisSoftwareList>
-	<AnalysisSoftware version="2.4.0-fix-xfdr-labeled-2018-08-22" name="OpenXQuest" id="SOF_5233264595117471314">
+	<AnalysisSoftware version="2.4.0-fix-xfdr-labeled-2018-11-20" name="OpenXQuest" id="SOF_5233264595117471314">
 		<SoftwareName>
 			<cvParam accession="MS:1002673" cvRef="PSI-MS" name="OpenXQuest"/>
 		</SoftwareName>
 	</AnalysisSoftware>
-	<AnalysisSoftware version="OpenMS TOPP v2.4.0-fix-xfdr-labeled-2018-08-22" name="TOPP software" id="SOF_9022266432624324878">
+	<AnalysisSoftware version="OpenMS TOPP v2.4.0-fix-xfdr-labeled-2018-11-20" name="TOPP software" id="SOF_9022266432624324878">
 		<SoftwareName>
 			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/>
 		</SoftwareName>
@@ -42,7 +42,7 @@
 	<Peptide id="PEP_10034960496279669356" name="ESSPKLVELLLNSGSR">
 		<PeptideSequence>ESSPKLVELLLNSGSR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9066655488429336404"/>
 		</Modification>
 	</Peptide>
@@ -55,14 +55,14 @@
  	<Peptide id="PEP_10052793688680741109" name="LPDPVKEYGCAPWPMVEK">
 		<PeptideSequence>LPDPVKEYGCAPWPMVEK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10627069796380146481"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10059465453553650768" name="AAYEGEEVAVKIFNK">
 		<PeptideSequence>AAYEGEEVAVKIFNK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18054109311354014598"/>
 		</Modification>
 	</Peptide>
@@ -75,14 +75,14 @@
  	<Peptide id="PEP_10102984460449540991" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8317265922627817206"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10125143383101326753" name="QQGEKFAQQITGMR">
 		<PeptideSequence>QQGEKFAQQITGMR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15437724805324228844"/>
 		</Modification>
 	</Peptide>
@@ -95,7 +95,7 @@
  	<Peptide id="PEP_1014897895516075272" name="LTEIISHDPNIELHKK">
 		<PeptideSequence>LTEIISHDPNIELHKK</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2742545641495139477"/>
 		</Modification>
 	</Peptide>
@@ -108,7 +108,7 @@
  	<Peptide id="PEP_10217747994308848299" name="MNFLAAMPFLPPSMTILKLSQNK">
 		<PeptideSequence>MNFLAAMPFLPPSMTILKLSQNK</PeptideSequence>
 		<Modification location="18" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8476774724022310305"/>
 		</Modification>
 	</Peptide>
@@ -121,42 +121,42 @@
  	<Peptide id="PEP_10264728588331801009" name="YASEDAELLLVGNKLDCETDR">
 		<PeptideSequence>YASEDAELLLVGNKLDCETDR</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14995709143068285350"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10334041060954602256" name="HSQFIGYPITLFVEKER">
 		<PeptideSequence>HSQFIGYPITLFVEKER</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12835169208128061019"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10375143143715502747" name="NVFIGTGHLLAKILVSSLYR">
 		<PeptideSequence>NVFIGTGHLLAKILVSSLYR</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14587848017886055770"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10412540158597908515" name="HTLEKMTDSVTCLYCNSFSK">
 		<PeptideSequence>HTLEKMTDSVTCLYCNSFSK</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5564928335062459751"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10454120376146503979" name="DQLVVGQLIPDCYVELEKIILSER">
 		<PeptideSequence>DQLVVGQLIPDCYVELEKIILSER</PeptideSequence>
 		<Modification location="18" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="562425866795064738"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10497755371362484982" name="LTEIISHDPNIELHKK">
 		<PeptideSequence>LTEIISHDPNIELHKK</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13886600497048936920"/>
 		</Modification>
 	</Peptide>
@@ -169,7 +169,7 @@
  	<Peptide id="PEP_10502963790696359335" name="LSQNKFSCIPEAILNLPHLR">
 		<PeptideSequence>LSQNKFSCIPEAILNLPHLR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16419997291854262132"/>
 		</Modification>
 	</Peptide>
@@ -188,49 +188,49 @@
  	<Peptide id="PEP_10606108689577399366" name="NFLLVGTADGKLAIFEDK">
 		<PeptideSequence>NFLLVGTADGKLAIFEDK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16308661695904812168"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10654032579390692719" name="TCYDKLSVMEDGSASTYYR">
 		<PeptideSequence>TCYDKLSVMEDGSASTYYR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15567225861689032731"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10658895784319606850" name="WLCKIMAQILTVK">
 		<PeptideSequence>WLCKIMAQILTVK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15196158731966800247"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10672819087384344819" name="MLVMELASKGSLDR">
 		<PeptideSequence>MLVMELASKGSLDR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="93334100101049993"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10674603255717314743" name="YASEDAELLLVGNKLDCETDR">
 		<PeptideSequence>YASEDAELLLVGNKLDCETDR</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4538797707475830370"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10676218373931150083" name="EYGCAPWPMVEKLIK">
 		<PeptideSequence>EYGCAPWPMVEKLIK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17634222193547137780"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_10677558961400793205" name="SLTHLDLHSNKFTSFPSYLLK">
 		<PeptideSequence>SLTHLDLHSNKFTSFPSYLLK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13737896101060624349"/>
 		</Modification>
 	</Peptide>
@@ -243,7 +243,7 @@
  	<Peptide id="PEP_10711826317815975984" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15269370329907312437"/>
 		</Modification>
 	</Peptide>
@@ -286,14 +286,14 @@
  	<Peptide id="PEP_10816457327008795588" name="DEALETFLELCKK">
 		<PeptideSequence>DEALETFLELCKK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3249904049339931628"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1086578445474264001" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5638957024911198022"/>
 		</Modification>
 	</Peptide>
@@ -306,7 +306,7 @@
  	<Peptide id="PEP_10954876114766616926" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4828427118049836167"/>
 		</Modification>
 	</Peptide>
@@ -319,7 +319,7 @@
  	<Peptide id="PEP_10998933486836054497" name="QPPRPADFKLQVIIIGSR">
 		<PeptideSequence>QPPRPADFKLQVIIIGSR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7380190934133622670"/>
 		</Modification>
 	</Peptide>
@@ -344,21 +344,21 @@
  	<Peptide id="PEP_11075308009670514132" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12084749649739354457"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11110968077200815871" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1607476214555496254"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11123202311612562120" name="WLCKIMAQILTVK">
 		<PeptideSequence>WLCKIMAQILTVK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4973821054287772831"/>
 		</Modification>
 	</Peptide>
@@ -371,7 +371,7 @@
  	<Peptide id="PEP_11188514643732723763" name="FDVGVTSKCAECFTDDTFR">
 		<PeptideSequence>FDVGVTSKCAECFTDDTFR</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7553255054252320291"/>
 		</Modification>
 	</Peptide>
@@ -390,14 +390,14 @@
  	<Peptide id="PEP_11274500439174067283" name="FPNEFDELEIQGKLPDPVK">
 		<PeptideSequence>FPNEFDELEIQGKLPDPVK</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4826043340536254139"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1127550159590774342" name="YIDQEELNKTKPIWTR">
 		<PeptideSequence>YIDQEELNKTKPIWTR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11930666901327676810"/>
 		</Modification>
 	</Peptide>
@@ -434,14 +434,14 @@
  	<Peptide id="PEP_11380023760917643572" name="EKYIDQEELNK">
 		<PeptideSequence>EKYIDQEELNK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15991209886848789660"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11383717785348605607" name="NFLLVGTADGKLAIFEDK">
 		<PeptideSequence>NFLLVGTADGKLAIFEDK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11946814314045152115"/>
 		</Modification>
 	</Peptide>
@@ -460,35 +460,35 @@
  	<Peptide id="PEP_11422463686885200558" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2608380305220684729"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11438440527811585036" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10382693374287619792"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11471876308000197376" name="AAYEGEEVAVKIFNK">
 		<PeptideSequence>AAYEGEEVAVKIFNK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5197404652553838158"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1147219038608936718" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7276556891837796968"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11485050872336981752" name="FCEASAKDNFNVDEIFLK">
 		<PeptideSequence>FCEASAKDNFNVDEIFLK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10099378279263295398"/>
 		</Modification>
 	</Peptide>
@@ -513,7 +513,7 @@
  	<Peptide id="PEP_11534995468799606446" name="WLCKIMAQILTVK">
 		<PeptideSequence>WLCKIMAQILTVK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13018169793494334352"/>
 		</Modification>
 	</Peptide>
@@ -550,14 +550,14 @@
  	<Peptide id="PEP_11616950542099437896" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6886115536639925003"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11619824972304868953" name="NDIGPSVVLDPTVKCPTLK">
 		<PeptideSequence>NDIGPSVVLDPTVKCPTLK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1621683516845473027"/>
 		</Modification>
 	</Peptide>
@@ -576,14 +576,14 @@
  	<Peptide id="PEP_11631500025621468013" name="EEKESEDKPEIEDVGSDEEEEK">
 		<PeptideSequence>EEKESEDKPEIEDVGSDEEEEK</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13941541527344515894"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11657003271280936397" name="KHSQFIGYPITLFVEK">
 		<PeptideSequence>KHSQFIGYPITLFVEK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7434285826856584933"/>
 		</Modification>
 	</Peptide>
@@ -602,21 +602,21 @@
  	<Peptide id="PEP_11716329255611269845" name="SGIIIVQLKFDAPRPPQK">
 		<PeptideSequence>SGIIIVQLKFDAPRPPQK</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3601060276284800282"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11722890154897583631" name="DVAEIQTKGFQTILAILK">
 		<PeptideSequence>DVAEIQTKGFQTILAILK</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9432220666437109622"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11725706970474503760" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10727666332240929092"/>
 		</Modification>
 	</Peptide>
@@ -629,7 +629,7 @@
  	<Peptide id="PEP_11737090518762421254" name="NVMWGGCGTKIFSFSNDFTIQK">
 		<PeptideSequence>NVMWGGCGTKIFSFSNDFTIQK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="141128497795353367"/>
 		</Modification>
 	</Peptide>
@@ -648,42 +648,42 @@
  	<Peptide id="PEP_11847284293465154149" name="YASEDAELLLVGNKLDCETDR">
 		<PeptideSequence>YASEDAELLLVGNKLDCETDR</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10489541592037940948"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11900495725615847912" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6374182857800671518"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11902665203725986836" name="TLVSVTKEGLELPEDEEEK">
 		<PeptideSequence>TLVSVTKEGLELPEDEEEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9672067365742190701"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11919954450350377987" name="KHGLEVIYMIEPIDEYCVQQLK">
 		<PeptideSequence>KHGLEVIYMIEPIDEYCVQQLK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16871743028864405078"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11925020417877102156" name="NQSDEHIGLKINK">
 		<PeptideSequence>NQSDEHIGLKINK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8969336234496122604"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_11936163421376611039" name="KNVPIEFPVIDR">
 		<PeptideSequence>KNVPIEFPVIDR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4704445822759518921"/>
 		</Modification>
 	</Peptide>
@@ -714,28 +714,28 @@
  	<Peptide id="PEP_12066560244571197193" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5289478116515131423"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12085393543271861752" name="VMMTAQLGSLKNVMLVLGYNR">
 		<PeptideSequence>VMMTAQLGSLKNVMLVLGYNR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4151587613788557423"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12086239922228859242" name="FTDDTFCEACKSTVGVDFK">
 		<PeptideSequence>FTDDTFCEACKSTVGVDFK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13470018010341068530"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1208977275357569201" name="DIDALSQKCCISVHLEHLEK">
 		<PeptideSequence>DIDALSQKCCISVHLEHLEK</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1213376340686392376"/>
 		</Modification>
 	</Peptide>
@@ -754,21 +754,21 @@
  	<Peptide id="PEP_12189052785734539134" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13159601260246070519"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12224357029165176315" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7699350887129106849"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1224443621209836957" name="YIDQEELNKTKPIWTR">
 		<PeptideSequence>YIDQEELNKTKPIWTR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1540261293378044415"/>
 		</Modification>
 	</Peptide>
@@ -787,28 +787,28 @@
  	<Peptide id="PEP_12264735713714813631" name="KHLEINPDHSIIETLR">
 		<PeptideSequence>KHLEINPDHSIIETLR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10804426080032766176"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12283333172965299471" name="LPDPVKEYGCAPWPMVEK">
 		<PeptideSequence>LPDPVKEYGCAPWPMVEK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17323637381653666584"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12284512348251290881" name="FELQGEVSFHKVALHDEWDNTLSK">
 		<PeptideSequence>FELQGEVSFHKVALHDEWDNTLSK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17951440929793352472"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12322927768000777130" name="GIGMTKADLINNLGTIAK">
 		<PeptideSequence>GIGMTKADLINNLGTIAK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6735645400834013849"/>
 		</Modification>
 	</Peptide>
@@ -821,14 +821,14 @@
  	<Peptide id="PEP_12355764052898820418" name="NDIHKLVLAALNR">
 		<PeptideSequence>NDIHKLVLAALNR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17589323837997335447"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12372574276055944529" name="EVFASNAVQDKTEGTIYYIHK">
 		<PeptideSequence>EVFASNAVQDKTEGTIYYIHK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18232355078206139016"/>
 		</Modification>
 	</Peptide>
@@ -841,7 +841,7 @@
  	<Peptide id="PEP_12399918074531999774" name="VMMTAQLGSLKNVMLVLGYNR">
 		<PeptideSequence>VMMTAQLGSLKNVMLVLGYNR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14761275407433706449"/>
 		</Modification>
 	</Peptide>
@@ -872,7 +872,7 @@
  	<Peptide id="PEP_12474669047366300528" name="NFLLVGTADGKLAIFEDK">
 		<PeptideSequence>NFLLVGTADGKLAIFEDK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10491085928587239797"/>
 		</Modification>
 	</Peptide>
@@ -897,7 +897,7 @@
  	<Peptide id="PEP_12511802692708703630" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6026394233776744599"/>
 		</Modification>
 	</Peptide>
@@ -916,14 +916,14 @@
  	<Peptide id="PEP_12554011686428582825" name="KNVPIEFPVIDR">
 		<PeptideSequence>KNVPIEFPVIDR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3173344317656295289"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12568766552433010687" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10487507025817449780"/>
 		</Modification>
 	</Peptide>
@@ -936,21 +936,21 @@
  	<Peptide id="PEP_12607494802897024926" name="KAEEGDLLVNPDQPR">
 		<PeptideSequence>KAEEGDLLVNPDQPR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13361075786540783043"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12620036372236505384" name="KAEEGDLLVNPDQPR">
 		<PeptideSequence>KAEEGDLLVNPDQPR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1092666596572875773"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12626510412820167899" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16290421735094563442"/>
 		</Modification>
 	</Peptide>
@@ -969,35 +969,35 @@
  	<Peptide id="PEP_12751666269820925800" name="AITGLNNILDAKTMGIG">
 		<PeptideSequence>AITGLNNILDAKTMGIG</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1090919882938838990"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12756572322248870093" name="NDIGPSVVLDPTVKCPTLK">
 		<PeptideSequence>NDIGPSVVLDPTVKCPTLK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15468073478795678453"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12776666225421600796" name="ESWIVSGTQSGTLLVINTEDGKK">
 		<PeptideSequence>ESWIVSGTQSGTLLVINTEDGKK</PeptideSequence>
 		<Modification location="22" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4903304527904621564"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12780138153465349201" name="MNFLAAMPFLPPSMTILKLSQNK">
 		<PeptideSequence>MNFLAAMPFLPPSMTILKLSQNK</PeptideSequence>
 		<Modification location="18" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3853840612281896474"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12817820277447641810" name="LQQVCYEDIPEIMYIVELGHKR">
 		<PeptideSequence>LQQVCYEDIPEIMYIVELGHKR</PeptideSequence>
 		<Modification location="21" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8780032242013477963"/>
 		</Modification>
 	</Peptide>
@@ -1022,28 +1022,28 @@
  	<Peptide id="PEP_12960136218921735317" name="FPNEFDELEIQGKLPDPVK">
 		<PeptideSequence>FPNEFDELEIQGKLPDPVK</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3557459128410283769"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_12976796952958452826" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9490383325122691977"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13007765070193154982" name="FCEASAKDNFNVDEIFLK">
 		<PeptideSequence>FCEASAKDNFNVDEIFLK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16272387861669485067"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13009817248689627899" name="FCEASAKDNFNVDEIFLK">
 		<PeptideSequence>FCEASAKDNFNVDEIFLK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6211149601057668770"/>
 		</Modification>
 	</Peptide>
@@ -1062,28 +1062,28 @@
  	<Peptide id="PEP_13048692244264191231" name="ESSPKLVELLLNSGSR">
 		<PeptideSequence>ESSPKLVELLLNSGSR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9582880188451724712"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13103210787494372127" name="TLVSVTKEGLELPEDEEEK">
 		<PeptideSequence>TLVSVTKEGLELPEDEEEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1893524478901185707"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13168579141075857161" name="EKEVFLTIPYGIFQSHK">
 		<PeptideSequence>EKEVFLTIPYGIFQSHK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1273388040419172418"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13182411815172220583" name="SDLGMQSATVGIDVKDWPIQIR">
 		<PeptideSequence>SDLGMQSATVGIDVKDWPIQIR</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5735463688662067965"/>
 		</Modification>
 	</Peptide>
@@ -1096,14 +1096,14 @@
  	<Peptide id="PEP_13259418239795395437" name="GQAEVDAMKPWLFNIKAR">
 		<PeptideSequence>GQAEVDAMKPWLFNIKAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6492648855748147509"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13272719518695934307" name="EKEVFLTIPYGIFQSHK">
 		<PeptideSequence>EKEVFLTIPYGIFQSHK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1081494297370422930"/>
 		</Modification>
 	</Peptide>
@@ -1122,7 +1122,7 @@
  	<Peptide id="PEP_13434633160601118453" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15229695909027489330"/>
 		</Modification>
 	</Peptide>
@@ -1141,14 +1141,14 @@
  	<Peptide id="PEP_1345278754301110546" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7312294331327692598"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13455044910051490399" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3893366748026820155"/>
 		</Modification>
 	</Peptide>
@@ -1185,35 +1185,35 @@
  	<Peptide id="PEP_13582222365566037511" name="FPNEFDELEIQGKLPDPVK">
 		<PeptideSequence>FPNEFDELEIQGKLPDPVK</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14848556206429753205"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1361205435169495339" name="GQAEVDAMKPWLFNIKAR">
 		<PeptideSequence>GQAEVDAMKPWLFNIKAR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6223426440019319735"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13621684802146179854" name="MGIKTSEGTPGFR">
 		<PeptideSequence>MGIKTSEGTPGFR</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16821725258428466024"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13636416657174877948" name="EDTEFHHKLNMVK">
 		<PeptideSequence>EDTEFHHKLNMVK</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1302271176842366416"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13641829453453140763" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17325731682080510033"/>
 		</Modification>
 	</Peptide>
@@ -1226,14 +1226,14 @@
  	<Peptide id="PEP_13689446208680806914" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17037743280630708180"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13705776225344692602" name="NVFIGTGHLLAKILVSSLYR">
 		<PeptideSequence>NVFIGTGHLLAKILVSSLYR</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11680676210112607922"/>
 		</Modification>
 	</Peptide>
@@ -1246,7 +1246,7 @@
  	<Peptide id="PEP_13726644473851641505" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9252459895939169728"/>
 		</Modification>
 	</Peptide>
@@ -1271,28 +1271,28 @@
  	<Peptide id="PEP_1380230199713784757" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3895238410403729308"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13803468400806016259" name="MLVMELASKGSLDR">
 		<PeptideSequence>MLVMELASKGSLDR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9693664699860960721"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13804476686167819425" name="DYHFVNATEESDALAKLR">
 		<PeptideSequence>DYHFVNATEESDALAKLR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3825045300024510136"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13827724209075644213" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1686268992948235697"/>
 		</Modification>
 	</Peptide>
@@ -1305,14 +1305,14 @@
  	<Peptide id="PEP_13884915997634727286" name="DNFNVDEIFLKLVDDILK">
 		<PeptideSequence>DNFNVDEIFLKLVDDILK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11757488448718974167"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_13889337215460074417" name="EKEVFLTIPYGIFQSHK">
 		<PeptideSequence>EKEVFLTIPYGIFQSHK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8517860473562549361"/>
 		</Modification>
 	</Peptide>
@@ -1337,7 +1337,7 @@
  	<Peptide id="PEP_13929163221566612500" name="LQQVCYEDIPEIMYIVELGHKR">
 		<PeptideSequence>LQQVCYEDIPEIMYIVELGHKR</PeptideSequence>
 		<Modification location="21" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1007304397678358321"/>
 		</Modification>
 	</Peptide>
@@ -1350,21 +1350,21 @@
  	<Peptide id="PEP_14005851612395218245" name="MNFLAAMPFLPPSMTILKLSQNK">
 		<PeptideSequence>MNFLAAMPFLPPSMTILKLSQNK</PeptideSequence>
 		<Modification location="18" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12367903506774009386"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14059490975964976039" name="AITGLNNILDAKTMGIG">
 		<PeptideSequence>AITGLNNILDAKTMGIG</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13922708154630566477"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14086301720075657476" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5494749430262800962"/>
 		</Modification>
 	</Peptide>
@@ -1395,28 +1395,28 @@
  	<Peptide id="PEP_14222720823384454372" name="FTSFPSYLLKMSCIANLDVSR">
 		<PeptideSequence>FTSFPSYLLKMSCIANLDVSR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1601213423209781247"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14247223740498802688" name="FELQGEVSFHKVALHDEWDNTLSK">
 		<PeptideSequence>FELQGEVSFHKVALHDEWDNTLSK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8339426499258354729"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14250952015258313885" name="QQGEKFAQQITGMR">
 		<PeptideSequence>QQGEKFAQQITGMR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2196373945720374912"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14265137546659615992" name="NQSDEHIGLKINK">
 		<PeptideSequence>NQSDEHIGLKINK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3843495037041322044"/>
 		</Modification>
 	</Peptide>
@@ -1441,7 +1441,7 @@
  	<Peptide id="PEP_14330533564863596576" name="LSQNKFSCIPEAILNLPHLR">
 		<PeptideSequence>LSQNKFSCIPEAILNLPHLR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16434191891425959854"/>
 		</Modification>
 	</Peptide>
@@ -1454,7 +1454,7 @@
  	<Peptide id="PEP_14354434957693581229" name="IFSFSNDFTIQKLIETR">
 		<PeptideSequence>IFSFSNDFTIQKLIETR</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10346893699756693961"/>
 		</Modification>
 	</Peptide>
@@ -1467,14 +1467,14 @@
  	<Peptide id="PEP_14358612224645020528" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4480182319130203280"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14391275012685791190" name="LTEIISHDPNIELHKK">
 		<PeptideSequence>LTEIISHDPNIELHKK</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5908095118534803669"/>
 		</Modification>
 	</Peptide>
@@ -1487,7 +1487,7 @@
  	<Peptide id="PEP_14498380820687123476" name="MIDKYASEDAELLLVGNK">
 		<PeptideSequence>MIDKYASEDAELLLVGNK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16245262850228984225"/>
 		</Modification>
 	</Peptide>
@@ -1500,28 +1500,28 @@
  	<Peptide id="PEP_14532729911779331058" name="NDIGPSVVLDPTVKCPTLK">
 		<PeptideSequence>NDIGPSVVLDPTVKCPTLK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11541724848057135420"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14547058470541561421" name="NVMWGGCGTKIFSFSNDFTIQK">
 		<PeptideSequence>NVMWGGCGTKIFSFSNDFTIQK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17400374483110517450"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14562409920577160659" name="MWKPLDDFTEKK">
 		<PeptideSequence>MWKPLDDFTEKK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5228480473659249457"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14588223896724168767" name="TKPIWTRNPDDITNEEYGEFYK">
 		<PeptideSequence>TKPIWTRNPDDITNEEYGEFYK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7075964345906466231"/>
 		</Modification>
 	</Peptide>
@@ -1534,21 +1534,21 @@
  	<Peptide id="PEP_14624939208433158528" name="LQQVCYEDIPEIMYIVELGHKR">
 		<PeptideSequence>LQQVCYEDIPEIMYIVELGHKR</PeptideSequence>
 		<Modification location="21" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5225896959590507080"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1464491320172098535" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7197092121685174769"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14699673140645396205" name="GQAEVDAMKPWLFNIKAR">
 		<PeptideSequence>GQAEVDAMKPWLFNIKAR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5855218498470816455"/>
 		</Modification>
 	</Peptide>
@@ -1567,7 +1567,7 @@
  	<Peptide id="PEP_14745721201431314415" name="YIDQEELNKTKPIWTR">
 		<PeptideSequence>YIDQEELNKTKPIWTR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3850221777823943420"/>
 		</Modification>
 	</Peptide>
@@ -1586,14 +1586,14 @@
  	<Peptide id="PEP_1479003307830945287" name="IFSFSNDFTIQKLIETR">
 		<PeptideSequence>IFSFSNDFTIQKLIETR</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="263431343369452599"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14813791608851974418" name="MNFLAAMPFLPPSMTILKLSQNK">
 		<PeptideSequence>MNFLAAMPFLPPSMTILKLSQNK</PeptideSequence>
 		<Modification location="18" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9115383221354795462"/>
 		</Modification>
 	</Peptide>
@@ -1618,21 +1618,21 @@
  	<Peptide id="PEP_14864989295460554943" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6101244147996623383"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14865615306521165507" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17933271826134243017"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_14975684516335456575" name="MIDKYASEDAELLLVGNK">
 		<PeptideSequence>MIDKYASEDAELLLVGNK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15447193319170237714"/>
 		</Modification>
 	</Peptide>
@@ -1663,7 +1663,7 @@
  	<Peptide id="PEP_15085648740817197571" name="HSQFIGYPITLFVEKER">
 		<PeptideSequence>HSQFIGYPITLFVEKER</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14705104271959773026"/>
 		</Modification>
 	</Peptide>
@@ -1682,21 +1682,21 @@
  	<Peptide id="PEP_15137961832517596447" name="HSQFIGYPITLFVEKER">
 		<PeptideSequence>HSQFIGYPITLFVEKER</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11356404697098357181"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15140017696301449192" name="EYGCAPWPMVEKLIK">
 		<PeptideSequence>EYGCAPWPMVEKLIK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1352865227662346800"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15144779950570266144" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="58817722287225539"/>
 		</Modification>
 	</Peptide>
@@ -1709,14 +1709,14 @@
  	<Peptide id="PEP_15149696725053662144" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6367972489247683370"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15152639401771899750" name="LFIEDVNFNDKASAECFR">
 		<PeptideSequence>LFIEDVNFNDKASAECFR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5314597622337982729"/>
 		</Modification>
 	</Peptide>
@@ -1729,7 +1729,7 @@
  	<Peptide id="PEP_15310355802311029742" name="VMMTAQLGSLKNVMLVLGYNR">
 		<PeptideSequence>VMMTAQLGSLKNVMLVLGYNR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10622888861173210592"/>
 		</Modification>
 	</Peptide>
@@ -1748,14 +1748,14 @@
  	<Peptide id="PEP_15384171976394248498" name="NDIGPSVVLDPTVKCPTLK">
 		<PeptideSequence>NDIGPSVVLDPTVKCPTLK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2915487854300044018"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15388517483644187191" name="AAYEGEEVAVKIFNK">
 		<PeptideSequence>AAYEGEEVAVKIFNK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11247118806392514785"/>
 		</Modification>
 	</Peptide>
@@ -1768,7 +1768,7 @@
  	<Peptide id="PEP_15490049804574065229" name="EVFASNAVQDKTEGTIYYIHK">
 		<PeptideSequence>EVFASNAVQDKTEGTIYYIHK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3985464472191994486"/>
 		</Modification>
 	</Peptide>
@@ -1793,14 +1793,14 @@
  	<Peptide id="PEP_15513914561656501637" name="ASSSPVILVGTHLDVSDEKQR">
 		<PeptideSequence>ASSSPVILVGTHLDVSDEKQR</PeptideSequence>
 		<Modification location="19" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="405181500937171727"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1552316239497196826" name="AAYEGEEVAVKIFNK">
 		<PeptideSequence>AAYEGEEVAVKIFNK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10473819438754305589"/>
 		</Modification>
 	</Peptide>
@@ -1813,21 +1813,21 @@
  	<Peptide id="PEP_15562902096700414217" name="AITGLNNILDAKTMGIG">
 		<PeptideSequence>AITGLNNILDAKTMGIG</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14670892742375793486"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15577482956655062625" name="FCEASAKDNFNVDEIFLK">
 		<PeptideSequence>FCEASAKDNFNVDEIFLK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11551183922797111086"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15589039617247454747" name="DQQFLNLCCKCFAK">
 		<PeptideSequence>DQQFLNLCCKCFAK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18199162735523347425"/>
 		</Modification>
 	</Peptide>
@@ -1852,14 +1852,14 @@
  	<Peptide id="PEP_15658321954095522912" name="KNVPIEFPVIDR">
 		<PeptideSequence>KNVPIEFPVIDR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14047876158672874337"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15682114046428688183" name="DYHFVNATEESDALAKLR">
 		<PeptideSequence>DYHFVNATEESDALAKLR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9352041217505094022"/>
 		</Modification>
 	</Peptide>
@@ -1890,14 +1890,14 @@
  	<Peptide id="PEP_15840860423447687913" name="LMIVGNTGSGKTTLLQQLMK">
 		<PeptideSequence>LMIVGNTGSGKTTLLQQLMK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8740465467134322724"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_15842911242360793474" name="FCEASAKDNFNVDEIFLK">
 		<PeptideSequence>FCEASAKDNFNVDEIFLK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4983940652315799852"/>
 		</Modification>
 	</Peptide>
@@ -1934,7 +1934,7 @@
  	<Peptide id="PEP_16039209827259233012" name="ESEDKPEIEDVGSDEEEEKK">
 		<PeptideSequence>ESEDKPEIEDVGSDEEEEKK</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14193228934668381923"/>
 		</Modification>
 	</Peptide>
@@ -1959,14 +1959,14 @@
  	<Peptide id="PEP_16129524495887029964" name="DNFNVDEIFLKLVDDILK">
 		<PeptideSequence>DNFNVDEIFLKLVDDILK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13470855966673906914"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16143105201138222429" name="DNFNVDEIFLKLVDDILK">
 		<PeptideSequence>DNFNVDEIFLKLVDDILK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16253115729276720748"/>
 		</Modification>
 	</Peptide>
@@ -1985,7 +1985,7 @@
  	<Peptide id="PEP_16253493833127722735" name="EGSSLICQVCEKESSPK">
 		<PeptideSequence>EGSSLICQVCEKESSPK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11286571308179806570"/>
 		</Modification>
 	</Peptide>
@@ -2004,14 +2004,14 @@
  	<Peptide id="PEP_16340069284438099750" name="ILNLSKNHISSLSENFLEACPK">
 		<PeptideSequence>ILNLSKNHISSLSENFLEACPK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16989884153412218133"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16343874190039835981" name="EEEDEPLELGEKTVSVLTK">
 		<PeptideSequence>EEEDEPLELGEKTVSVLTK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6214054059225774041"/>
 		</Modification>
 	</Peptide>
@@ -2030,14 +2030,14 @@
  	<Peptide id="PEP_16381880404124952626" name="KHLEINPDHSIIETLR">
 		<PeptideSequence>KHLEINPDHSIIETLR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16076996975072543079"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16398680800306658331" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18356399574463483367"/>
 		</Modification>
 	</Peptide>
@@ -2050,7 +2050,7 @@
  	<Peptide id="PEP_1644607061678930413" name="FTSFPSYLLKMSCIANLDVSR">
 		<PeptideSequence>FTSFPSYLLKMSCIANLDVSR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12369032549821315197"/>
 		</Modification>
 	</Peptide>
@@ -2069,7 +2069,7 @@
  	<Peptide id="PEP_16470147994413271065" name="LQQVCYEDIPEIMYIVELGHKR">
 		<PeptideSequence>LQQVCYEDIPEIMYIVELGHKR</PeptideSequence>
 		<Modification location="21" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="218030298736283120"/>
 		</Modification>
 	</Peptide>
@@ -2082,14 +2082,14 @@
  	<Peptide id="PEP_16499306169741497583" name="FPNEFDELEIQGKLPDPVK">
 		<PeptideSequence>FPNEFDELEIQGKLPDPVK</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6683752422574196846"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16591705413351347281" name="AITGLNNILDAKTMGIG">
 		<PeptideSequence>AITGLNNILDAKTMGIG</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13668736183404060577"/>
 		</Modification>
 	</Peptide>
@@ -2102,7 +2102,7 @@
  	<Peptide id="PEP_16613868263531932304" name="TCYDKLSVMEDGSASTYYR">
 		<PeptideSequence>TCYDKLSVMEDGSASTYYR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14576552972435125814"/>
 		</Modification>
 	</Peptide>
@@ -2115,14 +2115,14 @@
  	<Peptide id="PEP_1664935902441663639" name="ESSPKLVELLLNSGSR">
 		<PeptideSequence>ESSPKLVELLLNSGSR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="156337966108071412"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16686589104229116098" name="KHLEINPDHSIIETLR">
 		<PeptideSequence>KHLEINPDHSIIETLR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2228807822576415694"/>
 		</Modification>
 	</Peptide>
@@ -2135,14 +2135,14 @@
  	<Peptide id="PEP_16784111065039664353" name="MGTIQQAFKEGQQR">
 		<PeptideSequence>MGTIQQAFKEGQQR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5178853222138349172"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16796817153654219628" name="SLTHLDLHSNKFTSFPSYLLK">
 		<PeptideSequence>SLTHLDLHSNKFTSFPSYLLK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2044768333951526355"/>
 		</Modification>
 	</Peptide>
@@ -2155,7 +2155,7 @@
  	<Peptide id="PEP_16842814794607746761" name="KSDLGMQSATVGIDVK">
 		<PeptideSequence>KSDLGMQSATVGIDVK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1160643665499175519"/>
 		</Modification>
 	</Peptide>
@@ -2174,14 +2174,14 @@
  	<Peptide id="PEP_16925151590283380732" name="ASSSPVILVGTHLDVSDEKQR">
 		<PeptideSequence>ASSSPVILVGTHLDVSDEKQR</PeptideSequence>
 		<Modification location="19" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10262439972721943923"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16925442084782790263" name="FIGNPGIQKCGLK">
 		<PeptideSequence>FIGNPGIQKCGLK</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16502802764064221548"/>
 		</Modification>
 	</Peptide>
@@ -2200,14 +2200,14 @@
  	<Peptide id="PEP_1694860871969218515" name="VILHLKEDQTEYLEER">
 		<PeptideSequence>VILHLKEDQTEYLEER</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7671394174141854120"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_16962560496072834707" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10793633409372915230"/>
 		</Modification>
 	</Peptide>
@@ -2220,7 +2220,7 @@
  	<Peptide id="PEP_17019330492172014957" name="TIINESLNFKIR">
 		<PeptideSequence>TIINESLNFKIR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3568491659051792144"/>
 		</Modification>
 	</Peptide>
@@ -2233,21 +2233,21 @@
  	<Peptide id="PEP_17091925992437424950" name="TLVSVTKEGLELPEDEEEK">
 		<PeptideSequence>TLVSVTKEGLELPEDEEEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17543469110403198125"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17119945222196863674" name="NVMWGGCGTKIFSFSNDFTIQK">
 		<PeptideSequence>NVMWGGCGTKIFSFSNDFTIQK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12639052132921055711"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17149287871803133761" name="DVAEIQTKGFQTILAILK">
 		<PeptideSequence>DVAEIQTKGFQTILAILK</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10479031003362812214"/>
 		</Modification>
 	</Peptide>
@@ -2266,7 +2266,7 @@
  	<Peptide id="PEP_17198820827940555384" name="QNSPVVEVWDKK">
 		<PeptideSequence>QNSPVVEVWDKK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="925368203741219696"/>
 		</Modification>
 	</Peptide>
@@ -2285,7 +2285,7 @@
  	<Peptide id="PEP_17248262545140142552" name="SDLGMQSATVGIDVKDWPIQIR">
 		<PeptideSequence>SDLGMQSATVGIDVKDWPIQIR</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15791744798221823683"/>
 		</Modification>
 	</Peptide>
@@ -2298,7 +2298,7 @@
  	<Peptide id="PEP_17297862064628956846" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16037993172440968593"/>
 		</Modification>
 	</Peptide>
@@ -2311,7 +2311,7 @@
  	<Peptide id="PEP_17314619952666245179" name="VILHLKEDQTEYLEER">
 		<PeptideSequence>VILHLKEDQTEYLEER</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8119044117483804262"/>
 		</Modification>
 	</Peptide>
@@ -2324,14 +2324,14 @@
  	<Peptide id="PEP_17335226085220223052" name="YASEDAELLLVGNKLDCETDR">
 		<PeptideSequence>YASEDAELLLVGNKLDCETDR</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11162794409013789084"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17351069880123432645" name="QKNFLLVGTADGK">
 		<PeptideSequence>QKNFLLVGTADGK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9280572821339638149"/>
 		</Modification>
 	</Peptide>
@@ -2344,7 +2344,7 @@
  	<Peptide id="PEP_17371115429656106449" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6310750525792414331"/>
 		</Modification>
 	</Peptide>
@@ -2363,35 +2363,35 @@
  	<Peptide id="PEP_1740627715817141822" name="LPDPVKEYGCAPWPMVEK">
 		<PeptideSequence>LPDPVKEYGCAPWPMVEK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2652253729487148893"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1741130648208732173" name="EEEEDSGVDEIEPKDESEK">
 		<PeptideSequence>EEEEDSGVDEIEPKDESEK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5131595605180209095"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17437366389091041534" name="ENQKHIYYITGETK">
 		<PeptideSequence>ENQKHIYYITGETK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11654777982209592603"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17447818880105247092" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14851350658635457156"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1746371411383256979" name="SLTNDWEDHLAVKHFSVEGQLEFR">
 		<PeptideSequence>SLTNDWEDHLAVKHFSVEGQLEFR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18085382809199444875"/>
 		</Modification>
 	</Peptide>
@@ -2416,28 +2416,28 @@
  	<Peptide id="PEP_17490324824789244122" name="ESSPKLVELLLNSGSR">
 		<PeptideSequence>ESSPKLVELLLNSGSR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13256175009281276155"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17490926560516329006" name="YIDQEELNKTKPIWTR">
 		<PeptideSequence>YIDQEELNKTKPIWTR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2067641291169864641"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17509539678852993243" name="ILNLSKNHISSLSENFLEACPK">
 		<PeptideSequence>ILNLSKNHISSLSENFLEACPK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8609103056989649630"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17523294400186120337" name="MGTIQQAFKEGQQR">
 		<PeptideSequence>MGTIQQAFKEGQQR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5322749189241434745"/>
 		</Modification>
 	</Peptide>
@@ -2456,7 +2456,7 @@
  	<Peptide id="PEP_17589299990623062601" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13763973688162489091"/>
 		</Modification>
 	</Peptide>
@@ -2475,7 +2475,7 @@
  	<Peptide id="PEP_17623901357665174734" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14785997288926879512"/>
 		</Modification>
 	</Peptide>
@@ -2500,7 +2500,7 @@
  	<Peptide id="PEP_17665296090619491193" name="MWKPLDDFTEKK">
 		<PeptideSequence>MWKPLDDFTEKK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3729731597299697017"/>
 		</Modification>
 	</Peptide>
@@ -2525,21 +2525,21 @@
  	<Peptide id="PEP_17711632325230418219" name="TLVSVTKEGLELPEDEEEK">
 		<PeptideSequence>TLVSVTKEGLELPEDEEEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7708659964358284154"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17729932802223797395" name="YASEDAELLLVGNKLDCETDR">
 		<PeptideSequence>YASEDAELLLVGNKLDCETDR</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4918671652884083029"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17743817279548315702" name="LTEIISHDPNIELHKK">
 		<PeptideSequence>LTEIISHDPNIELHKK</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17316762722870884218"/>
 		</Modification>
 	</Peptide>
@@ -2576,35 +2576,35 @@
  	<Peptide id="PEP_17858436106897040604" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1160665811923023803"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17868768162703429008" name="FPNEFDELEIQGKLPDPVK">
 		<PeptideSequence>FPNEFDELEIQGKLPDPVK</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9647257593206792765"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17870391532493173376" name="VAMDDYLKNVMLER">
 		<PeptideSequence>VAMDDYLKNVMLER</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16619115624945430182"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17876486934271562208" name="KAEEGDLLVNPDQPR">
 		<PeptideSequence>KAEEGDLLVNPDQPR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15246437841577070383"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_17877631333404726869" name="KAEEGDLLVNPDQPR">
 		<PeptideSequence>KAEEGDLLVNPDQPR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1583119142016402466"/>
 		</Modification>
 	</Peptide>
@@ -2635,7 +2635,7 @@
  	<Peptide id="PEP_18050293962522493350" name="KHLEINPDHSIIETLR">
 		<PeptideSequence>KHLEINPDHSIIETLR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10535607286229495746"/>
 		</Modification>
 	</Peptide>
@@ -2648,42 +2648,42 @@
  	<Peptide id="PEP_18105226753455022904" name="NFLLVGTADGKLAIFEDK">
 		<PeptideSequence>NFLLVGTADGKLAIFEDK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7457957059600759530"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_18110732284415243466" name="MNFLAAMPFLPPSMTILKLSQNK">
 		<PeptideSequence>MNFLAAMPFLPPSMTILKLSQNK</PeptideSequence>
 		<Modification location="18" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7839538228901138149"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_18152319749713370915" name="DTECDLKNGVLLLEADESAYK">
 		<PeptideSequence>DTECDLKNGVLLLEADESAYK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="934887334044456878"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1819243496345835395" name="LIDDVLKLFIEDVNFNDK">
 		<PeptideSequence>LIDDVLKLFIEDVNFNDK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11829386337538787089"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_18206717990842423748" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11823780438806274244"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_18233190570275356337" name="EVFASNAVQDKTEGTIYYIHK">
 		<PeptideSequence>EVFASNAVQDKTEGTIYYIHK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13018980390180573841"/>
 		</Modification>
 	</Peptide>
@@ -2708,7 +2708,7 @@
  	<Peptide id="PEP_1825895306112030304" name="EYGCAPWPMVEKLIK">
 		<PeptideSequence>EYGCAPWPMVEKLIK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18410990974454984728"/>
 		</Modification>
 	</Peptide>
@@ -2739,7 +2739,7 @@
  	<Peptide id="PEP_18395658550314212247" name="EYGCAPWPMVEKLIK">
 		<PeptideSequence>EYGCAPWPMVEKLIK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5248308192470851023"/>
 		</Modification>
 	</Peptide>
@@ -2770,7 +2770,7 @@
  	<Peptide id="PEP_1918958579405034973" name="FTSFPSYLLKMSCIANLDVSR">
 		<PeptideSequence>FTSFPSYLLKMSCIANLDVSR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13260031932767714632"/>
 		</Modification>
 	</Peptide>
@@ -2783,14 +2783,14 @@
  	<Peptide id="PEP_1945403219055137795" name="DEALETFLELCKK">
 		<PeptideSequence>DEALETFLELCKK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12471816130623726514"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_1962796210699508770" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7469145062833427841"/>
 		</Modification>
 	</Peptide>
@@ -2821,7 +2821,7 @@
  	<Peptide id="PEP_2087850959241686629" name="LIDDVLKLFIEDVNFNDK">
 		<PeptideSequence>LIDDVLKLFIEDVNFNDK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2041319269277262428"/>
 		</Modification>
 	</Peptide>
@@ -2852,7 +2852,7 @@
  	<Peptide id="PEP_2198099946529447009" name="GQAEVDAMKPWLFNIK">
 		<PeptideSequence>GQAEVDAMKPWLFNIK</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8708399901877108885"/>
 		</Modification>
 	</Peptide>
@@ -2877,7 +2877,7 @@
  	<Peptide id="PEP_2293276493080930897" name="GIGMTKADLINNLGTIAK">
 		<PeptideSequence>GIGMTKADLINNLGTIAK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3641569938791229998"/>
 		</Modification>
 	</Peptide>
@@ -2902,42 +2902,42 @@
  	<Peptide id="PEP_2369629976015521370" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4100055002588168552"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_2376559775620915981" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1364674336839504131"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_2384010898642797449" name="VILHLKEDQTEYLEER">
 		<PeptideSequence>VILHLKEDQTEYLEER</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6885832940201733314"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_2389793509461176798" name="LSQNKFSCIPEAILNLPHLR">
 		<PeptideSequence>LSQNKFSCIPEAILNLPHLR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3492481668028572846"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_2441260746650078644" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="731293074394924268"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_2460416662819401872" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11825128775339776581"/>
 		</Modification>
 	</Peptide>
@@ -2956,7 +2956,7 @@
  	<Peptide id="PEP_2523775179728812781" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3103608995878612024"/>
 		</Modification>
 	</Peptide>
@@ -2969,7 +2969,7 @@
  	<Peptide id="PEP_2529796816098273389" name="FCEASAKDNFNVDEIFLK">
 		<PeptideSequence>FCEASAKDNFNVDEIFLK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10679839237483209897"/>
 		</Modification>
 	</Peptide>
@@ -2982,14 +2982,14 @@
  	<Peptide id="PEP_2586066360299592360" name="EKEVFLTIPYGIFQSHK">
 		<PeptideSequence>EKEVFLTIPYGIFQSHK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12211986444508589657"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_260132145239717571" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4584897071539917580"/>
 		</Modification>
 	</Peptide>
@@ -3014,7 +3014,7 @@
  	<Peptide id="PEP_2702798111007378435" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5804251667271766018"/>
 		</Modification>
 	</Peptide>
@@ -3027,14 +3027,14 @@
  	<Peptide id="PEP_2743850712597121710" name="MNFLAAMPFLPPSMTILKLSQNK">
 		<PeptideSequence>MNFLAAMPFLPPSMTILKLSQNK</PeptideSequence>
 		<Modification location="18" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11827802550795433475"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_2777617417127983893" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14653050987604214567"/>
 		</Modification>
 	</Peptide>
@@ -3047,14 +3047,14 @@
  	<Peptide id="PEP_2927519776102075938" name="VILHLKEDQTEYLEER">
 		<PeptideSequence>VILHLKEDQTEYLEER</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17413765565443951891"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_2935923263525422257" name="TEKLCGLIDCVHFLR">
 		<PeptideSequence>TEKLCGLIDCVHFLR</PeptideSequence>
 		<Modification location="3" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14976954448023685397"/>
 		</Modification>
 	</Peptide>
@@ -3067,7 +3067,7 @@
  	<Peptide id="PEP_298401133637741504" name="HSQFIGYPITLFVEKER">
 		<PeptideSequence>HSQFIGYPITLFVEKER</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7207371083159283456"/>
 		</Modification>
 	</Peptide>
@@ -3086,7 +3086,7 @@
  	<Peptide id="PEP_3015505863000529076" name="KCLELFTELAEDK">
 		<PeptideSequence>KCLELFTELAEDK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="477891693847258636"/>
 		</Modification>
 	</Peptide>
@@ -3105,14 +3105,14 @@
  	<Peptide id="PEP_3074458610272015959" name="FPNEFDELEIQGKLPDPVK">
 		<PeptideSequence>FPNEFDELEIQGKLPDPVK</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3931735341994537779"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3075141964138996724" name="DIDALSQKCCISVHLEHLEK">
 		<PeptideSequence>DIDALSQKCCISVHLEHLEK</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17200665783418089282"/>
 		</Modification>
 	</Peptide>
@@ -3125,42 +3125,42 @@
  	<Peptide id="PEP_3085145848833915356" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10649097592102988605"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3094949749526827933" name="VMMTAQLGSLKNVMLVLGYNR">
 		<PeptideSequence>VMMTAQLGSLKNVMLVLGYNR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11936532873400892722"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3115030544351500350" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18365384202816725379"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3139168117955847408" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10814203566973737995"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3139277280928798553" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16519589512076485105"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3159366894877678886" name="KHSQFIGYPITLFVEK">
 		<PeptideSequence>KHSQFIGYPITLFVEK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3501347569485464401"/>
 		</Modification>
 	</Peptide>
@@ -3179,28 +3179,28 @@
  	<Peptide id="PEP_3236868036104089185" name="VAMDDYLKNVMLER">
 		<PeptideSequence>VAMDDYLKNVMLER</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16249502597361826150"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_32582288081092213" name="FTSFPSYLLKMSCIANLDVSR">
 		<PeptideSequence>FTSFPSYLLKMSCIANLDVSR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4269361438760602164"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3264428065228413136" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4565924353794880223"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3289686202360442298" name="MWKPLDDFTEKK">
 		<PeptideSequence>MWKPLDDFTEKK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18446291573882132204"/>
 		</Modification>
 	</Peptide>
@@ -3213,7 +3213,7 @@
  	<Peptide id="PEP_3323840358730415209" name="ESEDKPEIEDVGSDEEEEK">
 		<PeptideSequence>ESEDKPEIEDVGSDEEEEK</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17072058415381430033"/>
 		</Modification>
 	</Peptide>
@@ -3226,7 +3226,7 @@
  	<Peptide id="PEP_3485378768692219473" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1811301243321716172"/>
 		</Modification>
 	</Peptide>
@@ -3251,35 +3251,35 @@
  	<Peptide id="PEP_3523979636841659648" name="KEEEDEPLELGEK">
 		<PeptideSequence>KEEEDEPLELGEK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1361844436498977223"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3538299187731720429" name="LSQNKFSCIPEAILNLPHLR">
 		<PeptideSequence>LSQNKFSCIPEAILNLPHLR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6446989121471843005"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_35504839059589123" name="GQAEVDAMKPWLFNIK">
 		<PeptideSequence>GQAEVDAMKPWLFNIK</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18154273302649424106"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3565630505052714618" name="ESSPKLVELLLNSGSR">
 		<PeptideSequence>ESSPKLVELLLNSGSR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2863029107717772299"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3594315516054739892" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3512127394556698048"/>
 		</Modification>
 	</Peptide>
@@ -3298,7 +3298,7 @@
  	<Peptide id="PEP_3639200548208563670" name="ESSPKLVELLLNSGSR">
 		<PeptideSequence>ESSPKLVELLLNSGSR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12549975909393141218"/>
 		</Modification>
 	</Peptide>
@@ -3311,14 +3311,14 @@
  	<Peptide id="PEP_3736145838141239001" name="IWDLPLDELHLNFDFKHIGCK">
 		<PeptideSequence>IWDLPLDELHLNFDFKHIGCK</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13551922643176597206"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3743192678239831853" name="TLVSVTKEGLELPEDEEEK">
 		<PeptideSequence>TLVSVTKEGLELPEDEEEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14558125964535781359"/>
 		</Modification>
 	</Peptide>
@@ -3331,21 +3331,21 @@
  	<Peptide id="PEP_3848523469605379607" name="KNVPIEFPVIDR">
 		<PeptideSequence>KNVPIEFPVIDR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9720967423712431866"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3849715982889789574" name="GQAEVDAMKPWLFNIK">
 		<PeptideSequence>GQAEVDAMKPWLFNIK</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12013033846189747813"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_3869159972248282765" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8144424336349107704"/>
 		</Modification>
 	</Peptide>
@@ -3358,7 +3358,7 @@
  	<Peptide id="PEP_4027463289236617284" name="NFLLVGTADGKLAIFEDK">
 		<PeptideSequence>NFLLVGTADGKLAIFEDK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2235953220212228288"/>
 		</Modification>
 	</Peptide>
@@ -3371,7 +3371,7 @@
  	<Peptide id="PEP_406326211012527725" name="GIGMTKADLINNLGTIAK">
 		<PeptideSequence>GIGMTKADLINNLGTIAK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11892011709331469515"/>
 		</Modification>
 	</Peptide>
@@ -3384,7 +3384,7 @@
  	<Peptide id="PEP_4143272592559840046" name="ASSSPVILVGTHLDVSDEKQR">
 		<PeptideSequence>ASSSPVILVGTHLDVSDEKQR</PeptideSequence>
 		<Modification location="19" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5495827884756377090"/>
 		</Modification>
 	</Peptide>
@@ -3397,7 +3397,7 @@
  	<Peptide id="PEP_4177776976011375854" name="EYGCAPWPMVEKLIK">
 		<PeptideSequence>EYGCAPWPMVEKLIK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6675346238472377214"/>
 		</Modification>
 	</Peptide>
@@ -3416,7 +3416,7 @@
  	<Peptide id="PEP_4286829137108447439" name="SLDMSSNDIQYLPGPAHWKSLNLR">
 		<PeptideSequence>SLDMSSNDIQYLPGPAHWKSLNLR</PeptideSequence>
 		<Modification location="19" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9579856426150560736"/>
 		</Modification>
 	</Peptide>
@@ -3429,14 +3429,14 @@
  	<Peptide id="PEP_4393601812507085433" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3854754355552457266"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_4428860470718219202" name="KNVFIGTGHLLAK">
 		<PeptideSequence>KNVFIGTGHLLAK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2466593767207807054"/>
 		</Modification>
 	</Peptide>
@@ -3461,7 +3461,7 @@
  	<Peptide id="PEP_4536435864530380622" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1532955929861431871"/>
 		</Modification>
 	</Peptide>
@@ -3504,14 +3504,14 @@
  	<Peptide id="PEP_4634717617681818992" name="KTIINESLNFK">
 		<PeptideSequence>KTIINESLNFK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5344696757489011743"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_4639436386222994119" name="EEEDEPLELGEKTVSVLTK">
 		<PeptideSequence>EEEDEPLELGEKTVSVLTK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3366878618536462680"/>
 		</Modification>
 	</Peptide>
@@ -3524,14 +3524,14 @@
  	<Peptide id="PEP_4665891864000698195" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3054052967356658050"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_4703916222804103100" name="KNVPIEFPVIDR">
 		<PeptideSequence>KNVPIEFPVIDR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12064159117204434528"/>
 		</Modification>
 	</Peptide>
@@ -3550,7 +3550,7 @@
  	<Peptide id="PEP_4745841273202120973" name="FTSFPSYLLKMSCIANLDVSR">
 		<PeptideSequence>FTSFPSYLLKMSCIANLDVSR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14685684405946225348"/>
 		</Modification>
 	</Peptide>
@@ -3563,7 +3563,7 @@
  	<Peptide id="PEP_4759584988550355838" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4572324409411873610"/>
 		</Modification>
 	</Peptide>
@@ -3594,7 +3594,7 @@
  	<Peptide id="PEP_4859777877676752342" name="WLCKIMAQILTVK">
 		<PeptideSequence>WLCKIMAQILTVK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8422875856642038304"/>
 		</Modification>
 	</Peptide>
@@ -3619,14 +3619,14 @@
  	<Peptide id="PEP_4940712765740728464" name="WLCKIMAQILTVK">
 		<PeptideSequence>WLCKIMAQILTVK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6801914501498646962"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_4948782538710141753" name="QKNFLLVGTADGK">
 		<PeptideSequence>QKNFLLVGTADGK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3991982789787860427"/>
 		</Modification>
 	</Peptide>
@@ -3639,14 +3639,14 @@
  	<Peptide id="PEP_5005771654526167113" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11729429282325384362"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5006165354864775158" name="TIINESLNFKIR">
 		<PeptideSequence>TIINESLNFKIR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9261851855715965534"/>
 		</Modification>
 	</Peptide>
@@ -3659,14 +3659,14 @@
  	<Peptide id="PEP_5098283613411519930" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9743886701244978551"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5131686066996247229" name="FTSFPSYLLKMSCIANLDVSR">
 		<PeptideSequence>FTSFPSYLLKMSCIANLDVSR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6649522996125741772"/>
 		</Modification>
 	</Peptide>
@@ -3697,14 +3697,14 @@
  	<Peptide id="PEP_5192153222704958518" name="NFLLVGTADGKLAIFEDK">
 		<PeptideSequence>NFLLVGTADGKLAIFEDK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2521348393431791482"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5235571245905163287" name="YIDQEELNKTKPIWTR">
 		<PeptideSequence>YIDQEELNKTKPIWTR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15166137814999394455"/>
 		</Modification>
 	</Peptide>
@@ -3753,7 +3753,7 @@
  	<Peptide id="PEP_5319857078884362524" name="FTSFPSYLLKMSCIANLDVSR">
 		<PeptideSequence>FTSFPSYLLKMSCIANLDVSR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14731963463657095162"/>
 		</Modification>
 	</Peptide>
@@ -3766,7 +3766,7 @@
  	<Peptide id="PEP_532602730804120578" name="LPDPVKEYGCAPWPMVEK">
 		<PeptideSequence>LPDPVKEYGCAPWPMVEK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1623197966001213292"/>
 		</Modification>
 	</Peptide>
@@ -3791,14 +3791,14 @@
  	<Peptide id="PEP_535894999922013045" name="LSQNKFSCIPEAILNLPHLR">
 		<PeptideSequence>LSQNKFSCIPEAILNLPHLR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4042725457641046628"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5368964175462432725" name="NVMWGGCGTKIFSFSNDFTIQK">
 		<PeptideSequence>NVMWGGCGTKIFSFSNDFTIQK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16221656097252409562"/>
 		</Modification>
 	</Peptide>
@@ -3811,7 +3811,7 @@
  	<Peptide id="PEP_539559773257577354" name="GIGMTKADLINNLGTIAK">
 		<PeptideSequence>GIGMTKADLINNLGTIAK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3601688524572798328"/>
 		</Modification>
 	</Peptide>
@@ -3830,14 +3830,14 @@
  	<Peptide id="PEP_5420929748420723445" name="SDLGMQSATVGIDVKDWPIQIR">
 		<PeptideSequence>SDLGMQSATVGIDVKDWPIQIR</PeptideSequence>
 		<Modification location="15" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14718545615516355660"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5426040185144446952" name="MWKPLDDFTEKK">
 		<PeptideSequence>MWKPLDDFTEKK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18093041985473423886"/>
 		</Modification>
 	</Peptide>
@@ -3850,28 +3850,28 @@
  	<Peptide id="PEP_5466419188026024849" name="TLVSVTKEGLELPEDEEEK">
 		<PeptideSequence>TLVSVTKEGLELPEDEEEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3292748270549794807"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5473326031389395012" name="ILLSKGIHLNVLELMQK">
 		<PeptideSequence>ILLSKGIHLNVLELMQK</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8547463990220066366"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_554737154545275276" name="KWALYSFNDGEEHQK">
 		<PeptideSequence>KWALYSFNDGEEHQK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10976252867823236044"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5558308481820827879" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8692686757835820088"/>
 		</Modification>
 	</Peptide>
@@ -3884,28 +3884,28 @@
  	<Peptide id="PEP_5619447258747953201" name="NFLLVGTADGKLAIFEDK">
 		<PeptideSequence>NFLLVGTADGKLAIFEDK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2146729748361507257"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5650221508342854383" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13004943423796107174"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5684304094472792750" name="NVFIGTGHLLAKILVSSLYR">
 		<PeptideSequence>NVFIGTGHLLAKILVSSLYR</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10655900777400182350"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_5696498210590261350" name="DEALETFLELCKK">
 		<PeptideSequence>DEALETFLELCKK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5095953747373261293"/>
 		</Modification>
 	</Peptide>
@@ -3936,7 +3936,7 @@
  	<Peptide id="PEP_5805590394902791448" name="TEGTIYYIHKQNEK">
 		<PeptideSequence>TEGTIYYIHKQNEK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="575144564576995072"/>
 		</Modification>
 	</Peptide>
@@ -3955,7 +3955,7 @@
  	<Peptide id="PEP_5893682929859079178" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4733692306052449524"/>
 		</Modification>
 	</Peptide>
@@ -3980,7 +3980,7 @@
  	<Peptide id="PEP_6043724542919794625" name="SLTNDWEDHLAVKHFSVEGQLEFR">
 		<PeptideSequence>SLTNDWEDHLAVKHFSVEGQLEFR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2002551594957113136"/>
 		</Modification>
 	</Peptide>
@@ -3999,7 +3999,7 @@
  	<Peptide id="PEP_6068617332628653791" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12636219934158550687"/>
 		</Modification>
 	</Peptide>
@@ -4024,35 +4024,35 @@
  	<Peptide id="PEP_6106036682991132232" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1457361223374959472"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6109781336378136807" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5455732790601550794"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_611493635450527389" name="EEEDEPLELGEKTVSVLTK">
 		<PeptideSequence>EEEDEPLELGEKTVSVLTK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6546482100771912741"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6115294601941933268" name="LFIEDVNFNDKASAECFR">
 		<PeptideSequence>LFIEDVNFNDKASAECFR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7776832101326742168"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6122747894303487934" name="LSQNKFSCIPEAILNLPHLR">
 		<PeptideSequence>LSQNKFSCIPEAILNLPHLR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="56195345444072151"/>
 		</Modification>
 	</Peptide>
@@ -4071,21 +4071,21 @@
  	<Peptide id="PEP_6247598210660564990" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6980758904166542152"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6250660695864457628" name="EVFASNAVQDKTEGTIYYIHK">
 		<PeptideSequence>EVFASNAVQDKTEGTIYYIHK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17341885609538586238"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_626016427783280945" name="EYGCAPWPMVEKLIK">
 		<PeptideSequence>EYGCAPWPMVEKLIK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8183479809560916255"/>
 		</Modification>
 	</Peptide>
@@ -4098,14 +4098,14 @@
  	<Peptide id="PEP_6315696640136961040" name="GQAEVDAMKPWLFNIK">
 		<PeptideSequence>GQAEVDAMKPWLFNIK</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18442318344270883115"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6360466790794240971" name="EGSSLICQVCEKESSPK">
 		<PeptideSequence>EGSSLICQVCEKESSPK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17038343030471272245"/>
 		</Modification>
 	</Peptide>
@@ -4118,7 +4118,7 @@
  	<Peptide id="PEP_6432949088199598535" name="YIDQEELNKTKPIWTR">
 		<PeptideSequence>YIDQEELNKTKPIWTR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="435931305321438914"/>
 		</Modification>
 	</Peptide>
@@ -4131,14 +4131,14 @@
  	<Peptide id="PEP_6447538590521128095" name="MGTIQQAFKEGQQR">
 		<PeptideSequence>MGTIQQAFKEGQQR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10773019257563676186"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6451981999451281736" name="TEGTIYYIHKQNEK">
 		<PeptideSequence>TEGTIYYIHKQNEK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="236645520617965178"/>
 		</Modification>
 	</Peptide>
@@ -4151,14 +4151,14 @@
  	<Peptide id="PEP_6547233014634417002" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17059567378767716987"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6558899370066921150" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14737262454447402930"/>
 		</Modification>
 	</Peptide>
@@ -4177,21 +4177,21 @@
  	<Peptide id="PEP_6569840791590222910" name="TEKLCGLIDCVHFLR">
 		<PeptideSequence>TEKLCGLIDCVHFLR</PeptideSequence>
 		<Modification location="3" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3661836059177463839"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6574038145444098837" name="DTECDLKNGVLLLEADESAYK">
 		<PeptideSequence>DTECDLKNGVLLLEADESAYK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17212584356810883522"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6577895467092461988" name="LSQNKFSCIPEAILNLPHLR">
 		<PeptideSequence>LSQNKFSCIPEAILNLPHLR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6439916495748663103"/>
 		</Modification>
 	</Peptide>
@@ -4204,14 +4204,14 @@
  	<Peptide id="PEP_6603163531273211280" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8959998433554030450"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6607619656431159171" name="DEALETFLELCKK">
 		<PeptideSequence>DEALETFLELCKK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1080829273647559294"/>
 		</Modification>
 	</Peptide>
@@ -4224,7 +4224,7 @@
  	<Peptide id="PEP_6645998577322441588" name="LIDDVLKLFIEDVNFNDK">
 		<PeptideSequence>LIDDVLKLFIEDVNFNDK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11768613195939475075"/>
 		</Modification>
 	</Peptide>
@@ -4243,14 +4243,14 @@
  	<Peptide id="PEP_6673764543191051100" name="NGVLLLEADESAYKDIMK">
 		<PeptideSequence>NGVLLLEADESAYKDIMK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7984532074070137350"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6684524359945740349" name="EELYETQDEKLHLIVK">
 		<PeptideSequence>EELYETQDEKLHLIVK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6244335194402338312"/>
 		</Modification>
 	</Peptide>
@@ -4275,28 +4275,28 @@
  	<Peptide id="PEP_6798342841335265856" name="EEKESEDKPEIEDVGSDEEEEK">
 		<PeptideSequence>EEKESEDKPEIEDVGSDEEEEK</PeptideSequence>
 		<Modification location="3" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="843194936716678299"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6837264172272223546" name="ENQKHIYYITGETK">
 		<PeptideSequence>ENQKHIYYITGETK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9450882297311585325"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6837537170393050463" name="VMMTAQLGSLKNVMLVLGYNR">
 		<PeptideSequence>VMMTAQLGSLKNVMLVLGYNR</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17619227449957279864"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_6878260161865568505" name="DYHFVNATEESDALAKLR">
 		<PeptideSequence>DYHFVNATEESDALAKLR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8795943655088158336"/>
 		</Modification>
 	</Peptide>
@@ -4321,7 +4321,7 @@
  	<Peptide id="PEP_6951137403894967480" name="DLKPHNVLLFTLYPNAAIIAK">
 		<PeptideSequence>DLKPHNVLLFTLYPNAAIIAK</PeptideSequence>
 		<Modification location="3" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13408033285487765931"/>
 		</Modification>
 	</Peptide>
@@ -4352,14 +4352,14 @@
  	<Peptide id="PEP_700911290004695372" name="EELYETQDEKLHLIVK">
 		<PeptideSequence>EELYETQDEKLHLIVK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15781514759614729131"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7031539731043607714" name="LPDPVKEYGCAPWPMVEK">
 		<PeptideSequence>LPDPVKEYGCAPWPMVEK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15691116344581351540"/>
 		</Modification>
 	</Peptide>
@@ -4384,28 +4384,28 @@
  	<Peptide id="PEP_7062879435664455910" name="EYGCAPWPMVEKLIK">
 		<PeptideSequence>EYGCAPWPMVEKLIK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14018789665523663263"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7126820933155059649" name="EELYETQDEKLHLIVK">
 		<PeptideSequence>EELYETQDEKLHLIVK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10385719246244224504"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7128752859812584655" name="NDIGPSVVLDPTVKCPTLK">
 		<PeptideSequence>NDIGPSVVLDPTVKCPTLK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7966349629159508808"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7139467097964253045" name="AAYEGEEVAVKIFNK">
 		<PeptideSequence>AAYEGEEVAVKIFNK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="2560119585863861881"/>
 		</Modification>
 	</Peptide>
@@ -4424,7 +4424,7 @@
  	<Peptide id="PEP_7160527195312373536" name="KAEEGDLLVNPDQPR">
 		<PeptideSequence>KAEEGDLLVNPDQPR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11938035452021527909"/>
 		</Modification>
 	</Peptide>
@@ -4437,7 +4437,7 @@
  	<Peptide id="PEP_7215378459499217402" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1655732926491039465"/>
 		</Modification>
 	</Peptide>
@@ -4450,7 +4450,7 @@
  	<Peptide id="PEP_7226791362674090702" name="KSDLGMQSATVGIDVK">
 		<PeptideSequence>KSDLGMQSATVGIDVK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9740043451881169420"/>
 		</Modification>
 	</Peptide>
@@ -4469,7 +4469,7 @@
  	<Peptide id="PEP_7252775090565277935" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15555706851852666721"/>
 		</Modification>
 	</Peptide>
@@ -4482,21 +4482,21 @@
  	<Peptide id="PEP_7304906036526592440" name="NGVLLLEADESAYKDIMK">
 		<PeptideSequence>NGVLLLEADESAYKDIMK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4512000123429879702"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7316644956366259183" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13113514917555180171"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7340214311986313079" name="GQAEVDAMKPWLFNIKAR">
 		<PeptideSequence>GQAEVDAMKPWLFNIKAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="747062417495149377"/>
 		</Modification>
 	</Peptide>
@@ -4509,14 +4509,14 @@
  	<Peptide id="PEP_7363084503402892905" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16537071709635020581"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7379418310847767861" name="KHSQFIGYPITLFVEK">
 		<PeptideSequence>KHSQFIGYPITLFVEK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5199125009273289772"/>
 		</Modification>
 	</Peptide>
@@ -4529,7 +4529,7 @@
  	<Peptide id="PEP_7417175583382125721" name="EEEDEPLELGEKTVSVLTK">
 		<PeptideSequence>EEEDEPLELGEKTVSVLTK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13644444875658002596"/>
 		</Modification>
 	</Peptide>
@@ -4542,7 +4542,7 @@
  	<Peptide id="PEP_7454850151867977670" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="140143751292348058"/>
 		</Modification>
 	</Peptide>
@@ -4573,14 +4573,14 @@
  	<Peptide id="PEP_7472156862192538684" name="DTECDLKNGVLLLEADESAYK">
 		<PeptideSequence>DTECDLKNGVLLLEADESAYK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11763176862752900781"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7487440600297596436" name="FPNEFDELEIQGKLPDPVK">
 		<PeptideSequence>FPNEFDELEIQGKLPDPVK</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7454935567805359091"/>
 		</Modification>
 	</Peptide>
@@ -4593,21 +4593,21 @@
  	<Peptide id="PEP_7524274888573434024" name="DNFNVDEIFLKLVDDILK">
 		<PeptideSequence>DNFNVDEIFLKLVDDILK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12082790222556246545"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7561491896559036721" name="MNFLAAMPFLPPSMTILKLSQNK">
 		<PeptideSequence>MNFLAAMPFLPPSMTILKLSQNK</PeptideSequence>
 		<Modification location="18" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11416966369188389485"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7562631162577909248" name="GIGMTKADLINNLGTIAK">
 		<PeptideSequence>GIGMTKADLINNLGTIAK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11805769970209465933"/>
 		</Modification>
 	</Peptide>
@@ -4632,7 +4632,7 @@
  	<Peptide id="PEP_7662798661582682098" name="SAKGIILVYDITK">
 		<PeptideSequence>SAKGIILVYDITK</PeptideSequence>
 		<Modification location="3" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7215943084481145332"/>
 		</Modification>
 	</Peptide>
@@ -4645,7 +4645,7 @@
  	<Peptide id="PEP_772332166386126114" name="DYHFVNATEESDALAKLR">
 		<PeptideSequence>DYHFVNATEESDALAKLR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9093130397165144671"/>
 		</Modification>
 	</Peptide>
@@ -4664,7 +4664,7 @@
  	<Peptide id="PEP_7811555100408818206" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16752609866051193215"/>
 		</Modification>
 	</Peptide>
@@ -4683,42 +4683,42 @@
  	<Peptide id="PEP_7930521780896917088" name="GQAEVDAMKPWLFNIKAR">
 		<PeptideSequence>GQAEVDAMKPWLFNIKAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10404578320185414470"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7933270947021762650" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3485442719273951885"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_7939706663800149831" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1319457452123930579"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_794609109639313504" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14626031848012777997"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_798458886115064632" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="8203305354851656939"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8048988420207817339" name="FTSFPSYLLKMSCIANLDVSR">
 		<PeptideSequence>FTSFPSYLLKMSCIANLDVSR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16356008430203914035"/>
 		</Modification>
 	</Peptide>
@@ -4737,14 +4737,14 @@
  	<Peptide id="PEP_8141929660160666434" name="HTLEKMTDSVTCLYCNSFSK">
 		<PeptideSequence>HTLEKMTDSVTCLYCNSFSK</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="871689549992079890"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8154133908274125625" name="DTECDLKNGVLLLEADESAYK">
 		<PeptideSequence>DTECDLKNGVLLLEADESAYK</PeptideSequence>
 		<Modification location="7" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13711397182441721172"/>
 		</Modification>
 	</Peptide>
@@ -4793,28 +4793,28 @@
  	<Peptide id="PEP_8381391700990171528" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11914626372334258766"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8387519454008799806" name="EKEVFLTIPYGIFQSHK">
 		<PeptideSequence>EKEVFLTIPYGIFQSHK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1427017507994352754"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8466921301232591631" name="LSKIWDLPLDELHLNFDFK">
 		<PeptideSequence>LSKIWDLPLDELHLNFDFK</PeptideSequence>
 		<Modification location="3" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7661084019893150652"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8478576888837159765" name="ESSPKLVELLLNSGSR">
 		<PeptideSequence>ESSPKLVELLLNSGSR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="14249046271914065879"/>
 		</Modification>
 	</Peptide>
@@ -4827,14 +4827,14 @@
  	<Peptide id="PEP_8521521804453648145" name="IFSFSNDFTIQKLIETR">
 		<PeptideSequence>IFSFSNDFTIQKLIETR</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3552445793072071659"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8555198494463223417" name="GFQTILAILKLSASFSK">
 		<PeptideSequence>GFQTILAILKLSASFSK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4199675569258169219"/>
 		</Modification>
 	</Peptide>
@@ -4847,7 +4847,7 @@
  	<Peptide id="PEP_856232683335178564" name="KNVPIEFPVIDR">
 		<PeptideSequence>KNVPIEFPVIDR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="12767094602063106952"/>
 		</Modification>
 	</Peptide>
@@ -4860,7 +4860,7 @@
  	<Peptide id="PEP_8581482212773344239" name="AAYEGEEVAVKIFNK">
 		<PeptideSequence>AAYEGEEVAVKIFNK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10258496297461966178"/>
 		</Modification>
 	</Peptide>
@@ -4897,7 +4897,7 @@
  	<Peptide id="PEP_8653624942750536010" name="EKYIDQEELNK">
 		<PeptideSequence>EKYIDQEELNK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15826835236288624039"/>
 		</Modification>
 	</Peptide>
@@ -4910,21 +4910,21 @@
  	<Peptide id="PEP_8688616846850000362" name="WLCKIMAQILTVK">
 		<PeptideSequence>WLCKIMAQILTVK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9199054704464690913"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8734334354285411525" name="ESSPKLVELLLNSGSR">
 		<PeptideSequence>ESSPKLVELLLNSGSR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15364592766247890342"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8734928164730483094" name="CYNIVVEAMKAFPMSER">
 		<PeptideSequence>CYNIVVEAMKAFPMSER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="18428861335691214600"/>
 		</Modification>
 	</Peptide>
@@ -4943,7 +4943,7 @@
  	<Peptide id="PEP_8813867045956277159" name="GQAEVDAMKPWLFNIKAR">
 		<PeptideSequence>GQAEVDAMKPWLFNIKAR</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3554236082635824228"/>
 		</Modification>
 	</Peptide>
@@ -4962,14 +4962,14 @@
  	<Peptide id="PEP_8889253738263944737" name="GQAEVDAMKPWLFNIK">
 		<PeptideSequence>GQAEVDAMKPWLFNIK</PeptideSequence>
 		<Modification location="9" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3962387112934576230"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8898964945099707874" name="DIDALSQKCCISVHLEHLEK">
 		<PeptideSequence>DIDALSQKCCISVHLEHLEK</PeptideSequence>
 		<Modification location="8" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="111896618525872808"/>
 		</Modification>
 	</Peptide>
@@ -5000,7 +5000,7 @@
  	<Peptide id="PEP_8937159074073549608" name="DYHFVNATEESDALAKLR">
 		<PeptideSequence>DYHFVNATEESDALAKLR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="430934307908448384"/>
 		</Modification>
 	</Peptide>
@@ -5013,21 +5013,21 @@
  	<Peptide id="PEP_8978837830287318160" name="DEALETFLELCKK">
 		<PeptideSequence>DEALETFLELCKK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6885632682643787421"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8981284550311633834" name="DQQFLNLCCKCFAK">
 		<PeptideSequence>DQQFLNLCCKCFAK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="106355629737810881"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_8984402899352117479" name="LKEIPPEIGCLENLTSLDVSYNLELR">
 		<PeptideSequence>LKEIPPEIGCLENLTSLDVSYNLELR</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16616557306000669869"/>
 		</Modification>
 	</Peptide>
@@ -5052,7 +5052,7 @@
  	<Peptide id="PEP_9143463305872151598" name="NVMWGGCGTKIFSFSNDFTIQK">
 		<PeptideSequence>NVMWGGCGTKIFSFSNDFTIQK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17730401382408007910"/>
 		</Modification>
 	</Peptide>
@@ -5077,7 +5077,7 @@
  	<Peptide id="PEP_9221718253231222001" name="IVEGLKFPNEFDELEIQGK">
 		<PeptideSequence>IVEGLKFPNEFDELEIQGK</PeptideSequence>
 		<Modification location="6" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="4766960994286224505"/>
 		</Modification>
 	</Peptide>
@@ -5090,7 +5090,7 @@
  	<Peptide id="PEP_9239964739177281349" name="KAEEGDLLVNPDQPR">
 		<PeptideSequence>KAEEGDLLVNPDQPR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="7138020121190169918"/>
 		</Modification>
 	</Peptide>
@@ -5103,7 +5103,7 @@
  	<Peptide id="PEP_9290009362395203021" name="MWKPLDDFTEKK">
 		<PeptideSequence>MWKPLDDFTEKK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3020830844616774033"/>
 		</Modification>
 	</Peptide>
@@ -5122,21 +5122,21 @@
  	<Peptide id="PEP_9424592563888703232" name="EGLELPEDEEEKK">
 		<PeptideSequence>EGLELPEDEEEKK</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1189541695149035645"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9425941889981598626" name="MKLMIVGNTGSGK">
 		<PeptideSequence>MKLMIVGNTGSGK</PeptideSequence>
 		<Modification location="2" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17766930778487716564"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9448119096751999867" name="LEQLILEGNKISGICSPLR">
 		<PeptideSequence>LEQLILEGNKISGICSPLR</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="10086486331931755436"/>
 		</Modification>
 	</Peptide>
@@ -5149,21 +5149,21 @@
  	<Peptide id="PEP_9480716658196236185" name="LSQNKFSCIPEAILNLPHLR">
 		<PeptideSequence>LSQNKFSCIPEAILNLPHLR</PeptideSequence>
 		<Modification location="5" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9592298428515634596"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9511569290439422521" name="HSNSLGPIFDHEDLLKR">
 		<PeptideSequence>HSNSLGPIFDHEDLLKR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="702542583632993749"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9521404902782714706" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="5447766299670302123"/>
 		</Modification>
 	</Peptide>
@@ -5182,14 +5182,14 @@
  	<Peptide id="PEP_9545679799275594883" name="NDIGPSVVLDPTVKCPTLK">
 		<PeptideSequence>NDIGPSVVLDPTVKCPTLK</PeptideSequence>
 		<Modification location="14" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="9093845671375965716"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9547279595216659137" name="SLDMSSNDIQYLPGPAHWKSLNLR">
 		<PeptideSequence>SLDMSSNDIQYLPGPAHWKSLNLR</PeptideSequence>
 		<Modification location="19" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="3616720364952563993"/>
 		</Modification>
 	</Peptide>
@@ -5202,14 +5202,14 @@
  	<Peptide id="PEP_9630486627605171920" name="DQQFLNLCCKCFAK">
 		<PeptideSequence>DQQFLNLCCKCFAK</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15336911293645010545"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9657195323739211621" name="MGIKTSEGTPGFR">
 		<PeptideSequence>MGIKTSEGTPGFR</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="15568981923429820128"/>
 		</Modification>
 	</Peptide>
@@ -5246,21 +5246,21 @@
  	<Peptide id="PEP_9710849848575472224" name="DIMKMWKPLDDFTEK">
 		<PeptideSequence>DIMKMWKPLDDFTEK</PeptideSequence>
 		<Modification location="4" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1063015030151113311"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9711839480251534350" name="HIYYITGETKDQVANSAFVER">
 		<PeptideSequence>HIYYITGETKDQVANSAFVER</PeptideSequence>
 		<Modification location="10" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11675184603780184289"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9716549420744723361" name="KHGLEVIYMIEPIDEYCVQQLK">
 		<PeptideSequence>KHGLEVIYMIEPIDEYCVQQLK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="11419399222981703704"/>
 		</Modification>
 	</Peptide>
@@ -5273,7 +5273,7 @@
  	<Peptide id="PEP_9783921873539307765" name="NHISSLSENFLEACPKVESFSAR">
 		<PeptideSequence>NHISSLSENFLEACPKVESFSAR</PeptideSequence>
 		<Modification location="16" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="1399684737377279016"/>
 		</Modification>
 	</Peptide>
@@ -5298,35 +5298,35 @@
  	<Peptide id="PEP_9855059889752136309" name="IFSFSNDFTIQKLIETR">
 		<PeptideSequence>IFSFSNDFTIQKLIETR</PeptideSequence>
 		<Modification location="12" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17942961577840676520"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9877818865951317095" name="KWALYSFNDGEEHQK">
 		<PeptideSequence>KWALYSFNDGEEHQK</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="16003965226667018129"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9924475038488466040" name="EVFASNAVQDKTEGTIYYIHK">
 		<PeptideSequence>EVFASNAVQDKTEGTIYYIHK</PeptideSequence>
 		<Modification location="11" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="13762470224891539252"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9950936438912456644" name="VEPSWLGPLFPDKTSNLR">
 		<PeptideSequence>VEPSWLGPLFPDKTSNLR</PeptideSequence>
 		<Modification location="13" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="6244178397615412071"/>
 		</Modification>
 	</Peptide>
  	<Peptide id="PEP_9957949354514498080" name="KAEEGDLLVNPDQPR">
 		<PeptideSequence>KAEEGDLLVNPDQPR</PeptideSequence>
 		<Modification location="1" residues="K" monoisotopicMassDelta="138.0680796">
-			<cvParam accession="XLMOD:02001" cvRef="XLMOD" name="DSS"/>
+			<cvParam accession="XLMOD:02000" cvRef="XLMOD" name="BS3"/>
 			<cvParam accession="MS:1002509" cvRef="PSI-MS" name="cross-link donor" value="17234781565120815517"/>
 		</Modification>
 	</Peptide>
@@ -6176,13 +6176,13 @@
 		<AdditionalSearchParams>
 
 			<cvParam accession="MS:1002494" cvRef="PSI-MS" name="cross-linking search"/>
-			<userParam name="input_decoys" unitName="xsd:string" value="/home/eugen/MSData/XL-Daten-LRRK2/WT-IN1-DSS-H12-HCD-QExactive/mzML_picked/decoy_lrrk2-46-MT_test.fasta"/>
+			<userParam name="input_decoys" unitName="xsd:string" value=""/>
 			<userParam name="decoy_prefix" unitName="xsd:integer" value="1"/>
 			<userParam name="decoy_string" unitName="xsd:string" value="decoy_reverse_"/>
 			<userParam name="fragment:mass_tolerance_xlinks" unitName="xsd:double" value="10"/>
-			<userParam name="cross_link:mass_monolink" unitName="xsd:string" value="[156.07864431]"/>
+			<userParam name="cross_link:mass_monolink" unitName="xsd:string" value="[]"/>
 			<userParam name="cross_link:mass_mass" unitName="xsd:double" value="138.0680796"/>
-			<userParam name="cross_link:name" unitName="xsd:string" value="DSS"/>
+			<userParam name="cross_link:name" unitName="xsd:string" value=""/>
 			<userParam name="cross_link:mass_isoshift" unitName="xsd:double" value="0"/>
 			<userParam name="cross_link:residue1" unitName="xsd:string" value="[K]"/>
 			<userParam name="cross_link:residue2" unitName="xsd:string" value="[K]"/>
