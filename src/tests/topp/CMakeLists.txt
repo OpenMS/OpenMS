@@ -2453,3 +2453,6 @@ add_test("UTILS_XFDR_5_out53" ${DIFF} -whitelist "date=" -in1 XFDR_test_out5_tem
 set_tests_properties("UTILS_XFDR_5_out51" PROPERTIES DEPENDS "UTILS_XFDR_5")
 set_tests_properties("UTILS_XFDR_5_out52" PROPERTIES DEPENDS "UTILS_XFDR_5")
 set_tests_properties("UTILS_XFDR_5_out53" PROPERTIES DEPENDS "UTILS_XFDR_5")
+add_test("UTILS_XFDR_6" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in4.idXML -out_idXML XFDR_test_out6_temp.idXML)
+add_test("UTILS_XFDR_6_out6" ${DIFF} -whitelist "date=" -in1 XFDR_test_out6_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out6.idXML)
+set_tests_properties("UTILS_XFDR_6_out6" PROPERTIES DEPENDS "UTILS_XFDR_5")
