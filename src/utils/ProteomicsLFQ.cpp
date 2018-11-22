@@ -1205,6 +1205,7 @@ protected:
     IDFilter::filterHitsByScore(inferred_protein_ids, maxFDR);
     IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
     IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
+    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
 
     if (debug_level_ >= 666)
     {
