@@ -366,8 +366,19 @@ protected:
     }
   };
 
-  static double calculateCombinedScore(const AnnotatedHit& ah)
+  static float calculateCombinedScore(const AnnotatedHit& ah, const bool isXL)
   {
+	return
+	    + 0.995
+		+ 7.142 * (  0.058 * ah.total_loss_score - 0.900)
+		+ 0.802 * (  33.35 * ah.immonium_score - 1.148)
+		+ 0.327 * (  73.64 * ah.precursor_score - 0.821)
+		+ 0.748 * ( 22.014 * ah.marker_ions_score - 0.903)
+		+ 0.746 * (  0.043 * ah.partial_loss_score - 0.472)
+		- 1.788 * (  301.0 * ah.err - 1.771)
+		- 1.292 * (240.825 * ah.pl_err - 1.323)
+		+ 2.324 * static_cast<int>(isXL);
+	/*
 	return 
 	  2.493
 	  + 7.239 * (0.058 * ah.total_loss_score - 0.900)
@@ -375,6 +386,7 @@ protected:
 	  + 1.178 * (0.043 * ah.partial_loss_score - 0.472)
 	  - 1.934 * (300.828 * ah.err - 1.774)
 	  - 0.358 * (240.441 * ah.pl_err - 1.316);
+	*/
   }
 
 
@@ -1967,7 +1979,7 @@ protected:
                   ah.isotope_error = isotope_error;
 
                   // combined score
-				  ah.score = RNPxlSearch::calculateCombinedScore(ah);
+				  ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
 
 #ifdef DEBUG_RNPXLSEARCH
                   LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -2078,6 +2090,9 @@ protected:
                                              precursor_sub_score,
                                              a_ion_sub_score);
 
+					// no good hit
+					if (score < 0.001) { continue; }
+
                     scorePartialLossFragments_(exp_spectrum,
                                                fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
                                                partial_loss_spectrum_z1, partial_loss_spectrum_z2,
@@ -2085,9 +2100,6 @@ protected:
                                                partial_loss_sub_score,
                                                marker_ions_sub_score,
                                                plss_MIC, plss_err, plss_Morph);
-
-                    // no good hit
-                    if (score < 0.001) { continue; }
 
                     // add peptide hit
                     AnnotatedHit ah;
@@ -2114,7 +2126,7 @@ protected:
                     ah.isotope_error = isotope_error;
 
 					// combined score
-					ah.score = RNPxlSearch::calculateCombinedScore(ah);
+					ah.score = RNPxlSearch::calculateCombinedScore(ah, true);
 
 #ifdef DEBUG_RNPXLSEARCH
                     LOG_DEBUG << "best score in pre-score: " << score << endl;
