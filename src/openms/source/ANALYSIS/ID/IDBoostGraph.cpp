@@ -81,7 +81,7 @@ namespace OpenMS
     {
       int chargeToPut = charge - minCharge_;
       OPENMS_PRECONDITION(replicate < nrReplicates_, "Replicate OOR");
-      OPENMS_PRECONDITION(chargeToPut < nrCharges_, "Charge OOR");
+      OPENMS_PRECONDITION(static_cast<Size>(chargeToPut) < nrCharges_, "Charge OOR");
 
       auto seq_it = seq_to_vecs_.emplace(std::move(seq), std::vector<std::vector<std::set<vertex_t>>>{nrReplicates_, std::vector<std::set<vertex_t>>(nrCharges_, std::set<vertex_t>())});
       seq_it.first->second[replicate][chargeToPut].insert(pepVtx);

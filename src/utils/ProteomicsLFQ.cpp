@@ -1235,6 +1235,8 @@ protected:
     }
 
     // compute coverage
+    // TODO This needs to be fixed!!! Sometimes results in coverages around 30.
+    //  All mods and charges counted multiple times?
     inferred_protein_ids[0].computeCoverage(inferred_peptide_ids);
 
     // determine observed modifications (exclude fixed mods)

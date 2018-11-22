@@ -716,7 +716,6 @@ namespace OpenMS
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology? Make class member?
     const string& score_type = q_value ? "q-value" : "FDR";
-    bool use_all_hits = param_.getValue("use_all_hits").toBool();
     bool higher_score_better(id.isHigherScoreBetter());
 
     std::vector<std::pair<double,bool>> scores_labels;
