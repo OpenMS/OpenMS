@@ -105,7 +105,14 @@ namespace OpenSwath
       x_len = std::sqrt(x_len);
       y_len = std::sqrt(y_len);
 
-      return std::acos(dotprod / (x_len * y_len));
+      // normalise, avoiding a divide by zero. See unit tests for what happens
+      // when one of the vectors has a length of zero.
+      dotprod /= std::max(std::numeric_limits<double>::min(), x_len * y_len);
+
+      // clip to range [-1, 1] to save acos blowing up
+      dotprod = std::max(-1.0, std::min(1.0, dotprod));
+
+      return std::acos(dotprod);
     }
 
     XCorrArrayType::const_iterator xcorrArrayGetMaxPeak(const XCorrArrayType& array)
