@@ -716,7 +716,6 @@ namespace OpenMS
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology? Make class member?
     const string& score_type = q_value ? "q-value" : "FDR";
-    bool use_all_hits = param_.getValue("use_all_hits").toBool();
     bool higher_score_better(id.isHigherScoreBetter());
 
     std::vector<std::pair<double,bool>> scores_labels;
@@ -937,6 +936,7 @@ namespace OpenMS
   }
 
 
+  // Actually this does not need the bool entries in the scores_labels, but leads to less code
   void FalseDiscoveryRate::calculateEstimatedQVal_(std::map<double, double> &scores_to_FDR,
                                                    std::vector<std::pair<double, bool>> &scores_labels,
                                                    bool higher_score_better) const
@@ -991,7 +991,7 @@ namespace OpenMS
 
     for (size_t j = 0; j < scores_labels.size(); ++j)
     {
-      if (scores_labels[j].second)
+      if (!scores_labels[j].second)
       {
         decoys++;
       }

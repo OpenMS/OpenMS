@@ -206,6 +206,125 @@ namespace OpenMS
     }
   };
 
+  /// A functor that specifies what to do on a connected component (IDBoostGraph::FilteredGraph)
+  class BayesianProteinInferenceAlgorithm::ExtendedGraphInferenceFunctor :
+      public std::function<void(IDBoostGraph::Graph&)>
+  {
+  public:
+    const Param& param_;
+
+    explicit ExtendedGraphInferenceFunctor(const Param& param):
+        param_(param)
+    {}
+
+    void operator() (IDBoostGraph::Graph& fg) {
+      //TODO do quick bruteforce calculation if the cc is really small
+
+      // this skips CCs with just peps or prots. We only add edges between different types.
+      // and if there were no edges, it would not be a CC.
+      if (boost::num_vertices(fg) >= 2)
+      {
+        MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:pep_emission"),
+                                                 param_.getValue("model_parameters:pep_spurious_emission"),
+                                                 param_.getValue("model_parameters:prot_prior"),
+                                                 1.0); // the p used for marginalization: 1 = sum product, inf = max product
+        BetheInferenceGraphBuilder<unsigned long> bigb;
+
+        IDBoostGraph::Graph::vertex_iterator ui, ui_end;
+        boost::tie(ui,ui_end) = boost::vertices(fg);
+
+        // Store the IDs of the nodes for which you want the posteriors in the end (usually at least proteins)
+        // Maybe later peptides (e.g. for an iterative procedure)
+        vector<vector<unsigned long>> posteriorVars;
+
+        // direct neighbors are proteins on the "left" side and peptides on the "right" side
+        // TODO use directed graph? But finding "non-strong" connected components in a directed graph is not
+        // out of the box supported by boost
+        std::vector<IDBoostGraph::vertex_t> in{};
+        //std::vector<IDBoostGraph::vertex_t> out{};
+
+        for (; ui != ui_end; ++ui)
+        {
+          IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
+          boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
+
+          in.clear();
+          //out.clear(); // we dont need out edges currently
+
+          for (; nbIt != nbIt_end; ++nbIt)
+          {
+            if (fg[*nbIt].which() < fg[*ui].which())
+            {
+              in.push_back(*nbIt);
+            }
+            /*else
+            {
+              out.push_back(*nbIt);
+            }*/
+          }
+
+          //TODO introduce an enum for the types to make it more clear.
+          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+
+          if (fg[*ui].which() == 6) // pep hit = psm
+          {
+            bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[*ui])->getPeptideEvidences().size(), in[0], *ui));
+            bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<PeptideHit*>(fg[*ui])->getScore()));
+          }
+          else if (fg[*ui].which() == 2) // pep group
+          {
+            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
+          }
+          else if (fg[*ui].which() == 1) // prot group
+          {
+            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
+          }
+          else if (fg[*ui].which() == 0) // prot
+          {
+            //TODO allow an already present prior probability here
+            //TODO modify createProteinFactor to start with a modified prior based on the number of missing
+            // peptides (later tweak to include conditional prob. for that peptide
+            bigb.insert_dependency(mpf.createProteinFactor(*ui));
+            posteriorVars.push_back({*ui});
+          }
+        }
+
+        // create factor graph for Bayesian network
+        InferenceGraph<unsigned long> ig = bigb.to_graph();
+
+        //TODO parametrize the type of scheduler.
+        PriorityScheduler<unsigned long> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
+                                                   param_.getValue("loopy_belief_propagation:convergence_threshold"),
+                                                   param_.getValue("loopy_belief_propagation:max_nr_iterations"));
+        scheduler.add_ab_initio_edges(ig);
+
+        BeliefPropagationInferenceEngine<unsigned long> bpie(scheduler, ig);
+        auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
+
+        //TODO you could also save the indices of the peptides here and request + update their posteriors, too.
+        for (auto const& posteriorFactor : posteriorFactors)
+        {
+          double posterior = 0.0;
+          IDBoostGraph::SetPosteriorVisitor pv;
+          unsigned long nodeId = posteriorFactor.ordered_variables()[0];
+          const PMF& pmf = posteriorFactor.pmf();
+          // If Index 1 is in the range of this result PMFFactor it is non-zero
+          if (1 >= pmf.first_support()[0] && 1 <= pmf.last_support()[0]) {
+            posterior = pmf.table()[1 - pmf.first_support()[0]];
+          }
+          auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
+          boost::apply_visitor(bound_visitor, fg[nodeId]);
+        }
+        //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
+
+      }
+      else
+      {
+        std::cout << "Skipped cc with only one type (proteins or peptides)" << std::endl;
+      }
+    }
+  };
+
   struct BayesianProteinInferenceAlgorithm::GridSearchEvaluator
   {
     Param& param_;
@@ -525,48 +644,83 @@ namespace OpenMS
 
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
-    //TODO make run info parameter
-    ibg.buildGraph(param_.getValue("top_PSMs"));
-    ibg.computeConnectedComponents();
-    ibg.clusterIndistProteinsAndPeptides();
 
-    //TODO how to perform group inference
-    // Three options:
-    // -collapse proteins to groups beforehand and run inference
-    // -use the automatically created indist. groups and report their posterior
-    // -calculate prior from proteins for the group beforehand and remove proteins from network (saves computation
-    //  because messages are not passed from prots to groups anymore.
+    bool oldway = false;
+    if (oldway)
+    {
+      //TODO make run info parameter
+      ibg.buildGraph(param_.getValue("top_PSMs"));
+      ibg.computeConnectedComponents();
+      ibg.clusterIndistProteinsAndPeptides();
+
+      //TODO how to perform group inference
+      // Three options:
+      // -collapse proteins to groups beforehand and run inference
+      // -use the automatically created indist. groups and report their posterior
+      // -calculate prior from proteins for the group beforehand and remove proteins from network (saves computation
+      //  because messages are not passed from prots to groups anymore.
 
 
-    //TODO Use gold search that goes deeper into the grid where it finds the best value.
-    //We have to do it on a whole dataset basis though (all CCs). -> I have to refactor to actually store as much
-    //as possible (it would be cool to store the inference graph but this is probably not possible bc that is why
-    //I split up in CCs.
-    // OR you could save the outputs! One value for every protein, per parameter set.
+      //TODO Use gold search that goes deeper into the grid where it finds the best value.
+      //We have to do it on a whole dataset basis though (all CCs). -> I have to refactor to actually store as much
+      //as possible (it would be cool to store the inference graph but this is probably not possible bc that is why
+      //I split up in CCs.
+      // OR you could save the outputs! One value for every protein, per parameter set.
 
-    vector<double> gamma_search{0.5};
-    vector<double> beta_search{0.001};
-    vector<double> alpha_search{0.1, 0.3, 0.5, 0.7, 0.9};
-    //Percolator settings
-    //vector<double> alpha_search{0.008, 0.032, 0.128};
+      vector<double> gamma_search{0.5};
+      vector<double> beta_search{0.001};
+      vector<double> alpha_search{0.1, 0.3, 0.5, 0.7, 0.9};
+      //Percolator settings
+      //vector<double> alpha_search{0.008, 0.032, 0.128};
 
-    GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
+      GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
 
-    std::array<size_t, 3> bestParams{{0, 0, 0}};
-    //TODO run grid search on reduced graph?
-    //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
-    gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
+      std::array<size_t, 3> bestParams{{0, 0, 0}};
+      //TODO run grid search on reduced graph?
+      //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
+      gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
 
-    std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
-    double bestGamma = gamma_search[bestParams[0]];
-    double bestBeta = beta_search[bestParams[1]];
-    double bestAlpha = alpha_search[bestParams[2]];
-    std::cout << "Running with best parameters again." << std::endl;
-    param_.setValue("model_parameters:prot_prior", bestGamma);
-    param_.setValue("model_parameters:pep_emission", bestAlpha);
-    param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
-    ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
-    ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor());
+      std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
+      double bestGamma = gamma_search[bestParams[0]];
+      double bestBeta = beta_search[bestParams[1]];
+      double bestAlpha = alpha_search[bestParams[2]];
+      std::cout << "Running with best parameters again." << std::endl;
+      param_.setValue("model_parameters:prot_prior", bestGamma);
+      param_.setValue("model_parameters:pep_emission", bestAlpha);
+      param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
+      ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
+      ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor());
+    }
+    else
+    {
+      //TODO make run info parameter
+      ibg.buildGraphWithRunInfo(param_.getValue("top_PSMs"));
+      ibg.computeConnectedComponents();
+      ibg.clusterIndistProteinsAndPeptidesAndExtendGraph();
+
+      vector<double> gamma_search{0.5};
+      vector<double> beta_search{0.001};
+      vector<double> alpha_search{0.1, 0.3, 0.5, 0.7, 0.9};
+
+      GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
+
+      std::array<size_t, 3> bestParams{{0, 0, 0}};
+      //TODO run grid search on reduced graph?
+      //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
+      gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
+
+      std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
+      double bestGamma = gamma_search[bestParams[0]];
+      double bestBeta = beta_search[bestParams[1]];
+      double bestAlpha = alpha_search[bestParams[2]];
+      std::cout << "Running with best parameters again." << std::endl;
+      param_.setValue("model_parameters:prot_prior", bestGamma);
+      param_.setValue("model_parameters:pep_emission", bestAlpha);
+      param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
+      ibg.applyFunctorOnCCs(ExtendedGraphInferenceFunctor(const_cast<const Param&>(param_)));
+      ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor());
+    }
+
 
     //TODO write graphfile?
     //TODO let user modify Grid for GridSearch and/or provide some more default settings

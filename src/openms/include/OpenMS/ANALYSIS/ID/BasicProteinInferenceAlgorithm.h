@@ -67,8 +67,8 @@ namespace OpenMS
     void processRun_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
-      ProteinIdentification prot_run,
-      std::vector<PeptideIdentification> pep_ids,
+      ProteinIdentification& prot_run,
+      std::vector<PeptideIdentification>& pep_ids,
       AggregationMethod aggregation_method,
       String& aggMethodString,
       bool use_shared_peptides,

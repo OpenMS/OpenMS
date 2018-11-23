@@ -161,15 +161,22 @@ namespace OpenMS
   void BasicProteinInferenceAlgorithm::processRun_(
       std::unordered_map<std::string, std::pair<ProteinHit*, Size>>& acc_to_protein_hitP_and_count,
       std::unordered_map<std::string, std::map<Int, PeptideHit*>>& best_pep,
-      ProteinIdentification prot_run,
-      std::vector<PeptideIdentification> pep_ids,
+      ProteinIdentification& prot_run,
+      std::vector<PeptideIdentification>& pep_ids,
       AggregationMethod aggregation_method,
       String& aggMethodString,
       bool use_shared_peptides,
       bool treat_charge_variants_separately,
       bool treat_modification_variants_separately,
       bool skip_count_annotation) const
-   {
+  {
+    if (!(prot_run.getScoreType() == "Posterior Error Probability" || prot_run.getScoreType() == "Posterior Probability"))
+    {
+      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          "Inference only allowed on Posterior (Error) Probabilities!"
+          " Please run Percolator or IDPosteriorErrorProbability first.", prot_run.getScoreType());
+    }
+
     acc_to_protein_hitP_and_count.clear();
     best_pep.clear();
 
@@ -180,11 +187,35 @@ namespace OpenMS
     sp.setMetaValue("treat_modification_variants_separately", treat_modification_variants_separately);
     prot_run.setSearchParameters(sp);
 
+    double initScore = 0.0;
+    switch (aggregation_method)
+    {
+     //TODO for product we have to start at score = 1!
+     //TODO for 0 probability peptides we could also multiply a minimum value
+     //TODO Why are protein scores just floats???
+     case AggregationMethod::PROD :
+       initScore = 1.0;
+       break;
+     case AggregationMethod::MAXIMUM :
+       if (prot_run.isHigherScoreBetter())
+       {
+         initScore = -std::numeric_limits<double>::max();
+       }
+       else
+       {
+         initScore = std::numeric_limits<double>::max();
+       }
+       break;
+     case AggregationMethod::SUM :
+       break;
+    }
+
     //create Accession to ProteinHit and peptide count map. To have quick access later.
     //If a protein occurs in multiple runs, it picks the last
     for (auto &phit : prot_run.getHits())
     {
       acc_to_protein_hitP_and_count[phit.getAccession()] = std::make_pair<ProteinHit*, Size>(&phit, 0);
+      phit.setScore(initScore);
     }
 
     for (auto &pep : pep_ids)
@@ -269,23 +300,29 @@ namespace OpenMS
 
           double new_score = pep_hit.second->getScore();
 
-          // Note: This requires/works only with Posterior (Error) Probabilities
-          if (!prot_run.isHigherScoreBetter())
+          //TODO: Maybe use something else than the metavalue to do the updates (quicker)
+          if (!prot_run.isHigherScoreBetter()) // convert PEP to PP
             new_score = 1. - new_score;
+
           switch (aggregation_method)
           {
-            //TODO for product we have to start at score = 1!
-            //TODO for 0 probability peptides we could also multiply a minimum value
             //TODO Why are protein scores just floats???
             case AggregationMethod::PROD :
-              if (new_score > 0.0)
+              if (new_score > 0.0) //TODO for 0 probability peptides we could also multiply a minimum value
                 protein->setScore(protein->getScore() * new_score);
               break;
             case AggregationMethod::SUM :
               protein->setScore(protein->getScore() + new_score);
               break;
             case AggregationMethod::MAXIMUM :
-              protein->setScore(std::fmax(double(protein->getScore()), new_score));
+              if (prot_run.isHigherScoreBetter())
+              {
+                protein->setScore(std::fmax(double(protein->getScore()), new_score));
+              }
+              else
+              {
+                protein->setScore(std::fmin(double(protein->getScore()), new_score));
+              }
               break;
           }
         }
@@ -298,8 +335,19 @@ namespace OpenMS
         entry.second.first->setMetaValue("nr_found_peptides", entry.second.second);
       }
     }
-     prot_run.setScoreType("Posterior Probability");
-     prot_run.setHigherScoreBetter(true);
+
+    //normalize in case of SUM
+    if (aggregation_method == AggregationMethod::SUM)
+    {
+      for (auto& entry : acc_to_protein_hitP_and_count)
+      {
+        ProteinHit* phitp = entry.second.first;
+        phitp->setScore(phitp->getScore() / entry.second.second);
+      }
+    }
+
+    prot_run.setScoreType("Posterior Probability");
+    prot_run.setHigherScoreBetter(true);
     //TODO Allow count as aggregation method -> i.e. set as protein score?
   }
 } //namespace OpenMS

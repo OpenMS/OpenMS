@@ -744,7 +744,7 @@ protected:
       protein_ids[0].setMetaValue("fraction_group", fraction_group);
       protein_ids[0].setMetaValue("fraction", fraction);
 
-      // update identifers to make them unique 
+      // update identifiers to make them unique
       // fixes some bugs related to users splitting the original mzML and id files before running the analysis
       // in that case these files might have the same identifier
       const String old_identifier = protein_ids[0].getIdentifier();
@@ -1229,6 +1229,7 @@ protected:
     IDFilter::filterHitsByScore(inferred_protein_ids, maxFDR);
     IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
     IDFilter::removeUnreferencedProteins(inferred_protein_ids, inferred_peptide_ids);
+    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
 
     if (debug_level_ >= 666)
     {
@@ -1258,6 +1259,8 @@ protected:
     }
 
     // compute coverage
+    // TODO This needs to be fixed!!! Sometimes results in coverages around 30.
+    //  All mods and charges counted multiple times?
     inferred_protein_ids[0].computeCoverage(inferred_peptide_ids);
 
     // determine observed modifications (exclude fixed mods)
@@ -1396,6 +1399,11 @@ protected:
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), inferred_protein_ids[0]); // insert inference information as first protein identification
     proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
+    //proteins.resize(1); //TODO it SHOULD suffice to leave only the merged+inferred run as the first one.
+    // For correctness we would need to set the run reference in the pepIDs of the consensusXML all to the first run then
+    // And probably make sure that peptides that correspond to filtered out proteins are not producing errors
+    // e.g. by removing them with a Filter beforehand.
+
 
     consensus.resolveUniqueIdConflicts(); // TODO: find out why this is needed to get proper UIDs in consensus
     if (!getStringOption_("out_cxml").empty())

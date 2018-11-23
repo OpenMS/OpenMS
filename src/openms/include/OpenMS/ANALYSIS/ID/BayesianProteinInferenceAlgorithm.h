@@ -61,6 +61,10 @@ namespace OpenMS
     /// connected components
     class GraphInferenceFunctor;
 
+    /// A function object to pass into the IDBoostGraph class to perform algorithms on
+    /// connected components
+    class ExtendedGraphInferenceFunctor;
+
 
     /// Deprecated: A function object to pass into the IDBoostGraph class to perform algorithms on
     /// connected components and on the fly finding groups (no preannotation needed)
