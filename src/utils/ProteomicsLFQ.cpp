@@ -178,11 +178,18 @@ protected:
     setMinFloat_("proteinFDR", 0.0);
     setMaxFloat_("proteinFDR", 1.0);    
 
+    registerStringOption_("protein_inference", "<option>", "basic",
+      "Infer proteins:\n" 
+      "aggregation  = ... \n"
+      "bayesian     = ...", false, true);
+    setValidStrings_("protein_inference", ListUtils::create<String>("aggregation,bayesian"));
+
     registerStringOption_("protein_quantification", "<option>", "unique_peptides",
       "Quantify proteins based on:\n" 
       "unique_peptides = use peptides mapping to single proteins or group of indistinguishable proteins.\n"
       "shared_peptides = use shared peptides for its best group (by inference score)", false, true);
     setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,shared_peptides"));
+
 
     registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
@@ -1184,9 +1191,8 @@ protected:
     // TODO: Think about ProteinInference on IDs only merged per condition
     // TODO: Output coverage on protein (and group level?)
     // TODO: Expose algorithm choice and their parameters
-    bool bayesian = false;
-    bool fido = true;
-    if (!bayesian)
+    bool bayesian = getStringOption_("protein_inference") == "bayesian" ? true : false;
+    if (!bayesian) // simple aggregation
     {
       BasicProteinInferenceAlgorithm bpia;
       bpia.run(inferred_peptide_ids, inferred_protein_ids);
@@ -1196,7 +1202,7 @@ protected:
       ibg.computeConnectedComponents();
       ibg.annotateIndistProteins(true);
     }
-    else if (!fido)
+    else // if (bayesian)
     {
       //should be okay if we filter the hits here. protein quantifier
       //uses the annotations in the consensusXML anyway
