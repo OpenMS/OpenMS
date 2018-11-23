@@ -103,7 +103,7 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in", "<file>", "", "input file");
+    registerInputFileList_("in", "<file>", StringList(), "input file(s)");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
@@ -134,46 +134,57 @@ protected:
   {
     StopWatch sw;
     sw.start();
-    String in = getStringOption_("in");
+    StringList in = getStringList_("in");
+    // Merging if specifically asked or multiple files given. If you want to not merge
+    // ans use multiple files, use a loop
+    bool merge_runs = getStringOption_("merge_runs") == "all" || in.size() > 1;
     String out = getStringOption_("out");
 
     // load identifications
-    vector<ProteinIdentification> prot_ids;
-    vector<PeptideIdentification> pep_ids;
+
     std::cout << "Loading input..." << std::endl;
-    IdXMLFile().load(in, prot_ids, pep_ids);
+    IDMergerAlgorithm merger{String("all_merged")};
+
+    vector<ProteinIdentification> inferred_protein_ids{1};
+    vector<PeptideIdentification> inferred_peptide_ids;
+
+    IdXMLFile f;
+    if (merge_runs)
+    {
+      for (const auto &idfile : in)
+      {
+        vector<ProteinIdentification> protein_ids;
+        vector<PeptideIdentification> peptide_ids;
+        f.load(idfile, protein_ids, peptide_ids);
+        merger.insertRun(protein_ids, peptide_ids);
+      }
+      merger.returnResultsAndClear(inferred_protein_ids[0], inferred_peptide_ids);
+    }
+    else
+    {
+      f.load(in[0], inferred_protein_ids, inferred_peptide_ids);
+    }
     std::cout << "Loading input took " << sw.toString() << std::endl;
     sw.reset();
 
-    bool merge_runs = getStringOption_("merge_runs") == "all";
-    if (merge_runs)
-    {
-      std::cout << "Merging runs..." << std::endl;
-      IDMergerAlgorithm merger;
-      merger.insertRun(prot_ids, pep_ids);
-      prot_ids.resize(1);
-      merger.returnResultsAndClear(prot_ids[0], pep_ids);
-      std::cout << "Merging runs took " << sw.toString() << std::endl;
-      sw.reset();
-    }
 
     std::cout << "Aggregating protein scores..." << std::endl;
     BasicProteinInferenceAlgorithm pi;
     pi.setParameters(getParam_().copy("Algorithm:", true));
-    pi.run(pep_ids, prot_ids);
+    pi.run(inferred_peptide_ids, inferred_protein_ids);
     std::cout << "Aggregating protein scores took " << sw.toString() << std::endl;
     sw.clear();
 
     bool annotate_indist_groups = getStringOption_("annotate_indist_groups") == "true";
     if (annotate_indist_groups)
     {
-      if (prot_ids.size() > 1)
+      if (inferred_protein_ids.size() > 1)
       {
-        throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, prot_ids.size());
+        throw OpenMS::Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, inferred_protein_ids.size());
       }
       //TODO you could actually also do the aggregation/inference as well as the resolution on the Graph structure
       // but it is quite fast right now.
-      IDBoostGraph ibg{prot_ids[0], pep_ids};
+      IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids};
       ibg.buildGraph(0);
       sw.start();
       //TODO allow computation without splitting into components. Might be worthwhile in some cases
@@ -187,7 +198,7 @@ protected:
     std::cout << "Storing output..." << std::endl;
     sw.start();
     // write output
-    IdXMLFile().store(out, prot_ids, pep_ids);
+    IdXMLFile().store(out, inferred_protein_ids, inferred_peptide_ids);
     std::cout << "Storing output took " << sw.toString() << std::endl;
     sw.stop();
 
