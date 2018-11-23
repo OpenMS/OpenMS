@@ -113,6 +113,24 @@ using namespace std;
 -out BSA.mzTab -threads 4 -debug 667 
 
 
+Potential script to perform the search
+# perform search, score calibration, and PSM-level q-value/PEP estimation
+for f in ${DATA_PATH}/*.mzML; do
+  echo $f
+  fn=${f%.mzML} # filename and path without mzML extension
+  # search with default fixed and variable mods
+  MSGFPlusAdapter -in ${f} -out ${fn}.idXML -database ${DATA_PATH}/iPRG2015_decoy.fasta -executable ${MSGF_PATH} -max_precursor_charge 5 -threads 10 
+  # annotate target/decoy and protein links
+  PeptideIndexer -fasta ${DATA_PATH}/iPRG2015_decoy.fasta  -in ${fn}.idXML -out ${fn}.idXML -enzyme:specificity none
+  # run percolator so we get well calibrated PEPs and q-values
+  PSMFeatureExtractor -in ${fn}.idXML -out ${fn}.idXML 
+  PercolatorAdapter -in ${fn}.idXML -out ${fn}.idXML -percolator_executable percolator -post-processing-tdc -subset-max-train 100000 
+  FalseDiscoveryRate -in ${fn}.idXML -out ${fn}.idXML -algorithm:add_decoy_peptides -algorithm:add_decoy_proteins 
+  # pre-filter to 5% PSM-level FDR to reduce data
+  IDFilter -in ${fn}.idXML -out ${fn}.idXML -score:pep 0.05 
+  # switch to PEP score
+  IDScoreSwitcher -in ${fn}.idXML -out ${fn}.idXML -old_score q-value -new_score MS:1001493 -new_score_orientation lower_better -new_score "Posterior Error Probability" 
+done
  **/
 
 class UTILProteomicsLFQ :
@@ -159,6 +177,12 @@ protected:
     registerDoubleOption_("proteinFDR", "<threshold>", 0.05, "Protein FDR threshold (0.05=5%).", false);
     setMinFloat_("proteinFDR", 0.0);
     setMaxFloat_("proteinFDR", 1.0);    
+
+    registerStringOption_("protein_quantification", "<option>", "unique_peptides",
+      "Quantify proteins based on:\n" 
+      "unique_peptides = use peptides mapping to single proteins or group of indistinguishable proteins.\n"
+      "shared_peptides = use shared peptides for its best group (by inference score)", false, true);
+    setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,shared_peptides"));
 
     registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
     setValidStrings_("targeted_only", ListUtils::create<String>("true,false"));
@@ -1211,7 +1235,7 @@ protected:
       IdXMLFile().store("debug_mergedIDsFDRFiltered.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
-    bool greedy_group_resolution = true;
+    bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides" ? true : false;
     if (greedy_group_resolution)
     {
       PeptideProteinResolution ppr{};
