@@ -178,17 +178,21 @@ protected:
     setMinFloat_("proteinFDR", 0.0);
     setMaxFloat_("proteinFDR", 1.0);    
 
-    registerStringOption_("protein_inference", "<option>", "basic",
+    //TODO expose all parameters of the inference algorithms (e.g. aggregation methods etc.)?
+    registerStringOption_("protein_inference", "<option>", "aggregation",
       "Infer proteins:\n" 
-      "aggregation  = ... \n"
-      "bayesian     = ...", false, true);
+      "aggregation  = aggregates all peptide scores across a protein (by calculating the maximum) \n"
+      "bayesian     = computes a posterior probability for every protein based on a Bayesian network",
+      false, true);
     setValidStrings_("protein_inference", ListUtils::create<String>("aggregation,bayesian"));
 
     registerStringOption_("protein_quantification", "<option>", "unique_peptides",
-      "Quantify proteins based on:\n" 
-      "unique_peptides = use peptides mapping to single proteins or group of indistinguishable proteins.\n"
-      "shared_peptides = use shared peptides for its best group (by inference score)", false, true);
-    setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,shared_peptides"));
+      "Quantify proteins based on:\n"
+      "unique_peptides = use peptides mapping to single proteins or a group of indistinguishable proteins"
+      "(according to the set of experimentally identified peptides).\n"
+      "strictly_unique_peptides = use peptides mapping to a unique single protein only.\n"
+      "shared_peptides = use shared peptides only for its best group (by inference score)", false, true);
+    setValidStrings_("protein_quantification", ListUtils::create<String>("unique_peptides,strictly_unique_peptides,shared_peptides"));
 
 
     registerStringOption_("targeted_only", "<option>", "false", "Only ID based quantification.", false, true);
@@ -1191,7 +1195,8 @@ protected:
     // TODO: Think about ProteinInference on IDs only merged per condition
     // TODO: Output coverage on protein (and group level?)
     // TODO: Expose algorithm choice and their parameters
-    bool bayesian = getStringOption_("protein_inference") == "bayesian" ? true : false;
+    bool groups = getStringOption_("protein_quantification") != "strictly_unique_peptides";
+    bool bayesian = getStringOption_("protein_inference") == "bayesian";
     if (!bayesian) // simple aggregation
     {
       BasicProteinInferenceAlgorithm bpia;
@@ -1200,10 +1205,22 @@ protected:
       IDBoostGraph ibg{inferred_protein_ids[0], inferred_peptide_ids};
       ibg.buildGraph(0);
       ibg.computeConnectedComponents();
-      ibg.annotateIndistProteins(true);
+      if (groups)
+      {
+        ibg.annotateIndistProteins(true);
+      }
     }
     else // if (bayesian)
     {
+      if (groups) //TODO @julianus: easy to fix. Remove that limitation by adding a bool param.
+      {
+        throw OpenMS::Exception::InvalidParameter(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Inference = Bayes currently automatically groups proteins and does not allow for"
+          " strictly_unique_peptides during quantification.");
+      }
       //should be okay if we filter the hits here. protein quantifier
       //uses the annotations in the consensusXML anyway
       IDFilter::filterBestPerPeptide(inferred_peptide_ids, true, true, 1);
