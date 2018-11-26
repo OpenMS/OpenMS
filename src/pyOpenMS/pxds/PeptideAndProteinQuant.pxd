@@ -8,7 +8,6 @@ from Param cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from ProteinIdentification cimport *
-
 # ctypedef libcpp_map<UInt64, double> SampleAbundances;
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" namespace "OpenMS":
@@ -62,7 +61,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
     cdef cppclass PeptideAndProteinQuant_PeptideData "OpenMS::PeptideAndProteinQuant::PeptideData":
 
       # libcpp_map[Int, SampleAbundances] abundances
-      libcpp_map[unsigned long, double] total_abundances
+      # libcpp_map[unsigned long, double] total_abundances
 
       # protein accessions for this peptide
       libcpp_set[String] accessions
@@ -78,8 +77,9 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
     cdef cppclass PeptideAndProteinQuant_ProteinData "OpenMS::PeptideAndProteinQuant::ProteinData":
 
       # libcpp_map[String, SampleAbundances] abundances
-
-      libcpp_map[unsigned long, double] total_abundances
+ 
+      # compile issue 
+      # libcpp_map[unsigned long, double] total_abundances
 
       # total number of identifications (of peptides mapping to this protein)
       Size id_count
