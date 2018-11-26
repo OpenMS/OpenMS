@@ -279,7 +279,11 @@ namespace OpenMS
 
         if (lookup.empty())
         {
-          if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
+          if (it->metaValueExists("spectrum_reference"))
+          {
+            scan_index = it->getMetaValue("spectrum_reference");
+          }
+          else if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
           {
             scan_index = it->getMetaValue("RT_index");
           }
@@ -287,7 +291,14 @@ namespace OpenMS
         }
         else
         {
+          if (it->metaValueExists("spectrum_reference"))
+          {
+            scan_index = lookup.findByNativeID(it->getMetaValue("spectrum_reference"));
+          }
+          else
+          {
           scan_index = lookup.findByRT(it->getRT());
+          }
 
           SpectrumMetaDataLookup::SpectrumMetaData meta;
           lookup.getSpectrumMetaData(scan_index, meta);
