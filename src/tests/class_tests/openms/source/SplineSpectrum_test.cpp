@@ -35,10 +35,12 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
 using namespace OpenMS;
 
@@ -54,44 +56,53 @@ double Gauss2(double x)
 
 START_TEST(SplineSpectrum, "$Id$")
 
-std::vector<double> mz;
+std::vector<double> pos;
 std::vector<double> intensity;
 for (int i=0; i < 11; ++i)
 {
-    mz.push_back(416.3 + 0.1*i);
+    pos.push_back(416.3 + 0.1*i);
     intensity.push_back(Gauss1(416.3+0.1*i));
 }
 for (int i=0; i < 11; ++i)
 {
-    mz.push_back(418.2 + 0.1*i);
+    pos.push_back(418.2 + 0.1*i);
     intensity.push_back(Gauss2(418.2+0.1*i));
 }
 
 MSSpectrum spectrum;
 Peak1D peak;
 spectrum.setRT(1789.0714);
-for (size_t i=0; i < mz.size(); ++i)
+for (size_t i=0; i < pos.size(); ++i)
 {
-    peak.setMZ(mz[i]);
+    peak.setMZ(pos[i]);
     peak.setIntensity(intensity[i]);
     spectrum.push_back(peak);
+}
+
+MSChromatogram chromatogram;
+ChromatogramPeak peak_c;
+for (size_t i=0; i < pos.size(); ++i)
+{
+    peak_c.setRT(pos[i]);
+    peak_c.setIntensity(intensity[i]);
+    chromatogram.push_back(peak_c);
 }
 
 SplineSpectrum* nullPointer = nullptr;
 SplineSpectrum* ptr;
 
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling))
-    SplineSpectrum spline(mz, intensity);
+    SplineSpectrum spline(pos, intensity);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3);
-    ptr = new SplineSpectrum(mz, intensity);
+    ptr = new SplineSpectrum(pos, intensity);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling))
-    SplineSpectrum spline(mz, intensity, 0.7);
+    SplineSpectrum spline(pos, intensity, 0.7);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
-    ptr = new SplineSpectrum(mz, intensity, 0.7);
+    ptr = new SplineSpectrum(pos, intensity, 0.7);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
@@ -112,7 +123,23 @@ START_SECTION(SplineSpectrum(const MSSpectrum& raw_spectrum, double scaling))
     delete ptr;
 END_SECTION
 
-SplineSpectrum spectrum2(mz, intensity);
+START_SECTION(SplineSpectrum(const MSChromatogram& raw_chromatogram, double scaling))
+	SplineSpectrum spline(chromatogram);
+    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    ptr = new SplineSpectrum(chromatogram);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
+END_SECTION
+
+START_SECTION(SplineSpectrum(const MSChromatogram& raw_chromatogram, double scaling))
+	SplineSpectrum spline(chromatogram, 0.7);
+    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    ptr = new SplineSpectrum(chromatogram, 0.7);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
+END_SECTION
+
+SplineSpectrum spectrum2(pos, intensity);
 
 START_SECTION(double getMzMin() const)
   TEST_EQUAL(spectrum2.getMzMin(), 416.3);
