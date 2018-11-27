@@ -701,6 +701,7 @@ protected:
       UInt runs_count(0);
       Size protein_hit_count(0);
       set<String> peptides;
+      set<String> peptides_ignore_mods;
       set<String> proteins;
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
@@ -727,11 +728,13 @@ protected:
              << "\t" << id_data.proteins[0].getSearchParameters().taxonomy << "\n";
 
       // calculations
+      UInt average_peptide_hits{0}; // average number of hits per spectrum (ignoring the empty ones)
       for (Size i = 0; i < id_data.peptides.size(); ++i)
       {
         if (!id_data.peptides[i].empty())
         {
           ++spectrum_count;
+          average_peptide_hits += id_data.peptides[i].getHits().size();
           peptide_hit_count += id_data.peptides[i].getHits().size();
           const vector<PeptideHit> &temp_hits = id_data.peptides[i].getHits();
           // collect stats about modifications from TOP HIT!
@@ -750,6 +753,7 @@ protected:
           for (Size j = 0; j < temp_hits.size(); ++j)
           {
             peptides.insert(temp_hits[j].getSequence().toString());
+            peptides_ignore_mods.insert(temp_hits[j].getSequence().toUnmodifiedString());
             peptide_length.push_back((uint16_t)temp_hits[j].getSequence().size());
           }
         }
@@ -778,6 +782,8 @@ protected:
          << "\n";
       os << "\n";
       os << "  matched spectra:    " << spectrum_count << "\n";
+      os << "  peptide sequences:  " << peptides_ignore_mods.size() << "\n";
+      os << "  PSMs / spectrum (ignoring unidentified spectra):    " << average_peptide_hits / std::max(1, (Int)spectrum_count) << "\n";
       os << "  peptide hits:               " << peptide_hit_count << " (avg. length: " << Math::round(Math::mean(peptide_length.begin(), peptide_length.end())) << ")\n";
       os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + Math::round(modified_peptide_count * 1000.0 / spectrum_count) / 10 + "%)" : "") << "\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";
