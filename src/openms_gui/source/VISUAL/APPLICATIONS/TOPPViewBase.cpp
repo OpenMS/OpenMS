@@ -445,7 +445,7 @@ namespace OpenMS
     group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
     menu = new QMenu(dm_unassigned_2d_);
     StringList options = ListUtils::create<String>(
-      "Don't show,Show by precursor m/z,Show by peptide mass");
+      "Don't show,Show by precursor m/z,Show by peptide mass,Show label meta data");
     for (StringList::iterator opt_it = options.begin(); opt_it != options.end();
          ++opt_it)
     {
@@ -1804,18 +1804,28 @@ namespace OpenMS
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, false);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
       set = true;
     }
     else if (action->text().toStdString() == "Show by precursor m/z")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
       set = true;
     }
     else if (action->text().toStdString() == "Show by peptide mass")
     {
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
       getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, false);
+      set = true;
+    }
+    else if (action->text().toStdString() == "Show label meta data")
+    {
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::F_UNASSIGNED, true);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_PEPTIDEMZ, false);
+      getActive2DWidget()->canvas()->setLayerFlag(LayerData::I_LABELS, true);
       set = true;
     }
 
@@ -2828,6 +2838,9 @@ namespace OpenMS
 
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
+    // store active sub window
+    QMdiSubWindow* old_active = ws_->activeSubWindow();
+    
     String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid *.bz2 *.gz);;";
     String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d);;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
 
@@ -2848,6 +2861,9 @@ namespace OpenMS
       file_names = dialog.selectedFiles();
     }
 
+    // restore active sub window
+    ws_->setActiveSubWindow(old_active);
+    
     return file_names;
   }
 

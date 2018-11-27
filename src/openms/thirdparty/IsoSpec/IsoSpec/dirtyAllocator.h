@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -14,13 +14,14 @@
  *   along with IsoSpec.  If not, see <https://opensource.org/licenses/BSD-2-Clause>.
  */
 
-
-#ifndef DIRTY_ALLOCATOR_HPP
-#define DIRTY_ALLOCATOR_HPP
+#pragma once
 
 #include <vector>
 #include <iostream>
 #include <string.h>
+
+namespace IsoSpec
+{
 
 class DirtyAllocator{
 private:
@@ -68,4 +69,5 @@ public:
     }
 };
 
-#endif
+} // namespace IsoSpec
+
