@@ -170,7 +170,11 @@ namespace OpenMS
       bool treat_modification_variants_separately,
       bool skip_count_annotation) const
   {
-    if (!(prot_run.getScoreType() == "Posterior Error Probability" || prot_run.getScoreType() == "Posterior Probability"))
+    if (
+      !(prot_run.getScoreType() == "Posterior Error Probability" || 
+        prot_run.getScoreType() == "Posterior Probability" ||
+        prot_run.getScoreType() == "MS:1001493" // percolator PEP
+       ))
     {
       throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           "Inference only allowed on Posterior (Error) Probabilities!"
