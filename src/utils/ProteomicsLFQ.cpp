@@ -1151,6 +1151,10 @@ protected:
     vector<PeptideIdentification> inferred_peptide_ids;
     merger.returnResultsAndClear(inferred_protein_ids[0], inferred_peptide_ids);
 
+    // TODO: move this to IDMerger?
+    inferred_protein_ids[0].setScoreType("Posterior Error Probability");
+    inferred_protein_ids[0].setHigherScoreBetter(false);
+
     if (debug_level_ >= 666)
     {
       IdXMLFile().store("debug_mergedIDs.idXML", inferred_protein_ids, inferred_peptide_ids);
