@@ -44,7 +44,7 @@ namespace OpenMS
   IsotopeDistribution FineIsotopePatternGenerator::run(const EmpiricalFormula& formula) const
   {
 
-    if(use_total_prob_)
+    if (use_total_prob_)
     {
         IsotopeDistribution result(IsoSpecTotalProbWrapper(formula, stop_condition_).run());
         result.sortByMass();
