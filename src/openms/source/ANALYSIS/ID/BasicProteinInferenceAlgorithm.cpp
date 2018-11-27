@@ -172,8 +172,7 @@ namespace OpenMS
   {
     if (
       !(prot_run.getScoreType() == "Posterior Error Probability" || 
-        prot_run.getScoreType() == "Posterior Probability" ||
-        prot_run.getScoreType() == "MS:1001493" // percolator PEP
+        prot_run.getScoreType() == "Posterior Probability" 
        ))
     {
       throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
