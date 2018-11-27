@@ -48,16 +48,28 @@ namespace OpenMS
     SplineSpectrum::init_(mz, intensity, scaling);
   }
 
-  SplineSpectrum::SplineSpectrum(MSSpectrum& raw_spectrum, double scaling)
+  SplineSpectrum::SplineSpectrum(const MSSpectrum& raw_spectrum, double scaling)
   {
     std::vector<double> mz;
     std::vector<double> intensity;
-    for (MSSpectrum::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
+    for (const auto &it : raw_spectrum)
     {
-      mz.push_back(it->getMZ());
-      intensity.push_back(it->getIntensity());
+      mz.push_back(it.getMZ());
+      intensity.push_back(it.getIntensity());
     }
     SplineSpectrum::init_(mz, intensity, scaling);
+  }
+
+  SplineSpectrum::SplineSpectrum(const MSChromatogram& raw_chromatogram, double scaling)
+  {
+    std::vector<double> rt;
+    std::vector<double> intensity;
+    for (const auto &it : raw_chromatogram)
+    {
+      rt.push_back(it.getRT());
+      intensity.push_back(it.getIntensity());
+    }
+    SplineSpectrum::init_(rt, intensity, scaling);
   }
 
   SplineSpectrum::~SplineSpectrum()

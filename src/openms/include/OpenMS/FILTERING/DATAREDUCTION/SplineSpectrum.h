@@ -52,6 +52,7 @@ namespace OpenMS
  *
  * @see SplinePackage
  * @see MSSpectrum
+ * @see MSChromatogram
  */
 class OPENMS_DLLAPI SplineSpectrum
 {
@@ -68,7 +69,13 @@ class OPENMS_DLLAPI SplineSpectrum
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
      */
-    SplineSpectrum(MSSpectrum& raw_spectrum, double scaling = 0.7);
+    SplineSpectrum(const MSSpectrum& raw_spectrum, double scaling = 0.7);
+
+    /**
+     * @brief constructor taking an MSChromatogram
+     * (and an optional scaling factor for the RT step width)
+     */
+    SplineSpectrum(const MSChromatogram& raw_chromatogram, double scaling = 0.7);
 
     /**
      * @brief destructor

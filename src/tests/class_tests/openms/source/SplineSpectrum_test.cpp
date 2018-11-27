@@ -96,7 +96,7 @@ START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<do
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineSpectrum(MSSpectrum& raw_spectrum, double scaling))
+START_SECTION(SplineSpectrum(const MSSpectrum& raw_spectrum, double scaling))
 	SplineSpectrum spline(spectrum);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
     ptr = new SplineSpectrum(spectrum);
@@ -104,7 +104,7 @@ START_SECTION(SplineSpectrum(MSSpectrum& raw_spectrum, double scaling))
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineSpectrum(MSSpectrum& raw_spectrum, double scaling))
+START_SECTION(SplineSpectrum(const MSSpectrum& raw_spectrum, double scaling))
 	SplineSpectrum spline(spectrum, 0.7);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
     ptr = new SplineSpectrum(spectrum, 0.7);
