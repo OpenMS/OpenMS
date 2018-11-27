@@ -45,10 +45,10 @@
 namespace OpenMS
 {
 /**
- * @brief Data structure for spline interpolation of MS1 spectra
+ * @brief Data structure for spline interpolation of MS1 spectra and chromatograms
  *
- * The data structure consists of a set of splines, each interpolating the MS1 spectrum in a certain m/z range.
- * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
+ * The data structure consists of a set of splines, each interpolating the MS1 spectrum (or chromatogram) in a
+ * certain m/z (or RT) range. Between these splines no raw data points exist and the intensity is identical to zero.
  *
  * @see SplinePackage
  * @see MSSpectrum
