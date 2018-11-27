@@ -62,15 +62,13 @@ class OPENMS_DLLAPI SplineSpectrum
      *
      *  @note Vectors are assumed to be sorted by m/z!
      */
-    SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity);
-    SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
+    SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling = 0.7);
 
     /**
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
      */
-    SplineSpectrum(MSSpectrum& raw_spectrum);
-    SplineSpectrum(MSSpectrum& raw_spectrum, double scaling);
+    SplineSpectrum(MSSpectrum& raw_spectrum, double scaling = 0.7);
 
     /**
      * @brief destructor

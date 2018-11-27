@@ -43,26 +43,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  SplineSpectrum::SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity)
-  {
-    SplineSpectrum::init_(mz, intensity, 0.7);
-  }
-
   SplineSpectrum::SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
   {
     SplineSpectrum::init_(mz, intensity, scaling);
-  }
-
-  SplineSpectrum::SplineSpectrum(MSSpectrum& raw_spectrum)
-  {
-    std::vector<double> mz;
-    std::vector<double> intensity;
-    for (MSSpectrum::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
-    {
-      mz.push_back(it->getMZ());
-      intensity.push_back(it->getIntensity());
-    }
-    SplineSpectrum::init_(mz, intensity, 0.7);
   }
 
   SplineSpectrum::SplineSpectrum(MSSpectrum& raw_spectrum, double scaling)
