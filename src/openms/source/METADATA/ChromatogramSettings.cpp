@@ -61,41 +61,8 @@ namespace OpenMS
   {
   }
 
-  ChromatogramSettings::ChromatogramSettings(const ChromatogramSettings & source) :
-    MetaInfoInterface(source),
-    native_id_(source.native_id_),
-    comment_(source.comment_),
-    instrument_settings_(source.instrument_settings_),
-    source_file_(source.source_file_),
-    acquisition_info_(source.acquisition_info_),
-    precursor_(source.precursor_),
-    product_(source.product_),
-    data_processing_(source.data_processing_),
-    type_(source.type_)
-  {
-  }
-
   ChromatogramSettings::~ChromatogramSettings()
   {
-  }
-
-  ChromatogramSettings & ChromatogramSettings::operator=(const ChromatogramSettings & source)
-  {
-    if (&source == this)
-      return *this;
-
-    MetaInfoInterface::operator=(source);
-    native_id_ = source.native_id_;
-    comment_ = source.comment_;
-    instrument_settings_ = source.instrument_settings_;
-    acquisition_info_ = source.acquisition_info_;
-    source_file_ = source.source_file_;
-    precursor_ = source.precursor_;
-    product_ = source.product_;
-    data_processing_ = source.data_processing_;
-    type_ = source.type_;
-
-    return *this;
   }
 
   bool ChromatogramSettings::operator==(const ChromatogramSettings & rhs) const

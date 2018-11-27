@@ -2,6 +2,8 @@ cimport numpy as np
 import numpy as np
 
 
+
+
     def get_peaks(self):
 
         cdef _MSSpectrum * spec_ = self.inst.get()
@@ -31,19 +33,81 @@ import numpy as np
         mzs, intensities = peaks
         assert len(mzs) == len(intensities), "Input vectors for set_peaks need to have the same length (mz and intensity vector)"
 
+        # Select which function to use for set_peaks:
+        # If we have numpy arrays, it helps to use optimized functions
+        if isinstance(mzs, np.ndarray) and isinstance(intensities, np.ndarray) and \
+          mzs.dtype == np.float64 and intensities.dtype == np.float32 and \
+          mzs.flags["C_CONTIGUOUS"] and intensities.flags["C_CONTIGUOUS"]  :
+            self._set_peaks_fast_df(mzs, intensities)
+        elif isinstance(mzs, np.ndarray) and isinstance(intensities, np.ndarray) and \
+          mzs.dtype == np.float64 and intensities.dtype == np.float64 and \
+          mzs.flags["C_CONTIGUOUS"] and intensities.flags["C_CONTIGUOUS"]  :
+            self._set_peaks_fast_dd(mzs, intensities)
+        else:
+            self._set_peaks_orig(mzs, intensities)
+
+
+
+    def _set_peaks_fast_dd(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[double, ndim=1, mode="c"] data_i not None):
+
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         spec_.clear(0) # empty vector , keep meta data
-        # spec_.reserve(<int>len(mzs)) # allocate space for incoming data
+        spec_.reserve(<int>len(data_mz)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
-        cdef float I
+        cdef double intensity
+        cdef int N
+        N = len(data_mz)
+
+        for i in range(N):
+            mz = data_mz[i]
+            intensity = data_i[i]
+            p.setMZ(<double>mz)
+            p.setIntensity(<float>intensity)
+            spec_.push_back(p)
+
+        spec_.updateRanges()
+
+
+    def _set_peaks_fast_df(self, np.ndarray[double, ndim=1, mode="c"] data_mz not None, np.ndarray[float, ndim=1, mode="c"] data_i not None):
+
+        cdef _MSSpectrum * spec_ = self.inst.get()
+
+        spec_.clear(0) # empty vector , keep meta data
+        spec_.reserve(<int>len(data_mz)) # allocate space for incoming data
+        cdef _Peak1D p = _Peak1D()
+        cdef double mz
+        cdef float intensity
+        cdef int N
+        N = len(data_mz)
+
+        for i in range(N):
+            mz = data_mz[i]
+            intensity = data_i[i]
+            p.setMZ(<double>mz)
+            p.setIntensity(<float>intensity)
+            spec_.push_back(p)
+
+        spec_.updateRanges()
+
+
+    def _set_peaks_orig(self, mzs, intensities):
+
+
+        cdef _MSSpectrum * spec_ = self.inst.get()
+
+        spec_.clear(0) # empty vector , keep meta data
+        spec_.reserve(<int>len(mzs)) # allocate space for incoming data
+        cdef _Peak1D p = _Peak1D()
+        cdef double mz
+        cdef float intensity
         cdef int N
         N = len(mzs)
 
         for i in range(N):
             mz = mzs[i]
-            intensity  = intensities[i]
+            intensity = intensities[i]
             p.setMZ(<double>mz)
             p.setIntensity(<float>intensity)
             spec_.push_back(p)

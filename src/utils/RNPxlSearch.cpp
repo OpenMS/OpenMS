@@ -46,7 +46,7 @@
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlReport.h>
@@ -61,6 +61,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 // preprocessing and filtering
+#include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
@@ -187,6 +188,13 @@ protected:
                         "format:  target nucleotide=empirical formula of nucleoside monophosphate \n e.g. A=C10H14N5O7P, ..., U=C10H14N5O7P, X=C9H13N2O8PS  where X represents e.g. tU \n or e.g. Y=C10H14N5O7PS where Y represents tG", 
                         false, 
                         false);
+
+    registerStringList_("RNPxl:nt_groups",
+        "",
+        {},
+	"Restrict which nucleotides can cooccur in a precursor adduct to be able to search both RNA and DNA (Formate e.g.: AU CG).",
+        false,
+        false);
 
     registerStringList_("RNPxl:mapping", "", {"A->A", "C->C", "G->G", "U->U"}, "format: source->target e.g. A->A, ..., U->U, U->X", false, false);
 
@@ -567,7 +575,14 @@ protected:
           const String precursor_rna_adduct = *mod_combinations_it->second.begin();
           const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_rna_adduct).feasible_adducts;
 
-          // copy PSM information for each cross-linkable nucleotides
+          // just copy non-cross-linked peptide PSMs
+          if (precursor_rna_adduct == "none") 
+          {
+            new_hits.push_back(annotated_hits[scan_index][i]);
+            continue;
+          }
+
+          // if we have a cross-link, copy PSM information for each cross-linkable nucleotides
           for (auto const & c : feasible_MS2_adducts)
           {
             AnnotatedHit a(annotated_hits[scan_index][i]);
@@ -648,6 +663,7 @@ protected:
         Param new_param(partial_loss_spectrum_generator.getParameters());
         new_param.setValue("add_all_precursor_charges", "true");
         new_param.setValue("add_abundant_immonium_ions", "true");
+        new_param.setValue("add_losses", "true");
         tmp_generator.setParameters(new_param);
         tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
 
@@ -686,6 +702,7 @@ protected:
         using MapIonIndexToFragmentAnnotation = map<Size, vector<RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
         MapIonIndexToFragmentAnnotation unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
         vector<PeptideHit::PeakAnnotation> shifted_immonium_ions;
+        vector<PeptideHit::PeakAnnotation> unshifted_loss_ions;
         vector<PeptideHit::PeakAnnotation> annotated_marker_ions;
         vector<PeptideHit::PeakAnnotation> annotated_precursor_ions;
         vector<PeptideHit::PeakAnnotation> annotated_immonium_ions;
@@ -713,12 +730,29 @@ protected:
           const int charge = total_loss_charges[aligned.first];
 
           // define which ion names are annotated
-          if (ion_name.hasPrefix("y"))
+          if (ion_name[0] == 'y')
           {
-              String ion_nr_string = ion_name;
-              ion_nr_string.substitute("y", "");
-              ion_nr_string.substitute("+", "");
-              auto ion_number = (Size)ion_nr_string.toInt();
+            Size loss_first = ion_name.find_first_of('-'); // start of loss
+            Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+
+            if (loss_first != string::npos) // ion with neutral loss e.g. water
+            {
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              {
+                PeptideHit::PeakAnnotation fa;
+                fa.mz = fragment_mz;
+                fa.intensity = fragment_intensity;
+                fa.charge = charge;
+                fa.annotation = ion_name;
+                unshifted_loss_ions.push_back(fa);
+                peak_is_annotated.insert(aligned.second);
+              }
+            }
+            else
+            {
+            String ion_nr_string = ion_name.substr(1, charge_pos - 1);
+            Size ion_number = (Size)ion_nr_string.toInt();
             #ifdef DEBUG_RNPXLSEARCH
               const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
               LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
@@ -737,13 +771,31 @@ protected:
               LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
+            }
           }
-          else if (ion_name.hasPrefix("b"))
+          else if (ion_name[0] == 'b')
           {
-              String ion_nr_string = ion_name;
-              ion_nr_string.substitute("b", "");
-              ion_nr_string.substitute("+", "");
-              auto ion_number = (Size)ion_nr_string.toInt();
+            Size loss_first = ion_name.find_first_of('-'); // start of loss
+            Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+
+            if (loss_first != string::npos)
+            {
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              {
+                PeptideHit::PeakAnnotation fa;
+                fa.mz = fragment_mz;
+                fa.intensity = fragment_intensity;
+                fa.charge = charge;
+                fa.annotation = ion_name;
+                unshifted_loss_ions.push_back(fa);
+                peak_is_annotated.insert(aligned.second);
+              }
+            }
+            else
+            {
+              String ion_nr_string = ion_name.substr(1, charge_pos - 1);
+              Size ion_number = (Size)ion_nr_string.toInt();
             #ifdef DEBUG_RNPXLSEARCH
               const AASequence& peptide_sequence = aas.getPrefix(ion_number);
               LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
@@ -762,12 +814,30 @@ protected:
               LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
+            }
           }
-          else if (ion_name.hasPrefix("a"))
+          else if (ion_name[0] == 'a')
           {
-              String ion_nr_string = ion_name;
-              ion_nr_string.substitute("a", "");
-              ion_nr_string.substitute("+", "");
+            Size loss_first = ion_name.find_first_of('-'); // start of loss
+            Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+
+            if (loss_first != string::npos)
+            {
+              // only allow matching charges (if a fragment charge was assigned)
+              if (fragment_charge == 0 || fragment_charge == charge)
+              {
+                PeptideHit::PeakAnnotation fa;
+                fa.mz = fragment_mz;
+                fa.intensity = fragment_intensity;
+                fa.charge = charge;
+                fa.annotation = ion_name;
+                unshifted_loss_ions.push_back(fa);
+                peak_is_annotated.insert(aligned.second);
+              }
+            }
+            else
+            {
+              String ion_nr_string = ion_name.substr(1, charge_pos - 1);
               auto ion_number = (Size)ion_nr_string.toInt();
             #ifdef DEBUG_RNPXLSEARCH
               const AASequence& peptide_sequence = aas.getPrefix(ion_number);
@@ -787,6 +857,7 @@ protected:
               LOG_DEBUG << "Charge missmatch in alignment: " << ion_name << " at position: " << fragment_mz << " charge fragment: " << fragment_charge << " theo. charge: " << charge << endl;
             }
             #endif
+            }
           }
           else if (ion_name.hasPrefix("[M+")) // precursor ion
           {
@@ -830,6 +901,10 @@ protected:
         if (!annotated_immonium_ions.empty())
         {
           fas.insert(fas.end(), annotated_immonium_ions.begin(), annotated_immonium_ions.end());          
+        }
+        if (!unshifted_loss_ions.empty())
+        {
+          fas.insert(fas.end(), unshifted_loss_ions.begin(), unshifted_loss_ions.end());          
         }
 
         vector<double> sites_sum_score(aas.size(), 0);
@@ -1190,7 +1265,8 @@ protected:
     const RNPxlModificationMassesResult& mm, 
     const vector<ResidueModification>& fixed_modifications, 
     const vector<ResidueModification>& variable_modifications, 
-    Size max_variable_mods_per_peptide)
+    Size max_variable_mods_per_peptide,
+    const vector<PrecursorPurity::PurityScores>& purities)
   {
       // remove all but top n scoring (Note: this is currently necessary as postScoreHits_ might reintroduce nucleotide specific hits for fast scoring)
 #ifdef _OPENMP
@@ -1272,6 +1348,11 @@ protected:
           ph.setMetaValue(String("RNPxl:localization_scores"), ah.localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), ah.best_localization);
 
+          if (!purities.empty())
+          {
+            ph.setMetaValue("precursor_purity", purities[scan_index].signal_proportion);
+          }
+
           ph.setPeakAnnotations(ah.fragment_annotations);
           ph.setMetaValue("isotope_error", static_cast<int>(ah.isotope_error));
           ph.setMetaValue("rank", rank);
@@ -1331,6 +1412,7 @@ protected:
        << "RNPxl:pl_Morph"
        << "RNPxl:total_MIC"
        << "RNPxl:RNA_MASS_z0";
+    if (!purities.empty()) feature_set << "precursor_purity";
 
     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
     search_parameters.setMetaValue("extra_features", ListUtils::concatenate(feature_set, ","));
@@ -1521,6 +1603,8 @@ protected:
     // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
     StringList target_nucleotides = getStringList_("RNPxl:target_nucleotides");
 
+    StringList nt_groups = getStringList_("RNPxl:nt_groups");
+
     // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
     StringList mappings = getStringList_("RNPxl:mapping");
 
@@ -1545,6 +1629,7 @@ protected:
     {
       mm = RNPxlModificationsGenerator::initModificationMassesRNA(
             target_nucleotides,
+            nt_groups, 
             can_xl_,
             mappings,
             modifications, 
@@ -1564,10 +1649,32 @@ protected:
     // calculate all feasible fragment adducts from all possible precursor adducts
     RNPxlParameterParsing::PrecursorsToMS2Adducts all_feasible_fragment_adducts = RNPxlParameterParsing::getAllFeasibleFragmentAdducts(mm, nucleotide_to_fragment_adducts, can_xl_);
 
+    // calculate FDR
+    FalseDiscoveryRate fdr;
+    Param p = fdr.getParameters();
+    p.setValue("add_decoy_peptides", "true"); // we still want decoys in the result (e.g., to run percolator)
+    if (report_top_hits >= 2)
+    {
+      p.setValue("use_all_hits", "true");
+    }
+    fdr.setParameters(p);
+
     // load MS2 map
     PeakMap spectra;
     MzMLFile f;
     f.setLogType(log_type_);
+
+    // load both MS1 and MS2 for precursor purity annotation
+    vector<PrecursorPurity::PurityScores> purities;
+    {
+      PeakMap tmp_spectra;
+      f.load(in_mzml, tmp_spectra);
+      int nMS1 = std::count_if(tmp_spectra.begin(), tmp_spectra.end(), [](MSSpectrum& s){return s.getMSLevel() == 1;});
+      if (nMS1 != 0)
+      {
+        purities = PrecursorPurity::computePrecursorPurities(tmp_spectra, precursor_mass_tolerance, precursor_mass_tolerance_unit_ppm);
+      }
+    } // free spectra  
 
     PeakFileOptions options;
     options.clearMSLevels();
@@ -1656,7 +1763,7 @@ protected:
     Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic, 100)
+#pragma omp parallel for schedule(guided)
 #endif
     for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
     {
@@ -2149,11 +2256,9 @@ protected:
                      report_top_hits, 
                      mm, 
                      fixed_modifications, variable_modifications, 
-                     max_variable_mods_per_peptide);
+                     max_variable_mods_per_peptide,
+                     purities);
     progresslogger.endProgress();
-
-    // annotate RNPxl related information to hits and create report
-    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
 
     // reindex ids
     PeptideIndexing indexer;
@@ -2184,10 +2289,11 @@ protected:
       }
     } 
 
+    // annotate RNPxl related information to hits and create report
+    vector<RNPxlReportRow> csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
+
     if (generate_decoys)	
     {
-      // calculate FDR
-      FalseDiscoveryRate fdr;     	
       fdr.apply(peptide_ids);	
     }
 
@@ -2197,7 +2303,6 @@ protected:
     // save report
     if (!out_csv.empty())
     {
-      csv_rows = RNPxlReport::annotate(spectra, peptide_ids, marker_ions_tolerance);
       TextFile csv_file;
       csv_file.addLine(RNPxlReportRowHeader().getString("\t"));
       for (Size i = 0; i != csv_rows.size(); ++i)

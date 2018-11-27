@@ -44,6 +44,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
 
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except +
 
+        bool isInstantiated() nogil except +
+
 ## wrap static methods
 cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS::ModificationsDB":
     

@@ -75,12 +75,12 @@ public:
     /// Constructor
     DocumentIDTagger(String toolname);
     /// Copy constructor
-    DocumentIDTagger(const DocumentIDTagger & source);
+    DocumentIDTagger(const DocumentIDTagger & source) = default;
     /// Destructor
     ~DocumentIDTagger();
 
     /// Assignment operator
-    DocumentIDTagger & operator=(const DocumentIDTagger & source);
+    DocumentIDTagger & operator=(const DocumentIDTagger & source) = default;
 
     /// Equality operator
     bool operator==(const DocumentIDTagger & source) const;

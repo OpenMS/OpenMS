@@ -14,6 +14,7 @@ DeMeanderize
 Digestor
 DigestorMotif
 ERPairFinder
+FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff

@@ -37,7 +37,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
@@ -203,7 +202,7 @@ public:
       return INCOMPATIBLE_INPUT_DATA;
     }
     //check for peak type (profile data required)
-    if (!exp.empty() && PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::CENTROID)
+    if (!exp.empty() && exp[0].getType(true) == SpectrumSettings::CENTROID)
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }

@@ -5,6 +5,7 @@ set(directory source/FILTERING/CALIBRATION)
 set(sources_list
 InternalCalibration.cpp
 MZTrafoModel.cpp
+PrecursorCorrection.cpp
 TOFCalibration.cpp
 )
 

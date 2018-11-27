@@ -1080,6 +1080,11 @@ protected:
           }
           else
           {
+            LOG_WARN << "Identifier " << psm_identifier << " not found in peptide map." << endl;
+            hit->setMetaValue("MS:1001492", 0.0);  // svm score
+            hit->setMetaValue("MS:1001491", 1.0);  // percolator q value
+            hit->setMetaValue("MS:1001493", 1.0);  // percolator pep
+
             if (scoreType == "q-value" || scoreType == "pep")
             {
               hit->setScore(1.0); // set q-value or PEP to 1.0 if hit not found in results

@@ -49,28 +49,33 @@ class OPENMS_DLLAPI Deisotoper
 
   /* @brief Detect isotopic clusters in a fragment spectrum.
 
+    Deisotoping is done in-place and if @p annotate_charge is true,
+    an additional IntegerDataArray "charge" will be appended.
+    Existing DataArrays are kept and shrunken to the peaks which
+    remain in the spectrum.
+
    * @param [spectra] Input spectra (sorted by m/z)
-   * @param [min_charge] The minimum charge considered
-   * @param [max_charge] The maximum charge considered
    * @param [fragment_tolerance] The tolerance used to match isotopic peaks
    * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
+   * @param [min_charge] The minimum charge considered
+   * @param [max_charge] The maximum charge considered
    * @param [keep_only_deisotoped] Only monoisotopic peaks of fragments with isotopic pattern are retained
    * @param [min_isopeaks] The minimum number of isotopic peaks (at least 2) required for an isotopic cluster
    * @param [max_isopeaks] The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster
    * @param [make_single_charged] Convert deisotoped monoisotopic peak to single charge
    * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
-   * 	     Note: If make_single_charged is selected, the original charge (>=1) gets annotated.
+   *        Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
    */
-  static void deisotopeAndSingleCharge(MSSpectrum & spectra, 
-            double fragment_tolerance, 
-					  bool fragment_unit_ppm, 
-            int min_charge = 1, 
-					  int max_charge = 3,
-            bool keep_only_deisotoped = false, 
-            unsigned int min_isopeaks = 3, 
-					  unsigned int max_isopeaks = 10, 
+  static void deisotopeAndSingleCharge(MSSpectrum& spectrum,
+            double fragment_tolerance,
+            bool fragment_unit_ppm,
+            int min_charge = 1,
+            int max_charge = 3,
+            bool keep_only_deisotoped = false,
+            unsigned int min_isopeaks = 3,
+            unsigned int max_isopeaks = 10,
             bool make_single_charged = true,
-             bool annotate_charge = false);
+            bool annotate_charge = false);
 };
 
 }

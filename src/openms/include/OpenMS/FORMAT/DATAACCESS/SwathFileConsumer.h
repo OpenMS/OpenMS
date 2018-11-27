@@ -245,6 +245,7 @@ public:
           {
             found = true;
             consumeSwathSpectrum_(s, i);
+            break;
           }
         }
         if (!found)
@@ -452,8 +453,8 @@ protected:
       {
         addNewSwathMap_();
       }
-      swath_consumers_[swath_nr]->consumeSpectrum(s);
-      swath_maps_[swath_nr]->addSpectrum(s); // append for the metadata (actual data is deleted)
+      swath_consumers_[swath_nr]->consumeSpectrum(s); // write data to cached file; clear data from spectrum s
+      swath_maps_[swath_nr]->addSpectrum(s); // append for the metadata (actual data was deleted)
     }
 
     void addMS1Map_()
@@ -541,6 +542,9 @@ protected:
    * map) objects of MSDataCachedConsumer which can consume the spectra and
    * write them to disk immediately.
    *
+   * Warning: no swathmaps (MS1 nor MS2) will be available when calling retrieveSwathMaps()
+   *          for downstream use.
+   *
    */
   class OPENMS_DLLAPI MzMLSwathFileConsumer :
     public FullSwathFileConsumer
@@ -551,7 +555,7 @@ public:
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
-    MzMLSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+    MzMLSwathFileConsumer(const String& cachedir, const String& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
       ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
@@ -561,7 +565,7 @@ public:
     {}
 
     MzMLSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
-            String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+            const String& cachedir, const String& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
       ms1_consumer_(nullptr),
       swath_consumers_(),
@@ -604,7 +608,7 @@ protected:
 
     void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
-      // only use swath_maps_ to count how many we have already added
+      // only use swath_consumers_ to count how many we have already added
       while (swath_consumers_.size() <= swath_nr)
       {
         addNewSwathMap_();
@@ -619,8 +623,6 @@ protected:
       ms1_consumer_ = new PlainMSDataWritingConsumer(mzml_file);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
       ms1_consumer_->getOptions().setCompression(true);
-      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
-      // ms1_map_ = exp;
     }
 
     void consumeMS1Spectrum_(MapType::SpectrumType& s) override
@@ -630,7 +632,6 @@ protected:
         addMS1Map_();
       }
       ms1_consumer_->consumeSpectrum(s);
-      s.clear(false);
     }
 
     void ensureMapsAreFilled_() override

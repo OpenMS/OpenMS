@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////home/fa/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.7" id="cm_16772366217575462398" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.7" id="cm_16772366217575462398" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<mapList count="1">
 		<map id="0" name="" label="decharged features" size="24">
 		</map>
@@ -86,13 +86,15 @@
 			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="int" name="is_single_feature" value="1"/>
 		</consensusElement>
-		<consensusElement id="e_4111330096031897197" quality="0">
-			<centroid rt="100" mz="0" it="100"/>
+		<consensusElement id="e_14585985052890294934" quality="0">
+			<centroid rt="100" mz="341.984986933542" it="100"/>
 			<groupedElementList>
-				<element map="0" id="7" rt="100" mz="169.985217" it="100"/>
+				<element map="0" id="7" rt="100" mz="169.985217" it="100" charge="-2"/>
 			</groupedElementList>
 			<UserParam type="string" name="label" value="M+H+K"/>
-			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="charge" value="-2"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-2"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-2.014552933542"/>
 			<UserParam type="int" name="is_single_feature" value="1"/>
 		</consensusElement>
 		<consensusElement id="e_2751474909210888071" quality="0">
@@ -131,13 +133,15 @@
 			<UserParam type="int" name="charge" value="0"/>
 			<UserParam type="int" name="is_single_feature" value="1"/>
 		</consensusElement>
-		<consensusElement id="e_17354379264752523808" quality="0">
-			<centroid rt="100" mz="0" it="100"/>
+		<consensusElement id="e_277288293309248432" quality="0">
+			<centroid rt="100" mz="339.970434466771" it="100"/>
 			<groupedElementList>
-				<element map="0" id="3" rt="100" mz="338.963158" it="100"/>
+				<element map="0" id="3" rt="100" mz="338.963158" it="100" charge="-1"/>
 			</groupedElementList>
 			<UserParam type="string" name="label" value="M+K"/>
-			<UserParam type="int" name="charge" value="0"/>
+			<UserParam type="int" name="charge" value="-1"/>
+			<UserParam type="string" name="dc_charge_adducts" value="H-1"/>
+			<UserParam type="float" name="dc_charge_adduct_mass" value="-1.007276466771"/>
 			<UserParam type="int" name="is_single_feature" value="1"/>
 		</consensusElement>
 		<consensusElement id="e_9230425309037047512" quality="0">

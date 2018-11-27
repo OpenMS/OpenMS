@@ -6,6 +6,7 @@ from XLPrecursor cimport *
 from AASeqWithMass cimport *
 from DoubleList cimport *
 from StringList cimport *
+from IntList cimport *
 from ResidueModification cimport *
 from FASTAFile cimport *
 from EnzymaticDigestion cimport *
@@ -16,6 +17,7 @@ from PeptideIdentification cimport *
 from MSSpectrum cimport *
 from MSExperiment cimport *
 from EnzymaticDigestion cimport *
+from DataArrays cimport *
 
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
@@ -74,3 +76,23 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
 
 
         void addProteinPositionMetaValues(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
+
+        libcpp_vector[ ProteinProteinCrossLink ] collectPrecursorCandidates(IntList precursor_correction_steps,
+                                                                            double precursor_mass,
+                                                                            double precursor_mass_tolerance,
+                                                                            bool precursor_mass_tolerance_unit_ppm,
+                                                                            libcpp_vector[ AASeqWithMass ] filtered_peptide_masses,
+                                                                            double cross_link_mass,
+                                                                            DoubleList cross_link_mass_mono_link,
+                                                                            StringList cross_link_residue1,
+                                                                            StringList cross_link_residue2,
+                                                                            String cross_link_name) nogil except +
+
+        double computePrecursorError(CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge) nogil except +
+
+        void isoPeakMeans(CrossLinkSpectrumMatch& csm,
+                          IntegerDataArray& num_iso_peaks_array,
+                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_linear_alpha,
+                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_linear_beta,
+                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_alpha,
+                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_beta)  nogil except +

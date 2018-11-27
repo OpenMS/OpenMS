@@ -17,7 +17,7 @@ spectrometry related software. OpenMS is free software available under the
 three clause BSD license and runs under Windows, macOS, and Linux.
 
 It comes with a vast variety of pre-built and ready-to-use tools for proteomics
-and metabolomics data analysis (TOPPTools) as well as powerful 2D and 3D
+and metabolomics data analysis (TOPPTools) as well as powerful 1D, 2D and 3D
 visualization (TOPPView).
 
 OpenMS offers analyses for various quantitation protocols, including label-free
@@ -37,12 +37,13 @@ Berlin, and the ETH Zürich.
 
 Features
 --------
-- Core C++ library under three-clause BSD licence.
-- Python bindings to the C++ API through pyOpenMS.
-- Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks. 
-- Powerful 2D and 3D visualization tools (TOPPView)
-- Support for most MS identification and quantification workflows (label-free, isobaric and stable isotope).
-- Support for all major platforms (Windows [XP, 7, 8, 10], macOS and Linux).
+- Core C++ library under three-clause BSD licence using modern C++11
+- Python bindings to the C++ API through pyOpenMS
+- Major community file formats supported (mzML, mzXML, mzIdentXML, pepXML etc)
+- Over 150+ individual analysis tools (TOPP Tools), covering most MS and LC-MS data processing and mining tasks
+- Powerful 1D, 2D and 3D visualization tools (TOPPView)
+- Support for most MS identification and quantification workflows (targeted, DIA, label-free, isobaric and stable isotope)
+- Support for all major platforms (Windows [XP, 7, 8, 10], macOS and Linux)
 
 Licence
 -------

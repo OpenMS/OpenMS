@@ -5,6 +5,9 @@ from __future__ import print_function
 import sys
 iswin = sys.platform == "win32"
 
+# osx ?
+isosx = sys.platform == "darwin"
+
 import sys
 single_threaded = False
 no_optimization = False
@@ -18,7 +21,7 @@ if "--no-optimization" in sys.argv:
 # import config
 from env import  (OPEN_MS_COMPILER, OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
                   QT_INSTALL_LIBS, QT_INSTALL_BINS, MSVS_RTLIBS,
-                  QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
+                  OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
                   LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS,
                   PY_NUM_MODULES, PY_NUM_THREADS)
 
@@ -159,7 +162,13 @@ if IS_DEBUG:
 # Note: we use -std=gnu++11 in Linux by default, also reduce some warnings
 if not iswin:
     extra_link_args.append("-std=c++11")
+    if isosx: # MacOS c++11
+        extra_link_args.append("-stdlib=libc++") # MacOS libstdc++ does not include c++11 lib support.
+        extra_link_args.append("-mmacosx-version-min=10.7") # due to libc++
     extra_compile_args.append("-std=c++11")
+    if isosx: # MacOS c++11
+        extra_compile_args.append("-stdlib=libc++")
+        extra_compile_args.append("-mmacosx-version-min=10.7")
     extra_compile_args.append("-Wno-redeclared-class-member")
     extra_compile_args.append("-Wno-unused-local-typedefs")
     extra_compile_args.append("-Wno-deprecated-register")

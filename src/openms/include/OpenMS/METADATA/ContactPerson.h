@@ -42,23 +42,26 @@ namespace OpenMS
   /**
       @brief Contact person information
 
-
-
       @ingroup Metadata
   */
   class OPENMS_DLLAPI ContactPerson :
     public MetaInfoInterface
   {
 public:
+
     /// Constructor
-    ContactPerson();
+    ContactPerson() = default;
     /// Copy constructor
-    ContactPerson(const ContactPerson & source);
+    ContactPerson(const ContactPerson &) = default;
+    /// Move constructor
+    ContactPerson(ContactPerson&&) = default;
     /// Destructor
-    ~ContactPerson();
+    ~ContactPerson() = default;
 
     /// Assignment operator
-    ContactPerson & operator=(const ContactPerson & source);
+    ContactPerson & operator=(const ContactPerson &) = default;
+    /// Move assignment operator
+    ContactPerson& operator=(ContactPerson&&) & = default;
 
     /// Equality operator
     bool operator==(const ContactPerson & rhs) const;

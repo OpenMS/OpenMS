@@ -50,7 +50,7 @@ namespace OpenMS
     This class is used to load and store documents that implement
     the schema of idXML files.
 
-    A documented schema for this format can be found at http://open-ms.sourceforge.net/schemas/.
+    A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
     One file can contain several ProteinIdentification runs. Each run consists of peptide hits stored in
     PeptideIdentification and (optional) protein hits stored in Identification. Peptide and protein

@@ -56,7 +56,6 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
-
     const std::string pathtocsicsv = *it + "/summary_csi_fingerid.csv";
 
     ifstream file(pathtocsicsv);
@@ -65,10 +64,14 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
     {
       CsvFile compounds(pathtocsicsv, '\t');
       const UInt rowcount = compounds.rowCount();
-    
+
       if (rowcount > 1)
       {
-        
+        // correction if the rowcount is smaller than the number of hits used as parameter
+        // rowcount-1 because the csv header will be skipped in the loop later on.
+        int header = 1;
+        const UInt top_n_hits_cor = (top_n_hits >= rowcount) ? rowcount-header : top_n_hits;
+
         // fill identification structure containing all candidate hits for a single spectrum
         CsiFingerIdMzTabWriter::CsiAdapterIdentification csi_id;
 
@@ -86,13 +89,11 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         boost::regex regexp_feature("_(?<SCAN>\\d+)-");
         bool found = boost::regex_search(str, match, regexp_feature);
         if (found && match["SCAN"].matched) {feature_id = "id_" + match["SCAN"].str();}
-        // results from scan were not assigned to a feautre
-        if (feature_id == "id_0") {feature_id = "null";}
+        String unassigned = "null";
 
-        const UInt top_n_hits_cor = (top_n_hits > rowcount) ? rowcount : top_n_hits;
-        for (Size j = 1; j < top_n_hits_cor; ++j)
+        // j = 1 because of .csv file format (header)
+        for (Size j = 1; j <= top_n_hits_cor; ++j)
         {
-          
           StringList sl;
           compounds.getRow(j, sl);
           CsiFingerIdMzTabWriter::CsiAdapterHit csi_hit;
@@ -111,7 +112,15 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
         csi_id.scan_index = scan_index;
         csi_id.scan_number = scan_number;
-        csi_id.feature_id = feature_id;
+        // check if results were assigned to a feature
+        if (feature_id != "id_0")
+        {
+          csi_id.feature_id = feature_id;
+        }
+        else
+        {
+          csi_id.feature_id = unassigned;
+        }
         csi_result.identifications.push_back(csi_id);
 
         // write metadata to mzTab file
@@ -120,7 +129,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         MzTabMSRunMetaData md_run;
         md_run.location = MzTabString(original_input_mzml);
         md.ms_run[1] = md_run;
-        md.description = MzTabString("CSI:FingerID-4.0");
+        md.description = MzTabString("CSI:FingerID-4.0.1");
 
         //needed for header generation (score)
         std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
@@ -138,7 +147,8 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
             const CsiFingerIdMzTabWriter::CsiAdapterHit &hit = id.hits[j];
             MzTabSmallMoleculeSectionRow smsr;
 
-            map <Size, MzTabDouble> engine_score = {{1, MzTabDouble(hit.score)}};
+            map <Size, MzTabDouble> engine_score;
+            engine_score[1] = MzTabDouble(hit.score);
             smsr.best_search_engine_score = engine_score;
 
             smsr.chemical_formula = MzTabString(hit.molecular_formula);
@@ -171,7 +181,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
 
             MzTabOptionalColumnEntry featureId;
             featureId.first = "featureId";
-            featureId.second = MzTabString(csi_id.feature_id);
+            featureId.second = MzTabString(id.feature_id);
 
             smsr.opt_.push_back(rank);
             smsr.opt_.push_back(compoundId);

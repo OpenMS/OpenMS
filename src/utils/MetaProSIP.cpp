@@ -2381,7 +2381,7 @@ protected:
         }
       }
 
-      found_peak_int = std::accumulate(found_peaks.begin(), found_peaks.end(), 0);
+      found_peak_int = std::accumulate(found_peaks.begin(), found_peaks.end(), 0.0);
 
       // assign peak intensity to first peak in small area around theoretical predicted position (should be usually only be 1)
       isotopic_intensities.push_back(found_peak_int);

@@ -66,6 +66,7 @@ bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
 
 //static
 RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesRNA(StringList target_nucleotides,
+                                                                                     StringList nt_groups,
                                                                                      std::set<char> can_xl,
                                                                                      StringList mappings,
                                                                                      StringList modifications,
@@ -343,8 +344,22 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       // check if nucleotide formula contains a cross-linkable amino acid
       bool has_xl_nt(false);
       for (auto const & c : nucleotide_style_formula) { if (can_xl.count(c) > 0) { has_xl_nt = true; break;};  }
+
       if (!has_xl_nt) 
       { // no cross-linked nucleotide => not valid
+        violates_restriction.push_back(make_pair(mit->first, s)); 
+        continue;
+      }
+
+      // check if nucleotides from more than one nt_group are present (e.g. from DNA and RNA)
+      Size found_in_n_groups(0);
+      for (const String & n : nt_groups)
+      { 
+        if (nucleotide_style_formula.find_first_of(n) != string::npos) { ++found_in_n_groups; }
+      }
+      // nucleotide stile formula (e.g. AATU matches to more than one group (e.g., RNA and DNA))?
+      if (found_in_n_groups > 1)
+      {
         violates_restriction.push_back(make_pair(mit->first, s)); 
         continue;
       }

@@ -127,26 +127,13 @@ public:
     //@}
 
     /// Constructor
-    MSChromatogram() :
-      ContainerType(),
-      RangeManager<1>(),
-      ChromatogramSettings(),
-      name_(),
-      float_data_arrays_(),
-      string_data_arrays_(),
-      integer_data_arrays_()
-    {}
+    MSChromatogram() = default;
 
     /// Copy constructor
-    MSChromatogram(const MSChromatogram& source) :
-      ContainerType(source),
-      RangeManager<1>(source),
-      ChromatogramSettings(source),
-      name_(source.name_),
-      float_data_arrays_(source.float_data_arrays_),
-      string_data_arrays_(source.string_data_arrays_),
-      integer_data_arrays_(source.integer_data_arrays_)
-    {}
+    MSChromatogram(const MSChromatogram&) = default;
+
+    /// Move constructor
+    MSChromatogram(MSChromatogram&&) = default;
 
     /// Destructor
     ~MSChromatogram() override
@@ -154,6 +141,9 @@ public:
 
     /// Assignment operator
     MSChromatogram& operator=(const MSChromatogram& source);
+
+    /// Move assignment operator
+    MSChromatogram& operator=(MSChromatogram&&) & = default;
 
     /// Equality operator
     bool operator==(const MSChromatogram& rhs) const;

@@ -42,7 +42,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  // residue
   Residue::Residue() :
     name_("unknown"),
     average_weight_(0.0f),
@@ -82,68 +81,8 @@ namespace OpenMS
     }
   }
 
-  Residue::Residue(const Residue& residue) :
-    name_(residue.name_),
-    short_name_(residue.short_name_),
-    synonyms_(residue.synonyms_),
-    three_letter_code_(residue.three_letter_code_),
-    one_letter_code_(residue.one_letter_code_),
-    formula_(residue.formula_),
-    internal_formula_(residue.internal_formula_),
-    average_weight_(residue.average_weight_),
-    mono_weight_(residue.mono_weight_),
-    modification_(residue.modification_),
-    loss_names_(residue.loss_names_),
-    loss_formulas_(residue.loss_formulas_),
-    NTerm_loss_names_(residue.NTerm_loss_names_),
-    NTerm_loss_formulas_(residue.NTerm_loss_formulas_),
-    loss_average_weight_(residue.loss_average_weight_),
-    loss_mono_weight_(residue.loss_mono_weight_),
-    low_mass_ions_(residue.low_mass_ions_),
-    pka_(residue.pka_),
-    pkb_(residue.pkb_),
-    pkc_(residue.pkc_),
-    gb_sc_(residue.gb_sc_),
-    gb_bb_l_(residue.gb_bb_l_),
-    gb_bb_r_(residue.gb_bb_r_),
-    residue_sets_(residue.residue_sets_)
-  {
-  }
-
   Residue::~Residue()
   {
-  }
-
-  Residue& Residue::operator=(const Residue& residue)
-  {
-    if (this != &residue)
-    {
-      name_ = residue.name_;
-      short_name_ = residue.short_name_;
-      synonyms_ = residue.synonyms_;
-      three_letter_code_ = residue.three_letter_code_;
-      one_letter_code_ = residue.one_letter_code_;
-      formula_ = residue.formula_;
-      internal_formula_ = residue.internal_formula_;
-      average_weight_ = residue.average_weight_;
-      mono_weight_ = residue.mono_weight_;
-      modification_ = residue.modification_;
-      loss_names_ = residue.loss_names_;
-      loss_formulas_ = residue.loss_formulas_;
-      NTerm_loss_names_ = residue.NTerm_loss_names_;
-      NTerm_loss_formulas_ = residue.NTerm_loss_formulas_;
-      loss_average_weight_ = residue.loss_average_weight_;
-      loss_mono_weight_ = residue.loss_mono_weight_;
-      low_mass_ions_ = residue.low_mass_ions_;
-      pka_ = residue.pka_;
-      pkb_ = residue.pkb_;
-      pkc_ = residue.pkc_;
-      gb_sc_ = residue.gb_sc_;
-      gb_bb_l_ = residue.gb_bb_l_;
-      gb_bb_r_ = residue.gb_bb_r_;
-      residue_sets_ = residue.residue_sets_;
-    }
-    return *this;
   }
 
   void Residue::setName(const String& name)
@@ -704,3 +643,4 @@ namespace OpenMS
   }
 
 }
+

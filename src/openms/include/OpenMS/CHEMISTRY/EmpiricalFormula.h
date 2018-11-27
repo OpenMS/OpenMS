@@ -41,8 +41,6 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 
-
-
 namespace OpenMS
 {
   class String;
@@ -50,6 +48,8 @@ namespace OpenMS
   class ElementDB;
   class IsotopeDistribution;
   class IsotopePatternGenerator;
+  class CoarseIsotopePatternGenerator;
+
   /**
     @ingroup Chemistry
 
@@ -99,11 +99,14 @@ public:
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+    /// Default constructor
     EmpiricalFormula();
 
-    /// copy constructor
-    EmpiricalFormula(const EmpiricalFormula& rhs);
+    /// Copy constructor
+    EmpiricalFormula(const EmpiricalFormula&) = default;
+
+    /// Move constructor
+    EmpiricalFormula(EmpiricalFormula&&) = default;
 
     /**
       Constructor from an OpenMS String
@@ -112,14 +115,12 @@ public:
     */
     explicit EmpiricalFormula(const String& rhs);
 
-    /// constructor with element pointer and number
+    /// Constructor with element pointer and number
     EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge = 0);
 
-    /// destructor
+    /// Destructor
     virtual ~EmpiricalFormula();
     //@}
-
-
 
     /** @name Accessors
     */
@@ -175,15 +176,18 @@ public:
     IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;    
     
     /**
-      @brief returns the fragment iUsotope distribution of this given a precursor formula
+      @brief returns the fragment isotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
 
       The max_depth of the isotopic distribution is set to max(precursor_isotopes)+1.
       @param precursor: the empirical formula of the precursor
       @param precursor_isotopes: the precursor isotopes that were isolated
+      @param method: the method that will be used for the calculation of the IsotopeDistribution
       @return the conditional IsotopeDistribution of the fragment
     */
-    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes) const;
+    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor,
+                                                          const std::set<UInt>& precursor_isotopes,
+                                                          const CoarseIsotopePatternGenerator& method) const;
 
     /// returns the number of atoms for a certain @p element (can be negative)
     SignedSize getNumberOf(const Element* element) const;
@@ -207,8 +211,12 @@ public:
     /** Assignment
     */
     //@{
-    /// assignment operator
-    EmpiricalFormula& operator=(const EmpiricalFormula& rhs);
+
+    /// Assignment operator
+    EmpiricalFormula& operator=(const EmpiricalFormula&) = default;
+
+    /// Move assignment operator
+    EmpiricalFormula& operator=(EmpiricalFormula&&) & = default;
 
     /// adds the elements of the given formula
     EmpiricalFormula& operator+=(const EmpiricalFormula& rhs);

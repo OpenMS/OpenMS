@@ -32,37 +32,39 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/METADATA/SpectrumSettings.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/HyperScore.h>
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlDeisotoper.h>
+
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+
+#include <OpenMS/CONCEPT/Constants.h>
+
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 // preprocessing and filtering
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
-#include <OpenMS/FILTERING/ID/IDFilter.h>
+#include <OpenMS/METADATA/SpectrumSettings.h>
 
 #include <map>
 #include <algorithm>
@@ -453,7 +455,7 @@ class SimpleSearchEngine :
       Size count_proteins(0), count_peptides(0);
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for schedule(static)
 #endif
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
       {
@@ -464,7 +466,7 @@ class SimpleSearchEngine :
 
         IF_MASTERTHREAD
         {
-          progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
+          progresslogger.setProgress(count_proteins);
         }
 
         vector<StringView> current_digest;
@@ -473,7 +475,6 @@ class SimpleSearchEngine :
         for (auto const & c : current_digest)
         { 
           const String current_peptide = c.getString();
-          cout << current_peptide << "\t" << current_peptide.find_first_of("XBZ") << endl;
           if (current_peptide.find_first_of("XBZ") != std::string::npos) { continue; }
 
           // if a peptide motif is provided skip all peptides without match
