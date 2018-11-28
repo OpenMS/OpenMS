@@ -467,6 +467,11 @@ namespace OpenMS
       for (Size i = peptide.size()-1; i > link_pos_B; --i)
       {
         mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
+        if (mono_weight < 0.0)
+        {
+          break;
+        }
+
         double pos(mono_weight / static_cast<double>(charge));
         int frag_index = i;
 
@@ -507,6 +512,11 @@ namespace OpenMS
       for (Size i = 0; i < link_pos; ++i)
       {
         mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
+        if (mono_weight < 0)
+        {
+          break;
+        }
+
         double pos(mono_weight / static_cast<double>(charge));
         int frag_index = peptide.size() - 1 - i;
 
@@ -916,6 +926,11 @@ namespace OpenMS
       for (Size i = peptide.size()-1; i > link_pos; --i)
       {
         mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
+        if (mono_weight < 0)
+        {
+          break;
+        }
+
         double pos(mono_weight / static_cast<double>(charge));
         int frag_index = i;
 
@@ -957,6 +972,11 @@ namespace OpenMS
       for (Size i = 0; i < link_pos; ++i)
       {
         mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
+        if (mono_weight < 0)
+        {
+          break;
+        }
+
         double pos(mono_weight / static_cast<double>(charge));
         int frag_index = peptide.size() - 1 - i;
 
