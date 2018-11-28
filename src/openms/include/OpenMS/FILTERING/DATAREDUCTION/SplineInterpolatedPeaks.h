@@ -74,7 +74,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
      * 
      * @param scaling    scaling factor for the step width with which the Navigator moves over the spectrum
      * i.e. scaling < 1  =>  step width somewhat smaller than the average raw data spacing @see SplinePackage
-    */
+     */
     SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling = 0.7);
 
     /**
@@ -132,15 +132,17 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         ~Navigator();
 
         /**
-        * @brief returns spline interpolated intensity at m/z
+        * @brief returns spline interpolated intensity at this position
         * (fast access since we can start search from lastPackage)
         */
         double eval(double pos);
 
         /**
-        * @brief returns the next sensible m/z (or RT) position
-        *  for scanning through a spectrum
+        * @brief returns the next sensible m/z (or RT) position for scanning through a spectrum (or chromatogram)
         * (fast access since we can start search from lastPackage)
+        * 
+        * In the middle of a package, we increase the position by the average spacing of the input data (times a scaling factor).
+        * At the end of a package, we jump straight to the beginning of the next package.
         */
         double getNextPos(double pos);
 
