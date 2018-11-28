@@ -170,13 +170,6 @@ namespace OpenMS
       bool treat_modification_variants_separately,
       bool skip_count_annotation) const
   {
-    if (!(prot_run.getScoreType() == "Posterior Error Probability" || prot_run.getScoreType() == "Posterior Probability"))
-    {
-      throw OpenMS::Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Inference only allowed on Posterior (Error) Probabilities!"
-          " Please run Percolator or IDPosteriorErrorProbability first.", prot_run.getScoreType());
-    }
-
     acc_to_protein_hitP_and_count.clear();
     best_pep.clear();
 
