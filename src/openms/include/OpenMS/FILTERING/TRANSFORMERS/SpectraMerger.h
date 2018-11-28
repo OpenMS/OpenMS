@@ -40,7 +40,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -745,8 +745,8 @@ protected:
         // loop over spectra in blocks
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          SplineSpectrum spline(exp[it2->first]);
-          SplineSpectrum::Navigator nav = spline.getNavigator();
+          SplineInterpolatedPeaks spline(exp[it2->first]);
+          SplineInterpolatedPeaks::Navigator nav = spline.getNavigator();
 
           // loop over m/z positions
           for (Size i = 0; i < mz_positions.size(); ++i)

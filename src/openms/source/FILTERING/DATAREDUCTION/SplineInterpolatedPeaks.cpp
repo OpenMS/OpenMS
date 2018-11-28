@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -43,12 +43,12 @@ using namespace std;
 namespace OpenMS
 {
 
-  SplineSpectrum::SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
+  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
   {
-    SplineSpectrum::init_(mz, intensity, scaling);
+    SplineInterpolatedPeaks::init_(mz, intensity, scaling);
   }
 
-  SplineSpectrum::SplineSpectrum(const MSSpectrum& raw_spectrum, double scaling)
+  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling)
   {
     std::vector<double> mz;
     std::vector<double> intensity;
@@ -57,10 +57,10 @@ namespace OpenMS
       mz.push_back(it.getMZ());
       intensity.push_back(it.getIntensity());
     }
-    SplineSpectrum::init_(mz, intensity, scaling);
+    SplineInterpolatedPeaks::init_(mz, intensity, scaling);
   }
 
-  SplineSpectrum::SplineSpectrum(const MSChromatogram& raw_chromatogram, double scaling)
+  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling)
   {
     std::vector<double> rt;
     std::vector<double> intensity;
@@ -69,14 +69,14 @@ namespace OpenMS
       rt.push_back(it.getRT());
       intensity.push_back(it.getIntensity());
     }
-    SplineSpectrum::init_(rt, intensity, scaling);
+    SplineInterpolatedPeaks::init_(rt, intensity, scaling);
   }
 
-  SplineSpectrum::~SplineSpectrum()
+  SplineInterpolatedPeaks::~SplineInterpolatedPeaks()
   {
   }
 
-  void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
+  void SplineInterpolatedPeaks::init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
   {
 
     if (!(mz.size() == intensity.size() && mz.size() > 2))
@@ -180,22 +180,22 @@ namespace OpenMS
 
   }
 
-  double SplineSpectrum::getMzMin() const
+  double SplineInterpolatedPeaks::getMzMin() const
   {
     return mz_min_;
   }
 
-  double SplineSpectrum::getMzMax() const
+  double SplineInterpolatedPeaks::getMzMax() const
   {
     return mz_max_;
   }
 
-  size_t SplineSpectrum::size() const
+  size_t SplineInterpolatedPeaks::size() const
   {
     return packages_.size();
   }
 
-  SplineSpectrum::Navigator SplineSpectrum::getNavigator()
+  SplineInterpolatedPeaks::Navigator SplineInterpolatedPeaks::getNavigator()
   {
     if (packages_.empty())
     {
@@ -204,7 +204,7 @@ namespace OpenMS
     return Navigator(&packages_, mz_min_, mz_max_);
   }
 
-  SplineSpectrum::Navigator::Navigator(const std::vector<SplinePackage>* packages, double mz_min, double mz_max) :
+  SplineInterpolatedPeaks::Navigator::Navigator(const std::vector<SplinePackage>* packages, double mz_min, double mz_max) :
     packages_(packages),
     last_package_(0),
     mz_min_(mz_min),
@@ -212,15 +212,15 @@ namespace OpenMS
   {
   }
 
-  SplineSpectrum::Navigator::Navigator()
+  SplineInterpolatedPeaks::Navigator::Navigator()
   {
   }
 
-  SplineSpectrum::Navigator::~Navigator()
+  SplineInterpolatedPeaks::Navigator::~Navigator()
   {
   }
 
-  double SplineSpectrum::Navigator::eval(double mz)
+  double SplineInterpolatedPeaks::Navigator::eval(double mz)
   {
     if (mz < (*packages_)[last_package_].getMzMin())
     { // look left
@@ -257,7 +257,7 @@ namespace OpenMS
     return 0.0;
   }
 
-  double SplineSpectrum::Navigator::getNextMz(double mz)
+  double SplineInterpolatedPeaks::Navigator::getNextMz(double mz)
   {
 
     int min_index = 0;

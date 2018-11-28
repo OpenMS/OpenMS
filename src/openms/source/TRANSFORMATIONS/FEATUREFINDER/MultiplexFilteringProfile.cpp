@@ -109,7 +109,7 @@ namespace OpenMS
     // spline interpolate the profile data
     for (MSExperiment::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
     {
-      exp_spline_profile_.push_back(SplineSpectrum(*it));
+      exp_spline_profile_.push_back(SplineInterpolatedPeaks(*it));
     }
     
     // TODO: Constructing the navigators here instead in the beginning of the filter() method results in segmentation faults. Why?
@@ -131,10 +131,10 @@ namespace OpenMS
 #endif
     
     // construct navigators for all spline spectra
-    std::vector<SplineSpectrum::Navigator> navigators;
-    for (std::vector<SplineSpectrum>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
+    std::vector<SplineInterpolatedPeaks::Navigator> navigators;
+    for (std::vector<SplineInterpolatedPeaks>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
     {
-      SplineSpectrum::Navigator nav = (*it).getNavigator();
+      SplineInterpolatedPeaks::Navigator nav = (*it).getNavigator();
       navigators.push_back(nav);
     }
     

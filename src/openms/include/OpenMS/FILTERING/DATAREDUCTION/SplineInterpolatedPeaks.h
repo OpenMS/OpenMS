@@ -54,7 +54,7 @@ namespace OpenMS
  * @see MSSpectrum
  * @see MSChromatogram
  */
-class OPENMS_DLLAPI SplineSpectrum
+class OPENMS_DLLAPI SplineInterpolatedPeaks
 {
   public:
     /**
@@ -63,24 +63,24 @@ class OPENMS_DLLAPI SplineSpectrum
      *
      *  @note Vectors are assumed to be sorted by m/z!
      */
-    SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling = 0.7);
+    SplineInterpolatedPeaks(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling = 0.7);
 
     /**
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
      */
-    SplineSpectrum(const MSSpectrum& raw_spectrum, double scaling = 0.7);
+    SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling = 0.7);
 
     /**
      * @brief constructor taking an MSChromatogram
      * (and an optional scaling factor for the RT step width)
      */
-    SplineSpectrum(const MSChromatogram& raw_chromatogram, double scaling = 0.7);
+    SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling = 0.7);
 
     /**
      * @brief destructor
      */
-    ~SplineSpectrum();
+    ~SplineInterpolatedPeaks();
 
     /**
      * @brief returns the minimum m/z of the spectrum
@@ -159,17 +159,17 @@ class OPENMS_DLLAPI SplineSpectrum
     * Will throw an exception if no packages were found during construction.
     * Check using getSplineCount().
     *
-    * Make sure that the underlying SplineSpectrum does not run out-of-scope since the
+    * Make sure that the underlying SplineInterpolatedPeaks does not run out-of-scope since the
     * Navigator relies on its data.
     *
     * @throw Exception::InvalidSize if packages is empty
     */
-    SplineSpectrum::Navigator getNavigator();
+    SplineInterpolatedPeaks::Navigator getNavigator();
 
   private:
 
     /// hide default C'tor
-    SplineSpectrum();
+    SplineInterpolatedPeaks();
     
     /**
      * @brief m/z limits of the spectrum
