@@ -467,11 +467,6 @@ namespace OpenMS
       for (Size i = peptide.size()-1; i > link_pos_B; --i)
       {
         mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
-        if (mono_weight < 0.0)
-        {
-          break;
-        }
-
         double pos(mono_weight / static_cast<double>(charge));
         int frag_index = i;
 
@@ -512,11 +507,6 @@ namespace OpenMS
       for (Size i = 0; i < link_pos; ++i)
       {
         mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
-        if (mono_weight < 0)
-        {
-          break;
-        }
-
         double pos(mono_weight / static_cast<double>(charge));
         int frag_index = peptide.size() - 1 - i;
 
@@ -541,6 +531,11 @@ namespace OpenMS
   // helper to add a single peak to a spectrum (simple fragmentation)
   void TheoreticalSpectrumGeneratorXLMS::addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double pos, double intensity, Residue::ResidueType res_type, Size frag_index, int charge, String ion_type) const
   {
+    if (pos < 0)
+    {
+      // std::cout << "TSGXLMS mono_weight < 0, addPeak_, ion_type: " << ion_type << " frag_index: " << frag_index << std::endl;
+      return;
+    }
     Peak1D p;
     p.setMZ(pos);
     p.setIntensity(intensity);
@@ -669,6 +664,11 @@ namespace OpenMS
     }
 
     mono_weight += Constants::PROTON_MASS_U * static_cast<double>(charge);
+    if (mono_weight < 0)
+    {
+      return;
+    }
+
     double pos(mono_weight / static_cast<double>(charge));
 
     Peak1D p;
@@ -926,10 +926,6 @@ namespace OpenMS
       for (Size i = peptide.size()-1; i > link_pos; --i)
       {
         mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
-        if (mono_weight < 0)
-        {
-          break;
-        }
 
         double pos(mono_weight / static_cast<double>(charge));
         int frag_index = i;
@@ -972,10 +968,6 @@ namespace OpenMS
       for (Size i = 0; i < link_pos; ++i)
       {
         mono_weight -= peptide[i].getMonoWeight(Residue::Internal);
-        if (mono_weight < 0)
-        {
-          break;
-        }
 
         double pos(mono_weight / static_cast<double>(charge));
         int frag_index = peptide.size() - 1 - i;
