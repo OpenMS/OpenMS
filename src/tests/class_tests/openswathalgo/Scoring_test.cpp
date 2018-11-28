@@ -147,8 +147,9 @@ BOOST_AUTO_TEST_CASE(double_SpectralAngle_test)
       numer = np.dot(v1, v2)
       v1_u = np.sqrt(np.dot(v1, v1))
       v2_u = np.sqrt(np.dot(v2, v2))
-      denom = max(1e-15, v1_u * v2_u)
-      return np.arccos(np.clip(numer / denom, -1.0, 1.0))
+      denom = v1_u * v2_u
+      theta = 0.0 if denom == 0 else numer / denom
+      return np.arccos(np.clip(theta, -1.0, 1.0))
 
   vecs = [
       ((1, 0, 0), (0, 1, 0)),
