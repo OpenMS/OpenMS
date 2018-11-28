@@ -63,7 +63,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
      *
      *  @note Vectors are assumed to be sorted by m/z!
      */
-    SplineInterpolatedPeaks(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling = 0.7);
+    SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling = 0.7);
 
     /**
      * @brief constructor taking an MSSpectrum
@@ -85,12 +85,12 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
     /**
      * @brief returns the minimum m/z of the spectrum
      */
-    double getMzMin() const;
+    double getPosMin() const;
 
     /**
      * @brief returns the maximum m/z of the spectrum
      */
-    double getMzMax() const;
+    double getPosMax() const;
 
     /** Get number of spline packages found during initialization
      *
@@ -109,7 +109,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief constructor of iterator
         */
-        Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
+        Navigator(const std::vector<SplinePackage> * packages, double posMin, double posMax);
 
         /**
         * @brief constructor (for pyOpenMS)
@@ -125,14 +125,14 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         * @brief returns spline interpolated intensity at m/z
         * (fast access since we can start search from lastPackage)
         */
-        double eval(double mz);
+        double eval(double pos);
 
         /**
         * @brief returns the next sensible m/z position
         *  for scanning through a spectrum
         * (fast access since we can start search from lastPackage)
         */
-        double getNextMz(double mz);
+        double getNextPos(double pos);
 
       private:
         
@@ -149,8 +149,8 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         /**
         * @brief m/z limits of the spectrum
         */
-        double mz_min_;
-        double mz_max_;
+        double pos_min_;
+        double pos_max_;
     };
 
     /**
@@ -174,8 +174,8 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
     /**
      * @brief m/z limits of the spectrum
      */
-    double mz_min_;
-    double mz_max_;
+    double pos_min_;
+    double pos_max_;
 
     /**
      * @brief set of spline packages each interpolating in a certain m/z range
@@ -185,7 +185,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
     /**
      * @brief section common for all constructors
      */
-    void init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
+    void init_(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling);
 
 
 };

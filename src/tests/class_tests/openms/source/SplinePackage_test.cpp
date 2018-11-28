@@ -75,16 +75,16 @@ START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensit
   TEST_NOT_EQUAL(sp2, nullPointer)
 END_SECTION
 
-START_SECTION(getMzMin())
-  TEST_EQUAL(sp1.getMzMin(), 413.8);
+START_SECTION(getPosMin())
+  TEST_EQUAL(sp1.getPosMin(), 413.8);
 END_SECTION
 
-START_SECTION(getMzMax())
-  TEST_EQUAL(sp1.getMzMax(), 414.2);
+START_SECTION(getPosMax())
+  TEST_EQUAL(sp1.getPosMax(), 414.2);
 END_SECTION
 
-START_SECTION(getMzStepWidth())
-  TEST_REAL_SIMILAR(sp1.getMzStepWidth(), 0.07);
+START_SECTION(getPosStepWidth())
+  TEST_REAL_SIMILAR(sp1.getPosStepWidth(), 0.07);
 END_SECTION
 
 START_SECTION(isInPackage(double mz))

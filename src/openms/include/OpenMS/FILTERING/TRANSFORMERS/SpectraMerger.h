@@ -751,7 +751,7 @@ protected:
           // loop over m/z positions
           for (Size i = 0; i < mz_positions.size(); ++i)
           {
-            if ((spline.getMzMin() < mz_positions[i]) && (mz_positions[i] < spline.getMzMax()))
+            if ((spline.getPosMin() < mz_positions[i]) && (mz_positions[i] < spline.getPosMax()))
             {
               intensities[i] += nav.eval(mz_positions[i]) * (it2->second); // spline-interpolated intensity * weight
             }

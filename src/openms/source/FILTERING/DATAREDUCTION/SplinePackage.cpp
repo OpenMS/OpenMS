@@ -57,17 +57,17 @@ namespace OpenMS
   {
   }
 
-  double SplinePackage::getMzMin() const
+  double SplinePackage::getPosMin() const
   {
     return mz_min_;
   }
 
-  double SplinePackage::getMzMax() const
+  double SplinePackage::getPosMax() const
   {
     return mz_max_;
   }
 
-  double SplinePackage::getMzStepWidth() const
+  double SplinePackage::getPosStepWidth() const
   {
     return mz_step_width_;
   }

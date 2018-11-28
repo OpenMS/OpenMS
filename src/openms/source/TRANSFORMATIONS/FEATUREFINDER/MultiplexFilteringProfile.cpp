@@ -191,7 +191,7 @@ namespace OpenMS
           std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data around the peak i.e. from peak boundary to peak boundary.
-          for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigators[idx_rt].getNextMz(mz_profile))
+          for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigators[idx_rt].getNextPos(mz_profile))
           {
             // determine m/z shift relative to the centroided peak at which the profile data will be sampled
             double mz_shift = mz_profile - mz_peak;

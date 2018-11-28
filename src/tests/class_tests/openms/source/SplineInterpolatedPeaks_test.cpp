@@ -91,17 +91,17 @@ for (size_t i=0; i < pos.size(); ++i)
 SplineInterpolatedPeaks* nullPointer = nullptr;
 SplineInterpolatedPeaks* ptr;
 
-START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling))
+START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling))
     SplineInterpolatedPeaks spline(pos, intensity);
-    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3);
+    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3);
     ptr = new SplineInterpolatedPeaks(pos, intensity);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling))
+START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling))
     SplineInterpolatedPeaks spline(pos, intensity, 0.7);
-    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
     ptr = new SplineInterpolatedPeaks(pos, intensity, 0.7);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -109,7 +109,7 @@ END_SECTION
 
 START_SECTION(SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling))
 	SplineInterpolatedPeaks spline(spectrum);
-    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
     ptr = new SplineInterpolatedPeaks(spectrum);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -117,7 +117,7 @@ END_SECTION
 
 START_SECTION(SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling))
 	SplineInterpolatedPeaks spline(spectrum, 0.7);
-    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
     ptr = new SplineInterpolatedPeaks(spectrum, 0.7);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -125,7 +125,7 @@ END_SECTION
 
 START_SECTION(SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling))
 	SplineInterpolatedPeaks spline(chromatogram);
-    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
     ptr = new SplineInterpolatedPeaks(chromatogram);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -133,7 +133,7 @@ END_SECTION
 
 START_SECTION(SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling))
 	SplineInterpolatedPeaks spline(chromatogram, 0.7);
-    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
     ptr = new SplineInterpolatedPeaks(chromatogram, 0.7);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -141,12 +141,12 @@ END_SECTION
 
 SplineInterpolatedPeaks spectrum2(pos, intensity);
 
-START_SECTION(double getMzMin() const)
-  TEST_EQUAL(spectrum2.getMzMin(), 416.3);
+START_SECTION(double getPosMin() const)
+  TEST_EQUAL(spectrum2.getPosMin(), 416.3);
 END_SECTION
 
-START_SECTION(double getMzMax() const)
-  TEST_EQUAL(spectrum2.getMzMax(), 419.2);
+START_SECTION(double getPosMax() const)
+  TEST_EQUAL(spectrum2.getPosMax(), 419.2);
 END_SECTION
 
 START_SECTION(size_t size() const)
@@ -158,7 +158,7 @@ START_SECTION(SplineInterpolatedPeaks::Navigator getNavigator())
   SplineInterpolatedPeaks::Navigator nav = spectrum2.getNavigator();
 END_SECTION
 
-START_SECTION(double SplineInterpolatedPeaks::Navigator::eval(double mz))
+START_SECTION(double SplineInterpolatedPeaks::Navigator::eval(double pos))
   // outside range of Gaussians
   TEST_EQUAL(spectrum2.getNavigator().eval(400.0), 0);
   TEST_EQUAL(spectrum2.getNavigator().eval(417.8), 0);
@@ -177,45 +177,45 @@ START_SECTION(double SplineInterpolatedPeaks::Navigator::eval(double mz))
   TEST_REAL_SIMILAR(nav2.eval(416.81), 0.997572728799559);
 END_SECTION
 
-START_SECTION(double SplineInterpolatedPeaks::Navigator::getNextMz(double mz))
+START_SECTION(double SplineInterpolatedPeaks::Navigator::getNextPos(double pos))
   // advancing within package
-  TEST_EQUAL(spectrum2.getNavigator().getNextMz(417.0), 417.07);
+  TEST_EQUAL(spectrum2.getNavigator().getNextPos(417.0), 417.07);
   // advancing to next package
-  TEST_EQUAL(spectrum2.getNavigator().getNextMz(417.29), 418.2);
+  TEST_EQUAL(spectrum2.getNavigator().getNextPos(417.29), 418.2);
   // advancing beyond range
-  TEST_REAL_SIMILAR(spectrum2.getNavigator().getNextMz(500.0), 419.2);
+  TEST_REAL_SIMILAR(spectrum2.getNavigator().getNextPos(500.0), 419.2);
 END_SECTION
 
 // Each SplinePackage in a SplineInterpolatedPeaks must contain two or more data points. If this is not the case, the interpolation might lead to unexpected results.
 // In the example below, a single data point @ 407.5 is placed between two packages. It does not form a SplinePackage on its own, but is instead part of the second SplinePackage.
-std::vector<double> mz3;
+std::vector<double> pos3;
 std::vector<double> intensity3;
 for (size_t i=0; i<4; ++i)
 {
-    mz3.push_back(400+i*0.5);
+    pos3.push_back(400+i*0.5);
     intensity3.push_back(10.0);
 }
-mz3.push_back(407.5);
+pos3.push_back(407.5);
 intensity3.push_back(10.0);
 for (size_t i=0; i<4; ++i)
 {
-    mz3.push_back(410+i*0.5);
+    pos3.push_back(410+i*0.5);
     intensity3.push_back(10.0);
 }
-SplineInterpolatedPeaks spectrum3(mz3, intensity3);
+SplineInterpolatedPeaks spectrum3(pos3, intensity3);
 
-START_SECTION(double SplineInterpolatedPeaks::Navigator::eval(double mz))
+START_SECTION(double SplineInterpolatedPeaks::Navigator::eval(double pos))
   TEST_EQUAL(spectrum3.size(),2);
   TEST_EQUAL(spectrum3.getNavigator().eval(405),0);    // Zero as expected, since 405 is between packages.
   TEST_EQUAL(spectrum3.getNavigator().eval(408),10);    // One might expect zero, but 407.5 is part of the second package.
 END_SECTION
 
-std::vector<double> mz4;
+std::vector<double> pos4;
 std::vector<double> intensity4;
-mz4.push_back(407.5);
+pos4.push_back(407.5);
 intensity4.push_back(10.0);
-START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& mz, const std::vector<double>& intensity))
-  TEST_EXCEPTION(Exception::IllegalArgument, new SplineInterpolatedPeaks(mz4,intensity4));
+START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity))
+  TEST_EXCEPTION(Exception::IllegalArgument, new SplineInterpolatedPeaks(pos4,intensity4));
 END_SECTION
 
 END_TEST
