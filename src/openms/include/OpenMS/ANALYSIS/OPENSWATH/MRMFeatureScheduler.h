@@ -64,7 +64,11 @@ public:
       @param[in] features Input features
       @param[out] selected_features Selected features
     */
-    void scheduleMRMFeatures(MRMFeatureSelector& feature_selector, const FeatureMap& features, FeatureMap& selected_features) const;
+    void scheduleMRMFeatures(
+      const MRMFeatureSelector& feature_selector,
+      const FeatureMap& features,
+      FeatureMap& selected_features
+    ) const;
 
     /// Calls `scheduleMRMFeatures()` using a `MRMFeatureSelectorScore` selector
     void scheduleMRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const;

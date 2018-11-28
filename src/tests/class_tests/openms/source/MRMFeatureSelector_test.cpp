@@ -68,69 +68,6 @@ START_SECTION(~MRMFeatureSelectorScore())
 }
 END_SECTION
 
-START_SECTION(setNNThreshold())
-{
-  MRMFeatureSelectorQMIP selector;
-  TEST_EQUAL(selector.getNNThreshold(), 4)
-  selector.setNNThreshold(5);
-  TEST_EQUAL(selector.getNNThreshold(), 5)
-}
-END_SECTION
-
-START_SECTION(getLocalityWeight())
-{
-  MRMFeatureSelectorQMIP selector;
-  TEST_EQUAL(selector.getLocalityWeight(), false)
-  selector.setLocalityWeight(true);
-  TEST_EQUAL(selector.getLocalityWeight(), true)
-}
-END_SECTION
-
-START_SECTION(getSelectTransitionGroup())
-{
-  MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), true)
-  selectorScore.setSelectTransitionGroup(false);
-  TEST_EQUAL(selectorScore.getSelectTransitionGroup(), false)
-}
-END_SECTION
-
-START_SECTION(getSegmentWindowLength())
-{
-  MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getSegmentWindowLength(), 8)
-  selectorScore.setSegmentWindowLength(7);
-  TEST_EQUAL(selectorScore.getSegmentWindowLength(), 7)
-}
-END_SECTION
-
-START_SECTION(getSegmentStepLength())
-{
-  MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getSegmentStepLength(), 4)
-  selectorScore.setSegmentStepLength(3);
-  TEST_EQUAL(selectorScore.getSegmentStepLength(), 3)
-}
-END_SECTION
-
-START_SECTION(getVariableType())
-{
-  MRMFeatureSelectorScore selectorScore;
-  TEST_EQUAL(selectorScore.getVariableType() == MRMFeatureSelectorScore::VariableType::CONTINUOUS, true)
-  selectorScore.setVariableType(MRMFeatureSelectorScore::VariableType::INTEGER);
-  TEST_EQUAL(selectorScore.getVariableType() == MRMFeatureSelectorScore::VariableType::INTEGER, true)
-}
-END_SECTION
-
-START_SECTION(getOptimalThreshold())
-{
-  MRMFeatureSelectorScore selectorScore;
-  TEST_REAL_SIMILAR(selectorScore.getOptimalThreshold(), 0.5)
-  selectorScore.setOptimalThreshold(0.6);
-  TEST_REAL_SIMILAR(selectorScore.getOptimalThreshold(), 0.6)
-}
-END_SECTION
-
 START_SECTION(MRMFeatureSelectorScore::selectMRMFeature())
 {
   FeatureMap feature_map;
@@ -138,20 +75,21 @@ START_SECTION(MRMFeatureSelectorScore::selectMRMFeature())
   feature_file.load(features_path, feature_map);
   TEST_EQUAL(feature_map.size(), 703);
 
-  MRMFeatureSelectorScore selectorScore;
+  MRMFeatureSelector::SelectorParameters parameters;
 
-  selectorScore.setSelectTransitionGroup(true);
-  selectorScore.setSegmentWindowLength(-1);
-  selectorScore.setSegmentStepLength(-1);
-  selectorScore.setVariableType(MRMFeatureSelector::VariableType::INTEGER);
-  selectorScore.setOptimalThreshold(0.5);
-  selectorScore.setScoreWeights({
+  parameters.select_transition_group = true;
+  parameters.segment_window_length = -1;
+  parameters.segment_step_length = -1;
+  parameters.variable_type = MRMFeatureSelector::VariableType::INTEGER;
+  parameters.optimal_threshold = 0.5;
+  parameters.score_weights = {
     {"sn_ratio", MRMFeatureSelector::LambdaScore::LOG},
     {"peak_apices_sum", MRMFeatureSelector::LambdaScore::LOG}
-  });
+  };
 
+  MRMFeatureSelectorScore selectorScore;
   FeatureMap output_selected;
-  selectorScore.selectMRMFeature(feature_map, output_selected);
+  selectorScore.selectMRMFeature(feature_map, output_selected, parameters);
 
   TEST_EQUAL(output_selected.size(), 117);
 
@@ -186,8 +124,10 @@ START_SECTION(constructTargTransList_())
 
   vector<pair<double, String>> time_to_name;
   map<String, vector<Feature>> feature_name_map;
-  selector.setSelectTransitionGroup("true");
-  selector.constructTargTransList_(feature_map, time_to_name, feature_name_map);
+
+  const bool select_transition_group = true;
+
+  selector.constructTargTransList_(feature_map, time_to_name, feature_name_map, select_transition_group);
 
   TEST_EQUAL(time_to_name.size(), 117)
   TEST_EQUAL(feature_name_map.size(), 117)
@@ -244,18 +184,16 @@ START_SECTION(computeScore_())
   feature.setMetaValue("sn_ratio", 6.84619503982874);
   feature.setMetaValue("peak_apices_sum", 96640.0);
 
-  selector.setScoreWeights({{"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG}});
-  score = selector.computeScore_(feature);
+  score = selector.computeScore_(feature, {{"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG}});
   TEST_REAL_SIMILAR(score, 0.5198334582314795)
 
-  selector.setScoreWeights({{"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}});
-  score = selector.computeScore_(feature);
+  score = selector.computeScore_(feature, {{"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}});
   TEST_REAL_SIMILAR(score, 0.20059549093267626)
 
-  selector.setScoreWeights({
+  score = selector.computeScore_(feature, {
     {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
-    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}});
-  score = selector.computeScore_(feature);
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+  });
   TEST_REAL_SIMILAR(score, 0.10427624775717449)
 }
 END_SECTION

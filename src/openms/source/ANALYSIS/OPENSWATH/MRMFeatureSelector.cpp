@@ -44,7 +44,8 @@ namespace OpenMS
     LPWrapper& problem,
     const String& name,
     const bool bounded,
-    const double obj
+    const double obj,
+    const VariableType variableType
   ) const
   {
     const Int index = problem.addColumn();
@@ -60,11 +61,11 @@ namespace OpenMS
 
     problem.setColumnName(index, name);
 
-    if (getVariableType() == VariableType::INTEGER)
+    if (variableType == VariableType::INTEGER)
     {
       problem.setColumnType(index, LPWrapper::INTEGER);
     }
-    else if (getVariableType() == VariableType::CONTINUOUS)
+    else if (variableType == VariableType::CONTINUOUS)
     {
       problem.setColumnType(index, LPWrapper::CONTINUOUS);
     }
@@ -92,9 +93,10 @@ namespace OpenMS
 
   void MRMFeatureSelectorScore::optimize(
     const std::vector<std::pair<double, String>>& time_to_name,
-    const std::map< String, std::vector<Feature> >& feature_name_map,
-    std::vector<String>& result
-  )
+    const std::map<String, std::vector<Feature>>& feature_name_map,
+    std::vector<String>& result,
+    const SelectorParameters& parameters
+  ) const
   {
     result.clear();
     std::set<String> variables;
@@ -108,8 +110,10 @@ namespace OpenMS
         const String name1 = elem.second + "_" + String(feature.getUniqueId());
         if (variables.count(name1) == 0)
         {
-            constraints.push_back(addVariable_(problem, name1, true, computeScore_(feature)));
-            variables.insert(name1);
+          const double score = computeScore_(feature, parameters.score_weights);
+          const Int col_idx = addVariable_(problem, name1, true, score, parameters.variable_type);
+          constraints.push_back(col_idx);
+          variables.insert(name1);
         }
       }
       std::vector<double> constraints_values(constraints.size(), 1.0);
@@ -119,7 +123,7 @@ namespace OpenMS
     problem.solve(param);
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c)
     {
-      if (problem.getColumnValue(c) >= getOptimalThreshold())
+      if (problem.getColumnValue(c) >= parameters.optimal_threshold)
       {
         result.push_back(problem.getColumnName(c));
       }
@@ -136,8 +140,9 @@ namespace OpenMS
   void MRMFeatureSelectorQMIP::optimize(
     const std::vector<std::pair<double, String>>& time_to_name,
     const std::map<String, std::vector<Feature>>& feature_name_map,
-    std::vector<String>& result
-  )
+    std::vector<String>& result,
+    const SelectorParameters& parameters
+  ) const
   {
     result.clear();
     std::set<String> variables;
@@ -148,8 +153,8 @@ namespace OpenMS
     Size n_variables = 0;
     for (Int cnt1 = 0; static_cast<Size>(cnt1) < time_to_name.size(); ++cnt1)
     {
-      const Size start_iter = std::max(cnt1 - getNNThreshold(), 0);
-      const Size stop_iter = std::min(static_cast<Size>(cnt1 + getNNThreshold() + 1), time_to_name.size()); // assuming getNNThreshold() >= -1
+      const Size start_iter = std::max(cnt1 - parameters.nn_threshold, 0);
+      const Size stop_iter = std::min(static_cast<Size>(cnt1 + parameters.nn_threshold + 1), time_to_name.size()); // assuming nn_threshold >= -1
       std::vector<Int> constraints;
       const std::vector<Feature> feature_row1 = feature_name_map.at(time_to_name[cnt1].second);
 
@@ -159,7 +164,7 @@ namespace OpenMS
 
         if (variables.count(name1) == 0)
         {
-          constraints.push_back(addVariable_(problem, name1, true, 0));
+          constraints.push_back(addVariable_(problem, name1, true, 0, parameters.variable_type));
           variables.insert(name1);
           ++n_variables;
         }
@@ -168,8 +173,8 @@ namespace OpenMS
           constraints.push_back(problem.getColumnIndex(name1));
         }
 
-        double score_1 = computeScore_(feature_row1[i]);
-        const Size n_score_weights = parameters_.score_weights.size();
+        double score_1 = computeScore_(feature_row1[i], parameters.score_weights);
+        const Size n_score_weights = parameters.score_weights.size();
 
         if (n_score_weights > 1)
         {
@@ -186,8 +191,8 @@ namespace OpenMS
           }
 
           const std::vector<Feature> feature_row2 = feature_name_map.at(time_to_name[cnt2].second);
-          const double locality_weight = getLocalityWeight()
-            ? 1.0 / (getNNThreshold() - std::abs(static_cast<Int>(start_iter + cnt2) - cnt1) + 1)
+          const double locality_weight = parameters.locality_weight
+            ? 1.0 / (parameters.nn_threshold - std::abs(static_cast<Int>(start_iter + cnt2) - cnt1) + 1)
             : 1.0;
           const double tr_delta_expected = time_to_name[cnt1].first - time_to_name[cnt2].first;
 
@@ -196,24 +201,19 @@ namespace OpenMS
             const String name2 = time_to_name[cnt2].second + "_" + String(feature_row2[j].getUniqueId());
             if (variables.count(name2) == 0)
             {
-              addVariable_(problem, name2, true, 0);
+              addVariable_(problem, name2, true, 0, parameters.variable_type);
               variables.insert(name2);
               ++n_variables;
             }
 
             const String var_qp_name = time_to_name[cnt1].second + "_" + String(i) + "-" + time_to_name[cnt2].second + "_" + String(j);
 
-            // The two following problem's variables need the variable type to be "continuous"
-            // Save current variable type to later set it back to the same value
-            const VariableType prev_variable_type = getVariableType();
-            setVariableType(VariableType::CONTINUOUS);
-            const Int index_var_qp = addVariable_(problem, var_qp_name, true, 0);
-            const Int index_var_abs = addVariable_(problem, var_qp_name + "-ABS", false, 1);
-            setVariableType(prev_variable_type);
+            const Int index_var_qp = addVariable_(problem, var_qp_name, true, 0, VariableType::CONTINUOUS);
+            const Int index_var_abs = addVariable_(problem, var_qp_name + "-ABS", false, 1, VariableType::CONTINUOUS);
 
             const Int index2 = problem.getColumnIndex(name2);
 
-            double score_2 = computeScore_(feature_row2[j]);
+            double score_2 = computeScore_(feature_row2[j], parameters.score_weights);
             if (n_score_weights > 1)
             {
               score_2 = std::pow(score_2, 1.0 / n_score_weights);
@@ -241,11 +241,10 @@ namespace OpenMS
     }
     LPWrapper::SolverParam param;
     problem.solve(param);
-    const double optimal_threshold = getOptimalThreshold();
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c)
     {
       const String name = problem.getColumnName(c);
-      if (problem.getColumnValue(c) > optimal_threshold - 1e-17 && variables.count(name))
+      if (problem.getColumnValue(c) > parameters.optimal_threshold - 1e-17 && variables.count(name))
       {
         result.push_back(name);
       }
@@ -255,7 +254,8 @@ namespace OpenMS
   void MRMFeatureSelector::constructTargTransList_(
     const FeatureMap& features,
     std::vector<std::pair<double, String>>& time_to_name,
-    std::map<String, std::vector<Feature>>& feature_name_map
+    std::map<String, std::vector<Feature>>& feature_name_map,
+    const bool select_transition_group
   ) const
   {
     time_to_name.clear();
@@ -275,7 +275,7 @@ namespace OpenMS
         feature_name_map[component_group_name] = std::vector<Feature>();
       }
       feature_name_map[component_group_name].push_back(feature);
-      if (getSelectTransitionGroup())
+      if (select_transition_group)
       {
         continue;
       }
@@ -296,17 +296,21 @@ namespace OpenMS
     }
   }
 
-  void MRMFeatureSelector::selectMRMFeature(const FeatureMap& features, FeatureMap& selected_filtered)
+  void MRMFeatureSelector::selectMRMFeature(
+    const FeatureMap& features,
+    FeatureMap& selected_filtered,
+    const SelectorParameters& parameters
+  ) const
   {
     selected_filtered.clear();
 
     std::vector<std::pair<double, String>> time_to_name;
     std::map<String, std::vector<Feature>> feature_name_map;
-    constructTargTransList_(features, time_to_name, feature_name_map);
+    constructTargTransList_(features, time_to_name, feature_name_map, parameters.select_transition_group);
 
     sort(time_to_name.begin(), time_to_name.end());
-    Int window_length = getSegmentWindowLength();
-    Int step_length = getSegmentStepLength();
+    Int window_length = parameters.segment_window_length;
+    Int step_length = parameters.segment_step_length;
     if (window_length == -1 && step_length == -1)
     {
       window_length = step_length = time_to_name.size();
@@ -324,7 +328,7 @@ namespace OpenMS
       const Size end = std::min(start + window_length, time_to_name.size());
       const std::vector<std::pair<double, String>> time_slice(time_to_name.begin() + start, time_to_name.begin() + end);
       std::vector<String> result;
-      optimize(time_slice, feature_name_map, result);
+      optimize(time_slice, feature_name_map, result, parameters);
       result_names.insert(result_names.end(), result.begin(), result.end());
     }
     const std::set<String> result_names_set(result_names.begin(), result_names.end());
@@ -333,7 +337,7 @@ namespace OpenMS
       std::vector<Feature> subordinates_filtered;
       for (const Feature& subordinate : feature.getSubordinates())
       {
-        const String feature_name = getSelectTransitionGroup()
+        const String feature_name = parameters.select_transition_group
           ? removeSpaces_(feature.getMetaValue("PeptideRef").toString()) + "_" + String(feature.getUniqueId())
           : removeSpaces_(subordinate.getMetaValue("native_id").toString()) + "_" + String(feature.getUniqueId());
 
@@ -351,10 +355,10 @@ namespace OpenMS
     }
   }
 
-  double MRMFeatureSelector::computeScore_(const Feature& feature) const
+  double MRMFeatureSelector::computeScore_(const Feature& feature, const std::map<String, MRMFeatureSelector::LambdaScore>& score_weights) const
   {
     double score_1 = 1.0;
-    for (const std::pair<String, LambdaScore>& score_weight : parameters_.score_weights)
+    for (const std::pair<String, LambdaScore>& score_weight : score_weights)
     {
       const String& metavalue_name = score_weight.first;
       const LambdaScore lambda_score = score_weight.second;
@@ -399,95 +403,5 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__,
         "`lambda_score`'s value is not handled by any current condition.");
     }
-  }
-
-  void MRMFeatureSelectorQMIP::setNNThreshold(const Int nn_threshold)
-  {
-    parameters_.nn_threshold = nn_threshold;
-  }
-
-  Int MRMFeatureSelectorQMIP::getNNThreshold() const
-  {
-    return parameters_.nn_threshold;
-  }
-
-  void MRMFeatureSelectorQMIP::setLocalityWeight(const bool locality_weight)
-  {
-    parameters_.locality_weight = locality_weight;
-  }
-
-  bool MRMFeatureSelectorQMIP::getLocalityWeight() const
-  {
-    return parameters_.locality_weight;
-  }
-
-  void MRMFeatureSelector::setSelectTransitionGroup(const bool select_transition_group)
-  {
-    parameters_.select_transition_group = select_transition_group;
-  }
-
-  bool MRMFeatureSelector::getSelectTransitionGroup() const
-  {
-    return parameters_.select_transition_group;
-  }
-
-  void MRMFeatureSelector::setSegmentWindowLength(const Int segment_window_length)
-  {
-    parameters_.segment_window_length = segment_window_length;
-  }
-
-  Int MRMFeatureSelector::getSegmentWindowLength() const
-  {
-    return parameters_.segment_window_length;
-  }
-
-  void MRMFeatureSelector::setSegmentStepLength(const Int segment_step_length)
-  {
-    parameters_.segment_step_length = segment_step_length;
-  }
-
-  Int MRMFeatureSelector::getSegmentStepLength() const
-  {
-    return parameters_.segment_step_length;
-  }
-
-  void MRMFeatureSelector::setVariableType(const VariableType variable_type)
-  {
-    parameters_.variable_type = variable_type;
-  }
-
-  MRMFeatureSelector::VariableType MRMFeatureSelector::getVariableType() const
-  {
-    return parameters_.variable_type;
-  }
-
-  void MRMFeatureSelector::setOptimalThreshold(const double optimal_threshold)
-  {
-    parameters_.optimal_threshold = optimal_threshold;
-  }
-
-  double MRMFeatureSelector::getOptimalThreshold() const
-  {
-    return parameters_.optimal_threshold;
-  }
-
-  void MRMFeatureSelector::setScoreWeights(const std::map<String, LambdaScore>& score_weights)
-  {
-    parameters_.score_weights = score_weights;
-  }
-
-  std::map<String, MRMFeatureSelector::LambdaScore> MRMFeatureSelector::getScoreWeights() const
-  {
-    return parameters_.score_weights;
-  }
-
-  void MRMFeatureSelector::setSelectorParameters(const SelectorParameters& parameters)
-  {
-    parameters_ = parameters;
-  }
-
-  MRMFeatureSelector::SelectorParameters MRMFeatureSelector::getSelectorParameters() const
-  {
-    return parameters_;
   }
 }

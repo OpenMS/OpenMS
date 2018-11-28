@@ -115,12 +115,14 @@ public:
       @param[in] time_to_name Pairs representing a mapping of retention times to transition names
       @param[in] feature_name_map Transitions' names to their features objects
       @param[out] result Transitions' names filtered out of the LP problem
+      @param[in] parameters Parameters
     */
     virtual void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
       const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result
-    ) = 0;
+      std::vector<String>& result,
+      const SelectorParameters& parameters
+    ) const = 0;
 
     /**
       The features are sorted by retention time and splitted into segments with
@@ -130,33 +132,15 @@ public:
 
       @param[in] features Input features
       @param[out] selected_filtered Output features
+      @param[in] parameters Parameters
     */
-    void selectMRMFeature(const FeatureMap& features, FeatureMap& selected_filtered);
-
-    void setSelectTransitionGroup(const bool select_transition_group);
-    bool getSelectTransitionGroup() const;
-
-    void setSegmentWindowLength(const Int segment_window_length);
-    Int getSegmentWindowLength() const;
-
-    void setSegmentStepLength(const Int segment_step_length);
-    Int getSegmentStepLength() const;
-
-    void setVariableType(const VariableType variable_type);
-    VariableType getVariableType() const;
-
-    void setOptimalThreshold(const double optimal_threshold);
-    double getOptimalThreshold() const;
-
-    void setScoreWeights(const std::map<String, LambdaScore>& score_weights);
-    std::map<String, LambdaScore> getScoreWeights() const;
-
-    void setSelectorParameters(const SelectorParameters& parameters);
-    SelectorParameters getSelectorParameters() const;
+    void selectMRMFeature(
+      const FeatureMap& features,
+      FeatureMap& selected_filtered,
+      const SelectorParameters& parameters
+    ) const;
 
 protected:
-    SelectorParameters parameters_; ///< Stores the parameters for the MRMFeatureSelector (and derived) class
-
     /**
       Add variable to the LP problem instantiated in `optimize()`
 
@@ -164,26 +148,29 @@ protected:
       @param[in] name Column name
       @param[in] bounded Double bounded if true, otherwise Unbounded.
       @param[in] obj Objective value
+      @param[in] variableType Either integer or continuous
 
       @return The variable's column index
     */
     Int addVariable_(
       LPWrapper& problem,
       const String& name,
-      const bool bounded = true,
-      const double obj = 1.0
+      const bool bounded,
+      const double obj,
+      const VariableType variableType
     ) const;
 
     /**
       Scoring method used by the optimizer. Metavalues to use are decided by
-      the `score_weights_` class' member.
+      the `score_weights` argument.
       The returned value is used in the LP problems' variables and contraints.
 
       @param[in] feature Input feature
+      @param[in] score_weights Score weights
 
       @return Computed score
     */
-    double computeScore_(const Feature& feature) const;
+    double computeScore_(const Feature& feature, const std::map<String, LambdaScore>& score_weights) const;
 
     /**
       Add constraint to the LP problem instantiated in `optimize()`
@@ -215,11 +202,13 @@ private:
       @param[in] features Input features
       @param[out] time_to_name Pairs representing a mapping of retention times to transition names
       @param[out] feature_name_map Transitions' names to their features objects
+      @param[in] select_transition_group Transition group selection
     */
     void constructTargTransList_(
       const FeatureMap& features,
       std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map
+      std::map<String, std::vector<Feature>>& feature_name_map,
+      const bool select_transition_group
     ) const;
 
     /**
@@ -259,18 +248,14 @@ public:
       @param[in] time_to_name Pairs representing a mapping of retention times to transition names
       @param[in] feature_name_map Transitions' names to their features objects
       @param[out] result Transitions' names filtered out of the LP problem
+      @param[in] parameters Parameters
     */
     void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
       const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result
-    );
-
-    void setNNThreshold(const Int nn_threshold);
-    Int getNNThreshold() const;
-
-    void setLocalityWeight(const bool locality_weight);
-    bool getLocalityWeight() const;
+      std::vector<String>& result,
+      const SelectorParameters& parameters
+    ) const;
   };
 
   /**
@@ -287,12 +272,14 @@ public:
       @param[in] time_to_name Pairs representing a mapping of retention times to transition names
       @param[in] feature_name_map Transitions' names to their features objects
       @param[out] result Transitions' names filtered out of the LP problem
+      @param[in] parameters Parameters
     */
     void optimize(
       const std::vector<std::pair<double, String>>& time_to_name,
       const std::map<String, std::vector<Feature>>& feature_name_map,
-      std::vector<String>& result
-    );
+      std::vector<String>& result,
+      const SelectorParameters& parameters
+    ) const;
   };
 
   class MRMFeatureSelector_test : public MRMFeatureSelectorQMIP
@@ -304,10 +291,11 @@ public:
     void constructTargTransList_(
       const FeatureMap& features,
       std::vector<std::pair<double, String>>& time_to_name,
-      std::map<String, std::vector<Feature>>& feature_name_map
+      std::map<String, std::vector<Feature>>& feature_name_map,
+      const bool select_transition_group
     ) const
     {
-      selector_.constructTargTransList_(features, time_to_name, feature_name_map);
+      selector_.constructTargTransList_(features, time_to_name, feature_name_map, select_transition_group);
     }
 
     double weightScore_(const double score, const LambdaScore lambda_score) const
@@ -315,19 +303,14 @@ public:
       return selector_.weightScore_(score, lambda_score);
     }
 
-    double computeScore_(const Feature& feature) const
+    double computeScore_(const Feature& feature, const std::map<String, LambdaScore>& score_weights) const
     {
-      return selector_.computeScore_(feature);
+      return selector_.computeScore_(feature, score_weights);
     }
 
     String removeSpaces_(String str) const
     {
       return selector_.removeSpaces_(str);
-    }
-
-    void setScoreWeights(const std::map<String, LambdaScore>& score_weights)
-    {
-      selector_.setScoreWeights(score_weights);
     }
 
     MRMFeatureSelectorQMIP selector_;

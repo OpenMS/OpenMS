@@ -39,7 +39,7 @@
 namespace OpenMS
 {
   void MRMFeatureScheduler::scheduleMRMFeatures(
-    MRMFeatureSelector& feature_selector,
+    const MRMFeatureSelector& feature_selector,
     const FeatureMap& features,
     FeatureMap& selected_features
   ) const
@@ -48,8 +48,7 @@ namespace OpenMS
     selected_features.clear();
     for (const MRMFeatureSelector::SelectorParameters& params : parameters_)
     {
-      feature_selector.setSelectorParameters(params);
-      feature_selector.selectMRMFeature(input_features, selected_features);
+      feature_selector.selectMRMFeature(input_features, selected_features, params);
       input_features = selected_features;
     }
   }
