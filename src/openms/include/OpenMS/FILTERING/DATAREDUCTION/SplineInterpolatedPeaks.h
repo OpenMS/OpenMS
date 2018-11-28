@@ -59,21 +59,30 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
   public:
     /**
      * @brief constructor taking two vectors
-     * (and an optional scaling factor for the m/z step width)
+     * (and an optional scaling factor for the m/z (or RT) step width)
+     * 
+     * @param scaling    scaling factor for the step width with which the Navigator moves over the spectrum (or chromatogram)
+     * i.e. scaling < 1  =>  step width somewhat smaller than the average raw data spacing @see SplinePackage
      *
-     *  @note Vectors are assumed to be sorted by m/z!
+     * @note Vectors are assumed to be sorted by m/z (or RT)!
      */
     SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling = 0.7);
 
     /**
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
-     */
+     * 
+     * @param scaling    scaling factor for the step width with which the Navigator moves over the spectrum
+     * i.e. scaling < 1  =>  step width somewhat smaller than the average raw data spacing @see SplinePackage
+    */
     SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling = 0.7);
 
     /**
      * @brief constructor taking an MSChromatogram
      * (and an optional scaling factor for the RT step width)
+     * 
+     * @param scaling    scaling factor for the step width with which the Navigator moves over the chromatogram
+     * i.e. scaling < 1  =>  step width somewhat smaller than the average raw data spacing @see SplinePackage
      */
     SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling = 0.7);
 
@@ -83,20 +92,21 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
     ~SplineInterpolatedPeaks();
 
     /**
-     * @brief returns the minimum m/z of the spectrum
+     * @brief returns the minimum m/z (or RT) of the spectrum
      */
     double getPosMin() const;
 
     /**
-     * @brief returns the maximum m/z of the spectrum
+     * @brief returns the maximum m/z (or RT) of the spectrum
      */
     double getPosMax() const;
 
-    /** Get number of spline packages found during initialization
+    /** 
+     * @brief Get number of spline packages found during initialization
      *
-     *  Note that this function should be called right after the C'tor to ensure the spectrum
-     *  has some usable data to work on.
-     *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
+     * Note that this function should be called right after the C'tor to ensure the spectrum
+     * has some usable data to work on.
+     * In case there are no packages, a subsequent call to getNavigator() will throw an exception.
      */
     size_t size() const;
 
@@ -128,7 +138,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         double eval(double pos);
 
         /**
-        * @brief returns the next sensible m/z position
+        * @brief returns the next sensible m/z (or RT) position
         *  for scanning through a spectrum
         * (fast access since we can start search from lastPackage)
         */
@@ -147,7 +157,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         size_t last_package_;
 
         /**
-        * @brief m/z limits of the spectrum
+        * @brief m/z (or RT) limits of the spectrum
         */
         double pos_min_;
         double pos_max_;
@@ -172,13 +182,13 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
     SplineInterpolatedPeaks();
     
     /**
-     * @brief m/z limits of the spectrum
+     * @brief m/z (or RT) limits of the spectrum
      */
     double pos_min_;
     double pos_max_;
 
     /**
-     * @brief set of spline packages each interpolating in a certain m/z range
+     * @brief set of spline packages each interpolating in a certain m/z (or RT) range
      */
     std::vector<SplinePackage> packages_;
 
