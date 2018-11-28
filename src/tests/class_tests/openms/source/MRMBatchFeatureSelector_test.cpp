@@ -36,28 +36,28 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(MRMFeatureScheduler, "$Id$")
+START_TEST(MRMBatchFeatureSelector, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMFeatureScheduler* ptr = nullptr;
-MRMFeatureScheduler* null_ptr = nullptr;
+MRMBatchFeatureSelector* ptr = nullptr;
+MRMBatchFeatureSelector* null_ptr = nullptr;
 
-START_SECTION(MRMFeatureScheduler())
+START_SECTION(MRMBatchFeatureSelector())
 {
-  ptr = new MRMFeatureScheduler();
+  ptr = new MRMBatchFeatureSelector();
   TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~MRMFeatureScheduler())
+START_SECTION(~MRMBatchFeatureSelector())
 {
   delete ptr;
 }

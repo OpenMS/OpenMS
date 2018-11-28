@@ -2,9 +2,9 @@ from FeatureMap cimport *
 from String cimport *
 from Types cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h>" namespace "OpenMS":
 
-    cdef cppclass MRMFS_SelectorParameters "OpenMS::MRMFeatureScheduler::SelectorParameters":
+    cdef cppclass MRMFS_SelectorParameters "OpenMS::MRMBatchFeatureSelector::SelectorParameters":
         MRMFS_SelectorParameters()
         MRMFS_SelectorParameters(MRMFS_SelectorParameters &) # no-wrap
 
@@ -17,10 +17,10 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>" namespace "
         double optimal_threshold
         libcpp_map[String,String] score_weights
 
-    cdef cppclass MRMFeatureScheduler:
+    cdef cppclass MRMBatchFeatureSelector:
 
-        MRMFeatureScheduler() nogil except +
-        MRMFeatureScheduler(MRMFeatureScheduler &) nogil except +
+        MRMBatchFeatureSelector() nogil except +
+        MRMBatchFeatureSelector(MRMBatchFeatureSelector &) nogil except +
 
         void schedule_MRMFeaturesScore(FeatureMap& features, FeatureMap& selected_features) nogil except +
         void schedule_MRMFeaturesQMIP(FeatureMap& features, FeatureMap& selected_features) nogil except +

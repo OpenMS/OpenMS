@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMBatchFeatureSelector.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
@@ -204,7 +204,7 @@ END_SECTION
 //   FeatureXMLFile feature_file;
 //   feature_file.load(features_path, feature_map);
 
-//   MRMFeatureScheduler::SelectorParameters params1;
+//   MRMBatchFeatureSelector::SelectorParameters params1;
 //   params1.nn_threshold = 4;
 //   params1.locality_weight = "false";
 //   params1.select_transition_group = "true";
@@ -217,12 +217,12 @@ END_SECTION
 //     {"peak_apices_sum", LambdaScore::INVERSE_LOG10}
 //   };
 
-//   MRMFeatureScheduler::SelectorParameters params2 = params1;
+//   MRMBatchFeatureSelector::SelectorParameters params2 = params1;
 //   params2.segment_window_length = -1;
 //   params2.segment_step_length = -1;
 
-//   MRMFeatureScheduler scheduler;
-//   const std::vector<MRMFeatureScheduler::SelectorParameters> parameters = {params1, params2};
+//   MRMBatchFeatureSelector scheduler;
+//   const std::vector<MRMBatchFeatureSelector::SelectorParameters> parameters = {params1, params2};
 //   scheduler.setSchedulerParameters(parameters);
 
 //   FeatureMap output_selected;
@@ -271,7 +271,7 @@ START_SECTION(scheduleMRMFeaturesQMIP() continuous) // continuous variable type
   params2.segment_window_length = -1;
   params2.segment_step_length = -1;
 
-  MRMFeatureScheduler scheduler;
+  MRMBatchFeatureSelector scheduler;
   const std::vector<MRMFeatureSelector::SelectorParameters> parameters = {params1, params2};
   scheduler.setSchedulerParameters(parameters);
 

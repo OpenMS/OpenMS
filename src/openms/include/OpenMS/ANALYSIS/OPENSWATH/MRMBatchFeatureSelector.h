@@ -32,46 +32,63 @@
 // $Authors: Douglas McCloskey, Pasquale Domenico Colaianni $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureScheduler.h>
+#pragma once
+
+#include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureSelector.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <map>
+#include <vector>
 
 namespace OpenMS
 {
-  void MRMFeatureScheduler::scheduleMRMFeatures(
-    const MRMFeatureSelector& feature_selector,
-    const FeatureMap& features,
-    FeatureMap& selected_features
-  ) const
+  /**
+    Class used to schedule multiple calls to `MRMFeatureSelector`. It helps with
+    settings the parameters for each call to the selector, through the
+    `setSchedulerParameters()` method. The class offers a generic scheduler
+    (where the user is supposed to pass a `MRMFeatureSelector` derived object) and
+    two specialized versions (Score and QMIP).
+  */
+  class OPENMS_DLLAPI MRMBatchFeatureSelector
   {
-    FeatureMap input_features = features;
-    selected_features.clear();
-    for (const MRMFeatureSelector::SelectorParameters& params : parameters_)
-    {
-      feature_selector.selectMRMFeature(input_features, selected_features, params);
-      input_features = selected_features;
-    }
-  }
+public:
+    MRMBatchFeatureSelector() = default;
+    ~MRMBatchFeatureSelector() = default;
 
-  void MRMFeatureScheduler::scheduleMRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const
-  {
-    MRMFeatureSelectorQMIP feature_selector;
-    scheduleMRMFeatures(feature_selector, features, selected_features);
-  }
+    /**
+      Calls `feature_selector.select_MRMFeature()` feeding it the parameters found in `parameters_`.
+      It calls said method `parameters_.size()` times, using the result of each cycle as input
+      for the next cycle.
 
-  void MRMFeatureScheduler::scheduleMRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const
-  {
-    MRMFeatureSelectorScore feature_selector;
-    scheduleMRMFeatures(feature_selector, features, selected_features);
-  }
+      @param[in] feature_selector Base class for the feature selector to use
+      @param[in] features Input features
+      @param[out] selected_features Selected features
+    */
+    void scheduleMRMFeatures(
+      const MRMFeatureSelector& feature_selector,
+      const FeatureMap& features,
+      FeatureMap& selected_features
+    ) const;
 
-  void MRMFeatureScheduler::setSchedulerParameters(const std::vector<MRMFeatureSelector::SelectorParameters>& parameters)
-  {
-    parameters_ = parameters;
-  }
+    /// Calls `scheduleMRMFeatures()` using a `MRMFeatureSelectorScore` selector
+    void scheduleMRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const;
 
-  std::vector<MRMFeatureSelector::SelectorParameters>& MRMFeatureScheduler::getSchedulerParameters()
-  {
-    return parameters_;
-  }
+    /// Calls `scheduleMRMFeatures()` using a `MRMFeatureSelectorQMIP` selector
+    void scheduleMRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const;
+
+    /// Setter for the scheduler's parameters
+    void setSchedulerParameters(const std::vector<MRMFeatureSelector::SelectorParameters>& parameters);
+
+    /// Getter for the scheduler's parameters
+    std::vector<MRMFeatureSelector::SelectorParameters>& getSchedulerParameters(void);
+
+private:
+    /**
+      Parameters for a single call to the scheduler.
+
+      The scheduler goes through each element of this vector. Each of these elements
+      contains the parameters' values for a single run of the chosen selector.
+    */
+    std::vector<MRMFeatureSelector::SelectorParameters> parameters_;
+  };
 }
