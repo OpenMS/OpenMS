@@ -279,11 +279,7 @@ namespace OpenMS
 
         if (lookup.empty())
         {
-          if (it->metaValueExists("spectrum_reference"))
-          {
-            scan_index = it->getMetaValue("spectrum_reference");
-          }
-          else if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
+          if (it->metaValueExists("RT_index")) // Setting metaValue "RT_index" in XTandemXMLFile in the case of X! Tandem.
           {
             scan_index = it->getMetaValue("RT_index");
           }
