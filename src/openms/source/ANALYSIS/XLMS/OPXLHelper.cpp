@@ -39,7 +39,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 // turn on additional debug output
-#define DEBUG_OPXLHELPER
+// #define DEBUG_OPXLHELPER
 
 
 using namespace std;
