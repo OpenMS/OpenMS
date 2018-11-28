@@ -198,7 +198,7 @@ START_SECTION(computeScore_())
 }
 END_SECTION
 
-// START_SECTION(scheduleMRMFeaturesQMIP() integer) // integer variable type
+// START_SECTION(batchMRMFeaturesQMIP() integer) // integer variable type
 // {
 //   FeatureMap feature_map;
 //   FeatureXMLFile feature_file;
@@ -221,12 +221,8 @@ END_SECTION
 //   params2.segment_window_length = -1;
 //   params2.segment_step_length = -1;
 
-//   MRMBatchFeatureSelector scheduler;
-//   const std::vector<MRMBatchFeatureSelector::SelectorParameters> parameters = {params1, params2};
-//   scheduler.setSchedulerParameters(parameters);
-
 //   FeatureMap output_selected;
-//   scheduler.scheduleMRMFeaturesQMIP(feature_map, output_selected);
+//   MRMBatchFeatureSelector::batchMRMFeaturesQMIP(feature_map, output_selected, {params1, params2});
 
 //   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
 //     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
@@ -248,7 +244,7 @@ END_SECTION
 // }
 // END_SECTION
 
-START_SECTION(scheduleMRMFeaturesQMIP() continuous) // continuous variable type
+START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
 {
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
@@ -271,12 +267,8 @@ START_SECTION(scheduleMRMFeaturesQMIP() continuous) // continuous variable type
   params2.segment_window_length = -1;
   params2.segment_step_length = -1;
 
-  MRMBatchFeatureSelector scheduler;
-  const std::vector<MRMFeatureSelector::SelectorParameters> parameters = {params1, params2};
-  scheduler.setSchedulerParameters(parameters);
-
   FeatureMap output_selected;
-  scheduler.scheduleMRMFeaturesQMIP(feature_map, output_selected);
+  MRMBatchFeatureSelector::batchMRMFeaturesQMIP(feature_map, output_selected, {params1, params2});
 
   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });

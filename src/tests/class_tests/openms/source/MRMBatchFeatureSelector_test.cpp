@@ -47,21 +47,7 @@ START_TEST(MRMBatchFeatureSelector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-MRMBatchFeatureSelector* ptr = nullptr;
-MRMBatchFeatureSelector* null_ptr = nullptr;
-
-START_SECTION(MRMBatchFeatureSelector())
-{
-  ptr = new MRMBatchFeatureSelector();
-  TEST_NOT_EQUAL(ptr, null_ptr)
-}
-END_SECTION
-
-START_SECTION(~MRMBatchFeatureSelector())
-{
-  delete ptr;
-}
-END_SECTION
+// Deleted constructor and destructor
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

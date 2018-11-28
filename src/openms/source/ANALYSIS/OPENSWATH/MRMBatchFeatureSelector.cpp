@@ -38,40 +38,39 @@
 
 namespace OpenMS
 {
-  void MRMBatchFeatureSelector::scheduleMRMFeatures(
+  void MRMBatchFeatureSelector::batchMRMFeatures(
     const MRMFeatureSelector& feature_selector,
     const FeatureMap& features,
-    FeatureMap& selected_features
-  ) const
+    FeatureMap& selected_features,
+    const std::vector<MRMFeatureSelector::SelectorParameters>& parameters
+  )
   {
     FeatureMap input_features = features;
     selected_features.clear();
-    for (const MRMFeatureSelector::SelectorParameters& params : parameters_)
+    for (const MRMFeatureSelector::SelectorParameters& params : parameters)
     {
       feature_selector.selectMRMFeature(input_features, selected_features, params);
       input_features = selected_features;
     }
   }
 
-  void MRMBatchFeatureSelector::scheduleMRMFeaturesQMIP(const FeatureMap& features, FeatureMap& selected_features) const
+  void MRMBatchFeatureSelector::batchMRMFeaturesQMIP(
+    const FeatureMap& features,
+    FeatureMap& selected_features,
+    const std::vector<MRMFeatureSelector::SelectorParameters>& parameters
+  )
   {
     MRMFeatureSelectorQMIP feature_selector;
-    scheduleMRMFeatures(feature_selector, features, selected_features);
+    batchMRMFeatures(feature_selector, features, selected_features, parameters);
   }
 
-  void MRMBatchFeatureSelector::scheduleMRMFeaturesScore(const FeatureMap& features, FeatureMap& selected_features) const
+  void MRMBatchFeatureSelector::batchMRMFeaturesScore(
+    const FeatureMap& features,
+    FeatureMap& selected_features,
+    const std::vector<MRMFeatureSelector::SelectorParameters>& parameters
+  )
   {
     MRMFeatureSelectorScore feature_selector;
-    scheduleMRMFeatures(feature_selector, features, selected_features);
-  }
-
-  void MRMBatchFeatureSelector::setSchedulerParameters(const std::vector<MRMFeatureSelector::SelectorParameters>& parameters)
-  {
-    parameters_ = parameters;
-  }
-
-  std::vector<MRMFeatureSelector::SelectorParameters>& MRMBatchFeatureSelector::getSchedulerParameters()
-  {
-    return parameters_;
+    batchMRMFeatures(feature_selector, features, selected_features, parameters);
   }
 }
