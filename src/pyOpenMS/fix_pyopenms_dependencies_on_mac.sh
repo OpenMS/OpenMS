@@ -79,9 +79,4 @@ for TOFIX in $(find . -name QtNetwork); do
     otool -L $TOFIX | while read -r line ; do
         echo "    $line"
         done
-
-      
-      
-      
-      
 done;
