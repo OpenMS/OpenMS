@@ -66,13 +66,6 @@ START_SECTION(~FragmentAnnotation())
 }
 END_SECTION
 
-// non empty spectrum
-Peak1D p1;
-p1.setIntensity(250.0f);
-p1.setMZ(510.0001);
-MSSpectrum not_empty_msspectrum;
-not_empty_msspectrum.push_back(p1);
-
 // mz  intensity   rel.intensity   exactmass   explanation
 // 123.000363  65857.38    3.36    122.999604  C7H3Cl
 
@@ -88,9 +81,12 @@ START_SECTION(static void extractFragmentAnnotationMapping(const String& path_to
 
     TEST_EQUAL(annotated_msspectrum.empty(), false);
     TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 123.000363);
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("peak_mz"), "mass");
     TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "exact_mass");
     TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 122.999604);
     TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C7H3Cl");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C12H11Cl2N3O2");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "M+H+");
 }
 END_SECTION
 
@@ -106,12 +102,14 @@ START_SECTION(static void extractFragmentAnnotationMapping(const String& path_to
 
     TEST_EQUAL(annotated_msspectrum.empty(), false);
     TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 122.999604)
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("peak_mz"), "exact_mass");
     TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "mass");
     TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 123.000363);
     TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C7H3Cl");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C12H11Cl2N3O2");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_adduct"), "M+H+");
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

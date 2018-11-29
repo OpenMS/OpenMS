@@ -85,14 +85,37 @@ namespace OpenMS
   // use the first ranked sumformula (works for known and known_unkowns)
   void FragmentAnnotation::extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   { 
-    if (!msspectrum_to_fill.empty()) throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSspectrum was provided");
+    if (!msspectrum_to_fill.empty())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSspectrum was provided");
+    }
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/spectra/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
     if (dir.exists())
     {
+
+      if (use_exact_mass)
+      {
+        msspectrum_to_fill.setMetaValue("peak_mz", DataValue("exact_mass"));
+      }
+      else
+      {
+        msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mass"));
+      }
+
+      // use first file in folder (rank 1)
       dir.setFilter(QDir::Files | QDir::Hidden | QDir::NoSymLinks);
       QFileInfoList list = dir.entryInfoList();
       QFileInfo firstfile = list[0]; 
+
+      // filename: 1_sumformula_adduct.ms - save sumformula and adduct as metavalue
+      String filename = firstfile.fileName().toStdString();
+      String current_sumformula = filename.substr(filename.find_first_of("_") + 1, filename.find_last_of("_") - filename.find_first_of("_") - 1);
+      String current_adduct = filename.substr(filename.find_last_of("_") + 1, filename.find_last_of(".") - filename.find_last_of("_") - 1);
+      msspectrum_to_fill.setMetaValue("annotated_sumformula", DataValue(current_sumformula));
+      msspectrum_to_fill.setMetaValue("annotated_adduct", DataValue(current_adduct));
+
+      // read file and save in MSSpectrum
       ifstream fragment_annotation_file(firstfile.absoluteFilePath().toStdString());
       if (fragment_annotation_file)
       {

@@ -44,42 +44,46 @@ namespace OpenMS
 
           /**
           @brief extractFragmentAnnotationMapping  
-          Extract native id and fragment annotation from SIRIUS output (spectrum.ms) for 
-          one compound.
+          Extract native id (./spectrum.ms) and fragment annotation (./spectra/1_sumformula.ms) from SIRIUS output (per compound).
 
-          @return Fragmenannotation (native id and annotated MSSpectrum)
+          @return annotated (consensus) MSSpectrum with associated native id
+
+          MetaValues:
+            peak_mz: indicates which mass input was used in Peak1D (mass or exact_mass).
+            annotated_sumformula
+            annotated_adduct
           
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
           */
-
           static void extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false);
 
       protected:
 
           /**
           @brief extractNativeIDFromSiriusMS  
-          Extract native id from SIRIUS output (spectrum.ms).
+          Extract native id from SIRIUS output (./spectrum.ms).
 
           @return String native id of current SIRIUS compound
           
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           */
-
-           // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
-           // first native id in the spectrum.ms (only one native id is used fro matching later)
           static OpenMS::String extractNativeIDFromSiriusMS_(const OpenMS::String& path_to_sirius_workspace);
 
           /**
           @brief extractAnnotationFromSiriusFile  
-          Extract fragment annotation from SIRIUS  (/spectra/1_*.ms).
+          Extract fragment annotation from SIRIUS  (./spectra/1_sumformula.ms).
 
-          @return MSSpectrum SIRIUS Consensusspectrum with mz, int, exact mass, fragment explanation.
+          @return annotated (consensus) MSSpectrum (mz, int, exact mass, fragment explanation).
+
+          MetaValues:
+            peak_mz: indicates which mass input was used in Peak1D (mass or exact_mass).
+            annotated_sumformula
+            annotated_adduct
           
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
           */
-
           static void extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false); 
   };
 }

@@ -206,4 +206,3 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 }
 
 /// @endcond
-

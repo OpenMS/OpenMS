@@ -40,13 +40,13 @@ using namespace std;
 namespace OpenMS
 {
   // return map of ms2 to feature and a vector of unassigned ms2
-  FeatureMapping::FeatureToMs2Indices FeatureMapping::assignMS2IndexToFeature(OpenMS::PeakMap& spectra,
+  FeatureMapping::FeatureToMs2Indices FeatureMapping::assignMS2IndexToFeature(OpenMS::MSExperiment& spectra,
                                                                               const OpenMS::KDTreeFeatureMaps& fp_map_kd,
                                                                               const double& precursor_mz_tolerance,
                                                                               const double& precursor_rt_tolerance,
                                                                               bool& ppm)
   {
-    map<const BaseFeature*, vector<size_t>> assigned_ms2;
+    FeatureMapping::MS2Assignments assigned_ms2;
     vector<size_t> unassigned_ms2;
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)
