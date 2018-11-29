@@ -670,6 +670,10 @@ namespace OpenMS
       // cut out the position number:
       Size split = label.find_first_not_of("0123456789", 2);
       String ion = label.prefix(1);
+      // special case for RNA: "a[n]-B", where "[n]" is the ion number
+      // -> don't forget to add the "-B" back on if it's there:
+      String more_ion = label.substr(split);
+      if (more_ion == "-B") ion += more_ion;
       Size pos = label.substr(1, split - 1).toInt();
       ion_pos[ion].insert(pos);
       #ifdef DEBUG_IDENTIFICATION_VIEW
@@ -791,7 +795,9 @@ namespace OpenMS
       html += "<tr>";
       for (const String& cell : row)
       {
-        cout << "cell: '" << cell << "'" << endl;
+        #ifdef DEBUG_IDENTIFICATION_VIEW
+          cout << "cell: '" << cell << "'" << endl;
+        #endif
         html += "<td align=\"center\">" + cell + "</td>";
       }
       html += "</tr>";
