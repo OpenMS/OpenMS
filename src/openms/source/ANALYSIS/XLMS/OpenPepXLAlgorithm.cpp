@@ -1203,7 +1203,7 @@ using namespace OpenMS;
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
         {
-          LOG_DEBUG << "spctrum_linear_peaks: " << preprocessed_pair_spectra.spectra_linear_peaks[pair_index].size() << endl;
+          LOG_DEBUG << "spectrum_linear_peaks: " << preprocessed_pair_spectra.spectra_linear_peaks[pair_index].size() << endl;
           LOG_DEBUG << "spectrum_xlink_peaks: " << preprocessed_pair_spectra.spectra_xlink_peaks[pair_index].size() << endl;
         }
 #endif
