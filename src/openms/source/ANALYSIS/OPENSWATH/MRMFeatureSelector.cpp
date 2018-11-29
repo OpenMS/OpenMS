@@ -304,6 +304,11 @@ namespace OpenMS
   {
     selected_filtered.clear();
 
+    if (features.empty())
+    {
+      return;
+    }
+
     std::vector<std::pair<double, String>> time_to_name;
     std::map<String, std::vector<Feature>> feature_name_map;
     constructTargTransList_(features, time_to_name, feature_name_map, parameters.select_transition_group);
