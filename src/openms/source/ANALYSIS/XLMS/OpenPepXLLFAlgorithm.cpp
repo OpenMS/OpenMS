@@ -109,7 +109,7 @@ using namespace OpenMS;
 
     defaults_.setValue("cross_linker:residue1", ListUtils::create<String>("K,N-term"), "Comma separated residues, that the first side of a bifunctional cross-linker can attach to");
     defaults_.setValue("cross_linker:residue2", ListUtils::create<String>("K,N-term"), "Comma separated residues, that the second side of a bifunctional cross-linker can attach to");
-    defaults_.setValue("cross_linker:mass_light", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides");
+    defaults_.setValue("cross_linker:mass", 138.0680796, "Mass of the light cross-linker, linking two residues on one or two peptides");
     defaults_.setValue("cross_linker:mass_mono_link", ListUtils::create<double>("156.07864431, 155.094628715"), "Possible masses of the linker, when attached to only one peptide");
     defaults_.setValue("cross_linker:name", "DSS", "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)");
     defaults_.setSectionDescription("cross_linker", "Description of the cross-linker reagent");
@@ -162,7 +162,7 @@ using namespace OpenMS;
 
     cross_link_residue1_ = param_.getValue("cross_linker:residue1");
     cross_link_residue2_ = param_.getValue("cross_linker:residue2");
-    cross_link_mass_ = static_cast<double>(param_.getValue("cross_linker:mass_light"));
+    cross_link_mass_ = static_cast<double>(param_.getValue("cross_linker:mass"));
     cross_link_mass_mono_link_ = param_.getValue("cross_linker:mass_mono_link");
     cross_link_name_ = static_cast<String>(param_.getValue("cross_linker:name"));
 
