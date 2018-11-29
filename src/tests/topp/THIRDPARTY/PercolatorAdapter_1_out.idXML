@@ -40,7 +40,6 @@
 				<UserParam type="string" name="Percolator:fasta" value=""/>
 				<UserParam type="string" name="Percolator:decoy-pattern" value="random"/>
 				<UserParam type="string" name="Percolator:post-processing-tdc" value="true"/>
-				<UserParam type="int" name="Percolator:train-best-positive" value="0"/>
 	</SearchParameters>
 	<IdentificationRun date="2018-08-01T09:48:07" search_engine="Comet" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
