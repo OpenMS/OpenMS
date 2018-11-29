@@ -43,12 +43,12 @@ using namespace std;
 namespace OpenMS
 {
 
-  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling)
+  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity)
   {
-    SplineInterpolatedPeaks::init_(pos, intensity, scaling);
+    SplineInterpolatedPeaks::init_(pos, intensity);
   }
 
-  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling)
+  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum)
   {
     std::vector<double> pos;
     std::vector<double> intensity;
@@ -57,10 +57,10 @@ namespace OpenMS
       pos.push_back(it.getMZ());
       intensity.push_back(it.getIntensity());
     }
-    SplineInterpolatedPeaks::init_(pos, intensity, scaling);
+    SplineInterpolatedPeaks::init_(pos, intensity);
   }
 
-  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling)
+  SplineInterpolatedPeaks::SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram)
   {
     std::vector<double> rt;
     std::vector<double> intensity;
@@ -69,14 +69,14 @@ namespace OpenMS
       rt.push_back(it.getRT());
       intensity.push_back(it.getIntensity());
     }
-    SplineInterpolatedPeaks::init_(rt, intensity, scaling);
+    SplineInterpolatedPeaks::init_(rt, intensity);
   }
 
   SplineInterpolatedPeaks::~SplineInterpolatedPeaks()
   {
   }
 
-  void SplineInterpolatedPeaks::init_(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling)
+  void SplineInterpolatedPeaks::init_(const std::vector<double>& pos, const std::vector<double>& intensity)
   {
 
     if (!(pos.size() == intensity.size() && pos.size() > 2))
@@ -164,7 +164,7 @@ namespace OpenMS
         if (intensity_package.size() > 1)
         {
           // Two or more data points in package. At least one of them will be non-zero since unnecessary zeros removed above.
-          packages_.push_back(SplinePackage(pos_package, intensity_package, scaling));
+          packages_.push_back(SplinePackage(pos_package, intensity_package));
         }
         pos_package.clear();
         intensity_package.clear();
@@ -175,7 +175,7 @@ namespace OpenMS
     // add the last package
     if (intensity_package.size() > 1)
     {
-      packages_.push_back(SplinePackage(pos_package, intensity_package, scaling));
+      packages_.push_back(SplinePackage(pos_package, intensity_package));
     }
 
   }
@@ -195,20 +195,21 @@ namespace OpenMS
     return packages_.size();
   }
 
-  SplineInterpolatedPeaks::Navigator SplineInterpolatedPeaks::getNavigator()
+  SplineInterpolatedPeaks::Navigator SplineInterpolatedPeaks::getNavigator(double scaling)
   {
     if (packages_.empty())
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
-    return Navigator(&packages_, pos_min_, pos_max_);
+    return Navigator(&packages_, pos_min_, pos_max_, scaling);
   }
 
-  SplineInterpolatedPeaks::Navigator::Navigator(const std::vector<SplinePackage>* packages, double pos_min, double pos_max) :
+  SplineInterpolatedPeaks::Navigator::Navigator(const std::vector<SplinePackage>* packages, double pos_min, double pos_max, double scaling) :
     packages_(packages),
     last_package_(0),
     pos_min_(pos_min),
-    pos_max_(pos_max)
+    pos_max_(pos_max),
+    pos_step_width_scaling_(scaling)
   {
   }
 
@@ -306,7 +307,7 @@ namespace OpenMS
     }
 
     // find m/z in the package
-    if (pos + package.getPosStepWidth() > package.getPosMax())
+    if (pos + pos_step_width_scaling_ * package.getPosStepWidth() > package.getPosMax())
     {
       // The next step gets us outside the current package.
       // Let's move to the package to the right.
@@ -325,7 +326,7 @@ namespace OpenMS
     {
       // make a small step within the package
       last_package_ = i;
-      return pos + package.getPosStepWidth();
+      return pos + pos_step_width_scaling_ * package.getPosStepWidth();
     }
   }
 

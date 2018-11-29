@@ -91,7 +91,7 @@ for (size_t i=0; i < pos.size(); ++i)
 SplineInterpolatedPeaks* nullPointer = nullptr;
 SplineInterpolatedPeaks* ptr;
 
-START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling))
+START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity))
     SplineInterpolatedPeaks spline(pos, intensity);
     TEST_REAL_SIMILAR(spline.getPosMin(), 416.3);
     ptr = new SplineInterpolatedPeaks(pos, intensity);
@@ -99,15 +99,7 @@ START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std:
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling))
-    SplineInterpolatedPeaks spline(pos, intensity, 0.7);
-    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
-    ptr = new SplineInterpolatedPeaks(pos, intensity, 0.7);
-    TEST_NOT_EQUAL(ptr, nullPointer);
-    delete ptr;
-END_SECTION
-
-START_SECTION(SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling))
+START_SECTION(SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum))
 	SplineInterpolatedPeaks spline(spectrum);
     TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
     ptr = new SplineInterpolatedPeaks(spectrum);
@@ -115,26 +107,10 @@ START_SECTION(SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double sca
     delete ptr;
 END_SECTION
 
-START_SECTION(SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling))
-	SplineInterpolatedPeaks spline(spectrum, 0.7);
-    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
-    ptr = new SplineInterpolatedPeaks(spectrum, 0.7);
-    TEST_NOT_EQUAL(ptr, nullPointer);
-    delete ptr;
-END_SECTION
-
-START_SECTION(SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling))
+START_SECTION(SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram))
 	SplineInterpolatedPeaks spline(chromatogram);
     TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
     ptr = new SplineInterpolatedPeaks(chromatogram);
-    TEST_NOT_EQUAL(ptr, nullPointer);
-    delete ptr;
-END_SECTION
-
-START_SECTION(SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling))
-	SplineInterpolatedPeaks spline(chromatogram, 0.7);
-    TEST_REAL_SIMILAR(spline.getPosMin(), 416.3)
-    ptr = new SplineInterpolatedPeaks(chromatogram, 0.7);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
@@ -153,7 +129,7 @@ START_SECTION(size_t size() const)
   TEST_EQUAL(spectrum2.size(), 2)
 END_SECTION
 
-START_SECTION(SplineInterpolatedPeaks::Navigator getNavigator())
+START_SECTION(SplineInterpolatedPeaks::Navigator getNavigator(double scaling))
   // just to test if it can be called
   SplineInterpolatedPeaks::Navigator nav = spectrum2.getNavigator();
 END_SECTION

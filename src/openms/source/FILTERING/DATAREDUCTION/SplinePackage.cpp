@@ -40,7 +40,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SplinePackage::SplinePackage(std::vector<double> pos, std::vector<double> intensity, double scaling) :
+  SplinePackage::SplinePackage(std::vector<double> pos, std::vector<double> intensity) :
     spline_(pos, intensity)
   {
     if (!(pos.size() == intensity.size() && pos.size() > 1))
@@ -50,7 +50,7 @@ namespace OpenMS
 
     pos_min_ = pos.front();
     pos_max_ = pos.back();
-    pos_step_width_ = scaling * (pos_max_ - pos_min_) / (pos.size() - 1); // step width somewhat smaller than the average raw data spacing
+    pos_step_width_ = (pos_max_ - pos_min_) / (pos.size() - 1);
   }
 
   SplinePackage::~SplinePackage()

@@ -58,10 +58,8 @@ class OPENMS_DLLAPI SplinePackage
 public:
 /**
  * @brief constructor
- * 
- * @param scaling    scaling factor for the step width @see getPosStepWidth()
  */
-SplinePackage(std::vector<double> pos, std::vector<double> intensity, double scaling);
+SplinePackage(std::vector<double> pos, std::vector<double> intensity);
 
 /**
  * @brief destructor
@@ -102,7 +100,9 @@ double pos_max_;
 
 /**
  * @brief sensible position step width with which to scan through the package
- * (raw data spacing times a scaling factor typically <1)
+ * 
+ * @note The step width is rescaled individually in each navigator.
+ * @see SplineInterpolatedPeaks::Navigator::getNextPos()
  */
 double pos_step_width_;
 

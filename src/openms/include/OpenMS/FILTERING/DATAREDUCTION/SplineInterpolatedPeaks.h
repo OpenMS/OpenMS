@@ -65,30 +65,21 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
      * @brief constructor taking two vectors
      * (and an optional scaling factor for the m/z (or RT) step width)
      * 
-     * @param scaling    scaling factor for the step width with which the Navigator moves over the spectrum (or chromatogram)
-     * i.e. scaling < 1  =>  step width somewhat smaller than the average raw data spacing @see SplinePackage
-     *
      * @note Vectors are assumed to be sorted by m/z (or RT)!
      */
-    SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling = 0.7);
+    SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity);
 
     /**
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
-     * 
-     * @param scaling    scaling factor for the step width with which the Navigator moves over the spectrum
-     * i.e. scaling < 1  =>  step width somewhat smaller than the average raw data spacing @see SplinePackage
      */
-    SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum, double scaling = 0.7);
+    SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum);
 
     /**
      * @brief constructor taking an MSChromatogram
      * (and an optional scaling factor for the RT step width)
-     * 
-     * @param scaling    scaling factor for the step width with which the Navigator moves over the chromatogram
-     * i.e. scaling < 1  =>  step width somewhat smaller than the average raw data spacing @see SplinePackage
      */
-    SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram, double scaling = 0.7);
+    SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram);
 
     /**
      * @brief destructor
@@ -122,8 +113,11 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
       public:
         /**
         * @brief constructor of iterator
+        * 
+        * @param scaling    The step width can be scaled by this factor. Often it is adventageous to iterate
+        * in slightly samller steps over the spectrum (or chromatogram).
         */
-        Navigator(const std::vector<SplinePackage> * packages, double posMin, double posMax);
+        Navigator(const std::vector<SplinePackage> * packages, double posMin, double posMax, double scaling);
 
         /**
         * @brief constructor (for pyOpenMS)
@@ -167,6 +161,17 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
         */
         double pos_min_;
         double pos_max_;
+        
+        /**
+        * @brief scaling of the step width
+        * 
+        * Each package stores its own step width, which is the average spacing of the input data points.
+        * This step width can be adjusted by the scaling factor. Often it is adventageous to use a step width
+        * which is somewhat smaller than the average raw data spacing.
+        * 
+        * @see getNextPos() 
+        */
+        double pos_step_width_scaling_;
     };
 
     /**
@@ -177,10 +182,12 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
     *
     * Make sure that the underlying SplineInterpolatedPeaks does not run out-of-scope since the
     * Navigator relies on its data.
+    * 
+    * @param scaling    step width scaling parameter
     *
     * @throw Exception::InvalidSize if packages is empty
     */
-    SplineInterpolatedPeaks::Navigator getNavigator();
+    SplineInterpolatedPeaks::Navigator getNavigator(double scaling = 0.7);
 
   private:
 
@@ -201,7 +208,7 @@ class OPENMS_DLLAPI SplineInterpolatedPeaks
     /**
      * @brief section common for all constructors
      */
-    void init_(const std::vector<double>& pos, const std::vector<double>& intensity, double scaling);
+    void init_(const std::vector<double>& pos, const std::vector<double>& intensity);
 
 
 };
