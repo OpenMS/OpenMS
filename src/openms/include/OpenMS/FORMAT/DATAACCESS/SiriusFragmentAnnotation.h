@@ -38,12 +38,12 @@
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI FragmentAnnotation
+  class OPENMS_DLLAPI SiriusFragmentAnnotation
       {
       public:
 
           /**
-          @brief extractFragmentAnnotationMapping  
+          @brief extractSiriusFragmentAnnotationMapping  
           Extract native id (./spectrum.ms) and fragment annotation (./spectra/1_sumformula.ms) from SIRIUS output (per compound).
 
           @return annotated (consensus) MSSpectrum with associated native id
@@ -52,11 +52,20 @@ namespace OpenMS
             peak_mz: indicates which mass input was used in Peak1D (mass or exact_mass).
             annotated_sumformula
             annotated_adduct
-          
+
+          The data is stored in a MSSpectrum, which contains a Peak1D (mz, int), a FloatDataArry (exact mass), and a StringDataArry (explanation).
+
+          <table>
+          <caption id="SiriusFragmentAnnotation"> MSSpectrum </caption>
+          <tr><th> Peak1D <th> <th> FloatDataArray <th> StringDataArray
+          <tr><td> mz <td> intensity <td> exact_mass <td> explanation
+          <tr><td> 56.050855 <td> 20794.85 <td> 56.049476 <td> C3H5N
+          </table>
+
           @param path_to_sirius_workspace: Path to SIRIUS workspace.
           @param use_exact_mass: Option to use exact mass instead of peak mz in MSSpectrum.
           */
-          static void extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false);
+          static void extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false);
 
       protected:
 
@@ -77,7 +86,7 @@ namespace OpenMS
           @return annotated (consensus) MSSpectrum (mz, int, exact mass, fragment explanation).
 
           MetaValues:
-            peak_mz: indicates which mass input was used in Peak1D (mass or exact_mass).
+            peak_mz: indicates which mass input was used in Peak1D (mz or exact_mass).
             annotated_sumformula
             annotated_adduct
           

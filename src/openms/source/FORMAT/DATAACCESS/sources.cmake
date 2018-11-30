@@ -4,7 +4,6 @@ set(directory source/FORMAT/DATAACCESS)
 ### list all filenames of the directory here
 set(sources_list
   CsiFingerIdMzTabWriter.cpp
-  FragmentAnnotation.cpp
   MSDataWritingConsumer.cpp
   MSDataTransformingConsumer.cpp
   MSDataAggregatingConsumer.cpp
@@ -15,8 +14,9 @@ set(sources_list
   MSDataTransformingConsumer.cpp
   MSDataWritingConsumer.cpp
   NoopMSDataConsumer.cpp
-  SwathFileConsumer.cpp
+  SiriusFragmentAnnotation.cpp
 	SiriusMzTabWriter.cpp
+  SwathFileConsumer.cpp
 )
 
 ### add path to the filenames

@@ -139,7 +139,6 @@ namespace OpenMS
       int getIsotopePatternIterations();
       int getCandidates();
       int getTopNHits();
-      int getDebugLevel();
 
     protected:
 

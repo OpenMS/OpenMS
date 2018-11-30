@@ -36,7 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/FORMAT/DATAACCESS/FragmentAnnotation.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 #include <QtCore/QDir>
@@ -46,21 +46,21 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(FragmentAnnotation, "$Id$")
+START_TEST(SiriusFragmentAnnotation, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-FragmentAnnotation* fa_ptr = nullptr;
-FragmentAnnotation* fa_null = nullptr;
+SiriusFragmentAnnotation* fa_ptr = nullptr;
+SiriusFragmentAnnotation* fa_null = nullptr;
 
-START_SECTION(FragmentAnnotation())
+START_SECTION(SiriusFragmentAnnotation())
 {
-    fa_ptr = new FragmentAnnotation;
+    fa_ptr = new SiriusFragmentAnnotation;
     TEST_NOT_EQUAL(fa_ptr, fa_null);
 }
 END_SECTION
 
-START_SECTION(~FragmentAnnotation())
+START_SECTION(~SiriusFragmentAnnotation())
 {
     delete fa_ptr;
 }
@@ -70,18 +70,18 @@ END_SECTION
 // 123.000363  65857.38    3.36    122.999604  C7H3Cl
 
 // test function 
-START_SECTION(static void extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
+START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
 {
-    String test_path = OPENMS_GET_TEST_DATA_PATH("FragmentAnnotation_test");
+    String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
     MSSpectrum annotated_msspectrum;
 
-    FragmentAnnotation::extractFragmentAnnotationMapping(test_path, annotated_msspectrum);
+    SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(test_path, annotated_msspectrum);
     TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=2056 experiment=3");
     TEST_EQUAL(annotated_msspectrum.getMSLevel(), 2);
 
     TEST_EQUAL(annotated_msspectrum.empty(), false);
     TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 123.000363);
-    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("peak_mz"), "mass");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("peak_mz"), "mz");
     TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "exact_mass");
     TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 122.999604);
     TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C7H3Cl");
@@ -91,19 +91,19 @@ START_SECTION(static void extractFragmentAnnotationMapping(const String& path_to
 END_SECTION
 
 // test exact mass output 
-START_SECTION(static void extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
+START_SECTION(static void extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass))
 {
-    String test_path = OPENMS_GET_TEST_DATA_PATH("FragmentAnnotation_test");
+    String test_path = OPENMS_GET_TEST_DATA_PATH("SiriusFragmentAnnotation_test");
     MSSpectrum annotated_msspectrum;
 
-    FragmentAnnotation::extractFragmentAnnotationMapping(test_path, annotated_msspectrum, true);    
+    SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(test_path, annotated_msspectrum, true);    
     TEST_STRING_SIMILAR(annotated_msspectrum.getNativeID(), "sample=1 period=1 cycle=2056 experiment=3");
     TEST_EQUAL(annotated_msspectrum.getMSLevel(), 2);
 
     TEST_EQUAL(annotated_msspectrum.empty(), false);
     TEST_REAL_SIMILAR(annotated_msspectrum[0].getMZ(), 122.999604)
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("peak_mz"), "exact_mass");
-    TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "mass");
+    TEST_STRING_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0].getName(), "mz");
     TEST_REAL_SIMILAR(annotated_msspectrum.getFloatDataArrays()[0][0], 123.000363);
     TEST_STRING_SIMILAR(annotated_msspectrum.getStringDataArrays()[0][0], "C7H3Cl");
     TEST_STRING_SIMILAR(annotated_msspectrum.getMetaValue("annotated_sumformula"), "C12H11Cl2N3O2");

@@ -237,7 +237,6 @@ set(format_executables_list
   XTandemXMLFile_test
   ZlibCompression_test
   # DATAACCESS
-  FragmentAnnotation_test
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
   MSDataChainingConsumer_test
@@ -245,6 +244,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SiriusFragmentAnnotation_test
 )
 
 set(math_executables_list

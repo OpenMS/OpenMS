@@ -20,7 +20,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
         Int getIsotopePatternIterations() nogil except +
         Int getCandidates() nogil except +
         Int getTopNHits() nogil except +
-        Int getDebugLevel() nogil except +
 
         SiriusTmpStruct constructSiriusTmpStruct() nogil except +
 

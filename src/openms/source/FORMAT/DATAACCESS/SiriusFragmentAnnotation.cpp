@@ -32,7 +32,7 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/DATAACCESS/FragmentAnnotation.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <fstream>
 #include <QtCore/QDir>
@@ -44,17 +44,17 @@ using namespace std;
 namespace OpenMS
 {
 
-  void FragmentAnnotation::extractFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
+  void SiriusFragmentAnnotation::extractSiriusFragmentAnnotationMapping(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   {
-    OpenMS::String native_id = FragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
-    FragmentAnnotation::extractAnnotationFromSiriusFile_(path_to_sirius_workspace, msspectrum_to_fill, use_exact_mass);
+    OpenMS::String native_id = SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
+    SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(path_to_sirius_workspace, msspectrum_to_fill, use_exact_mass);
     
     msspectrum_to_fill.setNativeID(native_id);
   }
   
   // extract native id from SIRIUS spectrum.ms output file (workspace - compound specific)
   // first native id in the spectrum.ms
-  OpenMS::String FragmentAnnotation::extractNativeIDFromSiriusMS_(const String& path_to_sirius_workspace)
+  OpenMS::String SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(const String& path_to_sirius_workspace)
   {
     String ext_nid;
     const String sirius_spectrum_ms = path_to_sirius_workspace + "/spectrum.ms";
@@ -83,7 +83,7 @@ namespace OpenMS
   }
   
   // use the first ranked sumformula (works for known and known_unkowns)
-  void FragmentAnnotation::extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
+  void SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass)
   { 
     if (!msspectrum_to_fill.empty())
     {
@@ -100,7 +100,7 @@ namespace OpenMS
       }
       else
       {
-        msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mass"));
+        msspectrum_to_fill.setMetaValue("peak_mz", DataValue("mz"));
       }
 
       // use first file in folder (rank 1)
@@ -126,7 +126,7 @@ namespace OpenMS
         MSSpectrum::StringDataArray fragments_explanations;
         if (use_exact_mass)
         {
-          fragments_exactmasses.setName("mass");
+          fragments_exactmasses.setName("mz");
         }
         else
         {
