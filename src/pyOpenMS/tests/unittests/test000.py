@@ -398,8 +398,8 @@ def testEmpiricalFormula():
     s = ef.toString()
     assert s == b"C2H5"
     m = ef.getElementalComposition()
-    assert m["C"] == 2
-    assert m["H"] == 5
+    assert m[b"C"] == 2
+    assert m[b"H"] == 5
     assert ef.getNumberOfAtoms() == 7
 
 @report
@@ -3382,9 +3382,9 @@ def testMxxxFile():
 
     myStr = pyopenms.String()
     fh.storeBuffer(myStr, mse)
-    assert len(str(myStr)) == 5269
+    assert len(myStr.toString()) == 5269
     mse2 = pyopenms.MSExperiment()
-    fh.loadBuffer(str(myStr), mse2)
+    fh.loadBuffer(bytes(myStr), mse2)
     assert mse2 == mse
     assert mse2.size() == 1
 
@@ -3484,7 +3484,7 @@ def testNumpressCoder():
     inp =  [1.0, 2.0, 3.0]
     np.encodeNP(inp, tmp, True, nc)
 
-    res = str(tmp)
+    res = tmp.toString()
     assert len(res) != 0, len(res)
     assert res != "", res
     np.decodeNP(res, out, True, nc)
@@ -3515,7 +3515,7 @@ def testNumpressConfig():
     np.numpressErrorTolerance = 4.2
     np.estimate_fixed_point = True
     np.linear_fp_mass_acc = 4.2
-    np.setCompression("linear")
+    np.setCompression(b"linear")
 
 @report
 def testBase64():
@@ -3526,9 +3526,10 @@ def testBase64():
     out = pyopenms.String()
     inp =  [1.0, 2.0, 3.0]
     b.encode(inp, b.ByteOrder.BYTEORDER_LITTLEENDIAN, out, False)
-    res = str(out)
+    res = out.toString()
+    print(res)
     assert len(res) != 0
-    assert res != ""
+    assert res != b""
 
     convBack = []
     b.decode(res, b.ByteOrder.BYTEORDER_LITTLEENDIAN, convBack, False)
