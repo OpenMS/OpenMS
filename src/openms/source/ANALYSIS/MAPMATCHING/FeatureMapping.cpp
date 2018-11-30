@@ -44,9 +44,9 @@ namespace OpenMS
                                                                               const OpenMS::KDTreeFeatureMaps& fp_map_kd,
                                                                               const double& precursor_mz_tolerance,
                                                                               const double& precursor_rt_tolerance,
-                                                                              bool& ppm)
+                                                                              bool ppm)
   {
-    FeatureMapping::MS2Assignments assigned_ms2;
+    std::map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
     vector<size_t> unassigned_ms2;
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)

@@ -45,12 +45,9 @@ namespace OpenMS
       {
           public:
 
-          struct MS2Assignments:
-              public std::map<const BaseFeature*, std::vector<size_t>> {};
-
           struct FeatureToMs2Indices
           {
-             MS2Assignments assignedMS2;
+             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
              std::vector<size_t> unassignedMS2;
           };
 
@@ -70,7 +67,7 @@ namespace OpenMS
                                                              const KDTreeFeatureMaps& fp_map_kd,
                                                              const double& precursor_mz_tolerance,
                                                              const double& precursor_rt_tolerance,
-                                                             bool& ppm);
+                                                             bool ppm);
 
       };
 }

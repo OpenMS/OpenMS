@@ -44,9 +44,9 @@ cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "Open
                                                  String out_csifingerid,
                                                  SiriusAdapterAlgorithm sirius_algo);
 
-cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriudAdapterAlgorithm":
+cdef extern from "<OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>" namespace "OpenMS::SiriusAdapterAlgorithm":
  
-    cdef cppclass SiriusTmpStruct "OpenMS::SiriudAdapterAlgorithm::SiriusTmpStruct":
+    cdef cppclass SiriusTmpStruct "OpenMS::SiriusAdapterAlgorithm::SiriusTmpStruct":
         SiriusTmpStruct()
         SiriusTmpStruct(SiriusTmpStruct)
         
