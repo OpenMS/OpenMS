@@ -278,7 +278,7 @@ namespace OpenMS
             double new_ei = exp_spectrum[e_candidate].getIntensity();
             const bool charge_matches = (new_ez == tz || !new_ez || !tz);
             const bool intensity_matches = ( std::min(ti, new_ei) / std::max(ti, new_ei) ) > intensity_cutoff;
-            double new_d = exp_spectrum[e].getMZ() - theo_mz;
+            double new_d = exp_spectrum[e_candidate].getMZ() - theo_mz;
             if (charge_matches && new_d <= max_dist_dalton && intensity_matches)
             { // found a match
               break;
