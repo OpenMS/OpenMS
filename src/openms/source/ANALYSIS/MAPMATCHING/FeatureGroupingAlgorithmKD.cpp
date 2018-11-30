@@ -84,6 +84,7 @@ namespace OpenMS
     defaults_.remove("distance_MZ:max_difference");
     defaults_.remove("distance_MZ:unit");
     defaults_.remove("ignore_charge");
+    defaults_.remove("ignore_adduct");      
 
     // LOWESS defaults
     Param lowess_defaults;
