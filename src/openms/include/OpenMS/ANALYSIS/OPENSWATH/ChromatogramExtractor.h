@@ -231,8 +231,6 @@ public:
           extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
     }
 
-public:
-
     /**
      * @brief Prepare the extraction coordinates from a TargetedExperiment
      *
@@ -556,7 +554,6 @@ public:
     }
 
 private:
-
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
      *
@@ -564,7 +561,7 @@ private:
      * @param id The identifier of the compound or peptide
      * @param prec_charge The charge state of the precursor
      *
-    */
+     */
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, const String& id, int& prec_charge);
     

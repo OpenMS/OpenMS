@@ -7,7 +7,7 @@ set(sources_list
   CoarseIsotopePatternGenerator.cpp
   FineIsotopePatternGenerator.cpp
   IsotopeDistribution.cpp
-  IsoSpec.cpp
+  IsoSpecWrapper.cpp
   IsotopePatternGenerator.cpp
 )
 
