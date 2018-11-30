@@ -511,7 +511,8 @@ namespace OpenMS
         ResidueModification::TermSpecificity second_spec = ResidueModification::N_TERM;
         Size mod_pos = 0;
         bool compatible = false;
-        if (n_term_linker && (peptide_pos_second == OPXLDataStructs::N_TERM))
+        // If the peptide is at the N-terminus of the protein and the first residue is otherwise not linkable, add a terminal cross-linker
+        if (n_term_linker && (peptide_pos_second == OPXLDataStructs::N_TERM) && find(link_pos_second.begin(), link_pos_second.end(), 0) == link_pos_second.end())
         {
           compatible = true;
         }
@@ -559,7 +560,8 @@ namespace OpenMS
         ResidueModification::TermSpecificity first_spec = ResidueModification::N_TERM;
         Size mod_pos = 0;
         bool compatible = false;
-        if (n_term_linker && (peptide_pos_first == OPXLDataStructs::N_TERM))
+        // If the peptide is at the N-terminus of the protein and the first residue is otherwise not linkable, add a terminal cross-linker
+        if (n_term_linker && (peptide_pos_first == OPXLDataStructs::N_TERM) && find(link_pos_first.begin(), link_pos_first.end(), 0) == link_pos_first.end())
         {
           compatible = true;
         }
