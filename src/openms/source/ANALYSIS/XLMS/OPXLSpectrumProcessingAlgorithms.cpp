@@ -40,6 +40,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 
 using namespace std;
 
@@ -110,6 +111,16 @@ namespace OpenMS
     exp.sortSpectra(false);
     LOG_DEBUG << "Deisotoping and filtering spectra." << endl;
 
+    // filter settings
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
+
+    NLargest nlargest_filter = NLargest(500);
+
     PeakMap filtered_spectra;
     Size MS2_counter(0);
 
@@ -159,6 +170,9 @@ namespace OpenMS
         if (deisotoped.size() > peptide_min_size * 2 || labeled)
         {
           deisotoped.sortByPosition();
+          window_mower_filter.filterPeakSpectrum(deisotoped);
+          nlargest_filter.filterPeakSpectrum(deisotoped);
+          deisotoped.sortByPosition();
 
 #ifdef _OPENMP
 #pragma omp critical
@@ -179,8 +193,8 @@ namespace OpenMS
         PeakSpectrum filtered = exp[exp_index];
         if (!labeled) // this kind of filtering is not necessary for labeled cross-links, since they area filtered by comparing heavy and light spectra later
         {
-          NLargest nfilter(500);
-          nfilter.filterSpectrum(filtered);
+          window_mower_filter.filterPeakSpectrum(filtered);
+          nlargest_filter.filterPeakSpectrum(filtered);
         }
 
         // only consider spectra, that have at least as many peaks as two times the minimal peptide size after filtering
@@ -349,7 +363,6 @@ namespace OpenMS
         // add ppm error for this match
         double ppm_error = (exp_spectrum[closest_exp_peak].getMZ() - theo_mz) / theo_mz * 1e6;
         ppm_error_array.emplace_back(ppm_error);
-
 
         e = closest_exp_peak + 1;  // advance experimental peak to 1-after the best match
         ++t; // advance theoretical peak
