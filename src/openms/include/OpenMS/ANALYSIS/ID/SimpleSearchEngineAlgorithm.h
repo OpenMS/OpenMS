@@ -32,9 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -79,65 +78,103 @@
 #endif
 
 
-using namespace OpenMS;
-using namespace std;
+namespace OpenMS
+{
 
-class SimpleSearchEngine :
-    public TOPPBase
+class OPENMS_DLLAPI SimpleSearchEngineAlgorithm :
+  public DefaultParamHandler,
+  public ProgressLogger
 {
   public:
-    SimpleSearchEngine() :
-      TOPPBase("SimpleSearchEngine", 
-        "Annotates MS/MS spectra using SimpleSearchEngine.", 
-        false)
-    {
-    }
+    SimpleSearchEngineAlgorithm(); 
 
+    /// Exit codes
+    enum class ExitCodes
+    {
+      EXECUTION_OK,
+      INPUT_FILE_EMPTY,
+      UNEXPECTED_RESULT,
+      UNKNOWN_ERROR,
+      ILLEGAL_PARAMETERS
+    };
+
+    // @brief search spectra against database
+    ExitCodes search(const String& in_mzML, 
+      const String& in_db, 
+      std::vector<ProteinIdentification>& prot_ids,
+      std::vector<PeptideIdentification>& pep_ids) const;
   protected:
-    void registerOptionsAndFlags_() override
+    void updateMembers_() override;
+
+    /// Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
+    struct AnnotatedHit_
     {
-      registerInputFile_("in", "<file>", "", "input file ");
-      setValidFormats_("in", ListUtils::create<String>("mzML"));
+      StringView sequence;
+      SignedSize peptide_mod_index; // enumeration index of the non-RNA peptide modification
+      double score = 0; // main score
+      std::vector<PeptideHit::PeakAnnotation> fragment_annotations;
+      static bool hasBetterScore(const AnnotatedHit_& a, const AnnotatedHit_& b)
+      {
+        return a.score > b.score;
+      }
+    };
 
-      registerInputFile_("database", "<file>", "", "input file ");
-      setValidFormats_("database", ListUtils::create<String>("fasta"));
+    // @brief filter, deisotope, decharge spectra
+    static void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm);
 
-      registerOutputFile_("out", "<file>", "", "output file ");
-      setValidFormats_("out", ListUtils::create<String>("idXML"));
+    // @brief filter and annotate search results
+    // most of the parameters are used to properly add meta data to the id objects
+    static void postProcessHits_(const PeakMap& exp, 
+      std::vector<std::vector<SimpleSearchEngineAlgorithm::AnnotatedHit_> >& annotated_hits, 
+      std::vector<ProteinIdentification>& protein_ids, 
+      std::vector<PeptideIdentification>& peptide_ids, 
+      Size top_hits,
+      const std::vector<ResidueModification>& fixed_modifications, 
+      const std::vector<ResidueModification>& variable_modifications, 
+      Size max_variable_mods_per_peptide,
+      const StringList& modifications_fixed,
+      const StringList& modifications_variable,
+      Int peptide_missed_cleavages,
+      double precursor_mass_tolerance,
+      double fragment_mass_tolerance,
+      const String& precursor_mass_tolerance_unit_ppm,
+      const String& fragment_mass_tolerance_unit_ppm,
+      const Int precursor_min_charge,
+      const Int precursor_max_charge,
+      const String& enzyme,
+      const String& database_name);
 
-      // put search algorithm parameters at Search: subtree of parameters
-      Param sse_defaults = SimpleSearchEngineAlgorithm().getDefaults();
-      Param combined;
-      combined.insert("Search:", sse_defaults);
-      registerFullParam_(sse_defaults);
-    }
+    // @brief helper to retrieve modifications by name
+    static std::vector<ResidueModification> getModifications_(const StringList& modNames);
 
-    ExitCodes main_(int, const char**) override
-    {
-      String in = getStringOption_("in");
-      String database = getStringOption_("database");
-      String out = getStringOption_("out");
+    double precursor_mass_tolerance_;
+    String precursor_mass_tolerance_unit_;
 
-      ProgressLogger progresslogger;
-      progresslogger.setLogType(log_type_);
+    Size precursor_min_charge_;
+    Size precursor_max_charge_;
 
-      vector<ProteinIdentification> protein_ids;
-      vector<PeptideIdentification> peptide_ids;
+    IntList precursor_isotopes_;
 
-      SimpleSearchEngineAlgorithm sse;
-      sse.setParameters(getParam_().copy("Search:", true));
-      SimpleSearchEngineAlgorithm::ExitCodes e = sse.search(in, database, protein_ids, peptide_ids);
+    double fragment_mass_tolerance_;
 
-      IdXMLFile().store(out, protein_ids, peptide_ids);
+    String fragment_mass_tolerance_unit_;
 
-      return EXECUTION_OK;
-    }
+    StringList modifications_fixed_;
 
+    StringList modifications_variable_;
+
+    Size modifications_max_variable_mods_per_peptide_;
+
+    String enzyme_;
+
+    Size peptide_min_size_;
+    Size peptide_max_size_;
+    Size peptide_missed_cleavages_;
+
+    String peptide_motif_;
+
+    Size report_top_hits_;
 };
 
-int main(int argc, const char** argv)
-{
-  SimpleSearchEngine tool;
-  return tool.main(argc, argv);
-}
+} // namespace
 

@@ -32,6 +32,7 @@ PrecursorPurity.cpp
 ProtonDistributionModel.cpp
 PeptideIndexing.cpp
 PercolatorFeatureSetHelper.cpp
+SimpleSearchEngineAlgorithm.cpp
 SiriusMSConverter.cpp
 )
 
