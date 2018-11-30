@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" na
 
         int size() nogil except +
         
-        SplineInterpolatedPeaks_Navigator getNavigator(doulble scaling) nogil except +
+        SplineInterpolatedPeaks_Navigator getNavigator(double scaling) nogil except +
 
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" namespace "OpenMS::SplineInterpolatedPeaks":
