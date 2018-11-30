@@ -20,17 +20,17 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" na
 
         int size() nogil except +
         
-        Navigator getNavigator(double scaling) nogil except +
+        SplineSpectrum_Navigator getNavigator(double scaling) nogil except +
 
 
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>" namespace "OpenMS::SplineInterpolatedPeaks":
     
-    cdef cppclass Navigator:
+    cdef cppclass SplineSpectrum_Navigator "OpenMS::SplineInterpolatedPeaks::Navigator":
         
-            Navigator() nogil except + #wrap-ignore
-            Navigator(Navigator) nogil except + #wrap-ignore
+            SplineSpectrum_Navigator() nogil except + #wrap-ignore
+            SplineSpectrum_Navigator(SplineSpectrum_Navigator) nogil except + #wrap-ignore
             
-            Navigator(libcpp_vector[SplinePackage]* packages, double posMin, double posMax, double scaling)  nogil except +
+            SplineSpectrum_Navigator(libcpp_vector[SplinePackage]* packages, double posMin, double posMax, double scaling)  nogil except +
 
             double eval(double pos) nogil except +
 
