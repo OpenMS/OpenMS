@@ -45,6 +45,36 @@ namespace OpenMS
   {
 public:
 
+  // struct to store information about accsessions
+  struct AccessionInfo
+  {
+    String sf_path;
+    String sf_type;
+    String sf_accession;
+    String native_id_accession;
+    String native_id_type;
+  };
+
+  // struct to store the compound information
+  struct CompoundInfo
+  {
+    String cmp;
+    double pmass;
+    double rt;
+    double fmz;
+    String fid;
+    String formula;
+    int charge;
+    String ionization;
+    String des;
+    String specref_format;
+    String source_file;
+    String source_format;
+    std::vector<String> native_ids;
+    std::vector<String> scan_indices;
+    std::vector<String> specrefs;
+  };
+
   /**
     @brief Internal structure used in @ref SiriusAdapter that is used
     for the conversion of a MzMlFile to an internal format.
@@ -52,14 +82,19 @@ public:
     @ingroup ID
 
     Store .ms file.
-    Adducts are written to SIRIUS .ms file. If adduct information for a spectrum is missing, 
-    no adduct information is written. In this case, SIRIUS assumes default adducts for the respective spectrum.
+    Comments (see CompoundInfo) are written to SIRIUS .ms file and additionally stores in CompoundInfo struct.
+    If adduct information for a spectrum is missing, no adduct information is addded. 
+    In this case, SIRIUS assumes default adducts for the respective spectrum.
     
-    @return string (full path to file)
+    @return writes .ms file
+    @return stores CompoundInfo
     
-    @param spectra: Peakmap from input mzml
-    @param msfile: (internal) written .ms file from sirius 
-    @param map_precursor_to_adducts: adducts of a spectrum (index). 
+    @param spectra: Peakmap from input mzml.
+    @param msfile: Writtes .ms file from sirius.
+    @param feature_mapping: Adducts and features (index).
+    @param feature_only: Only use features.
+    @param isotope_pattern_iterations: At which depth to stop isotope_pattern extraction (if possible).
+    @param v_cmpinfo: Vector of CompoundInfo.
     */
 
     // preprocessing e.g. feature information
@@ -68,7 +103,8 @@ public:
                       const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                       const bool& feature_only,
                       const int& isotope_pattern_iterations,
-                      const bool no_mt_info);
+                      const bool no_mt_info,
+                      std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo);
 
   };
 
