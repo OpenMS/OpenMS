@@ -166,6 +166,6 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Directory 'spectra' was not found - please check the path " + sirius_spectra_dir);
     }
   }
-}
+} // namespace OpenMS
 
 /// @endcond

@@ -70,4 +70,4 @@ namespace OpenMS
                                                              bool ppm);
 
       };
-}
+} // namespace OpenMS

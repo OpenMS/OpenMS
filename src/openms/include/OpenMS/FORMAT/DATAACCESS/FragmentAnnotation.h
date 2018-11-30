@@ -86,4 +86,4 @@ namespace OpenMS
           */
           static void extractAnnotationFromSiriusFile_(const String& path_to_sirius_workspace, MSSpectrum& msspectrum_to_fill, bool use_exact_mass = false); 
   };
-}
+} // namespace OpenMS

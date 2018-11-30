@@ -173,12 +173,6 @@ protected:
     sirius_algo.setParameters(combined);
 
     //-------------------------------------------------------------
-    // Determination of the executable
-    //-------------------------------------------------------------
-
-    std::pair<String, String> exe_wd = SiriusAdapterAlgorithm::checkSiriusExecutablePath(executable);
-
-    //-------------------------------------------------------------
     // Calculations
     //-------------------------------------------------------------
     MSExperiment spectra;
@@ -188,7 +182,7 @@ protected:
 
     // make temporary files
     SiriusAdapterAlgorithm::SiriusTmpStruct sirius_tmp = SiriusAdapterAlgorithm::constructSiriusTmpStruct();
-    String tmp_dir = sirius_tmp.tmp_dir ;
+    String tmp_dir = sirius_tmp.tmp_dir;
     String tmp_ms_file = sirius_tmp.tmp_ms_file;
     String tmp_out_dir = sirius_tmp.tmp_out_dir;
 

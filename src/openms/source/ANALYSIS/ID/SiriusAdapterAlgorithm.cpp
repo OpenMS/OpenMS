@@ -356,6 +356,6 @@ namespace OpenMS
       }
       return subdirs;
     }
-}
+} // namespace OpenMS
 
 /// @endcond

@@ -199,7 +199,7 @@ namespace OpenMS
         PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum((spectra.begin()+ind));
 
         double test_mz = precursor_mz;
-        double precursor_rt;
+        double precursor_rt = 0.0;
 
         vector<Peak1D> isotopes;
         isotopes.clear();
@@ -280,13 +280,18 @@ namespace OpenMS
             os << ">rt " << feature_rt << "\n";
             cmpinfo.rt = feature_rt;
           }
+          else if (precursor_rt != 0.0)
+          {
+            os << ">rt " << precursor_rt << "\n";
+            cmpinfo.rt = precursor_rt;
+          }
           else
           {
             os << ">rt " << current_rt << "\n";
             cmpinfo.rt = current_rt;
           }
           
-          if(feature_mz != 0 && feature_id != 0)
+          if (feature_mz != 0 && feature_id != 0)
           {
             os << "##fmz " << String(feature_mz) << "\n";
             os << "##fid " << String(feature_id) << "\n";
@@ -653,6 +658,6 @@ namespace OpenMS
     LOG_WARN << count_skipped_features << " features were skipped due to feature charge below -1 and above +1." << endl;
 
   }
-}
+} // namespace OpenMS
 
 /// @endcond

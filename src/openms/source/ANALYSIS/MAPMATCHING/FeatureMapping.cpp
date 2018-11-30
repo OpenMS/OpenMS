@@ -99,5 +99,4 @@ namespace OpenMS
     feature_mapping.unassignedMS2 = unassigned_ms2;
     return feature_mapping;
   }
-
-}
+} // namespace OpenMS

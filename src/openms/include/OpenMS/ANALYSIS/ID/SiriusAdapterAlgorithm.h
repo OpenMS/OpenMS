@@ -173,4 +173,4 @@ namespace OpenMS
 
       void updateMembers_() override;
     };
-}
+} // namespace OpenMS
