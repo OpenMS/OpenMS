@@ -54,6 +54,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureMapping.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 
+#include <OpenMS/KERNEL/RangeUtils.h>
+
+
 using namespace OpenMS;
 using namespace std;
 
@@ -90,17 +93,17 @@ using namespace std;
 
   If the FFM featureXML is used the "use_known_unknowns" flag is used automatically.
 
-  Internal procedure AssayGeneratorMetabo:
-  1. Input mzML and featureXML
-  2. Annotate precursor mz and intensity
-  3. Filter feature by number of masstraces
-  4. Assign precursors to specific feature
-  5. Extract feature meta information (if possible)
-  6. Find MS2 spectrum with highest intensity precursor for one feature
+  Internal procedure AssayGeneratorMetabo: \n
+  1. Input mzML and featureXML \n
+  2. Reannotate precursor mz and intensity \n
+  3. Filter feature by number of masstraces \n
+  4. Assign precursors to specific feature (FeatureMapping) \n
+  5. Extract feature meta information (if possible) \n
+  6. Find MS2 spectrum with highest intensity precursor for one feature \n
   7. Dependent on the method use the MS2 with the highest intensity precursor or a consensus spectrum
-     for the transition calculation
-  8. Calculate thresholds (maximum and minimum intensity for transition peak)
-  9. Extract and write transitions
+     for the transition calculation \n
+  8. Calculate thresholds (maximum and minimum intensity for transition peak) \n
+  9. Extract and write transitions (tsv, traml) \n
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_SiriusAdapter.cli
@@ -125,10 +128,10 @@ protected:
   {
 
     registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
-    setValidFormats_("in", ListUtils::create<String>("mzml"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFileList_("in_id", "<file(s)>", StringList(), "FeatureXML input file(s) containing id information (e.g. accurate mass search)");
-    setValidFormats_("in_id", ListUtils::create<String>("featurexml"));
+    setValidFormats_("in_id", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
     setValidFormats_("out", ListUtils::create<String>("tsv,traML"));
@@ -136,37 +139,42 @@ protected:
     registerStringOption_("method", "<choice>", "highest_intensity", "Method used for assay library construction",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
-    registerIntOption_("min_transitions", "<int>", 3, "minimal number of transitions", false);
-    registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
-
-    registerDoubleOption_("signal_to_noise", "<s/n ratio>", 0.0, "Write peaks with S/N > signal_to_noise values only", false);
-    registerDoubleOption_("sn_win_len", "<num>", 200, "Window length in Thomson - for each datapoint in the given scan, we collect a range of data points around it", false, true);
-    registerIntOption_("sn_min_required_elements", "<num>", 10, "Minimum number of elements required in a window (otherwise it is considered sparse)", false, true);
-
-    registerDoubleOption_("fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks (Deisotoping)", false);
-    registerStringOption_("fragment_unit", "<choice>", "ppm", "Unit of the fragment tolerance", false);
-    setValidStrings_("fragment_unit", ListUtils::create<String>("ppm,Da"));
-
+    // preprocessing
+    registerIntOption_("filter_by_num_masstraces", "<num>", 2, "Features have to have at least x MassTraces", false);
+    setMinInt_("filter_by_num_masstraces", 1);
     registerDoubleOption_("precursor_mz_tolerance", "<num>", 10, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
     registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "ppm", "Unit of the precursor_mz_tolerance", false);
     setValidStrings_("precursor_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
-
     registerDoubleOption_("precursor_mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
-
     registerDoubleOption_("precursor_recalibration_window", "<num>", 0.1, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
     registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
     setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
-
     registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds]", false);
+    registerFlag_("use_known_unknowns", "Use features without identification information", false);
 
+    // transition extraction 
+    registerIntOption_("min_transitions", "<int>", 3, "minimal number of transitions", false);
+    registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
     registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectras of same precursor used for consensus spectrum", false);
-
-    registerIntOption_("filter_by_num_masstraces", "<num>", 2, "Features have to have at least x MassTraces", false);
-    setMinInt_("filter_by_num_masstraces", 1);
-
     registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
 
-    registerFlag_("use_known_unknowns", "Use features without identification information", false);
+    // TODO: what are the parameters for? 
+    registerTOPPSubsection_("deisotoping", "deisotoping");
+    registerFlag_("deisotoping:use_deisotoper", "Use deisotper and its parameters", false);
+    registerDoubleOption_("deisotoping:fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks (Deisotoping)", false);
+    registerStringOption_("deisotoping:fragment_unit", "<choice>", "ppm", "Unit of the fragment tolerance", false);
+    setValidStrings_("deisotoping:fragment_unit", ListUtils::create<String>("ppm,Da"));
+    registerIntOption_("deisotoping:min_charge", "<num>", 1, "set min charge ", false);
+    setMinInt_("deisotoping:min_charge", 1);
+    registerIntOption_("deisotoping:max_charge", "<num>", 1, "set max charge", false);
+    setMinInt_("deisotoping:max_charge", 1);
+    registerIntOption_("deisotoping:min_isopeaks", "<num>", 2, "set min charge ", false);
+    setMinInt_("deisotoping:min_isopeaks", 2);
+    registerIntOption_("deisotoping:max_isopeaks", "<num>", 3, "set max charge", false);
+    setMinInt_("deisotoping:max_isopeaks", 3);
+    registerFlag_("deisotoping:keep_only_deisotoped", "Use deisotper and its parameters", false);
+    registerFlag_("deisotoping:annotate_charge", "Use deisotper and its parameters", false);
+
   }
 
   // datastructure used for preprocessing
@@ -520,16 +528,8 @@ protected:
     String method = getStringOption_("method");
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
 
-    double sn = getDoubleOption_("signal_to_noise");
-    double sn_win_len = getDoubleOption_("sn_win_len");
-    int sn_min_required_elements = getIntOption_("sn_min_required_elements");
-
     int min_transitions = getIntOption_("min_transitions");
     int max_transitions = getIntOption_("max_transitions");
-
-    double fragment_tolerance = getDoubleOption_("fragment_tolerance");
-    String fragment_unit = getStringOption_("fragment_unit");
-    bool fragment_unit_ppm = fragment_unit == "ppm" ? true : false;
 
     double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
     String unit_prec = getStringOption_("precursor_mz_tolerance_unit");
@@ -546,6 +546,20 @@ protected:
     unsigned int num_masstrace_filter = getIntOption_("filter_by_num_masstraces");
     double transition_threshold = getDoubleOption_("transition_threshold");
     bool use_known_unknowns = getFlag_("use_known_unknowns");
+
+    // deisotoper
+    bool use_deisotoper = getFlag_("deisotoping:use_deisotoper");
+    double fragment_tolerance = getDoubleOption_("deisotoping:fragment_tolerance");
+    String fragment_unit = getStringOption_("deisotoping:fragment_unit");
+    bool fragment_unit_ppm = fragment_unit == "ppm" ? true : false;
+    int min_charge = getIntOption_("deisotoping:min_charge");
+    int max_charge = getIntOption_("deisotoping:max_charge");
+    unsigned int min_isopeaks = getIntOption_("deisotoping:min_isopeaks");
+    unsigned int max_isopeaks = getIntOption_("deisotoping:max_isopeaks");
+    bool keep_only_deisotoped = getFlag_("deisotoping:keep_only_deisotoped");
+    bool annotate_charge = getFlag_("deisotoping:annotate_charge");
+
+    // sirius 
 
     //-------------------------------------------------------------
     // input and check
@@ -605,36 +619,8 @@ protected:
       // Processing
       //-------------------------------------------------------------
 
-      // TODO: First run SIRIUS and to fragmentation annotation  
-
       // sort spectra
       spectra.sortSpectra();
-
-      // TODO: check if that works correctly
-      // calculate S/N values and delete data points below S/N threshold
-      if (sn > 0.0)
-      {
-
-        SignalToNoiseEstimatorMedian<PeakMap::SpectrumType> snm;
-        Param dc_param;
-        dc_param.insert("", SignalToNoiseEstimatorMedian<MSSpectrum>().getDefaults());
-        dc_param.setValue("win_len", sn_win_len);
-        dc_param.setValue("min_required_elements", sn_min_required_elements);
-        snm.setParameters(dc_param);
-        for (PeakMap::Iterator it = spectra.begin(); it != spectra.end(); ++it)
-        {
-          snm.init(it->begin(), it->end());
-          for (PeakMap::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
-          {
-            if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
-          }
-          it->erase(remove_if(it->begin(),
-                              it->end(),
-                              InIntensityRange<PeakMap::PeakType>(1,
-                                                                  numeric_limits<PeakMap::PeakType::IntensityType>::max(),
-                                                                  true)), it->end());
-        }
-      }
 
       // check if correct featureXML is given and set use_known_unkowns parameter if no id information is available
       const std::vector<DataProcessing> &processing = feature_map.getDataProcessing();
@@ -655,38 +641,84 @@ protected:
       vector<double> mzs;
       vector<double> rts;
       PrecursorCorrection::correctToHighestIntensityMS1Peak(spectra, pre_recal_win, ppm_recal, delta_mzs, mzs, rts);
-       
-      // deisotope spectra for transition extraction - run this after SIRIUS
-      int min_charge = 1;
-      int max_charge = 1;
-      bool keep_only_deisotoped = false;
-      unsigned int min_isopeaks = 2;
-      unsigned int max_isopeaks = 8;
-      bool make_single_charged = false;
-      bool annotate_charge = false;
 
-      for (auto peakmap_it : spectra)
+      // TODO: SiriusAdapter integration 
+      // call SIRIUS 
+      // and use annotated consensus spectra afterwards (if SIRIUS is called)
+      
+      // default ParamHandler 
+      // masstrace filtering and mapping has to be done here! 
+
+      // store SIRIUSMSFile
+
+      // call QProcess
+
+      // sort vector path list
+      //std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
+
+      // get FragmentAnnotion from subdirs! 
+
+      // delete all temprary dirs 
+
+      // heuristics only  
+      // deisotope spectra for transition extraction - run this after SIRIUS
+      if (use_deisotoper)
       {
-        MSSpectrum spectrum = peakmap_it;
+        bool make_single_charged = false; // should not be set any other way.
+        for (auto& peakmap_it : spectra)
+        {
+          MSSpectrum& spectrum = peakmap_it;
+          if (spectrum.getMSLevel() == 1) 
+          {
+            continue;
+          }
+          else 
+          {
+            Deisotoper::deisotopeAndSingleCharge(spectrum,
+                                                fragment_tolerance,
+                                                fragment_unit_ppm,
+                                                min_charge,
+                                                max_charge,
+                                                keep_only_deisotoped,
+                                                min_isopeaks,
+                                                max_isopeaks,
+                                                make_single_charged,
+                                                annotate_charge);
+          }
+        }
+      }
+
+      // remove peaks form MS2 which are at a higher mz than the precursor
+      for (auto& peakmap_it : spectra)
+      {
+        MSSpectrum& spectrum = peakmap_it;
         if (spectrum.getMSLevel() == 1) 
         {
           continue;
         }
         else 
         {
-          Deisotoper::deisotopeAndSingleCharge(spectrum,
-                                   fragment_tolerance,
-                                   fragment_unit_ppm,
-                                   min_charge,
-                                   max_charge,
-                                   keep_only_deisotoped,
-                                   min_isopeaks,
-                                   max_isopeaks,
-                                   make_single_charged,
-                                   annotate_charge);
+          // if peak mz higher than precursor mz set intensity to zero
+          double prec_mz = spectrum.getPrecursors()[0].getMZ();
+          double mass_diff = Math::ppmToMass(20.0, prec_mz);
+          for (auto& spec : spectrum)
+          {
+            // TODO: proof of concept with precursor mz + 20.0 ppm 
+            if (spec.getMZ() > prec_mz + mass_diff)
+            {
+              spec.setIntensity(0);
+            }
+          }
+          spectrum.erase(remove_if(spectrum.begin(),
+                                   spectrum.end(),
+                                   InIntensityRange<PeakMap::PeakType>(1,
+                                                                        numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                        true)), spectrum.end());
         }
       }
 
+      // TODO: this will already be done by SIRIUS preprocessing! 
+      // SIRIUS:preprocessing START
       // filter feature by number of masstraces
       auto map_it = remove_if(feature_map.begin(), feature_map.end(),
                               [&num_masstrace_filter](const Feature &f) -> bool
@@ -708,8 +740,17 @@ protected:
                                                                                                     precursor_rt_tol,
                                                                                                     ppm_prec);
 
+
+      // SIRIUS preprocessing END 
+
+      // TODO: What to do if Sirius consensus spectra (?)
+      // What about the mapping? 
+      // use compoundInfo + annotated MSSpectrum!
+
+      // heuristics
       std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
 
+      // right now only for heuristics 
       // potential transitions of one file
       vector<PotentialTransitions> tmp_pts = extractPotentialTransitions(spectra,
                                                                          feature_ms2_spectra_map,
@@ -755,12 +796,7 @@ protected:
     MRMAssay assay;
 
     // additional filter steps:
-
-    // heuristic if no annotation is present
-    // e.g. if anntation is present
-    // filter the ones without 
-
-    // TODO: filter: precursor -> MRM Assay
+    // TODO: filter: precursor ms 2 
 
     // filter: min/max transitions
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
