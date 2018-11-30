@@ -1,5 +1,6 @@
 from Types cimport *
 from MSSpectrum cimport *
+from MSChromatogram cimport *
 from SplinePackage cimport *
 from Peak1D cimport *
 
