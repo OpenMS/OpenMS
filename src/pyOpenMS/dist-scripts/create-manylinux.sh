@@ -67,19 +67,18 @@ for PYBIN in /opt/python/cp27* /opt/python/cp3[4-9]*; do
 
   # We need to fix the Qt libraries as auditwheel seems to strip the qt
   # libraries which produces problems
-  unalias cp
   for WHEEL in wheelhouse/*.whl; do
     mkdir -p wheelhouse/fixed
     mkdir /tmp/pytmp
     cp $WHEEL /tmp/pytmp/
     WHEEL=`basename $WHEEL`
-    cp /qt/lib/libQt5Core.so /tmp/pytmp/
-    cp /qt/lib/libQt5Network.so /tmp/pytmp/
+    /bin/cp /qt/lib/libQt5Core.so /tmp/pytmp/
+    /bin/cp /qt/lib/libQt5Network.so /tmp/pytmp/
     cd /tmp/pytmp
     unzip $WHEEL
     # Replace the Qt libraries with the original ones
-    cp libQt5Core.so pyopenms/.libs/libQt5Core*
-    cp libQt5Network.so pyopenms/.libs/libQt5Network*
+    /bin/cp libQt5Core.so pyopenms/.libs/libQt5Core*
+    /bin/cp libQt5Network.so pyopenms/.libs/libQt5Network*
     rm -rf pyopenms/lib*.so
     zip -r $WHEEL pyopenms/ pyopenms*dist*/
     cd -
