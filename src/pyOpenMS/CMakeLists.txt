@@ -65,18 +65,18 @@ message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} 
 # Windows support requires that the correct Python version is matched to the correct MSVS version:
 # * Python 2.[67] needs to be compiled with MSVS 2008
 # * Python 3.[34] needs to be compiled with MSVS 2010
-# * Python 3.[56] needs to be compiled with MSVS 2015
+# * Python 3.[567] needs to be compiled with MSVS 2015
 if(WIN32)
     if(MSVC90 AND (${PY_VERSION} STREQUAL "2.6" OR ${PY_VERSION} STREQUAL "2.7" ) )
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions -- ok")
     elseif(MSVC10 AND (${PY_VERSION} STREQUAL "3.3" OR ${PY_VERSION} STREQUAL "3.4" ))
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions -- ok")
-    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" ))
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions -- ok")
+    elseif(MSVC14 AND (${PY_VERSION} STREQUAL "3.5" OR ${PY_VERSION} STREQUAL "3.6" OR ${PY_VERSION} STREQUAL "3.7" ))
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[567] extensions -- ok")
     else()
         message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
         message(STATUS "Need Visual C++ 2010 compiler for building Python 3.[34] extensions")
-        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[56] extensions")
+        message(STATUS "Need Visual C++ 2015 compiler for building Python 3.[567] extensions")
         message(FATAL_ERROR "Either reconfigure with Visual Studio 2008, 2010 or 2015 generator, select a different Python version with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python or disable pyOpenMS.")
     endif()
 
