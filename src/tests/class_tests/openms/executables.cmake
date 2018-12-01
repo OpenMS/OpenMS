@@ -320,8 +320,8 @@ set(filtering_executables_list
   ParentPeakMower_test
   PeakMarker_test
   PrecursorCorrection_test
+  SplineInterpolatedPeaks_test
   SplinePackage_test
-  SplineSpectrum_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
