@@ -551,6 +551,7 @@ protected:
     registerSubsection_("Library", "Library parameters section");
 
     registerSubsection_("RTNormalization", "Parameters for the RTNormalization for iRT petides. This specifies how the RT alignment is performed and how outlier detection is applied. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
+    registerSubsection_("Calibration", "Parameters for the m/z and ion mobility calibration.");
     registerTOPPSubsection_("Debugging", "Debugging");
     registerOutputFile_("Debugging:irt_mzml", "<file>", "", "Chromatogram mzML containing the iRT peptides", false);
     setValidFormats_("Debugging:irt_mzml", ListUtils::create<String>("mzML"));
@@ -641,6 +642,15 @@ protected:
     else if (name == "Library")
     {
       return TransitionTSVFile().getDefaults();
+    }
+    else if (name == "Calibration")
+    {
+      Param p = SwathMapMassCorrection().getDefaults();
+      p.remove("mz_extraction_window");
+      p.remove("mz_extraction_window_ppm");
+      p.remove("im_extraction_window");
+      p.remove("mz_correction_function");
+      return p;
     }
     else
     {
@@ -860,12 +870,17 @@ protected:
     String irt_trafo_out = debug_params.getValue("irt_trafo");
     String irt_mzml_out = debug_params.getValue("irt_mzml");
     Param irt_detection_param = getParam_().copy("RTNormalization:", true);
+    Param calibration_param = getParam_().copy("Calibration:", true);
+    calibration_param.setValue("mz_extraction_window", cp_irt.mz_extraction_window);
+    calibration_param.setValue("mz_extraction_window_ppm", cp_irt.ppm ? "true" : "false");
+    calibration_param.setValue("im_extraction_window", cp_irt.im_extraction_window);
+    calibration_param.setValue("mz_correction_function", mz_correction_function);
     TransformationDescription trafo_rtnorm;
     if (nonlinear_irt_tr_file.empty())
     {
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
-                                        cp_irt, irt_detection_param, mz_correction_function,
+                                        cp_irt, irt_detection_param, calibration_param,
                                         debug_level, sonar, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
     }
@@ -877,9 +892,11 @@ protected:
 
       Param linear_irt = irt_detection_param;
       linear_irt.setValue("alignmentMethod", "linear");
+      Param no_calibration = calibration_param;
+      no_calibration.setValue("mz_correction_function", "none");
       trafo_rtnorm = performCalibration(trafo_in, irt_tr_file, swath_maps,
                                         min_rsq, min_coverage, feature_finder_param,
-                                        cp_irt, linear_irt, "none",
+                                        cp_irt, linear_irt, no_calibration,
                                         debug_level, sonar, load_into_memory,
                                         irt_trafo_out, irt_mzml_out);
 
@@ -898,11 +915,9 @@ protected:
       wf.simpleExtractChromatograms_(swath_maps, transition_exp_nl, chromatograms,
                                     trafo_rtnorm, cp_irt, sonar, load_into_memory);
 
-      trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, min_rsq,
-                                        min_coverage, feature_finder_param, irt_detection_param,
-                                        swath_maps, mz_correction_function,
-                                        cp_irt.mz_extraction_window, cp_irt.ppm);
-
+      trafo_rtnorm = wf.doDataNormalization_(transition_exp_nl, chromatograms, swath_maps,
+                                             min_rsq, min_coverage,
+                                             feature_finder_param, irt_detection_param, calibration_param);
     }
 
     ///////////////////////////////////

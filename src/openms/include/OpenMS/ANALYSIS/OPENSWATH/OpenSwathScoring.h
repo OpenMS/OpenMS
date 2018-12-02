@@ -83,6 +83,7 @@ namespace OpenMS
      * @param add_up_spectra How many spectra to add up (default 1)
      * @param spacing_for_spectra_resampling Spacing factor for spectra addition
      * @param su Which scores to actually compute
+     * @param spectrum_addition_method Method to use for spectrum addition (valid: "simple", "resample")
      *
     */
     void initialize(double rt_normalization_factor,
@@ -249,7 +250,7 @@ namespace OpenMS
      * isolation windows) around the given retention time and return an
      * "averaged" spectrum which may contain less noise.
      *
-     * @param[in] swath_map The map containing the spectra
+     * @param[in] swath_maps The map(s) containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
      * @param drift_lower Drift time lower extraction boundary
@@ -293,7 +294,7 @@ namespace OpenMS
      * around the given retention time and return an "averaged" spectrum which
      * may contain less noise.
      *
-     * @param[in] swath_maps The maps containing the spectra
+     * @param[in] swath_map The map containing the spectra
      * @param[in] RT The target retention time
      * @param[in] nr_spectra_to_add How many spectra to add up
      * @param drift_lower Drift time lower extraction boundary
