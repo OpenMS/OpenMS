@@ -333,6 +333,7 @@ namespace OpenMS
       bool add_first_prefix_ion_;
       bool add_losses_;
       bool add_metainfo_;
+      bool add_charges_;
       bool add_isotopes_;
       bool add_precursor_peaks_;
       bool add_abundant_immonium_ions_;

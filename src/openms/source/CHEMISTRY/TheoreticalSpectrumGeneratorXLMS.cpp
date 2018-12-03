@@ -55,6 +55,9 @@ namespace OpenMS
     defaults_.setValue("add_metainfo", "true", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
     defaults_.setValidStrings("add_metainfo", ListUtils::create<String>("true,false"));
 
+    defaults_.setValue("add_charges", "true", "Adds the charges to a DataArray of the spectrum");
+    defaults_.setValidStrings("add_charges", ListUtils::create<String>("true,false"));
+
     defaults_.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
     defaults_.setValidStrings("add_losses", ListUtils::create<String>("true,false"));
 
@@ -132,18 +135,21 @@ namespace OpenMS
     PeakSpectrum::IntegerDataArray charges;
     PeakSpectrum::StringDataArray ion_names;
 
-    if (add_metainfo_)
+    if (add_charges_)
     {
       if (spectrum.getIntegerDataArrays().size() > 0)
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
+      charges.setName("Charges");
+    }
+    if (add_metainfo_)
+    {
       if (spectrum.getStringDataArrays().size() > 0)
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
       ion_names.setName("IonNames");
-      charges.setName("Charges");
     }
 
     std::vector< std::set< TheoreticalSpectrumGeneratorXLMS::LossMass, TheoreticalSpectrumGeneratorXLMS::LossMassComparator > > forward_losses;
@@ -183,7 +189,7 @@ namespace OpenMS
       }
     }
 
-    if (add_metainfo_)
+    if (add_charges_)
     {
       if (spectrum.getIntegerDataArrays().size() > 0)
       {
@@ -193,6 +199,9 @@ namespace OpenMS
       {
         spectrum.getIntegerDataArrays().push_back(charges);
       }
+    }
+    if (add_metainfo_)
+    {
       if (spectrum.getStringDataArrays().size() > 0)
       {
         spectrum.getStringDataArrays()[0] = ion_names;
@@ -321,18 +330,21 @@ namespace OpenMS
     PeakSpectrum::IntegerDataArray charges;
     PeakSpectrum::StringDataArray ion_names;
 
-    if (add_metainfo_)
+    if (add_charges_)
     {
       if (spectrum.getIntegerDataArrays().size() > 0)
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
+      charges.setName("Charges");
+    }
+    if (add_metainfo_)
+    {
       if (spectrum.getStringDataArrays().size() > 0)
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
       ion_names.setName("IonNames");
-      charges.setName("Charges");
     }
 
     std::vector< std::set< TheoreticalSpectrumGeneratorXLMS::LossMass, TheoreticalSpectrumGeneratorXLMS::LossMassComparator > > forward_losses;
@@ -382,7 +394,7 @@ namespace OpenMS
       addPrecursorPeaks_(spectrum, charges, ion_names, precursor_mass, maxcharge);
     }
 
-    if (add_metainfo_)
+    if (add_charges_)
     {
       if (spectrum.getIntegerDataArrays().size() > 0)
       {
@@ -392,6 +404,9 @@ namespace OpenMS
       {
         spectrum.getIntegerDataArrays().push_back(charges);
       }
+    }
+    if (add_metainfo_)
+    {
       if (spectrum.getStringDataArrays().size() > 0)
       {
         spectrum.getStringDataArrays()[0] = ion_names;
@@ -544,6 +559,9 @@ namespace OpenMS
     {
       String ion_name = "[" + ion_type + "$" + String(residueTypeToIonLetter_(res_type)) + String(frag_index) + "]"; //+ String(charge, '+');
       ion_names.push_back(ion_name);
+    }
+    if (add_charges_)
+    {
       charges.push_back(charge);
     }
   }
@@ -565,6 +583,9 @@ namespace OpenMS
       {
         ion_name = "[" + ion_type + "$" + String(residueTypeToIonLetter_(res_type)) + String(frag_index) + "-" + loss.name + "]";
         ion_names.push_back(ion_name);
+      }
+      if (add_charges_)
+      {
         charges.push_back(charge);
       }
       spectrum.push_back(p);
@@ -574,7 +595,7 @@ namespace OpenMS
   void TheoreticalSpectrumGeneratorXLMS::addPrecursorPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, double precursor_mass, int charge) const
   {
     Peak1D p;
-    String ion_name("[M+H]");
+    String ion_name;
 
     // precursor peak
     double mono_pos = precursor_mass + (Constants::PROTON_MASS_U * static_cast<double>(charge));
@@ -582,7 +603,11 @@ namespace OpenMS
     p.setIntensity(pre_int_);
     if (add_metainfo_)
     {
+      ion_name = "[M+H]";
       ion_names.push_back(ion_name);
+    }
+    if (add_charges_)
+    {
       charges.push_back(charge);
     }
     spectrum.push_back(p);
@@ -594,6 +619,9 @@ namespace OpenMS
       if (add_metainfo_)
       {
         ion_names.push_back(ion_name);
+      }
+      if (add_charges_)
+      {
         charges.push_back(charge);
       }
       spectrum.push_back(p);
@@ -608,6 +636,9 @@ namespace OpenMS
     {
       ion_name = "[M+H]-H2O";
       ion_names.push_back(ion_name);
+    }
+    if (add_charges_)
+    {
       charges.push_back(charge);
     }
     spectrum.push_back(p);
@@ -619,6 +650,9 @@ namespace OpenMS
       if (add_metainfo_)
       {
         ion_names.push_back(ion_name);
+      }
+      if (add_charges_)
+      {
         charges.push_back(charge);
       }
       spectrum.push_back(p);
@@ -632,6 +666,9 @@ namespace OpenMS
     {
       ion_name = "[M+H]-NH3";
       ion_names.push_back(ion_name);
+    }
+    if (add_charges_)
+    {
       charges.push_back(charge);
     }
     spectrum.push_back(p);
@@ -643,6 +680,9 @@ namespace OpenMS
       if (add_metainfo_)
       {
         ion_names.push_back(ion_name);
+      }
+      if (add_charges_)
+      {
         charges.push_back(charge);
       }
       spectrum.push_back(p);
@@ -679,15 +719,19 @@ namespace OpenMS
     // here the ion type is reversed compared to other peak types,
     // because for this special ion type, it would not make sense to call it alpha$y(n)-alpha$a(n)
     // Only one residue is left of the fragmented Peptide, so we call it a RES-linked beta
-    String ion_type = "alpha";
-    if (frag_alpha)
-    {
-      ion_type = "beta";
-    }
+    String ion_type;
     String ion_name;
 
     if (add_metainfo_)
     {
+      if (frag_alpha)
+      {
+        ion_type = "beta";
+      }
+      else
+      {
+        ion_type = "alpha";
+      }
 
       int l_pos = link_pos;
       if (l_pos < 1)
@@ -696,6 +740,9 @@ namespace OpenMS
       }
       ion_name = "[" + peptide[l_pos].getOneLetterCode() + "-linked-" + ion_type + "]";
       ion_names.push_back(ion_name);
+    }
+    if (add_charges_)
+    {
       charges.push_back(charge);
     }
 
@@ -707,6 +754,9 @@ namespace OpenMS
       if (add_metainfo_)
       {
         ion_names.push_back(ion_name);
+      }
+      if (add_charges_)
+      {
         charges.push_back(charge);
       }
     }
@@ -730,6 +780,9 @@ namespace OpenMS
         // remove final bracket, insert loss name and add the bracket again
         loss_ion_name = ion_name.prefix(ion_name.size()-1) + "-" + loss.name + "]";
         ion_names.push_back(loss_ion_name);
+      }
+      if (add_charges_)
+      {
         charges.push_back(charge);
       }
       spectrum.push_back(p);
@@ -741,18 +794,21 @@ namespace OpenMS
     PeakSpectrum::IntegerDataArray charges;
     PeakSpectrum::StringDataArray ion_names;
 
-    if (add_metainfo_)
+    if (add_charges_)
     {
       if (spectrum.getIntegerDataArrays().size() > 0)
       {
         charges = spectrum.getIntegerDataArrays()[0];
       }
+      charges.setName("Charges");
+    }
+    if (add_metainfo_)
+    {
       if (spectrum.getStringDataArrays().size() > 0)
       {
         ion_names = spectrum.getStringDataArrays()[0];
       }
       ion_names.setName("IonNames");
-      charges.setName("Charges");
     }
 
     std::vector< std::set< TheoreticalSpectrumGeneratorXLMS::LossMass, TheoreticalSpectrumGeneratorXLMS::LossMassComparator > > forward_losses;
@@ -834,7 +890,7 @@ namespace OpenMS
       addPrecursorPeaks_(spectrum, charges, ion_names, precursor_mass, maxcharge);
     }
 
-    if (add_metainfo_)
+    if (add_charges_)
     {
       if (spectrum.getIntegerDataArrays().size() > 0)
       {
@@ -844,6 +900,9 @@ namespace OpenMS
       {
         spectrum.getIntegerDataArrays().push_back(charges);
       }
+    }
+    if (add_metainfo_)
+    {
       if (spectrum.getStringDataArrays().size() > 0)
       {
         spectrum.getStringDataArrays()[0] = ion_names;
@@ -1088,6 +1147,7 @@ namespace OpenMS
     add_first_prefix_ion_ = param_.getValue("add_first_prefix_ion").toBool();
     add_losses_ = param_.getValue("add_losses").toBool();
     add_metainfo_ = param_.getValue("add_metainfo").toBool();
+    add_charges_ = param_.getValue("add_charges").toBool();
     add_isotopes_ = param_.getValue("add_isotopes").toBool();
     add_precursor_peaks_ = param_.getValue("add_precursor_peaks").toBool();
     add_abundant_immonium_ions_ = param_.getValue("add_abundant_immonium_ions").toBool();
