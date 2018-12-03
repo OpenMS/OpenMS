@@ -244,6 +244,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SiriusFragmentAnnotation_test
 )
 
 set(math_executables_list
