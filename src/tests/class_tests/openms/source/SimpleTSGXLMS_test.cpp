@@ -87,7 +87,7 @@ END_SECTION
 
 START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, int charge = 1, Size link_pos_2 = 0))
   PeakSpectrum spec;
-  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 2);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, 2);
   TEST_EQUAL(spec.size(), 18)
 
   TOLERANCE_ABSOLUTE(0.001)
@@ -99,7 +99,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   }
 
   spec.clear(true);
-  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, 3);
   TEST_EQUAL(spec.size(), 27)
 
   spec.clear(true);
@@ -112,7 +112,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_z_ions", "true");
   param.setValue("add_charges", "false");
   ptr->setParameters(param);
-  ptr->getLinearIonSpectrum(spec, peptide, 3, true, 3);
+  ptr->getLinearIonSpectrum(spec, peptide, 3, 3);
   TEST_EQUAL(spec.size(), 54)
 
 
@@ -320,16 +320,16 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   // test for charges stored in IntegerDataArray
   PeakSpectrum::IntegerDataArray charge_array = spec.getIntegerDataArrays().at(0);
 
-  int charge_counts[5] = {0, 0, 0, 0, 0};
+  int charge_counts[6] = {0, 0, 0, 0, 0, 0};
   for (Size i = 0; i != spec.size(); ++i)
   {
-    charge_counts[charge_array[i]-1]++;
+    charge_counts[charge_array[i]]++;
   }
-  TEST_EQUAL(charge_counts[0], 0)
-  TEST_EQUAL(charge_counts[1], 18)
+  TEST_EQUAL(charge_counts[1], 0)
   TEST_EQUAL(charge_counts[2], 18)
-  TEST_EQUAL(charge_counts[3], 21)
-  TEST_EQUAL(charge_counts[4], 0)
+  TEST_EQUAL(charge_counts[3], 18)
+  TEST_EQUAL(charge_counts[4], 18)
+  TEST_EQUAL(charge_counts[5], 21) // 18 ion types + precursors
 
   param = ptr->getParameters();
   param.setValue("add_a_ions", "false");
@@ -520,16 +520,17 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   // test for charges stored in IntegerDataArray
   PeakSpectrum::IntegerDataArray charge_array = spec.getIntegerDataArrays().at(0);
 
-  int charge_counts[5] = {0, 0, 0, 0, 0};
+  int charge_counts[6] = {0, 0, 0, 0, 0, 0};
   for (Size i = 0; i != spec.size(); ++i)
   {
-    charge_counts[charge_array[i]-1]++;
+    charge_counts[charge_array[i]]++;
   }
-  TEST_EQUAL(charge_counts[0], 0)
-  TEST_EQUAL(charge_counts[1], 19)
+
+  TEST_EQUAL(charge_counts[1], 0)
   TEST_EQUAL(charge_counts[2], 19)
-  TEST_EQUAL(charge_counts[3], 22)
-  TEST_EQUAL(charge_counts[4], 0)
+  TEST_EQUAL(charge_counts[3], 19)
+  TEST_EQUAL(charge_counts[4], 19)
+  TEST_EQUAL(charge_counts[5], 22)
 
   param = ptr->getParameters();
   param.setValue("add_a_ions", "false");
