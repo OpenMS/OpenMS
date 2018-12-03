@@ -163,11 +163,19 @@ namespace OpenMS
       for (auto & pep_q : pep_quant_)  // for all quantified peptides
       {
         String seq = pep_q.first.toUnmodifiedString();
+        cout << "Sequence: " << seq << endl;
         map<String, set<String> >::iterator pos = pep_info.find(seq);
         if (pos != pep_info.end()) // sequence found in protein inference data
         {
+          cout << "Accessions: ";
+          for (auto & a : pos->second) { cout << a << "\t"; }
+          cout << "\n";
           pep_q.second.accessions = pos->second; // replace accessions
           filtered.insert(pep_q);
+        }
+        else
+        {
+          cout << "not found in inference data." << endl;
         }
       }
       pep_quant_ = filtered;
@@ -644,12 +652,14 @@ namespace OpenMS
     const UInt n_samples)
   {
     auto & id_groups = proteins.getIndistinguishableProteins();
+
+    cout << "Quantified ind. group with accessions:\n";
     for (auto q : protein_quants)
     {
-      if (q.second.total_abundances.empty()) { continue; } // not quantified
-
       // accession of quantified protein(group)
       const String & acc = q.first;
+
+      if (q.second.total_abundances.empty()) { continue; } // not quantified
  
       // lambda to check if a ProteinGroup has accession "acc"
       auto hasProteinInGroup = [&acc] (const ProteinIdentification::ProteinGroup& g)->bool 
@@ -669,11 +679,20 @@ namespace OpenMS
         ProteinIdentification::ProteinGroup::FloatDataArray & abundances = id_group->getFloatDataArrays()[0];
         abundances.setName("abundances");        
         abundances.resize(n_samples);
+
+        for (auto const & acc : id_group->accessions)
+        {
+          cout << acc << "\t";
+        }
+        cout << "\n";
+
         for (auto const & s : total_abundances)
         {
           // Note: sample indices are one-based
           abundances[s.first - 1] = s.second;
+          cout << s.second << "\t";
         }
+        cout << endl;
       }
       else
       {

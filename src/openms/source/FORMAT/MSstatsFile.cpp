@@ -230,9 +230,9 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
   // that all proteins can be indipendently quantified (each forming an indistinguishable group).
   using IndProtGrp = ProteinIdentification::ProteinGroup;
   using IndProtGrps = std::vector<IndProtGrp>;
-  if (consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins().empty())
+  IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();  
+  if (ind_prots.empty())
   {
-    IndProtGrps& ind_prots = consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins();
     for (const OpenMS::ProteinHit& prot_hit : consensus_map.getProteinIdentifications()[0].getHits())
     {
       ProteinIdentification::ProteinGroup pg;
@@ -240,12 +240,15 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
       ind_prots.push_back(pg);
     }
   }
+
   // Map protein accession to its indistinguishable group
   std::map< String, const IndProtGrp* > accession_to_group;
-  for (const IndProtGrp& pgrp : consensus_map.getProteinIdentifications()[0].getIndistinguishableProteins())
+  for (const IndProtGrp& pgrp : ind_prots)
   {
+    std::cout << "Group size: " << pgrp.accessions.size() << endl;
     for (const String & a : pgrp.accessions)
     {
+      std::cout << a << endl;
       accession_to_group[a] = &(pgrp); 
     }
   }
@@ -268,7 +271,17 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
         // if so, we mark the sequence as quantifyable
         std::set<String> accs = pep_hit.extractProteinAccessionsSet();
         std::set<const IndProtGrp*> maps_to_indgrps;
-        for (const String& a : accs) { maps_to_indgrps.insert(accession_to_group[a]); }
+        for (const String& a : accs) 
+        {
+          if (accession_to_group.find(a) != accession_to_group.end())
+          { 
+            maps_to_indgrps.insert(accession_to_group[a]); 
+          }
+          else
+          {
+            LOG_WARN << "Accession " << a << " does not match to an infered group." << std::endl;
+          }
+        }
         peptideseq_quantifyable[sequence] = (maps_to_indgrps.size() == 1);
 
         for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
@@ -331,6 +344,16 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
 
           for (const OpenMS::PeptideEvidence &pep_ev : peptide_evidences)
           {
+            // link sequence to protein
+            const String & accession = pep_ev.getProteinAccession();
+
+            // TODO: @julianus check if this is correct            
+            if (accession_to_group.find(accession) == accession_to_group.end())
+            {
+              LOG_WARN << "Can't map accession: " << accession << " to indistinguishable group." << endl; 
+              continue;
+            }
+
             // Write new line for each run
             for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
             {
@@ -339,9 +362,7 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
               const unsigned label(consensus_feature_labels[i][j]);
 
-              // link sequence to protein
-              const String & accession = pep_ev.getProteinAccession();
-              // link protein to indistinguishable group
+              // link protein to indistinguishable group              
               const StringList & ind_proteins = accession_to_group[accession]->accessions;
               // concatenated protein accessions  
               const String ind_group_accession = ListUtils::concatenate(ind_proteins,";");
