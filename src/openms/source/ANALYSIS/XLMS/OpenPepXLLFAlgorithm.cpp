@@ -49,6 +49,7 @@
 #include <OpenMS/ANALYSIS/ID/PrecursorPurity.h>
 
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGeneratorXLMS.h>
+#include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
 #include <iostream>
 #include <cmath>
@@ -243,6 +244,7 @@ using namespace OpenMS;
       }
       // cout << endl;
     }
+    precursor_purities.shrink_to_fit();
 
     ProteaseDigestion digestor;
     digestor.setEnzyme(enzyme_name_);
@@ -299,6 +301,7 @@ using namespace OpenMS;
     // declare and set up spectrum generators
     TheoreticalSpectrumGeneratorXLMS specGen_fast;
     TheoreticalSpectrumGeneratorXLMS specGen_full;
+    SimpleTSGXLMS specGen_mainscore;
 
     // Setting parameters for cross-link fragmentation
     // settings for pre-scoring, only a-, b- and y- ions without annotation etc.
@@ -312,6 +315,7 @@ using namespace OpenMS;
     specGenParams_fast.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
 
     specGenParams_fast.setValue("add_metainfo", "false");
+    specGenParams_fast.setValue("add_charges", "false");
     specGenParams_fast.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
     specGenParams_fast.setValue("max_isotope", 1, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
     specGenParams_fast.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
@@ -332,12 +336,17 @@ using namespace OpenMS;
 
     specGenParams_full.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
     specGenParams_full.setValue("add_metainfo", "true");
+    specGenParams_full.setValue("add_charges", "true");
     specGenParams_full.setValue("add_isotopes", "true", "If set to 1 isotope peaks of the product ion peaks are added");
     specGenParams_full.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
 
     specGenParams_full.setValue("add_precursor_peaks", "true");
     specGenParams_full.setValue("add_k_linked_ions", "true");
     specGen_full.setParameters(specGenParams_full);
+
+    Param specGenParams_mainscore = specGen_full.getParameters();
+    specGenParams_mainscore.setValue("add_metainfo", "false");
+    specGen_mainscore.setParameters(specGenParams_mainscore);
 
 #ifdef DEBUG_OPENPEPXLLFALGO
     LOG_DEBUG << "Peptide candidates: " << peptide_masses.size() << endl;
@@ -499,20 +508,141 @@ using namespace OpenMS;
         }
       }
 
+      vector< OPXLDataStructs::CrossLinkSpectrumMatch > mainscore_csms_spectrum;
+
+      for (Size i = 0; i < cross_link_candidates.size(); ++i)
+      {
+        OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
+
+        PeakSpectrum theoretical_spec_linear_alpha;
+        PeakSpectrum theoretical_spec_linear_beta;
+        PeakSpectrum theoretical_spec_xlinks_alpha;
+        PeakSpectrum theoretical_spec_xlinks_beta;
+
+        bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
+        bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
+        Size link_pos_B = 0;
+        if (type_is_loop)
+        {
+          link_pos_B = cross_link_candidate.cross_link_position.second;
+        }
+        specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, 2, link_pos_B);
+        if (type_is_cross_link)
+        {
+          specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, 2);
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
+        }
+        else
+        {
+          // Function for mono-links or loop-links
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, 2, precursor_charge, link_pos_B);
+        }
+
+        // cout << "Peptide lengths: " << cross_link_candidate.alpha.toUnmodifiedString().size() << " | " << cross_link_candidate.beta.toUnmodifiedString().size() << " | = " << cross_link_candidate.alpha.toUnmodifiedString().size() + cross_link_candidate.beta.toUnmodifiedString().size() << " | Theo Spectrum sizes: "
+        //       << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_xlinks_alpha.size() << " | " << theoretical_spec_xlinks_beta.size() << endl;
+
+        // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
+        if ( (theoretical_spec_linear_alpha.size() < 1) || (theoretical_spec_xlinks_alpha.size() < 1) )
+        {
+          continue;
+        }
+
+        vector< pair< Size, Size > > matched_spec_linear_alpha;
+        vector< pair< Size, Size > > matched_spec_linear_beta;
+        vector< pair< Size, Size > > matched_spec_xlinks_alpha;
+        vector< pair< Size, Size > > matched_spec_xlinks_beta;
+
+        DataArrays::FloatDataArray ppm_error_array_linear_alpha;
+        DataArrays::FloatDataArray ppm_error_array_xlinks_alpha;
+        DataArrays::FloatDataArray ppm_error_array_linear_beta;
+        DataArrays::FloatDataArray ppm_error_array_xlinks_beta;
+
+        PeakSpectrum::IntegerDataArray& theo_charges_la = theoretical_spec_linear_alpha.getIntegerDataArrays()[0];
+        PeakSpectrum::IntegerDataArray theo_charges_xa;
+        if (theoretical_spec_xlinks_alpha.getIntegerDataArrays().size() > 0)
+        {
+          theo_charges_xa = theoretical_spec_xlinks_alpha.getIntegerDataArrays()[0];
+        }
+        PeakSpectrum::IntegerDataArray theo_charges_lb;
+        PeakSpectrum::IntegerDataArray theo_charges_xb;
+        if (theoretical_spec_linear_beta.getIntegerDataArrays().size() > 0)
+        {
+          theo_charges_lb = theoretical_spec_linear_beta.getIntegerDataArrays()[0];
+        }
+        if (theoretical_spec_xlinks_beta.getIntegerDataArrays().size() > 0)
+        {
+          theo_charges_xb = theoretical_spec_xlinks_beta.getIntegerDataArrays()[0];
+        }
+        PeakSpectrum::IntegerDataArray exp_charges;
+        if (spectrum.getIntegerDataArrays().size() > 0)
+        {
+          exp_charges = spectrum.getIntegerDataArrays()[0];
+        }
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_alpha, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_alpha, spectrum, theo_charges_la, exp_charges, ppm_error_array_linear_alpha);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_beta, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_beta, spectrum, theo_charges_lb, exp_charges, ppm_error_array_linear_beta);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, spectrum, theo_charges_xa, exp_charges, ppm_error_array_xlinks_alpha);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_beta, spectrum, theo_charges_xb, exp_charges, ppm_error_array_xlinks_beta);
+
+        // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
+        Size n_xlink_charges = (precursor_charge - 1) - 2;
+        if (n_xlink_charges < 1) n_xlink_charges = 1;
+
+        // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
+        double match_odds_c_alpha = XQuestScores::matchOddsScore(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
+        double match_odds_x_alpha = XQuestScores::matchOddsScore(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, true, n_xlink_charges);
+        double match_odds = 0;
+        double match_odds_alpha = 0;
+        double match_odds_beta = 0;
+
+        if (type_is_cross_link)
+        {
+          double match_odds_c_beta = XQuestScores::matchOddsScore(theoretical_spec_linear_beta, matched_spec_linear_beta.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
+          double match_odds_x_beta = XQuestScores::matchOddsScore(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, true, n_xlink_charges);
+          match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
+          match_odds_alpha = (match_odds_c_alpha + match_odds_x_alpha) / 2;
+          match_odds_beta = (match_odds_c_beta + match_odds_x_beta) / 2;
+        }
+        else
+        {
+          match_odds = (match_odds_c_alpha + match_odds_x_alpha) / 2;
+          match_odds_alpha = match_odds;
+        }
+
+        OPXLDataStructs::CrossLinkSpectrumMatch csm;
+        csm.cross_link = cross_link_candidate;
+        csm.precursor_correction = cross_link_candidate.precursor_correction;
+        double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
+
+        double new_match_odds_weight = 0.2;
+        double new_rel_error_weight = -0.03;
+        double new_score = new_match_odds_weight * std::log(1e-7 + match_odds) + new_rel_error_weight * abs(rel_error);
+
+        csm.score = new_score;
+
+        mainscore_csms_spectrum.push_back(csm);
+      }
+      progresslogger.endProgress();
+      std::sort(mainscore_csms_spectrum.rbegin(), mainscore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
+
+
 #ifdef DEBUG_OPENPEPXLLFALGO
 #pragma omp critical (LOG_DEBUG_access)
       LOG_DEBUG << "Size of prescored candidates: " << double(prescore_csms_spectrum.size()) * sizeof(OPXLDataStructs::CrossLinkSpectrumMatch) / 1024.0 / 1024.0 << " mb" << endl;
 #endif
 
-      Size last_candidate_index = prescore_csms_spectrum.size();
-      if (pre_scoring_)
-      {
-        last_candidate_index = std::min(last_candidate_index, Size(number_of_scored_candidates_));
-      }
+      // Size last_candidate_index = prescore_csms_spectrum.size();
+      // if (pre_scoring_)
+      // {
+      //   last_candidate_index = std::min(last_candidate_index, Size(number_of_scored_candidates_));
+      // }
+
+      Size last_candidate_index = mainscore_csms_spectrum.size();
+      last_candidate_index = std::min(last_candidate_index, Size(number_top_hits_));
 
       for (Size i = 0; i < last_candidate_index ; ++i)
       {
-        OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = prescore_csms_spectrum[i].cross_link;
+        OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = mainscore_csms_spectrum[i].cross_link;
 
 #ifdef DEBUG_OPENPEPXLLFALGO
         double candidate_mz = (cross_link_candidate.alpha.getMonoWeight() + cross_link_candidate.beta.getMonoWeight() +  cross_link_candidate.cross_linker_mass+ (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U)) / precursor_charge;
@@ -524,6 +654,7 @@ using namespace OpenMS;
 #endif
         OPXLDataStructs::CrossLinkSpectrumMatch csm;
         csm.cross_link = cross_link_candidate;
+        csm.score = mainscore_csms_spectrum[i].score;
 
         PeakSpectrum theoretical_spec_linear_alpha;
         PeakSpectrum theoretical_spec_linear_beta;
@@ -727,11 +858,11 @@ using namespace OpenMS;
         csm.precursor_correction = cross_link_candidate.precursor_correction;
         double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
 
-        double new_match_odds_weight = 0.2;
-        double new_rel_error_weight = -0.03;
-        double new_score = new_match_odds_weight * std::log(1e-7 + match_odds) + new_rel_error_weight * abs(rel_error);
+        // double new_match_odds_weight = 0.2;
+        // double new_rel_error_weight = -0.03;
+        // double new_score = new_match_odds_weight * std::log(1e-7 + match_odds) + new_rel_error_weight * abs(rel_error);
 
-        csm.score = new_score;
+        // csm.score = new_score;
         csm.pre_score = prescore_csms_spectrum[i].pre_score;
         csm.percTIC = TIC;
         csm.wTIC = wTIC;
