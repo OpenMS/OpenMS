@@ -405,7 +405,7 @@ using namespace OpenMS;
     LOG_DEBUG << "Filtering peptides with precursors" << endl;
 #endif
 
-    // search for the first mass greater than the maximim, use everything before that peptide
+    // search for the first mass greater than the maximum, use everything before that peptide
     vector<OPXLDataStructs::AASeqWithMass>::iterator last = upper_bound(peptide_masses.begin(), peptide_masses.end(), max_peptide_mass, OPXLDataStructs::AASeqWithMassComparator());
     vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses;
     filtered_peptide_masses.assign(peptide_masses.begin(), last);
