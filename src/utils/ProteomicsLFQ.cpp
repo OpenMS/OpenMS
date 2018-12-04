@@ -115,7 +115,7 @@ using namespace std;
 
 Potential script to perform the search
 # perform search, score calibration, and PSM-level q-value/PEP estimation
-for f in ${DATA_PATH}/*.mzML; do
+for f in ${DATA_PATH}*.mzML; do
   echo $f
   fn=${f%.mzML} # filename and path without mzML extension
   # search with default fixed and variable mods
@@ -210,10 +210,16 @@ protected:
     Param pp_defaults = PeakPickerHiRes().getDefaults();
     Param ffi_defaults = FeatureFinderIdentificationAlgorithm().getDefaults();
     Param ma_defaults = MapAlignmentAlgorithmIdentification().getDefaults();
+    ma_defaults.setValue("max_rt_shift", 0.1);
+    ma_defaults.setValue("use_unassigned_peptides", "false");
+    ma_defaults.setValue("use_feature_rt", "true");
+
     Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
-    pq_defaults.setValue("include_all", "true"); // overwrite default so we export everything (important for copying back MSstats results)
+    // overwrite algorithm default so we export everything (important for copying back MSstats results)
+    pq_defaults.setValue("include_all", "true"); 
 
+    // combine parameters of the individual algorithms
     Param combined;
     combined.insert("Centroiding:", pp_defaults);
     combined.insert("PeptideQuantification:", ffi_defaults);
@@ -463,6 +469,26 @@ protected:
 
       // determine maximum RT shift after transformation that includes all high confidence IDs 
       using TrafoStat = TransformationDescription::TransformationStatistics;
+      for (auto & s : alignment_stats)
+      {
+         LOG_INFO << "Alignment differences (second) for percentiles (before & after): " << endl;
+         LOG_INFO << "100%\t99%\t95%\t90%\t75%\t50%\t25%" << endl; 
+         LOG_INFO << "before alignment:" << endl; 
+         LOG_INFO << (int)s.percentiles_before[100] << "\t" 
+                  << (int)s.percentiles_before[99] << "\t" 
+                  << (int)s.percentiles_before[95] << "\t" 
+                  << (int)s.percentiles_before[90] << "\t" 
+                  << (int)s.percentiles_before[50] << "\t" 
+                  << (int)s.percentiles_before[25] << endl; 
+         LOG_INFO << "after alignment:" << endl; 
+         LOG_INFO << (int)s.percentiles_after[100] << "\t" 
+                  << (int)s.percentiles_after[99] << "\t" 
+                  << (int)s.percentiles_after[95] << "\t" 
+                  << (int)s.percentiles_after[90] << "\t" 
+                  << (int)s.percentiles_after[50] << "\t" 
+                  << (int)s.percentiles_after[25] << endl; 
+      }
+
       double max_alignment_diff = std::max_element(alignment_stats.begin(), alignment_stats.end(),
               [](TrafoStat a, TrafoStat b) 
               { return a.percentiles_after[100] > b.percentiles_after[100]; })->percentiles_after[100];
@@ -1234,6 +1260,23 @@ protected:
       bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids);
     }
 
+    // single proteins form a (trivial) indistinguishable group if no grouping was performed
+    if (!groups && !bayesian)
+    {
+      using IndProtGrp = ProteinIdentification::ProteinGroup;
+      using IndProtGrps = std::vector<IndProtGrp>;
+      if (inferred_protein_ids[0].getIndistinguishableProteins().empty())
+      {
+        IndProtGrps& ind_prots = inferred_protein_ids[0].getIndistinguishableProteins();
+        for (const OpenMS::ProteinHit& prot_hit : inferred_protein_ids[0].getHits())
+        {
+          ProteinIdentification::ProteinGroup pg;
+          pg.accessions.push_back(prot_hit.getAccession());
+          ind_prots.push_back(pg);
+        }
+      }
+    }
+
     if (debug_level_ >= 666)
     {
       IdXMLFile().store("debug_mergedIDs_inference.idXML", inferred_protein_ids, inferred_peptide_ids);
@@ -1269,11 +1312,10 @@ protected:
       PeptideProteinResolution ppr{};
       ppr.buildGraph(inferred_protein_ids[0], inferred_peptide_ids);
       ppr.resolveGraph(inferred_protein_ids[0], inferred_peptide_ids);
-    }
-
-    if (debug_level_ >= 666)
-    {
-      IdXMLFile().store("debug_mergedIDsFDRFilteredGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
+      if (debug_level_ >= 666)
+      {
+        IdXMLFile().store("debug_mergedIDsFDRFilteredGreedyResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
+      }
     }
 
     // ensure that only one final inference result is generated
@@ -1403,6 +1445,7 @@ protected:
     //-------------------------------------------------------------
     // Protein quantification
     //-------------------------------------------------------------
+
     // TODO: ProteinQuantifier on (merged?) consensusXML (with 1% FDR?) + inference ids (unfiltered?)? 
     if (inferred_protein_ids[0].getIndistinguishableProteins().empty())
     {
@@ -1414,15 +1457,27 @@ protected:
     }
 
     quantifier.quantifyProteins(inferred_protein_ids[0]);
+      if (debug_level_ >= 666)
+      {
+        IdXMLFile().store("debug_quant.idXML", inferred_protein_ids, inferred_peptide_ids);
+      }
     //-------------------------------------------------------------
     // Export of MzTab file as final output
     //-------------------------------------------------------------
 
     // Annotate quants to protein(groups) for easier export in mzTab
     auto const & protein_quants = quantifier.getProteinResults();
+      if (debug_level_ >= 666)
+      {
+        IdXMLFile().store("debug_quant1.idXML", inferred_protein_ids, inferred_peptide_ids);
+      }
 
     // annotates final quantities to proteins and protein groups in the ID data structure
     PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
+      if (debug_level_ >= 666)
+      {
+        IdXMLFile().store("debug_quant_annotated.idXML", inferred_protein_ids, inferred_peptide_ids);
+      }
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), inferred_protein_ids[0]); // insert inference information as first protein identification
     proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
@@ -1442,6 +1497,11 @@ protected:
       ConsensusXMLFile().store(getStringOption_("out_cxml"), consensus);
     }
 
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_keepUnique2.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
+
     // Fill MzTab with meta data and quants annotated in identification data structure
     const bool report_unmapped(true);
     const bool report_unidentified_features(false);
@@ -1458,7 +1518,9 @@ protected:
       MSstatsFile msstats;
       // TODO: add a helper method to quickly check if experimental design file contain the right columns (and put this at start of tool)
 
-      // Remove modified peptides
+
+      // shrink protein runs to the one containing the inference data
+      consensus.getProteinIdentifications().resize(1);
 
       msstats.store(
         out_msstats, 

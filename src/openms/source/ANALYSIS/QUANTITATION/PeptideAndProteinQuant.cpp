@@ -325,6 +325,11 @@ namespace OpenMS
                              ++leaders.begin());
       if (all_equal) return leaders[0];
     }
+    cout << "LEADERS EMPTY: " << endl;
+    for (auto const & acc : pep_accessions)
+    {
+      cout << acc << endl;
+    } 
     return "";
   }
 
@@ -659,7 +664,11 @@ namespace OpenMS
       // accession of quantified protein(group)
       const String & acc = q.first;
 
-      if (q.second.total_abundances.empty()) { continue; } // not quantified
+      if (q.second.total_abundances.empty()) 
+      { 
+        cout << "Protein: " << acc << " not quantified." << endl;
+        continue; 
+      } // not quantified
  
       // lambda to check if a ProteinGroup has accession "acc"
       auto hasProteinInGroup = [&acc] (const ProteinIdentification::ProteinGroup& g)->bool 
