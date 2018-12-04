@@ -124,7 +124,7 @@ namespace OpenMS
                     const String& description,
                     const String& sumformula,
                     const vector<pair<double,double>>& f_isotopes,
-                    const int& feature_charge,
+                    int& feature_charge,
                     uint64_t& feature_id,
                     const double& feature_rt,
                     const double& feature_mz,
@@ -185,6 +185,26 @@ namespace OpenMS
         if (p == IonSource::Polarity::NEGATIVE && precursor_charge == 0)
         {
           int_charge = -1;
+          count_to_neg = count_to_neg + 1;
+        }
+
+        // set feature_charge value for msfile
+        if (p == IonSource::Polarity::POSITIVE && feature_charge == 1)
+        {
+          feature_charge = +1;
+        }
+        if (p == IonSource::Polarity::NEGATIVE && feature_charge == 1)
+        {
+          feature_charge = -1;
+        }
+        if (p == IonSource::Polarity::POSITIVE && feature_charge == 0)
+        {
+          feature_charge = +1;
+          count_to_pos = count_to_pos + 1;
+        }
+        if (p == IonSource::Polarity::NEGATIVE && feature_charge == 0)
+        {
+          feature_charge = -1;
           count_to_neg = count_to_neg + 1;
         }
 
