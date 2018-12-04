@@ -80,6 +80,20 @@ namespace OpenMS
         }
       };
 
+      struct SimplePeak
+      {
+        double mz;
+        int charge;
+      }
+
+      struct SimplePeakComparator
+      {
+        bool operator() (const SimplePeak& a, const SimplePeak& b)
+        {
+          return a.mz < b.mz;
+        }
+      }
+
 
       /** @name Constructors and Destructors
       */
