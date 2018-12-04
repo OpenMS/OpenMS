@@ -84,7 +84,7 @@ namespace OpenMS
       {
         double mz;
         int charge;
-      }
+      };
 
       struct SimplePeakComparator
       {
@@ -92,7 +92,7 @@ namespace OpenMS
         {
           return a.mz < b.mz;
         }
-      }
+      };
 
 
       /** @name Constructors and Destructors
