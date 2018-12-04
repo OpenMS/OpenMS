@@ -362,5 +362,7 @@ namespace OpenMS
       double pre_int_H2O_;
       double pre_int_NH3_;
       bool add_k_linked_ions_;
+
+      std::map< String, std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > loss_db_;
   };
 }

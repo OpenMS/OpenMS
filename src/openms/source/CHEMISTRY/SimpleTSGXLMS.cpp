@@ -107,6 +107,30 @@ namespace OpenMS
     defaults_.setValue("precursor_NH3_intensity", 1.0, "Intensity of the NH3 loss peak of the precursor");
 
     defaultsToParam_();
+
+
+    // preprocess loss_db_, a database of H2O and NH3 losses for all residues
+    AASequence residues = AASequence::fromString("RHKDESTNQCUGPAVILMFYW");
+    for (Size i = 0; i < residues.size(); ++i)
+    {
+      std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > residue_losses;
+      loss_db_.insert(std::make_pair(residues[i].getOneLetterCode(), residue_losses));
+      if (residues[i].hasNeutralLoss())
+      {
+        vector<EmpiricalFormula> loss_formulas = residues[i].getLossFormulas();
+        for (Size k = 0; k != loss_formulas.size(); ++k)
+        {
+          String loss_name = loss_formulas[k].toString();
+          if (loss_name == "H2O1" || loss_name == "H3N1") // for now only these most common losses are considered
+          {
+            SimpleTSGXLMS::LossMass new_loss_mass;
+            new_loss_mass.name = loss_formulas[k].toString();
+            new_loss_mass.mass = loss_formulas[k].getMonoWeight();
+            loss_db_[residues[i].getOneLetterCode()].insert(new_loss_mass);
+          }
+        }
+      }
+    }
   }
 
   SimpleTSGXLMS::SimpleTSGXLMS(const SimpleTSGXLMS & rhs) :
@@ -881,33 +905,13 @@ namespace OpenMS
 
   std::vector< std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > SimpleTSGXLMS::getForwardLosses_(AASequence & peptide) const
   {
-    std::vector< std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > losses(peptide.size());
-    for (Size i = 0; i < peptide.size(); ++i)
-    {
-      if (peptide[i].hasNeutralLoss())
-      {
-        vector<EmpiricalFormula> loss_formulas = peptide[i].getLossFormulas();
-        for (Size k = 0; k != loss_formulas.size(); ++k)
-        {
-          String loss_name = loss_formulas[k].toString();
-          if (loss_name == "H2O1" || loss_name == "H3N1") // for now only these most common losses are considered
-          {
-            SimpleTSGXLMS::LossMass new_loss_mass;
-            new_loss_mass.name = loss_formulas[k].toString();
-            new_loss_mass.mass = loss_formulas[k].getMonoWeight();
-            losses[i].insert(new_loss_mass);
-          }
-        }
-      }
-    }
-
     // this gives us a "forward set" with incremental losses from the first to the last residue
-    std::vector< std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > ion_losses(losses.size());
-    ion_losses[0] = losses[0];
-    for (Size i = 1; i < losses.size(); ++i)
+    std::vector< std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > ion_losses(peptide.size());
+    ion_losses[0] = loss_db_.at(peptide[0].getOneLetterCode());
+    for (Size i = 1; i < peptide.size(); ++i)
     {
       std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > new_set = ion_losses[i-1];
-      new_set.insert(losses[i].begin(), losses[i].end());
+      new_set.insert(loss_db_.at(peptide[i].getOneLetterCode()).begin(), loss_db_.at(peptide[i].getOneLetterCode()).end());
       ion_losses[i] = new_set;
     }
     return ion_losses;
@@ -915,33 +919,13 @@ namespace OpenMS
 
   std::vector< std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > SimpleTSGXLMS::getBackwardLosses_(AASequence & peptide) const
   {
-    std::vector< std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > losses(peptide.size());
-    for (Size i = 0; i < peptide.size(); ++i)
-    {
-      if (peptide[i].hasNeutralLoss())
-      {
-        vector<EmpiricalFormula> loss_formulas = peptide[i].getLossFormulas();
-        for (Size k = 0; k != loss_formulas.size(); ++k)
-        {
-          String loss_name = loss_formulas[k].toString();
-          if (loss_name == "H2O1" || loss_name == "H3N1") // for now only these most common losses are considered
-          {
-            SimpleTSGXLMS::LossMass new_loss_mass;
-            new_loss_mass.name = loss_formulas[k].toString();
-            new_loss_mass.mass = loss_formulas[k].getMonoWeight();
-            losses[i].insert(new_loss_mass);
-          }
-        }
-      }
-    }
-
     // this gives us a "backward set" with incremental losses from the last to the first residue
-    std::vector< std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > ion_losses(losses.size());
-    ion_losses[ion_losses.size()-1] = losses[losses.size()-1];
+    std::vector< std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > > ion_losses(peptide.size());
+    ion_losses[ion_losses.size()-1] = loss_db_.at(peptide[peptide.size()-1].getOneLetterCode());
     for (Size i = ion_losses.size()-1; i > 0; --i)
     {
       std::set< SimpleTSGXLMS::LossMass, SimpleTSGXLMS::LossMassComparator > new_set = ion_losses[i];
-      new_set.insert(losses[i-1].begin(), losses[i-1].end());
+      new_set.insert(loss_db_.at(peptide[i-1].getOneLetterCode()).begin(), loss_db_.at(peptide[i-1].getOneLetterCode()).end());
       ion_losses[i-1] = new_set;
     }
     return ion_losses;
