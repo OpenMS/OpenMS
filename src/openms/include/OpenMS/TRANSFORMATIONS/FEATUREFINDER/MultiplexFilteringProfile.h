@@ -43,7 +43,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 
 #include <vector>
 #include <algorithm>
@@ -134,7 +134,7 @@ private:
     /**
      * @brief spline interpolated profile data and peak boundaries
      */
-    std::vector<SplineSpectrum> exp_spline_profile_;
+    std::vector<SplineInterpolatedPeaks> exp_spline_profile_;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
 
   };
