@@ -514,10 +514,10 @@ using namespace OpenMS;
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
 
-        PeakSpectrum theoretical_spec_linear_alpha;
-        PeakSpectrum theoretical_spec_linear_beta;
-        PeakSpectrum theoretical_spec_xlinks_alpha;
-        PeakSpectrum theoretical_spec_xlinks_beta;
+        std::vector< SimpleTSGXLMS::SimplePeak > theoretical_spec_linear_alpha;
+        std::vector< SimpleTSGXLMS::SimplePeak > theoretical_spec_linear_beta;
+        std::vector< SimpleTSGXLMS::SimplePeak > theoretical_spec_xlinks_alpha;
+        std::vector< SimpleTSGXLMS::SimplePeak > theoretical_spec_xlinks_beta;
 
         bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
         bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
@@ -553,52 +553,31 @@ using namespace OpenMS;
         vector< pair< Size, Size > > matched_spec_xlinks_alpha;
         vector< pair< Size, Size > > matched_spec_xlinks_beta;
 
-        DataArrays::FloatDataArray ppm_error_array_linear_alpha;
-        DataArrays::FloatDataArray ppm_error_array_xlinks_alpha;
-        DataArrays::FloatDataArray ppm_error_array_linear_beta;
-        DataArrays::FloatDataArray ppm_error_array_xlinks_beta;
-
-        PeakSpectrum::IntegerDataArray& theo_charges_la = theoretical_spec_linear_alpha.getIntegerDataArrays()[0];
-        PeakSpectrum::IntegerDataArray theo_charges_xa;
-        if (theoretical_spec_xlinks_alpha.getIntegerDataArrays().size() > 0)
-        {
-          theo_charges_xa = theoretical_spec_xlinks_alpha.getIntegerDataArrays()[0];
-        }
-        PeakSpectrum::IntegerDataArray theo_charges_lb;
-        PeakSpectrum::IntegerDataArray theo_charges_xb;
-        if (theoretical_spec_linear_beta.getIntegerDataArrays().size() > 0)
-        {
-          theo_charges_lb = theoretical_spec_linear_beta.getIntegerDataArrays()[0];
-        }
-        if (theoretical_spec_xlinks_beta.getIntegerDataArrays().size() > 0)
-        {
-          theo_charges_xb = theoretical_spec_xlinks_beta.getIntegerDataArrays()[0];
-        }
         PeakSpectrum::IntegerDataArray exp_charges;
         if (spectrum.getIntegerDataArrays().size() > 0)
         {
           exp_charges = spectrum.getIntegerDataArrays()[0];
         }
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_alpha, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_alpha, spectrum, theo_charges_la, exp_charges, ppm_error_array_linear_alpha);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_linear_beta, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_beta, spectrum, theo_charges_lb, exp_charges, ppm_error_array_linear_beta);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, spectrum, theo_charges_xa, exp_charges, ppm_error_array_xlinks_alpha);
-        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentFastCharge(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_beta, spectrum, theo_charges_xb, exp_charges, ppm_error_array_xlinks_beta);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_linear_alpha, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_alpha, spectrum, exp_charges);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_linear_beta, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_beta, spectrum, exp_charges);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, spectrum, exp_charges);
+        OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_beta, spectrum, exp_charges);
 
         // maximal xlink ion charge = (Precursor charge - 1), minimal xlink ion charge: 2
         Size n_xlink_charges = (precursor_charge - 1) - 2;
         if (n_xlink_charges < 1) n_xlink_charges = 1;
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
-        double match_odds_c_alpha = XQuestScores::matchOddsScore(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
-        double match_odds_x_alpha = XQuestScores::matchOddsScore(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, true, n_xlink_charges);
+        double match_odds_c_alpha = XQuestScores::matchOddsScoreSimpleSpec(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
+        double match_odds_x_alpha = XQuestScores::matchOddsScoreSimpleSpec(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, true, n_xlink_charges);
         double match_odds = 0;
         double match_odds_alpha = 0;
         double match_odds_beta = 0;
 
         if (type_is_cross_link)
         {
-          double match_odds_c_beta = XQuestScores::matchOddsScore(theoretical_spec_linear_beta, matched_spec_linear_beta.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
-          double match_odds_x_beta = XQuestScores::matchOddsScore(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, true, n_xlink_charges);
+          double match_odds_c_beta = XQuestScores::matchOddsScoreSimpleSpec(theoretical_spec_linear_beta, matched_spec_linear_beta.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
+          double match_odds_x_beta = XQuestScores::matchOddsScoreSimpleSpec(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, true, n_xlink_charges);
           match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
           match_odds_alpha = (match_odds_c_alpha + match_odds_x_alpha) / 2;
           match_odds_beta = (match_odds_c_beta + match_odds_x_beta) / 2;
