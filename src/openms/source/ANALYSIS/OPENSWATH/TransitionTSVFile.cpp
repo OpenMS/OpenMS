@@ -996,7 +996,6 @@ namespace OpenMS
 
   void TransitionTSVFile::createPeptide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Peptide& peptide)
   {
-
     // the following attributes will be stored as meta values (userParam):
     //  - full_peptide_name (full unimod peptide name)
     // the following attributes will be stored as CV values (CV):
@@ -1038,22 +1037,28 @@ namespace OpenMS
 
     // Try to parse full UniMod string including modifications. If we fail, we
     // can force reading and only parse the "naked" sequence.
+    // Note: If the user did not provide a modified sequence string, we will
+    // fall back to the "naked" sequence by default.
     std::vector<TargetedExperiment::Peptide::Modification> mods;
     AASequence aa_sequence;
+    String sequence = tr_it->FullPeptideName;
+    if (sequence.empty()) sequence = tr_it->PeptideSequence;
     try
     {
-      aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
+      aa_sequence = AASequence::fromString(sequence);
     } catch (Exception::InvalidValue & e)
     {
       if (force_invalid_mods_)
       {
-        std::cout << "Warning while reading file: " << e.what() << std::endl;
+        LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
         aa_sequence = AASequence::fromString(tr_it->PeptideSequence);
       }
-      else 
+      else
       {
-        std::cerr << "Error while reading file (use force_invalid_mods to override): " << e.what() << std::endl;
-        throw;
+        LOG_DEBUG << "Invalid sequence when parsing '" << tr_it->FullPeptideName << "'" << std::endl;
+        std::cerr << "Error while reading file (use 'force_invalid_mods' parameter to override): " << e.what() << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "Invalid input, cannot parse: " + tr_it->FullPeptideName);
       }
     }
 
