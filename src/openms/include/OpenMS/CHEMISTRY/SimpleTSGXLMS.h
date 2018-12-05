@@ -58,6 +58,9 @@ namespace OpenMS
   {
     public:
 
+      /**
+        * @brief A simple struct to keep track of loss masses and their origin
+       */
       struct LossMass
       {
         String name;
@@ -80,12 +83,18 @@ namespace OpenMS
         }
       };
 
+      /**
+        * @brief A simple struct to represent peaks with mz and charge and sort them easily
+       */
       struct SimplePeak
       {
-        double mz;
-        int charge;
+        double mz = 0;
+        int charge = 0;
       };
 
+      /**
+        * @brief Comparator to sort SimplePeaks by mz
+       */
       struct SimplePeakComparator
       {
         bool operator() (const SimplePeak& a, const SimplePeak& b)
@@ -127,7 +136,7 @@ namespace OpenMS
        * @param charge The maximal charge of the ions
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, int charge = 1, Size link_pos_2 = 0) const;
+      virtual void getLinearIonSpectrum(std::vector< SimplePeak >& spectrum, AASequence & peptide, Size link_pos, int charge = 1, Size link_pos_2 = 0) const;
 
       /**
        * @brief Generates fragment ions containing the cross-linker for one peptide.
@@ -152,7 +161,7 @@ namespace OpenMS
        * @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, double precursor_mass, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
+      virtual void getXLinkIonSpectrum(std::vector< SimplePeak >& spectrum, AASequence & peptide, Size link_pos, double precursor_mass, int mincharge, int maxcharge, Size link_pos_2 = 0) const;
 
       /**
        * @brief Generates fragment ions containing the cross-linker for a pair of peptides.
@@ -173,7 +182,7 @@ namespace OpenMS
        * @param mincharge The minimal charge of the ions
        * @param maxcharge The maximal charge of the ions, it should be the precursor charge and is used to generate precursor ion peaks
        */
-      virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, int mincharge, int maxcharge) const;
+      virtual void getXLinkIonSpectrum(std::vector< SimplePeak >& spectrum, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, int mincharge, int maxcharge) const;
 
       /// overwrite
       void updateMembers_() override;
@@ -194,7 +203,7 @@ namespace OpenMS
        * @param charge The charge of the added peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void addLinearPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, AASequence & peptide, Size link_pos, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, int charge = 1, Size link_pos_2 = 0) const;
+      virtual void addLinearPeaks_(std::vector< SimplePeak >& spectrum, AASequence & peptide, Size link_pos, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, int charge = 1, Size link_pos_2 = 0) const;
 
       /**
        * @brief Adds a single peak to a spectrum and its charge and ion name to the given DataArrays
@@ -204,59 +213,39 @@ namespace OpenMS
           the two letters at the end are either "ci" or "xi" for linear ion or cross-linked ion.
 
        * @param spectrum The spectrum to which the new peak is added
-       * @param charges A DataArray collecting the charges of the added peaks
-       * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param pos
-       * @param intensity
-       * @param res_type The ion type of the added peak
-       * @param ion_index The index of the ion (fragmentation position)
        * @param charge The charge of the ion
-       * @param ion_type Another cross-linking specific ion-type
        */
-      virtual void addPeak_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, double pos, double intensity, int charge) const;
+      virtual void addPeak_(std::vector< SimplePeak >&, double pos, int charge) const;
 
       /**
        * @brief Adds precursor masses including neutral losses for the given charge and adds charge and ion name to the given DataArrays
 
        * @param spectrum The spectrum to which the peaks are added
-       * @param charges A DataArray collecting the charges of the added peaks
-       * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param precursor_mass The mass of the uncharged precursor
        * @param charge The charge of the precursor
        */
-      virtual void addPrecursorPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, double precursor_mass, int charge) const;
+      virtual void addPrecursorPeaks_(std::vector< SimplePeak >& spectrum, double precursor_mass, int charge) const;
 
       /**
        * @brief Adds losses for a linear ion
 
        * @param spectrum The spectrum to which the new peak is added
-       * @param charges A DataArray collecting the charges of the added peaks
-       * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param mono_weight monoisotopic mass of the current ion
-       * @param res_type The ion type of the current ion
-       * @param frag_index The index of the ion (fragmentation position)
-       * @param intensity
        * @param charge The charge of the ion
-       * @param ion_type Another cross-linking specific ion-type
        * @param losses a set of LossMasses with which to modify the current ion
        */
-      virtual void addLinearIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, double mono_weight, double intensity, int charge, std::set< LossMass, LossMassComparator > & losses) const;
+      virtual void addLinearIonLosses_(std::vector< SimplePeak >& spectrum, double mono_weight, int charge, std::set< LossMass, LossMassComparator > & losses) const;
 
       /**
        * @brief Adds losses for a cross-linked ion
 
        * @param spectrum The spectrum to which the new peak is added
-       * @param charges A DataArray collecting the charges of the added peaks
-       * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param mono_weight monoisotopic mass of the current ion
-       * @param res_type The ion type of the current ion
-       * @param frag_index The index of the ion (fragmentation position)
-       * @param intensity
        * @param charge The charge of the ion
-       * @param ion_type Another cross-linking specific ion-type
        * @param losses a set of LossMasses with which to modify the current ion
        */
-      virtual void addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, double mono_weight, double intensity, int charge, std::set< LossMass, LossMassComparator > & losses) const;
+      virtual void addXLinkIonLosses_(std::vector< SimplePeak >& spectrum, double mono_weight, int charge, std::set< LossMass, LossMassComparator > & losses) const;
 
       /**
        * @brief Adds one-residue-linked ion peaks, that are specific to XLMS
@@ -266,15 +255,12 @@ namespace OpenMS
           The function is called KLinked for now, but instead of K it is whatever the linker is attached to.
 
        * @param spectrum The spectrum to which the peaks are added
-       * @param charges A DataArray collecting the charges of the added peaks
-       * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param peptide The fragmented peptide
        * @param link_pos position of the linker on the fragmented peptide
        * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
-       * @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
        * @param charge The charge of the ion
        */
-      virtual void addKLinkedIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, AASequence & peptide, Size link_pos, double precursor_mass, int charge) const;
+      virtual void addKLinkedIonPeaks_(std::vector< SimplePeak >& spectrum, AASequence & peptide, Size link_pos, double precursor_mass, int charge) const;
 
       /**
        * @brief Adds cross-linked ions of a specific ion type and charge to a spectrum and adds ion name and charge annotations to the DataArrays
@@ -282,19 +268,16 @@ namespace OpenMS
         This version of the function is for mono-links and loop-links.
 
        * @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
-       * @param charges A DataArray collecting the charges of the added peaks
-       * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param peptide The peptide to fragment
        * @param link_pos The position of the cross-linker on the given peptide
        * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
-       * @param frag_alpha True, if the fragmented peptide is the Alpha peptide. Used for ion-name annotation.
        * @param res_type The ion type of the added peaks
        * @param forward_losses  vector of sets of losses generated by getForwardLosses_
        * @param backward_losses vector of sets of losses generated by getBackwardLosses_
        * @param charge The charge of the added peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void addXLinkIonPeaks_(PeakSpectrum& spectrum, DataArrays::IntegerDataArray & charges, AASequence & peptide, Size link_pos, double precursor_mass, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, int charge, Size link_pos_2 = 0) const;
+      virtual void addXLinkIonPeaks_(std::vector< SimplePeak >& spectrum, AASequence & peptide, Size link_pos, double precursor_mass, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, int charge, Size link_pos_2 = 0) const;
 
       /**
        * @brief Adds cross-linked ions of a specific ion type and charge to a spectrum and adds ion name and charge annotations to the DataArrays
@@ -302,8 +285,6 @@ namespace OpenMS
         This version of the function is for cross-linked peptide pairs.
 
        * @param spectrum The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it.
-       * @param charges A DataArray collecting the charges of the added peaks
-       * @param ion_names A DataArray collecting the ion names of the added peaks
        * @param crosslink The ProteinProteinCrossLink to be fragmented
        * @param link_pos The position of the cross-linker on the given peptide
        * @param precursor_mass The mass of the whole cross-link candidate or the precursor mass of the experimental MS2 spectrum.
@@ -314,7 +295,7 @@ namespace OpenMS
        * @param losses_peptide2 set of losses for the second, not fragmented peptide, e.g. last set from getForwardLosses_ for the second peptide
        * @param charge The charge of the added peaks
        */
-      virtual void addXLinkIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, std::set< LossMass, LossMassComparator > & losses_peptide2, int charge) const;
+      virtual void addXLinkIonPeaks_(std::vector< SimplePeak >& spectrum, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, std::set< LossMass, LossMassComparator > & losses_peptide2, int charge) const;
 
       /**
        * @brief Calculates sets of possible neutral losses for each position in the given peptide
@@ -350,14 +331,7 @@ namespace OpenMS
       bool add_isotopes_;
       bool add_precursor_peaks_;
       bool add_abundant_immonium_ions_;
-      double a_intensity_;
-      double b_intensity_;
-      double c_intensity_;
-      double x_intensity_;
-      double y_intensity_;
-      double z_intensity_;
       Int max_isotope_;
-      double rel_loss_intensity_;
       double pre_int_;
       double pre_int_H2O_;
       double pre_int_NH3_;

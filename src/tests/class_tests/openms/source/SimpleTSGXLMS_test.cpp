@@ -40,9 +40,6 @@
 #include <OpenMS/CHEMISTRY/SimpleTSGXLMS.h>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/SpectrumHelper.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>
 #include <iostream>
@@ -86,7 +83,7 @@ END_SECTION
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, int charge = 1, Size link_pos_2 = 0))
-  PeakSpectrum spec;
+  std::vector< SimpleTSGXLMS::SimplePeak > spec;
   ptr->getLinearIonSpectrum(spec, peptide, 3, 2);
   TEST_EQUAL(spec.size(), 18)
 
@@ -95,14 +92,14 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   double result[] = {43.55185, 57.54930, 74.06004, 86.09642, 102.57077, 114.09134, 117.08605, 131.08351, 147.11280, 152.10497, 160.60207, 174.59953, 204.13426, 233.16484, 261.15975, 303.20268, 320.19686, 348.19178};
   for (Size i = 0; i != spec.size(); ++i)
   {
-    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
+    TEST_REAL_SIMILAR(spec[i].mz, result[i])
   }
 
-  spec.clear(true);
+  spec.clear();
   ptr->getLinearIonSpectrum(spec, peptide, 3, 3);
   TEST_EQUAL(spec.size(), 27)
 
-  spec.clear(true);
+  spec.clear();
   Param param(ptr->getParameters());
   param.setValue("add_a_ions", "true");
   param.setValue("add_b_ions", "true");
@@ -110,14 +107,14 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_x_ions", "true");
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "true");
-  param.setValue("add_charges", "false");
+  // param.setValue("add_charges", "false");
   ptr->setParameters(param);
   ptr->getLinearIonSpectrum(spec, peptide, 3, 3);
   TEST_EQUAL(spec.size(), 54)
 
 
 //  // test annotation
-  spec.clear(true);
+  spec.clear();
   param = ptr->getParameters();
   param.setValue("add_a_ions", "false");
   param.setValue("add_b_ions", "true");
@@ -125,7 +122,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_x_ions", "true");
   param.setValue("add_y_ions", "false");
   param.setValue("add_z_ions", "false");
-  param.setValue("add_charges", "true");
+  // param.setValue("add_charges", "true");
   param.setValue("add_losses", "true");
   ptr->setParameters(param);
   ptr->getLinearIonSpectrum(spec, peptide, 3, 3);
@@ -133,17 +130,15 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   // 6 ion types with 3 charges each are expected
   TEST_EQUAL(spec.size(), 30)
 
-    // test for charges stored in IntegerDataArray
-  PeakSpectrum::IntegerDataArray charge_array = spec.getIntegerDataArrays().at(0);
-
-  int charge_counts[3] = {0, 0, 0};
+  int charge_counts[4] = {0, 0, 0, 0};
   for (Size i = 0; i != spec.size(); ++i)
   {
-    charge_counts[charge_array[i]-1]++;
+    charge_counts[spec[i].charge]++;
   }
-  TEST_EQUAL(charge_counts[0], 10)
+  TEST_EQUAL(charge_counts[0], 0)
   TEST_EQUAL(charge_counts[1], 10)
   TEST_EQUAL(charge_counts[2], 10)
+  TEST_EQUAL(charge_counts[3], 10)
 
 
   param = ptr->getParameters();
@@ -151,27 +146,27 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   ptr->setParameters(param);
 
   // the smallest examples, that make sense for cross-linking
-  spec.clear(true);
+  spec.clear();
   AASequence testseq = AASequence::fromString("HA");
   ptr->getLinearIonSpectrum(spec, testseq, 0, 1);
   TEST_EQUAL(spec.size(), 1)
 
-  spec.clear(true);
+  spec.clear();
   ptr->getLinearIonSpectrum(spec, testseq, 1, 1);
   TEST_EQUAL(spec.size(), 1)
 
   // loop link
-  spec.clear(true);
+  spec.clear();
   testseq = AASequence::fromString("PEPTIDESAREWEIRD");
   ptr->getLinearIonSpectrum(spec, testseq, 1, 1, 14);
   TEST_EQUAL(spec.size(), 2)
 
-  spec.clear(true);
+  spec.clear();
   ptr->getLinearIonSpectrum(spec, testseq, 2, 1, 14);
   TEST_EQUAL(spec.size(), 3)
 
   // test isotopic peaks
-  spec.clear(true);
+  spec.clear();
   param = ptr->getParameters();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 1);
@@ -181,13 +176,13 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   param.setValue("add_x_ions", "false");
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "false");
-  param.setValue("add_charges", "false");
+  // param.setValue("add_charges", "false");
   ptr->setParameters(param);
   ptr->getLinearIonSpectrum(spec, peptide, 3, 3);
   // 6 ion types with 3 charges each are expected
   TEST_EQUAL(spec.size(), 18)
 
-  spec.clear(true);
+  spec.clear();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 2); //
   param.setValue("add_losses", "true");
@@ -198,7 +193,7 @@ START_SECTION(virtual void getLinearIonSpectrum(PeakSpectrum & spectrum, AASeque
   TEST_EQUAL(spec.size(), 48)
 
 
-  spec.clear(true);
+  spec.clear();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 3); // not supported yet, but it should at least run (with the maximal possible number of peaks)
   ptr->setParameters(param);
@@ -242,65 +237,49 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "false");
   param.setValue("add_losses", "false");
-  param.setValue("add_charges", "false");
   ptr->setParameters(param);
 
-  PeakSpectrum spec;
+  std::vector< SimpleTSGXLMS::SimplePeak > spec;
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 3);
   TEST_EQUAL(spec.size(), 17)
 
-  param.setValue("add_charges", "true");
-  ptr->setParameters(param);
-  spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 3);
-  TEST_EQUAL(spec.size(), 17)
-
-  param.setValue("add_charges", "false");
   param.setValue("add_losses", "true");
   ptr->setParameters(param);
-  spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 3);
-  TEST_EQUAL(spec.size(), 39)
-
-  param.setValue("add_charges", "true");
-  ptr->setParameters(param);
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 3);
   TEST_EQUAL(spec.size(), 39)
 
   TOLERANCE_ABSOLUTE(0.001)
 
   param.setValue("add_losses", "false");
-  param.setValue("add_charges", "false");
   ptr->setParameters(param);
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 3);
 
   double result[] = {428.87870, 551.94577, 566.94214, 580.95645, 599.96494, 618.97210, 629.97925, 642.81441, 661.67042, 661.99842, 667.67394, 827.41502, 849.90957, 870.93103, 899.44378, 927.95451, 944.46524};
   for (Size i = 0; i != spec.size(); ++i)
   {
-    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
+    TEST_REAL_SIMILAR(spec[i].mz, result[i])
   }
 
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 4);
   TEST_EQUAL(spec.size(), 24)
 
-  spec.clear(true);
+  spec.clear();
   param.setValue("add_a_ions", "true");
   param.setValue("add_b_ions", "true");
   param.setValue("add_c_ions", "true");
   param.setValue("add_x_ions", "true");
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "true");
-  param.setValue("add_charges", "false");
   ptr->setParameters(param);
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 4);
   TEST_EQUAL(spec.size(), 60)
 
 
   // test annotation
-  spec.clear(true);
+  spec.clear();
   param = ptr->getParameters();
   param.setValue("add_a_ions", "false");
   param.setValue("add_b_ions", "true");
@@ -309,7 +288,6 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   param.setValue("add_y_ions", "false");
   param.setValue("add_z_ions", "false");
   param.setValue("add_losses", "true");
-  param.setValue("add_charges", "true");
   ptr->setParameters(param);
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 5);
 
@@ -317,13 +295,10 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   // + KLinked ions and precursors
   TEST_EQUAL(spec.size(), 75)
 
-  // test for charges stored in IntegerDataArray
-  PeakSpectrum::IntegerDataArray charge_array = spec.getIntegerDataArrays().at(0);
-
   int charge_counts[6] = {0, 0, 0, 0, 0, 0};
   for (Size i = 0; i != spec.size(); ++i)
   {
-    charge_counts[charge_array[i]]++;
+    charge_counts[spec[i].charge]++;
   }
   TEST_EQUAL(charge_counts[1], 0)
   TEST_EQUAL(charge_counts[2], 18)
@@ -338,38 +313,37 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   param.setValue("add_x_ions", "false");
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "false");
-  param.setValue("add_charges", "true");
   param.setValue("add_losses", "false");
   param.setValue("add_precursor_peaks", "false");
   param.setValue("add_k_linked_ions", "false");
   ptr->setParameters(param);
 
   // the smallest examples, that make sense for cross-linking
-  spec.clear(true);
+  spec.clear();
   AASequence testseq = AASequence::fromString("HA");
   ptr->getXLinkIonSpectrum(spec, testseq, 0, 2000.0, 1, 1);
   TEST_EQUAL(spec.size(), 1)
 
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, testseq, 1, 2000.0, 1, 1);
   TEST_EQUAL(spec.size(), 1)
 
   // loop link
-  spec.clear(true);
+  spec.clear();
   testseq = AASequence::fromString("PEPTIDESAREWEIRD");
   ptr->getXLinkIonSpectrum(spec, testseq, 1, 2000.0, 1, 1, 14);
   TEST_EQUAL(spec.size(), 2)
 
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, testseq, 2, 2000.0, 1, 1, 14);
   TEST_EQUAL(spec.size(), 3)
 
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, testseq, 2, 2000.0, 1, 1, 13);
   TEST_EQUAL(spec.size(), 4)
 
   // test isotopic peaks
-  spec.clear(true);
+  spec.clear();
   param = ptr->getParameters();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 1);
@@ -379,13 +353,12 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   param.setValue("add_x_ions", "false");
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "false");
-  param.setValue("add_charges", "false");
   ptr->setParameters(param);
   ptr->getXLinkIonSpectrum(spec, peptide, 3, 2000.0, 2, 5);
   // 6 ion types with 4 charges each are expected
   TEST_EQUAL(spec.size(), 24)
 
-  spec.clear(true);
+  spec.clear();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 2); //
   ptr->setParameters(param);
@@ -393,7 +366,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, AASequen
   // 6 ion types with 4 charges each are expected, each with a second isotopic peak
   TEST_EQUAL(spec.size(), 48)
 
-  spec.clear(true);
+  spec.clear();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 3); // not supported yet, but it should at least run (with the maximal possible number of peaks)
   ptr->setParameters(param);
@@ -434,7 +407,6 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "false");
   param.setValue("add_losses", "false");
-  param.setValue("add_charges", "false");
   param.setValue("add_precursor_peaks", "true");
   param.setValue("add_k_linked_ions", "true");
   ptr->setParameters(param);
@@ -445,62 +417,47 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   test_link.cross_link_position = std::make_pair<SignedSize, SignedSize> (3, 4);
   test_link.cross_linker_mass = 150.0;
 
-  PeakSpectrum spec;
+  std::vector< SimpleTSGXLMS::SimplePeak > spec;
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 3);
   TEST_EQUAL(spec.size(), 17)
 
-  param.setValue("add_charges", "true");
-  ptr->setParameters(param);
-  spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 3);
-  TEST_EQUAL(spec.size(), 17)
-
-  param.setValue("add_charges", "false");
   param.setValue("add_losses", "true");
   ptr->setParameters(param);
-  spec.clear(true);
-  ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 3);
-  TEST_EQUAL(spec.size(), 41)
-
-  param.setValue("add_charges", "true");
-  ptr->setParameters(param);
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 3);
   TEST_EQUAL(spec.size(), 41)
 
   TOLERANCE_ABSOLUTE(0.001)
 
   param.setValue("add_losses", "false");
-  param.setValue("add_charges", "false");
   ptr->setParameters(param);
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 3);
 
   double result[] = {324.46775, 447.53482, 462.53119, 476.54550, 486.19799, 495.55399, 514.56115, 525.56830, 557.25947, 557.58748, 563.26299, 670.79860, 693.29315, 714.31461, 742.82736, 771.33809, 787.84882};
   for (Size i = 0; i != spec.size(); ++i)
   {
-    TEST_REAL_SIMILAR(spec[i].getPosition()[0], result[i])
+    TEST_REAL_SIMILAR(spec[i].mz, result[i])
   }
 
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 4);
   TEST_EQUAL(spec.size(), 24)
 
-  spec.clear(true);
+  spec.clear();
   param.setValue("add_a_ions", "true");
   param.setValue("add_b_ions", "true");
   param.setValue("add_c_ions", "true");
   param.setValue("add_x_ions", "true");
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "true");
-  param.setValue("add_charges", "false");
   ptr->setParameters(param);
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 4);
   TEST_EQUAL(spec.size(), 60)
 
 
   // test annotation
-  spec.clear(true);
+  spec.clear();
   param = ptr->getParameters();
   param.setValue("add_a_ions", "false");
   param.setValue("add_b_ions", "true");
@@ -509,7 +466,6 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   param.setValue("add_y_ions", "false");
   param.setValue("add_z_ions", "false");
   param.setValue("add_losses", "true");
-  param.setValue("add_charges", "true");
   ptr->setParameters(param);
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 5);
 
@@ -517,13 +473,10 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   // + KLinked ions and precursors
   TEST_EQUAL(spec.size(), 79)
 
-  // test for charges stored in IntegerDataArray
-  PeakSpectrum::IntegerDataArray charge_array = spec.getIntegerDataArrays().at(0);
-
   int charge_counts[6] = {0, 0, 0, 0, 0, 0};
   for (Size i = 0; i != spec.size(); ++i)
   {
-    charge_counts[charge_array[i]]++;
+    charge_counts[spec[i].charge]++;
   }
 
   TEST_EQUAL(charge_counts[1], 0)
@@ -539,14 +492,13 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   param.setValue("add_x_ions", "false");
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "false");
-  param.setValue("add_charges", "true");
   param.setValue("add_losses", "false");
   param.setValue("add_precursor_peaks", "false");
   param.setValue("add_k_linked_ions", "false");
   ptr->setParameters(param);
 
   // the smallest examples, that make sense for cross-linking
-  spec.clear(true);
+  spec.clear();
   AASequence testseq = AASequence::fromString("HA");
 
   OPXLDataStructs::ProteinProteinCrossLink test_link_short;
@@ -558,12 +510,12 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   ptr->getXLinkIonSpectrum(spec, test_link_short, true, 1, 1);
   TEST_EQUAL(spec.size(), 1)
 
-  spec.clear(true);
+  spec.clear();
   ptr->getXLinkIonSpectrum(spec, test_link_short, true, 1, 1);
   TEST_EQUAL(spec.size(), 1)
 
   // test isotopic peaks
-  spec.clear(true);
+  spec.clear();
   param = ptr->getParameters();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 1);
@@ -573,13 +525,12 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   param.setValue("add_x_ions", "false");
   param.setValue("add_y_ions", "true");
   param.setValue("add_z_ions", "false");
-  param.setValue("add_charges", "false");
   ptr->setParameters(param);
   ptr->getXLinkIonSpectrum(spec, test_link, true, 2, 5);
   // 6 ion types with 4 charges each are expected
   TEST_EQUAL(spec.size(), 24)
 
-  spec.clear(true);
+  spec.clear();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 2); //
   ptr->setParameters(param);
@@ -587,7 +538,7 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   // 6 ion types with 4 charges each are expected, each with a second isotopic peak
   TEST_EQUAL(spec.size(), 48)
 
-  spec.clear(true);
+  spec.clear();
   param.setValue("add_isotopes", "true");
   param.setValue("max_isotope", 3); // not supported yet, but it should at least run (with the maximal possible number of peaks)
   ptr->setParameters(param);
