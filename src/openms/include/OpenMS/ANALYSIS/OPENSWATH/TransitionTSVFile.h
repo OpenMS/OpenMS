@@ -291,26 +291,32 @@ private:
      * @param transition_list The list of transitions to be fixed.
      *
      */
-    void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list);
+    void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list) const;
 
     /// Populate a new ReactionMonitoringTransition object from a row in the csv
-    void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
+    void createTransition_(std::vector<TSVTransition>::iterator& tr_it,
+                           OpenMS::ReactionMonitoringTransition& rm_trans);
 
     /// Populate a new TargetedExperiment::Protein object from a row in the csv
-    void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
+    void createProtein_(std::vector<TSVTransition>::iterator& tr_it,
+                        OpenMS::TargetedExperiment::Protein& protein);
 
     /// Helper function to assign retention times to compounds and peptides
-    void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times, const OpenMS::DataValue rt_value);
+    void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times,
+                                 const OpenMS::DataValue rt_value);
 
     /// Populate a new TargetedExperiment::Peptide object from a row in the csv
-    void createPeptide_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
+    void createPeptide_(std::vector<TSVTransition>::const_iterator tr_it,
+                        OpenMS::TargetedExperiment::Peptide& peptide);
 
     /// Populate a new TargetedExperiment::Compound object (a metabolite) from a row in the csv
-    void createCompound_(std::vector<TSVTransition>::const_iterator tr_it, OpenMS::TargetedExperiment::Compound& compound);
+    void createCompound_(std::vector<TSVTransition>::const_iterator tr_it,
+                         OpenMS::TargetedExperiment::Compound& compound);
 
     /// Add a modification at the specified location
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
-                          int location, const ResidueModification& rmod);
+                          int location,
+                          const ResidueModification& rmod);
     //@}
 
     /** @brief Write a TargetedExperiment to a file
