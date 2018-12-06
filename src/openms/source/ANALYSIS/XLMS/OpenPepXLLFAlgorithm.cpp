@@ -295,30 +295,8 @@ using namespace OpenMS;
     progresslogger.endProgress();
 
     // declare and set up spectrum generators
-    TheoreticalSpectrumGeneratorXLMS specGen_fast;
     TheoreticalSpectrumGeneratorXLMS specGen_full;
     SimpleTSGXLMS specGen_mainscore;
-
-    // Setting parameters for cross-link fragmentation
-    // settings for pre-scoring, only a-, b- and y- ions without annotation etc.
-    Param specGenParams_fast = specGen_fast.getParameters();
-    specGenParams_fast.setValue("add_first_prefix_ion", "true", "If set to true e.g. b1 ions are added");
-    specGenParams_fast.setValue("add_y_ions", "true", "Add peaks of y-ions to the spectrum");
-    specGenParams_fast.setValue("add_b_ions", "true", "Add peaks of b-ions to the spectrum");
-    specGenParams_fast.setValue("add_a_ions", "false", "Add peaks of a-ions to the spectrum");
-    specGenParams_fast.setValue("add_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    specGenParams_fast.setValue("add_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    specGenParams_fast.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
-
-    specGenParams_fast.setValue("add_metainfo", "false");
-    specGenParams_fast.setValue("add_charges", "false");
-    specGenParams_fast.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
-    specGenParams_fast.setValue("max_isotope", 1, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
-    specGenParams_fast.setValue("add_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    specGenParams_fast.setValue("add_precursor_peaks", "false");
-    specGenParams_fast.setValue("add_k_linked_ions", "false");
-    specGen_fast.setParameters(specGenParams_fast);
-
 
     // settings fpr full-scoring, annotations, 2nd isotopic peaks, losses and precursors
     Param specGenParams_full = specGen_full.getParameters();
@@ -538,6 +516,7 @@ using namespace OpenMS;
         csm.match_odds = match_odds;
         csm.match_odds_alpha = match_odds_alpha;
         csm.match_odds_beta = match_odds_beta;
+        csm.precursor_error_ppm = rel_error;
 
         mainscore_csms_spectrum.push_back(csm);
       }
@@ -747,8 +726,8 @@ using namespace OpenMS;
         double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * csm.match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
         csm.xquest_score = xquest_score;
 
-        csm.precursor_correction = cross_link_candidate.precursor_correction;
-        double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
+        // csm.precursor_correction = cross_link_candidate.precursor_correction;
+        // double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
 
         csm.percTIC = TIC;
         csm.wTIC = wTIC;
@@ -757,7 +736,7 @@ using namespace OpenMS;
         csm.intsum_alpha = intsum_alpha;
         csm.intsum_beta = intsum_beta;
         csm.total_current = total_current;
-        csm.precursor_error_ppm = rel_error;
+        // csm.precursor_error_ppm = rel_error;
 
         csm.log_occupancy = log_occu;
         csm.log_occupancy_alpha = log_occu_alpha;
