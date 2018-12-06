@@ -156,7 +156,8 @@ IMType determineIMType(const MSExperiment& exp)
 {
   for (Size k = 0; k < exp.size(); k++)
   {
-    if (!exp[k].getFloatDataArrays().empty() && exp[k].getFloatDataArrays()[0].getName() == "Ion Mobility")
+    if (!exp[k].getFloatDataArrays().empty() && 
+        exp[k].getFloatDataArrays()[0].getName().find("Ion Mobility") == 0)
     {
       return IMType::IM_STACKED;
     }
@@ -173,7 +174,6 @@ void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSS
 {
   OPENMS_PRECONDITION(!stack.empty(), "Stack cannot be empty")
 
-
   // either no drift time or different RT!
   if (stack[0].getDriftTime() >= 0.0)
   {
@@ -185,7 +185,16 @@ void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSS
     new_spec.setDriftTime(-1); // drift time is now encoded in the FloatDataArray
 
     OpenMS::DataArrays::FloatDataArray fda;
-    fda.setName("Ion Mobility");
+    String name = "Ion Mobility";
+    if (new_spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::MILLISECOND)
+    {
+      name += " (MS:1002476)";
+    }
+    else if (new_spec.getDriftTimeUnit() == MSSpectrum::DriftTimeUnit::VSSC)
+    {
+      name += " (MS:1002815)";
+    }
+    fda.setName(name);
     for (auto s : stack)
     {
       new_spec.insert(new_spec.end(), s.begin(), s.end());
@@ -221,6 +230,19 @@ void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
   // Fill temporary spectral map (mobility -> Spectrum) with data from current spectrum
   std::map< int, MSSpectrum > im_map;
   auto im_arr = tmps.getFloatDataArrays()[0];
+
+  // Determine unit name
+  String im_name = im_arr.getName();
+  auto unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+  if (im_name == "Ion Mobility (MS:1002476)")
+  {
+    unit = MSSpectrum::DriftTimeUnit::MILLISECOND;
+  }
+  else if (im_name == "Ion Mobility (MS:1002815)")
+  {
+    unit = MSSpectrum::DriftTimeUnit::VSSC;
+  }
+
   for (Size k = 0;  k < tmps.size(); k++)
   {
     double im = im_arr[ k ];
@@ -229,6 +251,7 @@ void expandIMSpectrum(const MSSpectrum& tmps, std::vector<MSSpectrum>& result)
       // use meta data from combined spectrum, set new name and current drift time
       MSSpectrum news = settings;
       news.setDriftTime(im);
+      news.setDriftTimeUnit(unit);
       news.setName(tmps.getName() + "_combined"); // we will not recover original scan ids
       im_map[ int(im*IM_BINNING) ] = news;
     }

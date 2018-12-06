@@ -252,7 +252,10 @@ public:
     /// get drift time array (may be null)
     BinaryDataArrayPtr getDriftTimeArray() const
     {
-      if (binaryDataArrayPtrs.size() == 3 && binaryDataArrayPtrs[2]->description == "Ion Mobility")
+      // The array name starts with "Ion Mobility", but may carry additional
+      // information depending on the unit of the measured value
+
+      if (binaryDataArrayPtrs.size() == 3 && binaryDataArrayPtrs[2]->description.find("Ion Mobility") == 0)
       {
         return binaryDataArrayPtrs[2];
       }
@@ -264,7 +267,7 @@ public:
       {
         for (auto & bd : binaryDataArrayPtrs)
         {
-          if (bd->description == "Ion Mobility")
+          if (bd->description.find("Ion Mobility") == 0)
           {
             return bd;
           }
