@@ -122,14 +122,14 @@ public:
     inline static const EmpiricalFormula& getInternalToXIon()
     {
       // Mind the "-"
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
       return to_full;
     }
 
     inline static const EmpiricalFormula& getInternalToYIon()
     {
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() + EmpiricalFormula("H");
       return to_full;
     }
@@ -137,7 +137,7 @@ public:
     inline static const EmpiricalFormula& getInternalToZIon()
     {
       // Mind the "-"
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() - EmpiricalFormula("NH2");
       return to_full;
     }
@@ -451,6 +451,17 @@ protected:
     // residue sets this amino acid is contained in
     std::set<String> residue_sets_;
 
+    // precalculated residue type delta weights for more efficient weight calculation
+    double internal_to_full_monoweight_ = getInternalToFull().getMonoWeight();
+    double internal_to_nterm_monoweight_ = getInternalToNTerm().getMonoWeight();
+    double internal_to_cterm_monoweight_ = getInternalToCTerm().getMonoWeight();
+    double internal_to_a_monoweight_ = getInternalToAIon().getMonoWeight();
+    double internal_to_b_monoweight_ = getInternalToBIon().getMonoWeight();
+    double internal_to_c_monoweight_ = getInternalToCIon().getMonoWeight();
+    double internal_to_x_monoweight_ = getInternalToXIon().getMonoWeight();
+    double internal_to_y_monoweight_ = getInternalToYIon().getMonoWeight();
+    double internal_to_z_monoweight_ = getInternalToZIon().getMonoWeight();
+
     /// sets the modification (helper function)
     void setModification_(const ResidueModification& mod);
 
@@ -459,4 +470,3 @@ protected:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 }
-

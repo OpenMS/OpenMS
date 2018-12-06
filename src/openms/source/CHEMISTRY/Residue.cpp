@@ -405,31 +405,31 @@ namespace OpenMS
       return mono_weight_;
 
     case Internal:
-      return mono_weight_ - getInternalToFull().getMonoWeight();
+      return mono_weight_ - internal_to_full_monoweight_;
 
     case NTerminal:
-      return mono_weight_ + (getInternalToNTerm() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_nterm_monoweight_;
 
     case CTerminal:
-      return mono_weight_ + (getInternalToCTerm() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_cterm_monoweight_;
 
     case BIon:
-      return mono_weight_ + (getInternalToBIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_b_monoweight_;
 
     case AIon:
-      return mono_weight_ + (getInternalToAIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_a_monoweight_;
 
     case CIon:
-      return mono_weight_ + (getInternalToCIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_c_monoweight_;
 
     case XIon:
-      return mono_weight_ + (getInternalToXIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_x_monoweight_;
 
     case YIon:
-      return mono_weight_ + (getInternalToYIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_y_monoweight_;
 
     case ZIon:
-      return mono_weight_ + (getInternalToZIon() - getInternalToFull()).getMonoWeight();
+      return mono_weight_ + internal_to_z_monoweight_;
 
     default:
       cerr << "Residue::getMonoWeight: unknown ResidueType" << endl;
@@ -643,4 +643,3 @@ namespace OpenMS
   }
 
 }
-
