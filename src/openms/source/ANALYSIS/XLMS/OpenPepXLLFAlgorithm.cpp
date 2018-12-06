@@ -115,8 +115,6 @@ using namespace OpenMS;
     defaults_.setValue("cross_linker:name", "DSS", "Name of the searched cross-link, used to resolve ambiguity of equal masses (e.g. DSS or BS3)");
     defaults_.setSectionDescription("cross_linker", "Description of the cross-linker reagent");
 
-    defaults_.setValue("algorithm:pre_scoring", "false", "Set flag, to use the pre-scoring heuristic. Otherwise a full enumeration will be performed.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("algorithm:number_of_scored_candidates", 10000, "Number of candidates that are scored using the full scoring function after ranking by a faster pre-scoring function.", ListUtils::create<String>("advanced"));
     defaults_.setValue("algorithm:number_top_hits", 5, "Number of top hits reported for each spectrum pair");
     StringList deisotope_strings = ListUtils::create<String>("true,false,auto");
     defaults_.setValue("algorithm:deisotope", "auto", "Set to true, if the input spectra should be deisotoped before any other processing steps. If set to auto the spectra will be deisotoped, if the fragment mass tolerance is < 0.1 Da or < 100 ppm (0.1 Da at a mass of 1000)", ListUtils::create<String>("advanced"));
@@ -174,8 +172,6 @@ using namespace OpenMS;
     missed_cleavages_ = static_cast<Size>(param_.getValue("peptide:missed_cleavages"));
     enzyme_name_ = static_cast<String>(param_.getValue("peptide:enzyme"));
 
-    pre_scoring_ = (param_.getValue("algorithm:pre_scoring") == "true" ? true : false);
-    number_of_scored_candidates_ = static_cast<Size>(param_.getValue("algorithm:number_of_scored_candidates"));
     number_top_hits_ = static_cast<Int>(param_.getValue("algorithm:number_top_hits"));
     deisotope_mode_ = static_cast<String>(param_.getValue("algorithm:deisotope"));
 
@@ -451,76 +447,9 @@ using namespace OpenMS;
       cout << "Spectrum number: " << spectrum_counter << " |\tNumber of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
 
       // lists for one spectrum, to determine best match to the spectrum
-      vector< OPXLDataStructs::CrossLinkSpectrumMatch > prescore_csms_spectrum;
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
 
-      if (pre_scoring_)
-      {
-        progresslogger.startProgress(0, 1, "Start pre-scoring...");
-
-        for (Size i = 0; i < cross_link_candidates.size(); ++i)
-        {
-          OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
-
-          PeakSpectrum theoretical_spec_linear_alpha;
-          PeakSpectrum theoretical_spec_linear_beta;
-
-          bool type_is_cross_link = cross_link_candidate.getType() == OPXLDataStructs::CROSS;
-          bool type_is_loop = cross_link_candidate.getType() == OPXLDataStructs::LOOP;
-          Size link_pos_B = 0;
-          if (type_is_loop)
-          {
-            link_pos_B = cross_link_candidate.cross_link_position.second;
-          }
-          specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, true, 1, link_pos_B);
-          if (type_is_cross_link)
-          {
-            specGen_fast.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, false, 1);
-          }
-
-          // Something like this can happen, e.g. with a loop link connecting residues close to the ends of the peptide
-          if ( (theoretical_spec_linear_alpha.size() < 3) )
-          {
-            continue;
-          }
-
-          PeakSpectrum theoretical_spec_linear;
-          theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_alpha.begin(), theoretical_spec_linear_alpha.end());
-          theoretical_spec_linear.insert(theoretical_spec_linear.end(), theoretical_spec_linear_beta.begin(), theoretical_spec_linear_beta.end());
-          theoretical_spec_linear.sortByPosition();
-
-          double xcorr_prescore = XQuestScores::xCorrelationPrescore(spectrum, theoretical_spec_linear, 0.1);
-
-          if (xcorr_prescore == 0)
-          {
-            continue;
-          }
-
-          // store pre_score, take top 100 for further computations
-          OPXLDataStructs::CrossLinkSpectrumMatch csm;
-          csm.cross_link = cross_link_candidate;
-          csm.score = xcorr_prescore;
-          csm.pre_score = xcorr_prescore;
-          csm.xcorrc_max = xcorr_prescore;
-
-          prescore_csms_spectrum.push_back(csm);
-        }
-        progresslogger.endProgress();
-        std::sort(prescore_csms_spectrum.rbegin(), prescore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
-      }
-      else // if pre-scoring is turned off, then the pre-scored candidates will just be the list of all candidates
-      {
-        for (Size i = 0; i < cross_link_candidates.size(); ++i)
-        {
-          OPXLDataStructs::CrossLinkSpectrumMatch csm;
-          csm.cross_link = cross_link_candidates[i];
-          csm.pre_score = 0;
-          prescore_csms_spectrum.push_back(csm);
-        }
-      }
-
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > mainscore_csms_spectrum;
-
       for (Size i = 0; i < cross_link_candidates.size(); ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
@@ -549,9 +478,6 @@ using namespace OpenMS;
           // Function for mono-links or loop-links
           specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, 2, precursor_charge, link_pos_B);
         }
-
-        // cout << "Peptide lengths: " << cross_link_candidate.alpha.toUnmodifiedString().size() << " | " << cross_link_candidate.beta.toUnmodifiedString().size() << " | = " << cross_link_candidate.alpha.toUnmodifiedString().size() + cross_link_candidate.beta.toUnmodifiedString().size() << " | Theo Spectrum sizes: "
-        //       << theoretical_spec_linear_alpha.size() << " | " << theoretical_spec_linear_beta.size() << " | " << theoretical_spec_xlinks_alpha.size() << " | " << theoretical_spec_xlinks_beta.size() << endl;
 
         // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
         if ( (theoretical_spec_linear_alpha.size() < 1) || (theoretical_spec_xlinks_alpha.size() < 1) )
@@ -609,23 +535,14 @@ using namespace OpenMS;
         double new_score = new_match_odds_weight * std::log(1e-7 + match_odds) + new_rel_error_weight * abs(rel_error);
 
         csm.score = new_score;
+        csm.match_odds = match_odds;
+        csm.match_odds_alpha = match_odds_alpha;
+        csm.match_odds_beta = match_odds_beta;
 
         mainscore_csms_spectrum.push_back(csm);
       }
       progresslogger.endProgress();
       std::sort(mainscore_csms_spectrum.rbegin(), mainscore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
-
-
-#ifdef DEBUG_OPENPEPXLLFALGO
-#pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Size of prescored candidates: " << double(prescore_csms_spectrum.size()) * sizeof(OPXLDataStructs::CrossLinkSpectrumMatch) / 1024.0 / 1024.0 << " mb" << endl;
-#endif
-
-      // Size last_candidate_index = prescore_csms_spectrum.size();
-      // if (pre_scoring_)
-      // {
-      //   last_candidate_index = std::min(last_candidate_index, Size(number_of_scored_candidates_));
-      // }
 
       Size last_candidate_index = mainscore_csms_spectrum.size();
       last_candidate_index = std::min(last_candidate_index, Size(number_top_hits_));
@@ -642,9 +559,7 @@ using namespace OpenMS;
             << " with m/z: " << precursor_mz << "\t" << "and candidate m/z: " << candidate_mz << "\tK Positions: " << cross_link_candidate.cross_link_position.first << "\t" << cross_link_candidate.cross_link_position.second << endl;
         }
 #endif
-        OPXLDataStructs::CrossLinkSpectrumMatch csm;
-        csm.cross_link = cross_link_candidate;
-        csm.score = mainscore_csms_spectrum[i].score;
+        OPXLDataStructs::CrossLinkSpectrumMatch csm = mainscore_csms_spectrum[i];
 
         PeakSpectrum theoretical_spec_linear_alpha;
         PeakSpectrum theoretical_spec_linear_beta;
@@ -781,35 +696,22 @@ using namespace OpenMS;
 #endif
 
         // compute match odds (unweighted), the 3 is the number of charge states in the theoretical spectra
-        double match_odds_c_alpha = XQuestScores::matchOddsScore(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
-        double match_odds_x_alpha = XQuestScores::matchOddsScore(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, true, n_xlink_charges);
         double log_occu_c_alpha = XQuestScores::logOccupancyProb(theoretical_spec_linear_alpha, matched_spec_linear_alpha.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
         double log_occu_x_alpha = XQuestScores::logOccupancyProb(theoretical_spec_xlinks_alpha, matched_spec_xlinks_alpha.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_);
-        double match_odds = 0;
         double log_occu = 0;
-
-        double match_odds_alpha = 0;
-        double match_odds_beta = 0;
         double log_occu_alpha = 0;
         double log_occu_beta = 0;
 
         if (type_is_cross_link)
         {
-          double match_odds_c_beta = XQuestScores::matchOddsScore(theoretical_spec_linear_beta, matched_spec_linear_beta.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
-          double match_odds_x_beta = XQuestScores::matchOddsScore(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, true, n_xlink_charges);
           double log_occu_c_beta = XQuestScores::logOccupancyProb(theoretical_spec_linear_beta, matched_spec_linear_beta.size(), fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_);
           double log_occu_x_beta = XQuestScores::logOccupancyProb(theoretical_spec_xlinks_beta, matched_spec_xlinks_beta.size(), fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_);
-          match_odds = (match_odds_c_alpha + match_odds_x_alpha + match_odds_c_beta + match_odds_x_beta) / 4;
-          match_odds_alpha = (match_odds_c_alpha + match_odds_x_alpha) / 2;
-          match_odds_beta = (match_odds_c_beta + match_odds_x_beta) / 2;
           log_occu = (log_occu_c_alpha + log_occu_x_alpha + log_occu_c_beta + log_occu_x_beta) / 4;
           log_occu_alpha = (log_occu_c_alpha + log_occu_x_alpha) / 2;
           log_occu_beta = (log_occu_c_beta + log_occu_x_beta) / 2;
         }
         else
         {
-          match_odds = (match_odds_c_alpha + match_odds_x_alpha) / 2;
-          match_odds_alpha = match_odds;
           log_occu = (log_occu_c_alpha + log_occu_x_alpha) / 2;
           log_occu_alpha = log_occu;
         }
@@ -842,18 +744,12 @@ using namespace OpenMS;
         double wTIC_weight = 12.829;
         double intsum_weight = 1.8;
 
-        double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
+        double xquest_score = xcorrx_weight * xcorrx_max + xcorrc_weight * xcorrc_max + match_odds_weight * csm.match_odds + wTIC_weight * wTICold + intsum_weight * intsum;
         csm.xquest_score = xquest_score;
 
         csm.precursor_correction = cross_link_candidate.precursor_correction;
         double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
 
-        // double new_match_odds_weight = 0.2;
-        // double new_rel_error_weight = -0.03;
-        // double new_score = new_match_odds_weight * std::log(1e-7 + match_odds) + new_rel_error_weight * abs(rel_error);
-
-        // csm.score = new_score;
-        csm.pre_score = prescore_csms_spectrum[i].pre_score;
         csm.percTIC = TIC;
         csm.wTIC = wTIC;
         csm.wTICold = wTICold;
@@ -863,9 +759,6 @@ using namespace OpenMS;
         csm.total_current = total_current;
         csm.precursor_error_ppm = rel_error;
 
-        csm.match_odds = match_odds;
-        csm.match_odds_alpha = match_odds_alpha;
-        csm.match_odds_beta = match_odds_beta;
         csm.log_occupancy = log_occu;
         csm.log_occupancy_alpha = log_occu_alpha;
         csm.log_occupancy_beta = log_occu_beta;
