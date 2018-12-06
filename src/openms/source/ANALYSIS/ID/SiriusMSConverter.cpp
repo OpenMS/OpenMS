@@ -170,15 +170,15 @@ namespace OpenMS
         }
         // set charge value for msfile
         if (p == IonSource::Polarity::POSITIVE && precursor_charge == +1) { int_charge = +1; }
-        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == -1) { int_charge = -1; }
-        if (precursor_charge == 0) { int_charge = +1; ++count_to_pos; }
-        if (p == IonSource::Polarity::NEGATIVE) { -abs(int_charge); ++count_to_neg; }
+        else if (p == IonSource::Polarity::NEGATIVE && precursor_charge == -1) { int_charge = -1; }
+        else if (precursor_charge == 0) { int_charge = +1; ++count_to_pos; }
+        else if (p == IonSource::Polarity::NEGATIVE) { -abs(int_charge); ++count_to_neg; }
 
         // set feature_charge value for msfile
         if (p == IonSource::Polarity::POSITIVE && feature_charge == 1) { feature_charge = +1; }
-        if (p == IonSource::Polarity::NEGATIVE && feature_charge == 1) { feature_charge = -1; }
-        if (feature_charge == 0) { feature_charge = +1; ++count_to_pos; }
-        if (p == IonSource::Polarity::NEGATIVE) { -abs(feature_charge); ++count_to_neg; }
+        else if (p == IonSource::Polarity::NEGATIVE && feature_charge == 1) { feature_charge = -1; }
+        else if (feature_charge == 0) { feature_charge = +1; ++count_to_pos; }
+        else if (p == IonSource::Polarity::NEGATIVE) { -abs(feature_charge); ++count_to_neg; }
 
         // get m/z and intensity of precursor != MS1 spectrum
         double precursor_mz = precursor[0].getMZ();
