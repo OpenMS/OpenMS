@@ -67,17 +67,6 @@ END_SECTION
 
 START_SECTION(ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra))
 
-// # OpenPepXL test:
-// add_test("UTILS_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
-// add_test("UTILS_OpenPepXL_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXL_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.xquest.xml )
-// add_test("UTILS_OpenPepXL_1_out_2" ${DIFF} -in1 OpenPepXL_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.spec.xml )
-// add_test("UTILS_OpenPepXL_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "OpenPepXL_input" -in1 OpenPepXL_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.mzid )
-// add_test("UTILS_OpenPepXL_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXL_input" -in1 OpenPepXL_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.idXML )
-// set_tests_properties("UTILS_OpenPepXL_1_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
-// set_tests_properties("UTILS_OpenPepXL_1_out_2" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
-// set_tests_properties("UTILS_OpenPepXL_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
-// set_tests_properties("UTILS_OpenPepXL_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
-
 std::vector<FASTAFile::FASTAEntry> fasta_db;
 FASTAFile file;
 file.load(OPENMS_GET_TEST_DATA_PATH("OpenPepXL_input.fasta"), fasta_db);
