@@ -105,7 +105,7 @@ OpenPepXLAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spect
 TEST_EQUAL(exit_code, OpenPepXLAlgorithm::EXECUTION_OK)
 TEST_EQUAL(unprocessed_spectra.size(), 217)
 TEST_EQUAL(protein_ids.size(), 1)
-TEST_EQUAL(peptide_ids.size(), 56)
+TEST_EQUAL(peptide_ids.size(), 55)
 TEST_EQUAL(spectra.size(), 217)
 TEST_EQUAL(spectrum_pairs.size(), 25)
 TEST_EQUAL(preprocessed_pair_spectra.spectra_linear_peaks.size(), 25)
