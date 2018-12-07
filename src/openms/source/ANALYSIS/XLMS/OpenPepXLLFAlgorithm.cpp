@@ -448,17 +448,10 @@ using namespace OpenMS;
         if (type_is_cross_link)
         {
           specGen_mainscore.getLinearIonSpectrum(theoretical_spec_linear_beta, cross_link_candidate.beta, cross_link_candidate.cross_link_position.second, 2);
-          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
-          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
-        }
-        else
-        {
-          // Function for mono-links or loop-links
-          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, 2, precursor_charge, link_pos_B);
         }
 
         // Something like this can happen, e.g. with a loop link connecting the first and last residue of a peptide
-        if ( (theoretical_spec_linear_alpha.size() < 1) || (theoretical_spec_xlinks_alpha.size() < 1) )
+        if ( theoretical_spec_linear_alpha.size() < 1 )
         {
           continue;
         }
@@ -475,6 +468,29 @@ using namespace OpenMS;
         }
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_linear_alpha, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_alpha, spectrum, exp_charges);
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_linear_beta, fragment_mass_tolerance_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_linear_beta, spectrum, exp_charges);
+
+        // drop candidates with almost no linear fragment peak matches before making the more complex theoretical spectra and aligning them
+        // this removes hits that no one would trust after manual validation anyway and reduces time wasted on really bad spectra or candidates without any matching peaks
+        if (matched_spec_linear_alpha.size() < 2 || (type_is_cross_link && matched_spec_linear_beta.size() < 2) )
+        {
+          continue;
+        }
+
+        if (type_is_cross_link)
+        {
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate, true, 1, precursor_charge);
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_beta, cross_link_candidate, false, 1, precursor_charge);
+        }
+        else
+        {
+          // Function for mono-links or loop-links
+          specGen_mainscore.getXLinkIonSpectrum(theoretical_spec_xlinks_alpha, cross_link_candidate.alpha, cross_link_candidate.cross_link_position.first, precursor_mass, 2, precursor_charge, link_pos_B);
+        }
+        if (theoretical_spec_xlinks_alpha.size() < 1)
+        {
+          continue;
+        }
+
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_alpha, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_alpha, spectrum, exp_charges);
         OPXLSpectrumProcessingAlgorithms::getSpectrumAlignmentSimple(matched_spec_xlinks_beta, fragment_mass_tolerance_xlinks_, fragment_mass_tolerance_unit_ppm_, theoretical_spec_xlinks_beta, spectrum, exp_charges);
 
