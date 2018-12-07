@@ -21,7 +21,8 @@ public:
             TOPPBase("TDOnlineDeconv", "Online Deconvolution for Smart MS2 acquisition with top down data", false)\
     {}
 
-     typedef pair<double, pair<Size, Size>> ppi;
+    typedef pair<double, pair<Size, Size>> ppi;
+
 
 protected:
     void registerOptionsAndFlags_() override {
@@ -34,8 +35,8 @@ protected:
         // parsing parameters
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
-        String infilePath = "/Users/jeek/Documents/Thermo/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
-//        String infilePath = "/Users/jeek/Documents/A4B/1st Set/TD/180523_Cytocrome_C_MS2_HCD.mzML";
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
+       // String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
 
         cout << "file name : " << infilePath << endl;
         // just for quick use
@@ -52,20 +53,29 @@ protected:
         mzml.load(infilePath, map);
         cout << "Loaded consensus maps" << endl;
         clock_t begin = clock();
-        onlineDeconvolution(map);
+        int cntr = onlineDeonvolution(map);
         clock_t end = clock();
         double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
         std::cout << elapsed_secs << " seconds elapsed" << std::endl;
-        std::cout << elapsed_secs/map.size()*1000 << " msec per spectrum"<< std::endl;
+        std::cout << elapsed_secs/cntr*1000 << " msec per spectrum"<< std::endl;
 
         return EXECUTION_OK;
     }
 
-    void onlineDeconvolution(MSExperiment &map) {
+
+    int onlineDeonvolution(MSExperiment &map){
 
         double threshold = 5e3;
         int filterSize = 25;
         int minCharge = 5;
+        int specCntr = 0;
+        double filter[filterSize];
+        double tolerance = 1e-5;
+        int maxPeakCntr = 2000;
+
+        for(int i=0;i<filterSize;i++){
+            filter[i] = log(1.0/(i+minCharge));
+        }
 
         double filter[filterSize];
         for (int i = 0; i < filterSize; i++) {
@@ -73,22 +83,44 @@ protected:
         }
 
         for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it) {
-            // check if this is a MS1 survey scan
             if (it->getMSLevel() != 1) continue;
+            specCntr++;
+            double rt = it->getRT();
 
-            // RT value
-//            double rt = it->getRT();
+            double currentThreshold = threshold;
+
+            if(it->size() > maxPeakCntr){
+                vector<Peak1D> allPeaks;
+                allPeaks.reserve(it->size());
+                for (auto &peak : (*it) ) {
+                    allPeaks.push_back(peak);
+                }
+                while(allPeaks.size() > maxPeakCntr) {
+                    vector<Peak1D> tmpPeaks;
+                    tmpPeaks.reserve(allPeaks.size());
+                    for (int i = 0; i < allPeaks.size(); i++) {
+                        Peak1D peak = allPeaks[i];
+                        if (peak.getIntensity() < currentThreshold) continue;
+                        tmpPeaks.push_back(peak);
+                    }
+                    if (tmpPeaks.size() <= maxPeakCntr) {
+                        break;
+                    }
+                    allPeaks = tmpPeaks;
+                    currentThreshold = currentThreshold * 1.2;
+                }
+            }
 
             vector<Peak1D> peaks;
             peaks.reserve(it->size());
 
-            // create vector with log(MZ) & filtered intensity
-            for (auto &peak : (*it) ) {
-                if (peak.getIntensity() < threshold) continue;
+            for (auto &peak : (*it) ){
+                if (peak.getIntensity() < currentThreshold) continue;
 
                 Peak1D logmzpeak;
                 logmzpeak.setIntensity(peak.getIntensity());
                 logmzpeak.setMZ(log(peak.getMZ()));
+
                 peaks.push_back(logmzpeak);
             }
 
@@ -118,7 +150,9 @@ protected:
                 before = current.getMZ();
             }
         }
+        return specCntr;
     }
+
     void sortMatrix(vector<vector<Peak1D>> &matrix, vector<Peak1D> &result){
         priority_queue< ppi, vector<ppi>, greater<ppi> > pq;
 
