@@ -48,7 +48,7 @@ namespace OpenMS
   {
     OpenMS::String native_id = SiriusFragmentAnnotation::extractNativeIDFromSiriusMS_(path_to_sirius_workspace);
     SiriusFragmentAnnotation::extractAnnotationFromSiriusFile_(path_to_sirius_workspace, msspectrum_to_fill, use_exact_mass);
-    
+
     msspectrum_to_fill.setNativeID(native_id);
   }
   
@@ -87,7 +87,7 @@ namespace OpenMS
   { 
     if (!msspectrum_to_fill.empty())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSspectrum was provided");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Non empty MSSpectrum was provided");
     }
     const std::string sirius_spectra_dir = path_to_sirius_workspace + "/spectra/";
     QDir dir(QString::fromStdString(sirius_spectra_dir));
@@ -163,7 +163,9 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Directory 'spectra' was not found - please check the path " + sirius_spectra_dir);
+      LOG_INFO << "Directory 'spectra' was not found for: " << sirius_spectra_dir << std::endl;
+      LOG_INFO << "Please check for empty spectra in your following code." << std::endl;
+      // throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Directory 'spectra' was not found - please check the path " + sirius_spectra_dir);
     }
   }
 } // namespace OpenMS
