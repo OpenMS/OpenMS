@@ -79,6 +79,10 @@ namespace OpenMS
 
   LPWrapper::~LPWrapper()
   {
+#if COINOR_SOLVER == 1
+    delete model_;
+#endif
+    glp_delete_prob(lp_problem_);
   }
 
   Int LPWrapper::addRow(std::vector<Int> row_indices, std::vector<double> row_values, const String& name) // return index
