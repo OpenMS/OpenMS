@@ -111,7 +111,7 @@ namespace OpenMS
         peak = precursor_spectrum[peak_index];
         isotopes.push_back(peak);
       }
-      iterations = iterations - 1;
+      --iterations;
     }
     return isotopes;
   }
@@ -124,7 +124,7 @@ namespace OpenMS
                     const String& description,
                     const String& sumformula,
                     const vector<pair<double,double>>& f_isotopes,
-                    const int& feature_charge,
+                    int& feature_charge,
                     uint64_t& feature_id,
                     const double& feature_rt,
                     const double& feature_mz,
@@ -165,28 +165,20 @@ namespace OpenMS
         // if charge = 0, it will be allocted to +1; -1 depending on Polarity
         if (precursor_charge > 1 || precursor_charge < -1)
         {
-          count_skipped_spectra = count_skipped_spectra + 1;
+          ++count_skipped_spectra;
           continue;
         }
         // set charge value for msfile
-        if (p == IonSource::Polarity::POSITIVE && precursor_charge == +1)
-        {
-          int_charge = +1;
-        }
-        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == -1)
-        {
-          int_charge = -1;
-        }
-        if (p == IonSource::Polarity::POSITIVE && precursor_charge == 0)
-        {
-          int_charge = +1;
-          count_to_pos = count_to_pos + 1;
-        }
-        if (p == IonSource::Polarity::NEGATIVE && precursor_charge == 0)
-        {
-          int_charge = -1;
-          count_to_neg = count_to_neg + 1;
-        }
+        if (p == IonSource::Polarity::POSITIVE && precursor_charge == +1) { int_charge = +1; 
+        } else if (p == IonSource::Polarity::NEGATIVE && precursor_charge == -1) { int_charge = -1; 
+        } else if (precursor_charge == 0) { int_charge = +1; ++count_to_pos; 
+        } else if (p == IonSource::Polarity::NEGATIVE) { -abs(int_charge); ++count_to_neg; }
+
+        // set feature_charge value for msfile
+        if (p == IonSource::Polarity::POSITIVE && feature_charge == 1) { feature_charge = +1; 
+        } else if (p == IonSource::Polarity::NEGATIVE && feature_charge == 1) { feature_charge = -1; 
+        } else if (feature_charge == 0) { feature_charge = +1; ++count_to_pos; 
+        } else if (p == IonSource::Polarity::NEGATIVE) { -abs(feature_charge); ++count_to_neg; }
 
         // get m/z and intensity of precursor != MS1 spectrum
         double precursor_mz = precursor[0].getMZ();
