@@ -41,8 +41,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace std;

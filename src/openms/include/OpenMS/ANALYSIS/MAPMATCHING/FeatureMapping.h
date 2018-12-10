@@ -45,10 +45,16 @@ namespace OpenMS
       {
           public:
 
+          struct FeatureToMs2Indices
+          {
+             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
+             std::vector<size_t> unassignedMS2;
+          };
+
           /**
             @brief Allocate ms2 spectra to feature within the minimal distance
 
-            @return FeatureToMS2Indices
+            @return FeatureToMs2Indices
 
             @param spectra: Input of PeakMap/MSExperiment with spectra information
             @param fp_map_kd: KDTree used for query and match spectra with features
@@ -57,19 +63,11 @@ namespace OpenMS
             @param ppm: mz tolernace window calculation in ppm or Da
 
           */
-
-          struct FeatureToMs2Indices
-          {
-             std::map<const BaseFeature*, std::vector<size_t>> assignedMS2;
-             std::vector<size_t> unassignedMS2;
-          };
-
-          // return map of ms2 to feature and a vector of unassigned ms2
-          static FeatureToMs2Indices assignMS2IndexToFeature(PeakMap& spectra,
+          static FeatureToMs2Indices assignMS2IndexToFeature(MSExperiment& spectra,
                                                              const KDTreeFeatureMaps& fp_map_kd,
                                                              const double& precursor_mz_tolerance,
                                                              const double& precursor_rt_tolerance,
-                                                             bool& ppm);
+                                                             bool ppm);
 
       };
-}
+} // namespace OpenMS

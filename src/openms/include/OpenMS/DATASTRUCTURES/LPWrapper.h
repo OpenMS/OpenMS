@@ -312,11 +312,11 @@ public:
 
 protected:
 #if COINOR_SOLVER == 1
-    CoinModel * model_;
+    CoinModel * model_ = nullptr;
     std::vector<double> solution_;
 #endif
 
-    glp_prob * lp_problem_;
+    glp_prob * lp_problem_ = nullptr;
 
     SOLVER solver_;
 
