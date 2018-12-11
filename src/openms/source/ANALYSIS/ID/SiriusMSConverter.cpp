@@ -99,7 +99,7 @@ namespace OpenMS
     // depending on the charge different MASSDIFF
     if (charge != 0)
     {
-      massdiff = massdiff/charge;
+      massdiff = massdiff/abs(charge);
     }
 
     while (peak_index != -1 && iterations > 0)
@@ -212,8 +212,14 @@ namespace OpenMS
           precursor_rt = precursor_spectrum.getRT();
           int interations = isotope_pattern_iterations;
           // extract precursor isotope pattern via C13 isotope distance
-          isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, feature_charge);
-
+          if (feature_id != 0 && feature_charge != 0)
+          {
+            isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, feature_charge);
+          }
+          else
+          {
+            isotopes = extractPrecursorIsotopePattern(test_mz, precursor_spectrum, interations, precursor_charge);
+          }
           for (Size i = 0; i < precursor_spectrum.size(); ++i)
           {
             const Peak1D &peak = precursor_spectrum[i];
