@@ -179,11 +179,13 @@ namespace OpenMS
         }
         else if (precursor_charge == 0)
         {
-          int_charge = +1; ++count_to_pos;
+          int_charge = +1; 
+          ++count_to_pos;
         }
         else if (p == IonSource::Polarity::NEGATIVE)
         {
-          -abs(int_charge); ++count_to_neg;
+          -abs(int_charge); 
+          ++count_to_neg;
         }
 
         // set feature_charge value for msfile
