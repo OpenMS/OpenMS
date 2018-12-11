@@ -908,6 +908,22 @@ namespace OpenMS
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
 
+    // parameter section: labels, get all mass shifts
+    label_mass_shift_["Arg6"] = param_.getValue("labels:Arg6");
+    label_mass_shift_["Arg10"] = param_.getValue("labels:Arg10");
+    label_mass_shift_["Lys4"] = param_.getValue("labels:Lys4");
+    label_mass_shift_["Lys6"] = param_.getValue("labels:Lys6");
+    label_mass_shift_["Lys8"] = param_.getValue("labels:Lys8");
+    label_mass_shift_["Leu3"] = param_.getValue("labels:Leu3");
+    label_mass_shift_["Dimethyl0"] = param_.getValue("labels:Dimethyl0");
+    label_mass_shift_["Dimethyl4"] = param_.getValue("labels:Dimethyl4");
+    label_mass_shift_["Dimethyl6"] = param_.getValue("labels:Dimethyl6");
+    label_mass_shift_["Dimethyl8"] = param_.getValue("labels:Dimethyl8");
+    label_mass_shift_["ICPL0"] = param_.getValue("labels:ICPL0");
+    label_mass_shift_["ICPL4"] = param_.getValue("labels:ICPL4");
+    label_mass_shift_["ICPL6"] = param_.getValue("labels:ICPL6");
+    label_mass_shift_["ICPL10"] = param_.getValue("labels:ICPL10");
+
     progress_ = progress;
     
     // check for empty experimental data
