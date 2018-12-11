@@ -58,28 +58,11 @@ namespace OpenMS
   {
     public:
 
-      struct LossMass
+      struct LossIndex
       {
-        String name;
-        double mass;
-
-        bool operator==(const LossMass & other) const
-        {
-          return name == other.name && mass == other.mass;
-        }
+        bool has_H2O_loss = false;
+        bool has_NH3_loss = false;
       };
-
-      /**
-        * @brief Comparator to sort and filter LossMasses by mass
-       */
-      struct LossMassComparator
-      {
-        bool operator() (const LossMass& a, const LossMass& b)
-        {
-          return a.mass < b.mass;
-        }
-      };
-
 
       /** @name Constructors and Destructors
       */
@@ -180,7 +163,7 @@ namespace OpenMS
        * @param charge The charge of the added peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void addLinearPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence & peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, int charge = 1, Size link_pos_2 = 0) const;
+      virtual void addLinearPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence & peptide, Size link_pos, bool frag_alpha, Residue::ResidueType res_type, std::vector< LossIndex > & forward_losses, std::vector< LossIndex > & backward_losses, int charge = 1, Size link_pos_2 = 0) const;
 
       /**
        * @brief Adds a single peak to a spectrum and its charge and ion name to the given DataArrays
@@ -226,7 +209,7 @@ namespace OpenMS
        * @param ion_type Another cross-linking specific ion-type
        * @param losses a set of LossMasses with which to modify the current ion
        */
-      virtual void addLinearIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, Residue::ResidueType res_type, Size frag_index, double intensity, int charge, String ion_type, std::set< LossMass, LossMassComparator > & losses) const;
+      virtual void addLinearIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, Residue::ResidueType res_type, Size frag_index, double intensity, int charge, String ion_type, LossIndex & losses) const;
 
       /**
        * @brief Adds losses for a cross-linked ion
@@ -242,7 +225,7 @@ namespace OpenMS
        * @param ion_type Another cross-linking specific ion-type
        * @param losses a set of LossMasses with which to modify the current ion
        */
-      virtual void addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_name, std::set< LossMass, LossMassComparator > & losses) const;
+      virtual void addXLinkIonLosses_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray& charges, DataArrays::StringDataArray& ion_names, double mono_weight, double intensity, int charge, String ion_name, LossIndex & losses) const;
 
       /**
        * @brief Adds one-residue-linked ion peaks, that are specific to XLMS
@@ -280,7 +263,7 @@ namespace OpenMS
        * @param charge The charge of the added peaks
        * @param link_pos_2 A second position for the linker, in case it is a loop link
        */
-      virtual void addXLinkIonPeaks_(PeakSpectrum& spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence & peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, int charge, Size link_pos_2 = 0) const;
+      virtual void addXLinkIonPeaks_(PeakSpectrum& spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, AASequence & peptide, Size link_pos, double precursor_mass, bool frag_alpha, Residue::ResidueType res_type, std::vector< LossIndex > & forward_losses, std::vector< LossIndex > & backward_losses, int charge, Size link_pos_2 = 0) const;
 
       /**
        * @brief Adds cross-linked ions of a specific ion type and charge to a spectrum and adds ion name and charge annotations to the DataArrays
@@ -300,7 +283,7 @@ namespace OpenMS
        * @param losses_peptide2 set of losses for the second, not fragmented peptide, e.g. last set from getForwardLosses_ for the second peptide
        * @param charge The charge of the added peaks
        */
-      virtual void addXLinkIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, Residue::ResidueType res_type, std::vector< std::set< LossMass, LossMassComparator > > & forward_losses, std::vector< std::set< LossMass, LossMassComparator > > & backward_losses, std::set< LossMass, LossMassComparator > & losses_peptide2, int charge) const;
+      virtual void addXLinkIonPeaks_(PeakSpectrum & spectrum, DataArrays::IntegerDataArray & charges, DataArrays::StringDataArray & ion_names, OPXLDataStructs::ProteinProteinCrossLink & crosslink, bool frag_alpha, Residue::ResidueType res_type, std::vector< LossIndex > & forward_losses, std::vector< LossIndex > & backward_losses, LossIndex & losses_peptide2, int charge) const;
 
       /**
        * @brief Calculates sets of possible neutral losses for each position in the given peptide
@@ -309,7 +292,7 @@ namespace OpenMS
 
        * @param peptide The peptide or ion for which to collect possible losses
        */
-      std::vector< std::set< LossMass, LossMassComparator > > getForwardLosses_(AASequence & peptide) const;
+      std::vector< LossIndex > getForwardLosses_(AASequence & peptide) const;
 
       /**
        * @brief Calculates sets of possible neutral losses for each position in the given peptide
@@ -318,11 +301,7 @@ namespace OpenMS
 
        * @param peptide The peptide or ion for which to collect possible losses
        */
-      std::vector< std::set< LossMass, LossMassComparator > > getBackwardLosses_(AASequence & peptide) const;
-
-      // TODO copied from normal TSG, but it is protected over there. Move it to Residue class maybe?
-      /// helper for mapping residue type to letter
-      char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
+      std::vector< LossIndex > getBackwardLosses_(AASequence & peptide) const;
 
       bool add_b_ions_;
       bool add_y_ions_;
@@ -349,5 +328,9 @@ namespace OpenMS
       double pre_int_H2O_;
       double pre_int_NH3_;
       bool add_k_linked_ions_;
+
+      std::map< String, LossIndex > loss_db_;
+      double loss_H2O_ = 0;
+      double loss_NH3_ = 0;
   };
 }
