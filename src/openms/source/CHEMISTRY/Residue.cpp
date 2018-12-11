@@ -633,6 +633,22 @@ namespace OpenMS
     return residue_sets_.find(residue_set) != residue_sets_.end();
   }
 
+  char Residue::residueTypeToIonLetter_(Residue::ResidueType res_type)
+  {
+    switch (res_type)
+    {
+      case Residue::AIon: return 'a';
+      case Residue::BIon: return 'b';
+      case Residue::CIon: return 'c';
+      case Residue::XIon: return 'x';
+      case Residue::YIon: return 'y';
+      case Residue::ZIon: return 'z';
+      default:
+       cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
+    }
+    return ' ';
+  }
+
   ostream& operator<<(ostream& os, const Residue& residue)
   {
     os << residue.name_ << " "
