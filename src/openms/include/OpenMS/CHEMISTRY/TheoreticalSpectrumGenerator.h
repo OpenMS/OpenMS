@@ -105,9 +105,6 @@ namespace OpenMS
       /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
 
-      /// helper for mapping residue type to letter
-      char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
-
       /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
 
