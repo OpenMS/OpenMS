@@ -439,20 +439,12 @@ using namespace OpenMS;
 
 #ifdef DEBUG_OPENPEPXLALGO
 #pragma omp critical (LOG_DEBUG_access)
-      LOG_DEBUG << "Scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
+      LOG_DEBUG << "New scan indices: " << scan_index << "\t" << scan_index_heavy << endl;
 #endif
       const PeakSpectrum& spectrum_light = spectra[scan_index];
       const double precursor_charge = spectrum_light.getPrecursors()[0].getCharge();
       const double precursor_mz = spectrum_light.getPrecursors()[0].getMZ();
       const double precursor_mass = precursor_mz * static_cast<double>(precursor_charge) - static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U;
-
-#ifdef _OPENMP
-#pragma omp critical (cout_access)
-#endif
-      {
-        spectrum_counter++;
-        cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << " |\tLight Spectrum index: " << scan_index << " |\tHeavy Spectrum index: " << scan_index_heavy << "\t| at: " << DateTime::now().getTime() << endl;
-      }
 
       const PeakSpectrum& linear_peaks = preprocessed_pair_spectra.spectra_linear_peaks[pair_index];
       const PeakSpectrum& xlink_peaks = preprocessed_pair_spectra.spectra_xlink_peaks[pair_index];
@@ -472,7 +464,11 @@ using namespace OpenMS;
 #ifdef _OPENMP
 #pragma omp critical (cout_access)
 #endif
-      cout << "Pair number: " << spectrum_counter << " |\tNumber of peaks in light spectrum: " << spectrum_light.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
+      {
+        spectrum_counter++;
+        cout << "Processing spectrum pair " << spectrum_counter << " / " << spectrum_pairs.size() << " |\tLight Spectrum index: " << scan_index << " |\tHeavy Spectrum index: " << scan_index_heavy << "\t| at: " << DateTime::now().getTime() << endl;
+        cout << "Number of peaks in light spectrum: " << spectrum_light.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
+      }
 
       // Find all positions of lysine (K) in the peptides (possible scross-linking sites), create cross_link_candidates with all combinations
 
@@ -597,7 +593,7 @@ using namespace OpenMS;
 
         mainscore_csms_spectrum.push_back(csm);
       }
-      progresslogger.endProgress();
+      // progresslogger.endProgress();
       std::sort(mainscore_csms_spectrum.rbegin(), mainscore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
 
       Size last_candidate_index = mainscore_csms_spectrum.size();

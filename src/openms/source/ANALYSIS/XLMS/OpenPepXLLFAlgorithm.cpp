@@ -399,14 +399,6 @@ using namespace OpenMS;
     {
       const PeakSpectrum& spectrum = spectra[scan_index];
 
-#ifdef _OPENMP
-#pragma omp critical (cout_access)
-#endif
-      {
-        spectrum_counter++;
-        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum index: " << scan_index << "\t| at: " << DateTime::now().getTime() << endl;
-      }
-
       const double precursor_charge = spectrum.getPrecursors()[0].getCharge();
       const double precursor_mz = spectrum.getPrecursors()[0].getMZ();
       const double precursor_mass = (precursor_mz * static_cast<double>(precursor_charge)) - (static_cast<double>(precursor_charge) * Constants::PROTON_MASS_U);
@@ -422,7 +414,11 @@ using namespace OpenMS;
 #ifdef _OPENMP
 #pragma omp critical (cout_access)
 #endif
-      cout << "Spectrum number: " << spectrum_counter << " |\tNumber of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
+      {
+        spectrum_counter++;
+        cout << "Processing spectrum " << spectrum_counter << " / " << spectra.size() << " |\tSpectrum index: " << scan_index << "\t| at: " << DateTime::now().getTime() << endl;
+        cout << "Number of peaks: " << spectrum.size() << " |\tNumber of candidates: " << cross_link_candidates.size() << endl;
+      }
 
       // lists for one spectrum, to determine best match to the spectrum
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
@@ -536,7 +532,6 @@ using namespace OpenMS;
 
         mainscore_csms_spectrum.push_back(csm);
       }
-      progresslogger.endProgress();
       std::sort(mainscore_csms_spectrum.rbegin(), mainscore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
 
       Size last_candidate_index = mainscore_csms_spectrum.size();
