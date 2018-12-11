@@ -148,8 +148,8 @@ protected:
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
     registerFlag_("use_fragment_annotation", "Use sirius fragment annotation", false);
-
     registerFlag_("use_exact_mass", "Use exact mass for Fragment Annotation", false);
+    registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
     
     // preprocessing
     // TODO: add ppm for precursor mz distance? where is it used 
@@ -265,6 +265,7 @@ protected:
                                                            const double& cosine_sim_threshold,
                                                            const double& transition_threshold,
                                                            const bool& method_consensus_spectrum,
+                                                           const bool& exclude_ms2_precursor,
                                                            const unsigned int& file_counter)
   {
     int transition_group_counter = 0;
@@ -312,13 +313,6 @@ protected:
           }
         }
 
-        // TODO: This should not be needed anymore due to prefiltering
-        // check if known unknown should be used
-        // if (description == "UNKNOWN" && sumformula == "UNKNOWN" && adduct == "UNKNOWN" && !use_known_unknowns)
-        //{
-        //  continue;
-        //}
-
         double highest_precursor_mz = 0.0;
         float highest_precursor_int = 0.0;
         MSSpectrum highest_precursor_int_spectrum;
@@ -362,7 +356,6 @@ protected:
 
         // if only one MS2 is available and the consensus method is used - jump right to the transition list calculation
         // fallback: highest intensity precursor
-
         if (method_consensus_spectrum && index.size() >= 2)
         {
           // transform to binned spectra
@@ -416,7 +409,7 @@ protected:
           }
         }
 
-        // TODO: Why would transition spectrum have a size of 0 ?
+        // TODO: Why would transition spectrum have a size of 0 ? (Empty MS2 spectrum)
         // check if transition spectrum is empty
         if (transition_spectrum.empty())
         {
@@ -431,6 +424,22 @@ protected:
 
         // sort intensity in MS2 spectrum to extract transitions
         transition_spectrum.sortByIntensity(true);
+
+        // filter out the precursors if they are in the ms2 spectrum; 
+        if (exclude_ms2_precursor)
+        {
+          for (auto spec_it = transition_spectrum.begin();
+                    spec_it != transition_spectrum.end();
+                    ++spec_it)
+          {
+            
+            if (transition_spectrum.getPrecursors()[0].getMZ() == spec_it->getMZ())
+            {
+              transition_spectrum.erase(spec_it);
+              break;
+            }
+          } 
+        } 
 
         // find max and min intensity peak
         max_int = max_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
@@ -541,9 +550,10 @@ protected:
       return v_pts;
   }
 
-  // use_known_unkowns??
   vector<PotentialTransitions> extractPotentialTransitionsFragmentAnnotation(const vector< pair <SiriusMSFile::CompoundInfo, MSSpectrum> >& v_cmp_spec,
                                                                              const double& transition_threshold,
+                                                                             const bool& use_exact_mass,
+                                                                             const bool& exclude_ms2_precursor,
                                                                              const unsigned int& file_counter)
   {
     int transition_group_counter = 0;
@@ -566,19 +576,11 @@ protected:
 
         double feature_rt;
         feature_rt = it->first.rt;
-
         description = it->first.des;
-        //TODO: not sure if check if sumformula was known beforehand?
-        sumformula = it->second.getMetaValue("annotated_sumformula");
-        // TODO: e.g. Ionization maybe
-        adduct = it->second.getMetaValue("annotated_adduct");
 
-        // TODO: This should not be needed anymore due to prefiltering
-        // check if known unknown should be used
-        //if (description == "UNKNOWN" && !use_known_unknowns)
-        //
-        //  continue;
-        //}
+        // use annotated metadata
+        sumformula = it->second.getMetaValue("annotated_sumformula");
+        adduct = it->second.getMetaValue("annotated_adduct");
 
         // transition calculations
         // calculate max intensity peak and threshold
@@ -587,6 +589,40 @@ protected:
 
         // sort intensity in MS2 spectrum to extract transitions
         transition_spectrum.sortByIntensity(true);
+
+        // have to remove ms2 precursor peak before min/max
+        double exact_mass_precursor = 0.0;
+        for (auto spec_it = transition_spectrum.begin();
+                  spec_it != transition_spectrum.end();
+                  ++spec_it)
+        {
+          int spec_index = spec_it - transition_spectrum.begin();
+          OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
+          if (explanation_array.getName() != "explanation")
+          {
+            LOG_WARN << "Fragment explanation was not found. Please check if you annotation works properly." << std::endl; 
+          }
+          else 
+          {
+            // precursor in fragment annotation has the same sumformula as MS1 Precursor
+            if (explanation_array[spec_index] == sumformula)
+            {
+              // save exact mass 
+              if(use_exact_mass)
+              {
+                exact_mass_precursor = spec_it->getMZ();
+              }
+              // remove precursor ms2 entry 
+              if(exclude_ms2_precursor)
+              {
+                transition_spectrum.erase(transition_spectrum.begin() + spec_index);
+                transition_spectrum.getStringDataArrays()[0].erase(transition_spectrum.getStringDataArrays()[0].begin() + spec_index);
+                transition_spectrum.getFloatDataArrays()[0].erase(transition_spectrum.getFloatDataArrays()[0].begin() + spec_index);
+                break; // if last element have to break if not iterator will go out of range
+              } 
+            }
+          }
+        }
 
         // find max and min intensity peak
         max_int = max_element(transition_spectrum.begin(),transition_spectrum.end(), intensityLess_)->getIntensity();
@@ -615,8 +651,14 @@ protected:
         // hard minimal threshold of min_int * 1.1
         float threshold_transition = max_int * (transition_threshold / 100);
         float threshold_noise = min_int * 1.1;
-
         int transition_counter = 0;
+       
+        // extract current StringDataArry with annotations/explanations;
+        OpenMS::DataArrays::StringDataArray explanation_array = transition_spectrum.getStringDataArrays()[0];
+
+        // check which entry is saved in the FloatDataArry (control for "use_exact_mass")
+        LOG_DEBUG << transition_spectrum.getFloatDataArrays()[0].getName() << " is not used to build the assay library." << std::endl;
+
         // here ms2 spectra information is used
         for (auto spec_it = transition_spectrum.begin();
                   spec_it != transition_spectrum.end();
@@ -624,9 +666,11 @@ protected:
         {
           ReactionMonitoringTransition rmt;
           rmt.clearMetaInfo();
+          int peak_index = spec_it - transition_spectrum.begin();
 
           float current_int = spec_it->getIntensity();
           double current_mz = spec_it->getMZ();
+          String current_explanation = explanation_array[peak_index];
 
           // write row for each transition
           // current int has to be higher than transition thresold and should not be smaller than threshold noise
@@ -634,22 +678,25 @@ protected:
           {
             float rel_int = current_int / max_int;
 
-            rmt.setPrecursorMZ(it->first.pmass);
+            rmt.setPrecursorMZ((use_exact_mass && exact_mass_precursor != 0.0)  ? exact_mass_precursor : it->first.pmass);
             rmt.setProductMZ(current_mz);
             rmt.setLibraryIntensity(rel_int);
 
             rmt.setCompoundRef(String(transition_group_counter) + "_" + description + "_" + file_counter);
             rmt.setNativeID(String(transition_group_counter) + "_" + String(transition_counter) + "_" + description + "_" + file_counter);
 
+            rmt.setMetaValue("annotation", DataValue(current_explanation));
+
             v_rmt.push_back(rmt);
             transition_counter += 1;
           }
         }
+      
         transition_group_counter += 1;
         PotentialTransitions pts;
-        pts.precursor_mz = it->first.pmass;
+        pts.precursor_mz = (use_exact_mass && exact_mass_precursor != 0.0)  ? exact_mass_precursor : it->first.pmass;
         pts.precursor_rt = it->first.rt;
-        pts.precursor_int = 0;
+        pts.precursor_int = 0; 
         //pts.transition_quality = ;
         pts.compound_name = description;
         pts.compound_adduct = adduct;
@@ -674,6 +721,7 @@ protected:
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
     bool use_exact_mass = getFlag_("use_exact_mass");
     bool use_fragment_annotation = getFlag_("use_fragment_annotation");
+    bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
 
     int min_transitions = getIntOption_("min_transitions");
     int max_transitions = getIntOption_("max_transitions");
@@ -719,7 +767,7 @@ protected:
     if (in.size() != id.size())
     {
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Number of .mzML do not match to the number of .featureXML files. Please check and provide the corresponding files. ");
+                                          "Number of .mzML do not match to the number of .featureXML files. \n Please check and provide the corresponding files.");
     }
 
     vector<PotentialTransitions> v_pts;
@@ -748,7 +796,7 @@ protected:
         throw Exception::MissingInformation(__FILE__,
                                             __LINE__,
                                             OPENMS_PRETTY_FUNCTION,
-                                            "Path of the original input file do not match in the .mzML and .featureXML files. Please check and provide the corresponding files. ");
+                                            "Path of the original input file do not match in the .mzML and .featureXML files. \n Please check and provide the corresponding files.");
       }
 
       // determine type of spectral data (profile or centroided)
@@ -787,9 +835,6 @@ protected:
           }
         }
       }
-   
-      LOG_INFO << "use_known_unknowns and print it out:" << std::endl;
-      LOG_INFO << "use_known_unknowns: " << use_known_unknowns << std::endl;
 
       // annotate and recalibrate precursor mz and intensity
       vector<double> delta_mzs;
@@ -809,11 +854,7 @@ protected:
                                                   sirius_algo,
                                                   feature_mapping);
     
-
-      // TODO: filter known_unkowns after feautre_mapping step - so does not matter for function call 
-      // No calculation needed in SIRIUS if filtered beforehand -> speed up 
-      // Remove the entry form the map if no description is UNKNOWN (?) whoud that work? 
-      // Based on description 
+      // filter known_unkowns based on description (UNKNOWN)  
       std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
       std::map<const BaseFeature*, std::vector<size_t>> known_features; 
       if (!use_known_unknowns)
@@ -825,7 +866,7 @@ protected:
               !(feature->getPeptideIdentifications()[0].getHits().empty()))
               {
                 String description;
-                // one hit is enought for prefiltering
+                // one hit is enough for prefiltering
                 description = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
                 // change format of description [name] to name
                 description.erase(remove_if(begin(description),
@@ -875,9 +916,9 @@ protected:
   
         // sort vector path list
         std::sort(subdirs.begin(), subdirs.end(), extractAndCompareScanIndexLess_);
+        LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl; 
   
-        // get Sirius FragmentAnnotion from subdirs! 
-        // TODO: save annotation in msspectrum and append to vector<msspectrum> - same es MSExperiment
+        // get Sirius FragmentAnnotion from subdirs
         vector<MSSpectrum> annotated_spectra;
         for (auto subdir : subdirs)
         {
@@ -907,7 +948,6 @@ protected:
           }
         }
 
-        // TODO: is there a faster/better method to do that ? 
         // pair compoundInfo and fragment annotation msspectrum
         for (auto cmp : v_cmpinfo)
         {
@@ -920,7 +960,7 @@ protected:
           }
         }
       }
-      else // if fragment annotation is not used
+      else // use heuristics
       {
         if (use_deisotoper)
         {
@@ -976,17 +1016,18 @@ protected:
           }
         }
       }
-
-       
+ 
       // potential transitions of one file
       vector<PotentialTransitions> tmp_pts;
       if (use_fragment_annotation)
       {
         tmp_pts = extractPotentialTransitionsFragmentAnnotation(v_cmp_spec,
                                                                 transition_threshold,
+                                                                use_exact_mass,
+                                                                exclude_ms2_precursor,
                                                                 file_counter);
       }
-      else // if no fragment annotation was used
+      else // use heuristics
       {
         tmp_pts = extractPotentialTransitions(spectra,
                                               feature_ms2_spectra_map,
@@ -995,18 +1036,19 @@ protected:
                                               cosine_sim_threshold,
                                               transition_threshold,
                                               method_consensus_spectrum,
+                                              exclude_ms2_precursor,
                                               file_counter);
       }
       
       // append potential transitions of one file to vector of all files
       v_pts.insert(v_pts.end(), tmp_pts.begin(),tmp_pts.end());
       
-    } //end iteration over all files
+    } // end iteration over all files
     
-    // first sort by CompoundName
+    // sort by CompoundName
     std::sort(v_pts.begin(), v_pts.end(), compoundNameLess_);
     
-    // second get unique elements (CompoundName, CompoundAdduct) with highest precursor intensity
+    // get unique elements (CompoundName, CompoundAdduct) with highest precursor intensity
     auto uni_it = std::unique(v_pts.begin(), v_pts.end(), compoundUnique_);
     v_pts.resize(std::distance(v_pts.begin(), uni_it)); 
 
@@ -1031,9 +1073,6 @@ protected:
     // use MRMAssay methods for filtering
     MRMAssay assay;
 
-    // additional filter steps:
-    // TODO: filter: precursor ms 2 
-
     // filter: min/max transitions
     assay.detectingTransitionsCompound(t_exp, min_transitions, max_transitions);
 
@@ -1041,7 +1080,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    String extension = out.substr(out.find_last_of(".") +1);
+    String extension = out.substr(out.find_last_of(".")+1);
 
     if (extension == "tsv")
     {
@@ -1056,7 +1095,6 @@ protected:
       TraMLFile traml_out;
       traml_out.store(out,t_exp);
     }
-
     return EXECUTION_OK;
   }
 };

@@ -1421,6 +1421,7 @@ namespace OpenMS
         + (String)it.CompoundName             + "\t"
         + (String)it.SumFormula               + "\t"
         + (String)it.SMILES                   + "\t"
+        + (String)it.Adducts                  + "\t"
         + (String)it.ProteinName              + "\t"
         + (String)it.uniprot_id               + "\t"
         + (String)it.fragment_type            + "\t"
