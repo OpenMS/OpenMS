@@ -391,7 +391,7 @@ public:
     //@}
 
     /// helper for mapping residue types to letters for Text annotations and labels
-    static char residueTypeToIonLetter(ResidueType res_type);
+    static char residueTypeToIonLetter(const ResidueType& res_type);
 
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
