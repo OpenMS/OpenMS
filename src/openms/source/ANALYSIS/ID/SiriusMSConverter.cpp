@@ -132,8 +132,7 @@ namespace OpenMS
                     const bool& no_masstrace_info_isotope_pattern,
                     const int& isotope_pattern_iterations,
                     int& count_skipped_spectra,
-                    int& count_to_pos,
-                    int& count_to_neg,
+                    int& count_assume_mono,
                     int& count_no_ms1,
                     std::vector<SiriusMSFile::CompoundInfo>& v_cmpinfo)
   {
@@ -141,7 +140,6 @@ namespace OpenMS
     for (const size_t& ind : ms2_spectra_index)
     {
       // construct compound info structure
-
       const MSSpectrum &current_ms2 = spectra[ind];
       const double current_rt = current_ms2.getRT();
 
@@ -155,9 +153,6 @@ namespace OpenMS
       // there should be only one precursor and MS2 should contain peaks to be considered
       if (precursor.size() == 1 && !current_ms2.empty())
       {
-        // needed later for writing in ms file
-        int int_charge = 0;
-
         // read precursor charge
         int precursor_charge = precursor[0].getCharge();
 
@@ -168,17 +163,29 @@ namespace OpenMS
           ++count_skipped_spectra;
           continue;
         }
-        // set charge value for msfile
-        if (p == IonSource::Polarity::POSITIVE && precursor_charge == +1) { int_charge = +1; 
-        } else if (p == IonSource::Polarity::NEGATIVE && precursor_charge == -1) { int_charge = -1; 
-        } else if (precursor_charge == 0) { int_charge = +1; ++count_to_pos; 
-        } else if (p == IonSource::Polarity::NEGATIVE) { -abs(int_charge); ++count_to_neg; }
 
-        // set feature_charge value for msfile
-        if (p == IonSource::Polarity::POSITIVE && feature_charge == 1) { feature_charge = +1; 
-        } else if (p == IonSource::Polarity::NEGATIVE && feature_charge == 1) { feature_charge = -1; 
-        } else if (feature_charge == 0) { feature_charge = +1; ++count_to_pos; 
-        } else if (p == IonSource::Polarity::NEGATIVE) { -abs(feature_charge); ++count_to_neg; }
+        // set precursor charge for msfile
+        // no charge annotated - assume mono-charged
+        if (precursor_charge == 0)  
+        { 
+          precursor_charge = 1; 
+          ++count_assume_mono;
+        }
+        // negative mode - make sure charges are < 0
+        if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -abs(precursor_charge); }
+
+        // set feature_charge for msfile if feature information is available 
+        // no charge annotated - assume mono-charged
+        if (feature_id != 0 && feature_charge == 0) 
+        { 
+          feature_charge = 1;
+          ++count_assume_mono; 
+        }
+        // negative mode - make sure charges are < 0
+        if (p == IonSource::Polarity::NEGATIVE) { feature_charge = -abs(feature_charge); }
+
+        std::cout << "prec_charge: " << precursor_charge << std::endl;
+        std::cout << "feat_chrage: " << feature_charge << std::endl;
 
         // get m/z and intensity of precursor != MS1 spectrum
         double precursor_mz = precursor[0].getMZ();
@@ -263,8 +270,8 @@ namespace OpenMS
           }
           else
           {
-            os << ">charge " << int_charge << "\n";
-            cmpinfo.charge = int_charge;
+            os << ">charge " << precursor_charge << "\n";
+            cmpinfo.charge = precursor_charge;
           }
 
           if (feature_rt != 0)
@@ -404,8 +411,7 @@ namespace OpenMS
     if (assigned_ms2.empty() && unassigned_ms2.empty()) no_feautre_information = true;
 
     int count_skipped_spectra = 0; // spectra skipped due to precursor charge
-    int count_to_pos = 0; // count if charge 0 -> +1
-    int count_to_neg = 0; // count if charge 0 -> -1
+    int count_assume_mono = 0; // count if mono charge was assumend and set to current ion mode
     int count_no_ms1 = 0; // count if no precursor was found
     int count_skipped_features = 0; // features skipped due to charge
 
@@ -484,7 +490,7 @@ namespace OpenMS
         // multiple charged compounds are not allowed in sirius
         if (feature_charge > 1 || feature_charge < -1)
         {
-          count_skipped_features = count_skipped_features + 1;
+          ++count_skipped_features;
           continue;
         }
 
@@ -550,8 +556,7 @@ namespace OpenMS
                     no_masstrace_info_isotope_pattern,
                     isotope_pattern_iterations,
                     count_skipped_spectra,
-                    count_to_pos,
-                    count_to_neg,
+                    count_assume_mono,
                     count_no_ms1,
                     v_cmpinfo);
 
@@ -586,8 +591,7 @@ namespace OpenMS
                    no_masstrace_info_isotope_pattern,
                    isotope_pattern_iterations,
                    count_skipped_spectra,
-                   count_to_pos,
-                   count_to_neg,
+                   count_assume_mono,
                    count_no_ms1,
                    v_cmpinfo);
     }
@@ -635,8 +639,7 @@ namespace OpenMS
                    no_masstrace_info_isotope_pattern,
                    isotope_pattern_iterations,
                    count_skipped_spectra,
-                   count_to_pos,
-                   count_to_neg,
+                   count_assume_mono,
                    count_no_ms1,
                    v_cmpinfo);
     }
@@ -645,8 +648,7 @@ namespace OpenMS
 
     LOG_WARN << "No MS1 spectrum for this precursor. Occurred " << count_no_ms1 << " times." << endl;
     LOG_WARN << count_skipped_spectra << " spectra were skipped due to precursor charge below -1 and above +1." << endl;
-    LOG_WARN << "Charge of 0 was set to +1 due to positive polarity " << count_to_pos << " times."<< endl;
-    LOG_WARN << "Charge of 0 was set to -1 due to negative polarity " << count_to_neg << " times." << endl;
+    LOG_WARN << "Mono charge assumed and set to charge 1 with respect to current polarity " << count_assume_mono << " times."<< endl;
     LOG_WARN << count_skipped_features << " features were skipped due to feature charge below -1 and above +1." << endl;
 
   }
