@@ -765,23 +765,6 @@ namespace OpenMS
     return ion_losses;
   }
 
-  // helper for mapping residue type to letter
-  char SimpleTSGXLMS::residueTypeToIonLetter_(Residue::ResidueType res_type) const
-  {
-    switch (res_type)
-    {
-      case Residue::AIon: return 'a';
-      case Residue::BIon: return 'b';
-      case Residue::CIon: return 'c';
-      case Residue::XIon: return 'x';
-      case Residue::YIon: return 'y';
-      case Residue::ZIon: return 'z';
-      default:
-       cerr << "Unknown residue type encountered. Can't map to ion letter." << endl;
-    }
-    return ' ';
-  }
-
   void SimpleTSGXLMS::updateMembers_()
   {
     add_b_ions_ = param_.getValue("add_b_ions").toBool();

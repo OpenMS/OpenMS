@@ -278,10 +278,6 @@ namespace OpenMS
        */
       std::vector< LossIndex > getBackwardLosses_(AASequence & peptide) const;
 
-      // TODO copied from normal TSG, but it is protected over there. Move it to Residue class maybe?
-      /// helper for mapping residue type to letter
-      char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
-
       bool add_b_ions_;
       bool add_y_ions_;
       bool add_a_ions_;
