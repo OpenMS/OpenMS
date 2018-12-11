@@ -166,26 +166,23 @@ namespace OpenMS
 
         // set precursor charge for msfile
         // no charge annotated - assume mono-charged
-        if (precursor_charge == 0)  
-        { 
-          precursor_charge = 1; 
+        if (precursor_charge == 0)
+        {
+          precursor_charge = 1;
           ++count_assume_mono;
         }
         // negative mode - make sure charges are < 0
         if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -abs(precursor_charge); }
 
-        // set feature_charge for msfile if feature information is available 
+        // set feature_charge for msfile if feature information is available
         // no charge annotated - assume mono-charged
-        if (feature_id != 0 && feature_charge == 0) 
-        { 
+        if (feature_id != 0 && feature_charge == 0)
+        {
           feature_charge = 1;
-          ++count_assume_mono; 
+          ++count_assume_mono;
         }
         // negative mode - make sure charges are < 0
         if (p == IonSource::Polarity::NEGATIVE) { feature_charge = -abs(feature_charge); }
-
-        std::cout << "prec_charge: " << precursor_charge << std::endl;
-        std::cout << "feat_chrage: " << feature_charge << std::endl;
 
         // get m/z and intensity of precursor != MS1 spectrum
         double precursor_mz = precursor[0].getMZ();
