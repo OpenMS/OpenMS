@@ -1936,8 +1936,8 @@ protected:
                                          a_ion_sub_score);
 
 
-                  // no good hit
-                  if (total_loss_score < 0.001) { continue; }
+                  // bad score, likely wihout any single matching peak
+                  if (total_loss_score < 0.1) { continue; }
 
                   // add peptide hit
                   AnnotatedHit ah;
@@ -2072,6 +2072,9 @@ protected:
                                              precursor_sub_score,
                                              a_ion_sub_score);
 
+                    // bad score, likely wihout any single matching peak
+                    if (score < 0.1) { continue; }
+
                     scorePartialLossFragments_(exp_spectrum,
                                                fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
                                                partial_loss_spectrum_z1, partial_loss_spectrum_z2,
@@ -2080,8 +2083,6 @@ protected:
                                                marker_ions_sub_score,
                                                plss_MIC, plss_err, plss_Morph);
 
-                    // no good hit
-                    if (score < 0.001) { continue; }
 
                     // add peptide hit
                     AnnotatedHit ah;
@@ -2173,7 +2174,7 @@ protected:
                                          a_ion_sub_score);
 
                 // no good hit
-                if (total_loss_score < 0.001) { continue; }
+                if (total_loss_score < 0.1) { continue; }
 
                 // add peptide hit
                 AnnotatedHit ah;
@@ -2355,6 +2356,10 @@ protected:
   {
     total_loss_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
                                            exp_spectrum, total_loss_spectrum);
+
+    // bad score, likely wihout any single matching peak
+    if (total_loss_score < 0.1) { return; }
+
     immonium_sub_score = 0;
     precursor_sub_score = 0;
     a_ion_sub_score = 0;
