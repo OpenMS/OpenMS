@@ -60,12 +60,6 @@ namespace OpenMS
   {
     public:
 
-      struct LossIndex
-      {
-        bool has_H2O_loss = false;
-        bool has_NH3_loss = false;
-      };
-
       /**
         * @brief A simple struct to represent peaks with mz and charge and sort them easily
        */
@@ -86,6 +80,11 @@ namespace OpenMS
         }
       };
 
+      struct LossIndex
+      {
+        bool has_H2O_loss = false;
+        bool has_NH3_loss = false;
+      };
 
       /** @name Constructors and Destructors
       */
@@ -302,7 +301,6 @@ namespace OpenMS
       bool add_k_linked_ions_;
 
       std::map< String, LossIndex > loss_db_;
-
       double loss_H2O_ = 0;
       double loss_NH3_ = 0;
   };

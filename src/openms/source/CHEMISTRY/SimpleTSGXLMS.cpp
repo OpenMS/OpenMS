@@ -405,7 +405,7 @@ namespace OpenMS
         double pos(mono_weight / static_cast<double>(charge));
 
         addPeak_(spectrum, pos, charge);
-        if (add_losses_ && backward_losses.size() >= i+2 )
+        if (add_losses_ && backward_losses.size() >= i+2)
         {
           addLosses_(spectrum, mono_weight, charge, backward_losses[i+1]);
         }
