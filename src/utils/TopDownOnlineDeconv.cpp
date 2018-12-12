@@ -27,13 +27,19 @@ public:
         Peak1D *orgPeak;
         double logmz;
         int charge;
+        double protonMass = 1.0072765;
 
-        LogMzPeak(): orgPeak(nullptr), logmz(0.0), charge(0){}
+        LogMzPeak(): orgPeak(nullptr), logmz(-10000), charge(0){}
+        LogMzPeak(Peak1D &peak): orgPeak(&peak), logmz(log(peak.getMZ() - protonMass)), charge(0){}
+        LogMzPeak(const LogMzPeak &other, double shift, int charge): orgPeak(other.orgPeak), logmz(shift + other.logmz), charge(charge){}
 
+        double getMass(){
+            return exp(logmz);
+        }
         bool operator<(const LogMzPeak &a){
             return logmz < a.logmz;
         }
-    }PeakLM;
+    };
 
 
 protected:
@@ -47,8 +53,9 @@ protected:
         // parsing parameters
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
-        //String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
+        //String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
+     //   String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
 
         cout << "file name : " << infilePath << endl;
         // just for quick use
@@ -79,6 +86,8 @@ protected:
         double threshold = 5e3;
         int filterSize = 25;
         int minCharge = 5;
+        int minPeakNumForScoring = 3; // inclusive
+
         int specCntr = 0;
         double filter[filterSize];
         double tolerance = 1e-5;
@@ -88,16 +97,10 @@ protected:
             filter[i] = log(1.0/(i+minCharge));
         }
 
-        double filter[filterSize];
-        for (int i = 0; i < filterSize; i++) {
-            filter[i] = log(1.0 / (i + minCharge));
-        }
-
-        for (PeakMap::ConstIterator it = map.begin(); it != map.end(); ++it) {
+        for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
             specCntr++;
             double rt = it->getRT();
-
             double currentThreshold = threshold;
 
             if(it->size() > maxPeakCntr){
@@ -121,55 +124,83 @@ protected:
                 }
             }
 
-            vector<Peak1D> peaks;
-            peaks.reserve(it->size());
+            vector<LogMzPeak> logMzPeaks;
+            logMzPeaks.reserve(it->size());
 
             for (auto &peak : (*it) ){
                 if (peak.getIntensity() < currentThreshold) continue;
 
-                Peak1D logmzpeak;
-                logmzpeak.setIntensity(peak.getIntensity());
-                logmzpeak.setMZ(log(peak.getMZ()));
-
-                peaks.push_back(logmzpeak);
+                LogMzPeak logmzpeak(peak);
+                logMzPeaks.push_back(logmzpeak);
             }
 
-            vector<vector<Peak1D>> matrix(filterSize); // initialization
+            vector<vector<LogMzPeak>> matrix(filterSize); // initialization
 
             for (int i = 0; i < filterSize; i++) {
-                matrix[i].reserve(peaks.size());
-                for (auto &peak : peaks) {
-                    Peak1D p;
-                    p.setIntensity(peak.getIntensity());
-                    p.setMZ(peak.getMZ() - filter[i]);
+                matrix[i].reserve(logMzPeaks.size());
+                for (auto &logMzPeak : logMzPeaks) {
+                    LogMzPeak p(logMzPeak, -filter[i], i+minCharge);
                     matrix[i].push_back(p);
                 }
             }
 
-            vector<Peak1D> result;
-            result.reserve(filterSize * peaks.size());
+            vector<LogMzPeak> result;
+            result.reserve(filterSize * logMzPeaks.size());
             sortMatrix(matrix, result);
 
-            double beforeMz = 0.0;
-            double beforeIntensity;
-            int cntr = 0;
-            for (auto &peak : result){
-                if (peak.getMZ() - beforeMz < tolerance) {
-                    cntr++;
+
+            vector<LogMzPeak> groupedPeaks;
+            groupedPeaks.reserve(100);
+            groupedPeaks.push_back(result[0]);
+
+            for (int i=1; i<result.size();i++){
+                auto peak = result[i];
+                if (peak.logmz - groupedPeaks[0].logmz < tolerance * 2) {
+                    groupedPeaks.push_back(peak);
+                }else{
+                    if(groupedPeaks.size()>=minPeakNumForScoring){
+                        LogMzPeak peaksToScore[filterSize];
+                        int maxIntensityIndex;
+                        double maxIntensity = -1;
+
+                        for(int k=0;k<filterSize;k++){
+                            peaksToScore[k] = LogMzPeak();
+                        }
+                        for(auto &gp : groupedPeaks){
+                            int index = gp.charge - minCharge;
+                            double intensity = gp.orgPeak->getIntensity();
+                            peaksToScore[index] = gp;
+                            if(maxIntensity < intensity){
+                                maxIntensity = intensity;
+                                maxIntensityIndex = index;
+                            }
+                        }
+                        double score = 0;
+                        for(int k=maxIntensityIndex;k<filterSize-1;k++){
+                            double int1 = peaksToScore[k].orgPeak == nullptr? 0 : peaksToScore[k].orgPeak->getIntensity();
+                            double int2 = peaksToScore[k+1].orgPeak == nullptr? 0 : peaksToScore[k+1].orgPeak->getIntensity();
+                            score += getLogLikelihoodRatioScore(int1, int2);
+                        }
+                        for(int k=maxIntensityIndex;k>0;k--){
+                            double int1 = peaksToScore[k].orgPeak == nullptr? 0 : peaksToScore[k].orgPeak->getIntensity();
+                            double int2 = peaksToScore[k-1].orgPeak == nullptr? 0 : peaksToScore[k-1].orgPeak->getIntensity();
+                            score += getLogLikelihoodRatioScore(int1, int2);
+                        }
+                        if(score > 30) cout<<groupedPeaks[0].getMass() << "  " << score<<endl;
+                    }
+                    groupedPeaks.clear();
+                    groupedPeaks.push_back(peak);
                 }
-                beforeMz = peak.getMZ();
             }
-
-
         }
         return specCntr;
     }
 
-    void sortMatrix(vector<vector<Peak1D>> &matrix, vector<Peak1D> &result){
+    void sortMatrix(vector<vector<LogMzPeak>> &matrix, vector<LogMzPeak> &result){
         priority_queue< ppi, vector<ppi>, greater<ppi> > pq;
 
         for (Size i=0; i< matrix.size(); i++){
-            pq.push({matrix[i][0].getMZ(), {i, 0}});
+            pq.push({matrix[i][0].logmz, {i, 0}});
         }
 
         while (!pq.empty()) {
@@ -185,9 +216,41 @@ protected:
 
             // The next element belongs to same array as current.
             if (j + 1 < matrix[i].size())
-                pq.push({ matrix[i][j + 1].getMZ(), { i, j + 1 } });
+                pq.push({ matrix[i][j + 1].logmz, { i, j + 1 } });
         }
     }
+
+    double getLogLikelihoodRatioScore(double int1, double int2){
+        return getLogLikelihood(int1, int2, false) - getLogLikelihood(int1, int2, true);
+    }
+
+    double getLogLikelihood(double int1, double int2, bool isH0){
+        double tmp = 1e-4;
+        double ret;
+        if(int1<=0){
+            if(int2<=0){
+                if(isH0) ret = 1-tmp;
+                else ret = .9;
+            }else{
+                if(isH0) ret = tmp;
+                else ret = .1;
+            }
+        }else{
+            if(int2<=0){
+                if(isH0) ret = 1-tmp;
+                else ret = .2;
+            }else if(int1<int2){
+                if(isH0) ret = tmp/2;
+                else ret = .1;
+            }else {
+                if (isH0) ret = tmp / 2;
+                else ret = .7;
+            }
+        }
+        return log10(ret);
+    }
+
+
 };
 
 int main(int argc, const char** argv)
