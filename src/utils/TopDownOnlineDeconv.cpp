@@ -36,7 +36,7 @@ protected:
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
         String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
-       // String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
+        //String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
 
         cout << "file name : " << infilePath << endl;
         // just for quick use
@@ -64,7 +64,6 @@ protected:
 
 
     int onlineDeonvolution(MSExperiment &map){
-
         double threshold = 5e3;
         int filterSize = 25;
         int minCharge = 5;
@@ -135,14 +134,14 @@ protected:
             result.reserve(filterSize * peaks.size());
             sortMatrix(matrix, result);
 
-            double before;
+            double beforeMz;
+            double beforeIntensity;
             int cntr = 0;
-            for (std::vector<Peak1D>::iterator iter = result.begin(); iter != result.end(); ++iter) {
-                Peak1D current = *iter;
-                if (current.getMZ() - before < 1e-5) {
+            for (auto &peak : result){
+                if (peak.getMZ() - beforeMz < tolerance) {
                     cntr++;
                 }
-                before = current.getMZ();
+                beforeMz = peak.getMZ();
             }
         }
         return specCntr;
@@ -155,7 +154,7 @@ protected:
             pq.push({matrix[i][0].getMZ(), {i, 0}});
         }
 
-        while (pq.empty() == false) {
+        while (!pq.empty()) {
             ppi curr = pq.top();
             pq.pop();
 
