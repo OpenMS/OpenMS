@@ -528,11 +528,14 @@ namespace OpenMS
 
 #if COINOR_SOLVER == 1
     else if (solver_ == SOLVER_COINOR)
+    {
       return model_->getRowName(index);
-
+    }
 #endif
     else
+    {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
+    }
   }
 
   Int LPWrapper::getRowIndex(const String& name)
@@ -544,8 +547,9 @@ namespace OpenMS
     }
 #if COINOR_SOLVER == 1
     else if (solver_ == SOLVER_COINOR)
+    {
       return model_->row(name.c_str());
-
+    }
 #endif
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid Solver chosen", String(solver_));
@@ -581,7 +585,9 @@ namespace OpenMS
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
+      // delete old model and create a new model in its place (using same ptr)
       glp_erase_prob(lp_problem_);
+      
       if (format == "LP")
       {
         glp_read_lp(lp_problem_, nullptr, filename.c_str());
@@ -600,6 +606,8 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR && format == "MPS")
     {
+      // delete old model and create a new model in its place (using same ptr)
+      delete model_;
       model_ = new CoinModel(filename.c_str());
     }
 #endif
@@ -636,7 +644,9 @@ namespace OpenMS
         model_->writeMps(filename.c_str());
       }
       else
+      {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid LP format, allowed is MPS");
+      }
     }
 #endif
   }
