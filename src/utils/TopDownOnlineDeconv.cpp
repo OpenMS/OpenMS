@@ -23,6 +23,18 @@ public:
 
     typedef pair<double, pair<Size, Size>> ppi;
 
+    typedef struct LogMzPeak{
+        Peak1D *orgPeak;
+        double logmz;
+        int charge;
+
+        LogMzPeak(): orgPeak(nullptr), logmz(0.0), charge(0){}
+
+        bool operator<(const LogMzPeak &a){
+            return logmz < a.logmz;
+        }
+    }PeakLM;
+
 
 protected:
     void registerOptionsAndFlags_() override {
@@ -92,8 +104,7 @@ protected:
                 while(allPeaks.size() > maxPeakCntr) {
                     vector<Peak1D> tmpPeaks;
                     tmpPeaks.reserve(allPeaks.size());
-                    for (int i = 0; i < allPeaks.size(); i++) {
-                        Peak1D peak = allPeaks[i];
+                    for (auto &peak : allPeaks){
                         if (peak.getIntensity() < currentThreshold) continue;
                         tmpPeaks.push_back(peak);
                     }
@@ -134,7 +145,7 @@ protected:
             result.reserve(filterSize * peaks.size());
             sortMatrix(matrix, result);
 
-            double beforeMz;
+            double beforeMz = 0.0;
             double beforeIntensity;
             int cntr = 0;
             for (auto &peak : result){
@@ -143,6 +154,8 @@ protected:
                 }
                 beforeMz = peak.getMZ();
             }
+
+
         }
         return specCntr;
     }
