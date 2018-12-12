@@ -182,7 +182,6 @@ void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSS
     new_spec.clear(false);
     std::vector<OpenMS::DataArrays::FloatDataArray> empty;
     new_spec.setFloatDataArrays(empty);
-    new_spec.setDriftTime(-1); // drift time is now encoded in the FloatDataArray
 
     OpenMS::DataArrays::FloatDataArray fda;
     String name = "Ion Mobility";
@@ -201,6 +200,8 @@ void processDriftTimeStack(const std::vector<MSSpectrum>& stack, std::vector<MSS
       fda.insert(fda.end(), s.size(), s.getDriftTime());
     }
     new_spec.setFloatDataArrays({fda});
+    new_spec.setDriftTime(-1); // drift time is now encoded in the FloatDataArray
+    new_spec.setDriftTimeUnit(MSSpectrum::DriftTimeUnit::NONE); // drift time is now encoded in the FloatDataArray
     result.push_back(new_spec);
   }
   else
