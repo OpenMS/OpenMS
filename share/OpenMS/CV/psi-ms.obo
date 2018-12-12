@@ -18236,7 +18236,7 @@ def: "Ion mobility measurement for an ion or spectrum of ions as measured in an 
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1000455 ! ion selection attribute
 is_a: MS:1002892 ! ion mobility attribute
-relationship: has_units MS:1002814 ! "volt-second per square centimeter"
+relationship: has_units MS:1002814 ! volt-second per square centimeter
 
 [Term]
 id: MS:1002816
@@ -18246,7 +18246,7 @@ xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1002893 ! ion mobility array
 relationship: has_units UO:0000028 ! millisecond
 relationship: has_units UO:0000010 ! second
-relationship: has_units MS:1002814 ! "volt-second per square centimeter"
+relationship: has_units MS:1002814 ! volt-second per square centimeter
 
 [Term]
 id: MS:1002817
@@ -19002,7 +19002,7 @@ name: TopPIC:proteoform-level FDR
 def: "TopPIC proteoform-level FDR." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1002908 ! proteoform-level local FDR
-is_a: MS:1002901 ! search engine specific score for proteoforms
+is_a: MS:1002906 ! search engine specific score for proteoforms
 
 [Term]
 id: MS:1002931
@@ -19157,7 +19157,7 @@ name: TopMG:proteoform-level FDR
 def: "TopMG proteoform-level FDR." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1002908 ! proteoform-level local FDR
-is_a: MS:1002901 ! search engine specific score for proteoforms
+is_a: MS:1002906 ! search engine specific score for proteoforms
 
 [Term]
 id: MS:1002953
