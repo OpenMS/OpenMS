@@ -65,6 +65,7 @@ SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
 TopDownFeatureDeconv
+TopDownOnlineDeconv
 XFDR
 XMLValidator
 )
