@@ -99,7 +99,7 @@ namespace OpenMS
     // depending on the charge different MASSDIFF
     if (charge != 0)
     {
-      massdiff = massdiff/abs(charge);
+      massdiff = massdiff/std::abs(charge);
     }
 
     while (peak_index != -1 && iterations > 0)
