@@ -39,13 +39,19 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakIntegrator.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegressionWithoutIntercept.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/ChromatogramPeak.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
@@ -137,6 +143,8 @@ namespace OpenMS
     {
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
+    
+    centroided_ = false;
   }
   
   /**
@@ -233,18 +241,113 @@ namespace OpenMS
     return list;
   }
   
+  void FeatureFinderMultiplexAlgorithm::correctPeptideIntensities_(const MultiplexIsotopicPeakPattern& pattern, std::map<size_t, SplinePackage>& spline_chromatograms, const std::vector<double>& rt_peptide, std::vector<double>& intensity_peptide)
+  {
+    // determine ratios through linear regression
+    // (In most labelled mass spectrometry experiments, the fold change i.e. ratio and not the individual peptide intensities
+    // are of primary interest. For that reason, we determine the ratios from interpolated chromatogram data points directly,
+    // and then correct the current ones.)
+    
+    std::vector<double> ratios;    // light/light, medium/light, heavy/light etc.
+    ratios.push_back(1.0);
+    // loop over peptides
+    for (size_t peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
+    {
+      std::vector<double> intensities1;
+      std::vector<double> intensities2;
+      
+      // loop over isotopes
+      for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+      {
+        
+        // find splines for the mass traces of the lightest and other peptide
+        size_t idx_1 = isotope;
+        size_t idx_2 = peptide * isotopes_per_peptide_max_ + isotope;
+        if ((spline_chromatograms.find(idx_1) == spline_chromatograms.end()) || (spline_chromatograms.find(idx_2) == spline_chromatograms.end()))
+        {
+           continue;
+        }
+
+        std::map<size_t, SplinePackage>::iterator it1 = spline_chromatograms.find(idx_1);
+        std::map<size_t, SplinePackage>::iterator it2 = spline_chromatograms.find(idx_2);
+
+        double rt_min = std::min(it1->second.getPosMin(), it2->second.getPosMin());
+        double rt_max = std::max(it1->second.getPosMax(), it2->second.getPosMax());        
+        double rt_step_width = 0.7 * std::min(it1->second.getPosStepWidth(), it2->second.getPosStepWidth());
+
+        for (double rt = rt_min; rt < rt_max; rt += rt_step_width)
+        {
+          double intensity1 = it1->second.eval(rt);
+          double intensity2 = it2->second.eval(rt + rt_peptide[peptide] - rt_peptide[0]);    // Take RT shifts between peptide into account to find corresponding intensities.
+          
+          // Use only if we land within both chromatograms i.e. non-zero intensities.
+          if ((intensity1 > 0) && (intensity2 > 0))
+          {
+            intensities1.push_back(intensity1);
+            intensities2.push_back(intensity2);
+          }
+        }
+        
+      }
+
+      // We require at least five data points for a reliable linear interpolation.
+      if (intensities1.size() > 5)
+      {
+        OpenMS::Math::LinearRegressionWithoutIntercept linreg;
+        linreg.addData(intensities1, intensities2);
+        
+        ratios.push_back(linreg.getSlope());        
+      }
+      else
+      {
+        ratios.push_back(-1.0);
+      }
+     
+    }
+    
+    // correction for doublets
+    if ((pattern.getMassShiftCount() == 2) && (ratios[1] > 0))
+    {
+      double intensity0 = (intensity_peptide[0] + ratios[1] * intensity_peptide[1]) / (1 + ratios[1] * ratios[1]);
+      double intensity1 = ratios[1] * intensity0;
+      
+      intensity_peptide[0] = intensity0;
+      intensity_peptide[1] = intensity1;
+    }
+    // correction for triplets or higher multiplets
+    else if ((pattern.getMassShiftCount() > 2) && (ratios[1] > 0))
+    {
+      for (size_t peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
+      {
+        intensity_peptide[peptide] = ratios[peptide] * intensity_peptide[0];
+      }
+    }
+
+  }
+  
   std::vector<double> FeatureFinderMultiplexAlgorithm::determinePeptideIntensitiesCentroided_(const MultiplexIsotopicPeakPattern& pattern, const std::multimap<size_t, MultiplexSatelliteCentroided >& satellites)
   {
     // determine peptide intensities and RT shift between the peptides
     // i.e. first determine the RT centre of mass for each peptide
     std::vector<double> rt_peptide;
     std::vector<double> intensity_peptide;
+    
+    std::map<size_t, SplinePackage> spline_chromatograms;
+    
+    PeakIntegrator pi;
+    Param param = pi.getDefaults();
+    param.setValue("integration_type","trapezoid");    // intensity_sum, simpson, trapezoid (Note that 'simpson' may lead to neagtive area-under-the-curve.)
+    pi.setParameters(param);   
+    
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       // coordinates of the peptide feature
       // RT is the intensity-average of all satellites peaks of all (!) mass traces
       double rt(0);
+      double rt_min(0);
+      double rt_max(0);
+      double intensity_sum_simple(0);    // for intensity-averaged rt
       double intensity_sum(0);
       
       // loop over isotopes i.e. mass traces of the peptide
@@ -255,6 +358,7 @@ namespace OpenMS
         std::pair<std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator, std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator> satellites_isotope;
         satellites_isotope = satellites.equal_range(idx);
         
+        MSChromatogram chromatogram;
         // loop over satellites for this isotope i.e. mass trace
         for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
         {
@@ -268,15 +372,74 @@ namespace OpenMS
           MSSpectrum::ConstIterator it_mz = it_rt->begin();
           std::advance(it_mz, mz_idx);
           
-          rt += it_rt->getRT() * it_mz->getIntensity();
-          intensity_sum += it_mz->getIntensity();
+          double rt_temp = it_rt->getRT();
+          double intensity_temp = it_mz->getIntensity();
+
+          if ((peptide + isotope == 0) || (rt_temp < rt_min))
+          {
+            rt_min = rt_temp;
+          }
+          
+          if ((peptide + isotope == 0) || (rt_temp > rt_max))
+          {
+            rt_max = rt_temp;
+          }
+          
+          rt += rt_temp * intensity_temp;
+          intensity_sum_simple += intensity_temp;
+          
+          chromatogram.push_back(ChromatogramPeak(rt_temp, intensity_temp));
         }
+        
+        chromatogram.sortByPosition();
+        
+        // construct spline interpolations for later use
+        // Reliable spline interpolation only for 5 or more data points in chromatogram.
+        if (chromatogram.size() > 5)
+        {
+          std::vector<double> rt;
+          std::vector<double> intensity;
+          for (const auto &it : chromatogram)
+          {
+            rt.push_back(it.getRT());
+            intensity.push_back(it.getIntensity());
+          }
+          spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
+        }
+
+        if (chromatogram.size() > 2)
+        {
+          double rt_start = chromatogram.begin()->getPos();
+          double rt_end = chromatogram.back().getPos();
+
+          PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);          
+          intensity_sum += pa.area;
+        }
+
       }
       
-      rt /= intensity_sum;
+      rt /= intensity_sum_simple;
       rt_peptide.push_back(rt);
+      if (intensity_sum == 0 || (rt_max - rt_min < static_cast<double>(param_.getValue("algorithm:rt_min"))))
+      {
+        intensity_sum = -1.0;
+      }
       intensity_peptide.push_back(intensity_sum);
     }
+    
+    // If any of the peptide intensities could not be determined (i.e. -1) then there is no need for further corrections.
+    if (std::find(intensity_peptide.begin(), intensity_peptide.end(), -1.0) != intensity_peptide.end())
+    {
+      return intensity_peptide;
+    }
+    
+    // If the pattern searched for peptide singlets, then there are no further corrections possible.
+    if (pattern.getMassShiftCount() < 2)
+    {
+      return intensity_peptide;
+    }
+
+    correctPeptideIntensities_(pattern, spline_chromatograms, rt_peptide, intensity_peptide);
     
     return intensity_peptide;
   }
@@ -287,12 +450,23 @@ namespace OpenMS
     // i.e. first determine the RT centre of mass for each peptide
     std::vector<double> rt_peptide;
     std::vector<double> intensity_peptide;
+    
+    std::map<size_t, SplinePackage> spline_chromatograms;
+    
+    PeakIntegrator pi;
+    Param param = pi.getDefaults();
+    param.setValue("integration_type","trapezoid");    // intensity_sum, simpson, trapezoid (Note that 'simpson' may lead to neagtive area-under-the-curve.)
+    pi.setParameters(param);
+    
     // loop over peptides
     for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       // coordinates of the peptide feature
       // RT is the intensity-average of all satellites peaks of all (!) mass traces
       double rt(0);
+      double rt_min(0);
+      double rt_max(0);
+      double intensity_sum_simple(0);    // for intensity-averaged rt
       double intensity_sum(0);
       
       // loop over isotopes i.e. mass traces of the peptide
@@ -303,19 +477,79 @@ namespace OpenMS
         std::pair<std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator, std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator> satellites_isotope;
         satellites_isotope = satellites.equal_range(idx);
         
+        MSChromatogram chromatogram;
         // loop over satellites for this isotope i.e. mass trace
         for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = satellites_isotope.first; satellite_it != satellites_isotope.second; ++satellite_it)
         {
-          rt += (satellite_it->second).getRT() * (satellite_it->second).getIntensity();
-          intensity_sum += (satellite_it->second).getIntensity();
+          double rt_temp = (satellite_it->second).getRT();
+          double intensity_temp = (satellite_it->second).getIntensity();
+          
+          if ((peptide + isotope == 0) || (rt_temp < rt_min))
+          {
+            rt_min = rt_temp;
+          }
+          
+          if ((peptide + isotope == 0) || (rt_temp > rt_max))
+          {
+            rt_max = rt_temp;
+          }
+          
+          rt += rt_temp * intensity_temp;
+          intensity_sum_simple += intensity_temp;
+
+          chromatogram.push_back(ChromatogramPeak(rt_temp, intensity_temp));
+        }
+        
+        makePeakPositionUnique(chromatogram, IntensityAveragingMethod::MEDIAN);
+        
+        // construct spline interpolations for later use
+        // Reliable spline interpolation only for 5 or more data points in chromatogram.
+        if (chromatogram.size() > 5)
+        {
+          std::vector<double> rt;
+          std::vector<double> intensity;
+          for (const auto &it : chromatogram)
+          {
+            rt.push_back(it.getRT());
+            intensity.push_back(it.getIntensity());
+          }
+          spline_chromatograms.insert(std::make_pair(idx, SplinePackage(rt, intensity)));
+        }
+        
+        if (chromatogram.size() > 2)
+        {
+          // Positions are already sorted in makePeakPositionUnique(), i.e. sortByPosition() not necessary.
+          double rt_start = chromatogram.begin()->getPos();
+          double rt_end = chromatogram.back().getPos();
+
+          PeakIntegrator::PeakArea pa = pi.integratePeak(chromatogram, rt_start, rt_end);          
+          intensity_sum += pa.area;
         }
       }
       
-      rt /= intensity_sum;
+      rt /= intensity_sum_simple;
       rt_peptide.push_back(rt);
+      if (intensity_sum == 0 || (rt_max - rt_min < static_cast<double>(param_.getValue("algorithm:rt_min"))))
+      {
+        intensity_sum = -1.0;
+      }
       intensity_peptide.push_back(intensity_sum);
     }
     
+    // If any of the peptide intensities could not be determined (i.e. -1) then there is no need for further corrections.
+    if (std::find(intensity_peptide.begin(), intensity_peptide.end(), -1.0) != intensity_peptide.end())
+    {
+      return intensity_peptide;
+    }
+    
+    // If the pattern searched for peptide singlets, then there are no further corrections possible.
+    if (pattern.getMassShiftCount() < 2)
+    {
+      return intensity_peptide;
+    }
+    
+    correctPeptideIntensities_(pattern, spline_chromatograms, rt_peptide, intensity_peptide);
+
     return intensity_peptide;
   }
 
@@ -495,11 +729,10 @@ namespace OpenMS
   }
 
   void FeatureFinderMultiplexAlgorithm::generateMapsProfile_(const std::vector<MultiplexIsotopicPeakPattern>& patterns, const std::vector<MultiplexFilteredMSExperiment>& filter_results, const std::vector<std::map<int, GridBasedCluster> >& cluster_results)
-  {
+  {    
     // progress logger
     unsigned progress = 0;
     startProgress(0, patterns.size(), "constructing maps");
-    
     
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -529,8 +762,8 @@ namespace OpenMS
         // determine peptide intensities
         std::vector<double> peptide_intensities = determinePeptideIntensitiesProfile_(patterns[pattern], satellites);
         
-        // If no reliable peptide intensity can be determined, we do not report the peptide multiplet.
-        if (peptide_intensities[0] == -1)
+        // If no reliable peptide intensity can be determined for one of the peptides, we do not report the peptide multiplet.
+        if (std::find(peptide_intensities.begin(), peptide_intensities.end(), -1.0) != peptide_intensities.end())
         {
           continue;
         }
@@ -675,6 +908,22 @@ namespace OpenMS
       swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
 
+    // parameter section: labels, get all mass shifts
+    label_mass_shift_["Arg6"] = param_.getValue("labels:Arg6");
+    label_mass_shift_["Arg10"] = param_.getValue("labels:Arg10");
+    label_mass_shift_["Lys4"] = param_.getValue("labels:Lys4");
+    label_mass_shift_["Lys6"] = param_.getValue("labels:Lys6");
+    label_mass_shift_["Lys8"] = param_.getValue("labels:Lys8");
+    label_mass_shift_["Leu3"] = param_.getValue("labels:Leu3");
+    label_mass_shift_["Dimethyl0"] = param_.getValue("labels:Dimethyl0");
+    label_mass_shift_["Dimethyl4"] = param_.getValue("labels:Dimethyl4");
+    label_mass_shift_["Dimethyl6"] = param_.getValue("labels:Dimethyl6");
+    label_mass_shift_["Dimethyl8"] = param_.getValue("labels:Dimethyl8");
+    label_mass_shift_["ICPL0"] = param_.getValue("labels:ICPL0");
+    label_mass_shift_["ICPL4"] = param_.getValue("labels:ICPL4");
+    label_mass_shift_["ICPL6"] = param_.getValue("labels:ICPL6");
+    label_mass_shift_["ICPL10"] = param_.getValue("labels:ICPL10");
+
     progress_ = progress;
     
     // check for empty experimental data
@@ -692,22 +941,21 @@ namespace OpenMS
     // determine type of spectral data (profile or centroided)
     SpectrumSettings::SpectrumType spectrum_type = exp[0].getType(true);
 
-    bool centroided;
     if (param_.getValue("algorithm:spectrum_type") == "automatic")
     {
-      centroided = (spectrum_type == SpectrumSettings::CENTROID);
+      centroided_ = (spectrum_type == SpectrumSettings::CENTROID);
     }
     else if (param_.getValue("algorithm:spectrum_type") == "centroid")
     {
-      centroided = true;
+      centroided_ = true;
     }
     else  // "profile"
     {
-      centroided = false;
+      centroided_ = false;
     }
     
     // store experiment in member varaibles
-    if (centroided)
+    if (centroided_)
     {
       exp.swap(exp_centroid_);
       // exp_profile_ will never be used.
@@ -724,7 +972,7 @@ namespace OpenMS
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
     
-    if (!centroided)
+    if (!centroided_)
     {
       PeakPickerHiRes picker;
       Param param = picker.getParameters();
@@ -750,7 +998,7 @@ namespace OpenMS
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
     
-    if (centroided)
+    if (centroided_)
     {
       // centroided data
       

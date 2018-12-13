@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_17749660155506638460" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_4968704754139293208" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<featureList count="2">
-		<feature id="f_7804704400743266335">
+		<feature id="f_15706079330621831236">
 			<position dim="0">2170.51847326083</position>
 			<position dim="1">392.937235597873</position>
-			<intensity>8.55078e+10</intensity>
+			<intensity>1.60433e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -34,10 +34,10 @@
 				<pt x="2165.79125976562" y="393.948112800144" />
 			</convexhull>
 		</feature>
-		<feature id="f_15004869347769368353">
+		<feature id="f_6383563675056436299">
 			<position dim="0">2173.49630029615</position>
 			<position dim="1">388.916474205617</position>
-			<intensity>8.56465e+10</intensity>
+			<intensity>1.79453e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
