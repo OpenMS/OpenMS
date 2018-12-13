@@ -1005,7 +1005,7 @@ namespace OpenMS
     if (list.size() == 1 && list[0].size() == 1 && list[0][0] == "no_label")
     {
       // search for singlets only
-      averagine_similarity_scaling = 1.0;
+      averagine_similarity_scaling = 0.0;
     }
     else
     {
