@@ -172,7 +172,7 @@ namespace OpenMS
           ++count_assume_mono;
         }
         // negative mode - make sure charges are < 0
-        if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -abs(precursor_charge); }
+        if (p == IonSource::Polarity::NEGATIVE) { precursor_charge = -(std::abs(precursor_charge)); }
 
         // set feature_charge for msfile if feature information is available
         // no charge annotated - assume mono-charged
@@ -182,7 +182,7 @@ namespace OpenMS
           ++count_assume_mono;
         }
         // negative mode - make sure charges are < 0
-        if (p == IonSource::Polarity::NEGATIVE) { feature_charge = -abs(feature_charge); }
+        if (p == IonSource::Polarity::NEGATIVE) { feature_charge = -(std::abs(feature_charge)); }
 
         // get m/z and intensity of precursor != MS1 spectrum
         double precursor_mz = precursor[0].getMZ();
