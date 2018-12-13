@@ -37,6 +37,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 // #define DEBUG_PEAK_PICKING
 
@@ -301,15 +302,8 @@ public:
       // don't pick a spectrum with less than 3 data points
       if (input.size() < 3) return;
 
-      // copy meta data of the input spectrum
-      output.clear(true);
-      output.SpectrumSettings::operator=(input);
-      output.MetaInfoInterface::operator=(input);
-      output.setRT(input.getRT());
-      output.setMSLevel(input.getMSLevel());
-      output.setName(input.getName());
-      output.setType(SpectrumSettings::CENTROID);
-      output.getFloatDataArrays().clear();
+      // copy the spectrum meta data
+      copySpectrumMeta(input, output);
 
       std::vector<PeakCandidate> PeakCandidates;
       MSSpectrum picked_spectrum;

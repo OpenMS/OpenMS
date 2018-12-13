@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/MATH/MISC/SplineBisection.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 
 using namespace std;
@@ -97,13 +98,8 @@ namespace OpenMS
   void PeakPickerHiRes::pick(const MSSpectrum& input, MSSpectrum& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
   {
     // copy meta data of the input spectrum
-    output.clear(true);
-    output.SpectrumSettings::operator=(input);
-    output.MetaInfoInterface::operator=(input);
-    output.setRT(input.getRT());
-    output.setMSLevel(input.getMSLevel());
-    output.setName(input.getName());
-    output.setType(SpectrumSettings::CENTROID);
+    copySpectrumMeta(input, output);
+
     if (report_FWHM_)
     {
       output.getFloatDataArrays().resize(1);

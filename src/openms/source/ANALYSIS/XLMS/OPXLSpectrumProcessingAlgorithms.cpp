@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -522,17 +523,9 @@ namespace OpenMS
         }
       }
     }
-    out.setPrecursors(old_spectrum.getPrecursors());
-    out.setRT(old_spectrum.getRT());
 
-    out.setNativeID(old_spectrum.getNativeID());
-    out.setInstrumentSettings(old_spectrum.getInstrumentSettings());
-    out.setAcquisitionInfo(old_spectrum.getAcquisitionInfo());
-    out.setSourceFile(old_spectrum.getSourceFile());
-    out.setDataProcessing(old_spectrum.getDataProcessing());
-    out.setType(old_spectrum.getType());
-    out.setMSLevel(old_spectrum.getMSLevel());
-    out.setName(old_spectrum.getName());
+    // copy meta-data into "out" spectrum
+    copySpectrumMeta(old_spectrum, out, false);
 
     out.getIntegerDataArrays().push_back(charge_array);
     out.getIntegerDataArrays().push_back(num_iso_peaks);

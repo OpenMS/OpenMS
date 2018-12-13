@@ -212,6 +212,27 @@ namespace OpenMS
 
     std::swap(p_new, p);
   }
+
+  /**
+   * @brief Copies only the meta data contained in the input spectrum to the output spectrum.
+   * 
+   * @note Actual data is not copied.
+   *
+   * @param[in] input The input spectrum.
+   * @param[out] output The output spectrum (will be cleared and will contain all metadata of the input spectrum).
+   **/
+  static void copySpectrumMeta(const MSSpectrum & input, MSSpectrum & output, bool clear_spectrum = true)
+  {
+    // clear old spectrum first before copying
+    if (clear_spectrum) output.clear(true);
+
+    // copy the spectrum meta data
+    output.SpectrumSettings::operator=(input);
+    output.setRT(input.getRT());
+    output.setDriftTime(input.getDriftTime());
+    output.setMSLevel(input.getMSLevel());
+    output.setName(input.getName());
+  }
   
 } // namespace OpenMS
 

@@ -34,6 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerSH.h>
 
+#include <OpenMS/KERNEL/SpectrumHelper.h>
+
 namespace OpenMS
 {
   PeakPickerSH::PeakPickerSH() :
@@ -63,13 +65,7 @@ namespace OpenMS
     Size progress = 0;
     for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
     {
-      output[scan_idx].clear(true);
-      output[scan_idx].SpectrumSettings::operator=(input[scan_idx]);
-      output[scan_idx].MetaInfoInterface::operator=(input[scan_idx]);
-      output[scan_idx].setRT(input[scan_idx].getRT());
-      output[scan_idx].setMSLevel(input[scan_idx].getMSLevel());
-      output[scan_idx].setName(input[scan_idx].getName());
-      output[scan_idx].setType(SpectrumSettings::CENTROID);
+      copySpectrumMeta(input[scan_idx], output[scan_idx]);
 
       if (input[scan_idx].getMSLevel() != 1)
       {
