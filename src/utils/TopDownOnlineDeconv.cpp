@@ -27,6 +27,7 @@ public:
         Peak1D *orgPeak;
         double logmz;
         int charge;
+        double score;
         double protonMass = 1.0072765;
 
         LogMzPeak(): orgPeak(nullptr), logmz(-10000), charge(0){}
@@ -53,10 +54,9 @@ protected:
         // parsing parameters
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
-        //String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
-     //   String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
-
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
+      //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
+       // String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
         cout << "file name : " << infilePath << endl;
         // just for quick use
 
@@ -153,6 +153,8 @@ protected:
             groupedPeaks.reserve(100);
             groupedPeaks.push_back(result[0]);
 
+            std::map<double, double> scoreMassMap;
+
             for (int i=1; i<result.size();i++){
                 auto peak = result[i];
                 if (peak.logmz - groupedPeaks[0].logmz < tolerance * 2) {
@@ -186,13 +188,24 @@ protected:
                             double int2 = peaksToScore[k-1].orgPeak == nullptr? 0 : peaksToScore[k-1].orgPeak->getIntensity();
                             score += getLogLikelihoodRatioScore(int1, int2);
                         }
-                        if(score > 30) cout<<groupedPeaks[0].getMass() << "  " << score<<endl;
+                        if(score > 10 && !groupedPeaks.empty()) scoreMassMap[score] = groupedPeaks[groupedPeaks.size()/2].getMass();
+                        //if(score > log10(2)) cout<<groupedPeaks[groupedPeaks.size()/2].getMass() << "  " << score<<endl;
                     }
                     groupedPeaks.clear();
                     groupedPeaks.push_back(peak);
                 }
             }
+
+            if(scoreMassMap.empty()) continue;
+            auto iter = scoreMassMap.rbegin();
+            for (int i=0; i<5 && i<scoreMassMap.size() ; ++iter, i++){
+                cout << iter->first << " " << iter->second << endl;
+            }
+            cout << endl;
         }
+
+
+
         return specCntr;
     }
 
@@ -230,10 +243,10 @@ protected:
         if(int1<=0){
             if(int2<=0){
                 if(isH0) ret = 1-tmp;
-                else ret = .9;
+                else ret = 1 - 2*tmp;
             }else{
                 if(isH0) ret = tmp;
-                else ret = .1;
+                else ret = 2*tmp;
             }
         }else{
             if(int2<=0){
@@ -249,8 +262,6 @@ protected:
         }
         return log10(ret);
     }
-
-
 };
 
 int main(int argc, const char** argv)
