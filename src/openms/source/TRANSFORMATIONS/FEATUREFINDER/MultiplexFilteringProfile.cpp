@@ -336,19 +336,6 @@ namespace OpenMS
         
       }
       
-      // Calculate Pearson and Spearman rank correlations
-      /*if ((intensities_model.size() < isotopes_per_peptide_min_) || (intensities_data.size() < isotopes_per_peptide_min_))
-      {
-        throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
-      }
-      double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
-      double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
-
-      if ((correlation_Pearson < averagine_similarity_) || (correlation_Spearman < averagine_similarity_))
-      {
-        return false;
-      }*/
-      
       // Use a more restrictive averagine similarity when we are searching for peptide singlets.
       double similarity;
       if (pattern.getMassShiftCount() == 1)
