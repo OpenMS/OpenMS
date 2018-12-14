@@ -54,8 +54,8 @@ protected:
         // parsing parameters
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
-      //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
+       // String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
       //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
         cout << "file name : " << infilePath << endl;
         // just for quick use
@@ -100,6 +100,8 @@ protected:
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
             specCntr++;
+
+
             double rt = it->getRT();
             double currentThreshold = threshold;
 
@@ -124,11 +126,15 @@ protected:
                 }
             }
 
-            vector<LogMzPeak> logMzPeaks;
-            logMzPeaks.reserve(it->size());
+            auto filteredSpec = filterSpectrum(*it, 2, 1, threshold);
+           // auto filteredSpec = *it;
 
-            for (auto &peak : (*it) ){
-                if (peak.getIntensity() < currentThreshold) continue;
+            //cout<<filteredSpec.size()<<endl;
+            vector<LogMzPeak> logMzPeaks;
+            logMzPeaks.reserve(filteredSpec.size());
+
+            for (auto &peak : filteredSpec ){
+               // if (peak.getIntensity() < currentThreshold) continue;
 
                 LogMzPeak logmzpeak(peak);
                 logMzPeaks.push_back(logmzpeak);
@@ -209,34 +215,43 @@ protected:
         return specCntr;
     }
 
-    vector<Peak1D> filterSpectrum(MSSpectrum &spectrum, double window, double factor){
+    vector<Peak1D> filterSpectrum(MSSpectrum &spectrum, double window, double factor, double th){
         deque<Peak1D> peaksInWindow;
         vector<Peak1D> filtered;
+        vector<double> intensityHeap;
+        intensityHeap.reserve(spectrum.size());
         filtered.reserve(spectrum.size());
         int wsIndex = 0, weIndex = 0;
         double w = window/2;
         double prevMedian = 0;
+        //make_heap(begin(intensityHeap), end(intensityHeap));
+        vector<Peak1D> initFiltered;
+        initFiltered.reserve(spectrum.size());
+        for(auto p : spectrum) if(p.getIntensity() > th) initFiltered.push_back(p);
 
-        for (int i=0;i<spectrum.size();i++) {
-            auto p = spectrum[i];
+        for (int i=0;i<initFiltered.size();i++) {
+            auto p = initFiltered[i];
             auto mz = p.getMZ();
             double median = prevMedian;
-            bool changed = false;
-            while(spectrum[wsIndex].getMZ() < mz - w){
+            while(initFiltered[wsIndex].getMZ() < mz - w){
                 auto firstp = peaksInWindow.front();
+                auto j = lower_bound(intensityHeap.begin(), intensityHeap.end(), firstp.getIntensity());
+                intensityHeap.erase(j);
                 // find firstp in heap and remove it using binary search
                 peaksInWindow.pop_front();
                 wsIndex++;
             }
-            while(spectrum[weIndex].getMZ() < mz + w){
+            while(weIndex< initFiltered.size() && initFiltered[weIndex].getMZ() < mz + w){
                 auto lastp = spectrum[weIndex];
                 peaksInWindow.push_back(lastp);
-                // push lastp in heap using binary search
-                //median = the middle peak intensity in heap
+                auto j = lower_bound(intensityHeap.begin(), intensityHeap.end(), lastp.getIntensity());
+                intensityHeap.insert(j, lastp.getIntensity());
+                median = intensityHeap[intensityHeap.size()/2];
                 weIndex++;
             }
-
-            if(p.getIntensity() > median * factor) filtered.push_back(p);
+           // cout<< spectrum[wsIndex].getMZ() << " " << mz << " " << spectrum[weIndex].getMZ()<< " " << changed << endl;
+            if(p.getIntensity() > median * factor)
+                filtered.push_back(p);
 
             prevMedian = median;
         }
