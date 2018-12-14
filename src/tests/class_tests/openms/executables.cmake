@@ -390,6 +390,7 @@ set(chemistry_executables_list
   Ribonucleotide_test
   RibonucleotideDB_test
   RNaseDigestion_test
+  SimpleTSGXLMS_test
   SpectrumAnnotator_test
   SvmTheoreticalSpectrumGenerator_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
