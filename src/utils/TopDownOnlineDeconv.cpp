@@ -56,7 +56,7 @@ protected:
 //        String infilePath = getStringOption_("in");
         String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
       //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
-       // String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
+      //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
         cout << "file name : " << infilePath << endl;
         // just for quick use
 
@@ -197,11 +197,11 @@ protected:
             }
 
             if(scoreMassMap.empty()) continue;
-            auto iter = scoreMassMap.rbegin();
+          /*  auto iter = scoreMassMap.rbegin();
             for (int i=0; i<5 && i<scoreMassMap.size() ; ++iter, i++){
                 cout << iter->first << " " << iter->second << endl;
             }
-            cout << endl;
+            cout << endl;*/
         }
 
 
@@ -251,13 +251,13 @@ protected:
         }else{
             if(int2<=0){
                 if(isH0) ret = 1-tmp;
-                else ret = .2;
+                else ret = .1;
             }else if(int1<int2){
                 if(isH0) ret = tmp/2;
-                else ret = .1;
+                else ret = .05;
             }else {
                 if (isH0) ret = tmp / 2;
-                else ret = .7;
+                else ret = .85;
             }
         }
         return log10(ret);
