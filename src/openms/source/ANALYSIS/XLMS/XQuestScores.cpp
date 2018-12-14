@@ -129,6 +129,56 @@ namespace OpenMS
     }
   }
 
+  double XQuestScores::matchOddsScoreSimpleSpec(const std::vector< SimpleTSGXLMS::SimplePeak >& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
+  {
+    using boost::math::binomial;
+    Size theo_size = theoretical_spec.size();
+
+    if (matched_size < 1 || theo_size < 1)
+    {
+      return 0;
+    }
+
+    double range = theoretical_spec[theo_size-1].mz - theoretical_spec[0].mz;
+
+    // Compute fragment tolerance in Da for the mean of MZ values, if tolerance in ppm (rough approximation)
+    double mean = 0.0;
+    for (Size i = 0; i < theo_size; ++i)
+    {
+      mean += theoretical_spec[i].mz;
+    }
+    mean = mean / theo_size;
+    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
+
+    // A priori probability of a random match given info about the theoretical spectrum
+    double a_priori_p = 0;
+
+    if (is_xlink_spectrum)
+    {
+      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  (static_cast<double>(theo_size) / static_cast<double>(n_charges)))));
+    }
+    else
+    {
+      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
+    }
+
+    double match_odds = 0;
+
+    binomial flip(theo_size, a_priori_p);
+    // min double number to avoid 0 values, causing scores with the value "inf"
+    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+
+    // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
+    if (match_odds >= 0.0)
+    {
+      return match_odds;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+
   double XQuestScores::logOccupancyProb(const PeakSpectrum& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     using boost::math::binomial;
