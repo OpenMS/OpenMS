@@ -209,6 +209,42 @@ protected:
         return specCntr;
     }
 
+    vector<Peak1D> filterSpectrum(MSSpectrum &spectrum, double window, double factor){
+        deque<Peak1D> peaksInWindow;
+        vector<Peak1D> filtered;
+        filtered.reserve(spectrum.size());
+        int wsIndex = 0, weIndex = 0;
+        double w = window/2;
+        double prevMedian = 0;
+
+        for (int i=0;i<spectrum.size();i++) {
+            auto p = spectrum[i];
+            auto mz = p.getMZ();
+            double median = prevMedian;
+            bool changed = false;
+            while(spectrum[wsIndex].getMZ() < mz - w){
+                auto firstp = peaksInWindow.front();
+                // find firstp in heap and remove it using binary search
+                peaksInWindow.pop_front();
+                wsIndex++;
+            }
+            while(spectrum[weIndex].getMZ() < mz + w){
+                auto lastp = spectrum[weIndex];
+                peaksInWindow.push_back(lastp);
+                // push lastp in heap using binary search
+                //median = the middle peak intensity in heap
+                weIndex++;
+            }
+
+            if(p.getIntensity() > median * factor) filtered.push_back(p);
+
+            prevMedian = median;
+        }
+        return filtered;
+    }
+
+
+
     void sortMatrix(vector<vector<LogMzPeak>> &matrix, vector<LogMzPeak> &result){
         priority_queue< ppi, vector<ppi>, greater<ppi> > pq;
 
