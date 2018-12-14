@@ -77,6 +77,7 @@
 #include <boost/regex.hpp>
 
 #include <map>
+#include <unordered_map>
 #include <algorithm>
 
 #ifdef _OPENMP
@@ -310,7 +311,7 @@ protected:
     );
 
     // Maps a precursor adduct (e.g.: "UU-H2O") to all chemically feasible fragment adducts.
-    using PrecursorsToMS2Adducts = map<String, MS2AdductsOfSinglePrecursorAdduct>;
+    using PrecursorsToMS2Adducts = unordered_map<string, MS2AdductsOfSinglePrecursorAdduct>;
 
     // @brief Calculate all chemically feasible fragment adducts for all possible precursor adducts
     // Same as getFeasibleFragmentAdducts but calculated from all precursor adducts
@@ -494,7 +495,8 @@ protected:
                                      const double& precursor_rna_weight,
                                      const int& precursor_charge,
                                      const vector<FragmentAdductDefinition_>& partial_loss_modification,
-                                     const TheoreticalSpectrumGenerator& partial_loss_spectrum_generator,
+                                     const PeakSpectrum& patial_loss_template_z1,
+                                     const PeakSpectrum& patial_loss_template_z2,
                                      PeakSpectrum& partial_loss_spectrum);
     static void addPrecursorWithCompleteRNA_(const double fixed_and_variable_modified_peptide_weight,
                                       const String & precursor_rna_adduct,
@@ -675,7 +677,10 @@ protected:
           total_loss_spectrum.getStringDataArrays()[0]);
         total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
 
-        PeakSpectrum partial_loss_spectrum;
+        PeakSpectrum partial_loss_spectrum, partial_loss_template_z1, partial_loss_template_z2;
+       
+        partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1); 
+        partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2); 
         RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                     fixed_and_variable_modified_peptide,
                                     fixed_and_variable_modified_peptide_weight,
@@ -683,7 +688,8 @@ protected:
                                     precursor_rna_weight,
                                     precursor_charge,
                                     partial_loss_modification,
-                                    partial_loss_spectrum_generator,
+                                    partial_loss_template_z1,
+                                    partial_loss_template_z2,
                                     partial_loss_spectrum);
 
          // add shifted marker ions
@@ -1987,12 +1993,16 @@ protected:
               }
               else  // score peptide with RNA adduct
               {
+                PeakSpectrum partial_loss_template_z1, partial_loss_template_z2;
+                partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1); 
+                partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2); 
+
                 // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
                 // get RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
-                const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_fragment_adducts.at(precursor_rna_adduct).feasible_adducts;
-
+                auto const & all_NA_adducts = all_feasible_fragment_adducts.at(precursor_rna_adduct);
+                const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_NA_adducts.feasible_adducts;
                 // get marker ions
-                const vector<FragmentAdductDefinition_>& marker_ions = all_feasible_fragment_adducts.at(precursor_rna_adduct).marker_ions;
+                const vector<FragmentAdductDefinition_>& marker_ions = all_NA_adducts.marker_ions;
 
                 //cout << "'" << precursor_rna_adduct << "'" << endl;
                 //OPENMS_POSTCONDITION(!feasible_MS2_adducts.empty(),
@@ -2005,7 +2015,7 @@ protected:
                 // score individually for every nucleotide
                 for (auto const & nuc_2_adducts : feasible_MS2_adducts)
                 {
-                  char cross_linked_nucleotide = nuc_2_adducts.first;
+                  const char& cross_linked_nucleotide = nuc_2_adducts.first;
                   const vector<FragmentAdductDefinition_>& partial_loss_modification = nuc_2_adducts.second;
 
                   if (!partial_loss_modification.empty())
@@ -2019,7 +2029,8 @@ protected:
                                                 precursor_rna_weight,
                                                 1,
                                                 partial_loss_modification,
-                                                partial_loss_spectrum_generator,
+					        partial_loss_template_z1,
+					        partial_loss_template_z2,
                                                 partial_loss_spectrum_z1);
                     for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
 
@@ -2030,7 +2041,8 @@ protected:
                                                 precursor_rna_weight,
                                                 2, // don't know the charge of the precursor at that point
                                                 partial_loss_modification,
-                                                partial_loss_spectrum_generator,
+					        partial_loss_template_z1,
+					        partial_loss_template_z2,
                                                 partial_loss_spectrum_z2);
                     for (auto& n : partial_loss_spectrum_z2.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
                   }
@@ -2928,7 +2940,8 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
   *   - Precursor with complete NA-oligo for charge 1..z
   *   - Partial shifts (without complete precursor adduct)
   *     - Add shifted immonium ions for charge 1 only
-  *     - Add shifted b,y,a ions + precursors for charge 1..z (adding the unshifted version and performing the shift)
+  *     and create shifted shifted b,y,a ions + precursors for charge 1..z (adding the unshifted version and performing the shift)
+  *     based on the total_loss_spectrum provide to the method
   */
 void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const String &unmodified_sequence,
                                                                          const AASequence &fixed_and_variable_modified_peptide,
@@ -2937,7 +2950,8 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
                                                                          const double &precursor_rna_weight,
                                                                          const int &precursor_charge,
                                                                          const vector<RNPxlSearch::FragmentAdductDefinition_> &partial_loss_modification,
-                                                                         const TheoreticalSpectrumGenerator &partial_loss_spectrum_generator,
+                                                                         const PeakSpectrum& partial_loss_template_z1,
+                                                                         const PeakSpectrum& partial_loss_template_z2,
                                                                          PeakSpectrum &partial_loss_spectrum)
 {
   partial_loss_spectrum.getIntegerDataArrays().resize(1);
@@ -2958,6 +2972,7 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
                                  partial_loss_spectrum_annotation);
   }
 
+  // for all observable MS2 adducts ...
   for (Size i = 0; i != partial_loss_modification.size(); ++i)
   {
     // get name and mass of fragment adduct
@@ -2984,38 +2999,36 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
     // For every charge state
     for (int z = 1; z <= precursor_charge; ++z)
     {
-      // 1. create unshifted peaks (a,b,y, MS2 precursor ions up to pc charge)
-      PeakSpectrum tmp_shifted_series_peaks;
-      partial_loss_spectrum_generator.getSpectrum(tmp_shifted_series_peaks, fixed_and_variable_modified_peptide, z, z);
-
-      PeakSpectrum::StringDataArray& tmp_shifted_series_annotations = tmp_shifted_series_peaks.getStringDataArrays()[0];
-      PeakSpectrum::IntegerDataArray& tmp_shifted_series_charges = tmp_shifted_series_peaks.getIntegerDataArrays()[0];
-
-      // 2. shift peaks 
-      for (Size i = 0; i != tmp_shifted_series_peaks.size(); ++i) 
-      { 
-        Peak1D& p = tmp_shifted_series_peaks[i];
-        p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
-      } 
-
-      // 3. add shifted peaks to shifted_series_peaks
-      shifted_series_peaks.insert(shifted_series_peaks.end(), tmp_shifted_series_peaks.begin(), tmp_shifted_series_peaks.end());
-      shifted_series_annotations.insert(
-        shifted_series_annotations.end(),
-        tmp_shifted_series_annotations.begin(),
-        tmp_shifted_series_annotations.end()
-      );
-      shifted_series_charges.insert(
-        shifted_series_charges.end(),
-        tmp_shifted_series_charges.begin(),
-        tmp_shifted_series_charges.end()
-      );
+      // 1. add shifted peaks 
+      if (z == 1)
+      {
+        for (Size i = 0; i != partial_loss_template_z1.size(); ++i) 
+        { 
+          Peak1D p = partial_loss_template_z1[i];
+          p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+          shifted_series_peaks.push_back(p);
+          shifted_series_annotations.push_back(partial_loss_template_z1.getStringDataArrays()[0][i]);
+          shifted_series_charges.push_back(partial_loss_template_z1.getIntegerDataArrays()[0][i]);
+        } 
+      }
+      else if (z == 2)
+      {
+        for (Size i = 0; i != partial_loss_template_z2.size(); ++i) 
+        { 
+          Peak1D p = partial_loss_template_z2[i];
+          p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+          shifted_series_peaks.push_back(p);
+          shifted_series_annotations.push_back(partial_loss_template_z2.getStringDataArrays()[0][i]);
+          shifted_series_charges.push_back(partial_loss_template_z2.getIntegerDataArrays()[0][i]);
+        } 
+      }
+      else { break; } 
     }
 
-    // 4. add fragment shift name to annotation of shifted peaks
+    // 2. add fragment shift name to annotation of shifted peaks
     for (Size j = 0; j != shifted_series_annotations.size(); ++j)
     {
-      shifted_series_annotations[j] = shifted_series_annotations[j] + " " + fragment_shift_name;
+      shifted_series_annotations[j] += " " + fragment_shift_name;
     }
 
     // append shifted and annotated ion series to partial loss spectrum
