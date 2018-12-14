@@ -520,6 +520,7 @@ protected:
                                      const vector<FragmentAdductDefinition_>& partial_loss_modification,
                                      const PeakSpectrum& patial_loss_template_z1,
                                      const PeakSpectrum& patial_loss_template_z2,
+                                     const PeakSpectrum& patial_loss_template_z3,
                                      PeakSpectrum& partial_loss_spectrum);
     static void addPrecursorWithCompleteRNA_(const double fixed_and_variable_modified_peptide_weight,
                                       const String & precursor_rna_adduct,
@@ -700,10 +701,11 @@ protected:
           total_loss_spectrum.getStringDataArrays()[0]);
         total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
 
-        PeakSpectrum partial_loss_spectrum, partial_loss_template_z1, partial_loss_template_z2;
+        PeakSpectrum partial_loss_spectrum, partial_loss_template_z1, partial_loss_template_z2, partial_loss_template_z3;
        
         partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1); 
         partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2); 
+        partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3); 
         RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
                                     fixed_and_variable_modified_peptide,
                                     fixed_and_variable_modified_peptide_weight,
@@ -713,6 +715,7 @@ protected:
                                     partial_loss_modification,
                                     partial_loss_template_z1,
                                     partial_loss_template_z2,
+                                    partial_loss_template_z3,
                                     partial_loss_spectrum);
 
          // add shifted marker ions
@@ -1985,7 +1988,7 @@ protected:
                   ah.isotope_error = isotope_error;
 
                   // combined score
-				  ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
+                  ah.score = RNPxlSearch::calculateCombinedScore(ah, false);
 
 #ifdef DEBUG_RNPXLSEARCH
                   LOG_DEBUG << "best score in pre-score: " << score << endl;
@@ -1995,7 +1998,7 @@ protected:
                   omp_set_lock(&(annotated_hits_lock[scan_index]));
 #endif
                   {
-                    annotated_hits[scan_index].push_back(ah);
+                    annotated_hits[scan_index].emplace_back(move(ah));
 
                     // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
                     if (annotated_hits[scan_index].size() >= 2 * report_top_hits)
@@ -2011,9 +2014,10 @@ protected:
               }
               else  // score peptide with RNA adduct
               {
-                PeakSpectrum partial_loss_template_z1, partial_loss_template_z2;
+                PeakSpectrum partial_loss_template_z1, partial_loss_template_z2, partial_loss_template_z3;
                 partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1); 
                 partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2); 
+                partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3); 
 
                 // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
                 // get RNA fragment shifts in the MS2 (based on the precursor RNA/DNA)
@@ -2049,6 +2053,7 @@ protected:
                                                 partial_loss_modification,
 					        partial_loss_template_z1,
 					        partial_loss_template_z2,
+                                                partial_loss_template_z3,
                                                 partial_loss_spectrum_z1);
                     for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
 
@@ -2061,6 +2066,7 @@ protected:
                                                 partial_loss_modification,
 					        partial_loss_template_z1,
 					        partial_loss_template_z2,
+                                                partial_loss_template_z3,
                                                 partial_loss_spectrum_z2);
                     for (auto& n : partial_loss_spectrum_z2.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
                   }
@@ -2148,7 +2154,7 @@ protected:
                     omp_set_lock(&(annotated_hits_lock[scan_index]));
 #endif
                     {
-                      annotated_hits[scan_index].push_back(ah);
+                      annotated_hits[scan_index].emplace_back(move(ah));
 
                       // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
                       if (annotated_hits[scan_index].size() >= 2 * report_top_hits)
@@ -2229,7 +2235,7 @@ protected:
                 omp_set_lock(&(annotated_hits_lock[scan_index]));
 #endif
                 {
-                  annotated_hits[scan_index].push_back(ah);
+                  annotated_hits[scan_index].emplace_back(move(ah));
 
                   // prevent vector from growing indefinitly (memory) but don't shrink the vector every time
                   if (annotated_hits[scan_index].size() >= 2 * report_top_hits)
@@ -2965,6 +2971,7 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
                                                                          const vector<RNPxlSearch::FragmentAdductDefinition_> &partial_loss_modification,
                                                                          const PeakSpectrum& partial_loss_template_z1,
                                                                          const PeakSpectrum& partial_loss_template_z2,
+                                                                         const PeakSpectrum& partial_loss_template_z3,
                                                                          PeakSpectrum &partial_loss_spectrum)
 {
   partial_loss_spectrum.getIntegerDataArrays().resize(1);
@@ -3035,7 +3042,18 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
           shifted_series_charges.push_back(partial_loss_template_z2.getIntegerDataArrays()[0][i]);
         } 
       }
-      else { break; } 
+      else if (z == 3)
+      {
+        for (Size i = 0; i != partial_loss_template_z3.size(); ++i) 
+        { 
+          Peak1D p = partial_loss_template_z3[i];
+          p.setMZ(p.getMZ() + fragment_shift_mass / static_cast<double>(z));         
+          shifted_series_peaks.push_back(p);
+          shifted_series_annotations.push_back(partial_loss_template_z3.getStringDataArrays()[0][i]);
+          shifted_series_charges.push_back(partial_loss_template_z3.getIntegerDataArrays()[0][i]);
+        } 
+      }
+      else { break; }  // don't consider fragment ions with charge >= 4 
     }
 
     // 2. add fragment shift name to annotation of shifted peaks
@@ -3046,10 +3064,11 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
 
     // append shifted and annotated ion series to partial loss spectrum
     partial_loss_spectrum.insert(partial_loss_spectrum.end(), shifted_series_peaks.begin(), shifted_series_peaks.end());
+    // std::move strings during insert
     partial_loss_spectrum_annotation.insert(
       partial_loss_spectrum_annotation.end(),
-      shifted_series_annotations.begin(),
-      shifted_series_annotations.end()
+      make_move_iterator(shifted_series_annotations.begin()),
+      make_move_iterator(shifted_series_annotations.end())
     );
     partial_loss_spectrum.getIntegerDataArrays()[0].insert(
       partial_loss_spectrum_charge.end(),
