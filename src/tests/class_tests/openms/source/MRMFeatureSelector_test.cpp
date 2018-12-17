@@ -275,15 +275,25 @@ START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
 
   TEST_EQUAL(output_selected.size(), 82);
 
-  const Feature& f1 = output_selected[0].getSubordinates()[0];
-  TEST_REAL_SIMILAR(f1.getMetaValue("peak_apex_int"), 262623.5);
-  TEST_STRING_EQUAL(f1.getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");
-  TEST_REAL_SIMILAR(f1.getRT(), 15.8944563381195);
+  const Feature* f = &output_selected[0].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 262623.5);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 15.8944563381195);
 
-  const Feature& f2 = output_selected[50].getSubordinates()[0];
-  TEST_REAL_SIMILAR(f2.getMetaValue("peak_apex_int"), 37090.0);
-  TEST_STRING_EQUAL(f2.getMetaValue("native_id"), "gua.gua_1.Heavy");
-  TEST_REAL_SIMILAR(f2.getRT(), 1.27875684076945);
+  f = &output_selected[1].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 3678.5);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "2obut.2obut_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 9.54183669713338);
+
+  f = &output_selected[2].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 2332.0);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "5oxpro.5oxpro_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 3.67159563852946);
+
+  f = &output_selected[50].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 37090.0);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "gua.gua_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 1.27875684076945);
 
   // // DEBUG
   // // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
