@@ -192,7 +192,7 @@ namespace OpenMS
         double collision = precursor[0].getActivationEnergy();
 
         // find corresponding ms1 spectra (precursor)
-        PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum((spectra.begin()+ind));
+        PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum((spectra.begin() + ind));
 
         double test_mz = precursor_mz;
         double precursor_rt = 0.0;
@@ -201,9 +201,10 @@ namespace OpenMS
         isotopes.clear();
         vector<Peak1D> precursor_spec;
 
-        if (s_it2->getMSLevel() != 1)
+        // getPrecursorSpectrum returns past-the-end iterator if spectrum is not found.
+        if (s_it2 == spectra.end() || s_it2->getMSLevel() != 1)
         {
-          count_no_ms1 = count_no_ms1 + 1;
+          ++count_no_ms1;
         }
         // get the precursor in the ms1 spectrum (highest intensity in the range of the precursor mz +- 0.1 Da)
         else
