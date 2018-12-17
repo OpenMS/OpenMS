@@ -240,15 +240,20 @@ namespace OpenMS
       ++n_constraints;
     }
     LPWrapper::SolverParam param;
-    problem.solve(param);
+    problem.solve(param, 2);
+    std::cout << "\nSTART\n";
+    std::cout.precision(std::numeric_limits<double>::max_digits10);
     for (Int c = 0; c < problem.getNumberOfColumns(); ++c)
     {
       const String name = problem.getColumnName(c);
-      if (problem.getColumnValue(c) > parameters.optimal_threshold - 1e-17 && variables.count(name))
+      const double column_value = problem.getColumnValue(c);
+      if (column_value > parameters.optimal_threshold - 1e-17 && variables.count(name))
       {
         result.push_back(name);
+        std::cout << "column_name: " << name << ";\tcolumn_value: " << column_value << std::endl;
       }
     }
+    std::cout << "END\n";
   }
 
   void MRMFeatureSelector::constructTargTransList_(
