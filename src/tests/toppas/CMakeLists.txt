@@ -55,13 +55,16 @@ if(WITH_GUI) # ExecutePipeline requires Qt/GUI internally
 	set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test  -whitelist "IdentificationRun " "SearchParameters " "xml-stylesheet")
 
 
+  if(HAS_XSERVER)
 	#------------------------------------------------------------------------------
-	## configure resource files (for TOPPAS/ExecutePipeline) - there is no other way to specify the input
+  ## configure resource files (for TOPPAS/ExecutePipeline) - there is no other
+  way to specify the input
 	configure_file(${DATA_DIR_TOPPAS}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPPAS_BIN}/ExecutePipeline_1.trf)
-	# ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
+  # ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in
+  # binary tree, as they have been configured from a .in file (see above)!
 	add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPPAS}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPPAS_BIN}/ExecutePipeline_1.trf -out_dir .)
-	# do not test the output -- we just want the pipeline to run -- the tools itself are tested separately
-	  
+  # do not test the output -- we just want the pipeline to run -- the tools
+  # itself are tested separately
 	  
 	################### Labelfree quantification with IDMapping ####################
 
@@ -93,6 +96,7 @@ if(WITH_GUI) # ExecutePipeline requires Qt/GUI internally
 	# add_test("TOPPAS_${WF_NAME}_out5" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
 	# set_tests_properties("TOPPAS_${WF_NAME}_out5" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
 
+  endif()
 
 
 ################################################################################
