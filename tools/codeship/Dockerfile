@@ -11,4 +11,6 @@ WORKDIR /openms-build
 # Load the Qt5 environment and configure
 RUN QT_ENV=$(find /opt -name 'qt*-env.sh') && /bin/bash -c "source ${QT_ENV} && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../OpenMS"
 RUN make OpenMS -j2
+RUN make -j2
+RUN make test -j2
 
