@@ -1800,6 +1800,7 @@ namespace OpenMS
         ph_beta.setMetaValue("spectrum_reference", spectrumIDs[0]);
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
         ph_beta.setMetaValue("xl_type", xl_type);
+        ph_beta.setMetaValue("xl_rank", rank);
 
         if (labeled)
         {

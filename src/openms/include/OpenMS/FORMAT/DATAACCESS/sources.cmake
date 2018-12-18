@@ -12,6 +12,7 @@ set(sources_list_h
   MSDataTransformingConsumer.h
   MSDataWritingConsumer.h
   NoopMSDataConsumer.h
+  SiriusFragmentAnnotation.h
   SiriusMzTabWriter.h
   SwathFileConsumer.h
 )

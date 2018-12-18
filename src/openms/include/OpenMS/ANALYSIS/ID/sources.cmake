@@ -33,6 +33,7 @@ ProtonDistributionModel.h
 PeptideIndexing.h
 PercolatorFeatureSetHelper.h
 SimpleSearchEngineAlgorithm.h
+SiriusAdapterAlgorithm.h
 SiriusMSConverter.h
 )
 

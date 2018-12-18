@@ -2838,6 +2838,9 @@ namespace OpenMS
 
   QStringList TOPPViewBase::getFileList_(const String& path_overwrite)
   {
+    // store active sub window
+    QMdiSubWindow* old_active = ws_->activeSubWindow();
+    
     String filter_all = "readable files (*.mzML *.mzXML *.mzData *.featureXML *.consensusXML *.idXML *.dta *.dta2d fid *.bz2 *.gz);;";
     String filter_single = "mzML files (*.mzML);;mzXML files (*.mzXML);;mzData files (*.mzData);;feature map (*.featureXML);;consensus feature map (*.consensusXML);;peptide identifications (*.idXML);;XML files (*.xml);;XMass Analysis (fid);;dta files (*.dta);;dta2d files (*.dta2d);;bzipped files (*.bz2);;gzipped files (*.gz);;all files (*)";
 
@@ -2858,6 +2861,9 @@ namespace OpenMS
       file_names = dialog.selectedFiles();
     }
 
+    // restore active sub window
+    ws_->setActiveSubWindow(old_active);
+    
     return file_names;
   }
 

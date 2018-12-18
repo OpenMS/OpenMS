@@ -45,53 +45,63 @@
 namespace OpenMS
 {
 /**
- * @brief Data structure for spline interpolation of MS1 spectra
+ * @brief Data structure for spline interpolation of MS1 spectra and chromatograms
  *
- * The data structure consists of a set of splines, each interpolating the MS1 spectrum in a certain m/z range.
- * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
+ * The data structure consists of a set of splines, each interpolating the MS1 spectrum (or chromatogram) in a
+ * certain m/z (or RT) range. Between these splines no raw data points exist and the intensity is identical to zero.
+ * 
+ * A spline on non-equi-distant input data is not well supported in regions without data points. Hence, a spline tends to
+ * swing wildly in these regions and cannot be used for reliable interpolation. We assume that in m/z (or RT) regions
+ * without data points, the spectrum (or chromatogram) is identical to zero.
  *
  * @see SplinePackage
  * @see MSSpectrum
+ * @see MSChromatogram
  */
-class OPENMS_DLLAPI SplineSpectrum
+class OPENMS_DLLAPI SplineInterpolatedPeaks
 {
   public:
     /**
      * @brief constructor taking two vectors
-     * (and an optional scaling factor for the m/z step width)
-     *
-     *  @note Vectors are assumed to be sorted by m/z!
+     * (and an optional scaling factor for the m/z (or RT) step width)
+     * 
+     * @note Vectors are assumed to be sorted by m/z (or RT)!
      */
-    SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity);
-    SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
+    SplineInterpolatedPeaks(const std::vector<double>& pos, const std::vector<double>& intensity);
 
     /**
      * @brief constructor taking an MSSpectrum
      * (and an optional scaling factor for the m/z step width)
      */
-    SplineSpectrum(MSSpectrum& raw_spectrum);
-    SplineSpectrum(MSSpectrum& raw_spectrum, double scaling);
+    SplineInterpolatedPeaks(const MSSpectrum& raw_spectrum);
+
+    /**
+     * @brief constructor taking an MSChromatogram
+     * (and an optional scaling factor for the RT step width)
+     */
+    SplineInterpolatedPeaks(const MSChromatogram& raw_chromatogram);
 
     /**
      * @brief destructor
      */
-    ~SplineSpectrum();
+    ~SplineInterpolatedPeaks();
 
     /**
-     * @brief returns the minimum m/z of the spectrum
+     * @brief returns the minimum m/z (or RT) of the spectrum
      */
-    double getMzMin() const;
+    double getPosMin() const;
 
     /**
-     * @brief returns the maximum m/z of the spectrum
+     * @brief returns the maximum m/z (or RT) of the spectrum
      */
-    double getMzMax() const;
+    double getPosMax() const;
 
-    /** Get number of spline packages found during initialization
+    /** 
+     * @brief Get number of spline packages found during initialization
      *
-     *  Note that this function should be called right after the C'tor to ensure the spectrum
-     *  has some usable data to work on.
-     *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
+     * Note that this function should be called right after the C'tor to ensure the spectrum
+     * has some usable data to work on.
+     * In case there are no packages, a subsequent call to getNavigator() will throw an exception.
      */
     size_t size() const;
 
@@ -103,8 +113,11 @@ class OPENMS_DLLAPI SplineSpectrum
       public:
         /**
         * @brief constructor of iterator
+        * 
+        * @param scaling    The step width can be scaled by this factor. Often it is adventageous to iterate
+        * in slightly samller steps over the spectrum (or chromatogram).
         */
-        Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
+        Navigator(const std::vector<SplinePackage> * packages, double posMin, double posMax, double scaling);
 
         /**
         * @brief constructor (for pyOpenMS)
@@ -117,17 +130,19 @@ class OPENMS_DLLAPI SplineSpectrum
         ~Navigator();
 
         /**
-        * @brief returns spline interpolated intensity at m/z
+        * @brief returns spline interpolated intensity at this position
         * (fast access since we can start search from lastPackage)
         */
-        double eval(double mz);
+        double eval(double pos);
 
         /**
-        * @brief returns the next sensible m/z position
-        *  for scanning through a spectrum
+        * @brief returns the next sensible m/z (or RT) position for scanning through a spectrum (or chromatogram)
         * (fast access since we can start search from lastPackage)
+        * 
+        * In the middle of a package, we increase the position by the average spacing of the input data (times a scaling factor).
+        * At the end of a package, we jump straight to the beginning of the next package.
         */
-        double getNextMz(double mz);
+        double getNextPos(double pos);
 
       private:
         
@@ -142,10 +157,21 @@ class OPENMS_DLLAPI SplineSpectrum
         size_t last_package_;
 
         /**
-        * @brief m/z limits of the spectrum
+        * @brief m/z (or RT) limits of the spectrum (or chromatogram)
         */
-        double mz_min_;
-        double mz_max_;
+        double pos_min_;
+        double pos_max_;
+        
+        /**
+        * @brief scaling of the step width
+        * 
+        * Each package stores its own step width, which is the average spacing of the input data points.
+        * This step width can be adjusted by the scaling factor. Often it is adventageous to use a step width
+        * which is somewhat smaller than the average raw data spacing.
+        * 
+        * @see getNextPos() 
+        */
+        double pos_step_width_scaling_;
     };
 
     /**
@@ -154,33 +180,35 @@ class OPENMS_DLLAPI SplineSpectrum
     * Will throw an exception if no packages were found during construction.
     * Check using getSplineCount().
     *
-    * Make sure that the underlying SplineSpectrum does not run out-of-scope since the
+    * Make sure that the underlying SplineInterpolatedPeaks does not run out-of-scope since the
     * Navigator relies on its data.
+    * 
+    * @param scaling    step width scaling parameter
     *
     * @throw Exception::InvalidSize if packages is empty
     */
-    SplineSpectrum::Navigator getNavigator();
+    SplineInterpolatedPeaks::Navigator getNavigator(double scaling = 0.7);
 
   private:
 
     /// hide default C'tor
-    SplineSpectrum();
+    SplineInterpolatedPeaks();
     
     /**
-     * @brief m/z limits of the spectrum
+     * @brief m/z (or RT) limits of the spectrum
      */
-    double mz_min_;
-    double mz_max_;
+    double pos_min_;
+    double pos_max_;
 
     /**
-     * @brief set of spline packages each interpolating in a certain m/z range
+     * @brief set of spline packages each interpolating in a certain m/z (or RT) range
      */
     std::vector<SplinePackage> packages_;
 
     /**
      * @brief section common for all constructors
      */
-    void init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
+    void init_(const std::vector<double>& pos, const std::vector<double>& intensity);
 
 
 };
