@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_5233264595117471314" experiment_type="labeled_MS1" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="2">
+		<map id="0" name="FeatureFinderMultiplex_7_input.mzML" label="no_label" size="1">
+			<UserParam type="int" name="channel_id" value="0"/>
+		</map>
+		<map id="1" name="FeatureFinderMultiplex_7_input.mzML" label="Dimethyl4" size="1">
+			<UserParam type="int" name="channel_id" value="1"/>
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_4835329514588776807" quality="1" charge="2">
+			<centroid rt="1791.33863128802" mz="815.907861331738" it="2.42486e+07"/>
+			<groupedElementList>
+				<element map="0" id="0" rt="1791.33863128802" mz="815.907861331738" it="2.42486e+07" charge="2"/>
+				<element map="1" id="0" rt="1790.74771065319" mz="831.410669192788" it="3.93937e+07" charge="2"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>
