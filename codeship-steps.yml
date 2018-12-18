@@ -1,0 +1,4 @@
+- name: openms_lib
+  tag: master
+  service: codeship_test
+  command: echo "Done here!"
