@@ -28,14 +28,12 @@ public:
         double logmz;
         int charge;
         double score;
-        double protonMass = 1.0072765;
 
         LogMzPeak(): orgPeak(nullptr), logmz(-10000), charge(0){}
-        LogMzPeak(Peak1D &peak): orgPeak(&peak), logmz(log(peak.getMZ() - protonMass)), charge(0){}
-        LogMzPeak(const LogMzPeak &other, double shift, int charge): orgPeak(other.orgPeak), logmz(shift + other.logmz), charge(charge){}
+        LogMzPeak(Peak1D &peak): orgPeak(&peak), logmz(getLogMz(peak.getMZ())), charge(0){}
 
         double getMass(){
-            return exp(logmz);
+            return exp(logmz) * charge;
         }
         bool operator<(const LogMzPeak &a){
             return logmz < a.logmz;
@@ -44,6 +42,14 @@ public:
 
 
 protected:
+
+    static double getLogMz(double mz){
+        const double protonMass = 1.0072765;
+        return log(mz - protonMass);
+    }
+
+
+
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<file>", "", "Input file.");
         setValidFormats_("in", ListUtils::create<String>("mzML"));
@@ -54,8 +60,8 @@ protected:
         // parsing parameters
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
-       // String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
+      //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
       //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
         cout << "file name : " << infilePath << endl;
         // just for quick use
@@ -81,137 +87,78 @@ protected:
         return EXECUTION_OK;
     }
 
-
     int onlineDeonvolution(MSExperiment &map){
-        double threshold = 5e3;
+        double threshold = 5000;
         int filterSize = 25;
         int minCharge = 5;
-        int minPeakNumForScoring = 3; // inclusive
+        int minChargePeakCount = filterSize*.5; // inclusive
+        int massCount = 20;
+        double tolerance = 5e-6;
 
         int specCntr = 0;
         double filter[filterSize];
-        double tolerance = 1e-5;
-        int maxPeakCntr = 2000;
 
         for(int i=0;i<filterSize;i++){
-            filter[i] = log(1.0/(i+minCharge));
+            filter[i] = log(1.0/(i + minCharge)); // should be descending, and negative!
         }
 
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
             specCntr++;
 
-
             double rt = it->getRT();
-            double currentThreshold = threshold;
+            //auto filteredSpec = *it;//filterSpectrum(*it, 1, 2, threshold);
 
-            if(it->size() > maxPeakCntr){
-                vector<Peak1D> allPeaks;
-                allPeaks.reserve(it->size());
-                for (auto &peak : (*it) ) {
-                    allPeaks.push_back(peak);
-                }
-                while(allPeaks.size() > maxPeakCntr) {
-                    vector<Peak1D> tmpPeaks;
-                    tmpPeaks.reserve(allPeaks.size());
-                    for (auto &peak : allPeaks){
-                        if (peak.getIntensity() < currentThreshold) continue;
-                        tmpPeaks.push_back(peak);
-                    }
-                    if (tmpPeaks.size() <= maxPeakCntr) {
-                        break;
-                    }
-                    allPeaks = tmpPeaks;
-                    currentThreshold = currentThreshold * 1.2;
-                }
-            }
-
-            auto filteredSpec = filterSpectrum(*it, 2, 1, threshold);
-           // auto filteredSpec = *it;
-
-            //cout<<filteredSpec.size()<<endl;
             vector<LogMzPeak> logMzPeaks;
-            logMzPeaks.reserve(filteredSpec.size());
-
-            for (auto &peak : filteredSpec ){
-               // if (peak.getIntensity() < currentThreshold) continue;
-
+            logMzPeaks.reserve(it->size());
+            for (auto &peak : *it){
+                if(peak.getIntensity() <= threshold) continue;
                 LogMzPeak logmzpeak(peak);
                 logMzPeaks.push_back(logmzpeak);
             }
 
-            vector<vector<LogMzPeak>> matrix(filterSize); // initialization
-
-            for (int i = 0; i < filterSize; i++) {
-                matrix[i].reserve(logMzPeaks.size());
-                for (auto &logMzPeak : logMzPeaks) {
-                    LogMzPeak p(logMzPeak, -filter[i], i+minCharge);
-                    matrix[i].push_back(p);
-                }
-            }
-
-            vector<LogMzPeak> result;
-            result.reserve(filterSize * logMzPeaks.size());
-            sortMatrix(matrix, result);
-
-
-            vector<LogMzPeak> groupedPeaks;
-            groupedPeaks.reserve(100);
-            groupedPeaks.push_back(result[0]);
+            //continue;
+            auto peakGroups =
+                    findPeakGroups(logMzPeaks, filter, filterSize, minCharge, tolerance, minChargePeakCount, massCount);
+            if (peakGroups.empty()) continue;
 
             std::map<double, double> scoreMassMap;
 
-            for (int i=1; i<result.size();i++){
-                auto peak = result[i];
-                if (peak.logmz - groupedPeaks[0].logmz < tolerance * 2) {
-                    groupedPeaks.push_back(peak);
-                }else{
-                    if(groupedPeaks.size()>=minPeakNumForScoring){
-                        LogMzPeak peaksToScore[filterSize];
-                        int maxIntensityIndex;
-                        double maxIntensity = -1;
+            for(auto &pg : peakGroups){
+                double intensities[filterSize];
+                int maxIntensityIndex;
+                double maxIntensity = -1;
 
-                        for(int k=0;k<filterSize;k++){
-                            peaksToScore[k] = LogMzPeak();
-                        }
-                        for(auto &gp : groupedPeaks){
-                            int index = gp.charge - minCharge;
-                            double intensity = gp.orgPeak->getIntensity();
-                            peaksToScore[index] = gp;
-                            if(maxIntensity < intensity){
-                                maxIntensity = intensity;
-                                maxIntensityIndex = index;
-                            }
-                        }
-                        double score = 0;
-                        for(int k=maxIntensityIndex;k<filterSize-1;k++){
-                            double int1 = peaksToScore[k].orgPeak == nullptr? 0 : peaksToScore[k].orgPeak->getIntensity();
-                            double int2 = peaksToScore[k+1].orgPeak == nullptr? 0 : peaksToScore[k+1].orgPeak->getIntensity();
-                            score += getLogLikelihoodRatioScore(int1, int2);
-                        }
-                        for(int k=maxIntensityIndex;k>0;k--){
-                            double int1 = peaksToScore[k].orgPeak == nullptr? 0 : peaksToScore[k].orgPeak->getIntensity();
-                            double int2 = peaksToScore[k-1].orgPeak == nullptr? 0 : peaksToScore[k-1].orgPeak->getIntensity();
-                            score += getLogLikelihoodRatioScore(int1, int2);
-                        }
-                        if(score > 10 && !groupedPeaks.empty()) scoreMassMap[score] = groupedPeaks[groupedPeaks.size()/2].getMass();
-                        //if(score > log10(2)) cout<<groupedPeaks[groupedPeaks.size()/2].getMass() << "  " << score<<endl;
-                    }
-                    groupedPeaks.clear();
-                    groupedPeaks.push_back(peak);
+                for(int k=0;k<filterSize;k++){
+                    intensities[k] = 0;
                 }
+                for(auto &p : pg){
+                    int index = p.charge - minCharge;
+                    double intensity = p.orgPeak->getIntensity();
+                    intensities[index] += intensity;
+                    if(maxIntensity < intensities[index]){
+                        maxIntensity = intensities[index];
+                        maxIntensityIndex = index;
+                    }
+                }
+                double score = 0;
+                for(int k=maxIntensityIndex;k<filterSize-1;k++){
+                    score += getLogLikelihoodRatioScore(intensities[k], intensities[k+1]);
+                }
+                for(int k=maxIntensityIndex;k>0;k--){
+                    score += getLogLikelihoodRatioScore(intensities[k], intensities[k-1]);
+                }
+                if(score > 10 && !pg.empty()) scoreMassMap[score] = pg[pg.size()/2].getMass();
             }
 
             if(scoreMassMap.empty()) continue;
-          /*  auto iter = scoreMassMap.rbegin();
-            for (int i=0; i<5 && i<scoreMassMap.size() ; ++iter, i++){
-                cout << iter->first << " " << iter->second << endl;
+            auto iter = scoreMassMap.rbegin();
+
+            for (int i=0; i<20 && i<scoreMassMap.size() ; ++iter, i++){
+                cout << iter->first << " " << iter->second << " " << peakGroups.size() << " " << scoreMassMap.size()<< endl;
             }
-            cout << endl;*/
+            cout << endl;
         }
-
-
-
         return specCntr;
     }
 
@@ -224,10 +171,9 @@ protected:
         int wsIndex = 0, weIndex = 0;
         double w = window/2;
         double prevMedian = 0;
-        //make_heap(begin(intensityHeap), end(intensityHeap));
         vector<Peak1D> initFiltered;
         initFiltered.reserve(spectrum.size());
-        for(auto p : spectrum) if(p.getIntensity() > th) initFiltered.push_back(p);
+        for(auto &p : spectrum) if(p.getIntensity() > th) initFiltered.push_back(p);
 
         for (int i=0;i<initFiltered.size();i++) {
             auto p = initFiltered[i];
@@ -249,8 +195,7 @@ protected:
                 median = intensityHeap[intensityHeap.size()/2];
                 weIndex++;
             }
-           // cout<< spectrum[wsIndex].getMZ() << " " << mz << " " << spectrum[weIndex].getMZ()<< " " << changed << endl;
-            if(p.getIntensity() > median * factor)
+            if(p.getIntensity() >= median * factor)
                 filtered.push_back(p);
 
             prevMedian = median;
@@ -258,6 +203,92 @@ protected:
         return filtered;
     }
 
+    vector<vector<LogMzPeak>> findPeakGroups(vector<LogMzPeak> &spectrum, double *filter, int filterSize, int minCharge,
+                                             double tol, int minChargePeakCount, int massCount){
+        vector<vector<LogMzPeak>> peakGroups;
+        // minChargePeakCount should be < filterSize
+        double min = spectrum[0].logmz - filter[minChargePeakCount-1];
+        double max = spectrum[spectrum.size()-1].logmz - filter[filterSize-minChargePeakCount];
+        peakGroups.reserve(massCount*100);
+
+        int binNumber = (max-min)/tol;
+        if(binNumber <=0) return peakGroups;
+
+        Byte bins[binNumber + 1];
+
+        for(int i=0;i<binNumber+1;i++){
+            bins[i] = 0;
+        }
+
+        double binf[filterSize];
+        for(int i=0;i<filterSize;i++){
+            binf[i] = filter[i]/tol;
+        }
+        for(auto &p : spectrum) {
+            double logMz = p.logmz;
+            double fbi = (logMz - min)/tol;
+            for(int j=0;j<filterSize;j++){
+                int bi = fbi - binf[j];
+                if(bi<1) continue;
+                if(bi+1>binNumber) continue;
+                bins[bi-1]++;
+                bins[bi]++;
+            }
+        }
+
+        int currentPeakIndex[filterSize];
+        int binScoreDist[filterSize];
+        for(int i=0;i<filterSize;i++){
+            currentPeakIndex[i] = binScoreDist[i] = 0;
+        }
+
+        for(int i=0;i<binNumber+1;i++) {
+            if(bins[i] < minChargePeakCount) continue;
+            int j = bins[i] >= filterSize? filterSize - 1 : bins[i];
+            binScoreDist[j]++;
+        }
+
+        int binScoreThreshold = minChargePeakCount, tsum=0;
+        for(int i=filterSize-1;i>=0;i--){
+            tsum+=binScoreDist[i];
+            if(tsum >= massCount){
+                binScoreThreshold = i > binScoreThreshold ? i  : binScoreThreshold;
+                break;
+            }
+        }
+
+        for(int i=0;i<binNumber+1;i++){
+            if(bins[i]<binScoreThreshold) continue;
+            map<int, int> toselect; // index - > charge
+
+            for(int j=0;j<filterSize;j++) {
+                while(currentPeakIndex[j] < spectrum.size()) {
+                    double logMz = spectrum[currentPeakIndex[j]].logmz;
+                    int bi = (logMz - min) / tol - binf[j];
+                    if (bi>i) break;
+                    if (i == bi) {
+                        toselect[currentPeakIndex[j]] = j + minCharge;
+                        if(currentPeakIndex[j]>0){
+                            if(logMz - spectrum[currentPeakIndex[j]-1].logmz < tol){
+                                toselect[currentPeakIndex[j]-1] = j + minCharge;
+                            }
+                        }
+                    }
+                    currentPeakIndex[j]++;
+                }
+            }
+            vector<LogMzPeak> logpeaks;
+            logpeaks.reserve(toselect.size());
+
+            for(auto iter = toselect.begin(); iter != toselect.end(); ++ iter){
+                auto t = iter->first;
+                spectrum[t].charge = iter->second; // charge should be multiple...
+                logpeaks.push_back(spectrum[t]);
+            }
+            peakGroups.push_back(logpeaks);
+        }
+        return peakGroups;
+    }
 
 
     void sortMatrix(vector<vector<LogMzPeak>> &matrix, vector<LogMzPeak> &result){
