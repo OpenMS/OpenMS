@@ -48,51 +48,55 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
 if(WITH_GUI) # ExecutePipeline requires Qt/GUI internally
 
-	### General settings
-	set(TOPP_BIN_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-	set(DATA_DIR_TOPPAS ${PROJECT_SOURCE_DIR})
-	set(DATA_DIR_TOPPAS_BIN ${PROJECT_BINARY_DIR})
-	set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test  -whitelist "IdentificationRun " "SearchParameters " "xml-stylesheet")
+  ### General settings
+  set(TOPP_BIN_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+  set(DATA_DIR_TOPPAS ${PROJECT_SOURCE_DIR})
+  set(DATA_DIR_TOPPAS_BIN ${PROJECT_BINARY_DIR})
+  set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -test  -whitelist "IdentificationRun " "SearchParameters " "xml-stylesheet")
 
 
-	#------------------------------------------------------------------------------
-	## configure resource files (for TOPPAS/ExecutePipeline) - there is no other way to specify the input
-	configure_file(${DATA_DIR_TOPPAS}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPPAS_BIN}/ExecutePipeline_1.trf)
-	# ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
-	add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPPAS}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPPAS_BIN}/ExecutePipeline_1.trf -out_dir .)
-	# do not test the output -- we just want the pipeline to run -- the tools itself are tested separately
-	  
-	  
-	################### Labelfree quantification with IDMapping ####################
+  if(HAS_XSERVER)
+  #------------------------------------------------------------------------------
+  # configure resource files (for TOPPAS/ExecutePipeline) - there is no other
+  # way to specify the input
+  configure_file(${DATA_DIR_TOPPAS}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPPAS_BIN}/ExecutePipeline_1.trf)
+  # ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in
+  # binary tree, as they have been configured from a .in file (see above)!
+  add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPPAS}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPPAS_BIN}/ExecutePipeline_1.trf -out_dir .)
+  # do not test the output -- we just want the pipeline to run -- the tools
+  # itself are tested separately
+    
+  ################### Labelfree quantification with IDMapping ####################
 
-	## Example usage (no actual test or data currently available)
-	
-	## Test workflow
-	# set(WF_NAME "LF_Quant")
-	# add_test("TOPPAS_${WF_NAME}" ${TOPP_BIN_PATH}/ExecutePipeline -in ${DATA_DIR_TOPPAS}/${WF_NAME}/labelfree_quant_only.toppas -out_dir ${DATA_DIR_TOPPAS}/${WF_NAME})
-	# set_tests_properties("TOPPAS_${WF_NAME}" PROPERTIES TIMEOUT 1800)
+  ## Example usage (no actual test or data currently available)
+  
+  ## Test workflow
+  # set(WF_NAME "LF_Quant")
+  # add_test("TOPPAS_${WF_NAME}" ${TOPP_BIN_PATH}/ExecutePipeline -in ${DATA_DIR_TOPPAS}/${WF_NAME}/labelfree_quant_only.toppas -out_dir ${DATA_DIR_TOPPAS}/${WF_NAME})
+  # set_tests_properties("TOPPAS_${WF_NAME}" PROPERTIES TIMEOUT 1800)
 
-	## Check output
-	# set(OF_PATH "003-FeatureFinderCentroided/labelfree_1.featureXML")
-	# add_test("TOPPAS_${WF_NAME}_out1" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
-	# set_tests_properties("TOPPAS_${WF_NAME}_out1" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
+  ## Check output
+  # set(OF_PATH "003-FeatureFinderCentroided/labelfree_1.featureXML")
+  # add_test("TOPPAS_${WF_NAME}_out1" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
+  # set_tests_properties("TOPPAS_${WF_NAME}_out1" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
 
-	# set(OF_PATH "003-FeatureFinderCentroided/labelfree_2.featureXML")
-	# add_test("TOPPAS_${WF_NAME}_out2" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
-	# set_tests_properties("TOPPAS_${WF_NAME}_out2" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
+  # set(OF_PATH "003-FeatureFinderCentroided/labelfree_2.featureXML")
+  # add_test("TOPPAS_${WF_NAME}_out2" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
+  # set_tests_properties("TOPPAS_${WF_NAME}_out2" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
 
-	# set(OF_PATH "003-FeatureFinderCentroided/labelfree_3.featureXML")
-	# add_test("TOPPAS_${WF_NAME}_out3" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
-	# set_tests_properties("TOPPAS_${WF_NAME}_out3" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
+  # set(OF_PATH "003-FeatureFinderCentroided/labelfree_3.featureXML")
+  # add_test("TOPPAS_${WF_NAME}_out3" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
+  # set_tests_properties("TOPPAS_${WF_NAME}_out3" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
 
-	# set(OF_PATH "010-ConsensusMapNormalizer/labelfree_1.consensusXML")
-	# add_test("TOPPAS_${WF_NAME}_out4" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
-	# set_tests_properties("TOPPAS_${WF_NAME}_out4" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
+  # set(OF_PATH "010-ConsensusMapNormalizer/labelfree_1.consensusXML")
+  # add_test("TOPPAS_${WF_NAME}_out4" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
+  # set_tests_properties("TOPPAS_${WF_NAME}_out4" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
 
-	# set(OF_PATH "011-FeatureLinkerUnlabeledQT/labelfree_1.consensusXML")
-	# add_test("TOPPAS_${WF_NAME}_out5" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
-	# set_tests_properties("TOPPAS_${WF_NAME}_out5" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
+  # set(OF_PATH "011-FeatureLinkerUnlabeledQT/labelfree_1.consensusXML")
+  # add_test("TOPPAS_${WF_NAME}_out5" ${DIFF} -in1 ${DATA_DIR_TOPPAS}/${WF_NAME}/TOPPAS_out/${OF_PATH} -in2 ${DATA_DIR_TOPPAS}/${WF_NAME}/desired_output/${OF_PATH})
+  # set_tests_properties("TOPPAS_${WF_NAME}_out5" PROPERTIES DEPENDS "TOPPAS_${WF_NAME}")
 
+  endif()
 
 
 ################################################################################
