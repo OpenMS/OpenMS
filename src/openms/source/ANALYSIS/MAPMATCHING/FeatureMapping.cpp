@@ -40,7 +40,7 @@ using namespace std;
 namespace OpenMS
 {
   // return map of ms2 to feature and a vector of unassigned ms2
-  FeatureMapping::FeatureToMs2Indices FeatureMapping::assignMS2IndexToFeature(OpenMS::MSExperiment& spectra,
+  FeatureMapping::FeatureToMs2Indices FeatureMapping::assignMS2IndexToFeature(const OpenMS::MSExperiment& spectra,
                                                                               const OpenMS::KDTreeFeatureMaps& fp_map_kd,
                                                                               const double& precursor_mz_tolerance,
                                                                               const double& precursor_rt_tolerance,
