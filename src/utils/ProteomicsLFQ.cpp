@@ -1327,6 +1327,11 @@ protected:
       IDFilter::keepUniquePeptidesPerProtein(inferred_peptide_ids);
     }
 
+    // filter decoy proteins, update groups so decoy proteins are also removed there, and remove PSMs that mapped to them. 
+    IDFilter::removeDecoyHits(inferred_protein_ids);
+    IDFilter::updateProteinGroups(inferred_protein_ids[0].getIndistinguishableProteins(), inferred_protein_ids[0].getHits());
+    IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
+
     // compute coverage
     // TODO This needs to be fixed!!! Sometimes results in coverages around 30.
     //  All mods and charges counted multiple times?
