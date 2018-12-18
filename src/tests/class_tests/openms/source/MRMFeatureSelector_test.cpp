@@ -52,6 +52,7 @@ START_TEST(MRMFeatureSelector, "$Id$")
 /////////////////////////////////////////////////////////////
 
 const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1.featureXML");
+const String features_path_small = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_100ug.featureXML");
 MRMFeatureSelectorScore* ptr = nullptr;
 MRMFeatureSelectorScore* null_ptr = nullptr;
 
@@ -198,51 +199,68 @@ START_SECTION(computeScore_())
 }
 END_SECTION
 
-// START_SECTION(batchMRMFeaturesQMIP() integer) // integer variable type
-// {
-//   FeatureMap feature_map;
-//   FeatureXMLFile feature_file;
-//   feature_file.load(features_path, feature_map);
+START_SECTION(batchMRMFeaturesQMIP() integer) // integer variable type
+{
+  FeatureMap feature_map;
+  FeatureXMLFile feature_file;
+  feature_file.load(features_path_small, feature_map);
 
-//   MRMBatchFeatureSelector::SelectorParameters params1;
-//   params1.nn_threshold = 4;
-//   params1.locality_weight = "false";
-//   params1.select_transition_group = "true";
-//   params1.segment_window_length = 8;
-//   params1.segment_step_length = 4;
-//   params1.variable_type = MRMFeatureSelector::VariableType::INTEGER;
-//   params1.optimal_threshold = 0.5;
-//   params1.score_weights = {
-//     {"sn_ratio", LambdaScore::INVERSE_LOG},
-//     {"peak_apices_sum", LambdaScore::INVERSE_LOG10}
-//   };
+  MRMFeatureSelector::SelectorParameters params1;
+  params1.nn_threshold = 4;
+  params1.locality_weight = "false";
+  params1.select_transition_group = "true";
+  params1.segment_window_length = 8;
+  params1.segment_step_length = 4;
+  params1.variable_type = MRMFeatureSelector::VariableType::INTEGER;
+  params1.optimal_threshold = 0.5;
+  params1.score_weights = {
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+  };
 
-//   MRMBatchFeatureSelector::SelectorParameters params2 = params1;
-//   params2.segment_window_length = -1;
-//   params2.segment_step_length = -1;
+  MRMFeatureSelector::SelectorParameters params2 = params1;
+  params2.segment_window_length = -1;
+  params2.segment_step_length = -1;
 
-//   FeatureMap output_selected;
-//   MRMBatchFeatureSelector::batchMRMFeaturesQMIP(feature_map, output_selected, {params1, params2});
+  FeatureMap output_selected;
+  MRMBatchFeatureSelector::batchMRMFeaturesQMIP(feature_map, output_selected, {params1, params2});
 
-//   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
-//     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
+  sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
+    return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
 
-//   TEST_EQUAL(output_selected.size(), 117);
-//   TEST_STRING_EQUAL(output_selected[0].getMetaValue("PeptideRef"), "23dpg");
-//   TEST_REAL_SIMILAR(output_selected[0].getRT(), 15.8944563381195);
-//   TEST_STRING_EQUAL(output_selected[12].getMetaValue("PeptideRef"), "actp");
-//   TEST_REAL_SIMILAR(output_selected[12].getRT(), 11.8904100268046);
-//   TEST_STRING_EQUAL(output_selected[116].getMetaValue("PeptideRef"), "xan");
-//   TEST_REAL_SIMILAR(output_selected[116].getRT(), 1.49026310475667);
+  TEST_EQUAL(output_selected.size(), 8);
+  TEST_STRING_EQUAL(output_selected[0].getMetaValue("PeptideRef"), "5-HTP");
+  TEST_REAL_SIMILAR(output_selected[0].getRT(), 2.03215546258545);
+  TEST_STRING_EQUAL(output_selected[1].getMetaValue("PeptideRef"), "Acetylserotonin");
+  TEST_REAL_SIMILAR(output_selected[1].getRT(), 5.07082551965332);
+  TEST_STRING_EQUAL(output_selected[2].getMetaValue("PeptideRef"), "Acetyltryptamine");
+  TEST_REAL_SIMILAR(output_selected[2].getRT(), 6.96528256036377);
+  TEST_STRING_EQUAL(output_selected[3].getMetaValue("PeptideRef"), "Melatonin");
+  TEST_REAL_SIMILAR(output_selected[3].getRT(), 6.96528256036377);
+  TEST_STRING_EQUAL(output_selected[4].getMetaValue("PeptideRef"), "Riboflavin");
+  TEST_REAL_SIMILAR(output_selected[4].getRT(), 5.07082551965332);
+  TEST_STRING_EQUAL(output_selected[5].getMetaValue("PeptideRef"), "Serotonin");
+  TEST_REAL_SIMILAR(output_selected[5].getRT(), 1.78708603594971);
+  TEST_STRING_EQUAL(output_selected[6].getMetaValue("PeptideRef"), "Tryptamine");
+  TEST_REAL_SIMILAR(output_selected[6].getRT(), 3.43251273956299);
+  TEST_STRING_EQUAL(output_selected[7].getMetaValue("PeptideRef"), "Tryptophan");
+  TEST_REAL_SIMILAR(output_selected[7].getRT(), 3.43251273956299);
 
-//   // DEBUG
-//   // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
-//   for (const Feature& f : output_selected)
-//   {
-//     cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
-//   }
-// }
-// END_SECTION
+  // DEBUG
+  // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
+  cout << "\n\nSTART DEBUG INFO" << endl;
+  for (size_t i = 0; i < output_selected.size(); ++i)
+  {
+    const Feature& f = output_selected[i];
+    cout << "[" << i << "]\t\t" << f.getMetaValue("PeptideRef") << "\t\t" << f.getRT() << endl;
+    for (size_t j = 0; j < f.getSubordinates().size(); ++j)
+    {
+      cout << "[" << i << "][" << j << "]\t\t" << f.getSubordinates()[j].getMetaValue("native_id") << "\t\t" << f.getSubordinates()[j].getMetaValue("peak_apex_int") << endl;
+    }
+  }
+  cout << "END   DEBUG INFO\n" << endl;
+}
+END_SECTION
 
 START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
 {
@@ -301,6 +319,93 @@ START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
   // {
   //   cout << f.getMetaValue("PeptideRef") << "\t" << f << endl;
   // }
+}
+END_SECTION
+
+START_SECTION(batchMRMFeaturesQMIP() continuous but smaller experiment) // continuous variable type
+{
+  FeatureMap feature_map;
+  FeatureXMLFile feature_file;
+  feature_file.load(features_path_small, feature_map);
+
+  MRMFeatureSelector::SelectorParameters params1;
+  params1.nn_threshold = 4;
+  params1.locality_weight = false;
+  params1.select_transition_group = true;
+  params1.segment_window_length = 8;
+  params1.segment_step_length = 4;
+  params1.variable_type = MRMFeatureSelector::VariableType::CONTINUOUS;
+  params1.optimal_threshold = 0.5;
+  params1.score_weights = {
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+  };
+
+  MRMFeatureSelector::SelectorParameters params2 = params1;
+  params2.segment_window_length = -1;
+  params2.segment_step_length = -1;
+
+  FeatureMap output_selected;
+  MRMBatchFeatureSelector::batchMRMFeaturesQMIP(feature_map, output_selected, {params1, params2});
+
+  sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
+    return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
+
+  TEST_EQUAL(output_selected.size(), 8);
+
+  const Feature* f = &output_selected[0].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 29.5228353632885);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "5-HTP");
+  TEST_REAL_SIMILAR(f->getRT(), 2.03215546258545);
+
+  f = &output_selected[1].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 30.7684884945637);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Acetylserotonin");
+  TEST_REAL_SIMILAR(f->getRT(), 5.07082551965332);
+
+  f = &output_selected[2].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 28.4325753928028);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Acetyltryptamine");
+  TEST_REAL_SIMILAR(f->getRT(), 6.96528256036377);
+
+  f = &output_selected[3].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 28.4325753928028);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Melatonin");
+  TEST_REAL_SIMILAR(f->getRT(), 6.96528256036377);
+
+  f = &output_selected[4].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 30.7684884945637);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Riboflavin");
+  TEST_REAL_SIMILAR(f->getRT(), 5.07082551965332);
+
+  f = &output_selected[5].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 22.6054459245013);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Serotonin");
+  TEST_REAL_SIMILAR(f->getRT(), 1.78708603594971);
+
+  f = &output_selected[6].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 37.9693079695627);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Tryptamine");
+  TEST_REAL_SIMILAR(f->getRT(), 3.43251273956299);
+
+  f = &output_selected[7].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 37.9693079695627);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Tryptophan");
+  TEST_REAL_SIMILAR(f->getRT(), 3.43251273956299);
+
+  // // DEBUG
+  // // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
+  cout << "\n\nSTART DEBUG INFO" << endl;
+  for (size_t i = 0; i < output_selected.size(); ++i)
+  {
+    const Feature& f = output_selected[i];
+    cout << "[" << i << "]\t\t" << f.getMetaValue("PeptideRef") << "\t\t" << f.getRT() << endl;
+    for (size_t j = 0; j < f.getSubordinates().size(); ++j)
+    {
+      cout << "[" << i << "][" << j << "]\t\t" << f.getSubordinates()[j].getMetaValue("native_id") << "\t\t" << f.getSubordinates()[j].getMetaValue("peak_apex_int") << endl;
+    }
+  }
+  cout << "END   DEBUG INFO\n" << endl;
 }
 END_SECTION
 
