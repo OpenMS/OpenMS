@@ -204,16 +204,34 @@ namespace OpenMS
       phit.setScore(initScore);
     }
 
+    String overall_score_type = "";
+    bool higher_better = true;
+
+    if (!pep_ids.empty())
+    {
+      overall_score_type = pep_ids[0].getScoreType();
+      higher_better = pep_ids[0].isHigherScoreBetter();
+    }
+
+    if (overall_score_type != "Posterior Error Probability" && overall_score_type != "Posterior Probability")
+    {
+      throw OpenMS::Exception::InvalidParameter(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "ProteinInference needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
+          "or run IDPosteriorErrorProbability first.");
+    }
+
     for (auto &pep : pep_ids)
     {
-      if (pep.getScoreType() != "Posterior Error Probability" && pep.getScoreType() != "Posterior Probability")
+      if (pep.getScoreType() != overall_score_type)
       {
         throw OpenMS::Exception::InvalidParameter(
             __FILE__,
             __LINE__,
             OPENMS_PRETTY_FUNCTION,
-            "ProteinInference needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
-            "or run IDPosteriorErrorProbability first.");
+            "Differing score_types in the PeptideHits. Aborting...");
       }
       //skip if it does not belong to run
       if (pep.getIdentifier() != prot_run.getIdentifier())
@@ -296,7 +314,7 @@ namespace OpenMS
           double new_score = pep_hit.second->getScore();
 
           //TODO: Maybe use something else than the metavalue to do the updates (quicker)
-          if (!prot_run.isHigherScoreBetter()) // convert PEP to PP
+          if (!higher_better) // convert PEP to PP
             new_score = 1. - new_score;
 
           switch (aggregation_method)
