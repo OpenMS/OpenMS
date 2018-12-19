@@ -92,7 +92,7 @@ protected:
         double threshold = 5000;
         int filterSize = 20;
         int minCharge = 5;
-        int minChargePeakCount = 10; // inclusive
+        int minChargePeakCount = 5; // inclusive
         int massCount = 20; // TODO - count isotope cluster a single mass! and reduce this to like 5..
         double tolerance = 5e-6;
 
@@ -205,7 +205,7 @@ protected:
                                              double tol, int minChargePeakCount, int massCount){
         vector<vector<LogMzPeak>> peakGroups;
         // minChargePeakCount should be < filterSize
-        double min = spectrum[0].logmz - filter[0];
+        double min = spectrum[0].logmz - filter[0]; // never fix it..
         double max = spectrum[spectrum.size()-1].logmz - filter[filterSize-minChargePeakCount];
         peakGroups.reserve(massCount*100);
 
@@ -214,8 +214,7 @@ protected:
         boost::dynamic_bitset<> bits(binNumber + 1);
 
         for(auto &p : spectrum) {
-            double logMz = p.logmz;
-            int bi = (logMz - min - filter[0]) / tol;
+            int bi = (p.logmz - spectrum[0].logmz) / tol;
             if(bi>binNumber) break;
             bits[bi] = true;
             bits[bi + 1] = true;
@@ -306,7 +305,7 @@ protected:
             peakGroups.push_back(logpeaks);
             index = bits2.find_next(index);
         }
-
+       // cout<<binScoreThreshold<<endl;
         //cout<<peakGroups.size()<<endl;
         return peakGroups;
     }
