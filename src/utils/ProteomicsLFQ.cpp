@@ -822,7 +822,6 @@ protected:
 
       //-------------------------------------------------------------
       // Internal Calibration of spectra peaks and precursor peaks with high-confidence IDs
-      // TODO: check if this improves targeted extraction
       //-------------------------------------------------------------
       if (getStringOption_("mass_recalibration") == "true")
       {
