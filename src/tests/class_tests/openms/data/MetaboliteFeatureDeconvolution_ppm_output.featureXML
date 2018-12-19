@@ -15,6 +15,7 @@
 			<UserParam type="stringList" name="adducts" value="[[M+2H]2+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="2.0156500638"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="15329081911327902813"/>
 		</feature>
 		<feature id="f_1110">
 			<position dim="0">1000</position>
@@ -30,6 +31,7 @@
 			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="15329081911327902813"/>
 		</feature>
 		<feature id="f_2111">
 			<position dim="0">2000</position>
@@ -45,6 +47,7 @@
 			<UserParam type="stringList" name="adducts" value="[[M+2H]2+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="2.0156500638"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="11881453989308070806"/>
 		</feature>
 		<feature id="f_2110">
 			<position dim="0">2000</position>
@@ -60,6 +63,7 @@
 			<UserParam type="stringList" name="adducts" value="[[M+H]+]"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="1.0078250319"/>
 			<UserParam type="int" name="is_backbone" value="1"/>
+			<UserParam type="string" name="Group" value="11881453989308070806"/>
 		</feature>
 		<feature id="f_3111">
 			<position dim="0">3000</position>
@@ -70,10 +74,10 @@
 			<overallquality>1</overallquality>
 			<charge>2</charge>
 			<UserParam type="string" name="label" value="M+2H. Down Error larger 50 ppm"/>
-			<UserParam type="int" name="charge" value="2"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H2"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="2.014552933542"/>
-			<UserParam type="int" name="is_single_feature" value="1"/>
+			<UserParam type="string" name="Group" value="17348772872452528723"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
 		</feature>
 		<feature id="f_3110">
 			<position dim="0">3000</position>
@@ -84,10 +88,10 @@
 			<overallquality>1</overallquality>
 			<charge>1</charge>
 			<UserParam type="string" name="label" value="M+H. Up Error larger 50 ppm"/>
-			<UserParam type="int" name="charge" value="1"/>
 			<UserParam type="string" name="dc_charge_adducts" value="H1"/>
 			<UserParam type="float" name="dc_charge_adduct_mass" value="1.007276466771"/>
-			<UserParam type="int" name="is_single_feature" value="1"/>
+			<UserParam type="string" name="Group" value="17068332045451970805"/>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
 		</feature>
 	</featureList>
 </featureMap>
