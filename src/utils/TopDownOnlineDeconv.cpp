@@ -8,6 +8,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <queue>
+#include "boost/dynamic_bitset.hpp"
 
 using namespace OpenMS;
 using namespace std;
@@ -89,10 +90,10 @@ protected:
 
     int onlineDeonvolution(MSExperiment &map){
         double threshold = 5000;
-        int filterSize = 25;
+        int filterSize = 20;
         int minCharge = 5;
-        int minChargePeakCount = filterSize*.5; // inclusive
-        int massCount = 20;
+        int minChargePeakCount = 10; // inclusive
+        int massCount = 20; // TODO - count isotope cluster a single mass! and reduce this to like 5..
         double tolerance = 5e-6;
 
         int specCntr = 0;
@@ -104,34 +105,31 @@ protected:
 
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
+           // if(it->size()<1000) continue;
             specCntr++;
 
             double rt = it->getRT();
-            //auto filteredSpec = *it;//filterSpectrum(*it, 1, 2, threshold);
 
             vector<LogMzPeak> logMzPeaks;
             logMzPeaks.reserve(it->size());
             for (auto &peak : *it){
                 if(peak.getIntensity() <= threshold) continue;
-                LogMzPeak logmzpeak(peak);
-                logMzPeaks.push_back(logmzpeak);
+                LogMzPeak logMzPeak(peak);
+                logMzPeaks.push_back(logMzPeak);
             }
 
-            //continue;
             auto peakGroups =
                     findPeakGroups(logMzPeaks, filter, filterSize, minCharge, tolerance, minChargePeakCount, massCount);
             if (peakGroups.empty()) continue;
-
             std::map<double, double> scoreMassMap;
 
             for(auto &pg : peakGroups){
-                double intensities[filterSize];
+                double* intensities = new double[filterSize];
                 int maxIntensityIndex;
                 double maxIntensity = -1;
 
-                for(int k=0;k<filterSize;k++){
-                    intensities[k] = 0;
-                }
+                fill_n(intensities,filterSize,0);
+
                 for(auto &p : pg){
                     int index = p.charge - minCharge;
                     double intensity = p.orgPeak->getIntensity();
@@ -207,66 +205,86 @@ protected:
                                              double tol, int minChargePeakCount, int massCount){
         vector<vector<LogMzPeak>> peakGroups;
         // minChargePeakCount should be < filterSize
-        double min = spectrum[0].logmz - filter[minChargePeakCount-1];
+        double min = spectrum[0].logmz - filter[0];
         double max = spectrum[spectrum.size()-1].logmz - filter[filterSize-minChargePeakCount];
         peakGroups.reserve(massCount*100);
 
         int binNumber = (max-min)/tol;
         if(binNumber <=0) return peakGroups;
+        boost::dynamic_bitset<> bits(binNumber + 1);
 
-        Byte bins[binNumber + 1];
-
-        for(int i=0;i<binNumber+1;i++){
-            bins[i] = 0;
-        }
-
-        double binf[filterSize];
-        for(int i=0;i<filterSize;i++){
-            binf[i] = filter[i]/tol;
-        }
         for(auto &p : spectrum) {
             double logMz = p.logmz;
-            double fbi = (logMz - min)/tol;
-            for(int j=0;j<filterSize;j++){
-                int bi = fbi - binf[j];
-                if(bi<1) continue;
-                if(bi+1>binNumber) continue;
-                bins[bi-1]++;
-                bins[bi]++;
-            }
+            int bi = (logMz - min - filter[0]) / tol;
+            if(bi>binNumber) break;
+            bits[bi] = true;
+            bits[bi + 1] = true;
         }
+        if(bits.count() == 0) return peakGroups;
 
-        int currentPeakIndex[filterSize];
-        int binScoreDist[filterSize];
+        boost::dynamic_bitset<> bits2(binNumber + 1);
+        //bits2.set().flip();
+
+        Byte* bins = new Byte[binNumber + 1];
+        fill_n(bins, binNumber + 1,0);
+
+        int index = bits.find_first();
+
+        int binf[filterSize];
         for(int i=0;i<filterSize;i++){
-            currentPeakIndex[i] = binScoreDist[i] = 0;
+            binf[i] = (filter[0] - filter[i]) / tol;
         }
 
-        for(int i=0;i<binNumber+1;i++) {
-            if(bins[i] < minChargePeakCount) continue;
-            int j = bins[i] >= filterSize? filterSize - 1 : bins[i];
-            binScoreDist[j]++;
+        while(index != bits.npos){
+            for(int j=0;j<filterSize;j++) {
+                int bi = index + binf[j];
+                if(bi>binNumber) break;
+                bins[bi]++;
+                if(bins[bi] >= minChargePeakCount)
+                    bits2[bi] = true;
+            }
+            index = bits.find_next(index);
         }
+
+        int* currentPeakIndex = new int[filterSize];
+        fill_n(currentPeakIndex,filterSize,0);
+
+        int* binScoreDist = new int[filterSize];
+        fill_n(binScoreDist,filterSize,0);
+
+        index = bits2.find_first();
+        while(index != bits2.npos){
+            int j = bins[index] >= filterSize? filterSize - 1 : bins[index];
+            binScoreDist[j]++;
+            index = bits2.find_next(index);
+        }
+
+        if(bits2.count() == 0) return peakGroups;
 
         int binScoreThreshold = minChargePeakCount, tsum=0;
-        for(int i=filterSize-1;i>=0;i--){
-            tsum+=binScoreDist[i];
+        for(int i=filterSize;i>=1;i--){
+            tsum+=binScoreDist[i-1];
             if(tsum >= massCount){
-                binScoreThreshold = i > binScoreThreshold ? i  : binScoreThreshold;
+                binScoreThreshold = i + 1 > binScoreThreshold ? i + 1 : binScoreThreshold;
+                binScoreThreshold = binScoreThreshold > filterSize ? filterSize : binScoreThreshold;
                 break;
             }
         }
 
-        for(int i=0;i<binNumber+1;i++){
-            if(bins[i]<binScoreThreshold) continue;
+        index = bits2.find_first();
+        while(index != bits2.npos){
+            if(bins[index]<binScoreThreshold){
+                index = bits2.find_next(index);
+                continue;
+            }
             map<int, int> toselect; // index - > charge
 
             for(int j=0;j<filterSize;j++) {
                 while(currentPeakIndex[j] < spectrum.size()) {
                     double logMz = spectrum[currentPeakIndex[j]].logmz;
-                    int bi = (logMz - min) / tol - binf[j];
-                    if (bi>i) break;
-                    if (i == bi) {
+                    int bi = (logMz - min - filter[j]) / tol;
+                    if (bi>index) break;
+                    if (index == bi) {
                         toselect[currentPeakIndex[j]] = j + minCharge;
                         if(currentPeakIndex[j]>0){
                             if(logMz - spectrum[currentPeakIndex[j]-1].logmz < tol){
@@ -286,7 +304,10 @@ protected:
                 logpeaks.push_back(spectrum[t]);
             }
             peakGroups.push_back(logpeaks);
+            index = bits2.find_next(index);
         }
+
+        //cout<<peakGroups.size()<<endl;
         return peakGroups;
     }
 
