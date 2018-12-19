@@ -308,14 +308,8 @@ namespace OpenMS
               protein->setScore(protein->getScore() + new_score);
               break;
             case AggregationMethod::MAXIMUM :
-              if (prot_run.isHigherScoreBetter())
-              {
-                protein->setScore(std::fmax(double(protein->getScore()), new_score));
-              }
-              else
-              {
-                protein->setScore(std::fmin(double(protein->getScore()), new_score));
-              }
+              // always use max since we convert to PPs always (l297)
+              protein->setScore(std::fmax(double(protein->getScore()), new_score));
               break;
           }
         }
