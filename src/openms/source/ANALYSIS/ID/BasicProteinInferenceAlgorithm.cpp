@@ -190,14 +190,7 @@ namespace OpenMS
        initScore = 1.0;
        break;
      case AggregationMethod::MAXIMUM :
-       if (prot_run.isHigherScoreBetter())
-       {
-         initScore = -std::numeric_limits<double>::max();
-       }
-       else
-       {
-         initScore = std::numeric_limits<double>::max();
-       }
+       initScore = -std::numeric_limits<double>::max();
        break;
      case AggregationMethod::SUM :
        break;
@@ -213,6 +206,15 @@ namespace OpenMS
 
     for (auto &pep : pep_ids)
     {
+      if (pep.getScoreType() != "Posterior Error Probability" && pep.getScoreType() != "Posterior Probability")
+      {
+        throw OpenMS::Exception::InvalidParameter(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "ProteinInference needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
+            "or run IDPosteriorErrorProbability first.");
+      }
       //skip if it does not belong to run
       if (pep.getIdentifier() != prot_run.getIdentifier())
         continue;
@@ -308,7 +310,6 @@ namespace OpenMS
               protein->setScore(protein->getScore() + new_score);
               break;
             case AggregationMethod::MAXIMUM :
-              // always use max since we convert to PPs always (l297)
               protein->setScore(std::fmax(double(protein->getScore()), new_score));
               break;
           }
