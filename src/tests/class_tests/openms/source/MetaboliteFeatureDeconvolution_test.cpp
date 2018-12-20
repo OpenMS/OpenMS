@@ -322,11 +322,11 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 
   String out_file_ppm;
   NEW_TMP_FILE(out_file_ppm)
-  FeatureXMLFile f_ppm;
-  f_ppm.store(out_file_ppm,fm_ppm_out);
+  ConsensusXMLFile f_ppm;
+  f_ppm.store(out_file_ppm,cm_ppm);
 
   WHITELIST("xml-stylesheet,consensusXML version=,consensusElement id=,<UserParam type=");
-  TEST_FILE_SIMILAR(out_file_ppm, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_ppm_output.featureXML"));
+  TEST_FILE_SIMILAR(out_file_ppm, OPENMS_GET_TEST_DATA_PATH("MetaboliteFeatureDeconvolution_ppm_output.consensusXML"));
 
 END_SECTION
 
