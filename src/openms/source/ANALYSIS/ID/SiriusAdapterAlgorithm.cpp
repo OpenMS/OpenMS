@@ -178,7 +178,7 @@ namespace OpenMS
     } 
     
     void SiriusAdapterAlgorithm::preprocessingSirius(const String& featureinfo,
-                                                     MSExperiment& spectra,
+                                                     const MSExperiment& spectra,
                                                      std::vector<FeatureMap>& v_fp,
                                                      KDTreeFeatureMaps& fp_map_kd,
                                                      const SiriusAdapterAlgorithm& sirius_algo,
@@ -244,12 +244,12 @@ namespace OpenMS
       // number of features to be processed 
       if (feature_only && !featureinfo.empty())
       {
-        LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
       }
       else if (!featureinfo.empty())
       {
-        LOG_WARN << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
-        LOG_WARN << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
+        LOG_INFO << "Number of features to be processed: " << feature_mapping.assignedMS2.size() << std::endl;
+        LOG_INFO << "Number of additional MS2 spectra to be processed: " << feature_mapping.unassignedMS2.size() << std::endl;
       } 
       else
       {
@@ -261,12 +261,12 @@ namespace OpenMS
             count_ms2++;
           }
         }
-        LOG_WARN << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
+        LOG_INFO << "Number of MS2 spectra to be processed: " << count_ms2 << std::endl;
       }
     } 
 
     // tmp_msfile (store), all parameters, out_dir (tmpstructure)
-    std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
+    const std::vector<String> SiriusAdapterAlgorithm::callSiriusQProcess(const String& tmp_ms_file,
                                                                    const String& tmp_out_dir,
                                                                    String& executable,
                                                                    const String& out_csifingerid,

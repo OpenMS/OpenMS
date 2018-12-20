@@ -846,28 +846,29 @@ namespace OpenMS
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
         cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
-        cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
+
+        //remove info not wanted in pair
+        std::vector<String> keys;
+        cf.getKeys(keys);
+        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+          cf.removeMetaValue(*it);
+        }
+        cf.setMetaValue("Old_charges", String(old_q0) + ":" + String(old_q1));
         cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
                         + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
                         + String("Delta M: ") + feature_relation[i].getMassDiff()
                         + String(" Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
 
-        //remove info not wanted in pair info nor in decharged consensus
-        cf.removeMetaValue("label");
-        cf.removeMetaValue("dc_charge_adducts");
-        cf.removeMetaValue("adducts");
-        cf.removeMetaValue("dc_charge_adduct_mass");
-        cf.removeMetaValue("is_backbone");
-        cf.removeMetaValue("old_charge");
-        cf.removeMetaValue("map_idx");
-        // print pairs only
         cons_map_p.push_back(cf);
 
         //remove info not wanted in decharged consensus
-        cf.removeMetaValue("Local");
-        cf.removeMetaValue("CP");
-
+        cf.getKeys(keys);
+        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+          cf.removeMetaValue(*it);
+        }
 
         //
         // create cliques for decharge consensus features
@@ -952,6 +953,17 @@ namespace OpenMS
         continue;
       }
 
+      // store element adducts
+      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
+      {
+        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists("dc_charge_adducts"))
+        {
+          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("dc_charge_adducts"));
+        }
+        // also add consensusID of group to all feature_relation
+        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue("Group", String(it->getUniqueId()));
+      }
+
       // store number of distinct charges
       std::set<Int> charges;
       for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
@@ -984,14 +996,20 @@ namespace OpenMS
         continue;
 
       FeatureMapType::FeatureType f_single = fm_out_untouched[i];
-      f_single.setMetaValue("is_single_feature", 1);
+      if (f_single.getCharge() == 0)
+      {
+        f_single.setMetaValue("is_ungrouped_monoisotopic", 1);
+      }
+      else
+      {
+        f_single.setMetaValue("is_ungrouped_with_charge", 1);
+      }
 
       if (is_neg)
       {
         //if negative mode, we report only negative charges. abs() for chains of negative mode dechargers.
         f_single.setCharge(- abs(f_single.getCharge()));
       }
-      f_single.setMetaValue("charge", f_single.getCharge());
 
       //if negative mode, replace former positive charges with their negative sign version?
       //If singleton, set dc_charge_adduct to default, and charge negative in neg mode?,
@@ -1004,11 +1022,6 @@ namespace OpenMS
         f_single.setMetaValue("dc_charge_adducts", (default_ef  * abs(f_single.getCharge())).toString());
         f_single.setMetaValue("dc_charge_adduct_mass", (default_adduct.getSingleMass() * abs(f_single.getCharge())));
       }
-      //What happens with charge 0 features? We can do normal annotation and at end set mz to feature mz?
-      //something like
-      //const double orig_mz = f_single.getMZ();
-      //and set consensusmz at end to that?
-
 
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 
@@ -1016,9 +1029,27 @@ namespace OpenMS
       cf.setQuality(0.0);
       cf.setUniqueId();
       cf.insert(0, f_single);
+      //remove info not wanted in decharged consensus
+      std::vector<String> keys;
+      cf.getKeys(keys);
+      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      {
+        if (*it == "is_ungrouped_monoisotopic" || *it == "is_ungrouped_with_charge")
+          continue;
+
+        cf.removeMetaValue(*it);
+      }
+      // Nedd to set userParam Group output feature map features for singletons here
+      fm_out[i].setMetaValue("Group", String(cf.getUniqueId()));
+
 
       cons_map.push_back(cf);
       cons_map.back().computeDechargeConsensus(fm_out);//previously used fm_out_untouched. does fm_out also work?
+      //If computing decharge mz is 0 (meaning monoisotopic singleton), we instead use the feature mz
+      if (cons_map.back().getMZ() == 0)
+      {
+        cons_map.back().setMZ(f_single.getMZ());
+      }
       ++singletons_count;
     }
     if (verbose_level_ > 2)
