@@ -524,7 +524,7 @@ namespace OpenMS
             {
               abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2);
             }
-            else
+            else if (param_.getValue("unit") == "ppm")
             {
               // For the ppm case, we multiply the respective experimental feature mz by its allowed ppm error before multiplication by charge.
               // We look at the tolerance window with a simplified way: Just use the feature mz, and assume a symmetrc window around it.
@@ -538,7 +538,10 @@ namespace OpenMS
               // As d should be ppm sized, the error is something around 10 to the power of minus 12.
               abs_mass_diff = mz1 * mz_diff_max * 1e-6 * abs(q1)   +   mz2 * mz_diff_max * 1e-6 * abs(q2);
             }
-
+            else
+            {
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING! Invalid tolerance unit! " + String(param_.getValue("unit"))  + "\n");
+            }
 
             //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case?
             hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
