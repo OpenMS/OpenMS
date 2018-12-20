@@ -258,16 +258,19 @@ namespace OpenMS
     std::vector<String> scan = {"MS:1000768","MS:1000769","MS:1000771","MS:1000772","MS:1000776"};
     // list of CV accession with native id format "file=NUMBER"
     std::vector<String> file = {"MS:1000773","MS:1000775"};
+    // expected number of subgroups 
+    auto subgroups = {1};
     
     // "scan=NUMBER" 
     if (std::find(scan.begin(), scan.end(), native_id_type_accession) != scan.end())
     {
       regexp = std::string("scan=(?<GROUP>\\d+)");
     }
-    // "cycle=NUMBER"
+    // id="sample=1 period=1 cycle=96 experiment=1" - this will be described by a combination of (cycle * 1000 + experiment)
     else if (native_id_type_accession == "MS:1000770")
     {
-      regexp = std::string("cycle=(?<GROUP>\\d+)");
+      regexp = std::string("cycle=(?<GROUP>\\d+).experiment=(?<GROUP>\\d+)");
+      subgroups = {1, 2};
     }
     // "file=NUMBER"
     else if (std::find(file.begin(), file.end(), native_id_type_accession) != file.end())
@@ -296,13 +299,18 @@ namespace OpenMS
 
     if (!regexp.empty()) 
     {
-      boost::smatch match;
-      bool found = boost::regex_search(native_id, match, regexp);
-      if (found && match["GROUP"].matched)
-      { 
+      vector<string> matches;
+      boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), regexp, subgroups);
+      boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), regexp, subgroups);
+      for (auto it = current_begin ; it != current_end; ++it)
+      {
+        matches.push_back(*it);      
+      }
+      if (matches.size() == 1)
+      {
         try
         {
-          String value = match["GROUP"].str();
+          String value = String(matches[0]);
           return value.toInt();
         }
         catch (Exception::ConversionError&)
@@ -311,10 +319,26 @@ namespace OpenMS
           return -1;
         }
       }
+      else if (matches.size() == 2)
+      {
+        try
+        {
+          int value = String(matches[0]).toInt() * 1000 + String(matches[1]).toInt();
+          return value;
+        }
+        catch (Exception::ConversionError&)
+        {
+          LOG_WARN << "Value could not be converted to int" << std::endl;
+          return -1;
+        }
+      }
+      else
+      {
+        return -1;
+      }
     }
     return -1;
   } 
-
 
   void SpectrumLookup::addEntry_(Size index, double rt, Int scan_number,
                                  const String& native_id)
