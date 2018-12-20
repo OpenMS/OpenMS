@@ -193,6 +193,7 @@ void CsiFingerIdMzTabWriter::read(const std::vector<String> & sirius_output_path
         result.setSmallMoleculeSectionRows(smsd);
       }
     }
+    file.close();
   }
 }
 

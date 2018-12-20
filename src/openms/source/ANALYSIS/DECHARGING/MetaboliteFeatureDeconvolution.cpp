@@ -491,7 +491,9 @@ namespace OpenMS
 
         for (Int q1 = q_min; q1 <= q_max; ++q1) // ** q1
         {
-          //We assume that ionization modes won't get mixed in pipeline -> detected features should have same charge sign as provided to decharger settings.
+          //We assume that ionization modes won't get mixed in pipeline ->
+          //detected features should have same charge sign as provided to decharger settings for positive mode.
+          //For negative mode, this requirement is relaxed.
           if (!chargeTestworthy_(f1.getCharge(), q1, true))
             continue;
 
@@ -501,7 +503,8 @@ namespace OpenMS
                ; (q2 <= q_max) && (q2 <= q1 + q_span - 1)
                ; ++q2)
           { // ** q2
-            if (!chargeTestworthy_(f2.getCharge(), q2, f1.getCharge() == q1))
+            //again, for negative mode relaxed, thus we consider the absolute of charge
+            if (!chargeTestworthy_(f2.getCharge(), q2, abs(f1.getCharge()) == abs(q1)))
               continue;
 
             ++possibleEdges; // internal count, not vital
@@ -843,28 +846,29 @@ namespace OpenMS
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
         cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
-        cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
+
+        //remove info not wanted in pair
+        std::vector<String> keys;
+        cf.getKeys(keys);
+        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+          cf.removeMetaValue(*it);
+        }
+        cf.setMetaValue("Old_charges", String(old_q0) + ":" + String(old_q1));
         cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
                         + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
                         + String("Delta M: ") + feature_relation[i].getMassDiff()
                         + String(" Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
 
-        //remove info not wanted in pair info nor in decharged consensus
-        cf.removeMetaValue("label");
-        cf.removeMetaValue("dc_charge_adducts");
-        cf.removeMetaValue("adducts");
-        cf.removeMetaValue("dc_charge_adduct_mass");
-        cf.removeMetaValue("is_backbone");
-        cf.removeMetaValue("old_charge");
-        cf.removeMetaValue("map_idx");
-        // print pairs only
         cons_map_p.push_back(cf);
 
         //remove info not wanted in decharged consensus
-        cf.removeMetaValue("Local");
-        cf.removeMetaValue("CP");
-
+        cf.getKeys(keys);
+        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+          cf.removeMetaValue(*it);
+        }
 
         //
         // create cliques for decharge consensus features
@@ -949,6 +953,17 @@ namespace OpenMS
         continue;
       }
 
+      // store element adducts
+      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
+      {
+        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists("dc_charge_adducts"))
+        {
+          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("dc_charge_adducts"));
+        }
+        // also add consensusID of group to all feature_relation
+        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue("Group", String(it->getUniqueId()));
+      }
+
       // store number of distinct charges
       std::set<Int> charges;
       for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
@@ -981,21 +996,66 @@ namespace OpenMS
         continue;
 
       FeatureMapType::FeatureType f_single = fm_out_untouched[i];
-      f_single.setMetaValue("is_single_feature", 1);
-      f_single.setMetaValue("charge", f_single.getCharge());
+      if (f_single.getCharge() == 0)
+      {
+        f_single.setMetaValue("is_ungrouped_monoisotopic", 1);
+      }
+      else
+      {
+        f_single.setMetaValue("is_ungrouped_with_charge", 1);
+      }
+
+      if (is_neg)
+      {
+        //if negative mode, we report only negative charges. abs() for chains of negative mode dechargers.
+        f_single.setCharge(- abs(f_single.getCharge()));
+      }
+
+      //if negative mode, replace former positive charges with their negative sign version?
+      //If singleton, set dc_charge_adduct to default, and charge negative in neg mode?,
+      //first try without modifying charge, maybe already there.
+      // that should help get the correct mass for charged features at least.
+      //adduct mass can already be negative, will be multiplied in consensusfeaturemethod with absolute charge
+      if (f_single.getCharge() != 0)
+      {
+        EmpiricalFormula default_ef(default_adduct.getFormula());
+        f_single.setMetaValue("dc_charge_adducts", (default_ef  * abs(f_single.getCharge())).toString());
+        f_single.setMetaValue("dc_charge_adduct_mass", (default_adduct.getSingleMass() * abs(f_single.getCharge())));
+      }
+
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 
       ConsensusFeature cf(f_single);
       cf.setQuality(0.0);
       cf.setUniqueId();
       cf.insert(0, f_single);
+      //remove info not wanted in decharged consensus
+      std::vector<String> keys;
+      cf.getKeys(keys);
+      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      {
+        if (*it == "is_ungrouped_monoisotopic" || *it == "is_ungrouped_with_charge")
+          continue;
+
+        cf.removeMetaValue(*it);
+      }
+      // Nedd to set userParam Group output feature map features for singletons here
+      fm_out[i].setMetaValue("Group", String(cf.getUniqueId()));
+
 
       cons_map.push_back(cf);
-      cons_map.back().computeDechargeConsensus(fm_out_untouched);
+      cons_map.back().computeDechargeConsensus(fm_out);//previously used fm_out_untouched. does fm_out also work?
+      //If computing decharge mz is 0 (meaning monoisotopic singleton), we instead use the feature mz
+      if (cons_map.back().getMZ() == 0)
+      {
+        cons_map.back().setMZ(f_single.getMZ());
+      }
       ++singletons_count;
     }
-
-    LOG_INFO << "Single features without charge ladder: " << singletons_count << " of " << fm_out.size() << "\n";
+    if (verbose_level_ > 2)
+    {
+      LOG_INFO << "Single features without charge ladder: " << singletons_count << " of " << fm_out.size() << "\n";
+    }
 
 
     // fill the header
@@ -1189,37 +1249,48 @@ namespace OpenMS
 
   bool MetaboliteFeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge, const bool other_unchanged) const
   {
-    //Switches of charge signs in one ionization mode should logically not occur. The assumed decharger charge settings should fit to feature charges
-    if (feature_charge * putative_charge < 0)
+    //Switches of charge signs in one ionization mode should logically not occur.
+    //The assumed decharger charge settings should fit to feature charges.
+    //However, FFM (and other tools?) doesn't know about negative charges, thus for negative charges,
+    //we have to verify that positive Feature charges match negative adduct charges.
+    //Further, we have two scenarios: 1. The features come from FFM, then all charges are absolute.
+    // 2. We iteratively decharge negative mode, leading to decharger featureXML outputs with new negative charges.
+    //Thus, we restrict this check for testworthiness to positive mode, as for negative mode both charge signs are valid.
+    bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
+    if (!is_neg && (feature_charge * putative_charge < 0))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative positive mode charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
     }
 
+    //From here, we checked whether we are fine with charge signs, so for now simply look only at absolute charges.
+    const Int abs_feature_charge = abs(feature_charge);
+    const Int abs_putative_charge = abs(putative_charge);
+
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
-    if ((feature_charge == 0) || (q_try_ == QALL))
+    if ((abs_feature_charge == 0) || (q_try_ == QALL))
     {
       return true;
     }
     else if (q_try_ == QHEURISTIC)
     {
       // do not allow two charges to change at the same time
-      if (!other_unchanged && feature_charge != putative_charge)
+      if (!other_unchanged && abs_feature_charge != abs_putative_charge)
         return false;
 
       // test two adjacent charges:
-      if (abs(feature_charge - putative_charge) <= 2)
+      if (abs(abs_feature_charge - abs_putative_charge) <= 2)
         return true;
 
       // test two multiples
-      if (feature_charge * 2 == putative_charge || feature_charge * 3 == putative_charge
-         || feature_charge == putative_charge * 2 || feature_charge == putative_charge * 3)
+      if (abs_feature_charge * 2 == abs_putative_charge || abs_feature_charge * 3 == abs_putative_charge
+         || abs_feature_charge == abs_putative_charge * 2 || abs_feature_charge == abs_putative_charge * 3)
         return true;
 
       return false;
     }
     else if (q_try_ == QFROMFEATURE)
     {
-      return feature_charge == putative_charge;
+      return abs_feature_charge == abs_putative_charge;
     }
 
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!", String((Int)q_try_));

@@ -171,7 +171,7 @@ namespace OpenMS
           if (boost::is_same<ContainerT, MSChromatogram>::value) 
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                "Found m/z data type for spectra (instead of retention time)");
+                "Found m/z data type for chromatogram (instead of retention time)");
           }
 
           if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
@@ -188,7 +188,7 @@ namespace OpenMS
           if (boost::is_same<ContainerT, MSSpectrum >::value) 
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                "Found retention time data type for spectra (instead of m/z)");
+                "Found retention time data type for spectrum (instead of m/z)");
           }
           if (containers[curr_id].empty()) containers[curr_id].resize(data.size());
           std::vector< double >::iterator data_it = data.begin();

@@ -110,7 +110,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-100);
     TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 2548)
 
-    gen.setThreshold(1e-1000);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula(ef)).size(), 2548)
   }
 
@@ -151,7 +151,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-250);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
 
-    gen.setThreshold(1e-1000);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula("C100")).size(), 101)
 
     TEST_REAL_SIMILAR(gen.run(EmpiricalFormula("C100"))[100].getIntensity(), 8.67e-198) // note: Intensity is only float, so nothing beyond 1e-38
@@ -192,10 +192,7 @@ START_SECTION(( IsotopeDistribution run(const EmpiricalFormula&) const ))
     gen.setThreshold(1e-320);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 7687)
 
-    gen.setThreshold(1e-350);
-    TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
-
-    gen.setThreshold(1e-1000);
+    gen.setThreshold(0.0);
     TEST_EQUAL(gen.run(EmpiricalFormula(formula)).size(), 101* 203)
   }
 }
@@ -203,25 +200,23 @@ END_SECTION
 
 START_SECTION(( [EXTRA]IsotopeDistribution run(const EmpiricalFormula&) const ))
 {
-  // human insulin
-  EmpiricalFormula ef ("C520H817N139O147S8");
-
   {
+    // human insulin
+    EmpiricalFormula ef ("C520H817N139O147S8");
+
     FineIsotopePatternGenerator gen;
     IsotopeDistribution id = gen.run(ef);
     TEST_EQUAL(id.size(), 267)
 
     gen.setThreshold(1e-5);
-    id = gen.run(ef);
-    TEST_EQUAL(id.size(), 5513)
-  }
-
-  {
-    IsotopeDistribution id = ef.getIsotopeDistribution(FineIsotopePatternGenerator());
-    TEST_EQUAL(id.size(), 267)
-
-    IsotopeDistribution id2 = ef.getIsotopeDistribution(FineIsotopePatternGenerator(1e-5));
+    IsotopeDistribution id2 = gen.run(ef);
     TEST_EQUAL(id2.size(), 5513)
+
+    IsotopeDistribution id3 = ef.getIsotopeDistribution(FineIsotopePatternGenerator());
+    TEST_EQUAL(id3.size(), 267)
+
+    IsotopeDistribution id4 = ef.getIsotopeDistribution(FineIsotopePatternGenerator(1e-5));
+    TEST_EQUAL(id4.size(), 5513)
   }
 
   {
@@ -372,12 +367,13 @@ END_SECTION
 
 START_SECTION(( void setAbsolute(bool absolute) ))
 {
-  FineIsotopePatternGenerator gen;
-  gen.setAbsolute(true);
-  TEST_EQUAL(gen.getAbsolute(), true);
-  gen.setAbsolute(false);
-  TEST_EQUAL(gen.getAbsolute(), false);
-
+  {
+    FineIsotopePatternGenerator gen;
+    gen.setAbsolute(true);
+    TEST_EQUAL(gen.getAbsolute(), true);
+    gen.setAbsolute(false);
+    TEST_EQUAL(gen.getAbsolute(), false);
+  }
   // human insulin
   EmpiricalFormula ef ("C520H817N139O147S8");
 

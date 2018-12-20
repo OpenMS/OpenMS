@@ -244,6 +244,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SiriusFragmentAnnotation_test
 )
 
 set(math_executables_list
@@ -320,8 +321,8 @@ set(filtering_executables_list
   ParentPeakMower_test
   PeakMarker_test
   PrecursorCorrection_test
+  SplineInterpolatedPeaks_test
   SplinePackage_test
-  SplineSpectrum_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
@@ -382,6 +383,7 @@ set(chemistry_executables_list
   ResidueDB_test
   ResidueModification_test
   Residue_test
+  SimpleTSGXLMS_test
   SpectrumAnnotator_test
   SvmTheoreticalSpectrumGenerator_test
   SvmTheoreticalSpectrumGeneratorTrainer_test
@@ -633,6 +635,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureQC_test
     SpectrumHelpers_test
     StatsHelpers_test
+    SwathQC_test
     CachedMzML_test
     CachedMzMLHandler_test
   )
