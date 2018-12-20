@@ -77,7 +77,6 @@
 #include <boost/regex.hpp>
 
 #include <map>
-#include <unordered_map>
 #include <algorithm>
 
 #ifdef _OPENMP
@@ -311,7 +310,7 @@ protected:
     );
 
     // Maps a precursor adduct (e.g.: "UU-H2O") to all chemically feasible fragment adducts.
-    using PrecursorsToMS2Adducts = unordered_map<string, MS2AdductsOfSinglePrecursorAdduct>;
+    using PrecursorsToMS2Adducts = map<string, MS2AdductsOfSinglePrecursorAdduct>;
 
     // @brief Calculate all chemically feasible fragment adducts for all possible precursor adducts
     // Same as getFeasibleFragmentAdducts but calculated from all precursor adducts
