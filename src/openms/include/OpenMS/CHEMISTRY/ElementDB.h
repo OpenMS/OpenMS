@@ -69,19 +69,17 @@ namespace OpenMS
   class OPENMS_DLLAPI ElementDB
   {
 public:
-
+    
     /** @name Accessors
     */
     //@{
     /// returns a pointer to the singleton instance of the element db
-    inline static const ElementDB * getInstance()
+    /// Upon first call, the Elements.xml file is parsed
+    /// This is thread safe upon first and subsequent calls.
+    inline static const ElementDB* getInstance()
     {
-      static ElementDB * db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new ElementDB;
-      }
-      return db_;
+      static ElementDB db_; // this is thread safe!
+      return &db_;
     }
 
     /// returns a hashmap that contains names mapped to pointers to the elements
