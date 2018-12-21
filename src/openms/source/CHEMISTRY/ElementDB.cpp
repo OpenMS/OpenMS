@@ -110,19 +110,11 @@ namespace OpenMS
   double ElementDB::calculateAvgWeight_(const Map<UInt, double>& Z_to_abundance, const Map<UInt, double>& Z_to_mass)
   {
     double avg = 0;
-    // extract Zs
-    vector<UInt> keys;
+    // calculate weighted average
     for (Map<UInt, double>::const_iterator it = Z_to_abundance.begin(); it != Z_to_abundance.end(); ++it)
     {
-      keys.push_back(it->first);
+      avg += Z_to_mass[it->first] * Z_to_abundance[it->first];
     }
-
-    // calculate weighted average
-    for (vector<UInt>::iterator it = keys.begin(); it != keys.end(); ++it)
-    {
-      avg += Z_to_mass[*it] * Z_to_abundance[*it];
-    }
-
     return avg;
   }
 
@@ -312,6 +304,7 @@ namespace OpenMS
 
   void ElementDB::clear_()
   {
+    // names_ has the union of all Element*, deleting this is sufficient to avoid mem leaks
     Map<String, const Element*>::Iterator it = names_.begin();
     for (; it != names_.end(); ++it)
     {
