@@ -20,6 +20,8 @@
         </NODE>
       </NODE>
     </NODE>    
+    <!--
+    === disable these elements for now (Deuterium is available via 'H(2)' anyways) since they cause mem-leaks in ElementsDB (design choice for speed) ===
     <NODE name="Deuterium">
       <ITEM name="Name" value="Deuterium" type="string" />
       <ITEM name="Symbol" value="D" type="string" />
@@ -41,7 +43,8 @@
           <ITEM name="AtomicMass" value="3.01604927" type="float" />
         </NODE>
       </NODE>
-    </NODE>    
+    </NODE>
+    -->
     <NODE name="Helium">
       <ITEM name="Name" value="Helium" type="string"/>
       <ITEM name="Symbol" value="He" type="string"/>
