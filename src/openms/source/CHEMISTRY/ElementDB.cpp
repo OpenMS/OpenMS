@@ -200,7 +200,7 @@ namespace OpenMS
       }
       if (symbols_.has(iso_symbol))
       {
-        std::cerr << "Error: ElementDB encountered duplicated names for \n" << *symbols_[iso_symbol] << "\n" << *iso_e << "\nKeeping only the first one!\n";
+        std::cerr << "Error: ElementDB encountered duplicated symbol for \n" << *symbols_[iso_symbol] << "\n" << *iso_e << "\nKeeping only the first one!\n";
         delete e;
         return;
       }
