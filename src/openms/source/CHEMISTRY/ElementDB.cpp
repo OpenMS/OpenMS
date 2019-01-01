@@ -161,7 +161,7 @@ namespace OpenMS
     }
     if (atomic_numbers_.has(an))
     {
-      std::cerr << "Error: ElementDB encountered duplicated atomic_numbers_ for \n" << *atomic_numbers_[an] << "\n" << *e << "\nKeeping only the first one!\n";
+      std::cerr << "Error: ElementDB encountered duplicated atomic number for \n" << *atomic_numbers_[an] << "\n" << *e << "\nKeeping only the first one!\n";
       delete e;
       return; // next element
     }
