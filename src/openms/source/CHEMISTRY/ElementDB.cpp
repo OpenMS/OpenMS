@@ -194,7 +194,7 @@ namespace OpenMS
       Element* iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
       if (names_.has(iso_name))
       {
-        std::cerr << "Error: ElementDB encountered duplicated names for \n" << *names_[iso_name] << "\n" << *iso_e << "\nKeeping only the first one!\n";
+        std::cerr << "Error: ElementDB encountered duplicated name for \n" << *names_[iso_name] << "\n" << *iso_e << "\nKeeping only the first one!\n";
         delete e;
         return;
       }
