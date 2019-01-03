@@ -4,12 +4,12 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>" namespace "O
     
     cdef cppclass SplinePackage "OpenMS::SplinePackage":
 
-        SplinePackage(libcpp_vector[double] mz, libcpp_vector[double] intensity, double scaling) nogil except +
+        SplinePackage(libcpp_vector[double] pos, libcpp_vector[double] intensity) nogil except +
         SplinePackage(SplinePackage) nogil except + #wrap-ignore
 
-        double getMzMin() nogil except +
-        double getMzMax() nogil except +
-        double getMzStepWidth() nogil except +
-        bool isInPackage(double mz) nogil except +
-        double eval(double mz) nogil except +
+        double getPosMin() nogil except +
+        double getPosMax() nogil except +
+        double getPosStepWidth() nogil except +
+        bool isInPackage(double pos) nogil except +
+        double eval(double pos) nogil except +
 

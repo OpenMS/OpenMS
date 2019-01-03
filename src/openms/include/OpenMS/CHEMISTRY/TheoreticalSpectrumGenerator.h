@@ -59,6 +59,10 @@ namespace OpenMS
       are extended. Therefore it is not recommended to add to or change the PeakSpectrum or these DataArrays
       between calls of the getSpectrum function with the same PeakSpectrum.
 
+      @note The generation of neutral loss peaks is very slow in this class.
+      Something similar to the neutral loss precalculation used in TheoreticalSpectrumGeneratorXLMS
+      should be implemented here as well.
+
       @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
 
       @ingroup Chemistry

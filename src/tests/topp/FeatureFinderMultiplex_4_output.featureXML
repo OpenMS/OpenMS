@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_13440783915218733453" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_4390996181604114545" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<featureList count="5">
-		<feature id="f_15916652588957785155">
+		<feature id="f_8473416907190344936">
 			<position dim="0">1852.38703065058</position>
 			<position dim="1">620.421165174974</position>
-			<intensity>356251</intensity>
+			<intensity>13588.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -46,10 +46,10 @@
 				<pt x="1850.97889160156" y="621.609993168067" />
 			</convexhull>
 		</feature>
-		<feature id="f_15157403601844400700">
+		<feature id="f_1938193418556571614">
 			<position dim="0">1854.7415167568</position>
 			<position dim="1">614.931864941648</position>
-			<intensity>338499</intensity>
+			<intensity>15841.7</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -97,10 +97,10 @@
 				<pt x="1857.07788085938" y="616.453587765442" />
 			</convexhull>
 		</feature>
-		<feature id="f_6408859317243173796">
+		<feature id="f_17506851289809440038">
 			<position dim="0">1855.15530488198</position>
 			<position dim="1">616.768446577096</position>
-			<intensity>6.51352e+06</intensity>
+			<intensity>105434</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -142,10 +142,10 @@
 				<pt x="1850.97889160156" y="617.629724192589" />
 			</convexhull>
 		</feature>
-		<feature id="f_474525871221756682">
+		<feature id="f_13958689921625841361">
 			<position dim="0">1855.2380935984</position>
 			<position dim="1">620.928213169278</position>
-			<intensity>37488.2</intensity>
+			<intensity>15871.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -187,10 +187,10 @@
 				<pt x="1857.06788085938" y="622.100457275613" />
 			</convexhull>
 		</feature>
-		<feature id="f_12999979801269632061">
+		<feature id="f_16331726621473442797">
 			<position dim="0">1855.79010542035</position>
 			<position dim="1">610.765349095388</position>
-			<intensity>3.27884e+07</intensity>
+			<intensity>533858</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>

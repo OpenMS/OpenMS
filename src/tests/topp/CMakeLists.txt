@@ -315,6 +315,16 @@ add_test("TOPP_FeatureFinderMultiplex_5_out1" ${DIFF} -whitelist "id=" "href=" -
 set_tests_properties("TOPP_FeatureFinderMultiplex_5_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_5")
 add_test("TOPP_FeatureFinderMultiplex_5_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_10.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_5_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_5")
+add_test("TOPP_FeatureFinderMultiplex_6" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_parameters.ini -out FeatureFinderMultiplex_11.tmp -out_multiplets FeatureFinderMultiplex_12.tmp)
+add_test("TOPP_FeatureFinderMultiplex_6_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_11.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_6_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_6")
+add_test("TOPP_FeatureFinderMultiplex_6_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_12.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_6_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_6")
+add_test("TOPP_FeatureFinderMultiplex_7" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_parameters.ini -out FeatureFinderMultiplex_13.tmp -out_multiplets FeatureFinderMultiplex_14.tmp)
+add_test("TOPP_FeatureFinderMultiplex_7_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_13.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_7_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_7")
+add_test("TOPP_FeatureFinderMultiplex_7_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_14.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_7_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_7")
 
 #------------------------------------------------------------------------------
 # FileConverter tests
@@ -1485,6 +1495,12 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_17_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_17_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
   set_tests_properties("TOPP_OpenSwathWorkflow_17_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
+  # Test with ion mobility
+  add_test("TOPP_OpenSwathWorkflow_17_cache" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17.chrom.mzML.tmp -out_features OpenSwathWorkflow_17.featureXML.tmp -test -use_ms1_traces -readOptions cache -ion_mobility_window 0.05 -use_ms1_ion_mobility "false")
+  add_test("TOPP_OpenSwathWorkflow_17_cache_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_17_cache_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_cache_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_cache")
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_cache_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_cache")
 
   add_test("TOPP_OpenSwathFileSplitter_1" ${TOPP_BIN_PATH}/OpenSwathFileSplitter -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -outputDirectory ""  -out_qc OpenSwathFileSplitter_1.json.tmp -test)
   add_test("TOPP_OpenSwathFileSplitter_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1_input_ms1.mzML -in2 ${DATA_DIR_TOPP}/openswath_tmpfile_ms1.mzML)
@@ -2421,6 +2437,11 @@ set_tests_properties("UTILS_OpenPepXLLF_1_out_2" PROPERTIES DEPENDS "UTILS_OpenP
 set_tests_properties("UTILS_OpenPepXLLF_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
 set_tests_properties("UTILS_OpenPepXLLF_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_1")
 
+add_test("UTILS_OpenPepXLLF_2" ${TOPP_BIN_PATH}/OpenPepXLLF -test -ini ${DATA_DIR_TOPP}/OpenPepXLLF_input2.ini -in ${DATA_DIR_TOPP}/OpenPepXLLF_input2.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input2.fasta -out_idXML OpenPepXLLF_output2.idXML.tmp)
+add_test("UTILS_OpenPepXLLF_2_out_1" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output2.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output2.idXML )
+set_tests_properties("UTILS_OpenPepXLLF_2_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXLLF_2")
+
+
 #------------------------------------------------------------------------------
 # XFDR tests
 add_test("UTILS_XFDR_1" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in1.idXML -out_idXML XFDR_test_out1_temp.idXML -out_mzIdentML XFDR_test_out1_temp.mzid -out_xquest XFDR_test_out1_temp.xquest.xml)
@@ -2451,6 +2472,16 @@ add_test("UTILS_XFDR_4_out43" ${DIFF} -whitelist "date=" -in1 XFDR_test_out4_tem
 set_tests_properties("UTILS_XFDR_4_out41" PROPERTIES DEPENDS "UTILS_XFDR_4")
 set_tests_properties("UTILS_XFDR_4_out42" PROPERTIES DEPENDS "UTILS_XFDR_4")
 set_tests_properties("UTILS_XFDR_4_out43" PROPERTIES DEPENDS "UTILS_XFDR_4")
+add_test("UTILS_XFDR_5" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -minborder -3 -maxborder 3 -in ${DATA_DIR_TOPP}/XFDR_test_in3.xquest.xml -out_idXML XFDR_test_out5_temp.idXML -out_mzIdentML XFDR_test_out5_temp.mzid -out_xquest XFDR_test_out5_temp.xquest.xml)
+add_test("UTILS_XFDR_5_out51" ${DIFF} -whitelist "date=" -in1 XFDR_test_out5_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.idXML)
+add_test("UTILS_XFDR_5_out52" ${DIFF} -whitelist "creationDate=" "version=" "id=\"OpenMS_" -in1 XFDR_test_out5_temp.mzid -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.mzid)
+add_test("UTILS_XFDR_5_out53" ${DIFF} -whitelist "date=" -in1 XFDR_test_out5_temp.xquest.xml -in2 ${DATA_DIR_TOPP}/XFDR_test_out5.xquest.xml)
+set_tests_properties("UTILS_XFDR_5_out51" PROPERTIES DEPENDS "UTILS_XFDR_5")
+set_tests_properties("UTILS_XFDR_5_out52" PROPERTIES DEPENDS "UTILS_XFDR_5")
+set_tests_properties("UTILS_XFDR_5_out53" PROPERTIES DEPENDS "UTILS_XFDR_5")
+add_test("UTILS_XFDR_6" ${TOPP_BIN_PATH}/XFDR -test -binsize 0.1 -in ${DATA_DIR_TOPP}/XFDR_test_in4.idXML -out_idXML XFDR_test_out6_temp.idXML)
+add_test("UTILS_XFDR_6_out6" ${DIFF} -whitelist "date=" -in1 XFDR_test_out6_temp.idXML -in2 ${DATA_DIR_TOPP}/XFDR_test_out6.idXML)
+set_tests_properties("UTILS_XFDR_6_out6" PROPERTIES DEPENDS "UTILS_XFDR_6")
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:

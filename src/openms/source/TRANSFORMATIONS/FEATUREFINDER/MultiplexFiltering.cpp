@@ -41,8 +41,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace std;
@@ -454,6 +452,21 @@ namespace OpenMS
         
       }
       
+      // Use a more restrictive averagine similarity when we are searching for peptide singlets.
+      double similarity;
+      if (pattern.getMassShiftCount() == 1)
+      {
+        // We are detecting peptide singlets.
+        similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+      }
+      else
+      {
+        // We are detecting peptide doublets or triplets or ...
+        similarity = averagine_similarity_;
+      }
+      
+      std::cout << "scaled averagine similarity = " << similarity << "\n";
+      
       // Calculate Pearson and Spearman rank correlations
       if ((intensities_model.size() < isotopes_per_peptide_min_) || (intensities_data.size() < isotopes_per_peptide_min_))
       {
@@ -462,7 +475,7 @@ namespace OpenMS
       double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
       double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
 
-      if ((correlation_Pearson < averagine_similarity_) || (correlation_Spearman < averagine_similarity_))
+      if ((correlation_Pearson < similarity) || (correlation_Spearman < similarity))
       {
         return false;
       }
