@@ -35,6 +35,8 @@
 #ifndef OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 #define OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 
+#define INFERENCE_BENCH
+
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
@@ -314,6 +316,8 @@ namespace OpenMS
     void buildGraph(Size use_top_psms);
     void buildGraphWithRunInfo(Size use_top_psms, bool readstore_run_info = true);
 
+    Size getNrConnectedComponents();
+
     //TODO docu
     //void buildExtendedGraph(bool use_all_psms, std::pair<int,int> chargeRange, unsigned int nrReplicates);
 
@@ -327,7 +331,10 @@ namespace OpenMS
     /// the Graph split into connected components
     Graphs ccs_;
 
-    //GraphConst gconst;
+    #ifdef INFERENCE_BENCH
+    /// sizes and times of last functor execution
+    std::vector<std::pair<Size,double>> sizes_and_times_{1};
+    #endif
 
     /// underlying protein identification object
     //TODO for consensusXML this probably needs to become a vector.

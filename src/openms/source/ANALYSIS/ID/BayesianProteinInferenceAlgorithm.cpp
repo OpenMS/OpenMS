@@ -38,7 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
-
 #include <set>
 
 
@@ -105,10 +104,16 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
+        double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
+        if (pnorm <= 0)
+        {
+          pnorm = std::numeric_limits<double>::infinity();
+        }
+
         MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:pep_emission"),
                                                  param_.getValue("model_parameters:pep_spurious_emission"),
                                                  param_.getValue("model_parameters:prot_prior"),
-                                                 1.0); // the p used for marginalization: 1 = sum product, inf = max product
+                                                 pnorm); // the p used for marginalization: 1 = sum product, inf = max product
         BetheInferenceGraphBuilder<unsigned long> bigb;
 
         IDBoostGraph::Graph::vertex_iterator ui, ui_end;
@@ -220,6 +225,12 @@ namespace OpenMS
     void operator() (IDBoostGraph::Graph& fg) {
       //TODO do quick bruteforce calculation if the cc is really small
 
+      double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
+      if (pnorm <= 0)
+      {
+        pnorm = std::numeric_limits<double>::infinity();
+      }
+
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
@@ -227,7 +238,8 @@ namespace OpenMS
         MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:pep_emission"),
                                                  param_.getValue("model_parameters:pep_spurious_emission"),
                                                  param_.getValue("model_parameters:prot_prior"),
-                                                 1.0); // the p used for marginalization: 1 = sum product, inf = max product
+                                                 pnorm); // the p used for marginalization: 1 = sum product, inf = max product
+
         BetheInferenceGraphBuilder<unsigned long> bigb;
 
         IDBoostGraph::Graph::vertex_iterator ui, ui_end;
@@ -371,15 +383,11 @@ namespace OpenMS
  * defaults_.setValue("keep_threshold",
                        "false",
                        "Keep only proteins and protein groups with estimated probability higher than this threshold");
-    defaults_.setValue("greedy_group_resolution",
-                       "false",
-                       "Post-process inference output with greedy resolution of shared peptides based on the parent protein probabilities. Also adds the resolved ambiguity groups to output.");
+
+
     defaults_.setValue("combine_indist_groups",
                        "false",
                        "Combine indistinguishable protein groups beforehand to only perform inference on them (probability for the whole group = is ANY of them present).");*/
-    defaults_.setValue("annotate_groups_only",
-                       "false",
-                       "Skips complex inference completely and just annotates indistinguishable groups.");
 
     defaults_.setValue("top_PSMs",
                        1,
@@ -406,6 +414,7 @@ namespace OpenMS
                        "Spurious peptide identification probability ('beta' parameter). Usually much smaller than emission from proteins");
     defaults_.setMinFloat("model_parameters:pep_spurious_emission", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_spurious_emission", 1.0);
+
 
 
     defaults_.addSection("loopy_belief_propagation","Settings for the loopy belief propagation algorithm.");
@@ -435,6 +444,14 @@ namespace OpenMS
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
                        1ul<<32,
                        "If not all messages converge, how many iterations should be done at max?");
+
+    defaults_.setValue("loopy_belief_propagation:p_norm_inference",
+                       1.0,
+                       "P-norm used for marginalization of multidimensional factors. "
+                       "1 == sum-product inference (all configurations vote equally) (default),"
+                       "<= 0 == infinity = max-product inference (only best configurations propagate)"
+                       "The higher the value the more important high probability configurations get."
+                       );
 
     defaults_.addSection("param_optimize","Settings for the parameter optimization.");
     defaults_.setValue("param_optimize:aucweight",
@@ -645,7 +662,7 @@ namespace OpenMS
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
 
-    bool oldway = false;
+    bool oldway = true;
     if (oldway)
     {
       //TODO make run info parameter
@@ -669,6 +686,9 @@ namespace OpenMS
 
       vector<double> gamma_search{0.5};
       vector<double> beta_search{0.001};
+      //manual
+      //vector<double> alpha_search{0.9};
+      //default
       vector<double> alpha_search{0.1, 0.3, 0.5, 0.7, 0.9};
       //Percolator settings
       //vector<double> alpha_search{0.008, 0.032, 0.128};
@@ -680,20 +700,22 @@ namespace OpenMS
       //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
       gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
 
-      std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
-      double bestGamma = gamma_search[bestParams[0]];
+      std::cout << "Best params found at a=" << bestParams[0] << ", b=" << bestParams[1] << ", g=" << bestParams[2] << std::endl;
+      double bestGamma = gamma_search[bestParams[2]];
       double bestBeta = beta_search[bestParams[1]];
-      double bestAlpha = alpha_search[bestParams[2]];
+      double bestAlpha = alpha_search[bestParams[0]];
       std::cout << "Running with best parameters again." << std::endl;
       param_.setValue("model_parameters:prot_prior", bestGamma);
       param_.setValue("model_parameters:pep_emission", bestAlpha);
       param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
       ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
       ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor());
+
+
     }
     else
     {
-      //TODO make run info parameter
+      //TODO create run info parameter or even a different tool/class.
       ibg.buildGraphWithRunInfo(param_.getValue("top_PSMs"));
       ibg.computeConnectedComponents();
       ibg.clusterIndistProteinsAndPeptidesAndExtendGraph();
@@ -710,9 +732,9 @@ namespace OpenMS
       gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
 
       std::cout << "Best params found at " << bestParams[0] << "," << bestParams[1] << "," << bestParams[2] << std::endl;
-      double bestGamma = gamma_search[bestParams[0]];
+      double bestGamma = gamma_search[bestParams[2]];
       double bestBeta = beta_search[bestParams[1]];
-      double bestAlpha = alpha_search[bestParams[2]];
+      double bestAlpha = alpha_search[bestParams[0]];
       std::cout << "Running with best parameters again." << std::endl;
       param_.setValue("model_parameters:prot_prior", bestGamma);
       param_.setValue("model_parameters:pep_emission", bestAlpha);

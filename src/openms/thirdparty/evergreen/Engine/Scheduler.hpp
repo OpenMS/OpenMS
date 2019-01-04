@@ -47,9 +47,16 @@ public:
       iteration += process_next_edges();
 
     if (iteration >= this->_maximum_iterations)
+    {
       std::cerr << "Warning: Did not meet desired convergence threshold (stopping anyway after exceeding " << this->_maximum_iterations << " iterations)." << std::endl;
+    }
     else
+    {
+      #ifdef EVERGREEN_DEBUG
       std::cerr << "Converged after " << iteration << " iterations." << std::endl;
+      #endif
+    }
+
     return iteration;
   }
 };

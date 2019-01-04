@@ -34,6 +34,7 @@
 #ifndef OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
 #define OPENMS_ANALYSIS_ID_BAYESIANPROTEININFERENCE_H
 
+#define INFERENCE_BENCH
 
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -85,6 +86,10 @@ namespace OpenMS
 
     /// The grid search object initialized with a default grid
     GridSearch<double,double,double> grid{{0.008,0.032,0.128},{0.001},{0.5}};
+
+    #ifdef INFERENCE_BENCH
+    std::vector<std::pair<double,Size>> debug_times_;
+    #endif
 
   };
 }

@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/DATASTRUCTURES/FASTAContainer.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/graph_utility.hpp>
@@ -47,7 +48,8 @@
 #include <omp.h>
 #endif
 
-#define INFERENCE_DEBUG
+//#define INFERENCE_DEBUG
+
 //#define INFERENCE_MT_DEBUG
 
 using namespace OpenMS;
@@ -435,21 +437,42 @@ namespace OpenMS
     #pragma omp parallel for
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
+      #ifdef INFERENCE_BENCH
+      StopWatch sw;
+      sw.start();
+      #endif
+
       Graph& curr_cc = ccs_.at(i);
-      LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
 
       #ifdef INFERENCE_MT_DEBUG
       LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
       #endif
 
       #ifdef INFERENCE_DEBUG
+      LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
       LOG_INFO << "Printing cc " << i << std::endl;
       printGraph(LOG_INFO, curr_cc);
       LOG_INFO << "Printed cc " << i << std::endl;
       #endif
 
       functor(curr_cc);
+
+      #ifdef INFERENCE_BENCH
+      sw.stop();
+      sizes_and_times_[i] = {boost::num_vertices(curr_cc) , sw.getClockTime()};
+      #endif
     }
+
+    #ifdef INFERENCE_BENCH
+    ofstream debugfile;
+    debugfile.open("idgraph_functortimes_" + DateTime::now().getTime() + ".tsv");
+
+    for( const auto& size_time : sizes_and_times_ )
+    {
+      debugfile << size_time.first << "\t" << size_time.second << "\n";
+    }
+    debugfile.close();
+    #endif
   }
 
   void IDBoostGraph::annotateIndistProteins(bool addSingletons) const
@@ -476,13 +499,13 @@ namespace OpenMS
       for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
       {
         const Graph& curr_cc = ccs_.at(i);
-        LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
 
         #ifdef INFERENCE_MT_DEBUG
         LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
         #endif
 
         #ifdef INFERENCE_DEBUG
+        LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
         LOG_INFO << "Printing cc " << i << std::endl;
         printGraph(LOG_INFO, curr_cc);
         LOG_INFO << "Printed cc " << i << std::endl;
@@ -765,13 +788,14 @@ namespace OpenMS
     {
       Graph& curr_cc = ccs_[i];
 
-      LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
+
 
       #ifdef INFERENCE_MT_DEBUG
       LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
       #endif
 
       #ifdef INFERENCE_DEBUG
+      LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
       LOG_INFO << "Printing cc " << i << std::endl;
       printGraph(LOG_INFO, curr_cc);
       LOG_INFO << "Printed cc " << i << std::endl;
@@ -961,13 +985,12 @@ namespace OpenMS
     {
       Graph& curr_cc = ccs_[i];
 
-      LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
-
       #ifdef INFERENCE_MT_DEBUG
       LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
       #endif
 
       #ifdef INFERENCE_DEBUG
+      LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
       LOG_INFO << "Printing cc " << i << std::endl;
       printGraph(LOG_INFO, curr_cc);
       LOG_INFO << "Printed cc " << i << std::endl;
@@ -1123,6 +1146,9 @@ namespace OpenMS
     auto vis = dfs_ccsplit_visitor(ccs_);
     boost::depth_first_search(g, visitor(vis));
     LOG_INFO << "Found " << ccs_.size() << " connected components." << std::endl;
+    #ifdef INFERENCE_BENCH
+    sizes_and_times_.resize(ccs_.size());
+    #endif
     g.clear();
   }
 
@@ -1141,6 +1167,11 @@ namespace OpenMS
       g[v] = ptr;
     }
     return v;
+  }
+
+  Size IDBoostGraph::getNrConnectedComponents()
+  {
+    return ccs_.size();
   }
 
   // TODO templatize

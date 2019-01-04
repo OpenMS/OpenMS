@@ -39,9 +39,11 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <vector>
 
 using namespace OpenMS;
@@ -52,7 +54,7 @@ public TOPPBase
 {
 public:
   TOPPBayesianProteinInference() :
-  TOPPBase("BayesianProteinInference", "Runs a Bayesian protein inference.")
+  TOPPBase("BayesianProteinInference", "Runs a Bayesian protein inference.",false)
   {
   }
 
@@ -62,14 +64,19 @@ protected:
   {
     registerInputFileList_("in", "<file>", StringList(), "Input: identification results");
     setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML,fasta"));
-    registerInputFile_("exp_design", "<file>", "", "Input: experimental design");
+    registerInputFile_("exp_design", "<file>", "", "Input: experimental design", false);
     setValidFormats_("exp_design", ListUtils::create<String>("tsv"));
-    //TODO make required of course
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML,consensusXML"));
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately,"
                                    " don't merge them. Merging results in loss of descriptive information"
                                    " of the single protein identification runs.", false);
+    registerStringOption_("greedy_group_resolution",
+                       "<option>",
+                       "none",
+                       "Post-process inference output with greedy resolution of shared peptides based on the parent protein probabilities. Also adds the resolved ambiguity groups to output.", false, true);
+    setValidStrings_("greedy_group_resolution", {"none","remove_associations_only","remove_proteins_wo_evidence"});
+
   }
 
   ExitCodes main_(int, const char**) override
@@ -77,6 +84,8 @@ protected:
     StringList files = getStringList_("in");
     IdXMLFile idXMLf;
     IDMergerAlgorithm merger{};
+    StopWatch sw;
+    sw.start();
     for (String& file : files)
     {
       vector<ProteinIdentification> prots;
@@ -87,9 +96,64 @@ protected:
     vector<ProteinIdentification> mergedprots{1};
     vector<PeptideIdentification> mergedpeps;
     merger.returnResultsAndClear(mergedprots[0], mergedpeps);
-    idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
+    IDFilter::filterBestPerPeptide(mergedpeps, true, true, 1);
+    IDFilter::filterEmptyPeptideIDs(mergedpeps);
+
+    //convert all scores to PPs
+    for (auto& pep_id : mergedpeps)
+    {
+      String score_l = pep_id.getScoreType();
+      score_l = score_l.toLower();
+      if (score_l == "pep" || score_l == "posterior error probability")
+      {
+        for (auto& pep_hit : pep_id.getHits())
+        {
+          pep_hit.setScore(1 - pep_hit.getScore());
+        }
+        pep_id.setScoreType("Posterior Probability");
+        pep_id.setHigherScoreBetter(true);
+      }
+      else
+      {
+        if (score_l != "Posterior Probability")
+        {
+          throw OpenMS::Exception::InvalidParameter(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "ProteinInference needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
+              "or run IDPosteriorErrorProbability first.");
+        }
+      }
+    }
+    LOG_INFO << "Loading and merging took " << sw.toString() << std::endl;
+    sw.reset();
+
     BayesianProteinInferenceAlgorithm bpi1;
     bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
+    LOG_INFO << "Inference total took " << sw.toString() << std::endl;
+    sw.stop();
+
+    bool greedy_group_resolution = getStringOption_("top_PSMs") != "none";
+    bool remove_prots_wo_evidence = getStringOption_("top_PSMs") == "remove_proteins_wo_evidence";
+
+    if (greedy_group_resolution)
+    {
+      LOG_INFO << "Postprocessing: Removing associations from spectrum to all but the best protein group..." << std::endl;
+      //TODO add group resolution to the graph class so we do not
+      // unnecessarily build a second (old) data structure
+      PeptideProteinResolution ppr;
+      ppr.buildGraph(mergedprots[0], mergedpeps);
+      ppr.resolveGraph(mergedprots[0], mergedpeps);
+    }
+    if (remove_prots_wo_evidence)
+    {
+      LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
+      IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
+      IDFilter::updateProteinGroups(mergedprots[0].getIndistinguishableProteins(), mergedprots[0].getHits());
+    }
+
+    idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
     return ExitCodes::EXECUTION_OK;
 
     /* That was test code for the old merger

@@ -1059,7 +1059,7 @@ public:
     static void filterEmptyPeptideIDs(std::vector<PeptideIdentification>& pep_ids)
     {
       pep_ids.erase(std::remove_if(pep_ids.begin(), pep_ids.end(),
-                                  [](PeptideIdentification& p){return p.getHits().empty();}));
+                                  [](PeptideIdentification& p){return p.getHits().empty();}),pep_ids.end());
 
     }
 
@@ -1073,7 +1073,7 @@ public:
       {
         auto& hits = pep.getHits();
         hits.erase(std::remove_if(hits.begin(), hits.end(),
-                                     [](PeptideHit& p){return !p.metaValueExists("bestForItsPep") || !p.getMetaValue("bestForItsPep").toBool();}));
+                                     [](const PeptideHit& p){return !p.metaValueExists("bestForItsPep") || !p.getMetaValue("bestForItsPep").toBool();}), hits.end());
       }
 
     }
