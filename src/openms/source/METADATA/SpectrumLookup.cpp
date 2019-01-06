@@ -258,7 +258,7 @@ namespace OpenMS
     std::vector<String> scan = {"MS:1000768","MS:1000769","MS:1000771","MS:1000772","MS:1000776"};
     // list of CV accession with native id format "file=NUMBER"
     std::vector<String> file = {"MS:1000773","MS:1000775"};
-    // expected number of subgroups 
+    // expected number of subgroups
     auto subgroups = {1};
     
     // "scan=NUMBER" 
@@ -267,7 +267,7 @@ namespace OpenMS
       regexp = std::string("scan=(?<GROUP>\\d+)");
     }
     // id="sample=1 period=1 cycle=96 experiment=1" - this will be described by a combination of (cycle * 1000 + experiment)
-    else if (native_id_type_accession == "MS:1000770")
+    else if (native_id_type_accession == "MS:1000770") // WIFF nativeID format
     {
       regexp = std::string("cycle=(?<GROUP>\\d+).experiment=(?<GROUP>\\d+)");
       subgroups = {1, 2};
@@ -304,7 +304,7 @@ namespace OpenMS
       boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), regexp, subgroups);
       for (auto it = current_begin ; it != current_end; ++it)
       {
-        matches.push_back(*it);      
+        matches.push_back(*it);
       }
       if (matches.size() == 1)
       {
@@ -323,8 +323,15 @@ namespace OpenMS
       {
         try
         {
-          int value = String(matches[0]).toInt() * 1000 + String(matches[1]).toInt();
-          return value;
+          if (String(matches[1]).toInt() < 1000) 
+          {
+            int value = String(matches[0]).toInt() * 1000 + String(matches[1]).toInt();
+            return value; 
+          }
+          else
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of experiment is too large and can not be handled properly.", String(matches[1]));
+          }
         }
         catch (Exception::ConversionError&)
         {
