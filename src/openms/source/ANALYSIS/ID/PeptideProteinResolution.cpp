@@ -76,10 +76,11 @@ namespace OpenMS
   }
 
   // Initialization of global variables (= graph)
-  void PeptideProteinResolution::buildGraph(const ProteinIdentification& protein,
-                      const vector<PeptideIdentification>& peptides)
+  void PeptideProteinResolution::buildGraph(ProteinIdentification& protein,
+                      const vector<PeptideIdentification>& peptides, bool skip_sort)
   {
-    if (protein.getIndistinguishableProteins().empty())
+    vector<ProteinIdentification::ProteinGroup>& groups = protein.getIndistinguishableProteins();
+    if (groups.empty())
     {
       throw Exception::MissingInformation(
           __FILE__,
@@ -87,7 +88,9 @@ namespace OpenMS
           OPENMS_PRETTY_FUNCTION,
           "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
     }
-    
+
+    if (!skip_sort) sort(groups.begin(), groups.end());
+
     // Construct intermediate mapping of single protein accessions
     // to indist. protein groups
     for (vector<ProteinIdentification::ProteinGroup>::const_iterator group_it =

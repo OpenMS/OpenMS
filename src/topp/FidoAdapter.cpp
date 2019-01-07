@@ -485,7 +485,7 @@ protected:
       LOG_INFO << "Resolving ambiguity groups greedily on Fido output..."
                << endl;
       PeptideProteinResolution graph = PeptideProteinResolution();
-      graph.buildGraph(protein, peptides);
+      graph.buildGraph(protein, peptides, true);
       graph.resolveGraph(protein, peptides);
     }
     return true;

@@ -112,11 +112,15 @@ namespace OpenMS
     /// @param statistics Specifies if the class stores/outputs info about statistics    
     PeptideProteinResolution(bool statistics=false);
     
-    /// Initialize and store the graph (= maps)
+    /// Initialize and store the graph (= maps), needs sorted groups for
+    /// correct functionality. Therefore sorts the indist. protein groups
+    /// if not skipped.
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param peptides vector of ProteinIdentifications with links to the proteins
-    void buildGraph(const ProteinIdentification& protein,
-                    const std::vector<PeptideIdentification>& peptides);
+    /// @param skip_sort Skips sorting of groups, nothing is modified then.
+    void buildGraph(ProteinIdentification& protein,
+                    const std::vector<PeptideIdentification>& peptides,
+                    bool skip_sort = false);
       
     /// Applies resolveConnectedComponent to every component of the graph and
     /// is able to write statistics when specified. Parameters will
