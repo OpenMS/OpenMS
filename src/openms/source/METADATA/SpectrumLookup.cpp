@@ -302,11 +302,8 @@ namespace OpenMS
       vector<string> matches;
       boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), regexp, subgroups);
       boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), regexp, subgroups);
-      for (auto it = current_begin ; it != current_end; ++it)
-      {
-        matches.push_back(*it);
-      }
-      if (matches.size() == 1)
+      matches.insert(matches.end(), current_begin, current_end);
+      if (matches.size() == 1) // default case: one native identifier
       {
         try
         {
@@ -319,11 +316,11 @@ namespace OpenMS
           return -1;
         }
       }
-      else if (matches.size() == 2)
+      else if (matches.size() == 2) // special case: wiff file with two native identifiers
       {
         try
         {
-          if (String(matches[1]).toInt() < 1000) 
+          if (String(matches[1]).toInt() < 1000) // checks if value of experiment is smaller than 1000 (cycle * 1000 + experiment)
           {
             int value = String(matches[0]).toInt() * 1000 + String(matches[1]).toInt();
             return value; 
