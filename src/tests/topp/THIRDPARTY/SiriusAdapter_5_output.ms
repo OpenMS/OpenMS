@@ -1,4 +1,4 @@
->compound _13442776035824190606-5-UNKNOWN6
+>compound _13442776035824190606-2167005-UNKNOWN6
 >parentmass 292.121752827683
 >charge 1
 >rt 410.145000000000
@@ -130,10 +130,10 @@
 292.953203258155 546.000000000000
 292.977891955669 420.000000000000
 293.196421777814 210.000000000000
->compound _0-4-UNKNOWN2
+>compound _0-2165004-UNKNOWN2
 >parentmass 292.118520142944
 >charge 1
->rt 404.587000000020
+>rt 404.455000000020
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
 ##source file file://.
@@ -148,10 +148,10 @@
 ##scan 2
 ##specref ms_run[1]:sample=1 period=1 cycle=2165 experiment=4
 292.121314370419 294.000000000000
->compound _0-6-UNKNOWN4
+>compound _0-2166006-UNKNOWN4
 >parentmass 292.121468920531
 >charge 1
->rt 405.067000000020
+>rt 404.875000000020
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
 ##source file file://.
@@ -167,10 +167,10 @@
 ##scan 4
 ##specref ms_run[1]:sample=1 period=1 cycle=2166 experiment=6
 292.121333456885 798.000000000000
->compound _0-3-UNKNOWN11
+>compound _0-2171003-UNKNOWN11
 >parentmass 296.123099065922
 >charge 1
->rt 407.017000000020
+>rt 406.816999999980
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
 ##source file file://.
@@ -190,10 +190,10 @@
 ##specref ms_run[1]:sample=1 period=1 cycle=2171 experiment=3
 296.123852278497 84.000000000000
 296.170279302095 28.000000000000
->compound _0-4-UNKNOWN13
+>compound _0-2172004-UNKNOWN13
 >parentmass 296.123821549630
 >charge 1
->rt 407.398000000020
+>rt 407.245000000020
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
 ##source file file://.
@@ -216,10 +216,10 @@
 296.124718247637 252.000000000000
 296.181428565605 42.000000000000
 296.200211990605 42.000000000000
->compound _0-2-UNKNOWN15
+>compound _0-2173002-UNKNOWN15
 >parentmass 296.125008105473
 >charge 1
->rt 407.727000000000
+>rt 407.655000000000
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
 ##source file file://.
@@ -246,10 +246,10 @@
 ##specref ms_run[1]:sample=1 period=1 cycle=2173 experiment=2
 296.125886082126 602.945556640625
 296.147120140233 714.000000000000
->compound _0-3-UNKNOWN43
+>compound _0-2199003-UNKNOWN43
 >parentmass 295.187072485748
 >charge 1
->rt 418.576999999980
+>rt 418.393999999980
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
 ##source file file://.
@@ -270,10 +270,10 @@
 ##specref ms_run[1]:sample=1 period=1 cycle=2199 experiment=3
 295.083913845584 42.000000000000
 295.119725048092 42.000000000000
->compound _0-6-UNKNOWN49
+>compound _0-2204006-UNKNOWN49
 >parentmass 290.124002639251
 >charge 1
->rt 420.627000000000
+>rt 420.444000000000
 ##des UNKNOWN
 ##specref_format [MS, MS:1000770, WIFF nativeID format]
 ##source file file://.
