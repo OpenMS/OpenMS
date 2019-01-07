@@ -80,6 +80,7 @@ namespace OpenMS
                       const vector<PeptideIdentification>& peptides, bool skip_sort)
   {
     vector<ProteinIdentification::ProteinGroup>& groups = protein.getIndistinguishableProteins();
+
     if (groups.empty())
     {
       throw Exception::MissingInformation(
@@ -89,19 +90,22 @@ namespace OpenMS
           "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
     }
 
+    LOG_INFO << "Resolving peptides between " << groups.size() << " indistinguishable groups.";
+
+
     if (!skip_sort) sort(groups.begin(), groups.end());
 
     // Construct intermediate mapping of single protein accessions
     // to indist. protein groups
     for (vector<ProteinIdentification::ProteinGroup>::const_iterator group_it =
-         protein.getIndistinguishableProteins().begin();
-         group_it != protein.getIndistinguishableProteins().end(); ++group_it)
+         groups.begin();
+         group_it != groups.end(); ++group_it)
     {
       for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
            acc_it != group_it->accessions.end(); ++acc_it)
       {
-        prot_acc_to_indist_prot_grp_[*acc_it] =
-        group_it - protein.getIndistinguishableProteins().begin();
+        prot_acc_to_indist_prot_grp_[*acc_it] = group_it - groups.begin();
+        //TODO if accession not found create a fake group for the singleton
       }
     }
     
@@ -122,10 +126,22 @@ namespace OpenMS
              pepev_it != pepev.end(); ++pepev_it)
         {
           String acc = pepev_it->getProteinAccession();
-          Size prot_group_index = prot_acc_to_indist_prot_grp_[acc];
-          pep_to_indist_prot_grp_[pep_index].insert(prot_group_index);
-          indist_prot_grp_to_pep_[prot_group_index];
-          indist_prot_grp_to_pep_[prot_group_index].insert(pep_index);
+          auto found = prot_acc_to_indist_prot_grp_.find(acc);
+          if (found == prot_acc_to_indist_prot_grp_.end())
+          {
+            throw Exception::MissingInformation(
+                __FILE__,
+                __LINE__,
+                OPENMS_PRETTY_FUNCTION,
+                "Not all proteins present in an indistinguishable group. Make sure to add them as singletons.");
+          }
+          else
+          {
+            Size prot_group_index = found->second;
+            pep_to_indist_prot_grp_[pep_index].insert(prot_group_index);
+            indist_prot_grp_to_pep_[prot_group_index];
+            indist_prot_grp_to_pep_[prot_group_index].insert(pep_index);
+          }
         }
       }
       else
@@ -357,7 +373,14 @@ namespace OpenMS
       ambiguity_grp.accessions.insert(ambiguity_grp.accessions.end(),
                                     accessions.begin(),
                                     accessions.end());
-    
+
+      std::cout << "Group: ";
+      for (String s : origin_groups[*grp_it].accessions)
+      {
+        std::cout << s << ", ";
+      }
+      std::cout << " steals " << indist_prot_grp_to_pep_[*grp_it].size() << " peptides for itself." << std::endl;
+
       // Update all the peptides the current best point to
       for (set<Size>::iterator pepid_it =
          indist_prot_grp_to_pep_[*grp_it].begin();

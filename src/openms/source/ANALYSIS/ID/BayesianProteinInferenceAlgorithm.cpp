@@ -89,6 +89,7 @@ namespace OpenMS
             prots.getIndistinguishableProteins().push_back(pg);
           }
         }
+
       }
     }
   };

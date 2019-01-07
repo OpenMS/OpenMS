@@ -310,6 +310,8 @@ public:
     std::vector<ProteinGroup>& getIndistinguishableProteins();
     /// Appends new indistinguishable proteins
     void insertIndistinguishableProteins(const ProteinGroup& group);
+    /// Appends singleton groups (with the current score) for every yet ungrouped protein hit
+    void fillIndistinguishableGroupsWithSingletons();
 
     /// Returns the protein significance threshold value
     double getSignificanceThreshold() const;

@@ -36,6 +36,7 @@
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <numeric>
+#include <unordered_set>
 
 using namespace std;
 
@@ -297,6 +298,31 @@ namespace OpenMS
     const ProteinIdentification::ProteinGroup& group)
   {
     indistinguishable_proteins_.push_back(group);
+  }
+
+  void ProteinIdentification::fillIndistinguishableGroupsWithSingletons()
+  {
+    unordered_set<string> groupedAccessions;
+    for (const ProteinGroup& proteinGroup : indistinguishable_proteins_)
+    {
+      for (const String& acc : proteinGroup.accessions)
+      {
+        groupedAccessions.insert(acc);
+      }
+    }
+
+    for (const ProteinHit& protein : getHits())
+    {
+      const String& acc = protein.getAccession();
+      if (groupedAccessions.find(acc) == groupedAccessions.end())
+      {
+        groupedAccessions.insert(acc);
+        ProteinGroup pg;
+        pg.accessions.push_back(acc);
+        pg.probability = protein.getScore();
+        indistinguishable_proteins_.push_back(pg);
+      }
+    }
   }
 
   // retrieval of the peptide significance threshold value

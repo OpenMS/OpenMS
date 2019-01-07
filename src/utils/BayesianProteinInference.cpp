@@ -142,7 +142,8 @@ protected:
       LOG_INFO << "Postprocessing: Removing associations from spectrum to all but the best protein group..." << std::endl;
       //TODO add group resolution to the IDBoostGraph class so we do not
       // unnecessarily build a second (old) data structure
-      PeptideProteinResolution ppr;
+      mergedprots[0].fillIndistinguishableGroupsWithSingletons();
+      PeptideProteinResolution ppr(true);
       ppr.buildGraph(mergedprots[0], mergedpeps);
       ppr.resolveGraph(mergedprots[0], mergedpeps);
     }
