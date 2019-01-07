@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,13 @@ namespace OpenMS
   class BayesianProteinInferenceAlgorithm::AnnotateIndistGroupsFunctor :
       public std::function<void(IDBoostGraph::Graph&)>
   {
+  private:
+    ProteinIdentification& prots;
   public:
+    AnnotateIndistGroupsFunctor(ProteinIdentification& proteinIDToAnnotateGroups):
+    prots(proteinIDToAnnotateGroups)
+    {}
+
     void operator() (IDBoostGraph::Graph& fg) {
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
@@ -80,6 +86,7 @@ namespace OpenMS
             // TODO this takes score of last protein of group as representative
             // currently the scores should all be the same, so this is okay.
             pg.probability = proteinPtr->getScore();
+            prots.getIndistinguishableProteins().push_back(pg);
           }
         }
       }
@@ -709,7 +716,7 @@ namespace OpenMS
       param_.setValue("model_parameters:pep_emission", bestAlpha);
       param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
       ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
-      ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor());
+      ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor(proteinIDs[0]));
 
 
     }
@@ -740,7 +747,7 @@ namespace OpenMS
       param_.setValue("model_parameters:pep_emission", bestAlpha);
       param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
       ibg.applyFunctorOnCCs(ExtendedGraphInferenceFunctor(const_cast<const Param&>(param_)));
-      ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor());
+      ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor(proteinIDs[0]));
     }
 
 

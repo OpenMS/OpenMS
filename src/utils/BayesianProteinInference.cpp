@@ -134,13 +134,13 @@ protected:
     LOG_INFO << "Inference total took " << sw.toString() << std::endl;
     sw.stop();
 
-    bool greedy_group_resolution = getStringOption_("top_PSMs") != "none";
-    bool remove_prots_wo_evidence = getStringOption_("top_PSMs") == "remove_proteins_wo_evidence";
+    bool greedy_group_resolution = getStringOption_("greedy_group_resolution") != "none";
+    bool remove_prots_wo_evidence = getStringOption_("greedy_group_resolution") == "remove_proteins_wo_evidence";
 
     if (greedy_group_resolution)
     {
       LOG_INFO << "Postprocessing: Removing associations from spectrum to all but the best protein group..." << std::endl;
-      //TODO add group resolution to the graph class so we do not
+      //TODO add group resolution to the IDBoostGraph class so we do not
       // unnecessarily build a second (old) data structure
       PeptideProteinResolution ppr;
       ppr.buildGraph(mergedprots[0], mergedpeps);
@@ -151,6 +151,7 @@ protected:
       LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
       IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
       IDFilter::updateProteinGroups(mergedprots[0].getIndistinguishableProteins(), mergedprots[0].getHits());
+      IDFilter::updateProteinGroups(mergedprots[0].getProteinGroups(), mergedprots[0].getHits());
     }
 
     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);

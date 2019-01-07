@@ -79,6 +79,15 @@ namespace OpenMS
   void PeptideProteinResolution::buildGraph(const ProteinIdentification& protein,
                       const vector<PeptideIdentification>& peptides)
   {
+    if (protein.getIndistinguishableProteins().empty())
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No indistinguishable Groups annotated. Currently this class only resolves across groups.");
+    }
+    
     // Construct intermediate mapping of single protein accessions
     // to indist. protein groups
     for (vector<ProteinIdentification::ProteinGroup>::const_iterator group_it =
@@ -314,23 +323,31 @@ namespace OpenMS
     // Go through protein groups (sorted by probability -> higher index
     // means worse probability)
     bool first_change = true;
-  
+
+    vector<ProteinIdentification::ProteinGroup>& origin_groups = protein.getIndistinguishableProteins();
+
     for (set<Size>::iterator grp_it = conn_comp.prot_grp_indices.begin();
        grp_it != conn_comp.prot_grp_indices.end();
        ++grp_it)
     {
-    
+      if (*grp_it >= origin_groups.size())
+      {
+        LOG_FATAL_ERROR << "Something went terribly wrong. "
+                           "Group with index " << *grp_it << "doesnt exist. "
+                           " ProteinPeptideResolution: Groups changed"
+                           " after building data structures." << std::endl;
+      }
+
       // Take first probability -> best
       if (first_change)
       {
-        max_prob = protein.getIndistinguishableProteins()[*grp_it].probability;
+        max_prob = origin_groups[*grp_it].probability;
         first_change = false;
       }
     
       ambiguity_grp.probability = max_prob;
     
-      vector<String> accessions =
-      protein.getIndistinguishableProteins()[*grp_it].accessions;
+      vector<String> accessions = origin_groups[*grp_it].accessions;
     
       // Put the accessions of the indist. groups into the subsuming
       // ambiguity group

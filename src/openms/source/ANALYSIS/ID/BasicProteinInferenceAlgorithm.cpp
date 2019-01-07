@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2019.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -213,7 +213,9 @@ namespace OpenMS
       higher_better = pep_ids[0].isHigherScoreBetter();
     }
 
-    if (overall_score_type != "Posterior Error Probability" && overall_score_type != "Posterior Probability")
+    if (overall_score_type != "Posterior Error Probability" // from IDPEP
+    && overall_score_type != "Posterior Probability"
+    && overall_score_type != "pep") // from Percolator
     {
       throw OpenMS::Exception::InvalidParameter(
           __FILE__,
@@ -282,8 +284,8 @@ namespace OpenMS
           current_best_pep_it->second[lookup_charge] = &hit;
         }
         else if (
-            (prot_run.isHigherScoreBetter() && (hit.getScore() > current_best_pep_charge_it->second->getScore())) ||
-            (!prot_run.isHigherScoreBetter() && (hit.getScore() < current_best_pep_charge_it->second->getScore())))
+            (higher_better && (hit.getScore() > current_best_pep_charge_it->second->getScore())) ||
+            (!higher_better && (hit.getScore() < current_best_pep_charge_it->second->getScore())))
         {
           current_best_pep_charge_it->second = &hit;
         }
@@ -306,6 +308,7 @@ namespace OpenMS
           {
             std::cout << "Warning, skipping pep that maps to a non existent protein accession. " << pep_hit.second->getSequence().toUnmodifiedString() << std::endl;
             continue; // very weird, has an accession that was not in the proteins loaded in the beginning
+            //TODO error? Suppress log?
           }
 
           ProteinHit *protein = prot_count_pair_it->second.first;

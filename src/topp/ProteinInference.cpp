@@ -136,7 +136,7 @@ protected:
     sw.start();
     StringList in = getStringList_("in");
     // Merging if specifically asked or multiple files given. If you want to not merge
-    // ans use multiple files, use a loop
+    // and use multiple files, use a loop
     bool merge_runs = getStringOption_("merge_runs") == "all" || in.size() > 1;
     String out = getStringOption_("out");
 
