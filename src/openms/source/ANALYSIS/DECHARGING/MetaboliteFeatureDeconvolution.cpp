@@ -122,7 +122,11 @@ namespace OpenMS
     defaults_.setValue("retention_max_diff", 1.0, "Maximum allowed RT difference between any two features if their relation shall be determined");
     defaults_.setValue("retention_max_diff_local", 1.0, "Maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
 
-    defaults_.setValue("mass_max_diff", 0.05, "Maximum allowed mass difference [in Th] for a single feature.");
+    defaults_.setValue("mass_max_diff", 0.05, "Maximum allowed mass tolerance per feature. Defines a symmetric tolerance window around the feature. When looking at possible feature pairs, the allowed feature-wise errors are combined for consideration of possible adduct shifts. For ppm tolerances, each window is based on the respective observed feature mz (instead of putative experimental mzs causing the observed one)!");
+    defaults_.setMinFloat("mass_max_diff", 0.0);
+    defaults_.setValue("unit", "Da", "Unit of the 'max_difference' parameter");
+    defaults_.setValidStrings("unit", ListUtils::create<String>("Da,ppm"));
+
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
     defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.4,Na:+:0.25,NH4:+:0.25,K:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Elements:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. The optional RTShift param indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As fifth parameter you can add a label for every feature with this adduct. This also determines the map number in the consensus file. Adduct element losses are written in the form 'H-2'. All provided adducts need to have the same charge sign or be neutral! Mixing of adducts with different charge directions is only allowed as neutral complexes. For example, 'H-1Na:0:0.05' can be used to model Sodium gains (with balancing deprotonation) in negative mode.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
@@ -509,9 +513,36 @@ namespace OpenMS
 
             ++possibleEdges; // internal count, not vital
 
-            // find possible adduct combinations
+            // Find possible adduct combinations.
+            // Masses and tolerances are multiplied with their charges to nullify charge influence on mass shift.
+            // Allows to remove compound mass M from both sides of compomer equation -> queried shift only due to different adducts.
+            // Tolerance must increase when looking at M instead of m/z, as error margins increase as well by multiplication.
             CoordinateType naive_mass_diff = mz2 * abs(q2) - m1;
-            double abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2); // tolerance must increase when looking at M instead of m/z, as error margins increase as well
+
+            double abs_mass_diff;
+            if (param_.getValue("unit") == "Da")
+            {
+              abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2);
+            }
+            else if (param_.getValue("unit") == "ppm")
+            {
+              // For the ppm case, we multiply the respective experimental feature mz by its allowed ppm error before multiplication by charge.
+              // We look at the tolerance window with a simplified way: Just use the feature mz, and assume a symmetrc window around it.
+              // Instead of answering the more complex/asymetrical question: "which experimental mz can for given tolerance cause observed mz".
+              // (In the complex case we might have to consider different queries for different tolerance windows.)
+              // The expected error of this simplicfication is negligible:
+              // Assuming Y > X (X > Y is analog), given causative experimental mz Y and observed mz X with
+              // X = Y*(1 - d)
+              // for allowed tolerance d, the expected Error E between experimental mz and maximal mz in the tolerance window based on experimental mz is:
+              // E = (mz_exp - (mz_obs + max tolerance))/mz_exp = (Y - X*(1 + d))/Y = 1 - X*(1 + d)/Y = 1 - Y*(1 - d)*(1 + d)/Y = 1 - 1 - d*d = - d*d
+              // As d should be ppm sized, the error is something around 10 to the power of minus 12.
+              abs_mass_diff = mz1 * mz_diff_max * 1e-6 * abs(q1)   +   mz2 * mz_diff_max * 1e-6 * abs(q2);
+            }
+            else
+            {
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING! Invalid tolerance unit! " + String(param_.getValue("unit"))  + "\n");
+            }
+
             //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case?
             hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
             OPENMS_PRECONDITION(hits >= 0, "MetaboliteFeatureDeconvolution querying #hits got negative result!");
