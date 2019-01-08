@@ -44,6 +44,7 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include <atomic>
 
 namespace OpenMS
 {
@@ -260,7 +261,7 @@ public:
   void IonizationSimulation::ionizeEsi_(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus)
   {
     for (size_t i = 0; i < esi_impurity_probabilities_.size(); ++i)
-      std::cout << "esi_impurity_probabilities_[" << i << "]: " << esi_impurity_probabilities_.at(i) << std::endl;
+      std::cout << "esi_impurity_probabilities_[" << i << "]: " << esi_impurity_probabilities_[i] << std::endl;
 
     std::vector<double> weights;
     std::transform(esi_impurity_probabilities_.begin(),
@@ -268,7 +269,7 @@ public:
                    std::back_inserter(weights),
                    boost::bind(std::multiplies<double>(), _1, 10));
     for (size_t i = 0; i < weights.size(); ++i)
-      std::cout << "weights[" << i << "]: " << weights.at(i) << std::endl;
+      std::cout << "weights[" << i << "]: " << weights[i] << std::endl;
 
     try
     {
@@ -286,6 +287,9 @@ public:
 
       this->startProgress(0, features.size(), "Ionization");
       Size progress(0);
+      
+      typedef UInt AbundanceType;
+      std::atomic<bool> omp_exception {false};
 
       // iterate over all features
       #pragma omp parallel reduction(+: uncharged_feature_count, undetected_features_count)
@@ -314,7 +318,6 @@ public:
           ConsensusFeature cf;
 
           // iterate on abundance
-          typedef UInt AbundanceType;
           AbundanceType abundance;
           try
           {
@@ -322,10 +325,10 @@ public:
           }
           catch (...) // overflow (e.g. intensity = 1e6); underflow can currently not occur (see DigestSimulation:204) but would be covered as well
           {
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
-                                          String("Protein abundance is too high. Please use values in [0,")
-                                          + String(std::numeric_limits<AbundanceType>::max()) + "]!",
-                                          String(features[index].getIntensity()));
+            LOG_WARN << "Protein abundance of " << features[index].getIntensity() << " is too high!"
+                     << "Please use values in [0," << std::numeric_limits<AbundanceType>::max() << +"]! This will fail!";
+            abundance = 1; // keep on going for now, but fail after parallel region;
+            omp_exception = true;
           }
           UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
 
@@ -489,6 +492,15 @@ public:
 
       } // end omp parallel
       this->endProgress();
+
+      if (omp_exception)
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("Protein abundance was too high. Please use values in [0,")
+          + String(std::numeric_limits<AbundanceType>::max()) + "]! See above for more information.",
+          String("?"));
+      }
+
 
       for (Size i = 0; i < charge_consensus.size(); ++i) // this cannot be done inside the parallel-for as the copy_map might be populated meanwhile, which changes the internal uniqueid-map (used in below function)
       {
