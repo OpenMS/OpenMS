@@ -47,6 +47,7 @@
 #include <string>
 #include <set>
 
+#include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
 #include <typeinfo>
 
@@ -361,11 +362,14 @@ protected:
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
     writeLog_("Executing maracluster ...");
-    TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
-    if (exit_code != EXECUTION_OK)
+    QProcess qp;
+    qp.start(maracluster_executable.toQString(), arguments);
+    qp.waitForFinished(-1);
+    if (qp.error() == QProcess::FailedToStart)
     {
-      return exit_code;
+      LOG_ERROR << "Process failed to start. Does it exist? Is it executable?" << std::endl;
     }
+
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
