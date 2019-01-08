@@ -1255,26 +1255,12 @@ protected:
       IDFilter::filterBestPerPeptide(inferred_peptide_ids, true, true, 1);
       IDFilter::filterEmptyPeptideIDs(inferred_peptide_ids);
       BayesianProteinInferenceAlgorithm bayes;
-      //bayesian inference automatically annotates groups
+      //bayesian inference automatically annotates groups but only non-singletons
       bayes.inferPosteriorProbabilities(inferred_protein_ids, inferred_peptide_ids);
     }
 
-    // single proteins form a (trivial) indistinguishable group if no grouping was performed
-    if (!groups && !bayesian)
-    {
-      using IndProtGrp = ProteinIdentification::ProteinGroup;
-      using IndProtGrps = std::vector<IndProtGrp>;
-      if (inferred_protein_ids[0].getIndistinguishableProteins().empty())
-      {
-        IndProtGrps& ind_prots = inferred_protein_ids[0].getIndistinguishableProteins();
-        for (const OpenMS::ProteinHit& prot_hit : inferred_protein_ids[0].getHits())
-        {
-          ProteinIdentification::ProteinGroup pg;
-          pg.accessions.push_back(prot_hit.getAccession());
-          ind_prots.push_back(pg);
-        }
-      }
-    }
+    // if no or only partial grouping was performed, add rest of proteins as singleton groups
+    inferred_protein_ids[0].fillIndistinguishableGroupsWithSingletons();
 
     if (debug_level_ >= 666)
     {
@@ -1294,6 +1280,9 @@ protected:
       IdXMLFile().store("debug_mergedIDsFDR.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
+    //TODO think about order of the next two steps (FDR filtering and greedy resolution)
+
+    // Protein FDR filtering
     //IDFilter::filterHitsByScore(inferred_peptide_ids, maxFDR); // probably not required but shouldn't hurt
     IDFilter::filterHitsByScore(inferred_protein_ids, maxFDR);
     IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
@@ -1305,6 +1294,8 @@ protected:
       IdXMLFile().store("debug_mergedIDsFDRFiltered.idXML", inferred_protein_ids, inferred_peptide_ids);
     }
 
+
+    // Optional greedy group resolution
     bool greedy_group_resolution = getStringOption_("protein_quantification") == "shared_peptides" ? true : false;
     if (greedy_group_resolution)
     {
@@ -1332,8 +1323,6 @@ protected:
     IDFilter::updateProteinReferences(inferred_peptide_ids, inferred_protein_ids, true);
 
     // compute coverage
-    // TODO This needs to be fixed!!! Sometimes results in coverages around 30.
-    //  All mods and charges counted multiple times?
     inferred_protein_ids[0].computeCoverage(inferred_peptide_ids);
 
     // determine observed modifications (exclude fixed mods)
