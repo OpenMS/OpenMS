@@ -268,7 +268,6 @@ public:
                    boost::bind(std::multiplies<double>(), _1, 10));
     for (size_t i = 0; i < weights.size(); ++i)
       std::cout << "weights[" << i << "]: " << weights.at(i) << std::endl;
-    boost::random::discrete_distribution<Size, double> ddist(weights.begin(), weights.end());
 
     try
     {
@@ -288,179 +287,194 @@ public:
       Size progress(0);
 
       // iterate over all features
-#pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
-      for (SignedSize index = 0; index < (SignedSize)features.size(); ++index)
+      #pragma omp parallel reduction(+: uncharged_feature_count, undetected_features_count)
       {
-        // no barrier here .. only an atomic update of progress value
-#pragma omp atomic
-        ++progress;
+        std::vector<UInt> prec_rndbin;
+        // RNGs are not thread-safe... we need a copy for each thread
+        auto rng_tec = rnd_gen_->getTechnicalRng();
+        boost::random::discrete_distribution<Size, double> ddist(weights.begin(), weights.end());
+        
+        // local vectors for threads with results. Will be merged at the end.
+        SimTypes::FeatureMapSim t_features;
+        ConsensusMap t_charge_consensus;
 
-#ifdef _OPENMP
-        // progress logger, only master thread sets progress (no barrier here)
-        if (omp_get_thread_num() == 0)
-          this->setProgress(progress);
-#else
-        this->setProgress(progress);
-#endif
-
-        ConsensusFeature cf;
-
-        // iterate on abundance
-        Int abundance = (Int) ceil(features[index].getIntensity());
-        UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
-
-
-        /// shortcut: if abundance is >1000, we 1) downsize by power of 2 until 1000 < abundance_ < 2000
-        ///                                     2) dice distribution
-        ///                                     3) blow abundance up to original level  (to save A LOT of computation time)
-        Int power_factor_2(0);
-        while (abundance > 1000)
+        #pragma omp for
+        for (SignedSize index = 0; index < (SignedSize)features.size(); ++index)
         {
-          ++power_factor_2;
-          abundance /= 2;
-        }
+          // no barrier here .. only an atomic update of progress value
+          #pragma omp atomic
+          ++progress;
 
-        if (basic_residues_c == 0)
-        {
-          ++uncharged_feature_count; // OMP
-          continue;
-        }
-
-        // precompute random numbers:
-        std::vector<UInt> prec_rndbin(abundance);
-        {
-          boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
-          for (Int j = 0; j < abundance; ++j)
+          IF_MASTERTHREAD // progress logger, only master thread sets progress (no barrier here)
           {
-            Int rnd_no = bdist(rnd_gen_->getTechnicalRng());
-            prec_rndbin[j] = (UInt) rnd_no; //cast is save because random dist should give result in the intervall [0, basic_residues_c]
+            this->setProgress(progress);
           }
-        }
 
-        std::vector<Size> prec_rnduni(50); // uniform numbers container
-        Size prec_rnduni_remaining(0);
+          ConsensusFeature cf;
 
-        // assumption: each basic residue can hold one charged adduct
-        // , we need a custom comparator, as building Compomers step by step can lead to
-        // numeric diffs (and thus distinct compomers) - we only use EF to discern, that's sufficient here
-        std::map<Compomer, UInt, CompareCmpByEF_> charge_states;
-        Size adduct_index;
-        UInt charge;
+          // iterate on abundance
+          Int abundance = (Int)features[index].getIntensity();
+          UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
 
-        // sample different charge states (dice for each peptide molecule separately)
-        for (Int j = 0; j < abundance; ++j)
-        {
-          // currently we might also loose some molecules here (which is ok?)
-          // sample charge state from binomial
-
-          charge = prec_rndbin[j]; // get precomputed rnd
-
-          if (charge == 0)
+          if (basic_residues_c == 0)
           {
+            ++uncharged_feature_count; // OMP
             continue;
           }
 
-          /////
-          // distribute charges across adduct types
-          /////
-          Compomer cmp;
-          // if there is only one adduct allowed (usually H+), this is easy
-          if (esi_adducts_.size() == 1)
+          /// shortcut: if abundance is >1000, we 1) downsize by power of 2 until 1000 < abundance_ < 2000
+          ///                                     2) dice distribution
+          ///                                     3) blow abundance up to original level  (to save A LOT of computation time)
+          Int power_factor_2(0);
+          while (abundance > 1000)
           {
-            cmp.add(esi_adducts_[0] * charge, Compomer::RIGHT);
+            ++power_factor_2;
+            abundance /= 2;
           }
-          else // for more elaborate adducts
+
+
+          // precompute random numbers:
+          prec_rndbin.resize(abundance);
           {
-            for (UInt charge_site = 0; charge_site < charge; ++charge_site)
+            boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
+            for (Int j = 0; j < abundance; ++j)
             {
-              if (prec_rnduni_remaining == 0)
-              {
-                // refill discrete rnd numbers if container is depleted
-                {
-                  for (Size i_rnd = 0; i_rnd < prec_rnduni.size(); ++i_rnd)
-                  {
-                    prec_rnduni[i_rnd] = ddist(rnd_gen_->getTechnicalRng());
-                  }
-                  prec_rnduni_remaining = prec_rnduni.size();
-                }
-              }
-              adduct_index = prec_rnduni[--prec_rnduni_remaining];
-              cmp.add(esi_adducts_[adduct_index], Compomer::RIGHT);
+              Int rnd_no = bdist(rng_tec);
+              prec_rndbin[j] = (UInt) rnd_no; //cast is save because random dist should give result in the intervall [0, basic_residues_c]
             }
           }
 
-          // add 1 to abundance of sampled charge state
-          ++charge_states[cmp];
-        }
+          std::vector<Size> prec_rnduni(50); // uniform numbers container
+          Size prec_rnduni_remaining(0);
 
-        // no charges > 0 selected (this should be really rare)
-        if (charge_states.empty())
-        {
-          ++uncharged_feature_count; // OMP!
-          continue;
-        }
+          // assumption: each basic residue can hold one charged adduct
+          // , we need a custom comparator, as building Compomers step by step can lead to
+          // numeric diffs (and thus distinct compomers) - we only use EF to discern, that's sufficient here
+          std::map<Compomer, UInt, CompareCmpByEF_> charge_states;
+          Size adduct_index;
+          UInt charge;
 
-        // re-scale abundance to original value if it was below 1000
-        //   -> this might lead to small numerical differences to original abundance
-        UInt factor = pow(2.0, power_factor_2);
-        for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m = charge_states.begin(); it_m != charge_states.end(); ++it_m)
-        {
-          charge_states[it_m->first] *= factor;
-        }
-
-        // transform into a set (for sorting by abundance)
-        Int max_observed_charge(0);
-        std::set<std::pair<UInt, Compomer> > charge_states_sorted;
-        for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m = charge_states.begin(); it_m != charge_states.end(); ++it_m) // create set of pair(abundance, Compomer)
-        {
-          charge_states_sorted.insert(charge_states_sorted.begin(), std::make_pair(it_m->second, it_m->first));
-          // update maximal observed charge
-          max_observed_charge = std::max(max_observed_charge, it_m->first.getNetCharge());
-        }
-
-        Int max_compomer_types = param_.getValue("esi:max_impurity_set_size");
-        std::vector<Int> allowed_entities_of_charge(max_observed_charge + 1, max_compomer_types);
-        // start at highest abundant ions
-        for (std::set<std::pair<UInt, Compomer> >::reverse_iterator it_s = charge_states_sorted.rbegin();
-             it_s != charge_states_sorted.rend();
-             ++it_s)
-        {
-          Int lcharge = it_s->second.getNetCharge();
-          if (allowed_entities_of_charge[lcharge] > 0)
+          // sample different charge states (dice for each peptide molecule separately)
+          for (Int j = 0; j < abundance; ++j)
           {
-            Feature charged_feature(features[index]);
+            // currently we might also loose some molecules here (which is ok?)
+            // sample charge state from binomial
 
-            setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), lcharge, it_s->first, index);
+            charge = prec_rndbin[j]; // get precomputed rnd
 
-            // remember the original feature as parent feature (needed for labeling consensus)
-            charged_feature.setMetaValue("parent_feature", String(features[index].getUniqueId()));
-
-            if (!isFeatureValid_(charged_feature))
+            if (charge == 0)
             {
-              ++undetected_features_count; // OMP!
               continue;
             }
 
-#pragma omp critical (OPENMS_copy_map)
+            /////
+            // distribute charges across adduct types
+            /////
+            Compomer cmp;
+            // if there is only one adduct allowed (usually H+), this is easy
+            if (esi_adducts_.size() == 1)
             {
-              copy_map.push_back(charged_feature);
+              cmp.add(esi_adducts_[0] * charge, Compomer::RIGHT);
             }
-            // add to consensus
-            cf.insert(0, charged_feature);
+            else // for more elaborate adducts
+            {
+              for (UInt charge_site = 0; charge_site < charge; ++charge_site)
+              {
+                if (prec_rnduni_remaining == 0)
+                {
+                  // refill discrete rnd numbers if container is depleted
+                  {
+                    for (Size i_rnd = 0; i_rnd < prec_rnduni.size(); ++i_rnd)
+                    {
+                      prec_rnduni[i_rnd] = ddist(rng_tec);
+                    }
+                    prec_rnduni_remaining = prec_rnduni.size();
+                  }
+                }
+                adduct_index = prec_rnduni[--prec_rnduni_remaining];
+                cmp.add(esi_adducts_[adduct_index], Compomer::RIGHT);
+              }
+            }
 
-            // decrease # of allowed compomers of current compomer's charge
-            --allowed_entities_of_charge[lcharge];
+            // add 1 to abundance of sampled charge state
+            ++charge_states[cmp];
           }
-        }
 
-        // add consensus element containing all charge variants just created
-#pragma omp critical (OPENMS_charge_consensus)
+          // no charges > 0 selected (this should be really rare)
+          if (charge_states.empty())
+          {
+            ++uncharged_feature_count; // OMP!
+            continue;
+          }
+
+          // re-scale abundance to original value if it was below 1000
+          //   -> this might lead to small numerical differences to original abundance
+          if (power_factor_2 > 0)
+          {
+            UInt factor = 1 << power_factor_2;
+            for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m = charge_states.begin(); it_m != charge_states.end(); ++it_m)
+            {
+              charge_states[it_m->first] *= factor;
+            }
+          }
+
+          // transform into a set (for sorting by abundance)
+          Int max_observed_charge(0);
+          std::set<std::pair<UInt, Compomer> > charge_states_sorted;
+          for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m = charge_states.begin(); it_m != charge_states.end(); ++it_m) // create set of pair(abundance, Compomer)
+          {
+            charge_states_sorted.insert(charge_states_sorted.begin(), std::make_pair(it_m->second, it_m->first));
+            // update maximal observed charge
+            max_observed_charge = std::max(max_observed_charge, it_m->first.getNetCharge());
+          }
+
+          Int max_compomer_types = param_.getValue("esi:max_impurity_set_size");
+          std::vector<Int> allowed_entities_of_charge(max_observed_charge + 1, max_compomer_types);
+          // start at highest abundant ions
+          for (std::set<std::pair<UInt, Compomer> >::reverse_iterator it_s = charge_states_sorted.rbegin();
+            it_s != charge_states_sorted.rend();
+            ++it_s)
+          {
+            Int lcharge = it_s->second.getNetCharge();
+            if (allowed_entities_of_charge[lcharge] > 0)
+            {
+              Feature charged_feature(features[index]);
+
+              setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), lcharge, it_s->first, index);
+
+              // remember the original feature as parent feature (needed for labeling consensus)
+              charged_feature.setMetaValue("parent_feature", String(features[index].getUniqueId()));
+
+              if (!isFeatureValid_(charged_feature))
+              {
+                ++undetected_features_count; // OMP!
+                continue;
+              }
+
+              t_features.push_back(charged_feature);
+
+              // add to consensus
+              cf.insert(0, charged_feature);
+
+              // decrease # of allowed compomers of current compomer's charge
+              --allowed_entities_of_charge[lcharge];
+            }
+          }
+
+          // add consensus element containing all charge variants just created
+          t_charge_consensus.push_back(cf);
+
+        } // ! for feature  (parallel)
+
+        // merge thread results
+#pragma omp critical (OPENMS_IONSIM_ESI_FINAL)
         {
-          charge_consensus.push_back(cf);
+          for (auto& e : t_features) copy_map.push_back(e);
+          for (auto& e : t_charge_consensus) charge_consensus.push_back(e);
         }
+          
 
-      } // ! for feature  (parallel)
-
+      } // end omp parallel
       this->endProgress();
 
       for (Size i = 0; i < charge_consensus.size(); ++i) // this cannot be done inside the parallel-for as the copy_map might be populated meanwhile, which changes the internal uniqueid-map (used in below function)
