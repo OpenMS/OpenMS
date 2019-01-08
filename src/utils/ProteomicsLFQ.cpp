@@ -257,6 +257,17 @@ protected:
     return mzfile2idfile;
   }
 
+  // map back
+  map<String, String> mapId2MzMLs_(const map<String, String>& m2i)
+  {
+    map<String, String> idfile2mzfile;
+    for (auto m : m2i)
+    {
+      idfile2mzfile[m.second] = m.first;
+    }
+    return idfile2mzfile;
+  }
+
   ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
   { 
     Param pp_param = getParam_().copy("Centroiding:", true);
@@ -802,7 +813,8 @@ protected:
       bool missing_spec_ref(false);
       for (const PeptideIdentification & pid : peptide_ids)
       {
-        if (pid.getMetaValue("spectrum_reference").toString().empty()) 
+        if (!pid.metaValueExists("spectrum_reference") 
+          || pid.getMetaValue("spectrum_reference").toString().empty()) 
         {          
           missing_spec_ref = true;
           break;
@@ -1066,6 +1078,7 @@ protected:
     // Here we currently assume that these are provided in the exact same order.
     // In the future, we could warn or reorder them based on the annotated primaryMSRunPath in the ID file.
     map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
+    map<String, String> idfile2mzfile = mapId2MzMLs_(mzfile2idfile);
 
     // check if mzMLs in experimental design match to mzMLs passed as in parameter
     for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
@@ -1163,12 +1176,23 @@ protected:
     IDMergerAlgorithm merger{String("all_merged")};
 
     IdXMLFile f;
+    
     for (const auto& idfile : in_ids)
     {
       vector<ProteinIdentification> protein_ids;
       vector<PeptideIdentification> peptide_ids;
       f.load(idfile, protein_ids, peptide_ids);
-      // TODO: Do and filter for a PSM FDR?
+
+      // reannoate MS run if not present
+      StringList id_msfile_ref;
+      protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
+      if (id_msfile_ref.empty())
+      {
+        id_msfile_ref.push_back(idfile2mzfile[idfile]);
+        protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
+      }     
+ 
+      // TODO: Filter for a PSM FDR?
       merger.insertRun(protein_ids, peptide_ids);
     }
 
