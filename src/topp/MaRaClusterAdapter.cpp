@@ -282,6 +282,12 @@ protected:
     const String maracluster_executable(getStringOption_("maracluster_executable"));
     writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
 
+    if (maracluster_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("maracluster_executable"... ???
+    {
+      writeLog_("No maracluster executable specified. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
  
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
