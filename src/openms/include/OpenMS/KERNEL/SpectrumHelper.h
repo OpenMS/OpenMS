@@ -230,6 +230,7 @@ namespace OpenMS
     output.SpectrumSettings::operator=(input);
     output.setRT(input.getRT());
     output.setDriftTime(input.getDriftTime());
+    output.setDriftTimeUnit(input.getDriftTimeUnit());
     output.setMSLevel(input.getMSLevel());
     output.setName(input.getName());
   }
