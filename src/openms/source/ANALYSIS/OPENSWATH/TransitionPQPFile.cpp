@@ -321,6 +321,9 @@ namespace OpenMS
 
     // Create SQL structure
     const char* create_sql =
+      "CREATE TABLE VERSION(" \
+      "ID INT NOT NULL);" \
+
       // protein table
       // OpenSWATH proteomics workflows
       "CREATE TABLE PROTEIN(" \
@@ -631,6 +634,16 @@ namespace OpenMS
     update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN (SELECT PROTEIN.ID FROM PEPTIDE JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID =  PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
 
     sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
+
+    // Execute SQL insert statement
+    String insert_version = "INSERT INTO VERSION (ID) VALUES (2);";
+    rc = sqlite3_exec(db, insert_version.c_str(), callback, nullptr, &zErrMsg);
+    if ( rc != SQLITE_OK )
+    {
+      sqlite3_free(zErrMsg);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          zErrMsg);
+    }
 
     // Execute SQL insert statement
     std::string insert_protein_sql_str = insert_protein_sql.str();
