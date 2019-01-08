@@ -5158,6 +5158,17 @@ def testString():
     assert (pystr.toString() == u"bläh")
     cstr = pystr.c_str()
 
+    ustr = u"bläh"
+    pystr = pyopenms.String(ustr)
+    assert (pystr.toString() == u"bläh")
+    pystr = pyopenms.String(ustr.encode("utf8"))
+    assert (pystr.toString() == u"bläh")
+    # toString will throw as its not UTF8
+    pystr = pyopenms.String(ustr.encode("iso8859_15"))
+    assert (pystr.c_str().decode("iso8859_15") == u"bläh")
+    # pystr = pyopenms.String(ustr.encode("utf16"))
+    # assert (pystr.c_str().decode("utf16") == u"bläh")
+
     # Printing should work ...
     print(cstr)
     print(pystr)
@@ -5175,4 +5186,27 @@ def testString():
     pystr1 = pyopenms.String(u"bläh")
     pystr2 = pyopenms.String(u"bläh")
     assert(pystr1 == pystr2)
+
+    # Handling of automatic conversions of String return values
+    #  -- return a native str when utf8 is used
+    #  -- return a OpenMS::String object when encoding with utf8 is not possible
+
+    s = pyopenms.MSSpectrum()
+    s.setNativeID(ustr)
+    r = s.getNativeID()
+    assert( not isinstance(r, pyopenms.String) ) # native, returns str
+    assert(r == u"bläh")
+
+    s.setNativeID(ustr.encode("utf8"))
+    r = s.getNativeID()
+    assert( not isinstance(r, pyopenms.String) )
+    assert(r == u"bläh")
+    s.setNativeID(ustr.encode("utf16"))
+    r = s.getNativeID()
+    assert( isinstance(r, pyopenms.String) )
+    # assert(r.c_str().decode("utf16") == u"bläh")
+    s.setNativeID(ustr.encode("iso8859_15"))
+    r = s.getNativeID()
+    assert( isinstance(r, pyopenms.String) )
+    assert(r.c_str().decode("iso8859_15") == u"bläh")
 
