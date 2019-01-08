@@ -114,7 +114,8 @@ namespace OpenMS
                   "TRANSITION.DETECTING AS detecting_transition, " \
                   "TRANSITION.IDENTIFYING AS identifying_transition, " \
                   "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms " \
+                  "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms, " + \
+                  "PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time " \
                   "FROM PRECURSOR " \
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
@@ -154,7 +155,8 @@ namespace OpenMS
                   "TRANSITION.DETECTING AS detecting_transition, " \
                   "TRANSITION.IDENTIFYING AS identifying_transition, " \
                   "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "NULL AS peptidoforms " \
+                  "NULL AS peptidoforms, " \
+                  "PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time " \
                   "FROM PRECURSOR " \
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
@@ -285,6 +287,11 @@ namespace OpenMS
       {
         String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 27 ))).split('|', mytransition.peptidoforms);;
       }
+      // optional attributes only present in newer file versions
+      if (sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
+      {
+        mytransition.drift_time = sqlite3_column_double( stmt, 28 );
+      }
 
       transition_list.push_back(mytransition);
       sqlite3_step( stmt );
@@ -365,6 +372,7 @@ namespace OpenMS
       "CHARGE INT NULL," \
       "LIBRARY_INTENSITY REAL NULL," \
       "LIBRARY_RT REAL NULL," \
+      "LIBRARY_DRIFT_TIME REAL NULL," \
       "DECOY INT NOT NULL);" \
 
       // transition_precursor_mapping table
@@ -520,9 +528,20 @@ namespace OpenMS
         peptide_protein_map.push_back(std::make_pair(peptide_set_index,protein_map[*it]));
       }
 
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",'" << peptide.id << "','" << peptide.getPeptideGroupLabel() << "'," << precursor_mz_map[group_set_index] << "," << peptide.getChargeState() << ",NULL," << peptide.getRetentionTime() << "," << precursor_decoy_map[group_set_index] << "); ";
+      insert_precursor_sql <<
+        "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, \
+          LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" <<
+        group_set_index << ",'" << peptide.id << "','" <<
+        peptide.getPeptideGroupLabel() << "'," <<
+        precursor_mz_map[group_set_index] << "," <<
+        peptide.getChargeState() <<
+        ",NULL," <<
+        peptide.getDriftTime() << "," <<
+        peptide.getRetentionTime() << "," <<
+        precursor_decoy_map[group_set_index] << "); ";
 
-      insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" << group_set_index << "," << peptide_set_index << "); ";
+      insert_precursor_peptide_mapping << "INSERT INTO PRECURSOR_PEPTIDE_MAPPING (PRECURSOR_ID, PEPTIDE_ID) VALUES (" <<
+        group_set_index << "," << peptide_set_index << "); ";
 
     }
 
@@ -539,10 +558,18 @@ namespace OpenMS
         compound_charge = String(compound.getChargeState());
       }
 
-      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, LIBRARY_RT, DECOY) VALUES (" << group_set_index << ",'" << compound.id << "',NULL," << precursor_mz_map[group_set_index] << "," << compound_charge << ",NULL,NULL" << "," << precursor_decoy_map[group_set_index] << "); ";
+      insert_precursor_sql << "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY,\
+        LIBRARY_DRIFT_TIME, LIBRARY_RT, DECOY) VALUES (" << group_set_index
+        << ",'" << compound.id << "',NULL," <<
+        precursor_mz_map[group_set_index] << "," <<
+        compound_charge <<
+        ",NULL," <<
+        compound.getDriftTime() << "," <<
+        compound.getRetentionTime() << "," <<
+        precursor_decoy_map[group_set_index] << "); ";
 
-      insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" << group_set_index << "," << compound_set_index << "); ";
-
+      insert_precursor_compound_mapping << "INSERT INTO PRECURSOR_COMPOUND_MAPPING (PRECURSOR_ID, COMPOUND_ID) VALUES (" <<
+        group_set_index << "," << compound_set_index << "); ";
     }
 
     boost::erase(peptide_protein_map, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map)));
