@@ -508,7 +508,17 @@ namespace OpenMS
       }
 
       // OpenSWATH: Insert transition data
-      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" << transition.transition_name << "'," << transition.product << "," << transition_charge << ",'" << transition.fragment_type<< "'," << transition.fragment_nr << "," << transition.detecting_transition << "," << transition.identifying_transition << "," << transition.quantifying_transition << "," << transition.library_intensity << "," << transition.decoy << "); ";
+      insert_transition_sql << "INSERT INTO TRANSITION (ID, TRAML_ID, PRODUCT_MZ, CHARGE, TYPE, ORDINAL, \
+        DETECTING, IDENTIFYING, QUANTIFYING, LIBRARY_INTENSITY, DECOY) VALUES (" << i << ",'" <<
+        transition.transition_name << "'," <<
+        transition.product << "," <<
+        transition_charge << ",'" <<
+        transition.fragment_type<< "'," <<
+        transition.fragment_nr << "," <<
+        transition.detecting_transition << "," <<
+        transition.identifying_transition << "," <<
+        transition.quantifying_transition << "," <<
+        transition.library_intensity << "," << transition.decoy << "); ";
     }
 
     std::stringstream insert_precursor_sql, insert_precursor_peptide_mapping, insert_precursor_compound_mapping;
@@ -575,31 +585,40 @@ namespace OpenMS
     boost::erase(peptide_protein_map, boost::unique<boost::return_found_end>(boost::sort(peptide_protein_map)));
     // OpenSWATH: Prepare peptide-protein mapping inserts
     std::stringstream insert_peptide_protein_mapping;
-    for (std::vector<std::pair<int, int> >::iterator it = peptide_protein_map.begin(); it != peptide_protein_map.end(); ++it)
+    for (const auto& it : peptide_protein_map)
     {
-      insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" << it->first << "," << it->second << "); ";
+      insert_peptide_protein_mapping << "INSERT INTO PEPTIDE_PROTEIN_MAPPING (PEPTIDE_ID, PROTEIN_ID) VALUES (" <<
+        it.first << "," << it.second << "); ";
     }
 
     // OpenSWATH: Prepare protein inserts
     std::stringstream insert_protein_sql;
-    for (std::map<std::string, int >::iterator it = protein_map.begin(); it != protein_map.end(); ++it)
+    for (const auto& it : protein_map)
     {
-      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" << it->second << ",'" << it->first << "'," << 0 << "); ";
+      insert_protein_sql << "INSERT INTO PROTEIN (ID, PROTEIN_ACCESSION, DECOY) VALUES (" <<
+        it.second << ",'" << it.first << "'," << 0 << "); ";
     }
 
     // OpenSWATH: Prepare peptide inserts
     std::stringstream insert_peptide_sql;
-    for (std::map<std::string, int >::iterator it = peptide_map.begin(); it != peptide_map.end(); ++it)
+    for (const auto& it : peptide_map)
     {
-      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" << it->second << ",'" << AASequence::fromString(it->first).toUnmodifiedString() << "','" << it->first << "'," << 0 << "); ";
+      insert_peptide_sql << "INSERT INTO PEPTIDE (ID, UNMODIFIED_SEQUENCE, MODIFIED_SEQUENCE, DECOY) VALUES (" <<
+        it.second << ",'" <<
+        AASequence::fromString(it.first).toUnmodifiedString() << "','" <<
+        it.first << "'," << 0 << "); ";
     }
 
     // OpenSWATH: Prepare compound inserts
     std::stringstream insert_compound_sql;
-    for (std::map<std::string, int >::iterator it = compound_map.begin(); it != compound_map.end(); ++it)
+    for (const auto& it : compound_map)
     {
-      OpenMS::TargetedExperiment::Compound compound = targeted_exp.getCompoundByRef(it->first);
-      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, DECOY) VALUES (" << it->second << ",'" << compound.id << "','" << compound.molecular_formula << "','" << compound.smiles_string << "'," << 0 << "); ";
+      const auto& compound = targeted_exp.getCompoundByRef(it.first);
+      insert_compound_sql << "INSERT INTO COMPOUND (ID, COMPOUND_NAME, SUM_FORMULA, SMILES, DECOY) VALUES (" <<
+        it.second << ",'" <<
+        compound.id << "','" <<
+        compound.molecular_formula << "','" <<
+        compound.smiles_string << "'," << 0 << "); ";
     }
 
     // OpenSWATH: Prepare decoy updates
