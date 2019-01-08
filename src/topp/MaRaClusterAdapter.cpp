@@ -282,19 +282,6 @@ protected:
     const String maracluster_executable(getStringOption_("maracluster_executable"));
     writeDebug_(String("Path to the maracluster executable: ") + maracluster_executable, 2);
 
-    if (maracluster_executable.empty())  //TODO? - TOPPBase::findExecutable after registerInputFile_("maracluster_executable"... ???
-    {
-      writeLog_("No maracluster executable specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-    else if (!File::exists(maracluster_executable))
-    {
-      writeLog_("Maracluster executable not found at location specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-   
  
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
@@ -367,7 +354,12 @@ protected:
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
-    runExternalProcess_(maracluster_executable.toQString(), arguments);
+    writeLog_("Executing maracluster ...");
+    TOPPBase::ExitCodes exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
+    if (exit_code != EXECUTION_OK)
+    {
+      return exit_code;
+    }
 
     //-------------------------------------------------------------
     // reintegrate clustering results 
