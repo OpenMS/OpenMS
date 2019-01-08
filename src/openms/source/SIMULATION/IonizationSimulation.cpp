@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 
 #include <boost/bind.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 #include <boost/random/binomial_distribution.hpp>
 #include <boost/random/discrete_distribution.hpp>
 
@@ -313,7 +314,19 @@ public:
           ConsensusFeature cf;
 
           // iterate on abundance
-          Int abundance = (Int)features[index].getIntensity();
+          typedef UInt AbundanceType;
+          AbundanceType abundance;
+          try
+          {
+            abundance = boost::numeric_cast<AbundanceType>(features[index].getIntensity());
+          }
+          catch (...) // overflow (e.g. intensity = 1e6); underflow can currently not occur (see DigestSimulation:204) but would be covered as well
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+                                          String("Protein abundance is too high. Please use values in [0,")
+                                          + String(std::numeric_limits<AbundanceType>::max()) + "]!",
+                                          String(features[index].getIntensity()));
+          }
           UInt basic_residues_c = countIonizedResidues_(features[index].getPeptideIdentifications()[0].getHits()[0].getSequence());
 
           if (basic_residues_c == 0)
@@ -337,7 +350,7 @@ public:
           prec_rndbin.resize(abundance);
           {
             boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
-            for (Int j = 0; j < abundance; ++j)
+            for (UInt j = 0; j < abundance; ++j)
             {
               Int rnd_no = bdist(rng_tec);
               prec_rndbin[j] = (UInt) rnd_no; //cast is save because random dist should give result in the intervall [0, basic_residues_c]
@@ -355,7 +368,7 @@ public:
           UInt charge;
 
           // sample different charge states (dice for each peptide molecule separately)
-          for (Int j = 0; j < abundance; ++j)
+          for (UInt j = 0; j < abundance; ++j)
           {
             // currently we might also loose some molecules here (which is ok?)
             // sample charge state from binomial
