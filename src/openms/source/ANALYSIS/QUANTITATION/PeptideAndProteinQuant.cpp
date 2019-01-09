@@ -149,6 +149,9 @@ namespace OpenMS
       {
         String seq = hit.getSequence().toUnmodifiedString();
         set<String> accessions = hit.extractProteinAccessionsSet();
+
+        // cout << "Sequence: " << seq << " size: " << accessions.size() << " " << *(accessions.begin()) << endl;
+
         // If a peptide is seen multiple times, the protein accessions should
         // always be the same, so only the first time it should be necessary to
         // insert them. However, just in case there a differences in the
@@ -159,7 +162,10 @@ namespace OpenMS
     // if inference results are given, filter quant. data accordingly:
     if (!pep_info.empty())
     {
+      if (pep_quant_.empty()) { LOG_ERROR << "No peptides quantified (pep_quant_ is empty)!" << endl; }
+
       PeptideQuant filtered;
+
       for (auto & pep_q : pep_quant_)  // for all quantified peptides
       {
         String seq = pep_q.first.toUnmodifiedString();
@@ -337,6 +343,11 @@ namespace OpenMS
   void PeptideAndProteinQuant::quantifyProteins(const ProteinIdentification&
                                                 proteins)
   {
+    if (pep_quant_.empty())
+    {
+      LOG_WARN << "Warning: No peptides quantified." << endl;
+    }
+
     // if information about (indistinguishable) protein groups is available, map
     // each accession to the accession of the leader of its group of proteins:
     map<String, String> accession_to_leader;
@@ -352,10 +363,13 @@ namespace OpenMS
       }
     }
 
+    // for (auto & a : accession_to_leader) { std::cout << a.first << "\tis led by:\t" << a.second << endl; }
+
     for (auto const pep_q : pep_quant_)
     {
       String accession = getAccession_(pep_q.second.accessions,
                                        accession_to_leader);
+      std::cout << "Pepitde id mapped to leader: " << accession << endl;
       if (!accession.empty()) // proteotypic peptide
       {
         prot_quant_[accession].id_count += pep_q.second.id_count;
@@ -514,6 +528,13 @@ namespace OpenMS
     const ExperimentalDesign& ed)
   {
     updateMembers_(); // clear data
+
+    if (consensus.empty())
+    {
+      LOG_ERROR << "Empty consensus map passed to readQuantData." << endl;
+      return;
+    }
+
     stats_.n_samples = ed.getNumberOfSamples();
     stats_.n_fractions = ed.getNumberOfFractions();
     stats_.n_ms_files = ed.getNumberOfMSFiles();
@@ -528,6 +549,8 @@ namespace OpenMS
       stats_.total_features += c.getFeatures().size();
 
       // count features without id
+      std::cout << "bla" << endl;
+      std::cout << c.getPeptideIdentifications().empty() << endl;
       if (c.getPeptideIdentifications().empty())
       {
         stats_.blank_features += c.getFeatures().size();
@@ -601,10 +624,10 @@ namespace OpenMS
       const PeptideHit& hit = p.getHits()[0];
       stats_.quant_features++;
       const AASequence& seq = hit.getSequence();
-      const String & ms_file_path = identifier_to_ms_file[p.getIdentifier()];
+      const String& ms_file_path = identifier_to_ms_file[p.getIdentifier()];
 
       // determine sample and fraction by MS file name (stored in protein identification)
-      const ExperimentalDesign::MSFileSection & run_section = ed.getMSFileSection();
+      const ExperimentalDesign::MSFileSection& run_section = ed.getMSFileSection();
       auto row = find_if(begin(run_section), end(run_section), 
         [&ms_file_path](const ExperimentalDesign::MSFileSectionEntry& r)
           { 

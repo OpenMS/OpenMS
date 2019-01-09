@@ -50,7 +50,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+//#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
@@ -214,7 +214,9 @@ protected:
     ma_defaults.setValue("use_unassigned_peptides", "false");
     ma_defaults.setValue("use_feature_rt", "true");
 
-    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
+    //Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
+    Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
+
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     pq_defaults.setValue("include_all", "true"); 
@@ -555,7 +557,6 @@ protected:
 
     writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
 
-/*
     // grouping tolerance = max alignment error + median FWHM
     FeatureGroupingAlgorithmQT linker;
     fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
@@ -564,15 +565,17 @@ protected:
     fl_param.setValue("distance_MZ:weight", 5.0);
     fl_param.setValue("distance_intensity:weight", 0.1); 
     fl_param.setValue("use_identifications", "true"); 
-*/
+/*
     FeatureGroupingAlgorithmKD linker;
     fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:mz_tol", 10.0);
     fl_param.setValue("mz_unit", "ppm");
-
+*/
     linker.setParameters(fl_param);      
     linker.group(feature_maps, consensus_fraction);
+    LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
+    assert(!consensus_fraction.empty());
   }
 
   // Align and link.
@@ -1335,10 +1338,14 @@ protected:
     // ensure that only one final inference result is generated
     assert(inferred_protein_ids.size() == 1);
 
-    // only keep unique peptides (for now)
-    if (!greedy_group_resolution) // greedy group resolution should already uniquify peptides
+    // do we only want to keep strictly unique peptides (e.g., no groups)?
+    if (!greedy_group_resolution && !groups)
     {
       IDFilter::keepUniquePeptidesPerProtein(inferred_peptide_ids);
+      if (debug_level_ >= 666)
+      {
+        IdXMLFile().store("debug_mergedIDsFDRFilteredStrictlyUniqueResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
+      }
     }
 
     // filter decoy proteins, update groups so decoy proteins are also removed there, and remove PSMs that mapped to them. 

@@ -77,6 +77,7 @@ run4.idXML run5.idXML run6.idXML \
 -transfer_ids "false" \
 -mass_recalibration "false" \
 -out_cxml BSA.consensusXML \
+-proteinFDR 1.0 \
 -out_msstats BSA.csv \
 -out BSA.mzTab -threads 4 -debug 667 
 
