@@ -1474,27 +1474,44 @@ protected:
     }
 
     quantifier.quantifyProteins(inferred_protein_ids[0]);
-      if (debug_level_ >= 666)
-      {
-        IdXMLFile().store("debug_quant.idXML", inferred_protein_ids, inferred_peptide_ids);
-      }
+    auto const & protein_quants = quantifier.getProteinResults();
+    if (protein_quants.empty())
+    {        
+      LOG_WARN << "Warning: No proteins were quantified." << endl;
+    }
+
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_quant.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
     //-------------------------------------------------------------
     // Export of MzTab file as final output
     //-------------------------------------------------------------
 
-    // Annotate quants to protein(groups) for easier export in mzTab
-    auto const & protein_quants = quantifier.getProteinResults();
-      if (debug_level_ >= 666)
-      {
-        IdXMLFile().store("debug_quant1.idXML", inferred_protein_ids, inferred_peptide_ids);
-      }
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_quant1.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
 
-    // annotates final quantities to proteins and protein groups in the ID data structure
-    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
-      if (debug_level_ >= 666)
+    // Annotate quants to protein(groups) for easier export in mzTab
+    if (debug_level_ >= 666)
+    {
+      for (auto r : quantifier.getProteinResults())
       {
-        IdXMLFile().store("debug_quant_annotated.idXML", inferred_protein_ids, inferred_peptide_ids);
+        std::cout << "Accession:" << r.first << "\n";
+        for (auto s : r.second.total_abundances)
+        {
+          std::cout << s.second << "\t"; 
+        }
+        std::cout << "\n";
       }
+    }
+
+    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_quant_annotated.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), inferred_protein_ids[0]); // insert inference information as first protein identification
     proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID

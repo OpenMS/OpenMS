@@ -12,7 +12,7 @@ echo "Fraction_Group	Fraction	Spectra_Filepath	Label	Sample
 5	1	run5.mzML	1	5
 6	1	run6.mzML	1	6
 
-Sample	MSstats_Condition	Biological_Replicate
+Sample	MSstats_Condition	MSstats_BioReplicate
 1	1	1
 2	1	2
 3	1	3
@@ -63,6 +63,7 @@ FLLCVVLLGFIMWACQRGNIRCNICI
 
 MSSimulator -in BSA.fasta -out run${i}.mzML -out_id run${i}.idXML -out_fm run${i}.featureXML -algorithm:MSSim:RawTandemSignal:status "precursor"
 PeptideIndexer -in run${i}.idXML -fasta BSA.fasta -out run${i}.idXML -missing_decoy_action "warn"
+sed -i 's/score_type=""/score_type="Posterior Probability"/g' run${i}.idXML
 done
 
 ProteomicsLFQ -in run1.mzML run2.mzML run3.mzML \
@@ -77,5 +78,5 @@ run4.idXML run5.idXML run6.idXML \
 -mass_recalibration "false" \
 -out_cxml BSA.consensusXML \
 -out_msstats BSA.csv \
--out BSA.mzTab -threads 4 
+-out BSA.mzTab -threads 4 -debug 667 
 
