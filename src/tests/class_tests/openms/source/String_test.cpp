@@ -99,6 +99,9 @@ START_SECTION((String(const char* s, SizeType length)))
   // TEST_NOT_EQUAL(s4,"abcdedfg")
 
   // Unicode test
+  // print(b"T\xc3\xbc\x62ingen".decode("utf8"))
+  // print(b"\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00".decode("utf16"))
+  // print(b"T\xfc\x62ingen".decode("iso8859"))
   char test_utf8[] =  "T\xc3\xbc\x62ingen";
   char test_utf16[] = "\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00";
   char test_iso8859[] = "T\xfc\x62ingen";
@@ -118,6 +121,12 @@ START_SECTION((String(const char* s, SizeType length)))
   TEST_EQUAL(s_utf8[1], '\xc3')
   TEST_EQUAL(s_utf8[2], '\xbc') // two bytes for u
   TEST_EQUAL(s_utf8[3], 'b')
+
+  // Its very easy to produce nonsense with unicode (e.g. chop string in half
+  // in the middle of a character)
+  String nonsense(test_utf8, 2);
+  TEST_EQUAL(nonsense.size(), 2);
+  TEST_EQUAL(nonsense[1], '\xc3')
 END_SECTION
 
 START_SECTION((String(const DataValue& d)))
@@ -129,6 +138,34 @@ END_SECTION
 START_SECTION((String(const std::string& s)))
   String s(string("blablabla"));
   TEST_EQUAL(s,"blablabla")
+
+  // Unicode test
+  // print(b"T\xc3\xbc\x62ingen".decode("utf8"))
+  // print(b"\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00".decode("utf16"))
+  // print(b"T\xfc\x62ingen".decode("iso8859"))
+  char test_utf8[] =  "T\xc3\xbc\x62ingen";
+  char test_utf16[] = "\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00";
+  char test_iso8859[] = "T\xfc\x62ingen";
+
+  std::string std_s_utf8(test_utf8, 9);
+  std::string std_s_utf16(test_utf16, 18);
+  std::string std_s_iso8859(test_iso8859, 8);
+
+  String s_utf8(std_s_utf8);
+  String s_utf16(std_s_utf16);
+  String s_iso8859(std_s_iso8859);
+
+  TEST_EQUAL(s_utf16.size(), 18);
+  TEST_EQUAL(s_utf8.size(), 9);
+  TEST_EQUAL(s_iso8859.size(), 8);
+
+  TEST_EQUAL(s_iso8859[0], 'T')
+  TEST_EQUAL(s_iso8859[1], '\xfc') // single byte for u
+  TEST_EQUAL(s_iso8859[2], 'b')
+  TEST_EQUAL(s_utf8[0], 'T')
+  TEST_EQUAL(s_utf8[1], '\xc3')
+  TEST_EQUAL(s_utf8[2], '\xbc') // two bytes for u
+  TEST_EQUAL(s_utf8[3], 'b')
 END_SECTION
 
 START_SECTION((String(const char* s)))
@@ -246,6 +283,42 @@ START_SECTION((template<class InputIterator> String(InputIterator first, InputIt
   s2 = String(i,j);
   TEST_EQUAL(s2,"")
   TEST_EQUAL(s2.size(),0U)
+
+
+  // Unicode test
+  // print(b"T\xc3\xbc\x62ingen".decode("utf8"))
+  // print(b"\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00".decode("utf16"))
+  // print(b"T\xfc\x62ingen".decode("iso8859"))
+  char test_utf8[] =  "T\xc3\xbc\x62ingen";
+  char test_utf16[] = "\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00";
+  char test_iso8859[] = "T\xfc\x62ingen";
+
+  std::string std_s_utf8(test_utf8, 9);
+  std::string std_s_utf16(test_utf16, 18);
+  std::string std_s_iso8859(test_iso8859, 8);
+
+  String s_utf8(std_s_utf8.begin(), std_s_utf8.end());
+  String s_utf16(std_s_utf16.begin(), std_s_utf16.end());
+  String s_iso8859(std_s_iso8859.begin(), std_s_iso8859.end());
+
+  TEST_EQUAL(s_utf16.size(), 18);
+  TEST_EQUAL(s_utf8.size(), 9);
+  TEST_EQUAL(s_iso8859.size(), 8);
+
+  TEST_EQUAL(s_iso8859[0], 'T')
+  TEST_EQUAL(s_iso8859[1], '\xfc') // single byte for u
+  TEST_EQUAL(s_iso8859[2], 'b')
+  TEST_EQUAL(s_utf8[0], 'T')
+  TEST_EQUAL(s_utf8[1], '\xc3')
+  TEST_EQUAL(s_utf8[2], '\xbc') // two bytes for u
+  TEST_EQUAL(s_utf8[3], 'b')
+
+  // Its very easy to produce nonsense with unicode (e.g. chop string in half
+  // in the middle of a character)
+  String nonsense(std_s_utf8.begin(), std_s_utf8.begin() + 2);
+  TEST_EQUAL(nonsense.size(), 2);
+  TEST_EQUAL(nonsense[1], '\xc3')
+
 END_SECTION
 
 String s("ACDEFGHIKLMNPQRSTVWY");
