@@ -9,21 +9,16 @@ cdef inline convOutputString(_String _r):
     #
     # This assumes that all data encoded in OpenMS::String is encoded using
     # UTF8 (in practice OpenMS does not make any assumption about encoding and
-    # OpenMS::String assumes that all data is ASCII encoded).
+    # OpenMS::String simply contains a byte sequence, that is implicitely
+    # assumed to be ASCII encoded).
     #
     cdef char* c_string = _cast_const_away(<char*> _r.c_str())
     cdef Py_ssize_t length = _r.length()
-    cdef String alt_result = String.__new__(String)
-    cdef shared_ptr[_String] res
 
     try:
         py_result = c_string[:length].decode('UTF-8')
     except UnicodeDecodeError:
-        # TODO : what should we return? we know its not UTF8 but what the hell
-        # is it? Best option - return an OpenMS String object?
-        res = shared_ptr[_String](new _String(_r))
-        alt_result.inst = res
-        return alt_result
+        py_result = c_string[:length]
 
     return py_result
 
