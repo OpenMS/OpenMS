@@ -5176,3 +5176,38 @@ def testString():
     pystr2 = pyopenms.String(u"bläh")
     assert(pystr1 == pystr2)
 
+    # Handling of different Unicode Strings:
+    # - unicode is natively stored in OpenMS::String
+    # - encoded bytesequences for utf8, utf16 and iso8859 can be stored as
+    #   char arrays in OpenMS::String (and be accessed using c_str())
+    # - encoded bytesequences for anything other than utf8 cannot use
+    #   "toString()" as this function expects utf8
+    ustr = u"bläh"
+    pystr = pyopenms.String(ustr)
+    assert (pystr.toString() == u"bläh")
+    pystr = pyopenms.String(ustr.encode("utf8"))
+    assert (pystr.toString() == u"bläh")
+
+    pystr = pyopenms.String(ustr.encode("iso8859_15"))
+    assert (pystr.c_str().decode("iso8859_15") == u"bläh")
+    pystr = pyopenms.String(ustr.encode("utf16"))
+    assert (pystr.c_str().decode("utf16") == u"bläh")
+
+    # toString will throw as its not UTF8
+    pystr = pyopenms.String(ustr.encode("iso8859_15"))
+    didThrow = False
+    try:
+        pystr.toString()
+    except UnicodeDecodeError:
+        didThrow = True
+    assert didThrow
+
+    # toString will throw as its not UTF8
+    pystr = pyopenms.String(ustr.encode("utf16"))
+    didThrow = False
+    try:
+        pystr.toString()
+    except UnicodeDecodeError:
+        didThrow = True
+    assert didThrow
+
