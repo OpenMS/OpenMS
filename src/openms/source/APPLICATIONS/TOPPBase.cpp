@@ -1646,7 +1646,8 @@ namespace OpenMS
     const bool success = qp.waitForFinished(-1); // wait till job is finished
     if (qp.error() == QProcess::FailedToStart)
     {
-      LOG_ERROR << "Process failed to start. Does it exist? Is it executable?" << std::endl;
+      LOG_ERROR << "Process '" << executable << "' failed to start. Does it exist? Is it executable?" << std::endl;
+      return EXTERNAL_PROGRAM_ERROR;
     } 
 
     if (success == false || qp.exitStatus() != 0 || qp.exitCode() != 0)
