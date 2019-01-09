@@ -304,6 +304,8 @@ public:
 
       // copy the spectrum meta data
       copySpectrumMeta(input, output);
+      output.setType(SpectrumSettings::CENTROID);
+      output.getFloatDataArrays().clear();
 
       std::vector<PeakCandidate> PeakCandidates;
       MSSpectrum picked_spectrum;

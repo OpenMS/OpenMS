@@ -1092,6 +1092,8 @@ namespace OpenMS
 
     // copy the spectrum meta data
     copySpectrumMeta(input, output);
+    //make sure the data type is set correctly
+    output.setType(SpectrumSettings::CENTROID);
 
     //set up meta data arrays
     output.getFloatDataArrays().clear();

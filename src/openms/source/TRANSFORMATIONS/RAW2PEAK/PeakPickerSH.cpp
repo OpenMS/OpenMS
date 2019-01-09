@@ -66,6 +66,7 @@ namespace OpenMS
     for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
     {
       copySpectrumMeta(input[scan_idx], output[scan_idx]);
+      output[scan_idx].setType(SpectrumSettings::CENTROID);
 
       if (input[scan_idx].getMSLevel() != 1)
       {

@@ -99,6 +99,7 @@ namespace OpenMS
   {
     // copy meta data of the input spectrum
     copySpectrumMeta(input, output);
+    output.setType(SpectrumSettings::CENTROID);
 
     if (report_FWHM_)
     {
