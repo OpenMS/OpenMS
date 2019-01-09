@@ -821,18 +821,20 @@ namespace OpenMS
     }
     else
     {
+      // go back to initial position and try to read as double
       input_line.seekGToSavedPosition();
 #ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
       // is a number? (explicit bool op for C11)
       if (tryExtractDouble(input_line, number))
 #else
-      if ((is_number = (bool(input_line.line_ >> number))))
+      if ((is_number = (bool(input_line.line_ >> number)))) // the >>operator is awfully slow (especially on VS); huge potential for speed improvement
 #endif
       {
         is_number = true;
       }
       else
       {
+        // go back to initial position and read as letter (since its neither space nor number)
         input_line.seekGToSavedPosition();
         input_line.line_ >> letter; // read letter
       }
