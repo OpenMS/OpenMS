@@ -92,8 +92,32 @@ START_SECTION((String(const char* s, SizeType length)))
 	String s3("abcdedfg",8);
 	TEST_EQUAL(s3,"abcdedfg")
 
-	String s4("abcdedfg",15);
-	TEST_EQUAL(s4,"abcdedfg")
+  // This function does *not* check for null bytes as these may be part of a
+  // valid string! If you provide a length that is inaccurate, you are to blame
+  // (we do not test this since we would cause undefined behavior).
+	// String s4("abcdedfg", 15);
+	// TEST_NOT_EQUAL(s4,"abcdedfg")
+
+  // Unicode test
+  char test_utf8[] =  "T\xc3\xbc\x62ingen";
+  char test_utf16[] = "\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00";
+  char test_iso8859[] = "T\xfc\x62ingen";
+
+  String s_utf8(test_utf8, 9);
+  String s_utf16(test_utf16, 18);
+  String s_iso8859(test_iso8859, 8);
+
+  TEST_EQUAL(s_utf16.size(), 18);
+  TEST_EQUAL(s_utf8.size(), 9);
+  TEST_EQUAL(s_iso8859.size(), 8);
+
+  TEST_EQUAL(s_iso8859[0], 'T')
+  TEST_EQUAL(s_iso8859[1], '\xfc') // single byte for u
+  TEST_EQUAL(s_iso8859[2], 'b')
+  TEST_EQUAL(s_utf8[0], 'T')
+  TEST_EQUAL(s_utf8[1], '\xc3')
+  TEST_EQUAL(s_utf8[2], '\xbc') // two bytes for u
+  TEST_EQUAL(s_utf8[3], 'b')
 END_SECTION
 
 START_SECTION((String(const DataValue& d)))
