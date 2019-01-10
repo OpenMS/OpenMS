@@ -473,7 +473,7 @@ protected:
     {
       for (vector<ResidueModification>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
       {
-        // check whether amino acid or terminal modification
+        // check modification (amino acid or terminal)
         String AA = it->getOrigin(); // X (constructor) or amino acid (e.g. K)
         String term_specificity = it->getTermSpecificityName(); // N-term, C-term, none
         if ((AA != "X") && (term_specificity == "none"))
