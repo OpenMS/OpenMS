@@ -1,4 +1,5 @@
 from Types cimport *
+from String cimport *
 from Base64 cimport *
 
 cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
@@ -22,7 +23,7 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS":
                          String & result, 
                          NumpressConfig config) nogil except +
 
-        void decodeNPRaw(libcpp_string in_,
+        void decodeNPRaw(const String& in_,
                          libcpp_vector[ double ] & out,
                          NumpressConfig config) nogil except +
 
