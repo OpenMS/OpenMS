@@ -473,8 +473,10 @@ protected:
     {
       for (vector<ResidueModification>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
       {
-        String AA = it->getOrigin();
-        if ((AA!="N-term") && (AA!="C-term"))
+        // check whether amino acid or terminal modification
+        String AA = it->getOrigin(); // X (constructor) or amino acid (e.g. K)
+        String term_specificity = it->getTermSpecificityName(); // N-term, C-term, none
+        if ((AA != "X") && (term_specificity == "none"))
         {
           const Residue* r = ResidueDB::getInstance()->getResidue(AA);
           String name = r->getName();
@@ -482,7 +484,7 @@ protected:
         }
         else
         {
-          os << "add_" << AA.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
+          os << "add_" << term_specificity.erase(1,1) << "_peptide = " << it->getDiffMonoMass() << endl;
         }
       }
     }
