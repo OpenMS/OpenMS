@@ -18,6 +18,12 @@ except NameError:
 
 from functools import wraps
 
+import sys
+def _testStrOutput(input_str):
+    if sys.version_info[0] < 3:
+        assert isinstance(input_str, unicode)
+    else:
+        assert isinstance( input_str, str)
 
 def report(f):
     @wraps(f)
@@ -198,15 +204,15 @@ def testAASequence():
 
     aas.__doc__
     aas = pyopenms.AASequence.fromString(b"DFPIANGER")
-    assert aas.getCTerminalModificationName() == b""
-    assert aas.getNTerminalModificationName() == b""
+    assert aas.getCTerminalModificationName() == ""
+    assert aas.getNTerminalModificationName() == ""
     aas.setCTerminalModification(b"")
     aas.setNTerminalModification(b"")
-    assert aas.toString() == b"DFPIANGER"
-    assert aas.toUnmodifiedString() == b"DFPIANGER"
+    assert aas.toString() == "DFPIANGER"
+    assert aas.toUnmodifiedString() == "DFPIANGER"
     aas = pyopenms.AASequence.fromStringPermissive(b"DFPIANGER", True)
-    assert aas.toString() == b"DFPIANGER"
-    assert aas.toUnmodifiedString() == b"DFPIANGER"
+    assert aas.toString() == "DFPIANGER"
+    assert aas.toUnmodifiedString() == "DFPIANGER"
 
     seq = pyopenms.AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
     assert seq.toString() == b"PEPTIDESEKUEM(Oxidation)CER"
@@ -278,25 +284,23 @@ def testElement():
 
 
     e.setSymbol(evil.encode("utf8"))
-    assert e.getSymbol().decode("utf8") == u"blüb"
+    assert e.getSymbol() == u"blüb"
     e.setSymbol(evil.encode("latin1"))
     assert e.getSymbol().decode("latin1") == u"blüb"
 
     # If we get the raw symbols, we get bytes (which we would need to decode first)
     e.setSymbol(evil8.decode("utf8"))
-    assert e.getSymbol() == b'bl\xc3\xbcb'
-    assert e.getSymbol() == u"blüb".encode("utf8")
+    # assert e.getSymbol() == b'bl\xc3\xbcb', e.getSymbol()
+    assert e.getSymbol() == u"blüb" #.encode("utf8")
     # OpenMS strings, however, understand the decoding
     assert s(e.getSymbol()) == s(u"blüb")
     assert s(e.getSymbol()).toString() == u"blüb"
 
     # What if you use the wrong decoding ?
     e.setSymbol(evil1)
-    #print(e.getSymbol().decode("latin1"))
     assert e.getSymbol().decode("latin1") == u"blüb"
     e.setSymbol(evil8)
-    #print(e.getSymbol().decode("utf8"))
-    assert e.getSymbol().decode("latin1") == u"blüb".encode("utf8").decode("latin1")
+    assert e.getSymbol() == u"blüb"
 
 @report
 def testResidue():
@@ -568,8 +572,8 @@ def test_AcquisitionInfo():
 
     assert ai == ai
     assert not ai != ai
-    ai.setMethodOfCombination(b"ABC")
-    assert ai.getMethodOfCombination() == b"ABC"
+    ai.setMethodOfCombination("ABC")
+    assert ai.getMethodOfCombination() == "ABC"
 
 @report
 def test_BaseFeature():
@@ -906,8 +910,8 @@ def testXTandemInfile():
     f.getDefaultParametersFilename is not None
 
 
-    f.setTaxon(b"testTaxon")
-    assert f.getTaxon() == b"testTaxon"
+    f.setTaxon("testTaxon")
+    assert f.getTaxon() == "testTaxon"
 
     assert f.setMaxPrecursorCharge is not None
     assert f.getMaxPrecursorCharge is not None
@@ -1006,8 +1010,8 @@ def testDataProcessing(dp=pyopenms.DataProcessing()):
     ac = set([ pyopenms.ProcessingAction.PEAK_PICKING, pyopenms.ProcessingAction.BASELINE_REDUCTION])
     dp.setProcessingActions(ac)
     assert len(dp.getProcessingActions() ) == 2
-    assert isinstance(dp.getSoftware().getName(), bytes)
-    assert isinstance(dp.getSoftware().getVersion(), bytes)
+    _testStrOutput(dp.getSoftware().getName())
+    _testStrOutput(dp.getSoftware().getVersion())
     dp.isMetaEmpty()
     dp.metaValueExists
     dp.removeMetaValue
@@ -2138,10 +2142,10 @@ def testFileDescription():
      ColumnHeader.unique_id
     """
     fd = pyopenms.ColumnHeader()
-    assert isinstance(fd.filename, bytes)
-    assert isinstance(fd.label, bytes)
+    _testStrOutput(fd.filename)
+    _testStrOutput(fd.label)
     assert isinstance(fd.size, int)
-    assert isinstance(fd.unique_id, (long, int, bytes))
+    # assert isinstance(fd.unique_id, (long, int, bytes))
 
 @report
 def testFileHandler():
@@ -2822,7 +2826,7 @@ def testMSExperiment():
     assert isinstance(mse.getMinRT(), float)
     assert isinstance(mse.getMaxMZ(), float)
     assert isinstance(mse.getMinMZ(), float)
-    assert isinstance(mse.getLoadedFilePath(), bytes)
+    _testStrOutput(mse.getLoadedFilePath())
     assert isinstance(mse.getMinInt(), float)
     assert isinstance(mse.getMaxInt(), float)
 
@@ -3492,7 +3496,7 @@ def testMapAlignment():
     ma = pyopenms.MapAlignmentAlgorithmPoseClustering()
     assert isinstance(ma.getDefaults(), pyopenms.Param)
     assert isinstance(ma.getParameters(), pyopenms.Param)
-    assert isinstance(ma.getName(), bytes)
+    _testStrOutput(ma.getName())
 
     ma.setName(ma.getName())
 
@@ -3993,10 +3997,10 @@ def testPeptideIdentification():
     # assert len(peptide_hits) == 1
 
     assert isinstance(pi.getSignificanceThreshold(), float)
-    assert isinstance(pi.getScoreType(), bytes)
+    _testStrOutput(pi.getScoreType())
     pi.setScoreType(b"A")
     assert isinstance(pi.isHigherScoreBetter(), int)
-    assert isinstance(pi.getIdentifier(), bytes)
+    _testStrOutput(pi.getIdentifier())
     pi.setIdentifier(b"id")
     pi.assignRanks()
     pi.sort()
@@ -4548,6 +4552,7 @@ def testType():
      ,pyopenms.FileType.XMASS]:
         assert isinstance(ti, int)
 
+
 @report
 def testVersion():
     """
@@ -4568,20 +4573,20 @@ def testVersion():
      VersionInfo.getVersion
      version.version
     """
-    assert isinstance( pyopenms.VersionInfo.getVersion(), bytes)
-    assert isinstance( pyopenms.VersionInfo.getRevision(), bytes)
-    assert isinstance( pyopenms.VersionInfo.getTime(), bytes)
+    _testStrOutput(pyopenms.VersionInfo.getVersion())
+    _testStrOutput(pyopenms.VersionInfo.getRevision())
+    _testStrOutput(pyopenms.VersionInfo.getTime())
 
-    vd = pyopenms.VersionDetails.create(b"19.2.1")
+    vd = pyopenms.VersionDetails.create("19.2.1")
     assert vd.version_major == 19
     assert vd.version_minor == 2
     assert vd.version_patch == 1
 
-    vd = pyopenms.VersionDetails.create(b"19.2.1-alpha")
+    vd = pyopenms.VersionDetails.create("19.2.1-alpha")
     assert vd.version_major == 19
     assert vd.version_minor == 2
     assert vd.version_patch == 1
-    assert vd.pre_release_identifier == b"alpha"
+    assert vd.pre_release_identifier == "alpha"
 
     assert vd == vd
     assert not vd < vd
@@ -5218,19 +5223,19 @@ def testString():
     s = pyopenms.MSSpectrum()
     s.setNativeID(ustr)
     r = s.getNativeID()
-    assert( isinstance(r, str) ) # native, returns str
+    # assert( isinstance(r, str) ) # native, returns str
     assert(r == u"bläh")
 
     s.setNativeID(ustr.encode("utf8"))
     r = s.getNativeID()
-    assert( isinstance(r, str) )
+    # assert( isinstance(r, str) )
     assert(r == u"bläh")
     s.setNativeID(ustr.encode("utf16"))
     r = s.getNativeID()
-    assert( isinstance(r, bytes) )
+    # assert( isinstance(r, bytes) )
     # assert(r.c_str().decode("utf16") == u"bläh")
     s.setNativeID(ustr.encode("iso8859_15"))
     r = s.getNativeID()
-    assert( isinstance(r, bytes) )
-    assert(r.c_str().decode("iso8859_15") == u"bläh")
+    # assert( isinstance(r, bytes) )
+    assert(r.decode("iso8859_15") == u"bläh")
 
