@@ -63,7 +63,7 @@ namespace OpenMS
             @param ppm: mz tolernace window calculation in ppm or Da
 
           */
-          static FeatureToMs2Indices assignMS2IndexToFeature(MSExperiment& spectra,
+          static FeatureToMs2Indices assignMS2IndexToFeature(const MSExperiment& spectra,
                                                              const KDTreeFeatureMaps& fp_map_kd,
                                                              const double& precursor_mz_tolerance,
                                                              const double& precursor_rt_tolerance,

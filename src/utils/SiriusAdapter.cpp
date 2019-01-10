@@ -172,6 +172,8 @@ protected:
     combined.insert("", sirius);
     sirius_algo.setParameters(combined);
 
+    writeDebug_("Parameters passed to SiriusAdapterAlgorithm", combined, 3);
+
     //-------------------------------------------------------------
     // Calculations
     //-------------------------------------------------------------

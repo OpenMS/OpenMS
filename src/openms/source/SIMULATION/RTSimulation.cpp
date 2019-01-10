@@ -481,7 +481,10 @@ namespace OpenMS
 
   void RTSimulation::wrapSVM(std::vector<AASequence>& peptide_sequences, std::vector<double>& predicted_retention_times)
   {
-    String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
+    predicted_retention_times.clear();
+    predicted_retention_times.reserve(peptide_sequences.size());
+
+    const String& allowed_amino_acid_characters("ACDEFGHIKLMNPQRSTVWY");
     SVMWrapper svm;
     LibSVMEncoder encoder;
     svm_problem* training_data = nullptr;
@@ -546,30 +549,18 @@ namespace OpenMS
     svm.setTrainingSample(training_data);
 
     // use maximally max_number_of_peptides peptide sequence at once
-    Size tmp_count = 0;
-    Size count = 0;
-    std::vector<AASequence>::iterator pep_iter_start = peptide_sequences.begin();
-    std::vector<AASequence>::iterator pep_iter_stop = peptide_sequences.begin();
-    while (count < peptide_sequences.size())
+    for (Size i = 0; i < peptide_sequences.size(); i += max_number_of_peptides)
     {
-      while (pep_iter_stop != peptide_sequences.end() && tmp_count < max_number_of_peptides)
-      {
-        ++tmp_count;
-        ++pep_iter_stop;
-      }
-      std::vector<AASequence> tmp_peptide_seqs;
-      tmp_peptide_seqs.insert(tmp_peptide_seqs.end(), pep_iter_start, pep_iter_stop);
-      std::vector<double> tmp_rts(tmp_peptide_seqs.size(), 0);
-      std::vector<double> tmp_pred_rts;
+      Size i_end = i + std::min(peptide_sequences.size() - i, max_number_of_peptides);
+      std::vector<AASequence> tmp_peptide_seqs(peptide_sequences.begin() + i, peptide_sequences.begin() + i_end);
+      
       // Encoding test data
       encoder.encodeProblemWithOligoBorderVectors(tmp_peptide_seqs, k_mer_length, allowed_amino_acid_characters, border_length, prediction_samples.sequences);
-      prediction_samples.labels = tmp_rts;
+      prediction_samples.labels = std::vector<double>(tmp_peptide_seqs.size(), 0);
 
+      std::vector<double> tmp_pred_rts;
       svm.predict(prediction_samples, tmp_pred_rts);
       predicted_retention_times.insert(predicted_retention_times.end(), tmp_pred_rts.begin(), tmp_pred_rts.end());
-      pep_iter_start = pep_iter_stop;
-      count += tmp_count;
-      tmp_count = 0;
     }
     LibSVMEncoder::destroyProblem(training_data);
 

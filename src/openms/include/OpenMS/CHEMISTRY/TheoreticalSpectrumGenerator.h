@@ -56,6 +56,10 @@ namespace OpenMS
       are extended. Therefore it is not recommended to add to or change the PeakSpectrum or these DataArrays
       between calls of the getSpectrum function with the same PeakSpectrum.
 
+      @note The generation of neutral loss peaks is very slow in this class.
+      Something similar to the neutral loss precalculation used in TheoreticalSpectrumGeneratorXLMS
+      should be implemented here as well.
+
   @htmlinclude OpenMS_TheoreticalSpectrumGenerator.parameters
 
       @ingroup Chemistry
@@ -104,9 +108,6 @@ namespace OpenMS
 
       /// helper to add an isotope cluster to a spectrum, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addIsotopeCluster_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, Residue::ResidueType res_type, Int charge, double intensity) const;
-
-      /// helper for mapping residue type to letter
-      char residueTypeToIonLetter_(Residue::ResidueType res_type) const;
 
       /// helper to add full neutral loss ladders, also adds charges and ion names to the DataArrays, if the add_metainfo parameter is set to true
       void addLosses_(PeakSpectrum & spectrum, const AASequence & ion, DataArrays::StringDataArray& ion_names, DataArrays::IntegerDataArray& charges, double intensity, Residue::ResidueType res_type, int charge) const;
