@@ -346,8 +346,8 @@ protected:
       l_psm.predicted_pep = elements[2];
       l_psm.delta_score = elements[7].toDouble();
       l_psm.predicted_pep_score = elements[8].toDouble();
-      l_psm.global_flr = elements[9].toDouble();
-      l_psm.local_flr = elements[10].toDouble();
+      l_psm.global_flr = elements[10].toDouble();
+      l_psm.local_flr = elements[11].toDouble();
       
       if (l_psms.count(l_psm.scan_idx) > 0)
       {
