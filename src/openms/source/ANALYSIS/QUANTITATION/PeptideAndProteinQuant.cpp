@@ -549,8 +549,6 @@ namespace OpenMS
       stats_.total_features += c.getFeatures().size();
 
       // count features without id
-      std::cout << "bla" << endl;
-      std::cout << c.getPeptideIdentifications().empty() << endl;
       if (c.getPeptideIdentifications().empty())
       {
         stats_.blank_features += c.getFeatures().size();

@@ -17,6 +17,8 @@ data <- read.csv(MSstats_input, sep=",", header=T, stringsAsFactors=T)
 
 quant <- OpenMStoMSstatsFormat(data, removeProtein_with1Feature=T)
 processed.quant <- dataProcess(quant, censoredInt = 'NA')
+
+# generating these plots takes quite a while. Disable if needed.
 dataProcessPlots(data=processed.quant, type="QCPlot",which.Protein="allonly")
 dataProcessPlots(data=processed.quant, type="ProfilePlot",which.Protein="all")
 
@@ -176,8 +178,9 @@ return(runlevel.wide)
 }
 quant.runLevel=getRunLevelQuant(processed.quant$RunlevelData)
 colnames(quant.runLevel)[1] = "accession"
+
 quant.runLevel$accession<-as.character(quant.runLevel$accession)
- 
+
 for (col_nr in seq(from=2, to=length(colnames(quant.runLevel))))
 {
   colnames(quant.runLevel)[col_nr]=(paste0("protein_abundance_assay[", colnames(quant.runLevel)[col_nr] , "]"))
@@ -194,11 +197,14 @@ PRT_assay_cols <- grepl("protein_abundance_assay", names(PRT))
 PRT_stdv_cols <- grepl("protein_abundance_study_variable", names(PRT))
 RL_assay_cols <- grepl("protein_abundance_assay", names(quant.runLevel))
 
-
 for (acc in quant.runLevel$accession)
 {
-  w<-which(PRT$accession==acc)
   q<-which(quant.runLevel$accession==acc)
+
+  # acc from MSstats might be a group e.g., "A;B" so 
+  # we check the single leader protein in mzTab PRT$accession against both A and B
+  w<-which(PRT$accession %in% strsplit(acc, ";", fixed=TRUE)[[1]])
+
   if (length(w) == 0) 
   { 
     # TODO: check why not all summarized protein accessions are in the mzTab. Minimum number of peptides/features different?
