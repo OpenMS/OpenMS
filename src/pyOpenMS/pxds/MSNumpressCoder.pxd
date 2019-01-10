@@ -48,5 +48,5 @@ cdef extern from "<OpenMS/FORMAT/MSNumpressCoder.h>" namespace "OpenMS::MSNumpre
       bool estimate_fixed_point # whether to estimate the fixed point or use the one proved with numpressFixedPoint
       double linear_fp_mass_acc # desired mass accuracy for linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
 
-      void setCompression(libcpp_string & compression) nogil except +
+      void setCompression(const String & compression) nogil except +
 

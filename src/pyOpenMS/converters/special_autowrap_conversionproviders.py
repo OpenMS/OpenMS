@@ -126,7 +126,7 @@ class OpenMSDataValue(TypeConverterBase):
         return ""
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, bytes))" % argument_var
+        return "isinstance(%s, (int, long, float, list, bytes, str))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(DataValue(%s).inst.get())" % argument_var
