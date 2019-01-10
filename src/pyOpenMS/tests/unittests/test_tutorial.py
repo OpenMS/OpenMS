@@ -2,13 +2,11 @@
 # -*- coding: utf-8  -*-
 from __future__ import print_function
 
-import pyopenms
 import copy
 import os
 
 from pyopenms import String as s
-
-print(b"IMPORTED b", pyopenms.__file__)
+from pyopenms import *
 
 try:
     long
@@ -27,57 +25,60 @@ def report(f):
 
 @report
 def testElementTutorial():
-    from pyopenms import *
+
     edb = ElementDB()
 
-    assert edb.hasElement(b"O")
-    assert edb.hasElement(b"S")
+    edb.hasElement("O")
+    edb.hasElement("S")
 
-    oxygen = edb.getElement(b"O")
-    assert oxygen.getName() == b'Oxygen'
-    assert oxygen.getSymbol() == b"O"
-    assert abs(oxygen.getMonoWeight() - 15.994915) < 1e-5
+    oxygen = edb.getElement("O")
+    oxygen.getName()
+    oxygen.getSymbol()
+    oxygen.getMonoWeight()
     isotopes = oxygen.getIsotopeDistribution()
 
     sulfur = edb.getElement("S")
-    sulfur.getName() 
+    sulfur.getName()
     sulfur.getSymbol()
     sulfur.getMonoWeight()
     isotopes = sulfur.getIsotopeDistribution()
-    exp = [(31.97207073, 0.9493), (32.971458, 0.0076), (33.967867, 0.0429), (35.967081, 0.0002)]
-    for e, iso in zip(exp, isotopes.getContainer()):
-        assert abs(e[0] - iso.getMZ()) < 1e-5
-        assert abs(e[1] - iso.getIntensity()) < 1e-5
+    for iso in isotopes.getContainer():
+        print (iso.getMZ(), ":", iso.getIntensity())
 
 @report
 def testEmpiricalFormulaTutorial():
 
-    from pyopenms import *
-
     methanol = EmpiricalFormula("CH3OH")
     water = EmpiricalFormula("H2O")
-    wm = EmpiricalFormula(str(water) + str(methanol))
-    print(wm)
-
-    isotopes = wm.getIsotopeDistribution( CoarseIsotopePatternGenerator(3) )
-    for iso in isotopes.getContainer():
-        print (iso)
+    ethanol = EmpiricalFormula("CH2" + methanol.toString())
+    wm = water + methanol
+    print(wm.toString())
+    print(wm.getElementalComposition())
 
     # .. Wait for pyOpenMS 2.4
     wm = water + methanol # only in pyOpenMS 2.4
     m = wm.getElementalComposition()
-    assert m["C"] == 1
-    assert m["H"] == 6
-    assert m["O"] == 2
+    assert m[b"C"] == 1
+    assert m[b"H"] == 6
+    assert m[b"O"] == 2
+
+    wm = EmpiricalFormula("CH3OH") + EmpiricalFormula("H2O")
+
+    isotopes = wm.getIsotopeDistribution( CoarseIsotopePatternGenerator(3) )
+    for iso in isotopes.getContainer():
+        print (iso.getMZ(), ":", iso.getIntensity())
+
+    isotopes = wm.getIsotopeDistribution( CoarseIsotopePatternGenerator(3, True) )
+    for iso in isotopes.getContainer():
+        print (iso.getMZ(), ":", iso.getIntensity())
 
 @report
 def testResidueTutorial():
 
-    from pyopenms import *
     lys = ResidueDB().getResidue("Lysine")
-    assert lys.getName() == b"Lysine"
-    lys.getThreeLetterCode() == b"LYS"
-    lys.getOneLetterCode() == b"K"
+    assert lys.getName() == "Lysine"
+    lys.getThreeLetterCode() == "LYS"
+    lys.getOneLetterCode() == "K"
     lys.getAverageWeight(Residue.ResidueType.Full)
     assert abs(lys.getMonoWeight(Residue.ResidueType.Full) - 146.1055284466) < 1e-5
     lys.getPka()
@@ -85,50 +86,86 @@ def testResidueTutorial():
 @report
 def testAASequenceTutorial():
 
-    from pyopenms import *
     seq = AASequence.fromString("DFPIANGER")
     prefix = seq.getPrefix(4)
     suffix = seq.getSuffix(5)
     concat = seq + seq
 
-    print(seq)
-    print(concat)
-    print(suffix)
-    seq.getMonoWeight(Residue.ResidueType.Full, 0)
-    seq.getMonoWeight(Residue.ResidueType.Full, 2) / 2.0
-    assert abs(concat.getMonoWeight(Residue.ResidueType.Full, 0)- 2016.9653632108004) < 1e-5
+    print(seq.toString())
+    print(concat.toString())
+    print(suffix.toString())
+    seq.getMonoWeight() # weight of M
+    seq.getMonoWeight(Residue.ResidueType.Full, 2) # weight of M+2H
+    mz = seq.getMonoWeight(Residue.ResidueType.Full, 2) / 2.0 # m/z of M+2H
+    concat.getMonoWeight()
 
-    seq_formula = seq.getFormula(Residue.ResidueType.Full, 0)
-    print(seq_formula)
+    print("Monoisotopic m/z of (M+2H)2+ is", mz)
+
+    seq_formula = seq.getFormula()
+    print("Peptide", seq.toString(), "has molecular formula", seq_formula.toString())
+    print("="*35)
 
     isotopes = seq_formula.getIsotopeDistribution( CoarseIsotopePatternGenerator(6) )
     for iso in isotopes.getContainer():
-        print (iso)
+            print ("Isotope", iso.getMZ(), ":", iso.getIntensity())
 
-    assert abs(isotopes.getContainer()[0].getIntensity() - 0.5681651355598922) < 1e-5
-    suffix = seq.getSuffix(3) # y3 ion
+    suffix = seq.getSuffix(3) # y3 ion "GER"
+    print("="*35)
+    print("y3 ion :", suffix.toString())
     y3_formula = suffix.getFormula(Residue.ResidueType.YIon, 2) # y3++ ion
-    suffix.getMonoWeight(Residue.ResidueType.YIon, 2) / 2.0
-    suffix.getMonoWeight(Residue.ResidueType.XIon, 2) / 2.0 # ATTENTION
-    suffix.getMonoWeight(Residue.ResidueType.BIon, 2) / 2.0 # ATTENTION
-    assert str(y3_formula) == b"C13H24N6O6", str(y3_formula)
-    assert str(seq_formula) == b"C44H67N13O15"
+    suffix.getMonoWeight(Residue.ResidueType.YIon, 2) / 2.0 # CORRECT
+    suffix.getMonoWeight(Residue.ResidueType.XIon, 2) / 2.0 # CORRECT
+    suffix.getMonoWeight(Residue.ResidueType.BIon, 2) / 2.0 # INCORRECT
 
+    print("y3 mz :", suffix.getMonoWeight(Residue.ResidueType.YIon, 2) / 2.0 )
+    print(y3_formula.toString())
+    print(seq_formula.toString())
 
-    from pyopenms import *
     seq = AASequence.fromString("PEPTIDESEKUEM(Oxidation)CER")
-    print(seq.toString())
     print(seq.toUnmodifiedString())
-    print(seq.toBracketString(True, []))
-    print(seq.toBracketString(False, []))
-    print(seq.toUniModString()) # with 2.4
+    print(seq.toString())
+    print(seq.toUniModString())
+    print(seq.toBracketString())
+    print(seq.toBracketString(False))
 
-    assert seq.toBracketString(True, []) == b"PEPTIDESEKUEM[147]CER"
+    print(AASequence.fromString("DFPIAM(UniMod:35)GER").toString())
+    print(AASequence.fromString("DFPIAM[+16]GER").toString())
+    print(AASequence.fromString("DFPIAM[+15.99]GER").toString())
+    print(AASequence.fromString("DFPIAM[147]GER").toString())
+    print(AASequence.fromString("DFPIAM[147.035405]GER").toString())
+
+    s = AASequence.fromString(".(Dimethyl)DFPIAMGER.")
+    print(s.toString(), s.hasNTerminalModification())
+    s = AASequence.fromString(".DFPIAMGER.(Label:18O(2))")
+    print(s.toString(), s.hasCTerminalModification())
+    s = AASequence.fromString(".DFPIAMGER(Phospho).")
+    print(s.toString(), s.hasCTerminalModification())
+
+
+    bsa = FASTAEntry()
+    bsa.sequence = "MKWVTFISLLLLFSSAYSRGVFRRDTHKSEIAHRFKDLGE"
+    bsa.description = "BSA Bovine Albumin (partial sequence)"
+    bsa.identifier = "BSA"
+    alb = FASTAEntry()
+    alb.sequence = "MKWVTFISLLFLFSSAYSRGVFRRDAHKSEVAHRFKDLGE"
+    alb.description = "ALB Human Albumin (partial sequence)"
+    alb.identifier = "ALB"
+
+    entries = [bsa, alb]
+
+    f = FASTAFile()
+    f.store("example.fasta", entries)
+
+    entries = []
+    f = FASTAFile()
+    f.load("example.fasta", entries)
+    print( len(entries) )
+    for e in entries:
+      print (e.identifier, e.sequence)
 
 @report
 def testTheoreticalSpectrumGenTutorial():
 
-    from pyopenms import *
 
     tsg = TheoreticalSpectrumGenerator()
     spec1 = MSSpectrum()
@@ -136,11 +173,11 @@ def testTheoreticalSpectrumGenTutorial():
     peptide = AASequence.fromString("DFPIANGER")
     # standard behavior is adding b- and y-ions of charge 1
     p = Param()
-    p.setValue("add_b_ions", "false", "Add peaks of b-ions to the spectrum")
+    p.setValue(b"add_b_ions", b"false", b"Add peaks of b-ions to the spectrum")
     tsg.setParameters(p)
     tsg.getSpectrum(spec1, peptide, 1, 1)
-    p.setValue("add_b_ions", "true", "Add peaks of a-ions to the spectrum")
-    p.setValue("add_metainfo", "true", "")
+    p.setValue(b"add_b_ions", b"true", b"Add peaks of a-ions to the spectrum")
+    p.setValue(b"add_metainfo", b"true", "")
     tsg.setParameters(p)
     tsg.getSpectrum(spec2, peptide, 1, 2)
     print("Spectrum 1 has", spec1.size(), "peaks.")
@@ -150,17 +187,18 @@ def testTheoreticalSpectrumGenTutorial():
     for ion, peak in zip(spec2.getStringDataArrays()[0], spec2):
         print(ion, peak.getMZ())
 
+
+
 @report
 def testDigestionTutorial():
 
-    from pyopenms import *
     dig = ProteaseDigestion()
     dig.getEnzymeName() # Trypsin
     bsa = b'DEHVKLVNELTEFAKTCVADESHAGCEKSLHTLFGDELCKVASLRETYGDMADCCEKQEPERNECFLSHKDDSPDLPKLKPDPNTLCDEFKADEKKFWGKYLYEIARRHPYFYAPELLYYANKYNGVFQECCQAEDKGACLLPKIETMREKVLASSARQRLRCASIQKFGERALKAWSVARLSQKFPKAEFVEVTKLVTDLTKVHKECCHGDLLECADDRADLAKYICDNQDTISSKLKECCDKPLLEKSHCIAEVEKDAIPENLPPLTADFAEDKDVCKNYQEAKDAFLGSFLYEYSRRHPEYAVSVLLRLAKEYEATLEECCAKDDPHACYSTVFDKLKHLVDEPQNLIKQNCDQFEKLGEYGFQNALIVRYTRKVPQVSTPTLVEVSRSLGKVGTRCCTKPESERMPCTEDYLSLILNRLCVLHEKTPVSEKVTKCCTESLVNRRPCFSALTPDETYVPKAFDEKLFTFHADICTLPDTEKQIKKQTALVELLKHKPKATEEQLKTVMENFVAFVDKCCAADDKEACFAVEGPKLVVSTQTALA'
     bsa = AASequence.fromString(bsa)
     result = []
     dig.digest(bsa, result)
-    print(result[4])
+    print(result[4].toString())
     len(result) # 74 peptides
     assert len(result) == 74
 
@@ -175,7 +213,7 @@ def testDigestionTutorial():
     dig.setEnzyme('Lys-C')
     result = []
     dig.digest(bsa, result)
-    print(result[4])
+    print(result[4].toString())
     len(result) # 53 peptides
     assert len(result) == 53
 
@@ -191,7 +229,6 @@ def testDatastructuresTutorial():
     # ********
     ###################################
 
-    from pyopenms import *
     spectrum = MSSpectrum()
     mz = range(1500, 500, -100)
     i = [0 for mass in mz]
@@ -215,7 +252,6 @@ def testDatastructuresTutorial():
     ###################################
     ###################################
 
-    from pyopenms import *
     spectrum = MSSpectrum()
     spectrum.setDriftTime(25) # 25 ms
     spectrum.setRT(205.2) # 205.2 s
@@ -280,8 +316,6 @@ def testDatastructuresTutorial():
     # ************
     ###################################
 
-    from pyopenms import *
-
     chromatogram = MSChromatogram()
     rt = range(1500, 500, -100)
     i = [gaussian(rtime, 1000, 150) for rtime in rt]
@@ -315,5 +349,4 @@ def testDatastructuresTutorial():
     exp = MSExperiment()
     exp.addChromatogram(chromatogram)
     MzMLFile().store("testfile3.mzML", exp)
-
 
