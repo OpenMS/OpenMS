@@ -17,3 +17,7 @@ jobs:
           environment:
             QT_ENV: /opt/qt57/bin/qt57-env.sh
             # QT_ENV: $(find /opt -name 'qt*-env.sh')
+      - run:
+          name: Build OpenMS
+          command: make OpenMS -j2
+
