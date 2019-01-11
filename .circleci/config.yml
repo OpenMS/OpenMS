@@ -2,12 +2,31 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: openms/contrib:qt5-v2.3.1
     steps:
       - checkout
+      # TODO: replace checkout with faster checkout, but for this we need to install ssh and git on the image...!
+      # - run:
+      #     name: Clone git branch
+      #     command: git clone -b ${CIRCLE_BRANCH} --single-branch git@github.com:hroest/OpenMS.git --depth=1
       - run:
-          name: Greeting
-          command: echo Hello, world.
+          name: What is here
+          command: ls
       - run:
-          name: Print the Current Time
-          command: date
+          name: Where Am I
+          command: pwd
+      - run:
+          name: Do cmake
+          command: source ${QT_ENV} && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF -DHAS_XSERVER=Off .
+          environment:
+            QT_ENV: /opt/qt57/bin/qt57-env.sh
+      - run:
+          name: Build OpenMS
+          command: make OpenMS -j2
+      - run:
+          name: Build all
+          command: make -j2
+      - run:
+          name: Run test
+          command: make test -j2
+
