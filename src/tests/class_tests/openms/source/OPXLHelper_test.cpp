@@ -203,7 +203,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> buil
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
   for (Size i = 0; i < spectrum_candidates.size(); i += 200)
   {
-    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass)
+    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha->getMonoWeight() + spectrum_candidates[i].beta->getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass)
   }
 
 END_SECTION
@@ -284,7 +284,7 @@ START_SECTION(static std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXL
   TEST_EQUAL(spectrum_candidates[50].cross_linker_name, "MyLinker")
   for (Size i = 0; i < spectrum_candidates.size(); i += 100)
   {
-    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha.getMonoWeight() + spectrum_candidates[i].beta.getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass - 1 * Constants::C13C12_MASSDIFF_U)
+    TEST_REAL_SIMILAR(spectrum_candidates[i].alpha->getMonoWeight() + spectrum_candidates[i].beta->getMonoWeight() + spectrum_candidates[i].cross_linker_mass, precursor_mass - 1 * Constants::C13C12_MASSDIFF_U)
   }
 
 END_SECTION
@@ -292,8 +292,10 @@ END_SECTION
 START_SECTION(static double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge))
 
   OPXLDataStructs::ProteinProteinCrossLink ppcl;
-  ppcl.alpha = AASequence::fromString("TESTPEPTIDE");
-  ppcl.beta = AASequence::fromString("TESTTESTESTE");
+  AASequence alpha = AASequence::fromString("TESTPEPTIDE");
+  AASequence beta = AASequence::fromString("TESTTESTESTE");
+  ppcl.alpha = &alpha;
+  ppcl.beta = &beta;
   ppcl.cross_linker_mass = 150.0;
 
   OPXLDataStructs::CrossLinkSpectrumMatch csm;
@@ -301,7 +303,7 @@ START_SECTION(static double OPXLHelper::computePrecursorError(OPXLDataStructs::C
   csm.precursor_correction = 0;
 
   double precursor_charge = 3;
-  double precursor_mz = (ppcl.alpha.getMonoWeight() + ppcl.beta.getMonoWeight() + ppcl.cross_linker_mass + precursor_charge * Constants::PROTON_MASS_U) / precursor_charge;
+  double precursor_mz = (ppcl.alpha->getMonoWeight() + ppcl.beta->getMonoWeight() + ppcl.cross_linker_mass + precursor_charge * Constants::PROTON_MASS_U) / precursor_charge;
 
   double rel_error = OPXLHelper::computePrecursorError(csm, precursor_mz, precursor_charge);
   TEST_REAL_SIMILAR(rel_error, 0)
