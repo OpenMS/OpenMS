@@ -4,10 +4,10 @@ jobs:
     docker:
       - image: openms/contrib:qt5-v2.3.1
     steps:
-      # - checkout
-      - run:
-          name: Clone git branch
-          command: git clone -b ${CIRCLE_BRANCH} --single-branch git@github.com:hroest/OpenMS.git --depth=1
+      - checkout
+      # - run:
+      #     name: Clone git branch
+      #     command: git clone -b ${CIRCLE_BRANCH} --single-branch git@github.com:hroest/OpenMS.git --depth=1
       - run:
           name: What is here
           command: ls
