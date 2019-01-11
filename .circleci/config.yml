@@ -24,4 +24,10 @@ jobs:
       - run:
           name: Build OpenMS
           command: make OpenMS -j2
+      - run:
+          name: Build all
+          command: make -j2
+      - run:
+          name: Run test
+          command: make test -j2
 
