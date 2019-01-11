@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
   // Enumerate all pairs of peptides from the searched database and calculate their masses (inlcuding mono-links and loop-links)
-  vector<OPXLDataStructs::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses(const vector<OPXLDataStructs::AASeqWithMass>&  peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, const vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
+  vector<OPXLDataStructs::XLPrecursor> OPXLHelper::enumerateCrossLinksAndMasses(const vector<OPXLDataStructs::AASeqWithMass>& peptides, double cross_link_mass, const DoubleList& cross_link_mass_mono_link, const StringList& cross_link_residue1, const StringList& cross_link_residue2, const vector< double >& spectrum_precursors, vector< int >& precursor_correction_positions, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm)
   {
     // initialize empty vector for the results
     vector<OPXLDataStructs::XLPrecursor> mass_to_candidates;
@@ -377,24 +377,25 @@ namespace OpenMS
       OPXLDataStructs::XLPrecursor candidate = candidates[i];
       vector <SignedSize> link_pos_first;
       vector <SignedSize> link_pos_second;
-      AASequence peptide_first = peptide_masses[candidate.alpha_index].peptide_seq;
+      const AASequence* peptide_first = &(peptide_masses[candidate.alpha_index].peptide_seq);
       OPXLDataStructs::PeptidePosition peptide_pos_first = peptide_masses[candidate.alpha_index].position;
-      AASequence peptide_second;
+      const AASequence* peptide_second = nullptr;
       OPXLDataStructs::PeptidePosition peptide_pos_second = OPXLDataStructs::INTERNAL;
       if (candidate.beta_index < peptide_masses.size())
       {
-        peptide_second = peptide_masses[candidate.beta_index].peptide_seq;
+        peptide_second = &(peptide_masses[candidate.beta_index].peptide_seq);
         peptide_pos_second = peptide_masses[candidate.beta_index].position;
       }
-      String seq_first = peptide_first.toUnmodifiedString();
-      String seq_second =  peptide_second.toUnmodifiedString();
+      String seq_first = peptide_first->toUnmodifiedString();
+      String seq_second;
+      if (peptide_second) { seq_second = peptide_second->toUnmodifiedString(); }
 
       // mono-links and loop-links with different masses can be generated for the same precursor mass, but only one of them can be valid each time.
       // Find out which is the case. But it should not happen often enough to slow down the tool significantly.
       bool is_loop = false;
       for (Size f = 0; f < allowed_error_vector.size(); ++f)
       {
-        if (abs(spectrum_precursor_vector[f] - (peptide_first.getMonoWeight() + cross_link_mass)) <= allowed_error_vector[f])
+        if (abs(spectrum_precursor_vector[f] - (peptide_first->getMonoWeight() + cross_link_mass)) <= allowed_error_vector[f])
         {
           is_loop = true;
         }
@@ -443,7 +444,7 @@ namespace OpenMS
       {
         alpha_first = false;
       }
-      else if (seq_second.size() == seq_first.size() && peptide_second.getMonoWeight() > peptide_first.getMonoWeight())
+      else if ( (seq_second.size() == seq_first.size()) && peptide_second && (peptide_second->getMonoWeight() > peptide_first->getMonoWeight()) )
       {
         alpha_first = false;
       }
@@ -492,7 +493,7 @@ namespace OpenMS
             {
               // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
               bool is_correct_monolink = false;
-              if (abs(spectrum_precursor_vector[precursor_correction_positions[i]] - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error_vector[precursor_correction_positions[i]])
+              if (abs(spectrum_precursor_vector[precursor_correction_positions[i]] - (peptide_first->getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error_vector[precursor_correction_positions[i]])
               {
                 is_correct_monolink = true;
               }
@@ -516,10 +517,10 @@ namespace OpenMS
         {
           compatible = true;
         }
-        if (c_term_linker && (peptide_pos_second == OPXLDataStructs::C_TERM))
+        if (c_term_linker && (peptide_pos_second == OPXLDataStructs::C_TERM) && peptide_second)
         {
           second_spec = ResidueModification::C_TERM;
-          mod_pos = peptide_second.size()-1;
+          mod_pos = peptide_second->size() - 1;
           compatible = true;
         }
         if (compatible)
@@ -568,7 +569,7 @@ namespace OpenMS
         if (c_term_linker && (peptide_pos_first == OPXLDataStructs::C_TERM))
         {
           first_spec = ResidueModification::C_TERM;
-          mod_pos = peptide_first.size()-1;
+          mod_pos = peptide_first->size() - 1;
           compatible = true;
         }
         if (compatible)
@@ -608,7 +609,7 @@ namespace OpenMS
               {
                 // only use the correct mono-links (at this point we know it is a mono-link, but not which one)
                 bool is_correct_monolink = false;
-                if (abs(spectrum_precursor_vector[precursor_correction_positions[i]] - (peptide_first.getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error_vector[precursor_correction_positions[i]])
+                if (abs(spectrum_precursor_vector[precursor_correction_positions[i]] - (peptide_first->getMonoWeight() + cross_link_mass_mono_link[k])) <= allowed_error_vector[precursor_correction_positions[i]])
                 {
                   is_correct_monolink = true;
                 }
@@ -671,7 +672,7 @@ namespace OpenMS
 
       PeptideHit ph_alpha, ph_beta;
       // Set monolink as a modification or add MetaValue for cross-link identity and mass
-      AASequence seq_alpha = top_csms_spectrum[i].cross_link.alpha;
+      AASequence seq_alpha = *top_csms_spectrum[i].cross_link.alpha;
       ResidueModification::TermSpecificity alpha_term_spec = top_csms_spectrum[i].cross_link.term_spec_alpha;
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::MONO)
       {
@@ -871,12 +872,12 @@ namespace OpenMS
 
       if (top_csms_spectrum[i].cross_link.getType() == OPXLDataStructs::CROSS)
       {
-        ph_beta.setSequence(top_csms_spectrum[i].cross_link.beta);
+        ph_beta.setSequence(*top_csms_spectrum[i].cross_link.beta);
         ph_beta.setCharge(precursor_charge);
         ph_beta.setScore(top_csms_spectrum[i].score);
         ph_beta.setRank(DataValue(i+1));
-        ph_alpha.setMetaValue("beta_sequence", top_csms_spectrum[i].cross_link.beta.toString());
-        ph_beta.setMetaValue("beta_sequence", top_csms_spectrum[i].cross_link.beta.toString());
+        ph_alpha.setMetaValue("beta_sequence", (*top_csms_spectrum[i].cross_link.beta).toString());
+        ph_beta.setMetaValue("beta_sequence", (*top_csms_spectrum[i].cross_link.beta).toString());
         ph_beta.setMetaValue("xl_chain", "MS:1002510"); // receiver
         ph_beta.setMetaValue("xl_pos", DataValue(alpha_pos));
         ph_beta.setMetaValue("xl_pos2", DataValue(beta_pos));
@@ -1098,7 +1099,7 @@ namespace OpenMS
     return new_peptide_ids;
   }
 
-  std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name)
+  std::vector <OPXLDataStructs::ProteinProteinCrossLink> OPXLHelper::collectPrecursorCandidates(const IntList& precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, const vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name)
   {
     // determine candidates
     std::vector< OPXLDataStructs::XLPrecursor > candidates;
@@ -1141,10 +1142,10 @@ namespace OpenMS
   double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge)
   {
     // Error calculation
-    double weight = csm.cross_link.alpha.getMonoWeight();
+    double weight = csm.cross_link.alpha->getMonoWeight();
     if (csm.cross_link.getType() == OPXLDataStructs::CROSS)
     {
-      weight += csm.cross_link.beta.getMonoWeight() + csm.cross_link.cross_linker_mass;
+      weight += csm.cross_link.beta->getMonoWeight() + csm.cross_link.cross_linker_mass;
     }
     else
     {
