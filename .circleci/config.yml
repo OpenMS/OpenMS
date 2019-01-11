@@ -5,6 +5,7 @@ jobs:
       - image: openms/contrib:qt5-v2.3.1
     steps:
       - checkout
+      # TODO: replace checkout with faster checkout, but for this we need to install ssh and git on the image...!
       # - run:
       #     name: Clone git branch
       #     command: git clone -b ${CIRCLE_BRANCH} --single-branch git@github.com:hroest/OpenMS.git --depth=1
