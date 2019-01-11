@@ -6,6 +6,12 @@ jobs:
     steps:
       - checkout
       - run:
+          name: What is here
+          command: ls
+      - run:
+          name: Where Am I
+          command: pwd
+      - run:
           name: Try cmake
           command: cmake .
       - run:
