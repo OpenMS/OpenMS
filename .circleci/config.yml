@@ -12,9 +12,6 @@ jobs:
           name: Where Am I
           command: pwd
       - run:
-          name: Try cmake
-          command: cmake .
-      - run:
           name: Do cmake
           command: source ${QT_ENV} && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF -DHAS_XSERVER=Off .
           environment:
