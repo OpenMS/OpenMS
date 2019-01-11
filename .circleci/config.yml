@@ -2,12 +2,12 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: openms/contrib:qt5-v2.3.1
     steps:
       - checkout
       - run:
-          name: Greeting
-          command: echo Hello, world.
+          name: Try cmake
+          command: cmake .
       - run:
-          name: Print the Current Time
-          command: date
+          name: Do cmake
+          command: RUN QT_ENV=$(find /opt -name 'qt*-env.sh') && /bin/bash -c "source ${QT_ENV} && cmake -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF -DHAS_XSERVER=Off ."
