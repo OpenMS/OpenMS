@@ -9,6 +9,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <queue>
 #include "boost/dynamic_bitset.hpp"
+#include <iostream>
 
 using namespace OpenMS;
 using namespace std;
@@ -45,7 +46,7 @@ public:
 protected:
 
     static double getLogMz(double mz){
-        const double protonMass = 1.0072765;
+        const double protonMass = 1.0072764668;// 1.0072765;
         return log(mz - protonMass);
     }
 
@@ -61,9 +62,9 @@ protected:
         // parsing parameters
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
-      //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
-      //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
+      //  String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
+     //   String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
         cout << "file name : " << infilePath << endl;
         // just for quick use
 
@@ -90,11 +91,11 @@ protected:
 
     int onlineDeonvolution(MSExperiment &map){
         double threshold = 5000;
-        int filterSize = 20;
+        int filterSize = 15;
         int minCharge = 5;
-        int minChargePeakCount = 5; // inclusive
+        int minChargePeakCount = filterSize*0.3; // inclusive
         int massCount = 20; // TODO - count isotope cluster a single mass! and reduce this to like 5..
-        double tolerance = 5e-6;
+        double tolerance = 5e-6; // 5 ppm
 
         int specCntr = 0;
         double filter[filterSize];
@@ -102,6 +103,10 @@ protected:
         for(int i=0;i<filterSize;i++){
             filter[i] = log(1.0/(i + minCharge)); // should be descending, and negative!
         }
+
+        ofstream mfile;
+        mfile.open ("/Users/kyowonjeong/Documents/A4B/matlab/bins.m");
+
 
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
@@ -119,7 +124,7 @@ protected:
             }
 
             auto peakGroups =
-                    findPeakGroups(logMzPeaks, filter, filterSize, minCharge, tolerance, minChargePeakCount, massCount);
+                    findPeakGroups(logMzPeaks, filter, filterSize, minCharge, tolerance, minChargePeakCount, massCount, mfile, specCntr);
             if (peakGroups.empty()) continue;
             std::map<double, double> scoreMassMap;
 
@@ -157,6 +162,7 @@ protected:
             }
             cout << endl;
         }
+        mfile.close();
         return specCntr;
     }
 
@@ -202,7 +208,7 @@ protected:
     }
 
     vector<vector<LogMzPeak>> findPeakGroups(vector<LogMzPeak> &spectrum, double *filter, int filterSize, int minCharge,
-                                             double tol, int minChargePeakCount, int massCount){
+                                             double tol, int minChargePeakCount, int massCount, ofstream& mfile, int specCntr){
         vector<vector<LogMzPeak>> peakGroups;
         // minChargePeakCount should be < filterSize
         double min = spectrum[0].logmz - filter[0]; // never fix it..
@@ -211,39 +217,64 @@ protected:
 
         int binNumber = (max-min)/tol;
         if(binNumber <=0) return peakGroups;
-        boost::dynamic_bitset<> bits(binNumber + 1);
+        boost::dynamic_bitset<> mzBins(binNumber + 1);
 
-        for(auto &p : spectrum) {
+        for (auto &p : spectrum) {
             int bi = (p.logmz - spectrum[0].logmz) / tol;
-            if(bi>binNumber) break;
-            bits[bi] = true;
-            bits[bi + 1] = true;
+            if (bi >= binNumber) break;
+            mzBins[bi] = true;
         }
-        if(bits.count() == 0) return peakGroups;
+        mzBins = mzBins>>1 | mzBins;
 
-        boost::dynamic_bitset<> bits2(binNumber + 1);
-        //bits2.set().flip();
+        if(mzBins.count() == 0) return peakGroups;
 
-        Byte* bins = new Byte[binNumber + 1];
-        fill_n(bins, binNumber + 1,0);
+        boost::dynamic_bitset<> massBins(binNumber + 1);
 
-        int index = bits.find_first();
+        Byte* massBinScores = new Byte[binNumber + 1];
+        fill_n(massBinScores, binNumber + 1,0);
 
         int binf[filterSize];
         for(int i=0;i<filterSize;i++){
             binf[i] = (filter[0] - filter[i]) / tol;
         }
 
-        while(index != bits.npos){
+        int index = mzBins.find_first();
+
+        while(index != mzBins.npos){
             for(int j=0;j<filterSize;j++) {
-                int bi = index + binf[j];
-                if(bi>binNumber) break;
-                bins[bi]++;
-                if(bins[bi] >= minChargePeakCount)
-                    bits2[bi] = true;
+                int bi = (index + binf[j]);
+                if (bi >= binNumber) break;
+                massBinScores[bi]++;
+
+                if (massBinScores[bi] >= minChargePeakCount)
+                    massBins[bi] = true;
             }
-            index = bits.find_next(index);
+            index = mzBins.find_next(index);
         }
+
+        if(massBins.count() == 0) return peakGroups;
+
+        double isom = 1.003355;
+        int isoMinCntr = 4;
+
+        index = massBins.find_first();
+        while(index != massBins.npos){
+            auto isopresent = true;
+            auto m = exp(min + index * tol);
+            for(int i=1;i<isoMinCntr;i++) {
+                int bin = index + isom*i/m/tol;
+                isopresent &= massBins[bin];
+            }
+
+            if(isopresent){
+// meaning of bin??    remove massBins here?
+            }else{
+                massBins[index] = false;
+            }
+            index = massBins.find_next(index);
+        }
+
+        if(massBins.count() == 0) return peakGroups;
 
         int* currentPeakIndex = new int[filterSize];
         fill_n(currentPeakIndex,filterSize,0);
@@ -251,14 +282,14 @@ protected:
         int* binScoreDist = new int[filterSize];
         fill_n(binScoreDist,filterSize,0);
 
-        index = bits2.find_first();
-        while(index != bits2.npos){
-            int j = bins[index] >= filterSize? filterSize - 1 : bins[index];
+        index = massBins.find_first();
+        while(index != massBins.npos){
+            int j = massBinScores[index] >= filterSize? filterSize - 1 : massBinScores[index];
             binScoreDist[j]++;
-            index = bits2.find_next(index);
+            index = massBins.find_next(index);
         }
 
-        if(bits2.count() == 0) return peakGroups;
+        if(massBins.count() == 0) return peakGroups;
 
         int binScoreThreshold = minChargePeakCount, tsum=0;
         for(int i=filterSize;i>=1;i--){
@@ -269,11 +300,34 @@ protected:
                 break;
             }
         }
+        /*if(specCntr==602) {
+            mfile << "mass" << specCntr << "=[";
+            index = mzBins.find_first();
 
-        index = bits2.find_first();
-        while(index != bits2.npos){
-            if(bins[index]<binScoreThreshold){
-                index = bits2.find_next(index);
+            while(index != mzBins.npos){
+                for(int j=0;j<filterSize;j++) {
+                    int bi = (index + binf[j]);
+                    if (bi >= binNumber) break;
+
+                    mfile << setprecision(15) << exp(spectrum[0].logmz - filter[0] + bi * tol) << "," << j << ";";
+
+                }
+                index = mzBins.find_next(index);
+            }
+
+
+            mfile << "];" << endl;
+
+            mfile << "spec" << specCntr<<"=[";
+            for (auto &p : spectrum) {
+                mfile<<p.orgPeak->getMZ()<<","<<p.orgPeak->getIntensity()<<","<<setprecision(15)<<p.logmz<<";";
+            }
+            mfile << "];" << endl;
+        }*/
+        index = massBins.find_first();
+        while(index != massBins.npos){
+            if(massBinScores[index]<binScoreThreshold){
+                index = massBins.find_next(index);
                 continue;
             }
             map<int, int> toselect; // index - > charge
@@ -303,7 +357,7 @@ protected:
                 logpeaks.push_back(spectrum[t]);
             }
             peakGroups.push_back(logpeaks);
-            index = bits2.find_next(index);
+            index = massBins.find_next(index);
         }
        // cout<<binScoreThreshold<<endl;
         //cout<<peakGroups.size()<<endl;
