@@ -118,7 +118,7 @@ public:
     double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
 
     void applyBasic(std::vector<PeptideIdentification> & ids);
-    void applyBasic(ProteinIdentification & id);
+    void applyBasic(ProteinIdentification & id, bool groups_too = true);
 
 
 private:
@@ -167,6 +167,12 @@ private:
         hit.setMetaValue(old_score_type, old_score);
       }
     }
+
+    void setScores_(
+        const std::map<double,double>& scores_to_FDR,
+        std::vector<ProteinIdentification::ProteinGroup>& grps,
+        const std::string& score_type,
+        bool higher_better) const;
 
     template <typename IDType>
     void checkTDAnnotation_ (const IDType & id) const

@@ -711,7 +711,7 @@ namespace OpenMS
   }
 
   //TODO iterate over a vector. to be consistent with old interface
-  void FalseDiscoveryRate::applyBasic(ProteinIdentification & id)
+  void FalseDiscoveryRate::applyBasic(ProteinIdentification & id, bool groups_too)
   {
     bool q_value = !param_.getValue("no_qvalues").toBool();
     //TODO Check naming conventions. Ontology? Make class member?
@@ -728,6 +728,10 @@ namespace OpenMS
     }
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
     setScores_(scores_to_FDR, id, score_type, false);
+    if (groups_too)
+    {
+      setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+    }
     scores_to_FDR.clear();
   }
 
@@ -1109,11 +1113,21 @@ namespace OpenMS
   }
 
 
-  void FalseDiscoveryRate::setScores_(const std::map<double,double>& scores_to_FDR, vector<PeptideIdentification> & ids, const string& score_type, bool higher_better) const
+  void FalseDiscoveryRate::setScores_(const map<double,double>& scores_to_FDR, vector<PeptideIdentification> & ids, const string& score_type, bool higher_better) const
   {
     for (auto& id : ids)
     {
       setScores_(scores_to_FDR, id, score_type, higher_better);
+    }
+  }
+
+  // score_type and higher_better unused. You have to assume that groups will always have the same scores as the
+  // ProteinHits
+  void FalseDiscoveryRate::setScores_(const map<double,double>& scores_to_FDR, vector<ProteinIdentification::ProteinGroup>& grps, const string& /*score_type*/, bool /*higher_better*/) const
+  {
+    for (auto& grp : grps)
+    {
+      grp.probability = (scores_to_FDR.lower_bound(grp.probability)->second);
     }
   }
 

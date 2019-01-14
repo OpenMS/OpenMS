@@ -1673,7 +1673,7 @@ namespace OpenMS
       row.mass_to_charge = MzTabDouble(f.getMZ());
       MzTabDoubleList rt_list;
       vector<MzTabDouble> rts;
-      rts.push_back(MzTabDouble(f.getRT()));
+      rts.emplace_back(MzTabDouble(f.getRT()));
       rt_list.set(rts);
       row.retention_time = rt_list;
 
@@ -1681,8 +1681,8 @@ namespace OpenMS
       vector<MzTabDouble> window;
       if (f.getConvexHull().getBoundingBox() != DBoundingBox<2>())
       {
-        window.push_back(MzTabDouble(f.getConvexHull().getBoundingBox().minX()));
-        window.push_back(MzTabDouble(f.getConvexHull().getBoundingBox().maxX()));
+        window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().minX()));
+        window.emplace_back(MzTabDouble(f.getConvexHull().getBoundingBox().maxX()));
       }
 
       MzTabDoubleList rt_window;
@@ -1802,7 +1802,11 @@ namespace OpenMS
       } 
 
       // TODO: use a different identifier to determine if it is inference data (check other places!)
-      bool has_inference_data = prot_ids[0].getSearchEngine() == "Fido" ? true : false;
+      bool has_inference_data = prot_ids[0].getSearchEngine() == "Fido" ||
+          prot_ids[0].getSearchEngine() == "BayesianProteinInference" || // for backwards compat
+          prot_ids[0].getSearchEngine() == "Epifany" ||
+          prot_ids[0].getSearchEngine() == "Percolator" ||
+          prot_ids[0].getSearchEngine() == "ProteinInference";
       if (has_inference_data)
       {
         LOG_DEBUG << "MzTab: Inference data provided." << std::endl;
@@ -1845,7 +1849,7 @@ namespace OpenMS
         for (auto it = prot_ids.begin(); it != prot_ids.end(); ++it)
         {
           // First entry might be the inference result without (single) associated ms_run. We skip it.
-          if (has_inference_data && it == prot_ids.begin()) { continue; }          
+          if (has_inference_data && it == prot_ids.begin()) { continue; }
           
           map_id_to_run[it->getIdentifier()] = run_index;
           
@@ -1894,50 +1898,48 @@ namespace OpenMS
       // map (indist.)protein groups to their protein hits (by index).
       map<Size, set<Size>> ind2prot; // indistinguishable protein groups
       map<Size, set<Size>> pg2prot; // general protein groups
-      if (has_inference_data)
+
+      const std::vector<ProteinHit> proteins = prot_ids.front().getHits();
+
+      // map indistinguishable groups to the contained proteins
+      const std::vector<ProteinIdentification::ProteinGroup>& indist_groups = prot_ids.front().getIndistinguishableProteins();
+      Size ind_idx{0};
+      for (const ProteinIdentification::ProteinGroup & p : indist_groups)
       {
-        const std::vector<ProteinHit> proteins = prot_ids.front().getHits();
-
-        // map indistinguishable groups to the contained proteins
-        const std::vector<ProteinIdentification::ProteinGroup>& indist_groups = prot_ids.front().getIndistinguishableProteins();
-        Size ind_idx{0};
-        for (const ProteinIdentification::ProteinGroup & p : indist_groups) 
-        { 
-          for (const String & a : p.accessions)
-          {
-            // find protein corresponding to accession stored in group
-            auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph) 
-              {
-                return ph.getAccession() == a;
-              }
-            );
-            if (it == proteins.end()) { continue; };
-            Size protein_index = std::distance(proteins.begin(), it);
-            ind2prot[ind_idx].insert(protein_index);
-          }
-          ++ind_idx;
+        for (const String & a : p.accessions)
+        {
+          // find protein corresponding to accession stored in group
+          auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph)
+            {
+              return ph.getAccession() == a;
+            }
+          );
+          if (it == proteins.end()) { continue; };
+          Size protein_index = std::distance(proteins.begin(), it);
+          ind2prot[ind_idx].insert(protein_index);
         }
-
-        // map general protein groups to the contained proteins
-        const std::vector<ProteinIdentification::ProteinGroup>& protein_groups = prot_ids.front().getProteinGroups();
-        Size pg_idx{0};
-        for (const ProteinIdentification::ProteinGroup & p : protein_groups) 
-        { 
-          for (const String & a : p.accessions)
-          {
-            // find protein corresponding to accession stored in group
-            auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph) 
-              {
-                return ph.getAccession() == a;
-              }
-            );
-            if (it == proteins.end()) { continue; };
-            Size protein_index = std::distance(proteins.begin(), it);
-            pg2prot[pg_idx].insert(protein_index);
-          }
-        }
-        ++pg_idx;
+        ++ind_idx;
       }
+
+      // map general protein groups to the contained proteins
+      const std::vector<ProteinIdentification::ProteinGroup>& protein_groups = prot_ids.front().getProteinGroups();
+      Size pg_idx{0};
+      for (const ProteinIdentification::ProteinGroup & p : protein_groups)
+      {
+        for (const String & a : p.accessions)
+        {
+          // find protein corresponding to accession stored in group
+          auto it = std::find_if(proteins.begin(), proteins.end(), [&a](const ProteinHit & ph)
+            {
+              return ph.getAccession() == a;
+            }
+          );
+          if (it == proteins.end()) { continue; };
+          Size protein_index = std::distance(proteins.begin(), it);
+          pg2prot[pg_idx].insert(protein_index);
+        }
+      }
+      ++pg_idx;
         
       ////////////////////////////////////////////////////////////////
       // generate protein section

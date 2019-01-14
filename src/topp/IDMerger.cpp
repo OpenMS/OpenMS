@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -215,6 +216,7 @@ protected:
     setValidFormats_("add_to", ListUtils::create<String>("idXML"));
     registerFlag_("annotate_file_origin", "Store the original filename in each protein/peptide identification (meta value: file_origin).");
     registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
+    registerFlag_("merge_proteins_add_PSMs", "Merge all identified proteins by accession into one protein identification run but keep all the PSMs with updated links to potential new protein ID#s. Not compatible with 'add_to'.");
   }
 
   ExitCodes main_(int, const char**) override
@@ -229,7 +231,7 @@ protected:
 
     if (file_names.empty())
     {
-      // this also allows exactly 1 file, because it might be usefull for
+      // this also allows exactly 1 file, because it might be useful for
       // a TOPPAS pipeline containing an IDMerger, to run only with one file
       writeLog_("No input filename given. Aborting!");
       printUsage_();
@@ -252,6 +254,16 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
+    bool merge_proteins_add_PSMs = getFlag_("merge_proteins_add_PSMs");
+    if (merge_proteins_add_PSMs && (pepxml_protxml || !add_to.empty()))
+    {
+      // currently not allowed to keep the code simpler and because it doesn't
+      // seem useful, but should be possible in principle:
+      writeLog_("The options 'merge_proteins_add_PSMs', 'add_to' and 'pepxml_protxml' cannot be used together. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
+    }
+
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -261,6 +273,23 @@ protected:
     if (pepxml_protxml)
     {
       mergePepXMLProtXML_(file_names, proteins, peptides);
+    }
+    else if (merge_proteins_add_PSMs)
+    {
+      proteins.resize(1);
+      IdXMLFile idXMLf;
+      IDMergerAlgorithm merger{};
+      Param p = merger.getParameters();
+      p.setValue("annotate_origin", annotate_file_origin ? "true" : "false");
+      merger.setParameters(p);
+      for (String& file : file_names)
+      {
+        vector<ProteinIdentification> prots;
+        vector<PeptideIdentification> peps;
+        idXMLf.load(file,prots,peps);
+        merger.insertRun(prots,peps);
+      }
+      merger.returnResultsAndClear(proteins[0], peptides);
     }
     else
     {

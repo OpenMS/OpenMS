@@ -542,10 +542,11 @@ protected:
     }
   }
   
-  void readProteinPoutAsMap_(String pout_protein_file, std::map<String, PercolatorProteinResult>& protein_map)
+  void readProteinPoutAsMapAndAddGroups_(String pout_protein_file, std::map<String, PercolatorProteinResult>& protein_map, ProteinIdentification& protID_to_add_grps)
   {
     CsvFile csv_file(pout_protein_file, '\t');
     StringList row;
+    std::vector<ProteinIdentification::ProteinGroup>& grps = protID_to_add_grps.getIndistinguishableProteins();
 
     for (Size i = 1; i < csv_file.rowCount(); ++i)
     {
@@ -558,6 +559,10 @@ protected:
       {
         protein_map.insert( map<String, PercolatorProteinResult>::value_type ( *it, PercolatorProteinResult(*it, qvalue, posterior_error_prob ) ) );
       }
+      ProteinIdentification::ProteinGroup grp;
+      grp.probability = 1. - posterior_error_prob;
+      grp.accessions = protein_accessions;
+      grps.push_back(grp);
     }
   }
   
@@ -1025,8 +1030,8 @@ protected:
     map<String, PercolatorProteinResult> protein_map;
     if (protein_level_fdrs)
     {
-      readProteinPoutAsMap_(pout_target_file_proteins, protein_map);
-      readProteinPoutAsMap_(pout_decoy_file_proteins, protein_map);
+      readProteinPoutAsMapAndAddGroups_(pout_target_file_proteins, protein_map, all_protein_ids[0]);
+      readProteinPoutAsMapAndAddGroups_(pout_decoy_file_proteins, protein_map, all_protein_ids[0] );
     }
 
     // idXML or mzid input
@@ -1109,13 +1114,13 @@ protected:
             map<String, PercolatorProteinResult>::iterator pr = protein_map.find(protein_accession);
             if (pr != protein_map.end())
             {
-              hit->setMetaValue("MS:1001491", pr->second.qvalue);  // percolator q value
               hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
               hit->setScore(pr->second.qvalue);
             }
             else
             {
               hit->setScore(1.0); // set q-value to 1.0 if hit not found in results
+              hit->setMetaValue("MS:1001493", 1.0);  // same for percolator pep
             }
           }
           it->setSearchEngine("Percolator");

@@ -112,6 +112,7 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
+        bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
         double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
         if (pnorm <= 0)
         {
@@ -164,6 +165,10 @@ namespace OpenMS
           {
             bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[*ui])->getPeptideEvidences().size(), in[0], *ui));
             bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<PeptideHit*>(fg[*ui])->getScore()));
+            if (update_PSM_probabilities)
+            {
+              posteriorVars.push_back({*ui});
+            }
           }
           else if (fg[*ui].which() == 2) // pep group
           {
@@ -195,7 +200,6 @@ namespace OpenMS
         BeliefPropagationInferenceEngine<unsigned long> bpie(scheduler, ig);
         auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
 
-        //TODO you could also save the indices of the peptides here and request + update their posteriors, too.
         for (auto const& posteriorFactor : posteriorFactors)
         {
           double posterior = 0.0;
@@ -401,6 +405,11 @@ namespace OpenMS
                        1,
                        "Consider only top X PSMs per spectrum. 0 considers all.");
     defaults_.setMinInt("top_PSMs", 0);
+
+    defaults_.setValue("update_PSM_probabilities",
+                       "true",
+                       "Update PSM probabilities with their posteriors under consideration of the protein probabilities.");
+    defaults_.setValidStrings("update_PSM_probabilities", {"true","false"});
 
 
     defaults_.addSection("model_parameters","Model parameters for the Bayesian network");
@@ -665,6 +674,7 @@ namespace OpenMS
     //TODO would be better if we set this after inference but only here we currently have
     // non-const access.
     proteinIDs[0].setScoreType("Posterior Probability");
+    proteinIDs[0].setSearchEngine("Epifany");
     proteinIDs[0].setHigherScoreBetter(true);
 
     // init empty graph
@@ -673,6 +683,7 @@ namespace OpenMS
     bool oldway = true;
     if (oldway)
     {
+
       //TODO make run info parameter
       ibg.buildGraph(param_.getValue("top_PSMs"));
       ibg.computeConnectedComponents();
@@ -704,6 +715,13 @@ namespace OpenMS
       GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
 
       std::array<size_t, 3> bestParams{{0, 0, 0}};
+
+      //Save initial setting and do not update during grid search to save time and to not
+      // interfere with later runs.
+      // TODO We could think about optimizing PSM FDR as another goal though.
+      bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
+      param_.setValue("update_PSM_probabilities","false");
+
       //TODO run grid search on reduced graph?
       //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
       gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
@@ -716,10 +734,12 @@ namespace OpenMS
       param_.setValue("model_parameters:prot_prior", bestGamma);
       param_.setValue("model_parameters:pep_emission", bestAlpha);
       param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
+      param_.setValue("update_PSM_probabilities", update_PSM_probabilities ? "true" : "false");
       ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
       ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor(proteinIDs[0]));
 
-
+      //TODO if update_PSM_probabilities:
+      // set score_type and direction in PepIDs and set all unused (= not top) PSMs to 0!
     }
     else
     {

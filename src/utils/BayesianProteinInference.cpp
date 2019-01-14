@@ -76,7 +76,10 @@ protected:
                        "none",
                        "Post-process inference output with greedy resolution of shared peptides based on the parent protein probabilities. Also adds the resolved ambiguity groups to output.", false, true);
     setValidStrings_("greedy_group_resolution", {"none","remove_associations_only","remove_proteins_wo_evidence"});
-
+    registerDoubleOption_("evidence_cutoff",
+                          "<option>",
+                          0.001,
+                          "After greedy resolution, before filtering proteins evidence-based, remove very low-scoring PSMs under this posterior probability cutoff.", false, true);
   }
 
   ExitCodes main_(int, const char**) override
@@ -86,19 +89,33 @@ protected:
     IDMergerAlgorithm merger{};
     StopWatch sw;
     sw.start();
-    for (String& file : files)
-    {
-      vector<ProteinIdentification> prots;
-      vector<PeptideIdentification> peps;
-      idXMLf.load(file,prots,peps);
-      merger.insertRun(prots,peps);
-    }
     vector<ProteinIdentification> mergedprots{1};
     vector<PeptideIdentification> mergedpeps;
-    merger.returnResultsAndClear(mergedprots[0], mergedpeps);
+
+    if (files.size() > 1)
+    {
+      for (String& file : files)
+      {
+        vector<ProteinIdentification> prots;
+        vector<PeptideIdentification> peps;
+        idXMLf.load(file,prots,peps);
+        merger.insertRun(prots,peps);
+      }
+
+      merger.returnResultsAndClear(mergedprots[0], mergedpeps);
+    }
+    else
+    {
+      idXMLf.load(files[0],mergedprots,mergedpeps);
+    }
+
     IDFilter::filterBestPerPeptide(mergedpeps, true, true, 1);
+
     IDFilter::filterEmptyPeptideIDs(mergedpeps);
 
+    //TODO get from data or set as parameter
+    double min_nonnull_obs_probability = 0.0001;
+    double pre_filter = 0.05;
     //convert all scores to PPs
     for (auto& pep_id : mergedpeps)
     {
@@ -108,7 +125,12 @@ protected:
       {
         for (auto& pep_hit : pep_id.getHits())
         {
-          pep_hit.setScore(1 - pep_hit.getScore());
+          double newScore = 1. - pep_hit.getScore();
+          if (newScore <= min_nonnull_obs_probability)
+          {
+            newScore = min_nonnull_obs_probability;
+          }
+          pep_hit.setScore(newScore);
         }
         pep_id.setScoreType("Posterior Probability");
         pep_id.setHigherScoreBetter(true);
@@ -121,11 +143,31 @@ protected:
               __FILE__,
               __LINE__,
               OPENMS_PRETTY_FUNCTION,
-              "ProteinInference needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
+              "Epifany needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
               "or run IDPosteriorErrorProbability first.");
+        }
+        for (auto& pep_hit : pep_id.getHits())
+        {
+          double newScore = pep_hit.getScore();
+          if (newScore <= min_nonnull_obs_probability)
+          {
+            newScore = min_nonnull_obs_probability;
+          }
+          pep_hit.setScore(newScore);
         }
       }
     }
+    if (pre_filter > 0.0)
+    {
+      IDFilter::filterHitsByScore(mergedpeps, pre_filter);
+      IDFilter::filterEmptyPeptideIDs(mergedpeps);
+    }
+
+    // Currently this is needed because otherwise there might be proteins with a previous score
+    // that get evaluated during FDR without a new posterior being set.
+    // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
+    IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
+
     LOG_INFO << "Loading and merging took " << sw.toString() << std::endl;
     sw.reset();
 
@@ -143,17 +185,32 @@ protected:
       //TODO add group resolution to the IDBoostGraph class so we do not
       // unnecessarily build a second (old) data structure
       mergedprots[0].fillIndistinguishableGroupsWithSingletons();
-      PeptideProteinResolution ppr(true);
+      PeptideProteinResolution ppr;
       ppr.buildGraph(mergedprots[0], mergedpeps);
       ppr.resolveGraph(mergedprots[0], mergedpeps);
+
+      //PeptideProteinResolution::resolve(mergedprots[0], mergedpeps, true, false);
     }
     if (remove_prots_wo_evidence)
     {
       LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
+      //TODO filtering as parameter? Do it before (remember that before the inference PSMs often hold PEPs not PPs)
+      // Should be bigger than min_nonnull_obs_probability!!
+      double cutoff = getDoubleOption_("evidence_cutoff");
+      if (cutoff <= min_nonnull_obs_probability)
+      {
+        LOG_WARN << "Post-greedy, pre-filter cutoff smaller than minimum PSM probability. Maybe not useful." << std::endl;
+      }
+      IDFilter::filterHitsByScore(mergedpeps, cutoff);
       IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
       IDFilter::updateProteinGroups(mergedprots[0].getIndistinguishableProteins(), mergedprots[0].getHits());
       IDFilter::updateProteinGroups(mergedprots[0].getProteinGroups(), mergedprots[0].getHits());
     }
+
+    LOG_INFO << "Writing inference run as first ProteinIDRun with " <<
+    mergedprots[0].getHits().size() << " proteins in " <<
+    mergedprots[0].getIndistinguishableProteins().size() <<
+    " indist. groups." << std::endl;
 
     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
     return ExitCodes::EXECUTION_OK;
