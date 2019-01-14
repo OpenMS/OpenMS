@@ -50,7 +50,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
+//#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
@@ -214,7 +214,9 @@ protected:
     ma_defaults.setValue("use_unassigned_peptides", "false");
     ma_defaults.setValue("use_feature_rt", "true");
 
-    Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
+    //Param fl_defaults = FeatureGroupingAlgorithmKD().getDefaults();
+    Param fl_defaults = FeatureGroupingAlgorithmQT().getDefaults();
+
     Param pq_defaults = PeptideAndProteinQuant().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
     pq_defaults.setValue("include_all", "true"); 
@@ -255,6 +257,17 @@ protected:
       }    
     }
     return mzfile2idfile;
+  }
+
+  // map back
+  map<String, String> mapId2MzMLs_(const map<String, String>& m2i)
+  {
+    map<String, String> idfile2mzfile;
+    for (auto m : m2i)
+    {
+      idfile2mzfile[m.second] = m.first;
+    }
+    return idfile2mzfile;
   }
 
   ExitCodes centroidAndCorrectPrecursors_(const String & mz_file, MSExperiment & ms_centroided)
@@ -544,7 +557,6 @@ protected:
 
     writeDebug_("Linking: " + String(feature_maps.size()) + " features.", 1);
 
-/*
     // grouping tolerance = max alignment error + median FWHM
     FeatureGroupingAlgorithmQT linker;
     fl_param.setValue("distance_RT:max_difference", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
@@ -553,15 +565,17 @@ protected:
     fl_param.setValue("distance_MZ:weight", 5.0);
     fl_param.setValue("distance_intensity:weight", 0.1); 
     fl_param.setValue("use_identifications", "true"); 
-*/
+/*
     FeatureGroupingAlgorithmKD linker;
     fl_param.setValue("warp:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:rt_tol", 2.0 * max_alignment_diff + 2.0 * median_fwhm);
     fl_param.setValue("link:mz_tol", 10.0);
     fl_param.setValue("mz_unit", "ppm");
-
+*/
     linker.setParameters(fl_param);      
     linker.group(feature_maps, consensus_fraction);
+    LOG_INFO << "Size of consensus fraction: " << consensus_fraction.size() << endl;
+    assert(!consensus_fraction.empty());
   }
 
   // Align and link.
@@ -802,7 +816,8 @@ protected:
       bool missing_spec_ref(false);
       for (const PeptideIdentification & pid : peptide_ids)
       {
-        if (pid.getMetaValue("spectrum_reference").toString().empty()) 
+        if (!pid.metaValueExists("spectrum_reference") 
+          || pid.getMetaValue("spectrum_reference").toString().empty()) 
         {          
           missing_spec_ref = true;
           break;
@@ -1066,6 +1081,7 @@ protected:
     // Here we currently assume that these are provided in the exact same order.
     // In the future, we could warn or reorder them based on the annotated primaryMSRunPath in the ID file.
     map<String, String> mzfile2idfile = mapMzML2Ids_(in, in_ids);
+    map<String, String> idfile2mzfile = mapId2MzMLs_(mzfile2idfile);
 
     // check if mzMLs in experimental design match to mzMLs passed as in parameter
     for (auto const & ms_files : frac2ms) // for each fraction->ms file(s)
@@ -1163,12 +1179,23 @@ protected:
     IDMergerAlgorithm merger{String("all_merged")};
 
     IdXMLFile f;
+    
     for (const auto& idfile : in_ids)
     {
       vector<ProteinIdentification> protein_ids;
       vector<PeptideIdentification> peptide_ids;
       f.load(idfile, protein_ids, peptide_ids);
-      // TODO: Do and filter for a PSM FDR?
+
+      // reannoate MS run if not present
+      StringList id_msfile_ref;
+      protein_ids[0].getPrimaryMSRunPath(id_msfile_ref);
+      if (id_msfile_ref.empty())
+      {
+        id_msfile_ref.push_back(idfile2mzfile[idfile]);
+        protein_ids[0].setPrimaryMSRunPath(id_msfile_ref);
+      }     
+ 
+      // TODO: Filter for a PSM FDR?
       merger.insertRun(protein_ids, peptide_ids);
     }
 
@@ -1311,10 +1338,14 @@ protected:
     // ensure that only one final inference result is generated
     assert(inferred_protein_ids.size() == 1);
 
-    // only keep unique peptides (for now)
-    if (!greedy_group_resolution) // greedy group resolution should already uniquify peptides
+    // do we only want to keep strictly unique peptides (e.g., no groups)?
+    if (!greedy_group_resolution && !groups)
     {
       IDFilter::keepUniquePeptidesPerProtein(inferred_peptide_ids);
+      if (debug_level_ >= 666)
+      {
+        IdXMLFile().store("debug_mergedIDsFDRFilteredStrictlyUniqueResolved.idXML", inferred_protein_ids, inferred_peptide_ids);
+      }
     }
 
     // filter decoy proteins, update groups so decoy proteins are also removed there, and remove PSMs that mapped to them. 
@@ -1450,27 +1481,44 @@ protected:
     }
 
     quantifier.quantifyProteins(inferred_protein_ids[0]);
-      if (debug_level_ >= 666)
-      {
-        IdXMLFile().store("debug_quant.idXML", inferred_protein_ids, inferred_peptide_ids);
-      }
+    auto const & protein_quants = quantifier.getProteinResults();
+    if (protein_quants.empty())
+    {        
+      LOG_WARN << "Warning: No proteins were quantified." << endl;
+    }
+
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_quant.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
     //-------------------------------------------------------------
     // Export of MzTab file as final output
     //-------------------------------------------------------------
 
-    // Annotate quants to protein(groups) for easier export in mzTab
-    auto const & protein_quants = quantifier.getProteinResults();
-      if (debug_level_ >= 666)
-      {
-        IdXMLFile().store("debug_quant1.idXML", inferred_protein_ids, inferred_peptide_ids);
-      }
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_quant1.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
 
-    // annotates final quantities to proteins and protein groups in the ID data structure
-    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
-      if (debug_level_ >= 666)
+    // Annotate quants to protein(groups) for easier export in mzTab
+    if (debug_level_ >= 666)
+    {
+      for (auto r : quantifier.getProteinResults())
       {
-        IdXMLFile().store("debug_quant_annotated.idXML", inferred_protein_ids, inferred_peptide_ids);
+        std::cout << "Accession:" << r.first << "\n";
+        for (auto s : r.second.total_abundances)
+        {
+          std::cout << s.second << "\t"; 
+        }
+        std::cout << "\n";
       }
+    }
+
+    PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, inferred_protein_ids[0], design.getNumberOfFractionGroups());
+    if (debug_level_ >= 666)
+    {
+      IdXMLFile().store("debug_quant_annotated.idXML", inferred_protein_ids, inferred_peptide_ids);
+    }
     vector<ProteinIdentification>& proteins = consensus.getProteinIdentifications();
     proteins.insert(proteins.begin(), inferred_protein_ids[0]); // insert inference information as first protein identification
     proteins[0].setSearchEngine("Fido");  // Note: currently needed so mzTab Exporter knows how to handle inference data in first prot. ID
