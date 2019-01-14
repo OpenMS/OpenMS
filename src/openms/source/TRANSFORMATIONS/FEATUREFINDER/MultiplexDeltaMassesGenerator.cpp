@@ -440,43 +440,43 @@ namespace OpenMS
   
   void MultiplexDeltaMassesGenerator::printSamplesLabelsList() const
   {
-    LOG_DEBUG << "\n";
+    std::cout << "\n";
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
     {
-      LOG_DEBUG << "sample " << (i + 1) << ":    ";
+      std::cout << "sample " << (i + 1) << ":    ";
       for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
       {
-        LOG_DEBUG << samples_labels_[i][j] << "    ";
+        std::cout << samples_labels_[i][j] << "    ";
       }
-      LOG_DEBUG << "\n";
+      std::cout << "\n";
     }
   }
   
   void MultiplexDeltaMassesGenerator::printDeltaMassesList() const
   {
-    LOG_DEBUG << "\n";
+    std::cout << "\n";
     for (unsigned i = 0; i < delta_masses_list_.size(); ++i)
     {
-      LOG_DEBUG << "mass shift " << (i + 1) << ":    ";
+      std::cout << "mass shift " << (i + 1) << ":    ";
       for (unsigned j = 0; j < delta_masses_list_[i].getDeltaMasses().size(); ++j)
       {
         double mass_shift = delta_masses_list_[i].getDeltaMasses()[j].delta_mass;
         MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
         
-        LOG_DEBUG << mass_shift << " (";
+        std::cout << mass_shift << " (";
         for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
         {
           if (it != label_set.begin())
           {
-            LOG_DEBUG << ",";
+            std::cout << ",";
           }
-          LOG_DEBUG << *it;
+          std::cout << *it;
         }
-        LOG_DEBUG << ")    ";
+        std::cout << ")    ";
       }
-      LOG_DEBUG << "\n";
+      std::cout << "\n";
     }
-    LOG_DEBUG << "\n";
+    std::cout << "\n";
   }
   
   std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getDeltaMassesList()

@@ -63,7 +63,8 @@
 #include <boost/algorithm/string/split.hpp> 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
-// #define DEBUG
+
+#define DEBUG
 
 using namespace std;
 
@@ -229,14 +230,6 @@ namespace OpenMS
     }
     
     sort(list.begin(), list.end(), lessPattern);
-    
-#ifdef DEBUG
-    // debug output
-    for (int i = 0; i < list.size(); ++i)
-    {
-      std::cout << "charge = " << list[i].getCharge() << "+    shift = " << list[i].getMassShiftAt(1) << " Da\n";
-    }
-#endif
     
     return list;
   }
@@ -992,8 +985,11 @@ namespace OpenMS
     {
       generator.generateKnockoutDeltaMasses();
     }
+    
+    #ifdef DEBUG
     generator.printSamplesLabelsList();
     generator.printDeltaMassesList();
+    #endif
 
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
     std::vector<MultiplexIsotopicPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
