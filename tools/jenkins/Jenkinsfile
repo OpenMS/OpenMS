@@ -85,7 +85,7 @@ pipeline {
                                         thresholds: [ skipped(failureThreshold: '0'), failed(failureThreshold: '0') ],
                                         tools: [ CTest(pattern: 'tools/jenkins/Test.xml', stopProcessingIfError: true) ]
                                     )
-                                   steps{
+                                   script{
                                     if(currentBuild.result != null && !"SUCCESS".equals(currentBuild.result)) {
                                         throw err
                                     }
