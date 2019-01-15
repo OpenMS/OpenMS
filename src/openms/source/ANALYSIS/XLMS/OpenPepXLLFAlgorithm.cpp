@@ -392,9 +392,9 @@ using namespace OpenMS;
     LOG_DEBUG << "Spectra left after preprocessing and filtering: " << spectra.size() << " of " << unprocessed_spectra.size() << endl;
 #endif
 
-#ifdef _OPENMP
-#pragma omp parallel for schedule(guided)
-#endif
+// #ifdef _OPENMP
+// #pragma omp parallel for schedule(guided)
+// #endif
     for (SignedSize scan_index = 0; scan_index < static_cast<SignedSize>(spectra.size()); ++scan_index)
     {
       const PeakSpectrum& spectrum = spectra[scan_index];
@@ -424,6 +424,10 @@ using namespace OpenMS;
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
 
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > mainscore_csms_spectrum;
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(guided)
+#endif
       for (Size i = 0; i < cross_link_candidates.size(); ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
@@ -535,7 +539,9 @@ using namespace OpenMS;
         csm.match_odds_beta = match_odds_beta;
         csm.precursor_error_ppm = rel_error;
 
+#pragma omp critical (mainscore_csms_spectrum_access)
         mainscore_csms_spectrum.push_back(csm);
+
       }
       std::sort(mainscore_csms_spectrum.rbegin(), mainscore_csms_spectrum.rend(), OPXLDataStructs::CLSMScoreComparator());
 
