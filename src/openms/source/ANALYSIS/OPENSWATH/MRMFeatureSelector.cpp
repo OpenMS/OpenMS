@@ -247,7 +247,7 @@ namespace OpenMS
     {
       const String name = problem.getColumnName(c);
       const double column_value = problem.getColumnValue(c);
-      if (column_value > parameters.optimal_threshold - 1e-17 && variables.count(name))
+      if (column_value > parameters.optimal_threshold /*- 1e-17*/ && variables.count(name))
       {
         result.push_back(name);
         std::cout << "column_name: " << name << ";\tcolumn_value: " << column_value << std::endl;
