@@ -429,9 +429,9 @@ using namespace OpenMS;
     progresslogger.startProgress(0, 1, "Matching to theoretical spectra and scoring...");
     Size spectrum_counter = 0;
 
-#ifdef _OPENMP
-#pragma omp parallel for schedule(guided)
-#endif
+// #ifdef _OPENMP
+// #pragma omp parallel for schedule(guided)
+// #endif
     for (SignedSize pair_index = 0; pair_index < static_cast<SignedSize>(spectrum_pairs.size()); ++pair_index)
     {
       Size scan_index = spectrum_pairs[pair_index].first;
@@ -476,6 +476,10 @@ using namespace OpenMS;
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > all_csms_spectrum;
 
       vector< OPXLDataStructs::CrossLinkSpectrumMatch > mainscore_csms_spectrum;
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(guided)
+#endif
       for (Size i = 0; i != cross_link_candidates.size(); ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
@@ -596,6 +600,7 @@ using namespace OpenMS;
         csm.match_odds_beta = match_odds_beta;
         csm.precursor_error_ppm = rel_error;
 
+#pragma omp critical (mainscore_csms_spectrum_access)
         mainscore_csms_spectrum.push_back(csm);
       }
       // progresslogger.endProgress();
