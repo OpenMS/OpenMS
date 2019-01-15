@@ -87,7 +87,7 @@ pipeline {
                                     )
                                    script{
                                     if(currentBuild.result != null && !"SUCCESS".equals(currentBuild.result)) {
-                                        throw err
+                                        throw RuntimeException("Build failed for some specific reason!")
                                     }
                                    }
                                 }
