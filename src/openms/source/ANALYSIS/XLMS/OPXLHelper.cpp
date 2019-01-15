@@ -55,6 +55,9 @@ namespace OpenMS
     double min_precursor = spectrum_precursors[0];
     double max_precursor = spectrum_precursors[spectrum_precursors.size()-1];
 
+#ifdef _OPENMP
+#pragma omp parallel for schedule(guided)
+#endif
     for (SignedSize p1 = 0; p1 < static_cast<SignedSize>(peptides.size()); ++p1)
     {
       // get the amino acid sequence of this peptide as a character string
@@ -164,8 +167,7 @@ namespace OpenMS
         // call function to compare with spectrum precursor masses
         filter_and_add_candidate(mass_to_candidates, spectrum_precursors, precursor_correction_positions, precursor_mass_tolerance_unit_ppm, precursor_mass_tolerance, precursor);
       }
-    }
-    // cout << "Enumerated pairs with sequence " << countA << " of " << peptides.size() << ";\t Current pair count: " << mass_to_candidates.size() << " | current size in mb: " << mass_to_candidates.size() * sizeof(OPXLDataStructs::XLPrecursor) / 1024 / 1024 << endl;
+    } // end of parallelized for-loop
     return mass_to_candidates;
   }
 
@@ -193,10 +195,12 @@ namespace OpenMS
 
     if (low_it != up_it) // if they are not equal, there are matching precursors in the data
     {
-      // found_matching_precursors = true;
-      mass_to_candidates.push_back(precursor);
-      // take the position of the highest matching precursor mass in the vector (prioritize smallest correction)
-      precursor_correction_positions.push_back(std::distance(spectrum_precursors.begin(), std::prev(up_it, 1)));
+#pragma omp critical (mass_to_candidates_access)
+      {
+        mass_to_candidates.push_back(precursor);
+        // take the position of the highest matching precursor mass in the vector (prioritize smallest correction)
+        precursor_correction_positions.push_back(std::distance(spectrum_precursors.begin(), std::prev(up_it, 1)));
+      }
       return true;
     }
     else
@@ -372,6 +376,10 @@ namespace OpenMS
     }
 
     vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates;
+
+#ifdef _OPENMP
+#pragma omp parallel for schedule(guided)
+#endif
     for (Size i = 0; i < candidates.size(); ++i)
     {
       OPXLDataStructs::XLPrecursor candidate = candidates[i];
@@ -485,6 +493,8 @@ namespace OpenMS
           if (link_pos_second[y] != -1)
           {
             cross_link_candidate.cross_linker_mass = cross_link_mass;
+
+#pragma omp critical (cross_link_candidates_access)
             cross_link_candidates.push_back(cross_link_candidate);
           }
           else
@@ -499,7 +509,9 @@ namespace OpenMS
               }
               if (is_correct_monolink)
               {
-                cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];;
+                cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];
+
+#pragma omp critical (cross_link_candidates_access)
                 cross_link_candidates.push_back(cross_link_candidate);
               }
             }
@@ -550,8 +562,9 @@ namespace OpenMS
             cross_link_candidate.cross_linker_mass = cross_link_mass;
             cross_link_candidate.cross_linker_name = cross_link_name;
             cross_link_candidate.precursor_correction = precursor_corrections[i];
-            cross_link_candidates.push_back(cross_link_candidate);
 
+#pragma omp critical (cross_link_candidates_access)
+            cross_link_candidates.push_back(cross_link_candidate);
           }
         }
       }
@@ -601,6 +614,8 @@ namespace OpenMS
             if (link_pos_second[x] != -1)
             {
               cross_link_candidate.cross_linker_mass = cross_link_mass;
+
+#pragma omp critical (cross_link_candidates_access)
               cross_link_candidates.push_back(cross_link_candidate);
             }
             else
@@ -616,6 +631,8 @@ namespace OpenMS
                 if (is_correct_monolink)
                 {
                   cross_link_candidate.cross_linker_mass = cross_link_mass_mono_link[k];
+
+#pragma omp critical (cross_link_candidates_access)
                   cross_link_candidates.push_back(cross_link_candidate);
                 }
               }
@@ -623,7 +640,7 @@ namespace OpenMS
           }
         }
       }
-    }
+    } // end of parallelized for-loop
     return cross_link_candidates;
   }
 
