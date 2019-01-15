@@ -380,7 +380,7 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
-    for (Size i = 0; i < candidates.size(); ++i)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(candidates.size()); ++i)
     {
       OPXLDataStructs::XLPrecursor candidate = candidates[i];
       vector <SignedSize> link_pos_first;

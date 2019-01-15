@@ -480,7 +480,7 @@ using namespace OpenMS;
 #ifdef _OPENMP
 #pragma omp parallel for schedule(guided)
 #endif
-      for (Size i = 0; i != cross_link_candidates.size(); ++i)
+      for (SignedSize i = 0; i < static_cast<SignedSize>(cross_link_candidates.size()); ++i)
       {
         OPXLDataStructs::ProteinProteinCrossLink cross_link_candidate = cross_link_candidates[i];
 
