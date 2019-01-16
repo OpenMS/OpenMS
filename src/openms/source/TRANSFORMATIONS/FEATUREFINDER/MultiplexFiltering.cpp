@@ -300,12 +300,16 @@ namespace OpenMS
 
         double mz;
         
-        // Check that there is a zeroth peak.
+        // Check if there is a zeroth peak.
         mz = peak.getMZ() + 2 * pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1);
         int mz_idx = checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak);
         if (mz_idx != -1)
         {
-          return false;
+          // So, there is a significant peak to the left. This is only a problem, if this peak is not part of the pattern which we currently detect.
+          if (!(peak.checkSatellite(peak.getRTidx(), mz_idx)))
+          {
+            return false;
+          }
         }
         
         // Check mistaken charge state identities
