@@ -126,7 +126,7 @@ namespace OpenMS
     exp_centroided_white_.updateRanges();
   }
   
-  bool MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const
+  int MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const
   {
     // Check that there is a peak.
     int mz_idx = it_rt->findNearest(mz, mz_tolerance);
@@ -143,11 +143,11 @@ namespace OpenMS
       if (intensity > threshold * intensity_first_peak)
       {
         // There is a high-intensity peak at the position mz.
-        return true;
+        return mz_idx;
       }
     }
 
-    return false;
+    return -1;
   }
   
   bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
@@ -203,7 +203,7 @@ namespace OpenMS
             // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
             size_t rt_idx = it_rt - it_rt_begin;
             size_t mz_idx = exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i);
-            // Check if the peak has been blacklisted or greylisted, and if it is already in the satellite set.
+            // Check if the peak has been blacklisted (seen in previous pattern) or greylisted (seen in current pattern), and if it is already in the satellite set.
             if (((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(mz_shift_idx))) && (peak.checkSatellite(rt_idx, mz_idx)))
             {
               peak.addSatellite(rt_idx, mz_idx, mz_shift_idx);
@@ -301,8 +301,9 @@ namespace OpenMS
         double mz;
         
         // Check that there is a zeroth peak.
-        mz = peak.getMZ() + 2 * pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1);        
-        if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+        mz = peak.getMZ() + 2 * pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1);
+        int mz_idx = checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak);
+        if (mz_idx != -1)
         {
           return false;
         }
@@ -315,14 +316,14 @@ namespace OpenMS
         {          
           // Is the 2+ pattern really a 4+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/2;
-          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak) != -1)
           {
             return false;
           }
           
           // Is the 2+ pattern really a 6+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)*2/3 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/3;
-          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak) != -1)
           {
             return false;
           }
@@ -332,7 +333,7 @@ namespace OpenMS
         {
           // Is the 3+ pattern really a 6+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/2;
-          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak) != -1)
           {
             return false;
           }
@@ -346,7 +347,7 @@ namespace OpenMS
             // (In theory, any charge state c >= 2+ could be mistaken as a 1+. For the sake of run time performance, we only check up to 7+.
             // If we see in any dataset significant number of mistakes for c >= 8+, we will modify this part of the code.)
             mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)*(c-1)/c + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/c;
-            if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+            if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak) != -1)
             {
               return false;
             }
