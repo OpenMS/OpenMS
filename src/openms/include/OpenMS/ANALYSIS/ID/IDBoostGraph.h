@@ -293,6 +293,7 @@ namespace OpenMS
 
     /// Do sth on connected components (your functor object has to inherit from std::function)
     void applyFunctorOnCCs(std::function<void(Graph&)> functor);
+    void applyFunctorOnCCsST(std::function<void(Graph&)> functor);
 
     /// Add intermediate nodes to the graph that represent indist. protein groups and peptides with the same parents
     /// this will save computation time and oscillations later on.

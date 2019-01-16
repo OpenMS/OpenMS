@@ -374,6 +374,18 @@ namespace OpenMS
     }
   }
 
+  //TODO find a more robust way to figure that out. CV Terms?
+  bool ProteinIdentification::hasInferenceData() const
+  {
+    String se = getSearchEngine();
+    return
+    se == "Fido" ||
+    se == "BayesianProteinInference" || // for backwards compat
+    se == "Epifany" ||
+    se == "Percolator" ||
+    se == "ProteinInference";
+  }
+
   // Equality operator
   bool ProteinIdentification::operator==(const ProteinIdentification& rhs) const
   {

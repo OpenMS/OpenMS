@@ -357,7 +357,7 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
             // Write new line for each run
             for (Size j = 0; j < consensus_feature_filenames[i].size(); j++)
             {
-              const String &filename = consensus_feature_filenames[i][j];
+              const String &consfilename = consensus_feature_filenames[i][j];
               const Intensity intensity(consensus_feature_intensites[i][j]);
               const Coordinate retention_time(consensus_feature_retention_times[i][j]);
               const unsigned label(consensus_feature_labels[i][j]);
@@ -367,11 +367,11 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
               // concatenated protein accessions  
               const String ind_group_accession = ListUtils::concatenate(ind_proteins,";");
 
-              const pair< String, unsigned> tpl1 = make_pair(filename, label);
+              const pair< String, unsigned> tpl1 = make_pair(consfilename, label);
               const unsigned sample = path_label_to_sample[tpl1];
               const unsigned fraction = path_label_to_fraction[tpl1];
 
-              const pair< String, unsigned> tpl2 = make_pair(filename, fraction);
+              const pair< String, unsigned> tpl2 = make_pair(consfilename, fraction);
 
               // Resolve run
               const unsigned run = run_map[tpl2];  // MSstats run according to the file table
@@ -423,7 +423,7 @@ void OpenMS::MSstatsFile::store(const OpenMS::String &filename, ConsensusMap &co
         // First, we collect all retention times and intensities
         set< Coordinate > retention_times;
         set< Intensity > intensities;
-        for (const pair< Intensity, Coordinate > p : line.second)
+        for (const pair< Intensity, Coordinate >& p : line.second)
         {
           if (retention_times.find(p.second) != retention_times.end())
           {

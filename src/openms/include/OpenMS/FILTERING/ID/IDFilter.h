@@ -704,6 +704,20 @@ public:
     }
 
     /**
+      @brief Filters peptide or protein identifications according to the score of the hits.
+
+      Only peptide/protein hits with a score at least as good as @p threshold_score are kept. Score orientation (are higher scores better?) is taken into account.
+    */
+    template <class IdentificationType>
+    static void filterHitsByScore(IdentificationType& id,
+                                  double threshold_score)
+    {
+        struct HasGoodScore<typename IdentificationType::HitType> score_filter(
+            threshold_score, id->isHigherScoreBetter());
+        keepMatchingItems(id->getHits(), score_filter);
+    }
+
+    /**
        @brief Filters peptide or protein identifications according to the significance threshold of the hits.
 
        Only peptide/protein hits which reach a score above (or below, depending on score orientation) @p threshold_fraction * @p significance_threshold (as stored in the ID) are kept.

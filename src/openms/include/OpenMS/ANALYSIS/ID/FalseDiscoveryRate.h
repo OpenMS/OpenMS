@@ -117,8 +117,13 @@ public:
     double applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
     double applyEvaluateProteinIDs(const ProteinIdentification& ids, double pepCutoff = 1.0, UInt fpCutoff = 50, double diffWeight = 0.2);
 
+    /// simpler reimplemetation of the apply function above.
     void applyBasic(std::vector<PeptideIdentification> & ids);
     void applyBasic(ProteinIdentification & id, bool groups_too = true);
+
+    /// calculates the auc until the first fp_cutoff False positive pep IDs (currently only takes all runs together)
+    /// if fp_cutoff = 0, it will calculate the full AUC
+    double rocN(const std::vector<PeptideIdentification>& ids, Size fp_cutoff) const;
 
 
 private:
@@ -194,17 +199,18 @@ private:
     {
       bool operator() (const HitType& hit)
       {
-          if (!hit.metaValueExists("target_decoy"))
-          {
-            throw Exception::MissingInformation(__FILE__,
-                                                __LINE__,
-                                                OPENMS_PRETTY_FUNCTION,
-                                                "Meta value 'target_decoy' does not exist in all ProteinHits! Reindex the idXML file with 'PeptideIndexer'");
-          }
-          else
-          {
-            return std::string(hit.getMetaValue("target_decoy"))[0] == 't';
-          }
+        //TODO if we checked in the beginning, this check could be skipped.
+        if (!hit.metaValueExists("target_decoy"))
+        {
+          throw Exception::MissingInformation(__FILE__,
+                                              __LINE__,
+                                              OPENMS_PRETTY_FUNCTION,
+                                              "Meta value 'target_decoy' does not exist in all ProteinHits! Reindex the idXML file with 'PeptideIndexer'");
+        }
+        else
+        {
+          return std::string(hit.getMetaValue("target_decoy"))[0] == 't';
+        }
       }
     };
 
@@ -233,7 +239,6 @@ private:
       return std::make_pair(hit.getScore(), fun(hit));
     }
 
-
     /// calculates the fdr given two vectors of scores and fills a map for lookup in scores_to_FDR
     void calculateFDRs_(Map<double, double>& score_to_fdr, std::vector<double>& target_scores, std::vector<double>& decoy_scores, bool q_value, bool higher_score_better) const;
 
@@ -248,17 +253,19 @@ private:
 
     //TODO the next two methods could potentially be merged for speed (they iterate over the same structure)
     //But since they have different cutoff types and it is more generic, I leave it like this.
-    /// calculates the area of the difference between estimated and  empirical FDR on the fly. Does not store results.
+    /// calculates the area of the difference between estimated and empirical FDR on the fly. Does not store results.
     double diffEstimatedEmpirical_(const std::vector<std::pair<double, bool>>& scores_labels, double pepCutoff = 1.0);
+
     /// calculates AUC of empirical FDR up to the first fpCutoff false positives on the fly. Does not store results.
-    double rocN_(std::vector<std::pair<double, bool>> const &scores_labels, UInt fpCutoff = 50);
+    /// use e.g. fpCutoff = scores_labels.size() for complete AUC
+    double rocN_(std::vector<std::pair<double, bool>> const &scores_labels, Size fpCutoff = 50) const;
 
     /// calculates the error area around the x=x line between two consecutive values of expected and actual
     /// i.e. it assumes exp2 > exp1
-    double trapezoidal_area_xEqy(double exp1, double exp2, double act1, double act2);
+    double trapezoidal_area_xEqy(double exp1, double exp2, double act1, double act2) const;
 
     /// calculates the trapezoidal area for a trapezoid with a flat horizontal base e.g. for an AUC
-    double trapezoidal_area(double x1, double x2, double y1, double y2);
+    double trapezoidal_area(double x1, double x2, double y1, double y2) const;
 
 
   };

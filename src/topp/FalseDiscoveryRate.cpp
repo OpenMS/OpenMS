@@ -75,7 +75,8 @@ using namespace std;
     This should be a serious concern, since it indicates a possible problem with the target/decoy annotation step (@ref TOPP_PeptideIndexer), e.g. due to a misconfigured database.
 
     @note FalseDiscoveryRate only annotates peptides and proteins with their FDR. By setting FDR:PSM or FDR:protein the maximum q-value (e.g., 0.05 corresponds to an FDR of 5%) can be controlled on the PSM and protein level.
-    Alternativly, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value.
+    Alternatively, FDR filtering can be performed in the @ref IDFilter tool by setting score:pep and score:prot to the maximum q-value. After potential filtering, associations are
+    automatically updated and unreferenced proteins/peptides removed.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -164,13 +165,29 @@ protected:
     {
       if (getStringOption_("protein") == "true")
       {
-        fdr.apply(prot_ids);
-        filter_applied = true;
 
-        if (protein_fdr < 1)
+        for (auto& run : prot_ids)
         {
-          LOG_INFO << "FDR control: Filtering proteins..." << endl;
-          IDFilter::filterHitsByScore(prot_ids, protein_fdr);
+          if (!run.hasInferenceData() && !getFlag_("force"))
+          {
+            throw OpenMS::Exception::MissingInformation(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "It seems like protein inference was not yet performed."
+              "Calculating Protein FDR is probably not meaningful. To override,"
+              "use the force flag.");
+          }
+          else
+          {
+            fdr.applyBasic(run, true);
+            if (protein_fdr < 1)
+            {
+              LOG_INFO << "FDR control: Filtering proteins..." << endl;
+              IDFilter::filterHitsByScore(prot_ids, protein_fdr);
+              filter_applied = true;
+            }
+          }
         }
       }
 
@@ -196,15 +213,18 @@ protected:
     {
       IDFilter::removeUnreferencedProteins(prot_ids, pep_ids);
 
+      //TODO Julianus: I am not sure if the following does what the param describes
+
       // keep decoy peptide hits without decoy protein references if flag is specified
-      if (alg_param.getValue("add_decoy_peptides").toBool() == true)
+      if (alg_param.getValue("add_decoy_peptides").toBool())
       {
         IDFilter::updateProteinReferences(pep_ids, prot_ids, false);
       }
       else
       {
         IDFilter::updateProteinReferences(pep_ids, prot_ids, true);
-      }    
+      }
+
       IDFilter::updateHitRanks(prot_ids);
       IDFilter::updateHitRanks(pep_ids);
       IDFilter::removeEmptyIdentifications(pep_ids);

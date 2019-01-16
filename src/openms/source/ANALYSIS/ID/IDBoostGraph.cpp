@@ -475,6 +475,53 @@ namespace OpenMS
     #endif
   }
 
+  /// Do sth on ccs single-threaded
+  void IDBoostGraph::applyFunctorOnCCsST(std::function<void(Graph&)> functor)
+  {
+    if (ccs_.empty()) {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
+    }
+
+    for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
+    {
+      #ifdef INFERENCE_BENCH
+      StopWatch sw;
+      sw.start();
+      #endif
+
+      Graph& curr_cc = ccs_.at(i);
+
+      #ifdef INFERENCE_MT_DEBUG
+      LOG_INFO << "Processing on thread# " << omp_get_thread_num() << std::endl;
+      #endif
+
+      #ifdef INFERENCE_DEBUG
+      LOG_INFO << "Processing cc " << i << " with " << boost::num_vertices(curr_cc) << " vertices." << std::endl;
+      LOG_INFO << "Printing cc " << i << std::endl;
+      printGraph(LOG_INFO, curr_cc);
+      LOG_INFO << "Printed cc " << i << std::endl;
+      #endif
+
+      functor(curr_cc);
+
+      #ifdef INFERENCE_BENCH
+      sw.stop();
+      sizes_and_times_[i] = {boost::num_vertices(curr_cc) , sw.getClockTime()};
+      #endif
+    }
+
+    #ifdef INFERENCE_BENCH
+    ofstream debugfile;
+    debugfile.open("idgraph_functortimes_" + DateTime::now().getTime() + ".tsv");
+
+    for( const auto& size_time : sizes_and_times_ )
+    {
+      debugfile << size_time.first << "\t" << size_time.second << "\n";
+    }
+    debugfile.close();
+    #endif
+  }
+
   void IDBoostGraph::annotateIndistProteins(bool addSingletons) const
   {
     if (ccs_.empty() && boost::num_vertices(g) == 0)
@@ -588,7 +635,8 @@ namespace OpenMS
       }
 
       // TODO you could allocate as many groups as proteins in the beginning
-      // then you do not need a critical section. Resize afterwards.
+      //  then you do not need a critical section. Resize afterwards.
+      //  Or make a local vector of Groups and merge in a single threaded section
       #pragma omp critical (ProteinGroups)
       {proteins_.getIndistinguishableProteins().push_back(pg);};
     }
@@ -783,7 +831,8 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
     }
 
-    #pragma omp parallel for
+    // add_vertex and add_edge not threadsafe
+    //#pragma omp parallel for
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       Graph& curr_cc = ccs_[i];
@@ -980,7 +1029,8 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
     }
 
-    #pragma omp parallel for
+    // add_vertex and add_edge not threadsafe
+    //#pragma omp parallel for
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       Graph& curr_cc = ccs_[i];

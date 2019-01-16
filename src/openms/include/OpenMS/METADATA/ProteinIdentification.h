@@ -378,6 +378,8 @@ public:
     void setPrimaryMSRunPath(const StringList& s);
     /// get the file path to the first MS run
     void getPrimaryMSRunPath(StringList& toFill) const;
+    /// if this object has inference data
+    bool hasInferenceData() const;
     //@}
 
 protected:

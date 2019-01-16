@@ -1802,11 +1802,7 @@ namespace OpenMS
       } 
 
       // TODO: use a different identifier to determine if it is inference data (check other places!)
-      bool has_inference_data = prot_ids[0].getSearchEngine() == "Fido" ||
-          prot_ids[0].getSearchEngine() == "BayesianProteinInference" || // for backwards compat
-          prot_ids[0].getSearchEngine() == "Epifany" ||
-          prot_ids[0].getSearchEngine() == "Percolator" ||
-          prot_ids[0].getSearchEngine() == "ProteinInference";
+      bool has_inference_data = prot_ids[0].hasInferenceData();
       if (has_inference_data)
       {
         LOG_DEBUG << "MzTab: Inference data provided." << std::endl;

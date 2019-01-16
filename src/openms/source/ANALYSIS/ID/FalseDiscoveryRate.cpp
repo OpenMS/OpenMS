@@ -710,6 +710,24 @@ namespace OpenMS
 
   }
 
+  //TODO does not support "by run" and/or "by charge"
+  double FalseDiscoveryRate::rocN(const vector<PeptideIdentification>& ids, Size fp_cutoff) const
+  {
+    bool higher_score_better(ids.begin()->isHigherScoreBetter());
+    bool use_all_hits = param_.getValue("use_all_hits").toBool();
+    std::vector<std::pair<double,bool>> scores_labels;
+    getScores_(scores_labels, ids, use_all_hits, 0, "");
+    if (higher_score_better)
+    { // decreasing
+      std::sort(scores_labels.rbegin(), scores_labels.rend());
+    }
+    else
+    { // increasing
+      std::sort(scores_labels.begin(), scores_labels.end());
+    }
+    return rocN_(scores_labels, fp_cutoff == 0 ? scores_labels.size() : fp_cutoff);
+  }
+
   //TODO iterate over a vector. to be consistent with old interface
   void FalseDiscoveryRate::applyBasic(ProteinIdentification & id, bool groups_too)
   {
@@ -756,7 +774,6 @@ namespace OpenMS
     std::vector<int> charges = {0};
     std::vector<String> identifiers = {""};
     // if charge states or separate runs: look ahead for possible values and add them to the vecs above
-
 
     for (const String& identifier : identifiers)
     {
@@ -886,7 +903,7 @@ namespace OpenMS
     return diffArea;
   }
 
-  double FalseDiscoveryRate::rocN_(const std::vector<std::pair<double, bool>>& scores_labels, UInt fpCutoff)
+  double FalseDiscoveryRate::rocN_(const std::vector<std::pair<double, bool>>& scores_labels, Size fpCutoff) const
   {
     double rocN = 0.0;
     UInt truePos = 0u, falsePos = 0u, truePosPrev = 0u, falsePosPrev = 0u;
@@ -916,7 +933,8 @@ namespace OpenMS
 
   /// x2 has to be bigger than x1,
   /// handles possible intersections
-  double FalseDiscoveryRate::trapezoidal_area_xEqy(double x1, double x2, double y1, double y2){
+  double FalseDiscoveryRate::trapezoidal_area_xEqy(double x1, double x2, double y1, double y2) const
+  {
     double height = x2 - x1;
     double b1 = y1 - x1;
     double b2 = y2 - x2;
@@ -933,7 +951,8 @@ namespace OpenMS
   }
 
   /// assumes a flat base
-  double FalseDiscoveryRate::trapezoidal_area(double x1, double x2, double y1, double y2){
+  double FalseDiscoveryRate::trapezoidal_area(double x1, double x2, double y1, double y2) const
+  {
     double base = fabs(x1 - x2);
     double avgHeight = (y1+y2)/2.0;
     return base * avgHeight;

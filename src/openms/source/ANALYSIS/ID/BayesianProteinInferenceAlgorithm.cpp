@@ -113,6 +113,7 @@ namespace OpenMS
       if (boost::num_vertices(fg) >= 2)
       {
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
+        bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
         double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
         if (pnorm <= 0)
         {
@@ -128,13 +129,11 @@ namespace OpenMS
         IDBoostGraph::Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
 
-        // Store the IDs of the nodes for which you want the posteriors in the end (usually at least proteins)
-        // Maybe later peptides (e.g. for an iterative procedure)
+        // Store the IDs of the nodes for which you want the posteriors in the end
         vector<vector<unsigned long>> posteriorVars;
 
         // direct neighbors are proteins on the "left" side and peptides on the "right" side
-        // TODO use directed graph? But finding "non-strong" connected components in a directed graph is not
-        // out of the box supported by boost
+        // TODO Can be sped up using directed graph. NEeds some restructuring in IDBoostGraph class first tho.
         std::vector<IDBoostGraph::vertex_t> in{};
         //std::vector<IDBoostGraph::vertex_t> out{};
 
@@ -183,7 +182,16 @@ namespace OpenMS
             //TODO allow an already present prior probability here
             //TODO modify createProteinFactor to start with a modified prior based on the number of missing
             // peptides (later tweak to include conditional prob. for that peptide
-            bigb.insert_dependency(mpf.createProteinFactor(*ui));
+            //TODO modify createProteinFactor to start with a modified prior based on the number of missing
+            // peptides (later tweak to include conditional prob. for that peptide
+            if (user_defined_priors)
+            {
+              bigb.insert_dependency(mpf.createProteinFactor(*ui, (double) boost::get<ProteinHit*>(fg[*ui])->getMetaValue("Prior")));
+            }
+            else
+            {
+              bigb.insert_dependency(mpf.createProteinFactor(*ui));
+            }
             posteriorVars.push_back({*ui});
           }
         }
@@ -262,8 +270,7 @@ namespace OpenMS
         vector<vector<unsigned long>> posteriorVars;
 
         // direct neighbors are proteins on the "left" side and peptides on the "right" side
-        // TODO use directed graph? But finding "non-strong" connected components in a directed graph is not
-        // out of the box supported by boost
+        // TODO can be sped up using directed graph. Requires some restructuring first.
         std::vector<IDBoostGraph::vertex_t> in{};
         //std::vector<IDBoostGraph::vertex_t> out{};
 
@@ -411,6 +418,10 @@ namespace OpenMS
                        "Update PSM probabilities with their posteriors under consideration of the protein probabilities.");
     defaults_.setValidStrings("update_PSM_probabilities", {"true","false"});
 
+    defaults_.setValue("user_defined_priors",
+                       "false",
+                       "(Experimental:) Uses the current protein scores as user-defined priors.");
+    defaults_.setValidStrings("user_defined_priors", {"true","false"});
 
     defaults_.addSection("model_parameters","Model parameters for the Bayesian network");
 
@@ -680,11 +691,31 @@ namespace OpenMS
     // init empty graph
     IDBoostGraph ibg(proteinIDs[0], peptideIDs);
 
+    FalseDiscoveryRate pepFDR;
+    Param p = pepFDR.getParameters();
+
+    // On second thought, I think it is best to always use the best PSM only
+    // inference might change the ranking.
+    // OLDTODO adapt, so it matches top_PSMs parameter (which is not bool).
+    // or just do a filter according to top_PSMs in the beginning and then
+    // use all here.
+    p.setValue("use_all_hits", "false");
+    pepFDR.setParameters(p);
+    LOG_INFO << "Peptide FDR AUC before protein inference: " << pepFDR.rocN(peptideIDs, 0) << std::endl;
+
+    bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
+    if (user_defined_priors)
+    {
+      // Save current protein score into a metaValue
+      for (auto& prot_hit : proteinIDs[0].getHits())
+      {
+        prot_hit.setMetaValue("Prior", prot_hit.getScore());
+      }
+    }
+
     bool oldway = true;
     if (oldway)
     {
-
-      //TODO make run info parameter
       ibg.buildGraph(param_.getValue("top_PSMs"));
       ibg.computeConnectedComponents();
       ibg.clusterIndistProteinsAndPeptides();
@@ -703,14 +734,10 @@ namespace OpenMS
       //I split up in CCs.
       // OR you could save the outputs! One value for every protein, per parameter set.
 
+      // Do not expand gamma_search when user_defined_priors is on. Would be unused.
       vector<double> gamma_search{0.5};
       vector<double> beta_search{0.001};
-      //manual
-      //vector<double> alpha_search{0.9};
-      //default
       vector<double> alpha_search{0.1, 0.3, 0.5, 0.7, 0.9};
-      //Percolator settings
-      //vector<double> alpha_search{0.008, 0.032, 0.128};
 
       GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
 
@@ -736,10 +763,13 @@ namespace OpenMS
       param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
       param_.setValue("update_PSM_probabilities", update_PSM_probabilities ? "true" : "false");
       ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
-      ibg.applyFunctorOnCCs(AnnotateIndistGroupsFunctor(proteinIDs[0]));
+
+
+      LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0) << std::endl;
+      ibg.applyFunctorOnCCsST(AnnotateIndistGroupsFunctor(proteinIDs[0]));
 
       //TODO if update_PSM_probabilities:
-      // set score_type and direction in PepIDs and set all unused (= not top) PSMs to 0!
+      // update search_engine in PepIDs and set all unused (= not top) PSMs to 0!
     }
     else
     {
