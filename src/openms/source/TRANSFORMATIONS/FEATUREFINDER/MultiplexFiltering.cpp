@@ -151,7 +151,7 @@ namespace OpenMS
   }
   
   bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
-  {
+  {    
     // check if peak position is blacklisted
     // i.e. -1 = white or 0 = mono-isotopic peak of the lightest (or only) peptide are ok.
     if (blacklist_[peak.getRTidx()][peak.getMZidx()] > 0)
@@ -192,28 +192,34 @@ namespace OpenMS
         size_t mz_shift_idx = peptide * isotopes_per_peptide_max_ + isotope;
         double mz_shift = pattern.getMZShiftAt(mz_shift_idx);
 
+        bool found = false;
         // loop over spectra in RT band
         for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
         {
           int i = it_rt->findNearest(it_mz->getMZ() + mz_shift, mz_tolerance);
-          
+         
           if (i != -1)
           {
             // Note that as primary peaks, satellite peaks are also restricted by the blacklist.
             // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
             size_t rt_idx = it_rt - it_rt_begin;
             size_t mz_idx = exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i);
-            // Check if the peak has been blacklisted (seen in previous pattern) or greylisted (seen in current pattern), and if it is already in the satellite set.
-            if (((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(mz_shift_idx))) && (peak.checkSatellite(rt_idx, mz_idx)))
+            
+            // Check that the peak has not been blacklisted and is not already in the satellite set.
+            if (((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(mz_shift_idx))) && (!(peak.checkSatellite(rt_idx, mz_idx))))
             {
+              found = true;
               peak.addSatellite(rt_idx, mz_idx, mz_shift_idx);
             }
-            else
-            {
-              found_in_all_peptides = false;
-            }
-          }          
+            
+          }
         }
+        
+        if (!found)
+        {
+          found_in_all_peptides = false;
+        }
+        
       }
       
       if (found_in_all_peptides && (!interrupted))
@@ -230,55 +236,6 @@ namespace OpenMS
       }
     }
         
-    // loop over peptides
-    /*for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
-    {
-      size_t length = 0;
-      bool interrupted = false;
-      
-      // loop over isotopes i.e. mass traces within the peptide
-      for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
-      {
-        // calculate m/z shift index in pattern
-        size_t idx_mz_shift = peptide * isotopes_per_peptide_max_ + isotope;
-        
-        double mz_shift = pattern.getMZShiftAt(idx_mz_shift);
-        bool found = false;
-        
-        // loop over spectra in RT band
-        for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
-        {
-          int i = it_rt->findNearest(it_mz->getMZ() + mz_shift, mz_tolerance);
-          
-          if (i != -1)
-          {
-            // Note that as primary peaks, satellite peaks are also restricted by the blacklist.
-            // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
-            size_t rt_idx = it_rt - it_rt_begin;
-            size_t mz_idx = exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i);
-            if ((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(idx_mz_shift)))
-            {
-              peak.addSatellite(it_rt - it_rt_begin, exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
-              found = true;
-            }
-          }
-        }
-                
-        if (found && (!interrupted))
-        {
-          ++length;
-        }
-        else
-        {
-          interrupted = true;
-          if (length < isotopes_per_peptide_min_)
-          {
-            return false;
-          }
-        }
-      }
-    }*/
-    
     // Check that there is no significant peak (aka zeroth peak) to the left of the mono-isotopic peak (aka first peak).
     // Further check that there is no mistaken charge state identity. For example, check that a 2+ pattern isn't really a 4+ or 6+ pattern.
     // Let's use the double m/z tolerance when checking for these peaks.
@@ -305,7 +262,7 @@ namespace OpenMS
         int mz_idx = checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak);
         if (mz_idx != -1)
         {
-          // So, there is a significant peak to the left. This is only a problem, if this peak is not part of the pattern which we currently detect.
+          // So there is a significant peak to the left. This is only a problem, if this peak is not part of the pattern which we currently detect.
           if (!(peak.checkSatellite(peak.getRTidx(), mz_idx)))
           {
             return false;
