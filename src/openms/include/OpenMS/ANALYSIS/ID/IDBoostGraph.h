@@ -83,8 +83,7 @@ namespace OpenMS
 
     BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
 
-    // TODO make a double out of it and store the posterior
-    BOOST_STRONG_TYPEDEF(boost::blank, ProteinGroup)
+    BOOST_STRONG_TYPEDEF(double, ProteinGroup)
 
     BOOST_STRONG_TYPEDEF(String, Peptide)
 

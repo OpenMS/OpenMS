@@ -71,6 +71,12 @@ protected:
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately,"
                                    " don't merge them. Merging results in loss of descriptive information"
                                    " of the single protein identification runs.", false);
+    registerStringOption_("protein_fdr",
+                          "<option>",
+                          "false",
+                          "Additionally calculate the target-decoy FDR on protein-level based on the posteriors", false, false);
+    setValidStrings_("protein_fdr", {"true","false"});
+
     registerStringOption_("greedy_group_resolution",
                        "<option>",
                        "none",

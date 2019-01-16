@@ -70,7 +70,7 @@ namespace OpenMS
           if (fg[*ui].which() == 1) //prot group
           {
             ProteinIdentification::ProteinGroup pg{};
-            pg.probability = -1.0; //init
+            pg.probability = (double) boost::get<IDBoostGraph::ProteinGroup>(fg[*ui]); //init
             IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
             boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
 
@@ -83,13 +83,9 @@ namespace OpenMS
                 pg.accessions.push_back(proteinPtr->getAccession());
               }
             }
-            // TODO this takes score of last protein of group as representative
-            // currently the scores should all be the same, so this is okay.
-            pg.probability = proteinPtr->getScore();
             prots.getIndistinguishableProteins().push_back(pg);
           }
         }
-
       }
     }
   };
@@ -113,6 +109,7 @@ namespace OpenMS
       if (boost::num_vertices(fg) >= 2)
       {
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
+        bool annotate_group_posterior = param_.getValue("annotate_group_probabilities").toBool();
         bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
         double pnorm = param_.getValue("loopy_belief_propagation:p_norm_inference");
         if (pnorm <= 0)
@@ -176,6 +173,10 @@ namespace OpenMS
           else if (fg[*ui].which() == 1) // prot group
           {
             bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
+            if (annotate_group_posterior)
+            {
+              posteriorVars.push_back({*ui});
+            }
           }
           else if (fg[*ui].which() == 0) // prot
           {
@@ -210,13 +211,13 @@ namespace OpenMS
 
         for (auto const& posteriorFactor : posteriorFactors)
         {
-          double posterior = 0.0;
+          double posterior = 1.0;
           IDBoostGraph::SetPosteriorVisitor pv;
           unsigned long nodeId = posteriorFactor.ordered_variables()[0];
           const PMF& pmf = posteriorFactor.pmf();
-          // If Index 1 is in the range of this result PMFFactor it is non-zero
-          if (1 >= pmf.first_support()[0] && 1 <= pmf.last_support()[0]) {
-            posterior = pmf.table()[1 - pmf.first_support()[0]];
+          // If Index 0 is in the range of this result PMFFactor it is non-zero
+          if (0 >= pmf.first_support()[0] && 0 <= pmf.last_support()[0]) {
+            posterior = 1. - pmf.table()[0ul];
           }
           auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
           boost::apply_visitor(bound_visitor, fg[nodeId]);
@@ -422,6 +423,12 @@ namespace OpenMS
                        "false",
                        "(Experimental:) Uses the current protein scores as user-defined priors.");
     defaults_.setValidStrings("user_defined_priors", {"true","false"});
+
+    defaults_.setValue("annotate_group_probabilities",
+                       "true",
+                       "Annotates group probabilities for indistinguishable protein groups (indistinguishable by "
+                       "experimentally observed PSMs).");
+    defaults_.setValidStrings("annotate_group_probabilities", {"true","false"});
 
     defaults_.addSection("model_parameters","Model parameters for the Bayesian network");
 
@@ -743,11 +750,14 @@ namespace OpenMS
 
       std::array<size_t, 3> bestParams{{0, 0, 0}};
 
-      //Save initial setting and do not update during grid search to save time and to not
+      //Save initial settings and deactivate certain features to save time during grid search and to not
       // interfere with later runs.
       // TODO We could think about optimizing PSM FDR as another goal though.
       bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
       param_.setValue("update_PSM_probabilities","false");
+
+      bool annotate_group_posteriors = param_.getValue("annotate_group_probabilities").toBool();
+      param_.setValue("annotate_group_probabilities","false");
 
       //TODO run grid search on reduced graph?
       //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
@@ -761,7 +771,9 @@ namespace OpenMS
       param_.setValue("model_parameters:prot_prior", bestGamma);
       param_.setValue("model_parameters:pep_emission", bestAlpha);
       param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
+      // Reset original values for those two options
       param_.setValue("update_PSM_probabilities", update_PSM_probabilities ? "true" : "false");
+      param_.setValue("annotate_group_probabilities", annotate_group_posteriors ? "true" : "false");
       ibg.applyFunctorOnCCs(GraphInferenceFunctor(const_cast<const Param&>(param_)));
 
 
