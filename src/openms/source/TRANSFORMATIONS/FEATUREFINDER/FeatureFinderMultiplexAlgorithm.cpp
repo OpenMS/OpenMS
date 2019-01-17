@@ -308,11 +308,14 @@ namespace OpenMS
       intensity_peptide[1] = intensity1;
     }
     // correction for triplets or higher multiplets
-    else if ((pattern.getMassShiftCount() > 2) && (ratios[1] > 0))
+    else if ((pattern.getMassShiftCount() > 2))
     {
       for (size_t peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
       {
-        intensity_peptide[peptide] = ratios[peptide] * intensity_peptide[0];
+        if (ratios[peptide] > 0)
+        {
+          intensity_peptide[peptide] = ratios[peptide] * intensity_peptide[0];
+        }
       }
     }
 
