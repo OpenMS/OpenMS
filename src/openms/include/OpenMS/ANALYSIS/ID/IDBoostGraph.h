@@ -272,13 +272,16 @@ namespace OpenMS
         prot->setScore(posterior);
       }
 
+      void operator()(ProteinGroup& pg, double posterior) const
+      {
+        pg = posterior;
+      }
+
       // Everything else, do nothing for now
       template <class T>
-      void operator()(T& /*protgrp*/, double /*posterior*/) const
+      void operator()(T& /*any node type*/, double /*posterior*/) const
       {
         // do nothing
-        // TODO we could store posterior here
-        // protgrp->probability = posterior;
       }
 
     };

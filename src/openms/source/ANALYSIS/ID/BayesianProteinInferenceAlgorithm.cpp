@@ -216,6 +216,7 @@ namespace OpenMS
           unsigned long nodeId = posteriorFactor.ordered_variables()[0];
           const PMF& pmf = posteriorFactor.pmf();
           // If Index 0 is in the range of this result PMFFactor it is non-zero
+          //TODO BUG!! Check again and debug!
           if (0 >= pmf.first_support()[0] && 0 <= pmf.last_support()[0]) {
             posterior = 1. - pmf.table()[0ul];
           }
@@ -416,7 +417,7 @@ namespace OpenMS
 
     defaults_.setValue("update_PSM_probabilities",
                        "true",
-                       "Update PSM probabilities with their posteriors under consideration of the protein probabilities.");
+                       "(Experimental:) Update PSM probabilities with their posteriors under consideration of the protein probabilities.");
     defaults_.setValidStrings("update_PSM_probabilities", {"true","false"});
 
     defaults_.setValue("user_defined_priors",
@@ -433,19 +434,19 @@ namespace OpenMS
     defaults_.addSection("model_parameters","Model parameters for the Bayesian network");
 
     defaults_.setValue("model_parameters:prot_prior",
-                       0.9,
+                       -1.,
                        "Protein prior probability ('gamma' parameter).");
     defaults_.setMinFloat("model_parameters:prot_prior", 0.0);
     defaults_.setMaxFloat("model_parameters:prot_prior", 1.0);
 
     defaults_.setValue("model_parameters:pep_emission",
-                       0.1,
+                       -1.,
                        "Peptide emission probability ('alpha' parameter)");
     defaults_.setMinFloat("model_parameters:pep_emission", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_emission", 1.0);
 
     defaults_.setValue("model_parameters:pep_spurious_emission",
-                       0.001,
+                       -1.,
                        "Spurious peptide identification probability ('beta' parameter). Usually much smaller than emission from proteins");
     defaults_.setMinFloat("model_parameters:pep_spurious_emission", 0.0);
     defaults_.setMaxFloat("model_parameters:pep_spurious_emission", 1.0);
@@ -742,9 +743,36 @@ namespace OpenMS
       // OR you could save the outputs! One value for every protein, per parameter set.
 
       // Do not expand gamma_search when user_defined_priors is on. Would be unused.
-      vector<double> gamma_search{0.5};
-      vector<double> beta_search{0.001};
-      vector<double> alpha_search{0.1, 0.3, 0.5, 0.7, 0.9};
+      double alpha = param_.getValue("model_parameters:pep_emission");
+      double beta = param_.getValue("model_parameters:pep_spurious_emission");
+      double gamma = param_.getValue("model_parameters:prot_prior");
+      vector<double> gamma_search;
+      vector<double> beta_search;
+      vector<double> alpha_search;
+      if (gamma > 1.0 || gamma < 0.0)
+      {
+        gamma_search = {0.5};
+      }
+      else
+      {
+        gamma_search = {gamma};
+      }
+      if (beta > 1.0 || beta < 0.0)
+      {
+        beta_search = {0.001};
+      }
+      else
+      {
+        beta_search = {beta};
+      }
+      if (alpha > 1.0 || alpha < 0.0)
+      {
+        alpha_search = {0.1, 0.3, 0.5, 0.7, 0.9};
+      }
+      else
+      {
+        alpha_search = {alpha};
+      }
 
       GridSearch<double,double,double> gs{alpha_search, beta_search, gamma_search};
 
@@ -759,15 +787,24 @@ namespace OpenMS
       bool annotate_group_posteriors = param_.getValue("annotate_group_probabilities").toBool();
       param_.setValue("annotate_group_probabilities","false");
 
-      //TODO run grid search on reduced graph?
+      //TODO run grid search on reduced graph? Then make sure, untouched protein/peps do not affect results.
       //TODO if not, think about storing results temporary (file? mem?) and only keep the best in the end
-      gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
+      //TODO think about running grid search on the small CCs only (maybe it's enough)
+      if (gs.getNrCombos() > 1)
+      {
+        std::cout << "Testing " << gs.getNrCombos() << " param combinations." << std::endl;
+        gs.evaluate(GridSearchEvaluator(param_, ibg, proteinIDs[0]), -1.0, bestParams);
+      }
+      else
+      {
+        std::cout << "Only one combination specified: Skipping grid search." << std::endl;
+      }
 
-      std::cout << "Best params found at a=" << bestParams[0] << ", b=" << bestParams[1] << ", g=" << bestParams[2] << std::endl;
       double bestGamma = gamma_search[bestParams[2]];
       double bestBeta = beta_search[bestParams[1]];
       double bestAlpha = alpha_search[bestParams[0]];
-      std::cout << "Running with best parameters again." << std::endl;
+      std::cout << "Best params found at a=" << bestAlpha << ", b=" << bestBeta << ", g=" << bestGamma << std::endl;
+      std::cout << "Running with best parameters:" << std::endl;
       param_.setValue("model_parameters:prot_prior", bestGamma);
       param_.setValue("model_parameters:pep_emission", bestAlpha);
       param_.setValue("model_parameters:pep_spurious_emission", bestBeta);
@@ -780,8 +817,13 @@ namespace OpenMS
       LOG_INFO << "Peptide FDR AUC after protein inference: " << pepFDR.rocN(peptideIDs, 0) << std::endl;
       ibg.applyFunctorOnCCsST(AnnotateIndistGroupsFunctor(proteinIDs[0]));
 
-      //TODO if update_PSM_probabilities:
-      // update search_engine in PepIDs and set all unused (= not top) PSMs to 0!
+      // rename score_type in PepIDs? I think not. Posterior Probability is still fine. You can
+      // get the type from search_engine = Epifany + setting = on.
+      //if (update_PSM_probabilities)
+      //{}
+      //TODO set all unused (= not top) PSMs to 0 or remove! Currently not so bad because FDR also can take just the best.
+
+
     }
     else
     {

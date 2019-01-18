@@ -190,7 +190,7 @@ protected:
         score_type.chop(6);
       }
       score_type.toLower().remove(' ').remove('_').remove('-');
-      if (score_type == "posteriorerrorprobability")
+      if (score_type == "posteriorerrorprobability" || score_type == "pep")
       {
         if (!warned_once)
         {

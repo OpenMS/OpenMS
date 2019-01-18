@@ -54,7 +54,7 @@ public TOPPBase
 {
 public:
   TOPPBayesianProteinInference() :
-  TOPPBase("BayesianProteinInference", "Runs a Bayesian protein inference.",false)
+  TOPPBase("BayesianProteinInference", "Runs a Bayesian protein inference.", false)
   {
   }
 
@@ -213,11 +213,18 @@ protected:
       IDFilter::updateProteinGroups(mergedprots[0].getProteinGroups(), mergedprots[0].getHits());
     }
 
-    LOG_INFO << "Writing inference run as first ProteinIDRun with " <<
-    mergedprots[0].getHits().size() << " proteins in " <<
-    mergedprots[0].getIndistinguishableProteins().size() <<
-    " indist. groups." << std::endl;
+    bool calc_protFDR = getStringOption_("protein_fdr") == "true";
+    if (calc_protFDR)
+    {
+      LOG_INFO << "Calculating target-decoy q-values..." << std::endl;
+      FalseDiscoveryRate fdr;
+      fdr.applyBasic(mergedprots[0], true);
+    }
 
+    LOG_INFO << "Writing inference run as first ProteinIDRun with " <<
+             mergedprots[0].getHits().size() << " proteins in " <<
+             mergedprots[0].getIndistinguishableProteins().size() <<
+             " indist. groups." << std::endl;
     idXMLf.store(getStringOption_("out"),mergedprots,mergedpeps);
     return ExitCodes::EXECUTION_OK;
 
@@ -275,6 +282,7 @@ protected:
 
     BayesianProteinInferenceAlgorithm bpi;
     bpi.inferPosteriorProbabilities(prots, peps);
+
     idXML.store(getStringOption_("out"),prots, peps);
 
     return ExitCodes::EXECUTION_OK;

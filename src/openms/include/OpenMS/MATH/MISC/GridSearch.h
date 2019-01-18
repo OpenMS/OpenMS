@@ -130,8 +130,39 @@ public:
         (grid_, evaluator, startValue, resultIndices);
   }
 
+
+  unsigned int getNrCombos()
+  {
+    if (combos_ready_)
+    {
+      return combos_;
+    }
+    else
+    {
+      return nrCombos();
+    }
+  }
+
 private:
   std::tuple<std::vector<TupleTypes>...> grid_;
+  unsigned int combos_ = 1;
+  bool combos_ready_ = false;
+
+  template<std::size_t I = 0>
+  typename std::enable_if<I == sizeof...(TupleTypes), unsigned int>::type
+  nrCombos()
+  {
+    combos_ready_ = true;
+    return combos_;
+  }
+
+  template<std::size_t I = 0>
+  typename std::enable_if<I < sizeof...(TupleTypes), unsigned int>::type
+  nrCombos()
+  {
+    combos_ *= std::get<I>(grid_).size();
+    return nrCombos<I + 1>();
+  }
 };
 
 

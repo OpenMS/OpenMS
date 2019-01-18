@@ -48,8 +48,10 @@ private:
     double alpha, beta, gamma, p;
     Label offset;
 
-    inline double notConditionalGivenSum(double summ) {
-        return std::pow((1.0 - alpha), summ) * (1.0 - beta);
+    inline double notConditionalGivenSum(unsigned long summ) {
+        // use log for better precision
+        return pow(2., log2(1. - beta) + summ * log2(1. - alpha));
+        //return std::pow((1.0 - alpha), summ) * (1.0 - beta);
     }
 
 public:
@@ -78,10 +80,10 @@ public:
                                      const std::vector<double> & pepEvidences,
                                      InferenceGraphBuilder<Label> & igb);
 
-    void fillVectorsOfMessagePassersBruteForce(const std::vector<Label> & protIDs,
-                                     const std::vector<std::vector<Label>> & parentsOfPeps,
-                                     const std::vector<double> & pepEvidences,
-                                     InferenceGraphBuilder<Label> & igb);
+    //void fillVectorsOfMessagePassersBruteForce(const std::vector<Label> & protIDs,
+    //                                 const std::vector<std::vector<Label>> & parentsOfPeps,
+    //                                 const std::vector<double> & pepEvidences,
+    //                                 InferenceGraphBuilder<Label> & igb);
 
     //const std::vector<std::set<Label>> getPosteriorVariables(const std::vector<uiint> & protIDs);
     //const std::vector<std::vector<Label>> getPosteriorVariablesVectors(const std::vector<uiint> & protIDs);
@@ -210,6 +212,7 @@ void MessagePasserFactory<L>::fillVectorsOfMessagePassers(const std::vector<L> &
   }
 }
 
+/* unused but working
 template <typename L>
 void MessagePasserFactory<L>::fillVectorsOfMessagePassersBruteForce(const std::vector<L> & protIDs,
                                                                     const std::vector<std::vector<L>> & parentsOfPeps,
@@ -240,8 +243,9 @@ void MessagePasserFactory<L>::fillVectorsOfMessagePassersBruteForce(const std::v
     igb.insert_dependency(createBFPeptideProbabilisticAdderFactor(parentsOfPeps[j],j,deps));
   }
 }
+ */
 
-/*
+/* Not needed anymore. We use indices directly now.
 template <typename L>
 const std::vector<std::set<L>> MessagePasserFactory<L>::getPosteriorVariables(const std::vector<L> & protIDs){
     std::vector<std::set<L>> varSets{};

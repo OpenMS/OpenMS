@@ -737,6 +737,7 @@ namespace OpenMS
     bool higher_score_better(id.isHigherScoreBetter());
 
     std::vector<std::pair<double,bool>> scores_labels;
+    scores_labels.reserve(id.getHits().size());
     std::map<double,double> scores_to_FDR;
 
     getScores_(scores_labels, id);
@@ -746,8 +747,24 @@ namespace OpenMS
     }
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
     setScores_(scores_to_FDR, id, score_type, false);
+    // TODO this could be a separate function.. And it could actually be sped up.
+    //  We could store the number of decoys/targets in the group, or we only update the
+    //  scores of proteins that are actually in groups (rest stays the same)
     if (groups_too)
     {
+      scores_to_FDR.clear();
+      scores_labels.clear();
+      scores_labels.reserve(id.getHits().size());
+      unordered_set<string> decoy_accs;
+      for (const auto& prot : id.getHits())
+      {
+        if (!prot.metaValueExists("target_decoy") || prot.getMetaValue("target_decoy") == "decoy")
+        {
+          decoy_accs.insert(prot.getAccession());
+        }
+      }
+      getScores_(scores_labels, id.getIndistinguishableProteins(), decoy_accs);
+      calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
       setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
     }
     scores_to_FDR.clear();
@@ -829,7 +846,6 @@ namespace OpenMS
     if (ids.size() > 1)
     {
       LOG_WARN << "More than one set of ProteinIdentifications found. Only using the first one for calculation.\n";
-
     }
 
     if (ids[0].getScoreType() != "Posterior Probability")
@@ -1129,6 +1145,21 @@ namespace OpenMS
       }
     }
 
+  }
+
+  void FalseDiscoveryRate::getScores_(
+      std::vector<std::pair<double,bool>>& scores_labels,
+      const std::vector<ProteinIdentification::ProteinGroup>& grps,
+      const std::unordered_set<string>& decoy_accs) const
+  {
+    for (const auto& grp : grps)
+    {
+      double score = grp.probability;
+      for (const auto& acc : grp.accessions)
+      {
+        scores_labels.emplace_back(score, decoy_accs.find(acc) == decoy_accs.end());
+      }
+    }
   }
 
 

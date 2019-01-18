@@ -39,6 +39,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
 #include <vector>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -138,6 +139,11 @@ private:
     void getScores_(
       std::vector<std::pair<double,bool>>& scores_labels, 
       const ProteinIdentification & id) const;
+
+    void getScores_(
+        std::vector<std::pair<double,bool>>& scores_labels,
+        const std::vector<ProteinIdentification::ProteinGroup> & grps,
+        const std::unordered_set<std::string> & decoy_accs) const;
 
     void getScores_(
       std::vector<std::pair<double,bool>>& scores_labels, 
