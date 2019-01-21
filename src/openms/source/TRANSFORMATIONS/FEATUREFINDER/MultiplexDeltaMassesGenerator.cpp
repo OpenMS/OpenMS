@@ -124,60 +124,6 @@ namespace OpenMS
       samples_labels_.push_back(temp_labels);
     }
 
-
-
-
-
-
-
-    /// DEBUG (START)
-    /*bool labelling_numeric = true;
-    for (size_t i = 0; i < samples_labels_.size(); i++)
-    {
-      for (size_t j = 0; j < samples_labels_[i].size(); j++)
-      {
-        double mass_shift;
-        try
-        {
-            mass_shift = std::stod(samples_labels_[i][j]);
-            
-            // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
-            // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
-            label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));
-            label_short_long_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
-            label_long_short_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
-            
-        }
-        catch(...)
-        {
-            labelling_numeric = false;
-        }
-      }
-    }
-    
-    // Now that we know it is purely numeric, let us fill delta_masses_list_.
-    for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
-    {
-      MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
-      for (unsigned i = 0; i < samples_labels_.size(); i++)
-      {
-        double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[i][0]] - label_delta_mass_[samples_labels_[0][0]]);
-        MultiplexDeltaMasses::LabelSet label_set;
-        for (unsigned k = 1; k < (mc + 2); ++k)
-        {
-          label_set.insert(samples_labels_[i][0]);
-        }
-        
-        delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
-      }
-      delta_masses_list_.push_back(delta_masses_temp);
-    }*/
-    /// DEBUG (END)
-
-
-
-
-
     // What kind of labelling do we have?
     // SILAC, Leu, Dimethyl, ICPL, numeric labelling or no labelling ??
 
@@ -195,7 +141,7 @@ namespace OpenMS
         try
         {
           mass_shift = std::stod(samples_labels_[i][j]);
-            
+          
           // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
           // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
           label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));

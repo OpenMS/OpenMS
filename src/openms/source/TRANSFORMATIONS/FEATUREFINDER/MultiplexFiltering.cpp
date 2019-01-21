@@ -477,9 +477,7 @@ namespace OpenMS
         // We are detecting peptide doublets or triplets or ...
         similarity = averagine_similarity_;
       }
-      
-      std::cout << "scaled averagine similarity = " << similarity << "\n";
-      
+            
       // Calculate Pearson and Spearman rank correlations
       if ((intensities_model.size() < isotopes_per_peptide_min_) || (intensities_data.size() < isotopes_per_peptide_min_))
       {
