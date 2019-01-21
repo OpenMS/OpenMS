@@ -536,48 +536,48 @@ namespace OpenMS
     // sort mass patterns
     // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
     std::sort(delta_masses_list_.begin(), delta_masses_list_.end());
-
+    
   }
   
   void MultiplexDeltaMassesGenerator::printSamplesLabelsList() const
   {
-    LOG_INFO << "\n";
+    std::cout << "\n";
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
     {
-      LOG_INFO << "sample " << (i + 1) << ":    ";
+      std::cout << "sample " << (i + 1) << ":    ";
       for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
       {
-        LOG_INFO << samples_labels_[i][j] << "    ";
+        std::cout << samples_labels_[i][j] << "    ";
       }
-      LOG_INFO << "\n";
+      std::cout << "\n";
     }
   }
   
   void MultiplexDeltaMassesGenerator::printDeltaMassesList() const
   {
-    LOG_INFO << "\n";
+    std::cout << "\n";
     for (unsigned i = 0; i < delta_masses_list_.size(); ++i)
     {
-      LOG_INFO << "mass shift " << (i + 1) << ":    ";
+      std::cout << "mass shift " << (i + 1) << ":    ";
       for (unsigned j = 0; j < delta_masses_list_[i].getDeltaMasses().size(); ++j)
       {
         double mass_shift = delta_masses_list_[i].getDeltaMasses()[j].delta_mass;
         MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
         
-        LOG_INFO << mass_shift << " (";
+        std::cout << mass_shift << " (";
         for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
         {
           if (it != label_set.begin())
           {
-            LOG_INFO << ",";
+            std::cout << ",";
           }
-          LOG_INFO << *it;
+          std::cout << *it;
         }
-        LOG_INFO << ")    ";
+        std::cout << ")    ";
       }
-      LOG_INFO << "\n";
+      std::cout << "\n";
     }
-    LOG_INFO << "\n";
+    std::cout << "\n";
   }
   
   std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getDeltaMassesList()
