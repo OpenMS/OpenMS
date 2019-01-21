@@ -72,8 +72,8 @@ public:
 
     // Compute starting tuple and starting index + current index tuple
     // in reference tensor:
-    unsigned long*__restrict start_tuple = index_to_tuple(_flat_start, data_shape(), dimension());
-    unsigned long*__restrict current_tuple = index_to_tuple(_flat_start+index, data_shape(), dimension());
+    unsigned long* __restrict start_tuple = index_to_tuple(_flat_start, data_shape(), dimension());
+    unsigned long* __restrict current_tuple = index_to_tuple(_flat_start+index, data_shape(), dimension());
 
     // Subtract starting tuple to get tuple corresponding to view:
     for (unsigned char k=0; k<dimension(); ++k)

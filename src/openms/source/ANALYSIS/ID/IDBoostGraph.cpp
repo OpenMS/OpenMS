@@ -62,7 +62,7 @@ namespace OpenMS
   struct MyUIntSetHasher
   {
   public:
-    size_t operator()(const set<unsigned long>& s) const
+    size_t operator()(const set<IDBoostGraph::vertex_t>& s) const
         {
           return boost::hash_range(s.begin(), s.end());
         }

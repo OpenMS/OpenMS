@@ -7,7 +7,7 @@
 template<typename T, unsigned char LOG_N, unsigned char LOG_SUB_N>
 class LocalPairwiseShuffleHelper {
 public:
-  inline static void apply(T*__restrict const v) {
+  inline static void apply(T* __restrict const v) {
     constexpr unsigned long SUB_N = 1ul << LOG_SUB_N;
     constexpr unsigned long RECURSION_DEPTH = LOG_N-LOG_SUB_N;
 
@@ -33,7 +33,7 @@ public:
 template<typename T, unsigned char LOG_N>
 class LocalPairwiseShuffleHelper<T, LOG_N, 0> {
 public:
-  inline static void apply(T*__restrict const v) {
+  inline static void apply(T* __restrict const v) {
     // Do nothing.
   }
 };
@@ -41,7 +41,7 @@ public:
 template<typename T, unsigned char LOG_N>
 class LocalPairwiseShuffle {
 public:
-  inline static void apply(T*__restrict const v) {
+  inline static void apply(T* __restrict const v) {
     LocalPairwiseShuffleHelper<T, LOG_N, LOG_N>::apply(v);
   }
 };

@@ -4,7 +4,7 @@
 // #include this file to import all FFT utilities from this
 // subdirectory.
 
-const unsigned char FFT1D_MAX_LOG_N = 32u;
+const unsigned char FFT1D_MAX_LOG_N = 31u;
 
 #include "../BitReversedShuffle/RecursiveShuffle.hpp"
 
@@ -33,7 +33,7 @@ public:
   template<unsigned char LOG_N>
   class SingleFFT1D {
   public:
-    inline static void apply(cpx*__restrict data) {
+    inline static void apply(cpx* __restrict data) {
       FFT1D<LOG_N, SHUFFLE>::fft1d(data);
     }
   };
@@ -41,7 +41,7 @@ public:
   template<unsigned char LOG_N>
   class SingleIFFT1D {
   public:
-    inline static void apply(cpx*__restrict data) {
+    inline static void apply(cpx* __restrict data) {
       for (unsigned long k=0; k<(1ul<<LOG_N); ++k)
 	data[k] = data[k].conj();
       FFT1D<LOG_N, SHUFFLE>::fft1d(data);
@@ -56,7 +56,7 @@ public:
   template<unsigned char LOG_N>
   class RowFFTs {
   public:
-    inline static void apply(cpx*__restrict data, const unsigned long flat, const bool freshly_zero_padded) {
+    inline static void apply(cpx* __restrict data, const unsigned long flat, const bool freshly_zero_padded) {
       // Row FFTs:
       unsigned long k;
       for (k=0; k<(flat>>1); k+=(1ul<<LOG_N))
@@ -76,7 +76,7 @@ public:
   template<unsigned char LOG_N>
   class RowIFFTs {
   public:
-    inline static void apply(cpx*__restrict data, const unsigned long flat) {
+    inline static void apply(cpx* __restrict data, const unsigned long flat) {
       for (unsigned long k=0; k<flat; ++k)
 	data[k] = data[k].conj();
 
@@ -93,7 +93,7 @@ public:
   // Note: it may be possible to exploit freshly_zero_padded for a
   // speedup in this transposition code as well:
   template<unsigned char LOG_NEXT_FROM_RIGHT>
-  static void transpose_so_next_dimension_becomes_row(cpx*__restrict & data, cpx*__restrict & buffer, const unsigned long flat, const unsigned long prod_shape_from_right) {
+  static void transpose_so_next_dimension_becomes_row(cpx* __restrict & data, cpx* __restrict & buffer, const unsigned long flat, const unsigned long prod_shape_from_right) {
     if ((1ul<<LOG_NEXT_FROM_RIGHT) > 1 && prod_shape_from_right > 1) {
       for (unsigned long k=0; k<flat; k+=(1ul<<LOG_NEXT_FROM_RIGHT)*prod_shape_from_right)
 	MatrixTranspose<cpx>::apply_buffered(buffer + k, data + k, 1ul<<LOG_NEXT_FROM_RIGHT, prod_shape_from_right);
@@ -102,7 +102,7 @@ public:
   }
 
   template<unsigned char LOG_NEXT_FROM_RIGHT>
-  static void undo_transpositions(cpx*__restrict & data, cpx*__restrict & buffer, const unsigned long flat, const unsigned long prod_shape_from_right) {
+  static void undo_transpositions(cpx* __restrict & data, cpx* __restrict & buffer, const unsigned long flat, const unsigned long prod_shape_from_right) {
     if ((1ul<<LOG_NEXT_FROM_RIGHT) > 1 && prod_shape_from_right > 1) {
       for (unsigned long k=0; k<flat; k+=(1ul<<LOG_NEXT_FROM_RIGHT)*prod_shape_from_right)
 	MatrixTranspose<cpx>::apply_buffered(buffer + k, data + k, prod_shape_from_right, 1ul<<LOG_NEXT_FROM_RIGHT);
@@ -113,7 +113,7 @@ public:
   template<unsigned char LOG_NEXT_FROM_RIGHT>
   class RowFFTsAndTransposes {
   public:
-    inline static void apply(cpx*__restrict & data, cpx*__restrict & buffer, const unsigned long flat, const unsigned long prod_shape_from_right) {
+    inline static void apply(cpx* __restrict & data, cpx* __restrict & buffer, const unsigned long flat, const unsigned long prod_shape_from_right) {
 
       // Transpose:
       transpose_so_next_dimension_becomes_row<LOG_NEXT_FROM_RIGHT>(data, buffer, flat, prod_shape_from_right);
@@ -130,7 +130,7 @@ public:
   template<unsigned char LOG_N>
   class SingleRealFFT1D {
   public:
-    inline static void apply(cpx*__restrict data) {
+    inline static void apply(cpx* __restrict data) {
       FFT1D<LOG_N, SHUFFLE>::real_fft1d_packed(data);
     }
   };
@@ -138,7 +138,7 @@ public:
   template<unsigned char LOG_N>
   class SingleRealIFFT1D {
   public:
-    inline static void apply(cpx*__restrict data) {
+    inline static void apply(cpx* __restrict data) {
       FFT1D<LOG_N, SHUFFLE>::real_ifft1d_packed(data);
     }
   };
@@ -146,7 +146,7 @@ public:
   template<unsigned char LOG_N>
   class RealRowFFTs {
   public:
-    inline static void apply(cpx*__restrict data, const unsigned long flat, const bool freshly_zero_padded) {
+    inline static void apply(cpx* __restrict data, const unsigned long flat, const bool freshly_zero_padded) {
       // This will only be performed on final axis, so do not bother
       // transposing.
 
@@ -165,7 +165,7 @@ public:
   template<unsigned char LOG_N>
   class RealRowIFFTs {
   public:
-    inline static void apply(cpx*__restrict data, const unsigned long flat) {
+    inline static void apply(cpx* __restrict data, const unsigned long flat) {
       // This will only be performed on final axis, so do not bother
       // transposing.
 
@@ -181,7 +181,7 @@ public:
   // necessary:
   class NDFFT {
   public:
-    inline static void fft(cpx*__restrict & data, cpx*__restrict & buffer, const unsigned char*__restrict const log_shape, int dimension, const bool freshly_zero_padded) {
+    inline static void fft(cpx* __restrict & data, cpx* __restrict & buffer, const unsigned char* __restrict const log_shape, int dimension, const bool freshly_zero_padded) {
       unsigned long flat = 1ul<<sum(log_shape, dimension);
       unsigned long prod_shape_from_right=1;
       if (dimension > 0) {
@@ -197,7 +197,7 @@ public:
 	}
       }
     }
-    inline static void ifft(cpx*__restrict & data, cpx*__restrict & buffer, const unsigned char*__restrict const log_shape, int dimension) {
+    inline static void ifft(cpx* __restrict & data, cpx* __restrict & buffer, const unsigned char* __restrict const log_shape, int dimension) {
       unsigned long flat = 1ul<<sum(log_shape, dimension);
       
       // Conjugate:
@@ -215,7 +215,7 @@ public:
       }
     }
 
-    inline static void real_fft_packed(cpx*__restrict & data, cpx*__restrict & buffer, const unsigned char*__restrict const log_shape, int dimension, const bool freshly_zero_padded) {
+    inline static void real_fft_packed(cpx* __restrict & data, cpx* __restrict & buffer, const unsigned char* __restrict const log_shape, int dimension, const bool freshly_zero_padded) {
       unsigned long prod_shape_from_right = real_length_to_packed_length(1ul<<log_shape[dimension-1]);
       unsigned long flat = (1ul<<sum(log_shape, dimension-1))*prod_shape_from_right;
 
@@ -235,7 +235,7 @@ public:
       }
     }
 
-    inline static void real_ifft_packed(cpx*__restrict & data, cpx*__restrict & buffer, const unsigned char*__restrict const log_shape, int dimension) {
+    inline static void real_ifft_packed(cpx* __restrict & data, cpx* __restrict & buffer, const unsigned char* __restrict const log_shape, int dimension) {
       unsigned long prod_shape_from_right, real_axis, flat;
       if (UNDO_TRANSPOSE) {
 	real_axis = real_length_to_packed_length(1ul<<log_shape[dimension-1]);
@@ -304,12 +304,12 @@ public:
 template <template <unsigned char, bool> class FFT1D, bool SHUFFLE, bool UNDO_TRANSPOSE, bool FORWARD_FFT, bool FRESHLY_ZERO_PADDED>
 inline void execute_fft(Tensor<cpx> & ten) {
   Vector<unsigned char> log_shape = shape_to_log_shape(ten.data_shape());
-  cpx*__restrict buffer_a = &ten[0ul];
+  cpx* __restrict buffer_a = &ten[0ul];
 
   // A buffer is necessary to perform transpositions:
   Tensor<cpx> buffer(ten.data_shape());
     
-  cpx*__restrict buffer_b = &buffer[0ul];
+  cpx* __restrict buffer_b = &buffer[0ul];
 
   if (FORWARD_FFT)
     NDFFTEnvironment<FFT1D, SHUFFLE, UNDO_TRANSPOSE>::NDFFT::fft(buffer_a, buffer_b, &log_shape[0], ten.dimension(), FRESHLY_ZERO_PADDED);
@@ -336,11 +336,11 @@ void execute_real_fft_packed(Tensor<cpx> & ten) {
     // packed reals are on first axis:
     log_shape = reversed_packed_shape_to_log_shape(ten.data_shape());
     
-  cpx*__restrict buffer_a = &ten[0ul];
+  cpx* __restrict buffer_a = &ten[0ul];
   // A buffer is necessary to perform transpositions:
   Tensor<cpx> buffer(ten.data_shape());
     
-  cpx*__restrict buffer_b = &buffer[0ul];
+  cpx* __restrict buffer_b = &buffer[0ul];
 
   if (FORWARD_FFT)
     NDFFTEnvironment<FFT1D, SHUFFLE, UNDO_TRANSPOSE>::NDFFT::real_fft_packed(buffer_a, buffer_b, &log_shape[0], ten.dimension(), FRESHLY_ZERO_PADDED);

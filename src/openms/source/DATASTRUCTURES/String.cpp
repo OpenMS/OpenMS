@@ -526,5 +526,38 @@ namespace OpenMS
     this->append(s);
     return *this;
   }
+  
+  OPENMS_DLLAPI std::size_t hash_value(const OpenMS::String & s)
+  {
+    return std::hash<std::string>()(static_cast<std::string>(s));
+  }
 
 } // namespace OpenMS
+
+// namespace std
+// {
+  // template<>
+  // struct hash<OpenMS::String> {
+    // size_t operator()(const OpenMS::String &s) const
+    // {
+      // return std::hash<std::string>()(s);
+    // }
+  // };
+// }
+
+// namespace boost
+// {
+  // template<>
+  // struct hash<OpenMS::String> {
+    // size_t operator()(const OpenMS::String &s) const
+    // {
+      // return std::hash<std::string>()(s);
+    // }
+  // };
+// }
+//namespace boost
+//{
+//  size_t hash<OpenMS::String>::operator()(const OpenMS::String &c) const {
+//    return std::hash<std::string>()(std::string(c));
+//  }
+//}

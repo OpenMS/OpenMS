@@ -54,9 +54,9 @@ void cache_friendly_transpose(Tensor<T> & ten, const Vector<unsigned char> & new
       break;
 
   if (already_ordered_prefix < ten.dimension()) {
-    T*__restrict buffer_from = &ten.flat()[0];
+    T* __restrict buffer_from = &ten.flat()[0];
     Tensor<T> buffer(ten.data_shape());
-    T*__restrict buffer_to = &buffer.flat()[0];
+    T* __restrict buffer_to = &buffer.flat()[0];
 
     /*
       This function performs tensor transposition in O(d) matrix

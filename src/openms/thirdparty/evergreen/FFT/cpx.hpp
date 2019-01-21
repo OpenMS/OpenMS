@@ -2,6 +2,8 @@
 #define _CPX_HPP
 
 #include <ostream>
+// in MSVC M_PI constant is non-standard
+#define _USE_MATH_DEFINES 
 #include <math.h>
 
 struct cpx {
@@ -24,79 +26,67 @@ struct cpx {
     i(iVal)
   { }
   
-  __attribute__((always_inline))
-  inline cpx operator+=(cpx rhs){
+  EVERGREEN_ALWAYS_INLINE cpx operator+=(cpx rhs){
     r += rhs.r;
     i += rhs.i;
     return *this;
   }
-  __attribute__((always_inline))
-  inline cpx operator-=(cpx rhs){
+  EVERGREEN_ALWAYS_INLINE cpx operator-=(cpx rhs){
     r -= rhs.r;
     i -= rhs.i;
     return *this;
   }
   // Slightly faster than * operator (needs only one temporary double):
-  __attribute__((always_inline))
-  inline const cpx & operator *=(cpx rhs) {
+  EVERGREEN_ALWAYS_INLINE const cpx & operator *=(cpx rhs) {
     double temp = r;
     r *= rhs.r;
     r -= i*rhs.i;
     i = temp*rhs.i+i*rhs.r;
     return *this;
   }
-  __attribute__((always_inline))
-  inline const cpx & operator *=(double scale) {
+  EVERGREEN_ALWAYS_INLINE const cpx & operator *=(double scale) {
     r *= scale;
     i *= scale;
     return *this;
   }
-  __attribute__((always_inline))
-  inline const cpx & operator /=(double denom) {
+  EVERGREEN_ALWAYS_INLINE const cpx & operator /=(double denom) {
     denom = 1.0/denom;
     r *= denom;
     i *= denom;
     return *this;
   }
-  __attribute__((always_inline))
-  inline cpx conj() const {
+  EVERGREEN_ALWAYS_INLINE cpx conj() const {
     return cpx{r, -i};
   }
 };
 
-__attribute__((always_inline))
-inline cpx operator *(cpx lhs, cpx rhs) {
+EVERGREEN_ALWAYS_INLINE cpx operator *(cpx lhs, cpx rhs) {
   // Gauss' method for multiplying complex numbers turns out not to be
   // faster after compiler optimizations; here is the naive method:
   return cpx{lhs.r*rhs.r-lhs.i*rhs.i, lhs.r*rhs.i+lhs.i*rhs.r};
 }
 
-__attribute__((always_inline))
-inline cpx operator *(double lhs, cpx rhs) {
+EVERGREEN_ALWAYS_INLINE cpx operator *(double lhs, cpx rhs) {
   rhs.r *= lhs;
   rhs.i *= lhs;
   return rhs;
 }
 
-__attribute__((always_inline))
-inline cpx operator -(cpx lhs, cpx rhs){
+EVERGREEN_ALWAYS_INLINE cpx operator -(cpx lhs, cpx rhs){
   return cpx{lhs.r-rhs.r, lhs.i-rhs.i};
 }
 
-__attribute__((always_inline))
-inline cpx operator +(cpx lhs, cpx rhs){
+EVERGREEN_ALWAYS_INLINE cpx operator +(cpx lhs, cpx rhs){
   return cpx{lhs.r+rhs.r, lhs.i+rhs.i};
 }
 
-__attribute__((always_inline))
-inline cpx operator /(cpx lhs, double rhs) {
+EVERGREEN_ALWAYS_INLINE cpx operator /(cpx lhs, double rhs) {
   lhs.r /= rhs;
   lhs.i /= rhs;
   return lhs;
 }
 
-__attribute__((always_inline))
-inline bool operator ==(cpx lhs, cpx rhs){
+EVERGREEN_ALWAYS_INLINE bool operator ==(cpx lhs, cpx rhs){
   return (lhs.r == rhs.r) && (lhs.i == rhs.i);
 }
 

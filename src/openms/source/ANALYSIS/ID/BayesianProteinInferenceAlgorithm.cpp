@@ -117,17 +117,17 @@ namespace OpenMS
           pnorm = std::numeric_limits<double>::infinity();
         }
 
-        MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:pep_emission"),
+        MessagePasserFactory<IDBoostGraph::vertex_t> mpf (param_.getValue("model_parameters:pep_emission"),
                                                  param_.getValue("model_parameters:pep_spurious_emission"),
                                                  param_.getValue("model_parameters:prot_prior"),
                                                  pnorm); // the p used for marginalization: 1 = sum product, inf = max product
-        BetheInferenceGraphBuilder<unsigned long> bigb;
+        BetheInferenceGraphBuilder<IDBoostGraph::vertex_t> bigb;
 
         IDBoostGraph::Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
 
         // Store the IDs of the nodes for which you want the posteriors in the end
-        vector<vector<unsigned long>> posteriorVars;
+        vector<vector<IDBoostGraph::vertex_t>> posteriorVars;
 
         // direct neighbors are proteins on the "left" side and peptides on the "right" side
         // TODO Can be sped up using directed graph. NEeds some restructuring in IDBoostGraph class first tho.
@@ -198,22 +198,22 @@ namespace OpenMS
         }
 
         // create factor graph for Bayesian network
-        InferenceGraph<unsigned long> ig = bigb.to_graph();
+        InferenceGraph<IDBoostGraph::vertex_t> ig = bigb.to_graph();
 
         //TODO parametrize the type of scheduler.
-        PriorityScheduler<unsigned long> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
+        PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
                                                    param_.getValue("loopy_belief_propagation:convergence_threshold"),
                                                    param_.getValue("loopy_belief_propagation:max_nr_iterations"));
         scheduler.add_ab_initio_edges(ig);
 
-        BeliefPropagationInferenceEngine<unsigned long> bpie(scheduler, ig);
+        BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
         auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
 
         for (auto const& posteriorFactor : posteriorFactors)
         {
           double posterior = 1.0;
           IDBoostGraph::SetPosteriorVisitor pv;
-          unsigned long nodeId = posteriorFactor.ordered_variables()[0];
+          IDBoostGraph::vertex_t nodeId = posteriorFactor.ordered_variables()[0];
           const PMF& pmf = posteriorFactor.pmf();
           // If Index 0 is in the range of this result PMFFactor it is non-zero
           //TODO BUG!! Check again and debug!
@@ -257,19 +257,19 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
-        MessagePasserFactory<unsigned long> mpf (param_.getValue("model_parameters:pep_emission"),
+        MessagePasserFactory<IDBoostGraph::vertex_t> mpf (param_.getValue("model_parameters:pep_emission"),
                                                  param_.getValue("model_parameters:pep_spurious_emission"),
                                                  param_.getValue("model_parameters:prot_prior"),
                                                  pnorm); // the p used for marginalization: 1 = sum product, inf = max product
 
-        BetheInferenceGraphBuilder<unsigned long> bigb;
+        BetheInferenceGraphBuilder<IDBoostGraph::vertex_t> bigb;
 
         IDBoostGraph::Graph::vertex_iterator ui, ui_end;
         boost::tie(ui,ui_end) = boost::vertices(fg);
 
         // Store the IDs of the nodes for which you want the posteriors in the end (usually at least proteins)
         // Maybe later peptides (e.g. for an iterative procedure)
-        vector<vector<unsigned long>> posteriorVars;
+        vector<vector<IDBoostGraph::vertex_t>> posteriorVars;
 
         // direct neighbors are proteins on the "left" side and peptides on the "right" side
         // TODO can be sped up using directed graph. Requires some restructuring first.
@@ -323,15 +323,15 @@ namespace OpenMS
         }
 
         // create factor graph for Bayesian network
-        InferenceGraph<unsigned long> ig = bigb.to_graph();
+        InferenceGraph<IDBoostGraph::vertex_t> ig = bigb.to_graph();
 
         //TODO parametrize the type of scheduler.
-        PriorityScheduler<unsigned long> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
+        PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
                                                    param_.getValue("loopy_belief_propagation:convergence_threshold"),
                                                    param_.getValue("loopy_belief_propagation:max_nr_iterations"));
         scheduler.add_ab_initio_edges(ig);
 
-        BeliefPropagationInferenceEngine<unsigned long> bpie(scheduler, ig);
+        BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
         auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
 
         //TODO you could also save the indices of the peptides here and request + update their posteriors, too.
@@ -478,7 +478,7 @@ namespace OpenMS
                            "1 = old message stays (no convergence, don't do that)"
                            "In-between it will be a convex combination of both. Prevents oscillations but hinders convergence");
     defaults_.setValue("loopy_belief_propagation:max_nr_iterations",
-                       1ul<<32,
+                       1ul<<31,
                        "If not all messages converge, how many iterations should be done at max?");
 
     defaults_.setValue("loopy_belief_propagation:p_norm_inference",

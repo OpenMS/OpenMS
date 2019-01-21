@@ -10,8 +10,8 @@
 const unsigned char MAX_TENSOR_DIMENSION = 16u;
 
 // Tuple types:
-typedef unsigned long*__restrict const tup_t;
-typedef const unsigned long*__restrict const const_tup_t;
+typedef unsigned long* __restrict const tup_t;
+typedef const unsigned long* __restrict const const_tup_t;
 
 inline void print_tuple(const_tup_t tup, unsigned char dim) {
   for (unsigned char i=0; i<dim; ++i)
@@ -29,7 +29,7 @@ inline unsigned long flat_length(const Vector<unsigned long> & shape) {
   return flat_length(static_cast<const unsigned long*const>(shape), shape.size());
 }
 
-inline void advance_tuple(unsigned long*__restrict tup, const_tup_t shape, unsigned char dimension) {
+inline void advance_tuple(unsigned long* __restrict tup, const_tup_t shape, unsigned char dimension) {
   ++tup[dimension-1];
     
   for (unsigned char k=dimension-1; k>=1; --k)
@@ -66,8 +66,8 @@ inline unsigned long tuple_to_index_fixed_dimension(const_tup_t tup, const_tup_t
 }
 
 // Note: This is not very efficient, but is useful for debugging.
-inline unsigned long* index_to_tuple(unsigned long index, const unsigned long*__restrict__ const shape, unsigned int dimension) {
-  unsigned long*__restrict result = aligned_calloc<unsigned long>(dimension);
+inline unsigned long* index_to_tuple(unsigned long index, const unsigned long* __restrict const shape, unsigned int dimension) {
+  unsigned long* __restrict result = aligned_calloc<unsigned long>(dimension);
   for (int i=dimension-1; index>0 && i>=0; --i) {
     unsigned long next_axis = shape[i];
     

@@ -10,7 +10,7 @@ public:
   // for larger N:
 
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict const data) {
+  inline static void apply(cpx* __restrict const data) {
     // Butterfly, then multiply twiddles into second half of list:
 
     cpx twiddle = cpx{1.0, 0.0};
@@ -33,7 +33,7 @@ public:
 template<>
 class DIFButterfly<0ul> {
 public:
-  inline static void apply(cpx*__restrict  const) {
+  inline static void apply(cpx* __restrict  const) {
     // do nothing
   }
 };
@@ -41,7 +41,7 @@ public:
 template<>
 class DIFButterfly<1ul> {
 public:
-  inline static void apply(cpx*__restrict  const) {
+  inline static void apply(cpx* __restrict  const) {
     // do nothing
   }
 };
@@ -51,7 +51,7 @@ template<>
 class DIFButterfly<2ul> {
 public:
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict  const data) {
+  inline static void apply(cpx* __restrict  const data) {
     data[1] = data[0] - data[1];
     data[0] = data[0] + data[0] - data[1];
   }
@@ -62,7 +62,7 @@ template<>
 class DIFButterfly<4ul> {
 public:
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict const data) {
+  inline static void apply(cpx* __restrict const data) {
     // Note: index written even when index is zero for
     // clarity; however, all constant multiplications will be
     // computed at compile time:
@@ -87,7 +87,7 @@ template<>
 class DIFButterfly<8ul> {
 public:
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict const data) {
+  inline static void apply(cpx* __restrict const data) {
 
     const double sqrt2Over2 = Twiddles<4>::sin();
     
@@ -123,7 +123,7 @@ template<>
 class DIFButterfly<16ul> {
 public:
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict const data) {
+  inline static void apply(cpx* __restrict const data) {
 
     const double sqrt2Over2 = Twiddles<4>::sin();
     const double sinPiOver8 = Twiddles<8>::sin();
