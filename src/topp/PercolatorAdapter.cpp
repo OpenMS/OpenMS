@@ -544,6 +544,8 @@ protected:
   
   void readProteinPoutAsMapAndAddGroups_(String pout_protein_file, std::map<String, PercolatorProteinResult>& protein_map, ProteinIdentification& protID_to_add_grps)
   {
+    //TODO currently qvalue is the standard score for proteins. PEP is in metaValue.
+    // Groups only hold main score = qvalue. Should be enough for 99% of applications
     CsvFile csv_file(pout_protein_file, '\t');
     StringList row;
     std::vector<ProteinIdentification::ProteinGroup>& grps = protID_to_add_grps.getIndistinguishableProteins();
@@ -559,8 +561,9 @@ protected:
       {
         protein_map.insert( map<String, PercolatorProteinResult>::value_type ( *it, PercolatorProteinResult(*it, qvalue, posterior_error_prob ) ) );
       }
+
       ProteinIdentification::ProteinGroup grp;
-      grp.probability = 1. - posterior_error_prob;
+      grp.probability = qvalue;
       grp.accessions = protein_accessions;
       grps.push_back(grp);
     }
