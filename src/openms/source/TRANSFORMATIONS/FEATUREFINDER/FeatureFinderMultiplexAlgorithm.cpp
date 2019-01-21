@@ -63,7 +63,8 @@
 #include <boost/algorithm/string/split.hpp> 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
-// #define DEBUG
+
+#define DEBUG
 
 using namespace std;
 

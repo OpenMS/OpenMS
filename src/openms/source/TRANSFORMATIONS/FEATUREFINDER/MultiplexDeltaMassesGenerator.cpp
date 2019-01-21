@@ -128,27 +128,10 @@ namespace OpenMS
 
 
 
-    /*for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
-    {
-      MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
-      for (unsigned i = 0; i < samples_labels_.size(); i++)
-      {
-        double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[i][0]] - label_delta_mass_[samples_labels_[0][0]]);
-        MultiplexDeltaMasses::LabelSet label_set;
-        // construct label set
-        for (unsigned k = 1; k < (mc + 2); ++k)
-        {
-          label_set.insert(samples_labels_[i][0]);
-        }
 
-       delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
-      }
-      delta_masses_list_.push_back(delta_masses_temp);
-    }*/
 
     /// DEBUG (START)
-    std::cout << "\n";
-    bool labelling_numeric = true;
+    /*bool labelling_numeric = true;
     for (size_t i = 0; i < samples_labels_.size(); i++)
     {
       for (size_t j = 0; j < samples_labels_[i].size(); j++)
@@ -169,11 +152,8 @@ namespace OpenMS
         {
             labelling_numeric = false;
         }
-    
-        std::cout << "i = " << i << "    j = " << j << "    label = " << samples_labels_[i][j] << "    mass shift = " << mass_shift << "\n";
       }
     }
-    std::cout << "\n";
     
     // Now that we know it is purely numeric, let us fill delta_masses_list_.
     for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
@@ -191,44 +171,72 @@ namespace OpenMS
         delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
       }
       delta_masses_list_.push_back(delta_masses_temp);
-    }
-    
+    }*/
     /// DEBUG (END)
 
 
 
 
+
     // What kind of labelling do we have?
-    // SILAC, Leu, Dimethyl, ICPL or no labelling ??
+    // SILAC, Leu, Dimethyl, ICPL, numeric labelling or no labelling ??
 
     bool labelling_SILAC = ((labels_.find("Arg") != std::string::npos) || (labels_.find("Lys") != std::string::npos));
     bool labelling_Leu = (labels_.find("Leu") != std::string::npos);
     bool labelling_Dimethyl = (labels_.find("Dimethyl") != std::string::npos);
     bool labelling_ICPL = (labels_.find("ICPL") != std::string::npos);
+    // Check whether each label string represents a double. If yes, use these doubles as mass shifts.
+    bool labelling_numeric = true;
+    for (size_t i = 0; i < samples_labels_.size(); i++)
+    {
+      for (size_t j = 0; j < samples_labels_[i].size(); j++)
+      {
+        double mass_shift;
+        try
+        {
+          mass_shift = std::stod(samples_labels_[i][j]);
+            
+          // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
+          // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
+          label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));
+          label_short_long_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
+          label_long_short_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
+        }
+        catch(...)
+        {
+          labelling_numeric = false;
+        }
+      }
+    }
     bool labelling_none = labels_.empty() || (labels_ == "[]") || (labels_ == "()") || (labels_ == "{}");
 
-    bool SILAC = (labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_none);
-    bool Leu = (!labelling_SILAC && labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_none);
-    bool Dimethyl = (!labelling_SILAC && !labelling_Leu && labelling_Dimethyl && !labelling_ICPL && !labelling_none);
-    bool ICPL = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && labelling_ICPL && !labelling_none);
-    bool none = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && labelling_none);
+    bool SILAC = (labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && !labelling_none);
+    bool Leu = (!labelling_SILAC && labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && !labelling_none);
+    bool Dimethyl = (!labelling_SILAC && !labelling_Leu && labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && !labelling_none);
+    bool ICPL = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && labelling_ICPL && !labelling_numeric && !labelling_none);
+    bool numeric = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && labelling_numeric && !labelling_none);
+    bool none = (!labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && labelling_none);
 
-    if (!(SILAC || Leu || Dimethyl || ICPL || none))
+    if (!(SILAC || Leu || Dimethyl || ICPL || numeric || none))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unknown labelling. Neither SILAC, Leu, Dimethyl nor ICPL.");
     }
     
-    // check if the labels are included in advanced section "labels"
-    String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
-    for (std::vector<std::vector<String> >::size_type i = 0; i < samples_labels_.size(); i++)
+    // Check if the labels are included in advanced section "labels"
+    // unless the labelling is numeric.
+    if (!numeric)
     {
-      for (std::vector<String>::size_type j = 0; j < samples_labels_[i].size(); ++j)
+      String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Leu3 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10 no_label";
+      for (std::vector<std::vector<String> >::size_type i = 0; i < samples_labels_.size(); i++)
       {
-        if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
+        for (std::vector<String>::size_type j = 0; j < samples_labels_[i].size(); ++j)
         {
-          std::stringstream stream;
-          stream << "The label " << samples_labels_[i][j] << " is unknown.";
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
+          if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
+          {
+            std::stringstream stream;
+            stream << "The label " << samples_labels_[i][j] << " is unknown.";
+            throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, stream.str());
+          }
         }
       }
     }
@@ -359,6 +367,25 @@ namespace OpenMS
         delta_masses_list_.push_back(delta_masses_temp);
       }
 
+    }
+    else if (numeric)
+    {
+      for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
+      {
+        MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
+        for (unsigned i = 0; i < samples_labels_.size(); i++)
+        {
+          double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[i][0]] - label_delta_mass_[samples_labels_[0][0]]);
+          MultiplexDeltaMasses::LabelSet label_set;
+          for (unsigned k = 1; k < (mc + 2); ++k)
+          {
+            label_set.insert(samples_labels_[i][0]);
+          }
+          
+          delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+        }
+        delta_masses_list_.push_back(delta_masses_temp);
+      }    
     }
     else
     {
