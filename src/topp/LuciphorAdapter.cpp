@@ -116,9 +116,11 @@ protected:
     String predicted_pep;
     double delta_score;
     double predicted_pep_score;
+    double global_flr;
+    double local_flr;
     
-    LuciphorPSM() : scan_nr(-1), scan_idx(-1), charge(-1), delta_score(-1), predicted_pep_score(-1) {}
-  };
+    LuciphorPSM() : scan_nr(-1), scan_idx(-1), charge(-1), delta_score(-1), predicted_pep_score(-1), global_flr(-1), local_flr(-1) {}
+    };
 
   // lists of allowed parameter values:
   vector<String> fragment_methods_, fragment_error_units_, score_selection_method_;
@@ -344,6 +346,8 @@ protected:
       l_psm.predicted_pep = elements[2];
       l_psm.delta_score = elements[7].toDouble();
       l_psm.predicted_pep_score = elements[8].toDouble();
+      l_psm.global_flr = elements[10].toDouble();
+      l_psm.local_flr = elements[11].toDouble();
       
       if (l_psms.count(l_psm.scan_idx) > 0)
       {
@@ -637,6 +641,8 @@ protected:
           }
           scored_hit.setMetaValue("search_engine_sequence", scored_hit.getSequence().toString());
           scored_hit.setMetaValue("Luciphor_pep_score", l_psm.predicted_pep_score);
+          scored_hit.setMetaValue("Luciphor_global_flr", l_psm.global_flr);
+          scored_hit.setMetaValue("Luciphor_local_flr", l_psm.local_flr);
           scored_hit.setScore(l_psm.delta_score);
           scored_hit.setSequence(predicted_seq);
         }

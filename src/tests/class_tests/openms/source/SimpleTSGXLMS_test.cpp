@@ -412,8 +412,9 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   ptr->setParameters(param);
 
   OPXLDataStructs::ProteinProteinCrossLink test_link;
-  test_link.alpha = peptide;
-  test_link.beta = AASequence::fromString("TESTPEP");
+  test_link.alpha = &peptide;
+  AASequence beta = AASequence::fromString("TESTPEP");
+  test_link.beta = &beta;
   test_link.cross_link_position = std::make_pair<SignedSize, SignedSize> (3, 4);
   test_link.cross_linker_mass = 150.0;
 
@@ -502,8 +503,9 @@ START_SECTION(virtual void getXLinkIonSpectrum(PeakSpectrum & spectrum, OPXLData
   AASequence testseq = AASequence::fromString("HA");
 
   OPXLDataStructs::ProteinProteinCrossLink test_link_short;
-  test_link_short.alpha = testseq;
-  test_link_short.beta = AASequence::fromString("TESTPEP");
+  test_link_short.alpha = &testseq;
+  // AASequence beta = AASequence::fromString("TESTPEP");
+  test_link_short.beta = &beta;
   test_link_short.cross_link_position = std::make_pair<SignedSize, SignedSize> (1, 4);
   test_link_short.cross_linker_mass = 150.0;
 
