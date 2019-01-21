@@ -174,6 +174,25 @@ namespace OpenMS
       }
     }
     std::cout << "\n";
+    
+    // Now that we know it is purely numeric, let us fill delta_masses_list_.
+    for (unsigned mc = 0; mc <= (unsigned) missed_cleavages_; ++mc)
+    {
+      MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
+      for (unsigned i = 0; i < samples_labels_.size(); i++)
+      {
+        double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[i][0]] - label_delta_mass_[samples_labels_[0][0]]);
+        MultiplexDeltaMasses::LabelSet label_set;
+        for (unsigned k = 1; k < (mc + 2); ++k)
+        {
+          label_set.insert(samples_labels_[i][0]);
+        }
+        
+        delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+      }
+      delta_masses_list_.push_back(delta_masses_temp);
+    }
+    
     /// DEBUG (END)
 
 
