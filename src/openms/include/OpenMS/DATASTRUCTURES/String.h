@@ -556,6 +556,8 @@ public:
       Size size_;
   }; 
 
+  OPENMS_DLLAPI std::size_t hash_value(const OpenMS::String & s) noexcept;
+
 } // namespace OPENMS
 
 namespace std
