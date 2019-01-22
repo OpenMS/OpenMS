@@ -35,14 +35,6 @@
 
 #pragma once
 
-#if defined(COMPILER_GCC) || defined(COMPILER_CLANG) && !defined(STDLIB_VS) || defined(COMPILER_LINTEL)
-#define SEQAN_LIKELY(expr) __builtin_expect(!!(expr), 1)
-#define SEQAN_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
-#else
-#define SEQAN_LIKELY(x)    (x)
-#define SEQAN_UNLIKELY(x)    (x)
-#endif
-
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -592,10 +584,9 @@ namespace seqan
 
   inline bool isAmbiguous(const AAString& s)
   {
-    const AAStringIterator e(end(s));
-    for (AAStringIterator it = begin(s); it != e; ++it)
+    for (AAStringIterator it = begin(s); it != end(s); ++it)
     {
-      if (SEQAN_UNLIKELY(isAmbiguous(*it))) return true;
+      if (isAmbiguous(*it)) return true;
     }
     return false;
   }
@@ -659,7 +650,7 @@ namespace seqan
     typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
     const String<TSize>& needle_hits = getProperty(me.data_map_outputNodes, spawn.current_state);
     //DEBUG_ONLY std::cout << "spawn at path: " << getPath(me, spawn.current_state) << "\n";
-    if (SEQAN_UNLIKELY(!empty(needle_hits)))
+    if (length(needle_hits))
     {
       int path_length = getProperty(me.data_node_depth, spawn.current_state); // == length of current path to spawn
       int unambiguous_suffix_length = path_length - spawn.max_depth_decrease; // == length of suffix peptide which does not contain AAA
@@ -680,10 +671,10 @@ namespace seqan
     typedef typename Pattern<TNeedle, FuzzyAC>::TSize TSize;
     //DEBUG_ONLY std::cout << "master at path: " << getPath(me, current_state) << "\n";
     const String<TSize>& needle_hits = getProperty(me.data_map_outputNodes, current_state);
-    if (SEQAN_UNLIKELY(!empty(needle_hits)))
+    if (length(needle_hits))
     {
       DEBUG_ONLY std::cout << "master's new hits: total " << length(needle_hits) << " hits\n";
-      append(dh.hits_endPositions, needle_hits); // indices into TNeedle!
+      append(dh.hits_endPositions, getProperty(me.data_map_outputNodes, current_state)); // indices into TNeedle!
     }
   }
 
@@ -831,7 +822,7 @@ namespace seqan
 
     bool consider_ambAA = me.max_ambAA > 0;
 
-    if (SEQAN_UNLIKELY(me.max_mmAA > 0))
+    if (me.max_mmAA > 0)
     {  // try all AA's 
       TSize idx_first(-1), idx_last(-1);
       _getSpawnRange(AAcid('X'), idx_first, idx_last);
@@ -857,9 +848,9 @@ namespace seqan
         }
       }
     }
-    if (SEQAN_UNLIKELY(isAmbiguous(c)))
+    if (isAmbiguous(c))
     {
-      if (SEQAN_LIKELY(consider_ambAA))
+      if (consider_ambAA)
       {
         DEBUG_ONLY std::cout << "found AAA: " << c << "\n";
         
@@ -892,7 +883,7 @@ namespace seqan
   template <typename TFinder, typename TNeedle>
   inline bool find(TFinder& finder, const Pattern<TNeedle, FuzzyAC>& me, PatternAuxData<TNeedle>& dh)
   {
-    if (SEQAN_UNLIKELY(empty(finder)))
+    if (empty(finder))
     {
       _finderSetNonEmpty(finder);
     }

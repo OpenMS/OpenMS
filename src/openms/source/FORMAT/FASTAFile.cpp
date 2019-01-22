@@ -39,12 +39,15 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-
+#include <seqan/basic.h>
+#include <seqan/stream.h>
+#include <seqan/seq_io/guess_stream_format.h>
+#include <seqan/seq_io/read_fasta_fastq.h>
 
 namespace OpenMS
 {
   using namespace std;
-  
+  typedef seqan::RecordReader<std::fstream, seqan::SinglePass<> > FASTARecordReader;
 
   FASTAFile::FASTAFile()
   : reader_(std::nullptr_t()), // point to nothing
@@ -83,7 +86,40 @@ namespace OpenMS
     entries_read_ = 0;
   }
 
+  bool FASTAFile::readNext(FASTAEntry& protein)
+  {
+    if (seqan::atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
+    { 
+      // do NOT close(), since we still might want to seek to certain positions
+      return false;
+    }
+    String id, s;
+    if (readRecord(id, s, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
+    {
+      if (entries_read_ == 0) s = "The first entry could not be read!";
+      else s = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + s + " Please check the file!");
+    }
+    ++entries_read_;
+    s.removeWhitespaces();
+    protein.sequence = s; // assign here, since 's' might have higher capacity, thus wasting memory (usually 10-15%)
 
+    // handle id
+    id.trim();
+    String::size_type position = id.find_first_of(" \v\t");
+    if (position == String::npos)
+    {
+      protein.identifier = std::move(id);
+      protein.description = "";
+    }
+    else
+    {
+      protein.identifier = id.substr(0, position);
+      protein.description = id.suffix(id.size() - position - 1);
+    }
+
+    return true;
+  }
 
   std::streampos FASTAFile::position() const
   {
@@ -106,7 +142,7 @@ namespace OpenMS
     FASTAEntry p;
     FASTAFile f;
     f.readStart(filename);
-    while (f.readNext<true>(p))
+    while (f.readNext(p))
     {
       data.push_back(std::move(p));
     }

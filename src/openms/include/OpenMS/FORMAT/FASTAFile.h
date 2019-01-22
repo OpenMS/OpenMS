@@ -37,30 +37,14 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <seqan/basic.h>
-#include <seqan/stream.h>
-#include <seqan/seq_io/guess_stream_format.h>
-#include <seqan/seq_io/read_fasta_fastq.h>
-
 #include <functional>
 #include <fstream>
 #include <memory>
-//#include <utility>
+#include <utility>
 #include <vector>
 
 namespace OpenMS
 {
-
-  namespace Internal
-  {
-    template <bool SHRINK_SEQ> inline void doShrink(String& /*s*/);
-    template <> inline void doShrink<true>(String& s)
-    { // optimize memory usage (10-15% savings), at the cost of runtime;
-      s.shrink_to_fit();
-    }
-    template <> inline void doShrink<false>(String& /*s*/) {} //do nothing
-  }
-
   /**
     @brief This class serves for reading in and writing FASTA files
 
@@ -79,8 +63,6 @@ namespace OpenMS
 
   class OPENMS_DLLAPI FASTAFile
   {
-    typedef seqan::RecordReader<std::fstream, seqan::SinglePass<> > FASTARecordReader;
-
 public:
   /**
       @brief FASTA entry type (identifier, description and sequence)
@@ -174,52 +156,11 @@ public:
 
     If you want to read all entries in one go, use load().
 
-    @param SHRINK_SEQ Use shrink_to_fit() on the sequence string. Can potentially save ~10-15% of memory, which is useful when loading
-                      huge FASTA files into memory. However, if a single FASTAEntry is read over and over again, this will just slow down the program.
-
-    @param protein The entry to fill.
-    @return true if entry was read; false if Enf-Of-File was reached
+    @return true if entry was read; false if eof was reached
     @exception Exception::FileNotFound is thrown if the file does not exists.
     @exception Exception::ParseError is thrown if the file does not suit to the standard.
     */
-    template <bool SHRINK_SEQ>
-    inline bool readNext(FASTAEntry& protein)
-    {
-      if (seqan::atEnd(*static_cast<FASTARecordReader*>(reader_.get())))
-      {
-        // do NOT close(), since we still might want to seek to certain positions
-        return false;
-      }
-      String& id = protein.identifier;
-      String& s = protein.sequence;
-      if (readRecord(id, s, *static_cast<FASTARecordReader*>(reader_.get()), seqan::Fasta()) != 0)
-      {
-        if (entries_read_ == 0) s = "The first entry could not be read!";
-        else s = "Only " + String(entries_read_) + " proteins could be read. The record after failed.";
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", "Error while parsing FASTA file! " + s + " Please check the file!");
-      }
-      ++entries_read_;
-      s.removeWhitespaces();
-      
-      Internal::doShrink<SHRINK_SEQ>(s);
-
-      // handle id
-      id.trim();
-      String::size_type position = id.find_first_of(" \v\t");
-      if (position == String::npos)
-      {
-        // identifier is set implicitly (String& see above)
-        protein.description.clear();
-      }
-      else
-      {
-        // do not swap lines (id contains the description)
-        protein.description = id.suffix(id.size() - position - 1);
-        id.resize(position);
-      }
-
-      return true;
-    }
+    bool readNext(FASTAEntry& protein);
 
     /// current stream position
     std::streampos position() const;

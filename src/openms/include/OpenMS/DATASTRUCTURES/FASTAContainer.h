@@ -128,19 +128,17 @@ public:
   */
   bool cacheChunk(int suggested_size)
   {
-    data_bg_.resize(suggested_size);
-    int i{0};
-    for (; i < suggested_size; ++i)
+    data_bg_.clear();
+    data_bg_.reserve(suggested_size);
+    FASTAFile::FASTAEntry p;
+    for (int i = 0; i < suggested_size; ++i)
     {
       std::streampos spos = f_.position();
-      if (!f_.readNext<false>(data_bg_[i]))
-      {
-        data_bg_.resize(i);
-        break;
-      }
+      if (!f_.readNext(p)) break;
+      data_bg_.push_back(std::move(p));
       offsets_.push_back(spos);
     }
-    return (i>0);
+    return !data_bg_.empty();
   }
 
   /// number of entries in active cache
@@ -189,7 +187,7 @@ public:
     }
     std::streampos spos = f_.position(); // save old position
     if (!f_.setPosition(offsets_[pos])) return false;
-    bool r = f_.readNext<false>(protein);
+    bool r = f_.readNext(protein);
     f_.setPosition(spos); // restore old position
     return r;
   }
