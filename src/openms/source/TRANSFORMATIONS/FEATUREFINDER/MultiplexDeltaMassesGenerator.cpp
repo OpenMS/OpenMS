@@ -137,10 +137,9 @@ namespace OpenMS
     {
       for (size_t j = 0; j < samples_labels_[i].size(); j++)
       {
-        double mass_shift;
         try
         {
-          mass_shift = std::stod(samples_labels_[i][j]);
+          double mass_shift = std::stod(samples_labels_[i][j]);
           
           // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
           // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
