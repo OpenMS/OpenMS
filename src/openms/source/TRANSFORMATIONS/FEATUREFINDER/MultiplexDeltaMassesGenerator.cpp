@@ -39,6 +39,9 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
+#include <iostream>
+#include <ostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -484,45 +487,45 @@ namespace OpenMS
     
   }
   
-  void MultiplexDeltaMassesGenerator::printSamplesLabelsList() const
+  void MultiplexDeltaMassesGenerator::printSamplesLabelsList(std::ostream &stream) const
   {
-    std::cout << "\n";
+    stream << "\n";
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
     {
-      std::cout << "sample " << (i + 1) << ":    ";
+      stream << "sample " << (i + 1) << ":    ";
       for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
       {
-        std::cout << samples_labels_[i][j] << "    ";
+        stream << samples_labels_[i][j] << "    ";
       }
-      std::cout << "\n";
+      stream << "\n";
     }
   }
   
-  void MultiplexDeltaMassesGenerator::printDeltaMassesList() const
+  void MultiplexDeltaMassesGenerator::printDeltaMassesList(std::ostream &stream) const
   {
-    std::cout << "\n";
+    stream << "\n";
     for (unsigned i = 0; i < delta_masses_list_.size(); ++i)
     {
-      std::cout << "mass shift " << (i + 1) << ":    ";
+      stream << "mass shift " << (i + 1) << ":    ";
       for (unsigned j = 0; j < delta_masses_list_[i].getDeltaMasses().size(); ++j)
       {
         double mass_shift = delta_masses_list_[i].getDeltaMasses()[j].delta_mass;
         MultiplexDeltaMasses::LabelSet label_set = delta_masses_list_[i].getDeltaMasses()[j].label_set;
         
-        std::cout << mass_shift << " (";
+        stream << mass_shift << " (";
         for (std::multiset<String>::iterator it = label_set.begin(); it != label_set.end(); ++it)
         {
           if (it != label_set.begin())
           {
-            std::cout << ",";
+            stream << ",";
           }
-          std::cout << *it;
+          stream << *it;
         }
-        std::cout << ")    ";
+        stream << ")    ";
       }
-      std::cout << "\n";
+      stream << "\n";
     }
-    std::cout << "\n";
+    stream << "\n";
   }
   
   std::vector<MultiplexDeltaMasses> MultiplexDeltaMassesGenerator::getDeltaMassesList()

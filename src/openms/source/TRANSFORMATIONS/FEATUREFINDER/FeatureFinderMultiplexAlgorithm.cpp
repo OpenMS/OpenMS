@@ -58,6 +58,8 @@
 #include <vector>
 #include <numeric>
 #include <fstream>
+#include <iostream>
+#include <ostream>
 #include <algorithm>
 
 #include <boost/algorithm/string/split.hpp> 
@@ -990,8 +992,8 @@ namespace OpenMS
     }
     
     #ifdef DEBUG
-    generator.printSamplesLabelsList();
-    generator.printDeltaMassesList();
+    generator.printSamplesLabelsList(std::cout);
+    generator.printDeltaMassesList(std::cout);
     #endif
 
     std::vector<MultiplexDeltaMasses> masses = generator.getDeltaMassesList();
