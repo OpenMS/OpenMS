@@ -9,13 +9,13 @@
 template<typename T, unsigned char LOG_N>
 class StockhamShuffle {
 public:
-  inline static void apply_with_existing_buffer(T*__restrict const v, T*__restrict const buffer) {
+  inline static void apply_with_existing_buffer(T* __restrict const v, T* __restrict const buffer) {
     lsb_to_msb_with_existing_buffer<T, LOG_N>(v, buffer);
     StockhamShuffle<T,LOG_N-1>::apply_with_existing_buffer(v, buffer);
     StockhamShuffle<T,LOG_N-1>::apply_with_existing_buffer(v+(1ul<<LOG_N>>1), buffer+(1ul<<LOG_N>>2));
   }
-  inline static void apply_out_of_place(T*__restrict const v) {
-    T*__restrict const buffer = (T*)aligned_malloc<T>(1ul<<LOG_N>>1);
+  inline static void apply_out_of_place(T* __restrict const v) {
+    T* __restrict const buffer = (T*)aligned_malloc<T>(1ul<<LOG_N>>1);
     apply_with_existing_buffer(v, buffer);
     free(buffer);
   }
@@ -24,10 +24,10 @@ public:
 template<typename T>
 class StockhamShuffle<T, 1> {
 public:
-  inline static void apply_with_existing_buffer(T*__restrict const v, T*__restrict const buffer) {
+  inline static void apply_with_existing_buffer(T* __restrict const v, T* __restrict const buffer) {
     // Do nothing
   }
-  inline static void apply_out_of_place(T*__restrict const v) {
+  inline static void apply_out_of_place(T* __restrict const v) {
     // Do nothing
   }
 };

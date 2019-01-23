@@ -140,12 +140,12 @@ TableDependency<L> MessagePasserFactory<L>::createPeptideEvidenceFactor(L id, do
 
 template <typename L>
 TableDependency<L> MessagePasserFactory<L>::createSumEvidenceFactor(size_t nrParents, L nId, L pepId) {
-  Tensor<double> table({nrParents + 1 , 2});
+  Tensor<double> table({static_cast<unsigned long>(nrParents + 1) , 2});
   for (unsigned long i=0; i <= nrParents; ++i) {
     double notConditional = notConditionalGivenSum(i);
-    u_long indexArr[] = {i,0};
+    unsigned long indexArr[2] = {i,0ul};
     table[indexArr] = notConditional;
-    u_long indexArr2[] = {i,1};
+    unsigned long indexArr2[2] = {i,1ul};
     table[indexArr2] = 1.0 - notConditional;
   }
   //std::cout << table << std::endl;

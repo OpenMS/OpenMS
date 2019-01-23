@@ -18,7 +18,7 @@ template <typename T>
 class Vector : public WritableVectorLike<T, Vector> {
 protected:
   unsigned long _length;
-  T*__restrict _data;
+  T* __restrict _data;
 public:
   template <typename S>
   friend class Vector;

@@ -60,6 +60,15 @@ namespace TRIOT {
       TRIOT::ForEachFixedDimensionHelper<DIMENSION,0>::template apply<FUNCTION, TENSORS...>(counter, shape, function, args...);
     }
   };
+  
+  template<>
+    class ForEachFixedDimension<0U>	{
+  public:
+    template <typename FUNCTION, typename ...TENSORS>
+    inline static void apply(const_tup_t shape, FUNCTION function, TENSORS & ...args) {
+		// do nothing, so that memset is not called with size = 0 which is a GCC extension
+	}
+  };
 
   //---------------------------------------------
   // For each, with visible counter:
@@ -114,6 +123,15 @@ namespace TRIOT {
       ForEachVisibleCounterFixedDimensionHelper<DIMENSION,0>::template apply<FUNCTION, TENSORS...>(counter, shape, function, args...);
     }
   };
+  
+  template<>
+    class ForEachVisibleCounterFixedDimension<0U>	{
+  public:
+    template <typename FUNCTION, typename ...TENSORS>
+    inline static void apply(const_tup_t shape, FUNCTION function, TENSORS & ...args) {
+		// do nothing, so that memset is not called with size = 0 which is a GCC extension
+	}
+  };
 }
 
 template <typename ...TENSORS>
@@ -134,6 +152,10 @@ void check_tensor_pack_bounds(const TENSORS & ...args, const Vector<unsigned lon
     assert(s >= shape);
   }
   #endif
+}
+
+template <typename ...TENSORS>
+void check_tensor_pack_bounds(const Vector<unsigned long> & shape) {
 }
 
 template <typename ...TENSORS>

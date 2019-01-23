@@ -10,7 +10,7 @@ public:
   // for larger N:
 
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict const data) {
+  inline static void apply(cpx* __restrict const data) {
     DITButterfly<N/2>::apply(data);
     DITButterfly<N/2>::apply(data+N/2);
 
@@ -29,7 +29,7 @@ public:
 template<>
 class DITButterfly<0ul> {
 public:
-  inline static void apply(cpx*__restrict  const) {
+  inline static void apply(cpx* __restrict  const) {
     // do nothing
   }
 };
@@ -37,7 +37,7 @@ public:
 template<>
 class DITButterfly<1ul> {
 public:
-  inline static void apply(cpx*__restrict  const) {
+  inline static void apply(cpx* __restrict  const) {
     // do nothing
   }
 };
@@ -46,7 +46,7 @@ template<>
 class DITButterfly<2ul> {
 public:
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict  const data) {
+  inline static void apply(cpx* __restrict  const data) {
     data[1] = data[0] - data[1];
     data[0] = data[0] + data[0] - data[1];
     // x = x + x - y 
@@ -62,7 +62,7 @@ template<>
 class DITButterfly<4ul> {
 public:
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict const data) {
+  inline static void apply(cpx* __restrict const data) {
     // Note: index written even when index is zero for
     // clarity; however, all constant multiplications will be
     // computed at compile time:
@@ -86,7 +86,7 @@ template<>
 class DITButterfly<8ul> {
 public:
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict const data) {
+  inline static void apply(cpx* __restrict const data) {
     DITButterfly<4ul>::apply(data);
     DITButterfly<4ul>::apply(data+4);
     
@@ -117,7 +117,7 @@ template<>
 class DITButterfly<16ul> {
 public:
   //  __attribute__((always_inline))
-  inline static void apply(cpx*__restrict const data) {
+  inline static void apply(cpx* __restrict const data) {
     DITButterfly<8ul>::apply(data);
     DITButterfly<8ul>::apply(data+8);
 

@@ -7,7 +7,7 @@
 template<typename T, unsigned char LOG_N>
 class NaiveShuffle {
 public:
-  inline static void apply(T*__restrict const v) {
+  inline static void apply(T* __restrict const v) {
     constexpr unsigned long int N = 1ul << LOG_N;
 
     for (unsigned long index=1; index<(N-1); ++index) {

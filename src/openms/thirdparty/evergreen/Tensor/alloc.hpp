@@ -5,7 +5,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <alloca.h>
+#ifdef _MSC_VER
+	#include <malloc.h>
+	#define alloca _alloca
+#else
+	#include <alloca.h>
+#endif
 
 // Note: may benefit from being tuned for specific architecture:
 const unsigned long int ALLOCATION_ALIGNMENT = 128;

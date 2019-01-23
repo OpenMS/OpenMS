@@ -396,6 +396,8 @@ public:
     /// Sum operator for std::string
     OPENMS_DLLAPI String& operator+=(const std::string& s);
     //@}
+	
+	//using hash = std::hash<std::string>;
 
     ///returns a random string of the given length. It consists of [0-9a-zA-Z]
     OPENMS_DLLAPI static String random(UInt length);
@@ -554,5 +556,17 @@ public:
       Size size_;
   }; 
 
+  OPENMS_DLLAPI std::size_t hash_value(const OpenMS::String & s) noexcept;
+
 } // namespace OPENMS
 
+namespace std
+{
+  template<>
+  struct hash<OpenMS::String> {
+	OPENMS_DLLAPI size_t operator()(const OpenMS::String &s) const
+	{
+	  return std::hash<std::string>()(static_cast<std::string>(s));
+	}
+  };
+}

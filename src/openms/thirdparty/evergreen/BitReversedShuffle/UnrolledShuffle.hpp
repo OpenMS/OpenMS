@@ -44,7 +44,7 @@ template <typename T, unsigned char NUM_BITS, unsigned char REM_BITS, unsigned l
 class ShuffleAllValuesHelper {
 public:
   //  __attribute__((always_inline))
-  static void apply(T *__restrict x) {
+  static void apply(T * __restrict x) {
     // 0*0
     ShuffleAllValuesHelper<T, NUM_BITS, REM_BITS-2, VAL, REV>::apply(x);
 
@@ -64,7 +64,7 @@ template <typename T, unsigned char NUM_BITS, unsigned long VAL, unsigned long R
 class ShuffleAllValuesHelper<T, NUM_BITS, 1, VAL, REV> {
 public:
   //  __attribute__((always_inline))
-  static void apply(T *__restrict x) {
+  static void apply(T * __restrict x) {
     constexpr unsigned char MIDDLE_BIT = NUM_BITS>>1;
     // With 0 in middle:
     std::swap(x[VAL], x[REV]);
@@ -79,7 +79,7 @@ template <typename T, unsigned char NUM_BITS, unsigned long VAL, unsigned long R
 class ShuffleAllValuesHelper<T, NUM_BITS, 0, VAL, REV> {
 public:
   //  __attribute__((always_inline))
-  static void apply(T *__restrict x) {
+  static void apply(T * __restrict x) {
     std::swap(x[VAL], x[REV]);
   }
 };
@@ -88,7 +88,7 @@ template <typename T, unsigned char NUM_BITS, unsigned char REM_BITS, unsigned l
 class UnrolledShuffleHelper {
 public:
   //  __attribute__((always_inline))
-  static void apply(T *__restrict x) {
+  static void apply(T * __restrict x) {
     // apply [current_bit digits]0...1[current_bit digits]
 
     // Applies to all inner values (inequality is already guaranteed):
@@ -107,7 +107,7 @@ template <typename T, unsigned char NUM_BITS, unsigned long VAL, unsigned long R
 class UnrolledShuffleHelper<T, NUM_BITS, 1, VAL, REV> {
 public:
   //  __attribute__((always_inline))
-  static void apply(T *__restrict x) {
+  static void apply(T * __restrict x) {
     constexpr unsigned char MIDDLE_BIT = NUM_BITS>>1;
     // With 0 in middle:
     std::swap(x[VAL], x[REV]);
@@ -126,7 +126,7 @@ template <typename T, unsigned char NUM_BITS, unsigned long VAL, unsigned long R
 class UnrolledShuffleHelper<T, NUM_BITS, 0, VAL, REV> {
 public:
   //  __attribute__((always_inline))
-  static void apply(T *__restrict x) {
+  static void apply(T * __restrict x) {
     std::swap(x[VAL], x[REV]);
   }
 };
@@ -135,7 +135,7 @@ template <typename T, unsigned char NUM_BITS>
 class UnrolledShuffle {
 public:
   //  __attribute__((always_inline))
-  static void apply(T *__restrict x) {
+  static void apply(T * __restrict x) {
     UnrolledShuffleHelper<T, NUM_BITS, NUM_BITS, 0ul, 0ul>::apply(x);
   }
 };

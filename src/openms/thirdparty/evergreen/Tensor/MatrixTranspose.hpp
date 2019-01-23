@@ -18,7 +18,7 @@ private:
   static constexpr unsigned int BLOCK_SIZE = 128 / sizeof(T);;
 
   // Square (in place):
-  static void square_helper(T*__restrict const mat, const unsigned long N, const unsigned long r_start, const unsigned long r_end, const unsigned long c_start, const unsigned long c_end) {
+  static void square_helper(T* __restrict const mat, const unsigned long N, const unsigned long r_start, const unsigned long r_end, const unsigned long c_start, const unsigned long c_end) {
     unsigned long r_span = r_end-r_start;
     unsigned long c_span = c_end-c_start;
 
@@ -59,7 +59,7 @@ private:
   }
 
   // Buffered (out of place):
-  static void buffered_helper(T*__restrict const dest, T*__restrict const source, const unsigned long R, const unsigned long C, const unsigned long r_start, const unsigned long r_end, const unsigned long c_start, const unsigned long c_end) {
+  static void buffered_helper(T* __restrict const dest, T* __restrict const source, const unsigned long R, const unsigned long C, const unsigned long r_start, const unsigned long r_end, const unsigned long c_start, const unsigned long c_end) {
     unsigned long r_span = r_end-r_start;
     unsigned long c_span = c_end-c_start;
     if ( c_span <= BLOCK_SIZE ) {
@@ -90,21 +90,21 @@ private:
 
 public:
 
-  inline static void apply_square(T*__restrict const mat, const unsigned long N) {
+  inline static void apply_square(T* __restrict const mat, const unsigned long N) {
     square_helper(mat, N, 0, N, 0, N);
   }
 
-  static void apply_square_naive(T*__restrict const mat, const unsigned long N) {
+  static void apply_square_naive(T* __restrict const mat, const unsigned long N) {
     for (unsigned long r=0; r<N; ++r)
       for (unsigned long c=r+1; c<N; ++c)
 	std::swap(mat[r*N+c], mat[c*N+r]);
   }
 
-  inline static void apply_buffered(T*__restrict const dest, T*__restrict const source, const unsigned long R, const unsigned long C) {
+  inline static void apply_buffered(T* __restrict const dest, T* __restrict const source, const unsigned long R, const unsigned long C) {
     buffered_helper(dest, source, R, C, 0, R, 0, C);
   }
 
-  static void apply_buffered_naive(T*__restrict const dest, const T*__restrict const source, const unsigned long R, const unsigned long C) {
+  static void apply_buffered_naive(T* __restrict const dest, const T* __restrict const source, const unsigned long R, const unsigned long C) {
     for (unsigned long r=0; r<R; ++r)
       for (unsigned long c=0; c<C; ++c)
 	dest[c*R+r] = source[r*C+c];

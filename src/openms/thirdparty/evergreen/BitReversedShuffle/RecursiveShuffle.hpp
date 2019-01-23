@@ -7,7 +7,7 @@
 template <typename T, unsigned char LOG_WIDTH, unsigned char LOG_SUB_WIDTH, unsigned long R, unsigned long C>
 class LogSquareTranspose {
 public:
-  static void apply(T*__restrict x) {
+  static void apply(T* __restrict x) {
     constexpr unsigned long SUB_WIDTH = 1ul<<LOG_SUB_WIDTH;
     
     LogSquareTranspose<T, LOG_WIDTH, LOG_SUB_WIDTH-1, R, C>::apply(x);
@@ -22,7 +22,7 @@ const unsigned char LOG_BLOCK_WIDTH = 4;
 template <typename T, unsigned char LOG_WIDTH, unsigned long R, unsigned long C>
 class LogSquareTranspose<T, LOG_WIDTH, LOG_BLOCK_WIDTH, R, C> {
 public:
-  static void apply(T*__restrict x) {
+  static void apply(T* __restrict x) {
     constexpr unsigned long WIDTH = 1ul<<LOG_WIDTH;
     constexpr unsigned long BLOCK_WIDTH = 1ul<<LOG_BLOCK_WIDTH;
     for (unsigned int i=R; i<R+BLOCK_WIDTH; ++i)
@@ -49,7 +49,7 @@ public:
 
 template <typename T, unsigned char NUM_BITS>
 // Buffer must be at least N/2 in length
-inline void lsb_to_msb_with_existing_buffer(T*__restrict x, T*__restrict buffer) {
+inline void lsb_to_msb_with_existing_buffer(T* __restrict x, T* __restrict buffer) {
   constexpr unsigned long N = 1ul<<NUM_BITS;
     
   // Copy odd indices to buffer:
@@ -69,11 +69,11 @@ inline void lsb_to_msb_with_existing_buffer(T*__restrict x, T*__restrict buffer)
 }
 
 template <typename T, unsigned char NUM_BITS>
-inline void lsb_to_msb(T*__restrict x) {
+inline void lsb_to_msb(T* __restrict x) {
   constexpr unsigned long N = 1ul<<NUM_BITS;
     
   // Copy odd indices to buffer:
-  T*__restrict odds = (T*)aligned_malloc<T>(N>>1);
+  T* __restrict odds = (T*)aligned_malloc<T>(N>>1);
   lsb_to_msb_with_existing_buffer<T, NUM_BITS>(x, odds);
   free(odds);
 }
@@ -82,7 +82,7 @@ template <typename T, unsigned char NUM_BITS>
 class RecursiveShuffle {
 private:
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     // & 1 is the same as % 2:
     if ((NUM_BITS & 1) == 1) {
       // allocate buffer and perform single LSB --> MSB:
@@ -112,7 +112,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 9> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 9>::apply(x);
   }
 };
@@ -120,7 +120,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 8> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 8>::apply(x);
   }
 };
@@ -128,7 +128,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 7> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 7>::apply(x);
   }
 };
@@ -136,7 +136,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 6> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 6>::apply(x);
   }
 };
@@ -144,7 +144,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 5> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 5>::apply(x);
   }
 };
@@ -152,7 +152,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 4> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 4>::apply(x);
   }
 };
@@ -160,7 +160,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 3> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 3>::apply(x);
   }
 };
@@ -168,7 +168,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 2> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 2>::apply(x);
   }
 };
@@ -176,7 +176,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 1> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 1>::apply(x);
   }
 };
@@ -184,7 +184,7 @@ public:
 template <typename T>
 class RecursiveShuffle<T, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
   }
 };
 

@@ -7,7 +7,7 @@
 template<typename T, unsigned char LOG_N>
 class XORShuffle {
 public:
-  inline static void apply(T*__restrict const v) {
+  inline static void apply(T* __restrict const v) {
     constexpr unsigned long N = 1ul << LOG_N;
 
     unsigned long reversed = 0;

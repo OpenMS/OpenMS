@@ -9,7 +9,7 @@
 template <typename T, unsigned char NUM_BITS, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     // & 1 is the same as % 2:
     if ((NUM_BITS & 1) == 1) {
       // allocate buffer and perform single LSB --> MSB:
@@ -36,7 +36,7 @@ public:
 template <typename T, unsigned char NUM_BITS>
 class SemiRecursiveShuffle<T, NUM_BITS, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, NUM_BITS>::apply(x);
   }
 };
@@ -45,7 +45,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 9, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 9>::apply(x);
   }
 };
@@ -53,7 +53,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 8, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 8>::apply(x);
   }
 };
@@ -61,7 +61,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 7, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 7>::apply(x);
   }
 };
@@ -69,7 +69,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 6, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 6>::apply(x);
   }
 };
@@ -77,7 +77,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 5, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 5>::apply(x);
   }
 };
@@ -85,7 +85,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 4, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 4>::apply(x);
   }
 };
@@ -93,7 +93,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 3, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 3>::apply(x);
   }
 };
@@ -101,7 +101,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 2, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 2>::apply(x);
   }
 };
@@ -109,7 +109,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 1, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 1>::apply(x);
   }
 };
@@ -117,7 +117,7 @@ public:
 template <typename T, unsigned char RECURSIONS_REMAINING>
 class SemiRecursiveShuffle<T, 0, RECURSIONS_REMAINING> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
   }
 };
 
@@ -125,7 +125,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 9, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 9>::apply(x);
   }
 };
@@ -133,7 +133,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 8, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 8>::apply(x);
   }
 };
@@ -141,7 +141,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 7, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 7>::apply(x);
   }
 };
@@ -149,7 +149,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 6, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 6>::apply(x);
   }
 };
@@ -157,7 +157,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 5, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 5>::apply(x);
   }
 };
@@ -165,7 +165,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 4, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 4>::apply(x);
   }
 };
@@ -173,7 +173,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 3, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 3>::apply(x);
   }
 };
@@ -181,7 +181,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 2, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 2>::apply(x);
   }
 };
@@ -189,7 +189,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 1, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
     UnrolledShuffle<T, 1>::apply(x);
   }
 };
@@ -197,7 +197,7 @@ public:
 template <typename T>
 class SemiRecursiveShuffle<T, 0, 0> {
 public:
-  inline static void apply(T*__restrict x) {
+  inline static void apply(T* __restrict x) {
   }
 };
 

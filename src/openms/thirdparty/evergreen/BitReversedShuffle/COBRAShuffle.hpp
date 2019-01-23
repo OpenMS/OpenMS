@@ -9,12 +9,12 @@
 template<typename T, unsigned char LOG_N, unsigned char LOG_BLOCK_WIDTH>
 class COBRAShuffle {
 public:
-  inline static void apply(T*__restrict const v) {
+  inline static void apply(T* __restrict const v) {
     constexpr unsigned char NUM_B_BITS = LOG_N - 2*LOG_BLOCK_WIDTH;
     constexpr unsigned long B_SIZE = 1ul << NUM_B_BITS;
     constexpr unsigned long BLOCK_WIDTH = 1ul << LOG_BLOCK_WIDTH;
 
-    T*__restrict buffer = (T*)aligned_malloc<T>(BLOCK_WIDTH*BLOCK_WIDTH);
+    T* __restrict buffer = (T*)aligned_malloc<T>(BLOCK_WIDTH*BLOCK_WIDTH);
 
     for (unsigned long b=0; b<B_SIZE; ++b) {
       unsigned long b_rev = BitReversal<NUM_B_BITS>::reverse_bytewise(b);
@@ -63,14 +63,14 @@ public:
     free(buffer);
   }
 
-  inline static void apply_out_of_place(T*__restrict const v) {
-    T*__restrict const result = (T*)aligned_malloc<T>(1ul<<LOG_N);
+  inline static void apply_out_of_place(T* __restrict const v) {
+    T* __restrict const result = (T*)aligned_malloc<T>(1ul<<LOG_N);
     
     constexpr unsigned char NUM_B_BITS = LOG_N - 2*LOG_BLOCK_WIDTH;
     constexpr unsigned long B_SIZE = 1ul << NUM_B_BITS;
     constexpr unsigned long BLOCK_WIDTH = 1ul << LOG_BLOCK_WIDTH;
 
-    T*__restrict buffer = (T*)aligned_malloc<T>(BLOCK_WIDTH*BLOCK_WIDTH);
+    T* __restrict buffer = (T*)aligned_malloc<T>(BLOCK_WIDTH*BLOCK_WIDTH);
 
     for (unsigned long b=0; b<B_SIZE; ++b) {
       unsigned long b_rev = BitReversal<NUM_B_BITS>::reverse_bytewise(b);
