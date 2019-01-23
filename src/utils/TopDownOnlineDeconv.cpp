@@ -10,6 +10,8 @@
 #include <queue>
 #include "boost/dynamic_bitset.hpp"
 #include <iostream>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -47,10 +49,8 @@ public:
 protected:
 
     static double getLogMz(double mz){
-        const double protonMass = 1.0072764668;// 1.0072765;
-        return log(mz - protonMass);
+        return log(mz -  Constants::PROTON_MASS_U);
     }
-
 
 
     void registerOptionsAndFlags_() override {
@@ -63,9 +63,10 @@ protected:
         // parsing parameters
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
-       // String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
-        //String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
+
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/05-26-17_B7A_yeast_td_fract12_rep1.mzML";
+        //String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
+        ///String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
         cout << "file name : " << infilePath << endl;
         // just for quick use
 
@@ -81,7 +82,7 @@ protected:
         mzml.load(infilePath, map);
         cout << "Loaded consensus maps" << endl;
         clock_t begin = clock();
-        int cntr = onlineDeonvolution(map);
+        int cntr = onlineDeconvolution(map);
         clock_t end = clock();
         double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
         std::cout << elapsed_secs << " seconds elapsed" << std::endl;
@@ -90,12 +91,13 @@ protected:
         return EXECUTION_OK;
     }
 
-    int onlineDeonvolution(MSExperiment &map){
+    int onlineDeconvolution(MSExperiment &map){
         double threshold = 5000;
-        int filterSize = 15;
+        int filterSize = 35;
         int minCharge = 5;
-        int minChargePeakCount = filterSize*0.3; // inclusive
-        int massCount = 5;
+        int minPeakPerMass = filterSize*0.3; // inclusive
+        int maxMassPerSpectrum = 5;
+        int maxIsotopeIndex = 15;
         double tolerance = 5e-6; // 5 ppm
 
         int specCntr = 0, qspecCntr = 0, massCntr=0;
@@ -105,12 +107,11 @@ protected:
             filter[i] = log(1.0/(i + minCharge)); // should be descending, and negative!
         }
 
-        ofstream mfile;
-        mfile.open ("/Users/kyowonjeong/Documents/A4B/matlab/bins.m");
+        CoarseIsotopePatternGenerator* generator= new CoarseIsotopePatternGenerator();
+        generator->setMaxIsotope(maxIsotopeIndex);
 
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
-           // if(it->size()<1000) continue;
             specCntr++;
 
             double rt = it->getRT();
@@ -124,27 +125,44 @@ protected:
             }
 
             auto peakGroups =
-                    findPeakGroups(logMzPeaks, filter, filterSize, minCharge, tolerance, minChargePeakCount, massCount, mfile, specCntr);
+                    findPeakGroups(logMzPeaks, filter, filterSize, minCharge, maxIsotopeIndex, tolerance, minPeakPerMass, maxMassPerSpectrum);
             if (peakGroups.empty())
                 continue;
-            //cout<<specCntr<<" " <<peakGroups.size()<<endl;
             std::map<double, double> scoreMassMap;
 
             for(auto &pg : peakGroups){
                 double* perChargeIntensities = new double[filterSize];
-                double* perIsotopeIntensities = new double[10]; // tentative
+                double* perIsotopeIntensities = new double[maxIsotopeIndex];
 
                 fill_n(perChargeIntensities,filterSize,0);
-                fill_n(perIsotopeIntensities,10,0);
+                fill_n(perIsotopeIntensities,maxIsotopeIndex,0); // change it to be flexible
 
                 double monoIsotopeMass;
                 for(auto &p : pg){
                     int index = p.charge - minCharge;
                     perChargeIntensities[index] += p.orgPeak->getIntensity();
-                    if(p.isotopeIndex<10)
+                    if(p.isotopeIndex<maxIsotopeIndex)
                         perIsotopeIntensities[p.isotopeIndex] += p.orgPeak->getIntensity();
                     if(p.isotopeIndex == 0) monoIsotopeMass = p.getMass();
                 }
+
+                auto avgIso = generator->estimateFromPeptideWeight(monoIsotopeMass);
+                int offset;
+                double maxCosine = -1;
+                for(int f = -3;f<=3;f++){
+                    auto cos = getCosine(perIsotopeIntensities, avgIso, f);
+
+                    if(maxCosine < cos){
+                        maxCosine = cos;
+                        offset = f;
+                    }
+                }
+
+                if(maxCosine < .75){
+                   continue;
+                }
+                //cout<<offset<< " " << maxCosine << endl;
+                monoIsotopeMass += offset * Constants::C13C12_MASSDIFF_U;
 
                 int maxIntensityIndex;
                 int firstNonZeroIndex = -1;
@@ -173,8 +191,6 @@ protected:
                     score += getLogLikelihoodRatioScore(perChargeIntensities[k], perChargeIntensities[k-1]);
                 }
                 //continue;
-                //cout<<maxIntensityIndex<<endl;
-
                 if(score > 0 && !pg.empty()){
                     scoreMassMap[score] = monoIsotopeMass;
                     /*cout<<"pg{"<<++massCntr<<"}=[";
@@ -185,7 +201,8 @@ protected:
                 }
             }
 
-            if(scoreMassMap.empty()) continue;
+            if(scoreMassMap.empty())
+                continue;
             auto iter = scoreMassMap.rbegin();
             qspecCntr++;
 
@@ -194,7 +211,6 @@ protected:
             }
             cout << endl;
         }
-        mfile.close();
         return specCntr;
     }
 
@@ -240,8 +256,22 @@ protected:
         return filtered;
     }*/
 
+    double getCosine(double* a, IsotopeDistribution b, int offset = 0){
+        double n=0, d1=0, d2=0;
+        for(int i=0;i<b.size();i++){
+            int j = i + offset;
+            if(j<0 || j>=b.size()) continue;
+            n += a[j] * b[i].getIntensity();
+            d1 += a[j] * a[j];
+            d2 += b[i].getIntensity() * b[i].getIntensity();
+        }
+        double d = sqrt(d1 * d2);
+        if(d <=0) return 0;
+        return n/d;
+    }
+
     vector<vector<LogMzPeak>> findPeakGroups(vector<LogMzPeak> &logMzPeaks, double *filter, int filterSize, int minCharge,
-                                             double tol, int minChargePeakCount, int massCount, ofstream& mfile, int specCntr){
+                                            int maxIsotopeIndex, double tol, int minChargePeakCount, int massCount){
         vector<vector<LogMzPeak>> peakGroups;
         // minChargePeakCount should be < filterSize
         double min = logMzPeaks[0].logMz - filter[0]; // never fix it..
@@ -280,7 +310,7 @@ protected:
 
         while(setMassBinIndex != mzBins.npos){
             for(int j=0;j<filterSize;j++) {
-                int bi = (setMassBinIndex + binOffsets[j]);
+                int bi = setMassBinIndex + binOffsets[j];
                 if (bi >= binNumber) break;
                 massBinScores[bi]++;
 
@@ -291,20 +321,18 @@ protected:
         }
 
         if(massBins.count() == 0) return peakGroups;
-        //cout<<massBins.count()<<endl;
 
-        double isotopeMass = 1.003355;
-        int isoMinCntr = 4;
-        int isoMaxCntr = 8;
+        double isotopeMass = Constants::C13C12_MASSDIFF_U;
+        int isoMinCntr = 3;//tmp
         setMassBinIndex = massBins.find_first();
 
         while(setMassBinIndex != massBins.npos){
             auto isoPresent = true;
             auto m = exp(min + setMassBinIndex * tol);
-            int* isoBins = new int[isoMaxCntr-1];
-            fill_n(isoBins, isoMaxCntr-1,0);
+            int* isoBins = new int[maxIsotopeIndex-1];
+            fill_n(isoBins, maxIsotopeIndex-1,0);
 
-            for(int i=1;i<isoMaxCntr;i++) {
+            for(int i=1;i<maxIsotopeIndex;i++) {
                 int bin = setMassBinIndex + isotopeMass*i/m/tol;
                 if(bin>=binNumber){
                     isoPresent = false;
@@ -316,7 +344,7 @@ protected:
             }
 
             if(isoPresent){
-                for(int i=1;i<isoMaxCntr;i++) {
+                for(int i=1;i<maxIsotopeIndex;i++) {
                     int bin = isoBins[i-1];
                     if(bin == 0) break;
                     massBinScores[setMassBinIndex] = massBinScores[setMassBinIndex] > massBinScores[bin] ? massBinScores[setMassBinIndex] : massBinScores[bin];
@@ -329,8 +357,6 @@ protected:
             }
             setMassBinIndex = massBins.find_next(setMassBinIndex);
         }
-
-        //cout<<massBins.count()<<endl;
 
         if(massBins.count() == 0) return peakGroups;
 
@@ -364,8 +390,6 @@ protected:
                 setMassBinIndex = massBins.find_next(setMassBinIndex);
                 continue;
             }
-            //multimap<int, int> peakIndexToChargeMap; // index - > charge
-            //multimap<int, int> peakIndexToIsotopeIndexMap;
             int isoOff = 0;
             vector<LogMzPeak> peakGroup;
             peakGroup.reserve(logMzPeaks.size());
@@ -381,54 +405,18 @@ protected:
                         p.charge = charge;
                         p.isotopeIndex = 0;
                         peakGroup.push_back(p);
-                        //mmapOfPos.insert(std::pair<char, int>('t', 9));
-                        //peakIndexToChargeMap.insert(pair<int, int>(currentPeakIndex[j], charge));
-                        //peakIndexToIsotopeIndexMap.insert(pair<int, int>(currentPeakIndex[j], 0));
-                        //peakIndexToIsotopeIndexMap[currentPeakIndex[j]] = 0;
 
                         if(currentPeakIndex[j]>0){
                             if(logMz - logMzPeaks[currentPeakIndex[j]-1].logMz < tol){
-                                //peakIndexToChargeMap.insert(pair<int, int>(currentPeakIndex[j]-1, charge));
-                                //peakIndexToIsotopeIndexMap.insert(pair<int, int>(currentPeakIndex[j]-1, 0));
                                 LogMzPeak p(*logMzPeaks[currentPeakIndex[j]-1].orgPeak);
                                 p.charge = charge;
                                 p.isotopeIndex = 0;
                                 peakGroup.push_back(p);
-                                //peakIndexToChargeMap[currentPeakIndex[j]-1] = charge;
-                                //peakIndexToIsotopeIndexMap[currentPeakIndex[j]-1] = 0;
                             }
                         }
-                        int currentPeakIndexForIsotopes = currentPeakIndex[j] + 1;
+                        int currentPeakIndexForIsotopes = currentPeakIndex[j] - 1;
 
-                        for(int i=1;i<isoMaxCntr;i++) {
-                            double logMzIsotope = log(exp(logMz) + isotopeMass*i/charge);
-
-                            bool isotopePeakPresent = false;
-                            while(currentPeakIndexForIsotopes < logMzPeaks.size()){
-                                double logMzForIsotope = logMzPeaks[currentPeakIndexForIsotopes].logMz;
-                                currentPeakIndexForIsotopes++;
-                                if(logMzForIsotope < logMzIsotope - tol) continue;
-                                if(logMzForIsotope > logMzIsotope + tol) break;
-
-                                isotopePeakPresent = true;
-
-                                LogMzPeak p(*logMzPeaks[currentPeakIndexForIsotopes-1].orgPeak);
-                                p.charge = charge;
-                                p.isotopeIndex = i;
-                                peakGroup.push_back(p);
-                                //peakIndexToChargeMap.insert(pair<int, int>(currentPeakIndexForIsotopes-1, charge));
-                                //peakIndexToIsotopeIndexMap.insert(pair<int, int>(currentPeakIndexForIsotopes-1, i));
-
-                                //peakIndexToChargeMap[currentPeakIndexForIsotopes - 1] = charge;
-                                //peakIndexToIsotopeIndexMap[currentPeakIndexForIsotopes - 1] = i;
-
-                            }
-                            if(!isotopePeakPresent) break;
-                        }
-
-                        currentPeakIndexForIsotopes = currentPeakIndex[j] - 1;
-
-                        for(int i=-1;i>-isoMaxCntr;i--) {
+                        for(int i=-1;i>-maxIsotopeIndex;i--) {
                             double logMzIsotope = log(exp(logMz) + isotopeMass*i/charge);
 
                             bool isotopePeakPresent = false;
@@ -444,34 +432,52 @@ protected:
                                 p.charge = charge;
                                 p.isotopeIndex = i;
                                 peakGroup.push_back(p);
-                                //peakIndexToChargeMap.insert(pair<int, int>(currentPeakIndexForIsotopes+1, charge));
-                                //peakIndexToIsotopeIndexMap.insert(pair<int, int>(currentPeakIndexForIsotopes+1, i));
+                            }
+                            if(!isotopePeakPresent) break;
+                            isoOff = i > isoOff? isoOff : i;
+                        }
 
-                                //peakIndexToChargeMap[currentPeakIndexForIsotopes + 1] = charge;
-                                //peakIndexToIsotopeIndexMap[currentPeakIndexForIsotopes + 1] = i;
-                                isoOff = i > isoOff? isoOff : i;
+                        currentPeakIndexForIsotopes = currentPeakIndex[j] + 1;
+
+                        for(int i=1;i<maxIsotopeIndex + isoOff;i++) {
+                            double logMzIsotope = log(exp(logMz) + isotopeMass*i/charge);
+
+                            bool isotopePeakPresent = false;
+                            while(currentPeakIndexForIsotopes < logMzPeaks.size()){
+                                double logMzForIsotope = logMzPeaks[currentPeakIndexForIsotopes].logMz;
+                                currentPeakIndexForIsotopes++;
+                                if(logMzForIsotope < logMzIsotope - tol) continue;
+                                if(logMzForIsotope > logMzIsotope + tol) break;
+
+                                isotopePeakPresent = true;
+
+                                LogMzPeak p(*logMzPeaks[currentPeakIndexForIsotopes-1].orgPeak);
+                                p.charge = charge;
+                                p.isotopeIndex = i;
+                                peakGroup.push_back(p);
                             }
                             if(!isotopePeakPresent) break;
                         }
+
+
                     }
                     currentPeakIndex[j]++;
                 }
             }
 
-            vector<LogMzPeak> peakGroupIsotopIndexAdjusted;
-            peakGroupIsotopIndexAdjusted.reserve(peakGroup.size());
+            vector<LogMzPeak> peakGroupIsotopeIndexAdjusted;
+            peakGroupIsotopeIndexAdjusted.reserve(peakGroup.size());
 
-            //for (std::pair<char, int> elem : mmapOfPos)
             for(auto p : peakGroup){
                 p.isotopeIndex = p.isotopeIndex - isoOff;
-                peakGroupIsotopIndexAdjusted.push_back(p);
+                peakGroupIsotopeIndexAdjusted.push_back(p);
             }
 
-            peakGroups.push_back(peakGroupIsotopIndexAdjusted);
+            //cout<<isoOff<<endl;
+
+            peakGroups.push_back(peakGroupIsotopeIndexAdjusted);
             setMassBinIndex = massBins.find_next(setMassBinIndex);
         }
-        //cout<<peakGroups.size()<<endl;
-        //peakGroups.clear();
         return peakGroups;
     }
 
