@@ -228,14 +228,17 @@ namespace OpenMS
                                         const boost::regex& scan_regexp, 
                                         bool no_error)
   {
-    boost::smatch match;
-    bool found = boost::regex_search(native_id, match, scan_regexp);
-    if (found && match["SCAN"].matched)
+    vector<string> matches;
+    boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), scan_regexp, 1);
+    boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), scan_regexp, 1);
+    matches.insert(matches.end(), current_begin, current_end);
+    if (!matches.empty())
     {
-      String value = match["SCAN"].str();
+      // always use the last possible matching subgroup 
+      String last_value = String(matches.back());
       try
       {
-        return value.toInt();
+        return last_value.toInt();
       }
       catch (Exception::ConversionError&)
       {
