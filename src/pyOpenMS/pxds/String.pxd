@@ -17,8 +17,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
         String() nogil except +
         String(String) nogil except +  # wrap-ignore
         String(char *) nogil except + # wrap-ignore
+        String(char *, size_t l) nogil except + # wrap-ignore
         String(str) nogil except + # wrap-ignore
-        const_char * c_str() nogil except +
+        const_char * c_str() nogil except + # wrap-ignore
 
         # Creates a Python 2/3 unicode string (use this instead of c_str() if you
         # plan to use any non-ASCII code).

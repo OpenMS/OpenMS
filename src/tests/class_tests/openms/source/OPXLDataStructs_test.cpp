@@ -46,8 +46,10 @@ using namespace OpenMS;
 START_TEST(OPXLDataStructs, "$Id$")
 
   OPXLDataStructs::ProteinProteinCrossLink cross_link;
-  cross_link.alpha = AASequence::fromString("PEPTIDE");
-  cross_link.beta = AASequence::fromString("EDEPITPEPE");
+  AASequence alpha = AASequence::fromString("PEPTIDE");
+  AASequence beta = AASequence::fromString("EDEPITPEPE");
+  cross_link.alpha = &alpha;
+  cross_link.beta = &beta;
   cross_link.cross_link_position = std::make_pair<SignedSize, SignedSize>(3, 5);
   cross_link.cross_linker_mass = 150.0;
   cross_link.cross_linker_name = "NOTDSS";
@@ -58,7 +60,7 @@ START_SECTION(ProteinProteinCrossLink())
 
   TEST_EQUAL(cross_link.getType(), OPXLDataStructs::CROSS)
 
-  cross_link.beta = AASequence::fromString("");
+  cross_link.beta = nullptr;
   TEST_EQUAL(cross_link.getType(), OPXLDataStructs::LOOP)
 
   cross_link.cross_link_position = std::make_pair<SignedSize, SignedSize>(3, -1);
