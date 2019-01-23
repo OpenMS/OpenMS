@@ -214,8 +214,10 @@ START_SECTION(batchMRMFeaturesQMIP() integer) // integer variable type
   params1.variable_type = MRMFeatureSelector::VariableType::INTEGER;
   params1.optimal_threshold = 0.5;
   params1.score_weights = {
-    {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
-    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+    // {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
+    // {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::LINEAR},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::LINEAR}
   };
 
   MRMFeatureSelector::SelectorParameters params2 = params1;
@@ -277,8 +279,10 @@ START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
   params1.variable_type = MRMFeatureSelector::VariableType::CONTINUOUS;
   params1.optimal_threshold = 0.5;
   params1.score_weights = {
-    {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
-    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+    // {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
+    // {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::LINEAR},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::LINEAR}
   };
 
   MRMFeatureSelector::SelectorParameters params2 = params1;
@@ -291,27 +295,27 @@ START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
 
-  TEST_EQUAL(output_selected.size(), 82);
+  TEST_EQUAL(output_selected.size(), 29);
 
   const Feature* f = &output_selected[0].getSubordinates()[0];
-  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 262623.5);
-  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "23dpg.23dpg_1.Heavy");
-  TEST_REAL_SIMILAR(f->getRT(), 15.8944563381195);
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.0);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "AICAr.AICAr_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 1.19311977717082);
 
   f = &output_selected[1].getSubordinates()[0];
-  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 3678.5);
-  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "2obut.2obut_1.Heavy");
-  TEST_REAL_SIMILAR(f->getRT(), 9.54183669713338);
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.0);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Hexose_Pool_fru_glc-D.Hexose_Pool_fru_glc-D_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 1.52517738800049);
 
   f = &output_selected[2].getSubordinates()[0];
-  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 2332.0);
-  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "5oxpro.5oxpro_1.Heavy");
-  TEST_REAL_SIMILAR(f->getRT(), 3.67159563852946);
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 318.5);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Lcystin.Lcystin_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 0.796409679158529);
 
-  f = &output_selected[50].getSubordinates()[0];
-  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 37090.0);
-  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "gua.gua_1.Heavy");
-  TEST_REAL_SIMILAR(f->getRT(), 1.27875684076945);
+  f = &output_selected[28].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.499999999999886);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "xan.xan_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 1.19446469192505);
 
   // // DEBUG
   // // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
@@ -337,8 +341,10 @@ START_SECTION(batchMRMFeaturesQMIP() continuous but smaller experiment) // conti
   params1.variable_type = MRMFeatureSelector::VariableType::CONTINUOUS;
   params1.optimal_threshold = 0.5;
   params1.score_weights = {
-    {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
-    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+    // {"sn_ratio", MRMFeatureSelector::LambdaScore::INVERSE_LOG},
+    // {"peak_apices_sum", MRMFeatureSelector::LambdaScore::INVERSE_LOG10}
+    {"sn_ratio", MRMFeatureSelector::LambdaScore::LINEAR},
+    {"peak_apices_sum", MRMFeatureSelector::LambdaScore::LINEAR}
   };
 
   MRMFeatureSelector::SelectorParameters params2 = params1;
