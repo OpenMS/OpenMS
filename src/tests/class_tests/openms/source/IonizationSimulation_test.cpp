@@ -144,8 +144,8 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
   /// test exception on invalid intensites
   ef2 = esi_features;
   // ...something large to provoke float->int conversion overflow
-  for (auto& e : ef2) e.setIntensity(1e19f);
-  //TEST_EXCEPTION(std::exception, esi_sim.ionize(ef2, cm, exp))
+  for (auto& e : ef2) e.setIntensity(std::numeric_limits<float>::max());
+  TEST_EXCEPTION(Exception::InvalidValue, esi_sim.ionize(ef2, cm, exp))
 
   esi_sim.ionize(esi_features, cm, exp);
 
