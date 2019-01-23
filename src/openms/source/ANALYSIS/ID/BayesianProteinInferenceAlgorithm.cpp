@@ -435,23 +435,23 @@ namespace OpenMS
 
     defaults_.setValue("model_parameters:prot_prior",
                        -1.,
-                       "Protein prior probability ('gamma' parameter).");
-    defaults_.setMinFloat("model_parameters:prot_prior", 0.0);
+                       "Protein prior probability ('gamma' parameter). Negative values enable grid search for this param.");
+    defaults_.setMinFloat("model_parameters:prot_prior", -1.0);
     defaults_.setMaxFloat("model_parameters:prot_prior", 1.0);
 
     defaults_.setValue("model_parameters:pep_emission",
                        -1.,
-                       "Peptide emission probability ('alpha' parameter)");
-    defaults_.setMinFloat("model_parameters:pep_emission", 0.0);
+                       "Peptide emission probability ('alpha' parameter). Negative values enable grid search for this param.");
+    defaults_.setMinFloat("model_parameters:pep_emission", -1.0);
     defaults_.setMaxFloat("model_parameters:pep_emission", 1.0);
 
     defaults_.setValue("model_parameters:pep_spurious_emission",
                        -1.,
-                       "Spurious peptide identification probability ('beta' parameter). Usually much smaller than emission from proteins");
-    defaults_.setMinFloat("model_parameters:pep_spurious_emission", 0.0);
+                       "Spurious peptide identification probability ('beta' parameter)."
+                       " Usually much smaller than emission from proteins. "
+                       "Negative values enable grid search for this param.");
+    defaults_.setMinFloat("model_parameters:pep_spurious_emission", -1.0);
     defaults_.setMaxFloat("model_parameters:pep_spurious_emission", 1.0);
-
-
 
     defaults_.addSection("loopy_belief_propagation","Settings for the loopy belief propagation algorithm.");
 

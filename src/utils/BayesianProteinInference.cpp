@@ -86,10 +86,22 @@ protected:
                           "<option>",
                           0.001,
                           "After greedy resolution, before filtering proteins evidence-based, remove very low-scoring PSMs under this posterior probability cutoff.", false, true);
+    addEmptyLine_();
+
+    registerSubsection_("algorithm", "Parameters for the Algorithm section");
+  }
+
+  Param getSubsectionDefaults_(const String& /*section*/) const override
+  {
+    return BayesianProteinInferenceAlgorithm().getParameters();
   }
 
   ExitCodes main_(int, const char**) override
   {
+    // get parameters specific for the feature finder
+    Param epifany_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to Epifany", epifany_param, 3);
+
     StringList files = getStringList_("in");
     IdXMLFile idXMLf;
     IDMergerAlgorithm merger{};
@@ -178,6 +190,7 @@ protected:
     sw.reset();
 
     BayesianProteinInferenceAlgorithm bpi1;
+    bpi1.setParameters(epifany_param);
     bpi1.inferPosteriorProbabilities(mergedprots, mergedpeps);
     LOG_INFO << "Inference total took " << sw.toString() << std::endl;
     sw.stop();
