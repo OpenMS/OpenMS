@@ -74,7 +74,7 @@ START_SECTION(MRMFeatureSelectorScore::selectMRMFeature())
   FeatureMap feature_map;
   FeatureXMLFile feature_file;
   feature_file.load(features_path, feature_map);
-  TEST_EQUAL(feature_map.size(), 703);
+  TEST_EQUAL(feature_map.size(), 210);
 
   MRMFeatureSelector::SelectorParameters parameters;
 
@@ -92,17 +92,17 @@ START_SECTION(MRMFeatureSelectorScore::selectMRMFeature())
   FeatureMap output_selected;
   selectorScore.selectMRMFeature(feature_map, output_selected, parameters);
 
-  TEST_EQUAL(output_selected.size(), 117);
+  TEST_EQUAL(output_selected.size(), 37);
 
   const Feature& f1 = output_selected[0].getSubordinates()[0];
   TEST_REAL_SIMILAR(f1.getMetaValue("peak_apex_int"), 286.0);
   TEST_STRING_EQUAL(f1.getMetaValue("native_id").toString(), "23dpg.23dpg_1.Heavy");
   TEST_REAL_SIMILAR(f1.getRT(), 16.7592102584839);
 
-  const Feature& f2 = output_selected[50].getSubordinates()[0];
-  TEST_REAL_SIMILAR(f2.getMetaValue("peak_apex_int"), 391.5);
-  TEST_STRING_EQUAL(f2.getMetaValue("native_id").toString(), "f1p.f1p_1.Heavy");
-  TEST_REAL_SIMILAR(f2.getRT(), 8.53021852213542);
+  const Feature& f2 = output_selected[9].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f2.getMetaValue("peak_apex_int"), 8671.5);
+  TEST_STRING_EQUAL(f2.getMetaValue("native_id").toString(), "Pool_2pg_3pg.Pool_2pg_3pg_1.Heavy");
+  TEST_REAL_SIMILAR(f2.getRT(), 16.1933587515513);
 }
 END_SECTION
 
@@ -130,8 +130,8 @@ START_SECTION(constructTargTransList_())
 
   selector.constructTargTransList_(feature_map, time_to_name, feature_name_map, select_transition_group);
 
-  TEST_EQUAL(time_to_name.size(), 117)
-  TEST_EQUAL(feature_name_map.size(), 117)
+  TEST_EQUAL(time_to_name.size(), 37)
+  TEST_EQUAL(feature_name_map.size(), 37)
 
   sort(time_to_name.begin(), time_to_name.end());
 
@@ -142,20 +142,20 @@ START_SECTION(constructTargTransList_())
   TEST_STRING_EQUAL(p->second, "arg-L")
 
   p = &time_to_name[1];
-  TEST_REAL_SIMILAR(p->first, 0.167913821)
-  TEST_STRING_EQUAL(p->second, "orn")
+  TEST_REAL_SIMILAR(p->first, 1.314232178)
+  TEST_STRING_EQUAL(p->second, "asn-L")
 
-  p = &time_to_name[54];
-  TEST_REAL_SIMILAR(p->first, 61.76161499)
-  TEST_STRING_EQUAL(p->second, "35cgmp")
+  p = &time_to_name[5];
+  TEST_REAL_SIMILAR(p->first, 1.421901525)
+  TEST_STRING_EQUAL(p->second, "citr-L")
 
-  p = &time_to_name[99];
-  TEST_REAL_SIMILAR(p->first, 92.88219725)
-  TEST_STRING_EQUAL(p->second, "itp")
+  p = &time_to_name[7];
+  TEST_REAL_SIMILAR(p->first, 2.667749413)
+  TEST_STRING_EQUAL(p->second, "AICAr")
 
   p = &time_to_name.back();
   TEST_REAL_SIMILAR(p->first, 99.98770892)
-  TEST_STRING_EQUAL(p->second, "succoa")
+  TEST_STRING_EQUAL(p->second, "accoa")
 }
 END_SECTION
 
@@ -295,7 +295,7 @@ START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
 
-  TEST_EQUAL(output_selected.size(), 29);
+  TEST_EQUAL(output_selected.size(), 11);
 
   const Feature* f = &output_selected[0].getSubordinates()[0];
   TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.0);
@@ -312,10 +312,10 @@ START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
   TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Lcystin.Lcystin_1.Heavy");
   TEST_REAL_SIMILAR(f->getRT(), 0.796409679158529);
 
-  f = &output_selected[28].getSubordinates()[0];
-  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.499999999999886);
-  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "xan.xan_1.Heavy");
-  TEST_REAL_SIMILAR(f->getRT(), 1.19446469192505);
+  f = &output_selected[10].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.0);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "cytd.cytd_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 1.4385963780721);
 
   // // DEBUG
   // // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });
