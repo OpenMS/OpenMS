@@ -144,7 +144,7 @@ START_SECTION((String(const std::string& s)))
   // print(b"\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00".decode("utf16"))
   // print(b"T\xfc\x62ingen".decode("iso8859"))
   char test_utf8[] =  "T\xc3\xbc\x62ingen";
-  char test_utf16[] = "\xff\xfeT\x00\xfc\x00b\x00i\x00n\x00g\x00e\x00n\x00";
+  char test_utf16[] {'\xff','\xfe','T','\x00','\xfc','\x00','b','\x00','i','\x00','n','\x00','g','\x00','e','\x00','n','\x00'};
   char test_iso8859[] = "T\xfc\x62ingen";
 
   std::string std_s_utf8(test_utf8, 9);
