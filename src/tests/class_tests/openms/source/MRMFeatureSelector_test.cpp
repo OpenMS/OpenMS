@@ -51,7 +51,7 @@ START_TEST(MRMFeatureSelector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1.featureXML");
+const String features_path = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_150601_0_BloodProject01_PLT_QC_Broth-1_1_reduced.featureXML");
 const String features_path_small = OPENMS_GET_TEST_DATA_PATH("MRMFeatureSelector_100ug.featureXML");
 MRMFeatureSelectorScore* ptr = nullptr;
 MRMFeatureSelectorScore* null_ptr = nullptr;
