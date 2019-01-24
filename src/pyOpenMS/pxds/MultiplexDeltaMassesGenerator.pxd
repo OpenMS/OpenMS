@@ -13,8 +13,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGene
         MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, libcpp_map[ String, double ] label_mass_shift) nogil except +
 
         void generateKnockoutDeltaMasses() nogil except +
-        void printSamplesLabelsList(std::ostream &stream) nogil except +
-        void printDeltaMassesList(std::ostream &stream) nogil except +
         libcpp_vector[ MultiplexDeltaMasses ] getDeltaMassesList() nogil except +
         # libcpp_vector[ libcpp_vector[ String ] ] getSamplesLabelsList() nogil except +
         String getLabelShort(String label) nogil except +
