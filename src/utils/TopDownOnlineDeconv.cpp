@@ -65,8 +65,8 @@ protected:
 
         String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
         String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
-        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
-        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/mass.m";
+       // infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
+        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/yeast8.m";
         // just for quick use
 
         //-------------------------------------------------------------
@@ -85,7 +85,7 @@ protected:
         double elapsed_secs = 0;
         for(int r=2;r<=2;r++){
             for(int f=8;f<=8;f++){
-               // infilePath = infileDir + "f"+f+"r" + r+".mzML";
+                infilePath = infileDir + "f"+f+"r" + r+".mzML";
                 cout << "%file name : " << infilePath << endl;
                 MSExperiment map;
                 mzml.load(infilePath, map);
@@ -94,6 +94,7 @@ protected:
                 onlineDeconvolution(map, fs, specCntr, qspecCntr, massCntr);
                 clock_t end = clock();
                 elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+                std::cout <<"%"<< qspecCntr << " MS1 spectra deconvoluted so far" <<  endl;
             }
         }
 
