@@ -99,5 +99,16 @@ namespace OpenMS
       tag.clear();
     }
   }
+
+  void Tagger::getTag(const MSSpectrum& spec, std::set<std::string>& tags) const
+  {
+    const size_t N = spec.size();
+    if (N < min_tag_length_) { return; }
+    // copy to float vector (speed)
+    std::vector<float> mzs;
+    mzs.reserve(N);
+    for (auto const & p : spec) { mzs.push_back(p.getMZ()); }
+    getTag(mzs, tags); 
+  }
 }
 
