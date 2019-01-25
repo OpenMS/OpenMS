@@ -5,7 +5,6 @@ set(directory source/APPLICATIONS/UTILS)
 set(UTILS_executables
 AccurateMassSearch
 AssayGeneratorMetabo
-BayesianProteinInference
 ClusterMassTraces
 ClusterMassTracesByPrecursor
 CVInspector
@@ -14,6 +13,7 @@ DecoyDatabase
 DeMeanderize
 Digestor
 DigestorMotif
+Epifany
 ERPairFinder
 FeatureFinderMetaboIdent
 FeatureFinderSuperHirn

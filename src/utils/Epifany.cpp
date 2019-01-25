@@ -49,12 +49,12 @@
 using namespace OpenMS;
 using namespace std;
 
-class TOPPBayesianProteinInference :
+class TOPPEpifany :
 public TOPPBase
 {
 public:
-  TOPPBayesianProteinInference() :
-  TOPPBase("BayesianProteinInference", "Runs a Bayesian protein inference.", false)
+  TOPPEpifany() :
+  TOPPBase("EPIFANY", "Runs a Bayesian protein inference.", false)
   {
   }
 
@@ -305,7 +305,7 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  TOPPBayesianProteinInference tool;
+  TOPPEpifany tool;
 
   return tool.main(argc, argv);
 }

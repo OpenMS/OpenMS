@@ -434,7 +434,8 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No connected components annotated. Run computeConnectedComponents first!");
     }
 
-    #pragma omp parallel for
+    // Use dynamic schedule because big CCs take much longer!
+    #pragma omp parallel for schedule(dynamic)
     for (int i = 0; i < static_cast<int>(ccs_.size()); i += 1)
     {
       #ifdef INFERENCE_BENCH

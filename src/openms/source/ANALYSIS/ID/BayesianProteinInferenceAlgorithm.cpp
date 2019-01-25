@@ -384,7 +384,7 @@ namespace OpenMS
 
 
   BayesianProteinInferenceAlgorithm::BayesianProteinInferenceAlgorithm() :
-      DefaultParamHandler("BayesianProteinInference"),
+      DefaultParamHandler("BayesianProteinInferenceAlgorithm"),
       ProgressLogger()
   {
     // set default parameter values

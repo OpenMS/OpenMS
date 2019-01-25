@@ -1044,11 +1044,10 @@ protected:
       //size_t c_debug = 0;
       size_t cnt = 0;
       String run_identifier = all_protein_ids.front().getIdentifier();
+      const String scoreType = getStringOption_("score_type");
       for (vector<PeptideIdentification>::iterator it = all_peptide_ids.begin(); it != all_peptide_ids.end(); ++it)
       {
         it->setIdentifier(run_identifier);
-
-        const String scoreType = getStringOption_("score_type");
         it->setScoreType(scoreType);
         it->setHigherScoreBetter(scoreType == "svm");
         
@@ -1059,8 +1058,9 @@ protected:
         {
           String peptide_sequence = hit->getSequence().toString();
           String psm_identifier = scan_identifier + peptide_sequence;
-          
-          writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);        
+
+          //Only for super debug
+          writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);
  
           map<String, PercolatorResult>::iterator pr = pep_map.find(psm_identifier);
           if (pr != pep_map.end())
@@ -1102,8 +1102,7 @@ protected:
           }
         }
       }
-      //LOG_INFO << "No suitable PeptideIdentification for " << c_debug << " out of " << all_peptide_ids.size() << endl;
-      LOG_INFO << "Suitable PeptideHits for " << cnt << " found." << endl;
+      LOG_INFO << "Suitable PeptideHits for " << cnt << " of " << all_peptide_ids.size() <<  " PSMs found." << endl;
 
       // TODO: There should only be 1 ProteinIdentification element in this vector, no need for a for loop
       for (vector<ProteinIdentification>::iterator it = all_protein_ids.begin(); it != all_protein_ids.end(); ++it)
