@@ -69,7 +69,7 @@ namespace OpenMS
       size_t max_tag_length_; // < maximum tag length
       std::map<float, char> mass2aa;
       char getAAByMass_(float m) const;
-      void getTag_(std::string & tag, const std::vector<float>& mzs, size_t i, size_t j, std::set<std::string>& tags) const;
+      void getTag_(std::string & tag, const std::vector<float>& mzs, const size_t i, std::set<std::string>& tags) const;
   };
 }
 
