@@ -595,7 +595,7 @@ namespace OpenMS
         std::vector<double> peptide_intensities = determinePeptideIntensitiesCentroided_(patterns[pattern], satellites);
         
         // If no reliable peptide intensity can be determined, we do not report the peptide multiplet.
-        if (peptide_intensities[0] == -1)
+        if (std::find(peptide_intensities.begin(), peptide_intensities.end(), -1.0) != peptide_intensities.end())
         {
           continue;
         }
