@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <set>
 #include <vector>
@@ -61,6 +62,7 @@ namespace OpenMS
 
       // generate tags from mass vector @mzs using the standard residues in ResidueDB
       void getTag(const std::vector<float>& mzs, std::set<std::string>& tags) const;
+      void getTag(const MSSpectrum& spec, std::set<std::string>& tags) const;
     private:
       float min_gap_; // will be set to smallest residue mass in ResidueDB
       float max_gap_; // will be set to highest residue mass in ResidueDB
