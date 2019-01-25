@@ -32,6 +32,7 @@ SimpleTSGXLMS.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h
+Tagger.h
 WeightWrapper.h
 )
 
