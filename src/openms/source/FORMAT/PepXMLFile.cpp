@@ -287,7 +287,14 @@ namespace OpenMS
         }
         else
         {
+          if (it->metaValueExists("spectrum_reference"))
+          {
+            scan_index = lookup.findByNativeID(it->getMetaValue("spectrum_reference"));
+          }
+          else
+          {
           scan_index = lookup.findByRT(it->getRT());
+          }
 
           SpectrumMetaDataLookup::SpectrumMetaData meta;
           lookup.getSpectrumMetaData(scan_index, meta);

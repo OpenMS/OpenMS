@@ -27,6 +27,7 @@ RNaseDigestion.cpp
 TheoreticalSpectrumGenerator.cpp
 SpectrumAnnotator.cpp
 TheoreticalSpectrumGeneratorXLMS.cpp
+SimpleTSGXLMS.cpp
 SvmTheoreticalSpectrumGenerator.cpp
 SvmTheoreticalSpectrumGeneratorTrainer.cpp
 SvmTheoreticalSpectrumGeneratorSet.cpp

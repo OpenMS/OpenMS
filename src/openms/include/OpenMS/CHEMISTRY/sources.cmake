@@ -28,6 +28,7 @@ RNaseDigestion.h
 TheoreticalSpectrumGenerator.h
 SpectrumAnnotator.h
 TheoreticalSpectrumGeneratorXLMS.h
+SimpleTSGXLMS.h
 SvmTheoreticalSpectrumGenerator.h
 SvmTheoreticalSpectrumGeneratorSet.h
 SvmTheoreticalSpectrumGeneratorTrainer.h

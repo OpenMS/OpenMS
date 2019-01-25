@@ -80,11 +80,21 @@ START_SECTION((void setDriftTime(double dt)))
   TEST_REAL_SIMILAR(tmp.getDriftTime(),47.11);
 END_SECTION
 
+START_SECTION((double getDriftTimeUnit() const ))
+  Precursor tmp;
+  TEST_EQUAL(tmp.getDriftTimeUnit(), Precursor::DriftTimeUnit::NONE);
+END_SECTION
+
+START_SECTION((void setDriftTimeUnit(double dt)))
+  Precursor tmp;
+  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
+  TEST_EQUAL(tmp.getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND);
+END_SECTION
+
 START_SECTION((const set<ActivationMethod>& getActivationMethods() const))
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationMethods().size(),0);
 END_SECTION
-
 
 START_SECTION((set<ActivationMethod>& getActivationMethods()))
   Precursor tmp;
@@ -177,6 +187,7 @@ START_SECTION((Precursor(const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setDriftTime(7.11);
+  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
 	tmp.getActivationMethods().insert(Precursor::CID);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -193,12 +204,14 @@ START_SECTION((Precursor(const Precursor& source)))
 	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 12.7);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
 	TEST_REAL_SIMILAR(tmp2.getDriftTime(),7.11);
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND);
 END_SECTION
 
 START_SECTION((Precursor& operator= (const Precursor& source)))
 	Precursor tmp;
 	tmp.setActivationEnergy(47.11);
 	tmp.setDriftTime(7.11);
+  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
 	tmp.getActivationMethods().insert(Precursor::CID);
   tmp.setIsolationWindowUpperOffset(22.7);
   tmp.setIsolationWindowLowerOffset(22.8);
@@ -217,6 +230,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 12.7);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),47.11);
 	TEST_REAL_SIMILAR(tmp2.getDriftTime(),7.11);
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), Precursor::DriftTimeUnit::MILLISECOND);
 		
 	//assignment of empty object
 	tmp2 = Precursor();
@@ -228,6 +242,7 @@ START_SECTION((Precursor& operator= (const Precursor& source)))
 	TEST_REAL_SIMILAR(tmp2.getDriftTimeWindowLowerOffset(), 0.0);
 	TEST_REAL_SIMILAR(tmp2.getActivationEnergy(),0.0);
 	TEST_REAL_SIMILAR(tmp2.getDriftTime(),-1.0);
+  TEST_EQUAL(tmp2.getDriftTimeUnit(), Precursor::DriftTimeUnit::NONE);
 END_SECTION
 
 START_SECTION((bool operator== (const Precursor& rhs) const))
@@ -240,6 +255,10 @@ START_SECTION((bool operator== (const Precursor& rhs) const))
 	
 	tmp2 = tmp;
 	tmp.setDriftTime(5.0);
+	TEST_EQUAL(tmp==tmp2, false);
+
+	tmp2 = tmp;
+  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
 	TEST_EQUAL(tmp==tmp2, false);
 
 	tmp2 = tmp;
@@ -285,6 +304,10 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	
 	tmp2 = tmp;
 	tmp.setDriftTime(5.0);
+	TEST_EQUAL(tmp!=tmp2, true);
+
+	tmp2 = tmp;
+  tmp.setDriftTimeUnit(Precursor::DriftTimeUnit::MILLISECOND);
 	TEST_EQUAL(tmp!=tmp2, true);
 
 	tmp2 = tmp;

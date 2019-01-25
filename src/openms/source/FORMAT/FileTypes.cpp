@@ -139,6 +139,7 @@ namespace OpenMS
     targetMap[FileTypes::NOVOR] = "novor";
     targetMap[FileTypes::PARAMXML] = "paramXML";
     targetMap[FileTypes::XQUESTXML] = "xquest.xml";
+    targetMap[FileTypes::JSON] = "json";
 
     return targetMap;
   }

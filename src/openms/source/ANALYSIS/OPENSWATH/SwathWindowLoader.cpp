@@ -83,8 +83,8 @@ namespace OpenMS
       // new boundaries should be smaller/equal than the original ones from the data
       if (!(swath_maps[i].lower <= swath_prec_lower_[j] && swath_prec_upper_[j] <= swath_maps[i].upper))
       { 
-        String err = "SWATH window " + String(j+1) + " from swath_windows_file extends beyond the Swath window of the data."
-                     "Did you forget to apply the sort_swath_maps flag? (override with -force)";
+        String err = "SWATH window #" + String(j+1) + " from swath_windows_file extends beyond the Swath window of the data."
+                     " Did you forget to apply the sort_swath_maps flag? (override with -force)";
         if (force)
         {
           std::cerr << err << "\nOverridden with -force.\n";
