@@ -49,9 +49,10 @@ namespace OpenMS
      return left->second; // select first match
   }               
 
-  void Tagger::getTag_(std::string & tag, const std::vector<float>& mzs, size_t i, size_t j, std::set<std::string>& tags) const 
+  void Tagger::getTag_(std::string & tag, const std::vector<float>& mzs, const size_t i, std::set<std::string>& tags) const 
   {
     const size_t N = mzs.size();
+    size_t j = i + 1;
     // recurse for all peaks in distance < max_gap
     while (j < N) 
     {
@@ -62,7 +63,7 @@ namespace OpenMS
       const char aa = getAAByMass_(gap);
       if (aa == ' ') { ++j; continue; } // can't extend tag
       tag += aa;
-      getTag_(tag, mzs, j, j + 1, tags);
+      getTag_(tag, mzs, j, tags);
       if (tag.size() < min_tag_length_) { tag.resize(tag.size() - 1); ++j; continue; }
       tags.insert(tag);
       tag.resize(tag.size() - 1);  // remove last char
@@ -94,7 +95,7 @@ namespace OpenMS
     tag.reserve(30);
     for (size_t i = 0; i < mzs.size() - min_tag_length_; ++i)
     {
-      getTag_(tag, mzs, i, i + 1, tags);
+      getTag_(tag, mzs, i, tags);
       tag.clear();
     }
   }
