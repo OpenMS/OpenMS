@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 namespace OpenMS
 {
@@ -137,7 +137,8 @@ namespace OpenMS
       clearRanges();
       this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
       retention_time_ = -1.0;
-      drift_time_ = -1.0; 
+      drift_time_ = -1.0;
+      drift_time_unit_ = MSSpectrum::DriftTimeUnit::NONE;
       ms_level_ = 1;
       name_.clear();
       name_.shrink_to_fit();
@@ -350,6 +351,7 @@ namespace OpenMS
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&
+           drift_time_unit_ == rhs.drift_time_unit_ &&
            ms_level_ == rhs.ms_level_ &&
            float_data_arrays_ == rhs.float_data_arrays_ &&
            string_data_arrays_ == rhs.string_data_arrays_ &&
@@ -368,6 +370,7 @@ namespace OpenMS
 
     retention_time_ = source.retention_time_;
     drift_time_ = source.drift_time_;
+    drift_time_unit_ = source.drift_time_unit_;
     ms_level_ = source.ms_level_;
     name_ = source.name_;
     float_data_arrays_ = source.float_data_arrays_;
@@ -383,6 +386,7 @@ namespace OpenMS
     SpectrumSettings(),
     retention_time_(-1),
     drift_time_(-1),
+    drift_time_unit_(MSSpectrum::DriftTimeUnit::NONE),
     ms_level_(1),
     name_(),
     float_data_arrays_(),
@@ -396,6 +400,7 @@ namespace OpenMS
     SpectrumSettings(source),
     retention_time_(source.retention_time_),
     drift_time_(source.drift_time_),
+    drift_time_unit_(source.drift_time_unit_),
     ms_level_(source.ms_level_),
     name_(source.name_),
     float_data_arrays_(source.float_data_arrays_),
@@ -423,6 +428,16 @@ namespace OpenMS
   void MSSpectrum::setRT(double rt)
   {
     retention_time_ = rt;
+  }
+
+  MSSpectrum::DriftTimeUnit MSSpectrum::getDriftTimeUnit() const
+  {
+    return drift_time_unit_;
+  }
+
+  void MSSpectrum::setDriftTimeUnit(DriftTimeUnit dt)
+  {
+    drift_time_unit_ = dt;
   }
 
   double MSSpectrum::getDriftTime() const

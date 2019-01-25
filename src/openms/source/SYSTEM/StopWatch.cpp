@@ -117,6 +117,10 @@ namespace OpenMS
   void StopWatch::clear()
   {
     is_running_ = false;
+    start_secs_ = 0;
+    start_usecs_ = 0;
+    start_user_time_ = 0;
+    start_system_time_ = 0;
     current_secs_ = 0L;
     current_usecs_ = 0L;
     current_user_time_ = 0L;

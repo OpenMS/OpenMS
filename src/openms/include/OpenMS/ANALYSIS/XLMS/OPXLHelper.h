@@ -224,7 +224,7 @@ namespace OpenMS
        * @param cross_link_residue2 A list of one-letter-code residues, that the second side of the cross-linker can attach to
        * @param cross_link_name The name of the cross-linker, e.g. "DSS" or "BS3"
        */
-      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(IntList precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, std::vector<OPXLDataStructs::AASeqWithMass> filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name);
+      static std::vector <OPXLDataStructs::ProteinProteinCrossLink> collectPrecursorCandidates(const IntList& precursor_correction_steps, double precursor_mass, double precursor_mass_tolerance, bool precursor_mass_tolerance_unit_ppm, const std::vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses, double cross_link_mass, DoubleList cross_link_mass_mono_link, StringList cross_link_residue1, StringList cross_link_residue2, String cross_link_name);
 
       /**
        * @brief Computes the mass error of a precursor mass to a hit

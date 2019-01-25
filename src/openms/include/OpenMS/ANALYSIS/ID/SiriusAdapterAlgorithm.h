@@ -92,16 +92,16 @@ namespace OpenMS
       @param feature_mapping: Empty FeatureToMs2Indices
       */
       static void preprocessingSirius(const String& featureinfo,
-                                      MSExperiment& spectra,
+                                      const MSExperiment& spectra,
                                       std::vector<FeatureMap>& v_fp,
                                       KDTreeFeatureMaps& fp_map_kd,
                                       const SiriusAdapterAlgorithm& sirius_algo,
                                       FeatureMapping::FeatureToMs2Indices& feature_mapping);
 
       /**
-      @brief logs numnber of features and spectra used
+      @brief logs number of features and spectra used
 
-      @return numnber of features and spectra used (LOG)
+      Prints the number of features and spectra used (LOG_INFO)
 
       @param featureinfo: Path to featureXML
       @param feature_mapping: FeatureToMs2Indices with feature mapping
@@ -126,11 +126,11 @@ namespace OpenMS
       @param sirius_algo: Parameters needed for SIRIUS
 
       */
-      static std::vector<String> callSiriusQProcess(const String& tmp_ms_file,
-                                                    const String& tmp_out_dir,
-                                                    String& executable,
-                                                    const String& out_csifingerid,
-                                                    const SiriusAdapterAlgorithm& sirius_algo);
+      const static std::vector<String> callSiriusQProcess(const String& tmp_ms_file,
+                                                          const String& tmp_out_dir,
+                                                          String& executable,
+                                                          const String& out_csifingerid,
+                                                          const SiriusAdapterAlgorithm& sirius_algo);
 
       // getter (used to call functions from SiriusMSConverter, SiriusMzTabWriter, CsiFingerIDMzTabWriter)
       String getFeatureOnly();  
