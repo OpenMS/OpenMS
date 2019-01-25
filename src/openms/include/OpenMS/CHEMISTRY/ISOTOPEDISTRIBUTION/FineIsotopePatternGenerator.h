@@ -37,13 +37,17 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
+
 namespace OpenMS
 {
 
   /**
     * @ingroup Chemistry
     * @brief Isotope pattern generator for fine isotope distributions.
-    * 
+    *
+    * NOTE: This interface is DEPRECATED, and kept for backward compatibility
+    * only. Please use the classes defined in IsoSpecWrapper.h directly instead.
+    *
     * This algorithm generates theoretical pattern distributions for empirical
     * formulas with high resolution. The output is a list of pairs containing
     * isotope probabilities paired with the accurate m/z for the analyte
@@ -62,7 +66,25 @@ namespace OpenMS
     * to stop calculating isotopic peaks to calculate. Here, a threshold of
     * 0.01 would mean that the algorithm either stops calculating when any new
     * peak would be less than 0.01 in height (absolute) or when it would be
-    * less than 0.01 of the highest isotopic peak (relative).
+    * less than 0.01 of the highest isotopic peak (relative). This is how the
+    * stop_condition parameter is interpreted when use_total_prob is set to false.
+    *
+    * Another way to parametrise the search is to cover a certain portion
+    * of total probability, such as 0.99. This is what most users will want to use;
+    * see the documentation on IsoSpecTotalProbWrapper and IsoSpecThresholdWrapper
+    * for the details (also, you should use those classes directly for increased
+    * performance). This is how the stop_condition parameter is interpreted when
+    * use_total_prob is set to true.
+    *
+    * @note Although use_total_prob is set to false by default for backward
+    *       compatibility, most users should set it to true and parametrise by
+    *       total probability needed.
+    *
+    * @note absolute parameter is ignored when use_total_prob is set to true
+    *
+    * @note When use_total_prob is set to false, common sensible values of
+    *       stop_condition will be close to 0.0 (like 0.01), when it's set
+    *       to true - close to 1.0, like 0.99.
     *
     * @note Computation of fine isotope patterns can be slow for large
     * molecules, if you don't need fine isotope distributions consider using
@@ -79,7 +101,7 @@ namespace OpenMS
     *
     * See also method run()
     **/
-  class OPENMS_DLLAPI FineIsotopePatternGenerator 
+  class OPENMS_DLLAPI FineIsotopePatternGenerator
     : public IsotopePatternGenerator
   {
 
@@ -94,15 +116,20 @@ namespace OpenMS
     /**
       * @brief Constructor
       *
-      * @param threshold The probability threshold (see class docu)
+      * @param stop_condition The total probability (if use_total_prob == true) or
+      *        threshold (if use_total_prob is false) (see class docu)
       * @param absolute Whether threshold is absolute or relative (see class docu)
+      * @param use_total_prob Whether the stop_condition should be interpreted as a
+      *        probability threshold (only configurations with intensity above this
+      *        threshold will be returned) or as a total probability that the distribution
+      *        should cover.
       *
       **/
-    FineIsotopePatternGenerator(double threshold, bool absolute = false) :
-      threshold_(threshold),
-      absolute_(absolute)
-    {
-    }
+    FineIsotopePatternGenerator(double stop_condition, bool absolute = false, bool use_total_prob = false) :
+      stop_condition_(stop_condition),
+      absolute_(absolute),
+      use_total_prob_(use_total_prob)
+    {}
 
     /**
       * @brief Creates an isotope distribution from an empirical sum formula
@@ -117,16 +144,16 @@ namespace OpenMS
       **/
     IsotopeDistribution run(const EmpiricalFormula&) const;
 
-    /// Set probability threshold (stop condition)
-    void setThreshold(double threshold)
+    /// Set probability stop condition
+    void setThreshold(double stop_condition)
     {
-      threshold_ = threshold;
+      stop_condition_ = stop_condition;
     }
 
-    /// Get probability threshold (stop condition)
+    /// Get probability stop condition
     double getThreshold()
     {
-      return threshold_;
+      return stop_condition_;
     }
 
     /// Set whether threshold is absolute or relative probability
@@ -142,8 +169,9 @@ namespace OpenMS
     }
 
  protected:
-    double threshold_ = 0.01;
+    double stop_condition_ = 0.01;
     bool absolute_ = false;
+    bool use_total_prob_ = false;
 
   };
 

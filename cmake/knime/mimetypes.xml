@@ -36,4 +36,5 @@
  <mimetype name="QCML" binary="false" description="qcML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
  <mimetype name="PARAMXML" binary="false" description="paramXML (subset of the general %OpenMS ini parameter files)" ext="paramXML"/>
  <mimetype name="PERCOLATORTAB" binary="false" description="Percolator tab seperated in/output" ext="tab"/>
+ <mimetype name="PQP" binary="true" description="The PQP files are SQLite databases consisting of several tables representing the data contained in TraML files." ext="pqp"/>
 </mimetypes>

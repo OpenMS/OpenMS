@@ -1,5 +1,5 @@
 /*
- *   Copyright (C) 2015-2016 Mateusz Łącki and Michał Startek.
+ *   Copyright (C) 2015-2018 Mateusz Łącki and Michał Startek.
  *
  *   This file is part of IsoSpec.
  *
@@ -18,7 +18,8 @@
 #include <iostream>
 #include "allocator.h"
 
-
+namespace IsoSpec
+{
 
 template <typename T>
 Allocator<T>::Allocator(const int dim, const int tabSize): currentId(-1), dim(dim), tabSize(tabSize)
@@ -46,3 +47,5 @@ void Allocator<T>::shiftTables()
 }
 
 template class Allocator<int>;
+
+}

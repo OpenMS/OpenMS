@@ -7,14 +7,38 @@
  */
 
 #include <cmath>
+#include <cstdlib>
 #include "isoMath.h"
-#include <stdlib.h>
+#include "platform.h"
+
+namespace IsoSpec
+{
 
 const double pi = 3.14159265358979323846264338328;
 
-// 10M should be enough for everyone, right?
-// double* g_lfact_table = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
-double* g_lfact_table = reinterpret_cast<double*>(calloc(G_FACT_TABLE_SIZE, sizeof(double)));
+void release_g_lfact_table()
+{
+#if ISOSPEC_GOT_MMAN
+    munmap(g_lfact_table, ISOSPEC_G_FACT_TABLE_SIZE*sizeof(double));
+#else
+    free(g_lfact_table);
+#endif
+}
+
+double* alloc_lfact_table()
+{
+    double* ret;
+# if ISOSPEC_GOT_MMAN
+    ret = reinterpret_cast<double*>(mmap(nullptr, sizeof(double)*ISOSPEC_G_FACT_TABLE_SIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0));
+#else
+    ret = reinterpret_cast<double*>(calloc(ISOSPEC_G_FACT_TABLE_SIZE, sizeof(double)));
+#endif
+    std::atexit(release_g_lfact_table);
+    return ret;
+}
+
+double* g_lfact_table = alloc_lfact_table();
+
 
 double RationalApproximation(double t)
 {
@@ -71,4 +95,6 @@ double NormalPDF(double x, double mean, double stdev)
 	double delta = x-mean;
 	return exp( -delta*delta / two_variance )      /     sqrt( two_variance * pi );
 }
+
+} // namespace IsoSpec
 

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <fstream>
@@ -295,6 +296,9 @@ namespace OpenMS
 
   bool FuzzyStringComparator::compareLines_(std::string const& line_str_1, std::string const& line_str_2)
   {
+    // in most cases, results will be identical. If not, do the expensive fuzzy compare
+    if (line_str_1 == line_str_2) return true;
+    
     for (StringList::const_iterator slit = whitelist_.begin();
          slit != whitelist_.end(); ++slit)
     {
@@ -582,11 +586,13 @@ namespace OpenMS
 
   void FuzzyStringComparator::readNextLine_(std::istream& input_stream, std::string& line_string, int& line_number) const
   {
-    for (line_string.clear(); static_cast<void>(++line_number), std::getline(input_stream, line_string); )
+    // use TextFile::getLine for reading, since it will remove \r automatically on all platforms without much overhead
+    // This allows to compare otherwise equal lines between files quickly (see compareLines_(...))
+    for (line_string.clear(); static_cast<void>(++line_number), TextFile::getLine(input_stream, line_string); )
     {
       if (line_string.empty())
       {
-        continue; // shortcut
+        continue; // read next line
       }
       std::string::const_iterator iter = line_string.begin(); // loop initialization
       for (; iter != line_string.end() && isspace((unsigned char)*iter); ++iter)
@@ -595,7 +601,7 @@ namespace OpenMS
       // skip over whitespace
       if (iter != line_string.end())
       {
-        break; // line is not empty or whitespace only
+        return; // line is not empty or whitespace only
       }
     }
   }
@@ -815,18 +821,20 @@ namespace OpenMS
     }
     else
     {
+      // go back to initial position and try to read as double
       input_line.seekGToSavedPosition();
 #ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
       // is a number? (explicit bool op for C11)
       if (tryExtractDouble(input_line, number))
 #else
-      if ((is_number = (bool(input_line.line_ >> number))))
+      if ((is_number = (bool(input_line.line_ >> number)))) // the >>operator is awfully slow (especially on VS); huge potential for speed improvement
 #endif
       {
         is_number = true;
       }
       else
       {
+        // go back to initial position and read as letter (since its neither space nor number)
         input_line.seekGToSavedPosition();
         input_line.line_ >> letter; // read letter
       }

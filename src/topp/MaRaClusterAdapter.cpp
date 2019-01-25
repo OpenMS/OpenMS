@@ -47,6 +47,7 @@
 #include <string>
 #include <set>
 
+#include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
 #include <typeinfo>
 
@@ -288,13 +289,6 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    else if (!File::exists(maracluster_executable))
-    {
-      writeLog_("Maracluster executable not found at location specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
-   
  
     const String consensus_out(getStringOption_("consensus_out"));
     const String out(getStringOption_("out"));
@@ -367,6 +361,7 @@ protected:
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
+    writeLog_("Executing maracluster ...");
     runExternalProcess_(maracluster_executable.toQString(), arguments);
 
     //-------------------------------------------------------------
