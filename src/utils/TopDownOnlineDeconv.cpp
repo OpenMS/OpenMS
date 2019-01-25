@@ -12,6 +12,7 @@
 #include <iostream>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
@@ -62,10 +63,10 @@ protected:
         //-------------------------------------------------------------
 //        String infilePath = getStringOption_("in");
 
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/05-26-17_B7A_yeast_td_fract12_rep2_MS1only.mzML";
-        //infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Cytocrome_C_MS2_HCD.mzML";
-        //infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/180523_Myoglobin_MS2_HCD.mzML";
-        cout << "file name : " << infilePath << endl;
+        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
+        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
+        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/mass.m";
         // just for quick use
 
         //-------------------------------------------------------------
@@ -75,38 +76,54 @@ protected:
         MzMLFile mzml;
         mzml.setLogType(log_type_);
 
-        // load input
-        MSExperiment map;
-        mzml.load(infilePath, map);
-        cout << "Loaded consensus maps" << endl;
-        clock_t begin = clock();
-        int cntr = onlineDeconvolution(map);
-        clock_t end = clock();
-        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-        std::cout << elapsed_secs << " seconds elapsed for " <<cntr << " MS1 spectra" <<  endl;
-        std::cout << elapsed_secs/cntr*1000 << " msec per spectrum"<< std::endl;
 
+        int specCntr = 0, qspecCntr = 0, massCntr = 0;
+
+        fstream fs;
+        fs.open(outfilePath, fstream::out);
+        fs << "m=[";
+        double elapsed_secs = 0;
+        for(int r=2;r<=2;r++){
+            for(int f=8;f<=8;f++){
+               // infilePath = infileDir + "f"+f+"r" + r+".mzML";
+                cout << "%file name : " << infilePath << endl;
+                MSExperiment map;
+                mzml.load(infilePath, map);
+                cout << "%Loaded consensus maps" << endl;
+                clock_t begin = clock();
+                onlineDeconvolution(map, fs, specCntr, qspecCntr, massCntr);
+                clock_t end = clock();
+                elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+            }
+        }
+
+        std::cout <<"%"<< elapsed_secs << " seconds elapsed for " <<specCntr << " MS1 spectra" <<  endl;
+        std::cout <<"%"<< elapsed_secs/specCntr*1000 << " msec per spectrum"<< std::endl;
+        fs << "];";
+        fs.close();
         return EXECUTION_OK;
     }
 
-    int onlineDeconvolution(MSExperiment &map){
-        double threshold = 5000;//
-        int filterSize = 25;//2069 601 3006 21563.2
+    void onlineDeconvolution(MSExperiment &map, fstream& fs, int& specCntr,int& qspecCntr,int& massCntr){
+        double threshold = 1000;// the lower the more diverse molecules
+        int filterSize = 25;
         int minCharge = 5;
-        int minPeakPerMass = 6; // 180 124
-        int minIsotopeCount = 3;
-        int maxMassPerSpectrum = 6;
-        int maxIsotopeIndex = 15; // make it variable TODO
+        int minContinuousChargePeak = 3;//the lower the more spectrum deconved the running time sacrifice is huge..
+        int minChargePeak = 6;
+        int minIsotopeCount = 3; //
+        int maxMassPerSpectrum = 20;// it may be 20 or soemthing but 10 is enough....
+        int maxIsotopeIndex = 15; // make it variable TODO - do not touch any parameter. But eliminate harmonic elements..
         double tolerance = 5e-6; // 5 ppm
 
-        int specCntr = 0, qspecCntr = 0, massCntr=0;
         double filter[filterSize];
+        double harmonicFilter[filterSize];
 
-        CoarseIsotopePatternGenerator* generator= new CoarseIsotopePatternGenerator();
+        auto generator= new CoarseIsotopePatternGenerator();
         generator->setMaxIsotope(maxIsotopeIndex);
 
         for(int i=0;i<filterSize;i++){
             filter[i] = log(1.0/(i + minCharge)); // should be descending, and negative!
+            harmonicFilter[i] = log(1.0/(i+.5+minCharge));
         }
 
         for (auto it = map.begin(); it != map.end(); ++it) {
@@ -124,16 +141,18 @@ protected:
             }
 
             auto peakGroups =
-                    findPeakGroups(logMzPeaks, filter, filterSize, minCharge, maxIsotopeIndex,
-                            tolerance, minPeakPerMass, minIsotopeCount, maxMassPerSpectrum);
+                    findPeakGroups(logMzPeaks, filter, harmonicFilter, filterSize, minCharge, maxIsotopeIndex,
+                            tolerance, minContinuousChargePeak, minChargePeak, minIsotopeCount, maxMassPerSpectrum);
             if (peakGroups.empty())
                 continue;
             std::map<double, double> scoreMassMap;
 
             bool qualified = false;
+            std::unordered_set<double> massSet;
+
             for(auto &pg : peakGroups){
-                double* perChargeIntensities = new double[filterSize];
-                double* perIsotopeIntensities = new double[maxIsotopeIndex];
+                auto perChargeIntensities = new double[filterSize];
+                auto perIsotopeIntensities = new double[maxIsotopeIndex];
 
                 fill_n(perChargeIntensities,filterSize,0);
                 fill_n(perIsotopeIntensities,maxIsotopeIndex,0); // change it to be flexible
@@ -150,7 +169,7 @@ protected:
                 auto avgIso = generator->estimateFromPeptideWeight(monoIsotopeMass);
                 avgIso.renormalize();
                 avgIso.trimRight(0.01);//
-                int offset;
+                int offset = 0;
                 double maxCosine = -1;
                 for(int f = -3;f<=3;f++){
                     auto cos = getCosine(perIsotopeIntensities, avgIso, f);
@@ -165,10 +184,8 @@ protected:
                    continue;
                 }
 
-                //cout<<offset<< " " << maxCosine << endl;
                 monoIsotopeMass += offset * Constants::C13C12_MASSDIFF_U;
 
-                //
                 int maxIntensityIndex;
                 int firstNonZeroIndex = -1;
                 int lastNonZeroIndex = filterSize;
@@ -195,24 +212,33 @@ protected:
                     if(k<=0) break;
                     score += getLogLikelihoodRatioScore(perChargeIntensities[k], perChargeIntensities[k-1]);
                 }
-
-
-                //continue;
                 if(score > 0 && !pg.empty()){
-                    cout<<massCntr++<<" "<<qspecCntr << " " << specCntr << " " << monoIsotopeMass << endl;
+                    massSet.insert(monoIsotopeMass);
+                    // cout<<massCntr++<<" "<<qspecCntr << " " << specCntr << " " <<score<< " " << monoIsotopeMass << endl;
                     qualified = true;
                 }
             }
             if(!qualified) continue;
 
-           qspecCntr++;
+            qspecCntr++;
+            /*std::unordered_set<int> nominalMasseSet;
+            for(auto m :massSet){
+                nominalMasseSet.insert(round(m*0.999497)); //float INTEGER_MASS_SCALER = 0.999497f;
+            }
+            for(auto m :massSet) {
+                auto nm = round(m*2*0.999497);
+                if(nominalMasseSet.count(nm)) massSet.erase(m);
+            }*/
+            for(auto m :massSet) {
+                fs<<massCntr++<<" "<<qspecCntr << " " << specCntr << " " << it->getRT() <<" " << setprecision(15)<< m << " " << round(m*0.999497) << endl;
+            }
 
            // for (int i=0; i<20 && i<scoreMassMap.size() ; ++iter, i++){
            //     cout << qspecCntr<<" "<<specCntr<<" "<<iter->first << " " << iter->second << " " << peakGroups.size() << " " << scoreMassMap.size()<< endl;
            // }
            // cout << endl;
         }
-        return specCntr;
+        return;
     }
 
     /*
@@ -284,12 +310,15 @@ protected:
     }
 
     void getMassBins(boost::dynamic_bitset<>& massBins, boost::dynamic_bitset<>& mzBins, Byte* massBinScores,
-            double *filter, int filterSize, int binNumber, double tol, int minChargePeakCount){
+            double *filter, double*harmonicFilter, int filterSize, int binNumber, double tol, int minContinuousChargePeak, int minChargePeak){
         fill_n(massBinScores, binNumber,0);
 
         int binOffsets[filterSize];
+        int harmonicBinOffsets[filterSize];
+
         for(int i=0;i<filterSize;i++){
             binOffsets[i] = (filter[0] - filter[i]) / tol;
+            harmonicBinOffsets[i] = (filter[0] - harmonicFilter[i]) / tol;
         }
 
         unsigned long setBinIndex = mzBins.find_first();
@@ -298,10 +327,12 @@ protected:
             for(int j=0;j<filterSize;j++) {
                 int bi = setBinIndex + binOffsets[j];
                 if (bi >= binNumber) break;
-                massBinScores[bi]++;
-
-                if (massBinScores[bi] >= minChargePeakCount)
+               // int hbi = setBinIndex + harmonicBinOffsets[j];
+               // if(hbi>=binNumber - 1 || !mzBins[hbi])
+                    massBinScores[bi]++;
+                if (massBinScores[bi] >= minChargePeak) {
                     massBins[bi] = true;
+                }
             }
             setBinIndex = mzBins.find_next(setBinIndex);
         }
@@ -309,14 +340,16 @@ protected:
         fill_n(massBinScores, binNumber,0);
         setBinIndex = massBins.find_first();
         while(setBinIndex != massBins.npos){
+        //for(int setBinIndex : setBins){
             Byte continuousChargeCntr = 0;
             bool take = false;
             for(int j=0;j<filterSize;j++) {
                 int bi = setBinIndex - binOffsets[j];
                 if(bi<0) break;
-                if(mzBins[bi]){
+                int hbi = setBinIndex - harmonicBinOffsets[j];
+                if(mzBins[bi] && (hbi<0 || !mzBins[hbi])){
                     continuousChargeCntr++;
-                    take = continuousChargeCntr >= minChargePeakCount;
+                    take = continuousChargeCntr >= minContinuousChargePeak;
                     massBinScores[setBinIndex] = massBinScores[setBinIndex] < continuousChargeCntr? continuousChargeCntr : massBinScores[setBinIndex];
                 }else continuousChargeCntr = 0;
             }
@@ -389,24 +422,24 @@ protected:
         return binScoreThreshold;
     }
 
-    vector<vector<LogMzPeak>> findPeakGroups(vector<LogMzPeak> &logMzPeaks, double *filter, int filterSize, int minCharge,
-                                            int maxIsotopeIndex, double tol, int minChargePeakCount, int minIsotopeCount,
+    vector<vector<LogMzPeak>> findPeakGroups(vector<LogMzPeak> &logMzPeaks, double *filter, double* harmonicFilter, int filterSize, int minCharge,
+                                            int maxIsotopeIndex, double tol, int minContinuousChargePeak, int minChargePeak, int minIsotopeCount,
                                             int maxMassCountPerSpectrum){
         vector<vector<LogMzPeak>> peakGroups;
-        // minChargePeakCount should be < filterSize
+        // minContinuousChargePeak should be < filterSize
         double min = logMzPeaks[0].logMz - filter[0]; // never fix it..
-        double max = logMzPeaks[logMzPeaks.size()-1].logMz - filter[filterSize-minChargePeakCount];
+        double max = logMzPeaks[logMzPeaks.size()-1].logMz - filter[filterSize-minContinuousChargePeak];
         peakGroups.reserve(maxMassCountPerSpectrum*10);
 
         int binNumber = (max-min)/tol + 1;
         boost::dynamic_bitset<> mzBins = getMzBins(logMzPeaks, binNumber, tol);
-
         boost::dynamic_bitset<> massBins(binNumber);
         Byte* massBinScores = new Byte[binNumber];
 
-        getMassBins(massBins, mzBins, massBinScores, filter, filterSize, binNumber, tol, minChargePeakCount);
+        getMassBins(massBins, mzBins, massBinScores, filter, harmonicFilter, filterSize, binNumber, tol, minContinuousChargePeak, minChargePeak);
+
         filterMassBinsUsingIsotopeCriteria(massBins, massBinScores, maxIsotopeIndex, minIsotopeCount, binNumber, tol, min);
-        double binScoreThreshold = calculateBinScoreThreshold(massBins, massBinScores, minChargePeakCount, maxMassCountPerSpectrum, filterSize);
+        double binScoreThreshold = calculateBinScoreThreshold(massBins, massBinScores, minContinuousChargePeak, maxMassCountPerSpectrum, filterSize);
 
         int* currentPeakIndex = new int[filterSize];
         fill_n(currentPeakIndex,filterSize,0);
