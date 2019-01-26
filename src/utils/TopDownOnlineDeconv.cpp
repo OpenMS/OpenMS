@@ -35,6 +35,7 @@ public:
 
         LogMzPeak(): orgPeak(nullptr), logMz(-10000), charge(0), isotopeIndex(0), score(0) {}
         LogMzPeak(Peak1D &peak): orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(0), isotopeIndex(0), score(0) {}
+        LogMzPeak(Peak1D &peak, int c, int i): orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(c), isotopeIndex(i), score(0) {}
 
         double getMass(){
             return exp(logMz) * charge;
@@ -65,8 +66,8 @@ protected:
 
         String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
         String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
-       // infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
-        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/yeast8.m";
+        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
+        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/yeast2.m";
         // just for quick use
 
         //-------------------------------------------------------------
@@ -84,8 +85,8 @@ protected:
         fs << "m=[";
         double elapsed_secs = 0;
         for(int r=2;r<=2;r++){
-            for(int f=8;f<=8;f++){
-                infilePath = infileDir + "f"+f+"r" + r+".mzML";
+            for(int f=1;f<=1;f++){
+               // infilePath = infileDir + "f"+f+"r" + r+".mzML";
                 cout << "%file name : " << infilePath << endl;
                 MSExperiment map;
                 mzml.load(infilePath, map);
@@ -110,7 +111,7 @@ protected:
         int filterSize = 25;
         int minCharge = 5;
         int minContinuousChargePeak = 3;//the lower the more spectrum deconved the running time sacrifice is huge..
-        int minChargePeak = 6;
+        int minChargePeak = 5;
         int minIsotopeCount = 3; //
         int maxMassPerSpectrum = 20;// it may be 20 or soemthing but 10 is enough....
         int maxIsotopeIndex = 15; // make it variable TODO - do not touch any parameter. But eliminate harmonic elements..
@@ -159,12 +160,17 @@ protected:
                 fill_n(perIsotopeIntensities,maxIsotopeIndex,0); // change it to be flexible
 
                 double monoIsotopeMass;
+                double maxIntensityForMonoIsotopeMass = -1;
                 for(auto &p : pg){
                     int index = p.charge - minCharge;
                     perChargeIntensities[index] += p.orgPeak->getIntensity();
                     if(p.isotopeIndex<maxIsotopeIndex)
                         perIsotopeIntensities[p.isotopeIndex] += p.orgPeak->getIntensity();
-                    if(p.isotopeIndex == 0) monoIsotopeMass = p.getMass();
+                    if(p.isotopeIndex == 0) {
+                        if(maxIntensityForMonoIsotopeMass > p.orgPeak->getIntensity()) continue;
+                        maxIntensityForMonoIsotopeMass = p.orgPeak->getIntensity();
+                        monoIsotopeMass = p.getMass();
+                    }
                 }
 
                 auto avgIso = generator->estimateFromPeptideWeight(monoIsotopeMass);
@@ -232,6 +238,7 @@ protected:
             }*/
             for(auto m :massSet) {
                 fs<<massCntr++<<" "<<qspecCntr << " " << specCntr << " " << it->getRT() <<" " << setprecision(15)<< m << " " << round(m*0.999497) << endl;
+                //cout<<massCntr++<<" "<<qspecCntr << " " << specCntr << " " << it->getRT() <<" " << setprecision(15)<< m << " " << round(m*0.999497) << endl;
             }
 
            // for (int i=0; i<20 && i<scoreMassMap.size() ; ++iter, i++){
@@ -429,7 +436,7 @@ protected:
         vector<vector<LogMzPeak>> peakGroups;
         // minContinuousChargePeak should be < filterSize
         double min = logMzPeaks[0].logMz - filter[0]; // never fix it..
-        double max = logMzPeaks[logMzPeaks.size()-1].logMz - filter[filterSize-minContinuousChargePeak];
+        double max = logMzPeaks[logMzPeaks.size()-1].logMz - filter[filterSize-minChargePeak];
         peakGroups.reserve(maxMassCountPerSpectrum*10);
 
         int binNumber = (max-min)/tol + 1;
@@ -462,61 +469,38 @@ protected:
                     int bi = (logMz - min - filter[j]) / tol;
                     if (bi>setBinIndex) break;
                     if (setBinIndex == bi) {
-                        LogMzPeak p(*logMzPeaks[currentPeakIndex[j]].orgPeak);
-                        p.charge = charge;
-                        p.isotopeIndex = 0;
+                        LogMzPeak p(*logMzPeaks[currentPeakIndex[j]].orgPeak, charge, 0);
                         peakGroup.push_back(p);
 
                         if(currentPeakIndex[j]>0){
                             if(logMz - logMzPeaks[currentPeakIndex[j]-1].logMz < tol){
-                                LogMzPeak p(*logMzPeaks[currentPeakIndex[j]-1].orgPeak);
-                                p.charge = charge;
-                                p.isotopeIndex = 0;
+                                LogMzPeak p(*logMzPeaks[currentPeakIndex[j]-1].orgPeak, charge, 0);
+                                massBins[(p.logMz - min - filter[j]) / tol] = false;
                                 peakGroup.push_back(p);
                             }
                         }
-                        int currentPeakIndexForIsotopes = currentPeakIndex[j] - 1;
 
-                        for(int i=-1;i>-maxIsotopeIndex;i--) {
-                            double logMzIsotope = log(exp(logMz) + Constants::C13C12_MASSDIFF_U*i/charge);
+                        for(int d=-1;d<=1;d+=2){ // negative then positive direction.
+                            int currentPeakIndexForIsotopes = currentPeakIndex[j] + d;
+                            for(int i=1;i<maxIsotopeIndex + (d<0? 0 : isoOff);i++) {
+                                double logMzIsotope = log(exp(logMz) + Constants::C13C12_MASSDIFF_U*i*d/charge);
 
-                            bool isotopePeakPresent = false;
-                            while(currentPeakIndexForIsotopes >= 0){
-                                double logMzForIsotope = logMzPeaks[currentPeakIndexForIsotopes].logMz;
-                                currentPeakIndexForIsotopes--;
-                                if(logMzForIsotope < logMzIsotope - tol) break;
-                                if(logMzForIsotope > logMzIsotope + tol) continue;
+                                bool isotopePeakPresent = false;
+                                while(currentPeakIndexForIsotopes >= 0 && currentPeakIndexForIsotopes < logMzPeaks.size()){
+                                    double logMzForIsotope = logMzPeaks[currentPeakIndexForIsotopes].logMz;
+                                    currentPeakIndexForIsotopes += d;
+                                    if(logMzForIsotope < logMzIsotope - tol) if(d<0) break; else continue;
+                                    if(logMzForIsotope > logMzIsotope + tol) if(d<0) continue; else break;
 
-                                isotopePeakPresent = true;
+                                    isotopePeakPresent = true;
 
-                                LogMzPeak p(*logMzPeaks[currentPeakIndexForIsotopes+1].orgPeak);
-                                p.charge = charge;
-                                p.isotopeIndex = i;
-                                peakGroup.push_back(p);
+                                    LogMzPeak p(*logMzPeaks[currentPeakIndexForIsotopes-d].orgPeak, charge, i*d);
+                                    massBins[(p.logMz - min - filter[j]) / tol] = false;
+                                    peakGroup.push_back(p);
+                                }
+                                if(!isotopePeakPresent) break;
+                                if(d < 0) isoOff = -i > isoOff? isoOff : -i;
                             }
-                            if(!isotopePeakPresent) break;
-                            isoOff = i > isoOff? isoOff : i;
-                        }
-                        currentPeakIndexForIsotopes = currentPeakIndex[j] + 1;
-
-                        for(int i=1;i<maxIsotopeIndex + isoOff;i++) {
-                            double logMzIsotope = log(exp(logMz) + Constants::C13C12_MASSDIFF_U*i/charge);
-
-                            bool isotopePeakPresent = false;
-                            while(currentPeakIndexForIsotopes < logMzPeaks.size()){
-                                double logMzForIsotope = logMzPeaks[currentPeakIndexForIsotopes].logMz;
-                                currentPeakIndexForIsotopes++;
-                                if(logMzForIsotope < logMzIsotope - tol) continue;
-                                if(logMzForIsotope > logMzIsotope + tol) break;
-
-                                isotopePeakPresent = true;
-
-                                LogMzPeak p(*logMzPeaks[currentPeakIndexForIsotopes-1].orgPeak);
-                                p.charge = charge;
-                                p.isotopeIndex = i;
-                                peakGroup.push_back(p);
-                            }
-                            if(!isotopePeakPresent) break;
                         }
                     }
                     currentPeakIndex[j]++;
