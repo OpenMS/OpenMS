@@ -17,13 +17,13 @@
 using namespace OpenMS;
 using namespace std;
 
-class TDOnlineDeconv:
+class TopDownOnlineDeconvolution:
         public TOPPBase
 {
 
 public:
-    TDOnlineDeconv():
-            TOPPBase("TDOnlineDeconv", "Online Deconvolution for Smart MS2 acquisition with top down data", false)\
+    TopDownOnlineDeconvolution():
+            TOPPBase("TopDownOnlineDeconvolution", "Online Deconvolution for Smart MS2 acquisition with top down data", false)\
     {}
 
     typedef struct LogMzPeak{
@@ -34,7 +34,7 @@ public:
         double score;
 
         LogMzPeak(): orgPeak(nullptr), logMz(-10000), charge(0), isotopeIndex(0), score(0) {}
-        LogMzPeak(Peak1D &peak): orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(0), isotopeIndex(0), score(0) {}
+        explicit LogMzPeak(Peak1D &peak): orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(0), isotopeIndex(0), score(0) {}
         LogMzPeak(Peak1D &peak, int c, int i): orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(c), isotopeIndex(i), score(0) {}
 
         double getMass(){
@@ -43,7 +43,7 @@ public:
         bool operator<(const LogMzPeak &a){
             return logMz < a.logMz;
         }
-    };
+    } LogMzPeak;
 
 
 protected:
@@ -80,16 +80,16 @@ protected:
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
 
         double elapsed_secs = 0;
-        for(int r=1;r<=1;r++){
+        for(int r=1;r<=2;r++){
             ostringstream st;
             st <<  "/Users/kyowonjeong/Documents/A4B/matlab/yeast" << r << ".m";
-            //outfilePath = st.str();
+            outfilePath = st.str();
 
             fstream fs;
             fs.open(outfilePath, fstream::out);
             fs << "m=[";
-            for(int f=1;f<=1;f++){
-                //infilePath = infileDir + "f"+f+"r" + r+".mzML";
+            for(int f=1;f<=12;f++){
+                infilePath = infileDir + "f"+f+"r" + r+".mzML";
                 cout << "%file name : " << infilePath << endl;
                 MSExperiment map;
                 mzml.load(infilePath, map);
@@ -117,7 +117,7 @@ protected:
         int minContinuousChargePeak = 3;//the lower the more spectrum deconved the running time sacrifice is huge..
         int minChargePeak = filterSize*.2;
         int minIsotopeCount = 3; //
-        int maxMassPerSpectrum = 30;//  10 is enough....
+        int maxMassPerSpectrum = 30;//  it should be checked at the end...
         int maxIsotopeIndex = 15; // make it variable
         double tolerance = 5e-6; // 5 ppm
 
@@ -187,18 +187,34 @@ protected:
                     }
                 }
 
-                auto avgIso = generator->estimateFromPeptideWeight(mostAbundantMass);
-                //avgIso.renormalize();
-
-                /*avgIso.trimRight(0.1);//
-                cout<<mostAbundantMass<<endl;
-                for(int o=0;o<avgIso.size();o++){
-                    auto t = avgIso[o];
-
-                    cout<<t.getMZ()<<" "<<t.getIntensity()<<";";
+                int setIntensityCounter = 0;
+                int maxSetIntensityCounter = 0;
+                for(int i=0;i<filterSize;i++){
+                    if(perChargeIntensities[i]<=0){
+                        setIntensityCounter = 0;
+                        continue;
+                    }
+                    setIntensityCounter++;
+                    maxSetIntensityCounter = maxSetIntensityCounter > setIntensityCounter? maxSetIntensityCounter : setIntensityCounter;
                 }
-                cout<<endl;
-                */
+                if(maxSetIntensityCounter < minContinuousChargePeak) continue;
+
+                /*
+                setIntensityCounter = 0;
+                maxSetIntensityCounter = 0;
+                for(int i=0;i<maxIsotopeIndex;i++){
+                    //if(perIsotopeIntensities[i]<=0){
+                        //setIntensityCounter = 0;
+                        //continue;
+                    //}
+                    setIntensityCounter++;
+                    maxSetIntensityCounter = maxSetIntensityCounter > setIntensityCounter? maxSetIntensityCounter : setIntensityCounter;
+
+                }
+                if(maxSetIntensityCounter < minIsotopeCount) continue;
+*/
+                auto avgIso = generator->estimateFromPeptideWeight(mostAbundantMass);
+
                 int offset = 0;
                 double maxCosine = -1;
                 for(int f = -3;f<=3;f++){
@@ -549,7 +565,7 @@ protected:
 
 int main(int argc, const char** argv)
 {
-    TDOnlineDeconv tool;
+    TopDownOnlineDeconvolution tool;
     return tool.main(argc, argv);
 }
 
