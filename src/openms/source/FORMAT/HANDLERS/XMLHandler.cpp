@@ -81,6 +81,16 @@ namespace OpenMS
       if (mode == LOAD)
       {
         error_message_ =  String("While loading '") + file_ + "': " + msg;
+	// test if file has the wrong extension and is therefore passed to the wrong parser
+        // only makes sense if we are loading/parsing a file
+	FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
+        FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
+        if (ft_name != ft_content)
+        {
+          error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
+                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
+                          + "Rename the file to fix this.";
+        }
       }
       else if (mode == STORE)
       {
@@ -89,16 +99,6 @@ namespace OpenMS
       if (line != 0 || column != 0)
       {
         error_message_ += String("( in line ") + line + " column " + column + ")";
-      }
-
-      // test if file has the wrong extension and is therefore passed to the wrong parser
-      FileTypes::Type ft_name = FileHandler::getTypeByFileName(file_);
-      FileTypes::Type ft_content = FileHandler::getTypeByContent(file_);
-      if (ft_name != ft_content)
-      {
-        error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
-                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
-                          + "Rename the file to fix this.";
       }
 
       LOG_FATAL_ERROR << error_message_ << std::endl;

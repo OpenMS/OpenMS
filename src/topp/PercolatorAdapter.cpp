@@ -36,6 +36,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/PercolatorFeatureSetHelper.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
@@ -228,7 +229,7 @@ protected:
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
-    String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin";
+    String enzs = "no_enzyme,elastase,pepsin,proteinasek,thermolysin,chymotrypsin,lys-n,lys-c,arg-c,asp-n,glu-c,trypsin,trypsinp";
     registerStringOption_("enzyme", "<enzyme>", "trypsin", "Type of enzyme: "+enzs , !is_required);
     setValidStrings_("enzyme", ListUtils::create<String>(enzs));
     registerInputFile_("percolator_executable", "<executable>",
@@ -329,6 +330,10 @@ protected:
     if (enz == "trypsin")
     {
       return ((n == 'K' || n == 'R') && c != 'P') || n == '-' || c == '-';
+    }
+    else if (enz == "trypsinp")
+    {
+      return (n == 'K' || n == 'R') || n == '-' || c == '-';
     }
     else if (enz == "chymotrypsin")
     {
@@ -956,7 +961,9 @@ protected:
         String fasta_file = getStringOption_("fasta");
         if (fasta_file.empty()) fasta_file = "auto";
         arguments << "-f" << fasta_file.toQString();
-        
+    
+        arguments << "-z" << String(enz_str).toQString();
+
         String decoy_pattern = getStringOption_("decoy-pattern");
         if (decoy_pattern != "random") arguments << "-P" << decoy_pattern.toQString();
       }
@@ -1118,6 +1125,9 @@ protected:
             {
               hit->setMetaValue("MS:1001493", pr->second.posterior_error_prob);  // percolator pep
               hit->setScore(pr->second.qvalue);
+	      //remove to mark the protein as mapped. We can safely assume that every protein
+	      // only occurs once in Percolator output.
+	      protein_map.erase(pr);
             }
             else
             {
@@ -1131,6 +1141,20 @@ protected:
           it->sort();
         }
         
+	if (!protein_map.empty())  //there remain unmapped proteins from Percolator
+	{
+	  for (const auto& prot : protein_map)
+	  {
+            if (prot.second.posterior_error_prob < 1.0) //actually present according to Percolator
+	    {
+              LOG_WARN << "Warning: Protein " << prot.first << " reported by Percolator with non-zero probability was"
+		      "not present in the input idXML. Ignoring to keep consistency of the PeptideIndexer settings..";
+	    }
+	  }
+	  // filter groups that might contain these unmapped proteins so we do not get errors while writing our output.
+	  IDFilter::updateProteinGroups(all_protein_ids[0].getIndistinguishableProteins(), all_protein_ids[0].getHits());
+	}
+
         //TODO add software percolator and PercolatorAdapter
         it->setMetaValue("percolator", "PercolatorAdapter");
         ProteinIdentification::SearchParameters search_parameters = it->getSearchParameters();
@@ -1164,11 +1188,11 @@ protected:
       // Storing the PeptideHits with calculated q-value, pep and svm score
       if (out_type == FileTypes::MZIDENTML)
       {
-        MzIdentMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+        MzIdentMLFile().store(out, all_protein_ids, all_peptide_ids);
       }
       if (out_type == FileTypes::IDXML)
       {
-        IdXMLFile().store(out.toQString().toStdString(), all_protein_ids, all_peptide_ids);
+        IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
       }
     }
     else

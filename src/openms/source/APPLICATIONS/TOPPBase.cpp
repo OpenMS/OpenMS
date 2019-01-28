@@ -136,8 +136,10 @@ namespace OpenMS
     //delete log file if empty
     StringList log_files;
     DataValue topplog = getParam_("log");
+
     if (!topplog.isEmpty() && !(topplog.toString().empty()))
       log_files.push_back(topplog.toString());
+    
     for (Size i = 0; i < log_files.size(); ++i)
     {
       if (File::empty(log_files[i]))
