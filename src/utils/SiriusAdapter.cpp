@@ -139,6 +139,8 @@ protected:
     setValidFormats_("out_fingerid", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("out_ms","<file>", "", "Internal SIRIUS .ms format after OpenMS preprocessing", false);
+    setValidFormats_("out_ms", ListUtils::create<String>("ms"));
+
     registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
 
     registerFlag_("converter_mode", "Use this flag in combination with the out_ms file to only convert the input mzML and featureXML to an .ms file. Without further SIRIUS processing.", true);
