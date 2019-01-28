@@ -109,7 +109,7 @@ public TOPPBase
 {
 public:
   Epifany() :
-  TOPPBase("EPIFANY", "Runs a Bayesian protein inference.", false)
+  TOPPBase("Epifany", "Runs a Bayesian protein inference.", false)
   {
   }
 
@@ -232,8 +232,15 @@ protected:
     }
     if (pre_filter > 0.0)
     {
+      LOG_INFO << "Removing PSMs with probability < " << pre_filter << std::endl;
       IDFilter::filterHitsByScore(mergedpeps, pre_filter);
       IDFilter::filterEmptyPeptideIDs(mergedpeps);
+    }
+
+    if (mergedpeps.empty())
+    {
+      LOG_ERROR << "No PSMs found. Please check input. Aborting." << std::endl;
+      return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
 
     // Currently this is needed because otherwise there might be proteins with a previous score
