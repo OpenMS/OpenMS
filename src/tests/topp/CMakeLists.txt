@@ -1008,6 +1008,10 @@ add_test("TOPP_IDFilter_20" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}
 add_test("TOPP_IDFilter_20_out1" ${DIFF} -in1 IDFilter_20_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_20_output.idXML )
 set_tests_properties("TOPP_IDFilter_20_out1" PROPERTIES DEPENDS "TOPP_IDFilter_20")
 
+#filter peptide hits by meta value name
+add_test("TOPP_IDFilter_21" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_16_input.idXML -out IDFilter_21_output.tmp -remove_peptide_hits_by_metavalue "calcMZ" "gt" "750.0")
+add_test("TOPP_IDFilter_21_out1" ${DIFF} -in1 IDFilter_21_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_21_output.idXML)
+set_tests_properties("TOPP_IDFilter_21_out1" PROPERTIES DEPENDS "TOPP_IDFilter_21")
 #------------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
 # featureXML input:
@@ -1667,7 +1671,7 @@ set_tests_properties("TOPP_RNPxlSearch_2_out1" PROPERTIES DEPENDS "TOPP_RNPxlSea
 
 # reporting of multiple hits and tsv output
 add_test("TOPP_RNPxlSearch_3" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
-${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_3_output.tmp -report:top_hits 3 -out_tsv RNPxlSearch_3_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast -RNPxl:localization)
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_3_output.tmp -report:top_hits 3 -out_tsv RNPxlSearch_3_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast)
 add_test("TOPP_RNPxlSearch_3_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 RNPxlSearch_3_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_3_output.idXML )
 add_test("TOPP_RNPxlSearch_3_out2" ${DIFF} -in1 RNPxlSearch_3_output2.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_3_output2.tsv )
@@ -1676,7 +1680,7 @@ set_tests_properties("TOPP_RNPxlSearch_3_out2" PROPERTIES DEPENDS "TOPP_RNPxlSea
 
 # reporting of multiple hits and tsv output and decoy generation
 add_test("TOPP_RNPxlSearch_4" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
-${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -RNPxl:decoys -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_4_output.tmp -report:top_hits 2 -out_tsv RNPxlSearch_4_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast -RNPxl:localization)
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -RNPxl:decoys -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_4_output.tmp -report:top_hits 2 -out_tsv RNPxlSearch_4_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast)
 add_test("TOPP_RNPxlSearch_4_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 RNPxlSearch_4_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_4_output.idXML )
 add_test("TOPP_RNPxlSearch_4_out2" ${DIFF} -in1 RNPxlSearch_4_output2.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_4_output2.tsv )
