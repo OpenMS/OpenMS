@@ -31,7 +31,7 @@ protected:
     //#ifdef NUMERIC_CHECK
     //assert(tot > mass_threshold_for_normalization);
     //#endif
-    if (tot > mass_threshold_for_normalization)
+    if (tot <= mass_threshold_for_normalization)
     {
       std::stringstream ss;
       ss << "Total probability mass" << tot << " in " << _table

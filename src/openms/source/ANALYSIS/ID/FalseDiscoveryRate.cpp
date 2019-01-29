@@ -746,7 +746,8 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
     }
     calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
-    setScores_(scores_to_FDR, id, score_type, false);
+    if (!scores_labels.empty())
+      setScores_(scores_to_FDR, id, score_type, false);
     // TODO this could be a separate function.. And it could actually be sped up.
     //  We could store the number of decoys/targets in the group, or we only update the
     //  scores of proteins that are actually in groups (rest stays the same)
@@ -765,7 +766,8 @@ namespace OpenMS
       }
       getScores_(scores_labels, id.getIndistinguishableProteins(), decoy_accs);
       calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
-      setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
+      if (!scores_labels.empty())
+        setScores_(scores_to_FDR, id.getIndistinguishableProteins(), score_type, false);
     }
     scores_to_FDR.clear();
   }
@@ -804,7 +806,8 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No scores could be extracted!");
         }
         calculateFDRBasic_(scores_to_FDR, scores_labels, q_value, higher_score_better);
-        setScores_(scores_to_FDR, ids, score_type, false);
+        if (!scores_labels.empty())
+          setScores_(scores_to_FDR, ids, score_type, false);
         scores_to_FDR.clear();
       }
     }
@@ -836,7 +839,8 @@ namespace OpenMS
     //TODO maybe separate getScores and getScoresAndLabels
     getScores_(scores_labels, ids[0]);
     calculateEstimatedQVal_(scores_to_FDR, scores_labels, higher_score_better);
-    setScores_(scores_to_FDR, ids[0], "Empirical Q-Values", false);
+    if (!scores_labels.empty())
+      setScores_(scores_to_FDR, ids[0], "Empirical Q-Values", false);
   }
 
   double FalseDiscoveryRate::applyEvaluateProteinIDs(const std::vector<ProteinIdentification>& ids, double pepCutoff, UInt fpCutoff, double diffWeight)
@@ -871,16 +875,22 @@ namespace OpenMS
     std::sort(scores_labels.rbegin(), scores_labels.rend());
     double diff = diffEstimatedEmpirical_(scores_labels, pepCutoff);
     double auc = rocN_(scores_labels, fpCutoff);
-    std::cout << "eval diff= " << diff << " and rocN= " << auc << std::endl;
+    LOG_INFO << "Evaluation of protein probabilities: Difference estimated vs. T-D FDR = " << diff << " and roc" << fpCutoff << " = " << auc << std::endl;
     // we want the score to get higher the lesser the difference. Subtract from one.
     // Then convex combination with the AUC.
     return (1.0 - diff) * diffWeight + auc * (1.0 - diffWeight);
   }
 
 
-
+  //TODO the following two methods assume sortedness. Add precondition and/or doxygen comment
   double FalseDiscoveryRate::diffEstimatedEmpirical_(const std::vector<std::pair<double, bool>>& scores_labels, double pepCutoff)
   {
+    if (scores_labels.empty())
+    {
+      LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      return 1.0;
+    }
+
     double diffArea = 0.0;
     double est = 0.0, estPrev = 0.0, emp = 0.0, empPrev = 0.0;
     double pepSum = 0.0;
@@ -921,6 +931,12 @@ namespace OpenMS
 
   double FalseDiscoveryRate::rocN_(const std::vector<std::pair<double, bool>>& scores_labels, Size fpCutoff) const
   {
+    if (scores_labels.empty())
+    {
+      LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      return 0.0;
+    }
+
     double rocN = 0.0;
     UInt truePos = 0u, falsePos = 0u, truePosPrev = 0u, falsePosPrev = 0u;
 
@@ -980,6 +996,12 @@ namespace OpenMS
                                                    std::vector<std::pair<double, bool>> &scores_labels,
                                                    bool higher_score_better) const
   {
+    if (scores_labels.empty())
+    {
+      LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      return;
+    }
+
     if (higher_score_better)
     { // decreasing
       std::sort(scores_labels.rbegin(), scores_labels.rend());
@@ -1014,7 +1036,12 @@ namespace OpenMS
 
   void FalseDiscoveryRate::calculateFDRBasic_(std::map<double,double>& scores_to_FDR, std::vector<std::pair<double,bool>>& scores_labels, bool qvalue, bool higher_score_better)
   {
-    std::cout << "Nr of recorded hits: " << scores_labels.size() << std::endl;
+    if (scores_labels.empty())
+    {
+      LOG_WARN << "Warning: No scores extracted for FDR calculation. Skipping. Do you have target-decoy annotated Hits?" << std::endl;
+      return;
+    }
+
     if (higher_score_better)
     { // decreasing
       std::sort(scores_labels.rbegin(), scores_labels.rend());
@@ -1161,8 +1188,7 @@ namespace OpenMS
       }
     }
   }
-
-
+  
   void FalseDiscoveryRate::setScores_(const map<double,double>& scores_to_FDR, vector<PeptideIdentification> & ids, const string& score_type, bool higher_better) const
   {
     for (auto& id : ids)
