@@ -108,6 +108,7 @@ namespace OpenMS
       // and if there were no edges, it would not be a CC.
       if (boost::num_vertices(fg) >= 2)
       {
+        bool graph_mp_ownership_acquired = false;
         bool update_PSM_probabilities = param_.getValue("update_PSM_probabilities").toBool();
         bool annotate_group_posterior = param_.getValue("annotate_group_probabilities").toBool();
         bool user_defined_priors = param_.getValue("user_defined_priors").toBool();
@@ -134,97 +135,122 @@ namespace OpenMS
         std::vector<IDBoostGraph::vertex_t> in{};
         //std::vector<IDBoostGraph::vertex_t> out{};
 
-        for (; ui != ui_end; ++ui)
+        //TODO the try section could in theory be slimmed down a little bit. First use of insertDependency maybe.
+        // check performance impact.
+        try
         {
-          IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
-          boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
-
-          in.clear();
-          //out.clear(); // we dont need out edges currently
-
-          for (; nbIt != nbIt_end; ++nbIt)
+          for (; ui != ui_end; ++ui)
           {
-            if (fg[*nbIt].which() < fg[*ui].which())
+            IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
+            boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
+
+            in.clear();
+            //out.clear(); // we dont need out edges currently
+
+            for (; nbIt != nbIt_end; ++nbIt)
             {
-              in.push_back(*nbIt);
+              if (fg[*nbIt].which() < fg[*ui].which())
+              {
+                in.push_back(*nbIt);
+              }
+              /*else
+              {
+                out.push_back(*nbIt);
+              }*/
             }
-            /*else
-            {
-              out.push_back(*nbIt);
-            }*/
-          }
 
-          //TODO introduce an enum for the types to make it more clear.
-          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+            //TODO introduce an enum for the types to make it more clear.
+            //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
 
-          if (fg[*ui].which() == 6) // pep hit = psm
-          {
-            bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[*ui])->getPeptideEvidences().size(), in[0], *ui));
-            bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<PeptideHit*>(fg[*ui])->getScore()));
-            if (update_PSM_probabilities)
+            if (fg[*ui].which() == 6) // pep hit = psm
             {
+              bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit *>(fg[*ui])
+                                                                     ->getPeptideEvidences().size(), in[0], *ui));
+              bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui,
+                                                                     boost::get<PeptideHit *>(fg[*ui])->getScore()));
+              if (update_PSM_probabilities)
+              {
+                posteriorVars.push_back({*ui});
+              }
+            }
+            else if (fg[*ui].which() == 2) // pep group
+            {
+              bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
+            }
+            else if (fg[*ui].which() == 1) // prot group
+            {
+              bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
+              if (annotate_group_posterior)
+              {
+                posteriorVars.push_back({*ui});
+              }
+            }
+            else if (fg[*ui].which() == 0) // prot
+            {
+              //TODO allow an already present prior probability here
+              //TODO modify createProteinFactor to start with a modified prior based on the number of missing
+              // peptides (later tweak to include conditional prob. for that peptide
+              //TODO modify createProteinFactor to start with a modified prior based on the number of missing
+              // peptides (later tweak to include conditional prob. for that peptide
+              if (user_defined_priors)
+              {
+                bigb.insert_dependency(mpf.createProteinFactor(*ui,
+                                                               (double) boost::get<ProteinHit *>(fg[*ui])
+                                                                   ->getMetaValue("Prior")));
+              }
+              else
+              {
+                bigb.insert_dependency(mpf.createProteinFactor(*ui));
+              }
               posteriorVars.push_back({*ui});
             }
           }
-          else if (fg[*ui].which() == 2) // pep group
+
+          // create factor graph for Bayesian network
+          InferenceGraph < IDBoostGraph::vertex_t > ig = bigb.to_graph();
+          graph_mp_ownership_acquired = true;
+
+          //TODO parametrize the type of scheduler.
+          PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_
+                                                                  .getValue("loopy_belief_propagation:dampening_lambda"),
+                                                              param_.getValue(
+                                                                  "loopy_belief_propagation:convergence_threshold"),
+                                                              param_
+                                                                  .getValue("loopy_belief_propagation:max_nr_iterations"));
+          scheduler.add_ab_initio_edges(ig);
+
+          BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
+          auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
+
+          for (auto const &posteriorFactor : posteriorFactors)
           {
-            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
-          }
-          else if (fg[*ui].which() == 1) // prot group
-          {
-            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
-            if (annotate_group_posterior)
+            double posterior = 1.0;
+            IDBoostGraph::SetPosteriorVisitor pv;
+            IDBoostGraph::vertex_t nodeId = posteriorFactor.ordered_variables()[0];
+            const PMF &pmf = posteriorFactor.pmf();
+            // If Index 0 is in the range of this result PMFFactor it is non-zero
+            //TODO BUG!! Check again and debug!
+            if (0 >= pmf.first_support()[0] && 0 <= pmf.last_support()[0])
             {
-              posteriorVars.push_back({*ui});
+              posterior = 1. - pmf.table()[0ul];
             }
+            auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
+            boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
-          else if (fg[*ui].which() == 0) // prot
-          {
-            //TODO allow an already present prior probability here
-            //TODO modify createProteinFactor to start with a modified prior based on the number of missing
-            // peptides (later tweak to include conditional prob. for that peptide
-            //TODO modify createProteinFactor to start with a modified prior based on the number of missing
-            // peptides (later tweak to include conditional prob. for that peptide
-            if (user_defined_priors)
-            {
-              bigb.insert_dependency(mpf.createProteinFactor(*ui, (double) boost::get<ProteinHit*>(fg[*ui])->getMetaValue("Prior")));
-            }
-            else
-            {
-              bigb.insert_dependency(mpf.createProteinFactor(*ui));
-            }
-            posteriorVars.push_back({*ui});
-          }
+          //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
         }
-
-        // create factor graph for Bayesian network
-        InferenceGraph<IDBoostGraph::vertex_t> ig = bigb.to_graph();
-
-        //TODO parametrize the type of scheduler.
-        PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
-                                                   param_.getValue("loopy_belief_propagation:convergence_threshold"),
-                                                   param_.getValue("loopy_belief_propagation:max_nr_iterations"));
-        scheduler.add_ab_initio_edges(ig);
-
-        BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
-        auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
-
-        for (auto const& posteriorFactor : posteriorFactors)
+        catch (const std::runtime_error& /*e*/)
         {
-          double posterior = 1.0;
-          IDBoostGraph::SetPosteriorVisitor pv;
-          IDBoostGraph::vertex_t nodeId = posteriorFactor.ordered_variables()[0];
-          const PMF& pmf = posteriorFactor.pmf();
-          // If Index 0 is in the range of this result PMFFactor it is non-zero
-          //TODO BUG!! Check again and debug!
-          if (0 >= pmf.first_support()[0] && 0 <= pmf.last_support()[0]) {
-            posterior = 1. - pmf.table()[0ul];
-          }
-          auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
-          boost::apply_visitor(bound_visitor, fg[nodeId]);
-        }
-        //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
+          //TODO print failing component
+          // set posteriors to priors or try another type of inference?
+          // Think about cancelling all other threads/ the loop
+          //For now we just warn and continue with the rest of the iterations. Might still be a valid run.
 
+          // Graph builder needs to build otherwise it leaks memory.
+          if (!graph_mp_ownership_acquired) bigb.to_graph();
+          LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
+                      " inference there." << std::endl;
+        }
       }
       else
       {
@@ -276,64 +302,67 @@ namespace OpenMS
         std::vector<IDBoostGraph::vertex_t> in{};
         //std::vector<IDBoostGraph::vertex_t> out{};
 
-        for (; ui != ui_end; ++ui)
-        {
-          IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
-          boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
-
-          in.clear();
-          //out.clear(); // we dont need out edges currently
-
-          for (; nbIt != nbIt_end; ++nbIt)
-          {
-            if (fg[*nbIt].which() < fg[*ui].which())
-            {
-              in.push_back(*nbIt);
-            }
-            /*else
-            {
-              out.push_back(*nbIt);
-            }*/
-          }
-
-          //TODO introduce an enum for the types to make it more clear.
-          //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
-
-          if (fg[*ui].which() == 6) // pep hit = psm
-          {
-            bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[*ui])->getPeptideEvidences().size(), in[0], *ui));
-            bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<PeptideHit*>(fg[*ui])->getScore()));
-          }
-          else if (fg[*ui].which() == 2) // pep group
-          {
-            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
-          }
-          else if (fg[*ui].which() == 1) // prot group
-          {
-            bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
-          }
-          else if (fg[*ui].which() == 0) // prot
-          {
-            //TODO allow an already present prior probability here
-            //TODO modify createProteinFactor to start with a modified prior based on the number of missing
-            // peptides (later tweak to include conditional prob. for that peptide
-            bigb.insert_dependency(mpf.createProteinFactor(*ui));
-            posteriorVars.push_back({*ui});
-          }
-        }
-
-        // create factor graph for Bayesian network
-        InferenceGraph<IDBoostGraph::vertex_t> ig = bigb.to_graph();
-
-        //TODO parametrize the type of scheduler.
-        PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
-                                                   param_.getValue("loopy_belief_propagation:convergence_threshold"),
-                                                   param_.getValue("loopy_belief_propagation:max_nr_iterations"));
-        scheduler.add_ab_initio_edges(ig);
-
+        //TODO the try section could in theory be slimmed down a little bit. First use of insertDependency maybe.
+        // check performance impact.
         try
         {
+          for (; ui != ui_end; ++ui)
+          {
+            IDBoostGraph::Graph::adjacency_iterator nbIt, nbIt_end;
+            boost::tie(nbIt, nbIt_end) = boost::adjacent_vertices(*ui, fg);
+
+            in.clear();
+            //out.clear(); // we dont need out edges currently
+
+            for (; nbIt != nbIt_end; ++nbIt)
+            {
+              if (fg[*nbIt].which() < fg[*ui].which())
+              {
+                in.push_back(*nbIt);
+              }
+              /*else
+              {
+                out.push_back(*nbIt);
+              }*/
+            }
+
+            //TODO introduce an enum for the types to make it more clear.
+            //Or use the static_visitor pattern: You have to pass the vertex with its neighbors as a second arg though.
+
+            if (fg[*ui].which() == 6) // pep hit = psm
+            {
+              bigb.insert_dependency(mpf.createSumEvidenceFactor(boost::get<PeptideHit*>(fg[*ui])->getPeptideEvidences().size(), in[0], *ui));
+              bigb.insert_dependency(mpf.createPeptideEvidenceFactor(*ui, boost::get<PeptideHit*>(fg[*ui])->getScore()));
+            }
+            else if (fg[*ui].which() == 2) // pep group
+            {
+              bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
+            }
+            else if (fg[*ui].which() == 1) // prot group
+            {
+              bigb.insert_dependency(mpf.createPeptideProbabilisticAdderFactor(in, *ui));
+            }
+            else if (fg[*ui].which() == 0) // prot
+            {
+              //TODO allow an already present prior probability here
+              //TODO modify createProteinFactor to start with a modified prior based on the number of missing
+              // peptides (later tweak to include conditional prob. for that peptide
+              bigb.insert_dependency(mpf.createProteinFactor(*ui));
+              posteriorVars.push_back({*ui});
+            }
+          }
+
+          // create factor graph for Bayesian network
+          InferenceGraph<IDBoostGraph::vertex_t> ig = bigb.to_graph();
+
+          //TODO parametrize the type of scheduler.
+          PriorityScheduler<IDBoostGraph::vertex_t> scheduler(param_.getValue("loopy_belief_propagation:dampening_lambda"),
+                                                     param_.getValue("loopy_belief_propagation:convergence_threshold"),
+                                                     param_.getValue("loopy_belief_propagation:max_nr_iterations"));
+          scheduler.add_ab_initio_edges(ig);
+
           BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
+
           auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
 
           //TODO you could also save the indices of the peptides here and request + update their posteriors, too.
@@ -352,11 +381,15 @@ namespace OpenMS
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
         }
-        catch (std::runtime_error& /*e*/) {
+        catch (const std::runtime_error& /*e*/)
+        {
           //TODO print failing component
           // set posteriors to priors or try another type of inference?
           // Think about cancelling all other threads/ the loop
           //For now we just warn and continue with the rest of the iterations. Might still be a valid run.
+
+          // Graph builder needs to build otherwise it leaks memory.
+          bigb.to_graph();
           LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
                       "inference there." << std::endl;
         }
