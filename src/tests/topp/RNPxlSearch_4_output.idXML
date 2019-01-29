@@ -5,7 +5,7 @@
 				<UserParam type="string" name="feature_extractor" value="TOPP_PSMFeatureExtractor"/>
 				<UserParam type="string" name="extra_features" value="isotope_error,RNPxl:score,RNPxl:total_loss_score,RNPxl:immonium_score,RNPxl:precursor_score,RNPxl:a_ion_score,RNPxl:marker_ions_score,RNPxl:partial_loss_score,RNPxl:MIC,RNPxl:err,RNPxl:Morph,RNPxl:pl_MIC,RNPxl:pl_err,RNPxl:pl_Morph,RNPxl:total_MIC,RNPxl:RNA_MASS_z0"/>
 	</SearchParameters>
-	<IdentificationRun date="2018-12-14T13:20:46" search_engine="RNPxlSearch" search_engine_version="2.4.0--No such file or directory-NOTFOUND--No" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2019-01-29T10:50:29" search_engine="RNPxlSearch" search_engine_version="2.4.0--No such file or directory-NOTFOUND--No" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="Cse1" score="0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -360,6 +360,50 @@
 				<UserParam type="float" name="RNPxl:z4 mass" value="396.433174168671"/>
 				<UserParam type="float" name="hyperscore_score" value="18.437629699707"/>
 			</PeptideHit>
+			<PeptideHit score="0.409090909090909" sequence="MRSYLILR.[531.1002621918]" charge="2" aa_before="[" aa_after="L" start="0" end="7" protein_refs="PH_3" >
+				<UserParam type="string" name="fragment_annotation" value="136.074905395508,0.0554257072508335,1,&quot;iY&quot;|158.092697143555,0.0155747011303902,1,&quot;y1-H3N1+&quot;|175.118927001953,0.0892306044697762,1,&quot;y1&quot;|227.066909790039,0.0190263390541077,1,&quot;MI:U-H3PO4&quot;|375.179748535156,0.00341754499822855,1,&quot;b3&quot;|648.337829589844,0.0164578445255756,1,&quot;[M+H]++ U-HPO3&quot;|1008.47961425781,0.00501860026270151,1,&quot;b6+U-HPO3&quot;"/>
+				<UserParam type="float" name="RNPxl:score" value="0.113123878836632"/>
+				<UserParam type="float" name="RNPxl:total_loss_score" value="0.0886042416095734"/>
+				<UserParam type="float" name="RNPxl:immonium_score" value="0.00917797535657883"/>
+				<UserParam type="float" name="RNPxl:precursor_score" value="0"/>
+				<UserParam type="float" name="RNPxl:a_ion_score" value="0"/>
+				<UserParam type="float" name="RNPxl:marker_ions_score" value="0"/>
+				<UserParam type="float" name="RNPxl:partial_loss_score" value="0"/>
+				<UserParam type="float" name="RNPxl:MIC" value="0.0153416618704796"/>
+				<UserParam type="float" name="RNPxl:err" value="0.000589701230637729"/>
+				<UserParam type="float" name="RNPxl:Morph" value="2.01534175872803"/>
+				<UserParam type="float" name="RNPxl:pl_MIC" value="0"/>
+				<UserParam type="float" name="RNPxl:pl_err" value="0"/>
+				<UserParam type="float" name="RNPxl:pl_Morph" value="0"/>
+				<UserParam type="float" name="RNPxl:total_MIC" value="0.0245196372270584"/>
+				<UserParam type="string" name="RNPxl:RNA" value="CU-H2O1-H1O3P1"/>
+				<UserParam type="string" name="RNPxl:NT" value="U"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="531.1002621918"/>
+				<UserParam type="float" name="RNPxl:best_localization_score" value="0"/>
+				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 0 0 0 0 0"/>
+				<UserParam type="string" name="RNPxl:best_localization" value="MRSYLILR"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="int" name="rank" value="1"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="1050.6008243458"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1581.7010865376"/>
+				<UserParam type="float" name="A_136.06231" value="100"/>
+				<UserParam type="float" name="A_330.06033" value="18.3581411838531"/>
+				<UserParam type="float" name="C_112.05108" value="1.60713978111744"/>
+				<UserParam type="float" name="C_306.0491" value="0"/>
+				<UserParam type="float" name="G_152.05723" value="0"/>
+				<UserParam type="float" name="G_346.05525" value="0"/>
+				<UserParam type="float" name="U_113.03509" value="0"/>
+				<UserParam type="float" name="U_307.03311" value="0"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.00118905349188481"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="1.50159973451026"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1582.70836300437"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="791.857819735571"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="528.240971979304"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="396.432548101171"/>
+				<UserParam type="float" name="hyperscore_score" value="0.113123878836632"/>
+			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="4"/>
 			<UserParam type="float" name="precursor_intensity" value="6056189"/>
 		</PeptideIdentification>
@@ -492,8 +536,8 @@
 				<UserParam type="float" name="G_346.05525" value="0"/>
 				<UserParam type="float" name="U_113.03509" value="0"/>
 				<UserParam type="float" name="U_307.03311" value="0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-0.000242291528934402"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.368899956814601"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.000242291529048089"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.368899956987694"/>
 				<UserParam type="float" name="RNPxl:z1 mass" value="1312.58208270017"/>
 				<UserParam type="float" name="RNPxl:z2 mass" value="656.794679583471"/>
 				<UserParam type="float" name="RNPxl:z3 mass" value="438.198878544571"/>
@@ -782,6 +826,54 @@
 			</PeptideHit>
 			<UserParam type="int" name="scan_index" value="10"/>
 			<UserParam type="float" name="precursor_intensity" value="62663788"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="648.255920410156" RT="34.0715484619141" >
+			<PeptideHit score="0.409090909090909" sequence="AVLKPR.[612.0506096818]" charge="2" aa_before="K" aa_after="Y" start="135" end="140" protein_refs="PH_3" >
+				<UserParam type="string" name="fragment_annotation" value="129.102355957031,0.242256298661232,1,&quot;iK(C6H13N2O)&quot;|175.118927001953,0.105047397315502,1,&quot;y1&quot;|307.033325195312,0.0220586527138948,1,&quot;MI:U-H2O&quot;|446.257995605469,0.0148000223562121,1,&quot;[M+H]-H2O++ U-H3PO4&quot;|690.319885253906,0.0432569496333599,1,&quot;a4+U-H2O&quot;"/>
+				<UserParam type="float" name="RNPxl:score" value="0.141841292381287"/>
+				<UserParam type="float" name="RNPxl:total_loss_score" value="0.0998882278800011"/>
+				<UserParam type="float" name="RNPxl:immonium_score" value="0.0292637106031179"/>
+				<UserParam type="float" name="RNPxl:precursor_score" value="0"/>
+				<UserParam type="float" name="RNPxl:a_ion_score" value="0"/>
+				<UserParam type="float" name="RNPxl:marker_ions_score" value="0"/>
+				<UserParam type="float" name="RNPxl:partial_loss_score" value="0"/>
+				<UserParam type="float" name="RNPxl:MIC" value="0.0126893566921353"/>
+				<UserParam type="float" name="RNPxl:err" value="2.59114185610088e-05"/>
+				<UserParam type="float" name="RNPxl:Morph" value="1.01268935203552"/>
+				<UserParam type="float" name="RNPxl:pl_MIC" value="0"/>
+				<UserParam type="float" name="RNPxl:pl_err" value="0"/>
+				<UserParam type="float" name="RNPxl:pl_Morph" value="0"/>
+				<UserParam type="float" name="RNPxl:total_MIC" value="0.0419530682265759"/>
+				<UserParam type="string" name="RNPxl:RNA" value="UU-H2O1"/>
+				<UserParam type="string" name="RNPxl:NT" value="U"/>
+				<UserParam type="float" name="RNPxl:RNA_MASS_z0" value="612.0506096818"/>
+				<UserParam type="float" name="RNPxl:best_localization_score" value="0"/>
+				<UserParam type="string" name="RNPxl:localization_scores" value="0 0 0 0 0 0"/>
+				<UserParam type="string" name="RNPxl:best_localization" value="AVLKPR"/>
+				<UserParam type="int" name="isotope_error" value="0"/>
+				<UserParam type="int" name="rank" value="0"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+				<UserParam type="float" name="RNPxl:peptide_mass_z0" value="682.4489968502"/>
+				<UserParam type="float" name="RNPxl:xl_mass_z0" value="1294.499606532"/>
+				<UserParam type="float" name="A_136.06231" value="100"/>
+				<UserParam type="float" name="A_330.06033" value="17.2986760735512"/>
+				<UserParam type="float" name="C_112.05108" value="22.1805945038795"/>
+				<UserParam type="float" name="C_306.0491" value="0"/>
+				<UserParam type="float" name="G_152.05723" value="31.6783934831619"/>
+				<UserParam type="float" name="G_346.05525" value="0"/>
+				<UserParam type="float" name="U_113.03509" value="0"/>
+				<UserParam type="float" name="U_307.03311" value="2.20586527138948"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="0.0011593226149671"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="-1.78836861364476"/>
+				<UserParam type="float" name="RNPxl:z1 mass" value="1295.50688299877"/>
+				<UserParam type="float" name="RNPxl:z2 mass" value="648.257079732771"/>
+				<UserParam type="float" name="RNPxl:z3 mass" value="432.507145310771"/>
+				<UserParam type="float" name="RNPxl:z4 mass" value="324.632178099771"/>
+				<UserParam type="float" name="hyperscore_score" value="0.141841292381287"/>
+			</PeptideHit>
+			<UserParam type="int" name="scan_index" value="11"/>
+			<UserParam type="float" name="precursor_intensity" value="768507.1875"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="938.369262695313" RT="36.528003692627" >
 			<PeptideHit score="0" sequence="DDMNMQKDAIFGGK.[306.0253048409]" charge="2" aa_before="R" aa_after="R" start="20" end="33" protein_refs="PH_2" >
@@ -1096,8 +1188,8 @@
 				<UserParam type="float" name="G_346.05525" value="0"/>
 				<UserParam type="float" name="U_113.03509" value="0"/>
 				<UserParam type="float" name="U_307.03311" value="0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-0.000549164584867867"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.65857598736392"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.000549164585095241"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="0.658575987636594"/>
 				<UserParam type="float" name="RNPxl:z1 mass" value="1666.72612227437"/>
 				<UserParam type="float" name="RNPxl:z2 mass" value="833.866699370571"/>
 				<UserParam type="float" name="RNPxl:z3 mass" value="556.246891735971"/>
@@ -1188,8 +1280,8 @@
 				<UserParam type="float" name="G_346.05525" value="0"/>
 				<UserParam type="float" name="U_113.03509" value="0"/>
 				<UserParam type="float" name="U_307.03311" value="0"/>
-				<UserParam type="float" name="RNPxl:Da difference" value="-0.506903229678869"/>
-				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="726.440469881755"/>
+				<UserParam type="float" name="RNPxl:Da difference" value="-0.506903229678983"/>
+				<UserParam type="float" name="OMS:precursor_mz_error_ppm" value="726.440469881918"/>
 				<UserParam type="float" name="RNPxl:z1 mass" value="1394.57364363637"/>
 				<UserParam type="float" name="RNPxl:z2 mass" value="697.790460051571"/>
 				<UserParam type="float" name="RNPxl:z3 mass" value="465.529398856638"/>

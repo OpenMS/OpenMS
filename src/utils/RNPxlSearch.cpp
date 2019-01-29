@@ -1968,7 +1968,7 @@ protected:
 
 
                   // bad score, likely wihout any single matching peak
-                  if (total_loss_score < 0.1) { continue; }
+                  if (total_loss_score < 0.01) { continue; }
 
                   // add peptide hit
                   AnnotatedHit ah;
@@ -2108,7 +2108,7 @@ protected:
                                              a_ion_sub_score);
 
                     // bad score, likely wihout any single matching peak
-                    if (score < 0.1) { continue; }
+                    if (score < 0.01) { continue; }
 
                     scorePartialLossFragments_(exp_spectrum,
                                                fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
@@ -2204,7 +2204,7 @@ protected:
                                          a_ion_sub_score);
 
                 // no good hit
-                if (total_loss_score < 0.1) { continue; }
+                if (total_loss_score < 0.01) { continue; }
 
                 // add peptide hit
                 AnnotatedHit ah;
@@ -2388,7 +2388,7 @@ protected:
                                            exp_spectrum, total_loss_spectrum);
 
     // bad score, likely wihout any single matching peak
-    if (total_loss_score < 0.1) { return; }
+    if (total_loss_score < 0.01) { return; }
 
     immonium_sub_score = 0;
     precursor_sub_score = 0;
