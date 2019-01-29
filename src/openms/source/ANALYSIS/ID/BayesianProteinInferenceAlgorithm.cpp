@@ -102,7 +102,7 @@ namespace OpenMS
     {}
 
     void operator() (IDBoostGraph::Graph& fg) {
-      //TODO do quick bruteforce calculation if the cc is really small
+      //TODO do quick bruteforce calculation if the cc is really small?
 
       // this skips CCs with just peps or prots. We only add edges between different types.
       // and if there were no edges, it would not be a CC.
@@ -131,7 +131,7 @@ namespace OpenMS
         vector<vector<IDBoostGraph::vertex_t>> posteriorVars;
 
         // direct neighbors are proteins on the "left" side and peptides on the "right" side
-        // TODO Can be sped up using directed graph. NEeds some restructuring in IDBoostGraph class first tho.
+        // TODO Can be sped up using directed graph. Needs some restructuring in IDBoostGraph class first tho.
         std::vector<IDBoostGraph::vertex_t> in{};
         //std::vector<IDBoostGraph::vertex_t> out{};
 
@@ -187,9 +187,6 @@ namespace OpenMS
             }
             else if (fg[*ui].which() == 0) // prot
             {
-              //TODO allow an already present prior probability here
-              //TODO modify createProteinFactor to start with a modified prior based on the number of missing
-              // peptides (later tweak to include conditional prob. for that peptide
               //TODO modify createProteinFactor to start with a modified prior based on the number of missing
               // peptides (later tweak to include conditional prob. for that peptide
               if (user_defined_priors)
@@ -228,8 +225,8 @@ namespace OpenMS
             IDBoostGraph::SetPosteriorVisitor pv;
             IDBoostGraph::vertex_t nodeId = posteriorFactor.ordered_variables()[0];
             const PMF &pmf = posteriorFactor.pmf();
-            // If Index 0 is in the range of this result PMFFactor it is non-zero
-            //TODO BUG!! Check again and debug!
+            // If Index 0 is in the range of this result PMFFactor is probability is non-zero
+            // and the prob of presence is 1-P(p=0). Important in multi-value factors like protein groups.
             if (0 >= pmf.first_support()[0] && 0 <= pmf.last_support()[0])
             {
               posterior = 1. - pmf.table()[0ul];
@@ -237,13 +234,18 @@ namespace OpenMS
             auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
             boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
-          //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
+          //TODO we could write out/save the posteriors here,
+          // so we can easily read them later for the best params of the grid search
         }
         catch (const std::runtime_error& /*e*/)
         {
-          //TODO print failing component
-          // set posteriors to priors or try another type of inference?
-          // Think about cancelling all other threads/ the loop
+          //TODO print failing component and implement the following options
+          // 1) Leave posteriors (e.g. if Percolator was ran before. Make sure they are PPs not PEPs)
+          // 2) set posteriors to priors
+          // 3) try another type of inference on that connected component. Different scheduler,
+          //    different extreme probabilities or maybe best: trivial aggregation-based inference.
+          // 4) Cancelling this and all other threads/ the loop and call this set of parameters invalid
+
           //For now we just warn and continue with the rest of the iterations. Might still be a valid run.
 
           // Graph builder needs to build otherwise it leaks memory.

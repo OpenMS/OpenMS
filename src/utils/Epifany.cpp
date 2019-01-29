@@ -171,17 +171,28 @@ protected:
       {
         vector<ProteinIdentification> prots;
         vector<PeptideIdentification> peps;
-        idXMLf.load(file,prots,peps);
-        merger.insertRun(prots,peps);
+        idXMLf.load(file, prots, peps);
+        //TODO merger does not support groups yet, so clear them here right away.
+        // Not so easy to implement at first sight. Merge groups whenever one protein overlaps?
+        prots[0].getIndistinguishableProteins().clear();
+        prots[0].getProteinGroups().clear();
+        merger.insertRun(prots, peps);
       }
-
       merger.returnResultsAndClear(mergedprots[0], mergedpeps);
     }
     else
     {
-      idXMLf.load(files[0],mergedprots,mergedpeps);
+      idXMLf.load(files[0], mergedprots, mergedpeps);
+      //TODO For now we delete because we want to add new groups here.
+      // Think about:
+      // 1) keeping the groups and allow them to be used as a prior grouping (e.g. gene based)
+      // 2) keeping the groups and store them in a separate group object to output both and compare.
+      mergedprots[0].getIndistinguishableProteins().clear();
+      mergedprots[0].getProteinGroups().clear();
     }
 
+    //TODO if we always filter low-probability PSMs we can also do it
+    // before this line to save some computation time
     IDFilter::filterBestPerPeptide(mergedpeps, true, true, 1);
 
     IDFilter::filterEmptyPeptideIDs(mergedpeps);
@@ -243,12 +254,15 @@ protected:
       return ExitCodes::INCOMPATIBLE_INPUT_DATA;
     }
 
+    //TODO also convert potential PEPs to PPs in ProteinHits? In case you want to use them as priors or
+    // emergency posteriors?
+
     // Currently this is needed because otherwise there might be proteins with a previous score
     // that get evaluated during FDR without a new posterior being set.
     // Alternative would be to reset scores but this does not work well if you wanna work with i.e. user priors
     IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
 
-    LOG_INFO << "Loading and merging took " << sw.toString() << std::endl;
+    LOG_INFO << "Loading, merging, filtering took " << sw.toString() << std::endl;
     sw.reset();
 
     BayesianProteinInferenceAlgorithm bpi1;
@@ -262,7 +276,7 @@ protected:
 
     if (greedy_group_resolution)
     {
-      LOG_INFO << "Postprocessing: Removing associations from spectrum to all but the best protein group..." << std::endl;
+      LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
       //TODO add group resolution to the IDBoostGraph class so we do not
       // unnecessarily build a second (old) data structure
       mergedprots[0].fillIndistinguishableGroupsWithSingletons();
