@@ -49,6 +49,15 @@ namespace OpenMS
   /**
       @brief Generates theoretical spectra for cross-linked peptides
 
+      The spectra this class generates are instances of the PeakSpectrum class.
+      This class generates the same peak types as SimpleTSGXLMS
+      and the interface is very similar, but it is more complex and slower.
+      If the parameters add_metainfo and add_charges are set to true, it will
+      generate a StringDataArray for String annotations of ion types
+      and an IntegerDataArray for peak charges and add them to the DataArrays
+      of the produced PeakSpectrum. The spectra from this class are mainly used
+      for annotation of matched experimental spectra.
+
   @htmlinclude OpenMS_TheoreticalSpectrumGeneratorXLMS.parameters
 
       @ingroup Chemistry

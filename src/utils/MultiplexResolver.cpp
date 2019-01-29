@@ -50,6 +50,8 @@ using namespace std;
 using namespace OpenMS;
 using namespace boost::math;
 
+//#define DEBUG
+
 //-------------------------------------------------------------
 //Doxygen docu
 //-------------------------------------------------------------
@@ -540,8 +542,10 @@ public:
      * generate patterns
      */
     MultiplexDeltaMassesGenerator generator = MultiplexDeltaMassesGenerator(labels_, missed_cleavages_, label_mass_shift_);
-    generator.printSamplesLabelsList();
-    generator.printDeltaMassesList();
+    #ifdef DEBUG
+    generator.printSamplesLabelsList(std::cout);
+    generator.printDeltaMassesList(std::cout);
+    #endif
         
     /**
      * construct the new consensus map

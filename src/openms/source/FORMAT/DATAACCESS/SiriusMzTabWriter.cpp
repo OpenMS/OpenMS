@@ -44,7 +44,6 @@
 using namespace OpenMS;
 using namespace std;
 
-
 int SiriusMzTabWriter::extract_scan_index(const String &path)
 {
   return (path.substr(path.find_last_not_of("0123456789") + 1)).toInt();
@@ -60,10 +59,10 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
 
   for (std::vector<String>::const_iterator it = sirius_output_paths.begin(); it != sirius_output_paths.end(); ++it)
   {
+    // extract data from summary_sirius.csv
     const std::string pathtosiriuscsv = *it + "/summary_sirius.csv";
 
     ifstream file(pathtosiriuscsv);
-
     if (file) 
     {
       CsvFile compounds(pathtosiriuscsv, '\t');
@@ -201,9 +200,9 @@ void SiriusMzTabWriter::read(const std::vector<String> & sirius_output_paths,
         }  
         result.setSmallMoleculeSectionRows(smsd);
       }
+      file.close();
     }
   }
 }
 
 /// @endcond
-

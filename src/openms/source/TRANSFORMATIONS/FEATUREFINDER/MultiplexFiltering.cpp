@@ -41,8 +41,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace std;
@@ -128,7 +126,7 @@ namespace OpenMS
     exp_centroided_white_.updateRanges();
   }
   
-  bool MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const
+  int MultiplexFiltering::checkForSignificantPeak_(double mz, double mz_tolerance, MSExperiment::ConstIterator& it_rt, double intensity_first_peak) const
   {
     // Check that there is a peak.
     int mz_idx = it_rt->findNearest(mz, mz_tolerance);
@@ -145,15 +143,15 @@ namespace OpenMS
       if (intensity > threshold * intensity_first_peak)
       {
         // There is a high-intensity peak at the position mz.
-        return true;
+        return mz_idx;
       }
     }
 
-    return false;
+    return -1;
   }
   
   bool MultiplexFiltering::filterPeakPositions_(const MSSpectrum::ConstIterator& it_mz, const MSExperiment::ConstIterator& it_rt_begin, const MSExperiment::ConstIterator& it_rt_band_begin, const MSExperiment::ConstIterator& it_rt_band_end, const MultiplexIsotopicPeakPattern& pattern, MultiplexFilteredPeak& peak) const
-  {
+  {    
     // check if peak position is blacklisted
     // i.e. -1 = white or 0 = mono-isotopic peak of the lightest (or only) peptide are ok.
     if (blacklist_[peak.getRTidx()][peak.getMZidx()] > 0)
@@ -180,56 +178,64 @@ namespace OpenMS
     // how long is the series of m/z shifts until the first expected mass trace is missing? We want to see
     // at least isotopes_per_peptide_min_ of these m/z shifts in each peptide. Note that we need to demand subsequent(!) mass traces
     // to be present. Otherwise it would be easy to mistake say a 2+ peptide for a 4+ peptide.
-    
-    // loop over peptides
-    for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+    size_t length = 0;
+    bool interrupted = false;
+    // loop over isotopes i.e. mass traces within the peptide
+    for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
     {
-      size_t length = 0;
-      bool interrupted = false;
+      bool found_in_all_peptides = true;
       
-      // loop over isotopes i.e. mass traces within the peptide
-      for (size_t isotope = 0; isotope < isotopes_per_peptide_max_; ++isotope)
+      // loop over peptides
+      for (size_t peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
       {
         // calculate m/z shift index in pattern
-        size_t idx_mz_shift = peptide * isotopes_per_peptide_max_ + isotope;
-        
-        double mz_shift = pattern.getMZShiftAt(idx_mz_shift);
+        size_t mz_shift_idx = peptide * isotopes_per_peptide_max_ + isotope;
+        double mz_shift = pattern.getMZShiftAt(mz_shift_idx);
+
         bool found = false;
-        
         // loop over spectra in RT band
         for (MSExperiment::ConstIterator it_rt = it_rt_band_begin; it_rt < it_rt_band_end; ++it_rt)
         {
           int i = it_rt->findNearest(it_mz->getMZ() + mz_shift, mz_tolerance);
-          
+         
           if (i != -1)
           {
             // Note that as primary peaks, satellite peaks are also restricted by the blacklist.
             // The peak can either be pure white i.e. untouched, or have been seen earlier as part of the same mass trace.
             size_t rt_idx = it_rt - it_rt_begin;
             size_t mz_idx = exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i);
-            if ((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(idx_mz_shift)))
+            
+            // Check that the peak has not been blacklisted and is not already in the satellite set.
+            if (((blacklist_[rt_idx][mz_idx] == -1) || (blacklist_[rt_idx][mz_idx] == static_cast<int>(mz_shift_idx))) && (!(peak.checkSatellite(rt_idx, mz_idx))))
             {
-              peak.addSatellite(it_rt - it_rt_begin, exp_centroided_mapping_.at(it_rt - it_rt_begin).at(i), idx_mz_shift);
               found = true;
+              peak.addSatellite(rt_idx, mz_idx, mz_shift_idx);
             }
+            
           }
         }
-                
-        if (found && (!interrupted))
+        
+        if (!found)
         {
-          ++length;
+          found_in_all_peptides = false;
         }
-        else
+        
+      }
+      
+      if (found_in_all_peptides && (!interrupted))
+      {
+        ++length;
+      }
+      else
+      {
+        interrupted = true;
+        if (length < isotopes_per_peptide_min_)
         {
-          interrupted = true;
-          if (length < isotopes_per_peptide_min_)
-          {
-            return false;
-          }
+          return false;
         }
       }
     }
-    
+        
     // Check that there is no significant peak (aka zeroth peak) to the left of the mono-isotopic peak (aka first peak).
     // Further check that there is no mistaken charge state identity. For example, check that a 2+ pattern isn't really a 4+ or 6+ pattern.
     // Let's use the double m/z tolerance when checking for these peaks.
@@ -251,11 +257,16 @@ namespace OpenMS
 
         double mz;
         
-        // Check that there is a zeroth peak.
-        mz = peak.getMZ() + 2 * pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1);        
-        if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+        // Check if there is a zeroth peak.
+        mz = peak.getMZ() + 2 * pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_) - pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1);
+        int mz_idx = checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak);
+        if (mz_idx != -1)
         {
-          return false;
+          // So there is a significant peak to the left. This is only a problem, if this peak is not part of the pattern which we currently detect.
+          if (!(peak.checkSatellite(peak.getRTidx(), mz_idx)))
+          {
+            return false;
+          }
         }
         
         // Check mistaken charge state identities
@@ -266,14 +277,14 @@ namespace OpenMS
         {          
           // Is the 2+ pattern really a 4+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/2;
-          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak) != -1)
           {
             return false;
           }
           
           // Is the 2+ pattern really a 6+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)*2/3 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/3;
-          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak) != -1)
           {
             return false;
           }
@@ -283,7 +294,7 @@ namespace OpenMS
         {
           // Is the 3+ pattern really a 6+ pattern?
           mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)/2 + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/2;
-          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+          if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak) != -1)
           {
             return false;
           }
@@ -297,7 +308,7 @@ namespace OpenMS
             // (In theory, any charge state c >= 2+ could be mistaken as a 1+. For the sake of run time performance, we only check up to 7+.
             // If we see in any dataset significant number of mistakes for c >= 8+, we will modify this part of the code.)
             mz = peak.getMZ() + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_)*(c-1)/c + pattern.getMZShiftAt(peptide * isotopes_per_peptide_max_ + 1)/c;
-            if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak))
+            if (checkForSignificantPeak_(mz, 2 * mz_tolerance, it_rt, intensity_first_peak) != -1)
             {
               return false;
             }
@@ -454,6 +465,19 @@ namespace OpenMS
         
       }
       
+      // Use a more restrictive averagine similarity when we are searching for peptide singlets.
+      double similarity;
+      if (pattern.getMassShiftCount() == 1)
+      {
+        // We are detecting peptide singlets.
+        similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+      }
+      else
+      {
+        // We are detecting peptide doublets or triplets or ...
+        similarity = averagine_similarity_;
+      }
+            
       // Calculate Pearson and Spearman rank correlations
       if ((intensities_model.size() < isotopes_per_peptide_min_) || (intensities_data.size() < isotopes_per_peptide_min_))
       {
@@ -462,7 +486,7 @@ namespace OpenMS
       double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
       double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
 
-      if ((correlation_Pearson < averagine_similarity_) || (correlation_Spearman < averagine_similarity_))
+      if ((correlation_Pearson < similarity) || (correlation_Spearman < similarity))
       {
         return false;
       }

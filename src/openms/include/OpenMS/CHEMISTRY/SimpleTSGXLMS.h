@@ -49,7 +49,11 @@ namespace OpenMS
   /**
       @brief Generates theoretical spectra for cross-linked peptides
 
-      The spectra this class generates are normal vectors of SimplePeaks.
+      The spectra this class generates are vectors of SimplePeaks.
+      This class generates the same peak types as TheoreticalSpectrumGeneratorXLMS
+      and the interface is very similar, but it is simpler and faster.
+      SimplePeak only contains an mz value and a charge. No intensity values
+      or String annotations or other additional DataArrays are generated.
 
   @htmlinclude OpenMS_SimpleTSGXLMS.parameters
 

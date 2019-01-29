@@ -317,20 +317,15 @@ namespace OpenMS
       bool has_im = (im_extraction_window > 0.0);
       if (has_im)
       {
-        OpenSwath::BinaryDataArrayPtr im_arr = sptr->getMZArray();
-        bool found = false;
-        for (const auto& arr : sptr->getDataArrays())
+        OpenSwath::BinaryDataArrayPtr im_arr = sptr->getDriftTimeArray();
+        if (im_arr != nullptr)
         {
-          if (arr->description == "Ion Mobility")
-          {
-            im_it = arr->data.begin();
-            found = true;
-          }
+          im_it = im_arr->data.begin();
         }
-        if (!found)
+        else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested ion mobility extraction but no ion mobility array found (looked for 'Ion Mobility').");
+            "Requested ion mobility extraction but no ion mobility array found.");
         }
       }
 

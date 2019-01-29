@@ -244,6 +244,7 @@ set(format_executables_list
   MSDataAggregatingConsumer_test
   SpectrumAccessQuadMZTransforming_test
   SpectrumAccessSqMass_test
+  SiriusFragmentAnnotation_test
 )
 
 set(math_executables_list
@@ -320,8 +321,8 @@ set(filtering_executables_list
   ParentPeakMower_test
   PeakMarker_test
   PrecursorCorrection_test
+  SplineInterpolatedPeaks_test
   SplinePackage_test
-  SplineSpectrum_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
@@ -628,7 +629,9 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
     MasstraceCorrelator_test
+    MRMBatchFeatureSelector_test
     MRMFeatureScoring_test
+    MRMFeatureSelector_test
     MRMFeatureFinderScoring_test
     MRMFeatureFilter_test
     MRMFeatureQC_test

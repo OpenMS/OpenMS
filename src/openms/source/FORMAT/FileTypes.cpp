@@ -132,6 +132,7 @@ namespace OpenMS
     targetMap[FileTypes::MRM] = "mrm";
     targetMap[FileTypes::SQMASS] = "sqMass";
     targetMap[FileTypes::PQP] = "pqp";
+    targetMap[FileTypes::MS] = "ms";
     targetMap[FileTypes::OSW] = "osw";
     targetMap[FileTypes::PSMS] = "psms";
     targetMap[FileTypes::PIN] = "pin";

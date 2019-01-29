@@ -633,7 +633,7 @@ namespace OpenMS
     return residue_sets_.find(residue_set) != residue_sets_.end();
   }
 
-  char Residue::residueTypeToIonLetter(Residue::ResidueType res_type)
+  char Residue::residueTypeToIonLetter(const Residue::ResidueType& res_type)
   {
     switch (res_type)
     {
