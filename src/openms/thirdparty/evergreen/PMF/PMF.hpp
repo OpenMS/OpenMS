@@ -28,9 +28,16 @@ protected:
 
   void normalize() {
     double tot = sum(_table.flat());
-    #ifdef NUMERIC_CHECK
-    assert(tot > mass_threshold_for_normalization);
-    #endif
+    //#ifdef NUMERIC_CHECK
+    //assert(tot > mass_threshold_for_normalization);
+    //#endif
+    if (tot > mass_threshold_for_normalization)
+    {
+      std::stringstream ss;
+      ss << "Total probability mass" << tot << " in " << _table
+      << " is too small to normalize. Contradiction occurred?" << std::endl;
+      throw std::runtime_error(ss.str());
+    }
 
     _table.flat() /= tot;
   }
@@ -129,12 +136,15 @@ public:
       intersecting_first_support[i] = std::max(intersecting_first_support[i], new_first_support[i]);
 
       long new_shape_i = new_last - intersecting_first_support[i] + 1;
-      #ifdef SHAPE_CHECK
+      //#ifdef SHAPE_CHECK
       if (new_shape_i <= 0) {
-	std::cerr << "Narrowing to " << new_first_support << " " << new_last_support << " results in empty PMF" << std::endl;
-	assert(false);
+	      //std::cerr << "Narrowing to " << new_first_support << " " << new_last_support << " results in empty PMF" << std::endl;
+	      //assert(false);
+	      std::stringstream ss;
+	      ss << "Narrowing to " << new_first_support << " " << new_last_support << " results in empty PMF" << std::endl;
+	      throw std::runtime_error(ss.str());
       }
-      #endif
+      //#endif
 
       new_shape[i] = (unsigned long) new_shape_i;
     }
@@ -172,7 +182,7 @@ public:
     #endif
 
     if (axes_to_keep.size() == dimension())
-      // all axes are kept (tranpose to avoid pow computation and
+      // all axes are kept (transpose to avoid pow computation and
       // normalization)
       return transposed(axes_to_keep);
 

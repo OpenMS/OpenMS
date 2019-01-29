@@ -89,7 +89,8 @@ namespace OpenMS
       seq_it.first->second[replicate][chargeToPut].insert(pepVtx);
     }
 
-    void insertToGraph(vertex_t rootProteinVtx, Graph& graph)
+    //TODO finish and rework (root not needed?)
+    void insertToGraph(vertex_t /*rootProteinVtx*/, Graph& graph)
     {
 
       for (const auto& seqContainer : seq_to_vecs_)

@@ -331,22 +331,34 @@ namespace OpenMS
                                                    param_.getValue("loopy_belief_propagation:max_nr_iterations"));
         scheduler.add_ab_initio_edges(ig);
 
-        BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
-        auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
-
-        //TODO you could also save the indices of the peptides here and request + update their posteriors, too.
-        for (auto const& posteriorFactor : posteriorFactors)
+        try
         {
-          double posterior = 0.0;
-          IDBoostGraph::SetPosteriorVisitor pv;
-          unsigned long nodeId = posteriorFactor.ordered_variables()[0];
-          const PMF& pmf = posteriorFactor.pmf();
-          // If Index 1 is in the range of this result PMFFactor it is non-zero
-          if (1 >= pmf.first_support()[0] && 1 <= pmf.last_support()[0]) {
-            posterior = pmf.table()[1 - pmf.first_support()[0]];
+          BeliefPropagationInferenceEngine<IDBoostGraph::vertex_t> bpie(scheduler, ig);
+          auto posteriorFactors = bpie.estimate_posteriors(posteriorVars);
+
+          //TODO you could also save the indices of the peptides here and request + update their posteriors, too.
+          for (auto const &posteriorFactor : posteriorFactors)
+          {
+            double posterior = 0.0;
+            IDBoostGraph::SetPosteriorVisitor pv;
+            unsigned long nodeId = posteriorFactor.ordered_variables()[0];
+            const PMF &pmf = posteriorFactor.pmf();
+            // If Index 1 is in the range of this result PMFFactor it is non-zero
+            if (1 >= pmf.first_support()[0] && 1 <= pmf.last_support()[0])
+            {
+              posterior = pmf.table()[1 - pmf.first_support()[0]];
+            }
+            auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
+            boost::apply_visitor(bound_visitor, fg[nodeId]);
           }
-          auto bound_visitor = std::bind(pv, std::placeholders::_1, posterior);
-          boost::apply_visitor(bound_visitor, fg[nodeId]);
+        }
+        catch (std::runtime_error& /*e*/) {
+          //TODO print failing component
+          // set posteriors to priors or try another type of inference?
+          // Think about cancelling all other threads/ the loop
+          //For now we just warn and continue with the rest of the iterations. Might still be a valid run.
+          LOG_WARN << "Warning: Loopy belief propagation encountered a problem in a connected component. Skipping"
+                      "inference there." << std::endl;
         }
         //TODO we could write out the posteriors here, so we can easily read them for the best params of the grid search
 

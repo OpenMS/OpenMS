@@ -26,6 +26,10 @@
 // For debugging only (substantially decreases performance):
 //#define BOUNDS_CHECK
 
+// added by jpfeuffer to throw exceptions
+#include <stdexcept>
+#include <sstream>
+
 // Inference engines:
 #include "../Engine/BeliefPropagationInferenceEngine.hpp"
 #include "BruteForceInferenceEngine.hpp"
