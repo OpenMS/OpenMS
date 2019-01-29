@@ -264,6 +264,7 @@ protected:
 
     LOG_INFO << "Loading, merging, filtering took " << sw.toString() << std::endl;
     sw.reset();
+    LOG_INFO << "Graph now consists of " << mergedprots[0].getHits().size() << " proteins and " << mergedpeps.size() << "peptides.";
 
     BayesianProteinInferenceAlgorithm bpi1;
     bpi1.setParameters(epifany_param);
