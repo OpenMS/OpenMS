@@ -636,7 +636,7 @@ protected:
         if (!ph.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test 
         DataValue v_data = ph.getMetaValue(meta_info[0]);
         DataValue v_user;
-        switch(v_data.valueType())
+        switch (v_data.valueType())
         {
           case DataValue::STRING_VALUE : v_user = String(meta_info[2]); break;
           case DataValue::INT_VALUE : v_user = String(meta_info[2]).toInt(); break;

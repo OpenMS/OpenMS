@@ -511,7 +511,6 @@ protected:
       PeakSpectrum::StringDataArray& partial_loss_spectrum_annotation);
 
     static void generatePartialLossSpectrum(const String& unmodified_sequence,
-                                     const AASequence& fixed_and_variable_modified_peptide,
                                      const double& fixed_and_variable_modified_peptide_weight,
                                      const String& precursor_rna_adduct,
                                      const double& precursor_rna_weight,
@@ -706,7 +705,6 @@ protected:
         partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2); 
         partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3); 
         RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
-                                    fixed_and_variable_modified_peptide,
                                     fixed_and_variable_modified_peptide_weight,
                                     precursor_rna_adduct,
                                     precursor_rna_weight,
@@ -2044,7 +2042,6 @@ protected:
                     // shifted b- / y- / a-ions
                     // generate shifted_immonium_ions_sub_score_spectrum.empty
                     RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
-                                                fixed_and_variable_modified_peptide,
                                                 current_peptide_mass_without_RNA,
                                                 precursor_rna_adduct,
                                                 precursor_rna_weight,
@@ -2057,7 +2054,6 @@ protected:
                     for (auto& n : partial_loss_spectrum_z1.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
 
                     RNPxlFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
-                                                fixed_and_variable_modified_peptide,
                                                 current_peptide_mass_without_RNA,
                                                 precursor_rna_adduct,
                                                 precursor_rna_weight,
@@ -2962,7 +2958,6 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addShiftedImmoniumIons(const String
   *     based on the total_loss_spectrum provide to the method
   */
 void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const String &unmodified_sequence,
-                                                                         const AASequence &fixed_and_variable_modified_peptide,
                                                                          const double &fixed_and_variable_modified_peptide_weight,
                                                                          const String &precursor_rna_adduct,
                                                                          const double &precursor_rna_weight,
@@ -3052,7 +3047,11 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
           shifted_series_charges.push_back(partial_loss_template_z3.getIntegerDataArrays()[0][i]);
         } 
       }
-      else { break; }  // don't consider fragment ions with charge >= 4 
+      else // don't consider fragment ions with charge >= 4 
+
+      { 
+        break; 
+      }    
     }
 
     // 2. add fragment shift name to annotation of shifted peaks
