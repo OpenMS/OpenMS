@@ -295,36 +295,53 @@ add_test("TOPP_FeatureFinderMultiplex_1_out1" ${DIFF} -whitelist "id=" "href=" -
 set_tests_properties("TOPP_FeatureFinderMultiplex_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_1")
 add_test("TOPP_FeatureFinderMultiplex_1_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_1_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_1")
+
 add_test("TOPP_FeatureFinderMultiplex_2" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_parameters.ini -out FeatureFinderMultiplex_3.tmp -out_multiplets FeatureFinderMultiplex_4.tmp)
 add_test("TOPP_FeatureFinderMultiplex_2_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_3.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_2_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_2")
 add_test("TOPP_FeatureFinderMultiplex_2_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_4.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_2_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_2")
+
 add_test("TOPP_FeatureFinderMultiplex_3" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_parameters.ini -out FeatureFinderMultiplex_5.tmp -out_multiplets FeatureFinderMultiplex_6.tmp)
 add_test("TOPP_FeatureFinderMultiplex_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_5.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_3_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_3")
 add_test("TOPP_FeatureFinderMultiplex_3_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_6.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_3_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_3")
+
 add_test("TOPP_FeatureFinderMultiplex_4" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_parameters.ini -out FeatureFinderMultiplex_7.tmp -out_multiplets FeatureFinderMultiplex_8.tmp)
 add_test("TOPP_FeatureFinderMultiplex_4_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_7.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_4_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_4")
 add_test("TOPP_FeatureFinderMultiplex_4_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_8.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_4_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_4")
+
 add_test("TOPP_FeatureFinderMultiplex_5" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_parameters.ini -out FeatureFinderMultiplex_9.tmp -out_multiplets FeatureFinderMultiplex_10.tmp)
 add_test("TOPP_FeatureFinderMultiplex_5_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_9.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_5_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_5")
 add_test("TOPP_FeatureFinderMultiplex_5_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_10.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_5_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_5")
+
 add_test("TOPP_FeatureFinderMultiplex_6" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_parameters.ini -out FeatureFinderMultiplex_11.tmp -out_multiplets FeatureFinderMultiplex_12.tmp)
 add_test("TOPP_FeatureFinderMultiplex_6_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_11.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_6_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_6")
 add_test("TOPP_FeatureFinderMultiplex_6_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_12.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_output.consensusXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_6_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_6")
+
 add_test("TOPP_FeatureFinderMultiplex_7" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_parameters.ini -out FeatureFinderMultiplex_13.tmp -out_multiplets FeatureFinderMultiplex_14.tmp)
 add_test("TOPP_FeatureFinderMultiplex_7_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_13.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_output.featureXML )
 set_tests_properties("TOPP_FeatureFinderMultiplex_7_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_7")
 add_test("TOPP_FeatureFinderMultiplex_7_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_14.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_output.consensusXML )
-set_tests_properties("TOPP_FeatureFinderMultiplex_7_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_7")
+
+add_test("TOPP_FeatureFinderMultiplex_8" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_8_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_8_parameters.ini -out FeatureFinderMultiplex_15.tmp -out_multiplets FeatureFinderMultiplex_16.tmp)
+add_test("TOPP_FeatureFinderMultiplex_8_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_15.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_8_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_8_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_8")
+add_test("TOPP_FeatureFinderMultiplex_8_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_16.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_8_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_8_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_8")
+
+add_test("TOPP_FeatureFinderMultiplex_9" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_parameters.ini -out FeatureFinderMultiplex_17.tmp -out_multiplets FeatureFinderMultiplex_18.tmp)
+add_test("TOPP_FeatureFinderMultiplex_9_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_17.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_9_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_9")
+add_test("TOPP_FeatureFinderMultiplex_9_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_18.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_9_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_9")
 
 #------------------------------------------------------------------------------
 # FileConverter tests
@@ -991,6 +1008,10 @@ add_test("TOPP_IDFilter_20" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}
 add_test("TOPP_IDFilter_20_out1" ${DIFF} -in1 IDFilter_20_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_20_output.idXML )
 set_tests_properties("TOPP_IDFilter_20_out1" PROPERTIES DEPENDS "TOPP_IDFilter_20")
 
+#filter peptide hits by meta value name
+add_test("TOPP_IDFilter_21" ${TOPP_BIN_PATH}/IDFilter -test -in ${DATA_DIR_TOPP}/IDFilter_16_input.idXML -out IDFilter_21_output.tmp -remove_peptide_hits_by_metavalue "calcMZ" "gt" "750.0")
+add_test("TOPP_IDFilter_21_out1" ${DIFF} -in1 IDFilter_21_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_21_output.idXML)
+set_tests_properties("TOPP_IDFilter_21_out1" PROPERTIES DEPENDS "TOPP_IDFilter_21")
 #------------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
 # featureXML input:
@@ -1650,7 +1671,7 @@ set_tests_properties("TOPP_RNPxlSearch_2_out1" PROPERTIES DEPENDS "TOPP_RNPxlSea
 
 # reporting of multiple hits and tsv output
 add_test("TOPP_RNPxlSearch_3" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
-${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_3_output.tmp -report:top_hits 3 -out_tsv RNPxlSearch_3_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast -RNPxl:localization)
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_3_output.tmp -report:top_hits 3 -out_tsv RNPxlSearch_3_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast)
 add_test("TOPP_RNPxlSearch_3_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 RNPxlSearch_3_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_3_output.idXML )
 add_test("TOPP_RNPxlSearch_3_out2" ${DIFF} -in1 RNPxlSearch_3_output2.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_3_output2.tsv )
@@ -1659,7 +1680,7 @@ set_tests_properties("TOPP_RNPxlSearch_3_out2" PROPERTIES DEPENDS "TOPP_RNPxlSea
 
 # reporting of multiple hits and tsv output and decoy generation
 add_test("TOPP_RNPxlSearch_4" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
-${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -RNPxl:decoys -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_4_output.tmp -report:top_hits 2 -out_tsv RNPxlSearch_4_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast -RNPxl:localization)
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -RNPxl:decoys -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_4_output.tmp -report:top_hits 2 -out_tsv RNPxlSearch_4_output2.tmp -precursor:mass_tolerance 10 -RNPxl:scoring fast)
 add_test("TOPP_RNPxlSearch_4_out1" ${DIFF} -whitelist "IdentificationRun date"
 "db=" -in1 RNPxlSearch_4_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_4_output.idXML )
 add_test("TOPP_RNPxlSearch_4_out2" ${DIFF} -in1 RNPxlSearch_4_output2.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_4_output2.tsv )
