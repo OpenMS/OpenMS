@@ -37,6 +37,36 @@
 namespace OpenMS
 {
 
+  bool columnExists(sqlite3 *db, const String& tablename, const String& colname)
+  {
+    bool found = false;
+
+    sqlite3_stmt * xcntstmt;
+    String s = "PRAGMA table_info(" + tablename + ")";
+    int rc = sqlite3_prepare_v2(db, s.c_str(), -1, &xcntstmt, nullptr);
+
+    if (rc != SQLITE_OK)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("Error when determining columns of table: ") + tablename);
+    }
+
+    // Go through all columns and check whether the required column exists
+    sqlite3_step( xcntstmt );
+    while (sqlite3_column_type( xcntstmt, 0 ) != SQLITE_NULL)
+    {
+      String name = String(reinterpret_cast<const char*>(sqlite3_column_text( xcntstmt, 1 )));
+      if (colname == name)
+      {
+        found = true;
+      }
+
+      sqlite3_step( xcntstmt );
+    }
+    sqlite3_finalize(xcntstmt);
+    return found;
+  }
+
   TransitionPQPFile::TransitionPQPFile() :
     TransitionTSVFile()
   {
@@ -80,10 +110,23 @@ namespace OpenMS
     }
 
     // Count transitions
-    sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM TRANSITION;", -1, &cntstmt, nullptr);
+    rc = sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM TRANSITION;", -1, &cntstmt, nullptr);
+    if (rc != SQLITE_OK)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("SQL Error when determining number of transitions.") );
+    }
+
     sqlite3_step( cntstmt );
     int num_transitions = sqlite3_column_int( cntstmt, 0 );
     sqlite3_finalize(cntstmt);
+
+    String select_drift_time = "";
+    bool drift_time_exists = columnExists(db, "PRECURSOR", "LIBRARY_DRIFT_TIME");
+    if (drift_time_exists)
+    {
+      select_drift_time = ", PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time ";
+    }
 
     // Get peptides
     select_sql = "SELECT " \
@@ -114,8 +157,8 @@ namespace OpenMS
                   "TRANSITION.DETECTING AS detecting_transition, " \
                   "TRANSITION.IDENTIFYING AS identifying_transition, " \
                   "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms, " + \
-                  "PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time " \
+                  "PEPTIDE_AGGREGATED.PEPTIDOFORMS AS peptidoforms " + \
+                  select_drift_time +
                   "FROM PRECURSOR " \
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
@@ -155,16 +198,23 @@ namespace OpenMS
                   "TRANSITION.DETECTING AS detecting_transition, " \
                   "TRANSITION.IDENTIFYING AS identifying_transition, " \
                   "TRANSITION.QUANTIFYING AS quantifying_transition, " \
-                  "NULL AS peptidoforms, " \
-                  "PRECURSOR.LIBRARY_DRIFT_TIME AS drift_time " \
+                  "NULL AS peptidoforms " +
+                  select_drift_time +
                   "FROM PRECURSOR " \
                   "INNER JOIN TRANSITION_PRECURSOR_MAPPING ON PRECURSOR.ID = TRANSITION_PRECURSOR_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN TRANSITION ON TRANSITION_PRECURSOR_MAPPING.TRANSITION_ID = TRANSITION.ID " \
                   "INNER JOIN PRECURSOR_COMPOUND_MAPPING ON PRECURSOR.ID = PRECURSOR_COMPOUND_MAPPING.PRECURSOR_ID " \
                   "INNER JOIN COMPOUND ON PRECURSOR_COMPOUND_MAPPING.COMPOUND_ID = COMPOUND.ID; ";
 
+
     // Execute SQL select statement
-    sqlite3_prepare_v2(db, select_sql.c_str(), -1, &stmt, nullptr);
+    rc = sqlite3_prepare_v2(db, select_sql.c_str(), -1, &stmt, nullptr);
+    if (rc != SQLITE_OK)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("SQL Error with query: ") + select_sql);
+    }
+
     sqlite3_step( stmt );
 
     Size progress = 0;
@@ -288,7 +338,7 @@ namespace OpenMS
         String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 27 ))).split('|', mytransition.peptidoforms);;
       }
       // optional attributes only present in newer file versions
-      if (sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
+      if (drift_time_exists && sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
       {
         mytransition.drift_time = sqlite3_column_double( stmt, 28 );
       }
@@ -300,7 +350,6 @@ namespace OpenMS
 
     sqlite3_finalize(stmt);
     sqlite3_close(db);
-
   }
 
   void TransitionPQPFile::writePQPOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
