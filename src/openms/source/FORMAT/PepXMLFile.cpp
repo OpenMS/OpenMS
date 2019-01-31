@@ -68,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed)
+  void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed, double rt_tolerance)
   {
     ofstream f(filename.c_str());
     if (!f)
@@ -104,6 +104,7 @@ namespace OpenMS
     String raw_data;
     String base_name;
     SpectrumMetaDataLookup lookup;
+    lookup.rt_tolerance = rt_tolerance;
 
     // The mz-File (if given)
     if (!mz_file.empty())
@@ -293,7 +294,7 @@ namespace OpenMS
           }
           else
           {
-          scan_index = lookup.findByRT(it->getRT());
+            scan_index = lookup.findByRT(it->getRT());
           }
 
           SpectrumMetaDataLookup::SpectrumMetaData meta;

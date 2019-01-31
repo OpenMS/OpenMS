@@ -180,7 +180,9 @@ protected:
     setMinInt_("num_threads", 0);
 
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
-    setValidStrings_("run_mode", ListUtils::create<String>("0,1")); 
+    setValidStrings_("run_mode", ListUtils::create<String>("0,1"));
+
+    registerDoubleOption_("rt_tolerance", "<num>", 0.01, "Set the retention time tolerance (for the mapping of identifications to spectra in case multiple search engines were used)", false);
     
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
 
@@ -495,6 +497,7 @@ protected:
     String id = getStringOption_("id");
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    double rt_tolerance = getDoubleOption_("rt_tolerance");
     
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
@@ -512,7 +515,7 @@ protected:
     file.load(in, exp);
     exp.sortSpectra(true);
 
-    // convert input to pepXML if necessary
+    // convert idXML input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(id, prot_ids, pep_ids);
@@ -527,8 +530,8 @@ protected:
       // create a temporary pepXML file for LuciPHOR2 input
       String id_file_name = File::removeExtension(File::basename(id));
       id = temp_dir + id_file_name + ".pepXML";
-      
-      PepXMLFile().store(id, prot_ids, pep_ids, in, "", false);
+
+      PepXMLFile().store(id, prot_ids, pep_ids, in, "", false, rt_tolerance);
     }
     else
     {
@@ -592,7 +595,7 @@ protected:
     }
 
     SpectrumLookup lookup;
-    lookup.rt_tolerance = 0.05;
+    lookup.rt_tolerance = rt_tolerance;
     lookup.readSpectra(exp.getSpectra());
       
     map<int, LuciphorPSM> l_psms;    
@@ -620,7 +623,7 @@ protected:
     for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
     {
       Size scan_idx = lookup.findByRT(pep_id->getRT());
-      
+
       vector<PeptideHit> scored_peptides;
       if (!pep_id->getHits().empty())
       {
