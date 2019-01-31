@@ -183,6 +183,7 @@ protected:
     setValidStrings_("run_mode", ListUtils::create<String>("0,1"));
 
     registerDoubleOption_("rt_tolerance", "<num>", 0.01, "Set the retention time tolerance (for the mapping of identifications to spectra in case multiple search engines were used)", false);
+    setMinFloat_("rt_tolerance", 0.0);
     
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
 
