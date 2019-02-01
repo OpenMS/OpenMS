@@ -49,6 +49,11 @@ class OPENMS_DLLAPI Deisotoper
 
   /* @brief Detect isotopic clusters in a fragment spectrum.
 
+    Deisotoping is done in-place and if @p annotate_charge is true,
+    an additional IntegerDataArray "charge" will be appended.
+    Existing DataArrays are kept and shrunken to the peaks which
+    remain in the spectrum.
+
    * @param [spectra] Input spectra (sorted by m/z)
    * @param [fragment_tolerance] The tolerance used to match isotopic peaks
    * @oaram [fragment_unit_ppm] Whether ppm or m/z is used as tolerance
@@ -61,7 +66,7 @@ class OPENMS_DLLAPI Deisotoper
    * @param [annotate_charge] Annotate the charge to the peaks in the IntegerDataArray: "charge" (0 for unknown charge)
    *        Note: If @p make_single_charged is selected, the original charge (>=1) gets annotated.
    */
-  static void deisotopeAndSingleCharge(MSSpectrum& spectra,
+  static void deisotopeAndSingleCharge(MSSpectrum& spectrum,
             double fragment_tolerance,
             bool fragment_unit_ppm,
             int min_charge = 1,

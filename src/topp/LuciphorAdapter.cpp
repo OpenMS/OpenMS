@@ -116,9 +116,11 @@ protected:
     String predicted_pep;
     double delta_score;
     double predicted_pep_score;
+    double global_flr;
+    double local_flr;
     
-    LuciphorPSM() : scan_nr(-1), scan_idx(-1), charge(-1), delta_score(-1), predicted_pep_score(-1) {}
-  };
+    LuciphorPSM() : scan_nr(-1), scan_idx(-1), charge(-1), delta_score(-1), predicted_pep_score(-1), global_flr(-1), local_flr(-1) {}
+    };
 
   // lists of allowed parameter values:
   vector<String> fragment_methods_, fragment_error_units_, score_selection_method_;
@@ -178,7 +180,10 @@ protected:
     setMinInt_("num_threads", 0);
 
     registerStringOption_("run_mode", "<choice>", "0", "Determines how Luciphor will run: 0 = calculate FLR then rerun scoring without decoys (two iterations), 1 = Report Decoys: calculate FLR but don't rescore PSMs, all decoy hits will be reported", false);
-    setValidStrings_("run_mode", ListUtils::create<String>("0,1")); 
+    setValidStrings_("run_mode", ListUtils::create<String>("0,1"));
+
+    registerDoubleOption_("rt_tolerance", "<num>", 0.01, "Set the retention time tolerance (for the mapping of identifications to spectra in case multiple search engines were used)", false);
+    setMinFloat_("rt_tolerance", 0.0);
     
     registerInputFile_("java_executable", "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
 
@@ -344,6 +349,8 @@ protected:
       l_psm.predicted_pep = elements[2];
       l_psm.delta_score = elements[7].toDouble();
       l_psm.predicted_pep_score = elements[8].toDouble();
+      l_psm.global_flr = elements[10].toDouble();
+      l_psm.local_flr = elements[11].toDouble();
       
       if (l_psms.count(l_psm.scan_idx) > 0)
       {
@@ -491,6 +498,7 @@ protected:
     String id = getStringOption_("id");
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    double rt_tolerance = getDoubleOption_("rt_tolerance");
     
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(id);
@@ -508,7 +516,7 @@ protected:
     file.load(in, exp);
     exp.sortSpectra(true);
 
-    // convert input to pepXML if necessary
+    // convert idXML input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(id, prot_ids, pep_ids);
@@ -523,8 +531,8 @@ protected:
       // create a temporary pepXML file for LuciPHOR2 input
       String id_file_name = File::removeExtension(File::basename(id));
       id = temp_dir + id_file_name + ".pepXML";
-      
-      PepXMLFile().store(id, prot_ids, pep_ids, in, "", false);
+
+      PepXMLFile().store(id, prot_ids, pep_ids, in, "", false, rt_tolerance);
     }
     else
     {
@@ -588,7 +596,7 @@ protected:
     }
 
     SpectrumLookup lookup;
-    lookup.rt_tolerance = 0.05;
+    lookup.rt_tolerance = rt_tolerance;
     lookup.readSpectra(exp.getSpectra());
       
     map<int, LuciphorPSM> l_psms;    
@@ -616,7 +624,7 @@ protected:
     for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
     {
       Size scan_idx = lookup.findByRT(pep_id->getRT());
-      
+
       vector<PeptideHit> scored_peptides;
       if (!pep_id->getHits().empty())
       {
@@ -637,6 +645,8 @@ protected:
           }
           scored_hit.setMetaValue("search_engine_sequence", scored_hit.getSequence().toString());
           scored_hit.setMetaValue("Luciphor_pep_score", l_psm.predicted_pep_score);
+          scored_hit.setMetaValue("Luciphor_global_flr", l_psm.global_flr);
+          scored_hit.setMetaValue("Luciphor_local_flr", l_psm.local_flr);
           scored_hit.setScore(l_psm.delta_score);
           scored_hit.setSequence(predicted_seq);
         }

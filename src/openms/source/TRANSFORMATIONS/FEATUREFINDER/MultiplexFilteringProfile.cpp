@@ -109,7 +109,7 @@ namespace OpenMS
     // spline interpolate the profile data
     for (MSExperiment::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
     {
-      exp_spline_profile_.push_back(SplineSpectrum(*it));
+      exp_spline_profile_.push_back(SplineInterpolatedPeaks(*it));
     }
     
     // TODO: Constructing the navigators here instead in the beginning of the filter() method results in segmentation faults. Why?
@@ -131,10 +131,10 @@ namespace OpenMS
 #endif
     
     // construct navigators for all spline spectra
-    std::vector<SplineSpectrum::Navigator> navigators;
-    for (std::vector<SplineSpectrum>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
+    std::vector<SplineInterpolatedPeaks::Navigator> navigators;
+    for (std::vector<SplineInterpolatedPeaks>::iterator it = exp_spline_profile_.begin(); it < exp_spline_profile_.end(); ++it)
     {
-      SplineSpectrum::Navigator nav = (*it).getNavigator();
+      SplineInterpolatedPeaks::Navigator nav = (*it).getNavigator();
       navigators.push_back(nav);
     }
     
@@ -191,7 +191,7 @@ namespace OpenMS
           std::multimap<size_t, MultiplexSatelliteCentroided > satellites = peak.getSatellites();
           
           // Arrangement of peaks looks promising. Now scan through the spline fitted profile data around the peak i.e. from peak boundary to peak boundary.
-          for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigators[idx_rt].getNextMz(mz_profile))
+          for (double mz_profile = peak_min; mz_profile < peak_max; mz_profile = navigators[idx_rt].getNextPos(mz_profile))
           {
             // determine m/z shift relative to the centroided peak at which the profile data will be sampled
             double mz_shift = mz_profile - mz_peak;
@@ -336,6 +336,19 @@ namespace OpenMS
         
       }
       
+      // Use a more restrictive averagine similarity when we are searching for peptide singlets.
+      double similarity;
+      if (pattern.getMassShiftCount() == 1)
+      {
+        // We are detecting peptide singlets.
+        similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+      }
+      else
+      {
+        // We are detecting peptide doublets or triplets or ...
+        similarity = averagine_similarity_;
+      }
+      
       // Calculate Pearson and Spearman rank correlations
       if ((intensities_model.size() < isotopes_per_peptide_min_) || (intensities_data.size() < isotopes_per_peptide_min_))
       {
@@ -344,10 +357,11 @@ namespace OpenMS
       double correlation_Pearson = OpenMS::Math::pearsonCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
       double correlation_Spearman = OpenMS::Math::rankCorrelationCoefficient(intensities_model.begin(), intensities_model.end(), intensities_data.begin(), intensities_data.end());
 
-      if ((correlation_Pearson < averagine_similarity_) || (correlation_Spearman < averagine_similarity_))
+      if ((correlation_Pearson < similarity) || (correlation_Spearman < similarity))
       {
         return false;
       }
+
       
     }
     

@@ -111,6 +111,11 @@ namespace OpenMS
     void addSatelliteProfile(const MultiplexSatelliteProfile& satellite, size_t pattern_idx);
     
     /**
+     * @brief check if the peak (rt_idx, mz_idx) is already in the set of satellite peaks
+     */
+    bool checkSatellite(size_t rt_idx, size_t mz_idx) const;
+    
+    /**
      * @brief return all satellite peaks
      *
      * @see also <satellites_>

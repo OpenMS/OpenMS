@@ -419,8 +419,6 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   double pseudo_rt = 1;
   for (auto const & m : result.mod_masses)
   {
-    result.mod_formula_idx[pseudo_rt] = m.first;
-
     if (cysteine_adduct && m.first == cysteine_adduct_formula.toString())
     {
       LOG_INFO << "Precursor adduct " << pseudo_rt++ << "\t:\t" << m.first << " " << m.second << " ( cysteine adduct )" << endl;

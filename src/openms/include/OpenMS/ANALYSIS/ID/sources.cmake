@@ -27,6 +27,7 @@ PrecursorPurity.h
 ProtonDistributionModel.h
 PeptideIndexing.h
 PercolatorFeatureSetHelper.h
+SiriusAdapterAlgorithm.h
 SiriusMSConverter.h
 )
 
