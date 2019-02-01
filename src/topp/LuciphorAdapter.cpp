@@ -453,7 +453,7 @@ protected:
   String getSelectionMethod_(const PeptideIdentification& pep_id, String search_engine)
   {
     String selection_method = "";
-    if (pep_id.getScoreType() == "Posterior Error Probability" || search_engine == "Percolator")
+    if (pep_id.getScoreType() == "Posterior Error Probability" || pep_id.getScoreType() == "pep" || search_engine == "Percolator")
     {
       selection_method = score_selection_method_[0];
     }
@@ -558,7 +558,7 @@ protected:
       return ret;
     }
     
-    writeConfigurationFile_(conf_file, config_map);    
+    writeConfigurationFile_(conf_file, config_map);
 
     // memory for JVM
     QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
@@ -601,7 +601,7 @@ protected:
       
     map<int, LuciphorPSM> l_psms;    
     ProteinIdentification::SearchParameters search_params;
-    
+
     String error = parseLuciphorOutput_(out, l_psms, lookup);
     if (error != "")
     {
