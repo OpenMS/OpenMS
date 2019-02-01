@@ -577,7 +577,7 @@ namespace OpenMS
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
-          if (it->getScoreType() == "Posterior Error Probability")
+          if (it->getScoreType() == "Posterior Error Probability" || it->getScoreType() == "pep")
           {
             f << "\t\t\t<search_score" << " name=\"" << it->getScoreType() << "\" value=\"" << h.getScore() << "\"" << "/>\n";
             double probability = 1.0 - h.getScore();
