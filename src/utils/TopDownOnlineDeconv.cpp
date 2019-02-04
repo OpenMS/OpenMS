@@ -10,12 +10,14 @@
 #include <queue>
 #include "boost/dynamic_bitset.hpp"
 #include <iostream>
+//#include "boost/filesystem.hpp"
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
+//namespace fs = boost::filesystem;
 
 class FlashDeconv:
         public TOPPBase {
@@ -23,7 +25,7 @@ class FlashDeconv:
 public:
     FlashDeconv() :
             TOPPBase("FlashDeconv", "Real-time Deconvolution for Non-redundant MS2 acquisition with top down data",
-                     false)\
+                     false)
  {}
 
     typedef struct Parameter{
@@ -94,19 +96,55 @@ protected:
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<file>", "", "Input file.");
         setValidFormats_("in", ListUtils::create<String>("mzML"));
+
+        registerIntOption_("maxC", "<max charge>", 5, "minimum charge state", false, false);
+        registerIntOption_("minC", "<min charge>", 30, "maximum charge state", false, false);
+        registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
+        registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
+        registerDoubleOption_("tol", "<tolerance>", 5e-6, "ppm tolerance", false, false);
+
+        registerOutputFile_("out", "<file>", "[input_file]_fdec.txt", "Output file.", false);
+        setValidFormats_("out", ListUtils::create<String>("txt"));
     }
 
     ExitCodes main_(int, const char **) override {
         //-------------------------------------------------------------
         // parsing parameters
         //-------------------------------------------------------------
-//        String infilePath = getStringOption_("in");
+        String infilePath = getStringOption_("in");
+        int maxC = getIntOption_("maxC");
+        int minC = getIntOption_("minC");
+        double maxM = getDoubleOption_("maxM");
+        double minM = getDoubleOption_("minM");
+        double tole = getDoubleOption_("tol");
+        String outfilePath = getStringOption_("out");
 
-        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
-        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
-        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/myo.m";
-        // just for quick use
+        if(outfilePath=="[input_file]_fdec.txt"){
+            outfilePath = infilePath.substr(0, infilePath.find_last_of(".")) + "_fdec.txt" ;
+        }
+        // TODO
+        // 1. when inputpath is for dir
+        // 2. error checking for option values.
+
+    // just for quick use
+//        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
+//        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
+//        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
+//        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/myo.m";
+
+        //-------------------------------------------------------------
+        // input file path --> put in array
+        //-------------------------------------------------------------
+/*        vector<String> infileArray;
+        if (fs::is_directory(infilePath)){
+            for (const auto & entry : fs::directory_iterator(infilePath)){
+                if (std::toupper(fs::extension(entry) == "MZML"))
+                    infileArray.push_back(entry.path().string());
+            }
+        }else{
+            infileArray.push_back(infilePath);
+        }
+*/
 
         //-------------------------------------------------------------
         // reading input
@@ -116,32 +154,34 @@ protected:
         mzml.setLogType(log_type_);
 
         Parameter param;
+        param.maxCharge = maxC;
+        param.minCharge = minC;
+        param.minMass = minM;
+        param.maxMass = maxM;
+        param.tolerance = tole;
+
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
 
         double elapsed_secs = 0;
-        for (int r = 1; r <= 2; r++) {
-            ostringstream st;
-            st << "/Users/kyowonjeong/Documents/A4B/matlab/yeast" << r << ".m";
-            outfilePath = st.str();
 
-            fstream fs;
-            fs.open(outfilePath, fstream::out);
-            fs << "m=[";
-            for (int f = 1; f <= 12; f++) {
-                infilePath = infileDir + "f"+f+"r" + r+".mzML";
-                cout << "%file name : " << infilePath << endl;
-                MSExperiment map;
-                mzml.load(infilePath, map);
-                cout << "%Loaded consensus maps" << endl;
-                clock_t begin = clock();
-                onlineDeconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
-                clock_t end = clock();
-                elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-                std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
-            }
-            fs << "];";
-            fs.close();
-        }
+        fstream fs;
+        fs.open(outfilePath, fstream::out);
+        fs << "m=[";
+//        for (auto& f : infileArray) {
+        String f = infilePath; //  tmp
+//                infilePath = infileDir + "f"+f+"r" + r+".mzML";
+            cout << "%file name : " << f << endl;
+            MSExperiment map;
+            mzml.load(f, map);
+            cout << "%Loaded consensus maps" << endl;
+            clock_t begin = clock();
+            onlineDeconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
+            clock_t end = clock();
+            elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+            std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
+//        }
+        fs << "];";
+        fs.close();
 
         std::cout << "%" << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
         std::cout << "%" << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
