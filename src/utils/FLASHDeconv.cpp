@@ -525,8 +525,8 @@ protected:
                 int isoOff = 0, maxi = 0;
                 PeakGroup peakGroup;
                 vector<int> peakMassBins;
-                peakMassBins.reserve(logMzPeaks.size());
-                peakGroup.reserve(logMzPeaks.size());
+                peakMassBins.reserve(param.chargeRange * param.maxIsotopeCount * 3);
+                peakGroup.reserve(param.chargeRange * param.maxIsotopeCount * 3);
 
                 for (int j = 0; j < param.chargeRange; j++) {
                     int charge = j + param.minCharge;
