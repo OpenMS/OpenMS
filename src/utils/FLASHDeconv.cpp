@@ -24,7 +24,7 @@ class FlashDeconv:
 
 public:
     FlashDeconv() :
-            TOPPBase("FlashDeconv", "Real-time Deconvolution for Non-redundant MS2 acquisition with top down data",
+            TOPPBase("FlashDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
                      false)
  {}
 
@@ -40,14 +40,14 @@ public:
         int minContinuousCharge;
         int minChargeCount;
         int minIsotopeCount;
+        int maxIsotopeCount;
         int maxMassCount;
-        int maxIsotopeIndex;
         double isotopeCosineThreshold;
         double chargeDistributionScoreThreshold; // geek accessible parameters
 
-        Parameter() : intensityThreshold(500), minCharge(5), maxCharge(30), chargeRange(maxCharge-minCharge), minContinuousCharge(3),
-            minChargeCount(minContinuousCharge * 2), minIsotopeCount(4), maxMassCount(50), minMass(500.0), maxMass(50000.0),
-            tolerance(5e-6), isotopeCosineThreshold(.5), chargeDistributionScoreThreshold(.0), maxIsotopeIndex(50) {}
+        Parameter() : intensityThreshold(500), chargeRange(25), minCharge(5), maxCharge(minCharge + chargeRange), minContinuousCharge(3),
+            minChargeCount(minContinuousCharge + 3), minIsotopeCount(4), maxMassCount(50), minMass(500.0), maxMass(50000.0),
+            tolerance(5e-6), isotopeCosineThreshold(.5), chargeDistributionScoreThreshold(.0), maxIsotopeCount(50) {}
     } Parameter;
 
     typedef struct LogMzPeak {
@@ -189,7 +189,7 @@ protected:
         return EXECUTION_OK;
     }
 
-    vector<LogMzPeak> GetLogMzPeaks(MSSpectrum &spec, const Parameter &param){
+    vector<LogMzPeak> getLogMzPeaks(MSSpectrum &spec, const Parameter &param){
         vector<LogMzPeak> logMzPeaks;
         logMzPeaks.reserve(spec.size());
         for (auto &peak : spec) {
@@ -206,7 +206,7 @@ protected:
         iso.trimRight(.1*iso.getMostAbundant().getIntensity());
 
         for (auto &p : pg.peaks) {
-            if (p.isotopeIndex > iso.size()) continue;
+            if (p.isotopeIndex >= iso.size()) continue;
             int index = p.charge - param.minCharge;
             double intensity = p.orgPeak->getIntensity();
             if (maxIntensityForMonoIsotopeMass > intensity) continue;
@@ -231,10 +231,10 @@ protected:
 
     void updatePerChargeIsotopeIntensities(double *perChargeIntensities, double *perIsotopeIntensities, PeakGroup &pg, const Parameter &param){
         fill_n(perChargeIntensities, param.chargeRange, 0);
-        fill_n(perIsotopeIntensities, param.maxIsotopeIndex + 1, 0); // change it to be flexible
+        fill_n(perIsotopeIntensities, param.maxIsotopeCount, 0); // change it to be flexible
 
         for (auto &p : pg.peaks) {
-            if (p.isotopeIndex > param.maxIsotopeIndex) continue;
+            if (p.isotopeIndex >= param.maxIsotopeCount) continue;
             int index = p.charge - param.minCharge;
             double intensity = p.orgPeak->getIntensity();
             perChargeIntensities[index] += intensity;
@@ -258,7 +258,7 @@ protected:
 
         setIntensityCounter = 0;
         maxSetIntensityCounter = 0;
-        for (int i = 0; i < param.maxIsotopeIndex; i++) {
+        for (int i = 0; i < param.maxIsotopeCount; i++) {
             if (perIsotopeIntensities[i] <= 0) {
                 setIntensityCounter = 0;
                 continue;
@@ -298,7 +298,7 @@ protected:
 
         for (auto &pg : peakGroups) {
             auto perChargeIntensities = new double[param.chargeRange];
-            auto perIsotopeIntensities = new double[param.maxIsotopeIndex + 1];
+            auto perIsotopeIntensities = new double[param.maxIsotopeCount];
             updatePerChargeIsotopeIntensities(perChargeIntensities, perIsotopeIntensities, pg, param);
             if(!checkIntensities(perChargeIntensities, perIsotopeIntensities, param)) continue;
 
@@ -322,8 +322,8 @@ protected:
         auto generator = new CoarseIsotopePatternGenerator();
         auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
         maxIso.trimRight(.1*maxIso.getMostAbundant().getIntensity());
-        param.maxIsotopeIndex = min(param.maxIsotopeIndex, (int)maxIso.size());
-        generator->setMaxIsotope(param.maxIsotopeIndex);
+        param.maxIsotopeCount = min(param.maxIsotopeCount, (int)maxIso.size());
+        generator->setMaxIsotope(param.maxIsotopeCount);
 
         for (int i = 0; i < param.chargeRange; i++) {
             filter[i] = log(1.0 / (i + param.minCharge)); // should be descending, and negative!
@@ -335,7 +335,7 @@ protected:
             specCntr++;
             double rt = it->getRT();
 
-            auto logMzPeaks = GetLogMzPeaks(*it, param);
+            auto logMzPeaks = getLogMzPeaks(*it, param);
             auto peakGroups = findPeakGroups(logMzPeaks, filter, harmonicFilter, param);
 
             auto intensityMassMap = getIntensityMassMap(peakGroups, generator, param);
@@ -537,8 +537,8 @@ protected:
                                         if(d>0){
                                             peakMassBins.push_back((p.logMz - filter[j]- minBinLogMass) / param.tolerance);
                                         }
-                                       // if(i - isoOff < param.maxIsotopeIndex)
-                                        peakGroup.push_back(p);
+                                        if(i - isoOff < param.maxIsotopeCount)
+                                            peakGroup.push_back(p);
                                     }
                                     if (!isotopePeakPresent) break;
                                     if (d < 0) {
