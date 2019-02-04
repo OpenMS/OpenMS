@@ -26,14 +26,12 @@ public:
                      false)\
  {}
 
-
     typedef struct Parameter{
         int minCharge;
         int maxCharge;
         double minMass;
         double maxMass;
         double tolerance; // up to here: ordinary user accessible parameters
-
 
         double intensityThreshold;
         int chargeRange;
@@ -176,7 +174,6 @@ protected:
 
         monoIsotopeMass += offset * Constants::C13C12_MASSDIFF_U;
         return maxCosine;
-
     }
 
     void updatePerChargeIsotopeIntensities(double *perChargeIntensities, double *perIsotopeIntensities, vector<LogMzPeak> &pg, const Parameter &param){
@@ -303,7 +300,6 @@ protected:
         }
         return;
     }
-
 
     double getCosine(double *a, IsotopeDistribution b, double rightThreshold, int offset = 0) {
         double n = 0, d1 = 0, d2 = 0;
