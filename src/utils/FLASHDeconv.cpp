@@ -97,14 +97,13 @@ protected:
         registerInputFile_("in", "<file>", "", "Input file.");
         setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-        registerIntOption_("maxC", "<max charge>", 5, "minimum charge state", false, false);
-        registerIntOption_("minC", "<min charge>", 30, "maximum charge state", false, false);
+        registerIntOption_("minC", "<max charge>", 5, "minimum charge state", false, false);
+        registerIntOption_("maxC", "<min charge>", 30, "maximum charge state", false, false);
         registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
         registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5e-6, "ppm tolerance", false, false);
 
         registerOutputFile_("out", "<file>", "[input_file]_fdec.txt", "Output file.", false);
-        setValidFormats_("out", ListUtils::create<String>("txt"));
     }
 
     ExitCodes main_(int, const char **) override {
@@ -167,19 +166,16 @@ protected:
         fstream fs;
         fs.open(outfilePath, fstream::out);
         fs << "m=[";
-//        for (auto& f : infileArray) {
-        String f = infilePath; //  tmp
-//                infilePath = infileDir + "f"+f+"r" + r+".mzML";
-            cout << "%file name : " << f << endl;
-            MSExperiment map;
-            mzml.load(f, map);
-            cout << "%Loaded consensus maps" << endl;
-            clock_t begin = clock();
-            onlineDeconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
-            clock_t end = clock();
-            elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-            std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
-//        }
+        String f = infilePath;
+        cout << "file name : " << f << endl;
+        MSExperiment map;
+        mzml.load(f, map);
+        cout << "Loaded consensus maps" << endl;
+        clock_t begin = clock();
+        onlineDeconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
+        clock_t end = clock();
+        elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+        std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
         fs << "];";
         fs.close();
 
