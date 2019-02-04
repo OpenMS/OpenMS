@@ -94,25 +94,40 @@ protected:
         registerInputFile_("in", "<file>", "", "Input file.");
         setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-        registerIntOption_("maxC", "<max charge>", 4, "minimum charge state", false, false);
+        registerIntOption_("maxC", "<max charge>", 5, "minimum charge state", false, false);
         registerIntOption_("minC", "<min charge>", 30, "maximum charge state", false, false);
         registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
         registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5e-6, "ppm tolerance", false, false);
 
+        registerOutputFile_("out", "<file>", "[input_file]_fdec.txt", "Output file.", false);
+        setValidFormats_("out", ListUtils::create<String>("txt"));
     }
 
     ExitCodes main_(int, const char **) override {
         //-------------------------------------------------------------
         // parsing parameters
         //-------------------------------------------------------------
-//        String infilePath = getStringOption_("in");
+        String infilePath = getStringOption_("in");
+        int maxC = getIntOption_("maxC");
+        int minC = getIntOption_("minC");
+        double maxM = getDoubleOption_("maxM");
+        double minM = getDoubleOption_("minM");
+        double tole = getDoubleOption_("tol");
+        String outfilePath = getStringOption_("out");
 
-        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
-        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
-        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
-        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/myo.m";
+        if(outfilePath=="[input_file]_fdec.txt"){
+            outfilePath = infilePath.substr(0, infilePath.find_last_of(".")) + "_fdec.txt" ;
+        }
+        // TODO
+        // 1. when inputpath is for dir
+        // 2. error checking for option values.
+
         // just for quick use
+//        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
+//        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
+//        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
+//        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/myo.m";
 
         //-------------------------------------------------------------
         // reading input
@@ -122,13 +137,19 @@ protected:
         mzml.setLogType(log_type_);
 
         Parameter param;
+        param.maxCharge = maxC;
+        param.minCharge = minC;
+        param.minMass = minM;
+        param.maxMass = maxM;
+        param.tolerance = tole;
+
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
 
         double elapsed_secs = 0;
         for (int r = 1; r <= 2; r++) {
             ostringstream st;
-            st << "/Users/kyowonjeong/Documents/A4B/matlab/yeast" << r << ".m";
-            outfilePath = st.str();
+//            st << "/Users/kyowonjeong/Documents/A4B/matlab/yeast" << r << ".m";
+            //outfilePath = st.str();
 
             fstream fs;
             fs.open(outfilePath, fstream::out);
