@@ -101,7 +101,7 @@ protected:
         registerIntOption_("maxC", "<min charge>", 30, "maximum charge state", false, false);
         registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
         registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
-        registerDoubleOption_("tol", "<tolerance>", 5e-6, "ppm tolerance", false, false);
+        registerDoubleOption_("tol", "<tolerance>", 5, "ppm tolerance", false, false);
 
         registerOutputFile_("out", "<file>", "[input_file]_fdec.txt", "Output file.", false);
     }
@@ -115,7 +115,7 @@ protected:
         int minC = getIntOption_("minC");
         double maxM = getDoubleOption_("maxM");
         double minM = getDoubleOption_("minM");
-        double tole = getDoubleOption_("tol");
+        double tole = getDoubleOption_("tol")*1e-6;
         String outfilePath = getStringOption_("out");
 
         if(outfilePath=="[input_file]_fdec.txt"){
