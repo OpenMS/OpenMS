@@ -19,12 +19,12 @@ using namespace OpenMS;
 using namespace std;
 //namespace fs = boost::filesystem;
 
-class FlashDeconv:
+class FLASHDeconv:
         public TOPPBase {
 
 public:
-    FlashDeconv() :
-            TOPPBase("FlashDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
+    FLASHDeconv() :
+            TOPPBase("FLASHDeconv", "Ultra-fast high-quality deconvolution enables online processing of top-down MS data",
                      false)
  {}
 
@@ -148,8 +148,8 @@ protected:
         //-------------------------------------------------------------
         // input file path --> put in array
         //-------------------------------------------------------------
-/*        vector<String> infileArray;
-        if (fs::is_directory(infilePath)){
+ /*       vector<String> infileArray;
+        if (OpenMS::File(infilePath)){
             for (const auto & entry : fs::directory_iterator(infilePath)){
                 if (std::toupper(fs::extension(entry) == "MZML"))
                     infileArray.push_back(entry.path().string());
@@ -626,7 +626,7 @@ protected:
 };
 
     int main(int argc, const char **argv) {
-        FlashDeconv tool;
+        FLASHDeconv tool;
         return tool.main(argc, argv);
     }
 
