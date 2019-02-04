@@ -22,7 +22,8 @@ class FlashDeconv:
 
 public:
     FlashDeconv() :
-            TOPPBase("FlashDeconv", "Real-time Deconvolution for Non-redundant MS2 acquisition with top down data", false)
+            TOPPBase("FlashDeconv", "Real-time Deconvolution for Non-redundant MS2 acquisition with top down data",
+                     false)\
  {}
 
     typedef struct Parameter{
@@ -38,13 +39,13 @@ public:
         int minChargeCount;
         int minIsotopeCount;
         int maxMassCount;
-        //int maxIsotopeIndex;
+        int maxIsotopeIndex;
         double isotopeCosineThreshold;
         double chargeDistributionScoreThreshold; // geek accessible parameters
 
-        Parameter() : intensityThreshold(500), minCharge(5), maxCharge(30), chargeRange(maxCharge-minCharge), minContinuousCharge(3),
+        Parameter() : intensityThreshold(500), chargeRange(25), minCharge(5), maxCharge(minCharge + chargeRange), minContinuousCharge(3),
             minChargeCount(minContinuousCharge * 2), minIsotopeCount(4), maxMassCount(50), minMass(500.0), maxMass(50000.0),
-            tolerance(5e-6), isotopeCosineThreshold(.5), chargeDistributionScoreThreshold(.0) {}
+            tolerance(5e-6), isotopeCosineThreshold(.5), chargeDistributionScoreThreshold(.0), maxIsotopeIndex(50) {}
     } Parameter;
 
     typedef struct LogMzPeak {
@@ -71,7 +72,6 @@ public:
     } LogMzPeak;
 
     typedef struct PeakGroup{
-        int maxIsotopeIndex;
         vector<LogMzPeak> peaks;
 
         void push_back(LogMzPeak & p){
@@ -94,41 +94,19 @@ protected:
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<file>", "", "Input file.");
         setValidFormats_("in", ListUtils::create<String>("mzML"));
-
-        registerIntOption_("maxC", "<max charge>", 5, "minimum charge state", false, false);
-        registerIntOption_("minC", "<min charge>", 30, "maximum charge state", false, false);
-        registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
-        registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
-        registerDoubleOption_("tol", "<tolerance>", 5e-6, "ppm tolerance", false, false);
-
-        registerOutputFile_("out", "<file>", "[input_file]_fdec.txt", "Output file.", false);
-        setValidFormats_("out", ListUtils::create<String>("txt"));
     }
 
     ExitCodes main_(int, const char **) override {
         //-------------------------------------------------------------
         // parsing parameters
         //-------------------------------------------------------------
-        String infilePath = getStringOption_("in");
-        int maxC = getIntOption_("maxC");
-        int minC = getIntOption_("minC");
-        double maxM = getDoubleOption_("maxM");
-        double minM = getDoubleOption_("minM");
-        double tole = getDoubleOption_("tol");
-        String outfilePath = getStringOption_("out");
+//        String infilePath = getStringOption_("in");
 
-        if(outfilePath=="[input_file]_fdec.txt"){
-            outfilePath = infilePath.substr(0, infilePath.find_last_of(".")) + "_fdec.txt" ;
-        }
-        // TODO
-        // 1. when inputpath is for dir
-        // 2. error checking for option values.
-
+        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
+        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
+        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
+        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/myo.m";
         // just for quick use
-//        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
-//        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
-//        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
-//        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/myo.m";
 
         //-------------------------------------------------------------
         // reading input
@@ -138,25 +116,19 @@ protected:
         mzml.setLogType(log_type_);
 
         Parameter param;
-        param.maxCharge = maxC;
-        param.minCharge = minC;
-        param.minMass = minM;
-        param.maxMass = maxM;
-        param.tolerance = tole;
-
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
 
         double elapsed_secs = 0;
-        for (int r = 1; r <= 1; r++) {
+        for (int r = 1; r <= 2; r++) {
             ostringstream st;
-//            st << "/Users/kyowonjeong/Documents/A4B/matlab/yeast" << r << ".m";
-            //outfilePath = st.str();
+            st << "/Users/kyowonjeong/Documents/A4B/matlab/yeast" << r << ".m";
+            outfilePath = st.str();
 
             fstream fs;
             fs.open(outfilePath, fstream::out);
             fs << "m=[";
-            for (int f = 1; f <= 1; f++) {
-                //infilePath = infileDir + "f"+f+"r" + r+".mzML";
+            for (int f = 1; f <= 12; f++) {
+                infilePath = infileDir + "f"+f+"r" + r+".mzML";
                 cout << "%file name : " << infilePath << endl;
                 MSExperiment map;
                 mzml.load(infilePath, map);
@@ -188,11 +160,13 @@ protected:
         return logMzPeaks;
     }
 
-    double getIsotopeCosine(double &monoIsotopeMass, PeakGroup &pg, double *perIsotopeIntensities, IsotopeDistribution &iso, const Parameter &param){
+    double getIsotopeCosine(double &monoIsotopeMass, PeakGroup &pg, double *perIsotopeIntensities, CoarseIsotopePatternGenerator *generator, const Parameter &param){
         double maxIntensityForMonoIsotopeMass = -1;
+        auto iso = generator->estimateFromPeptideWeight(pg.peaks[0].getMass());
+        iso.trimRight(.1*iso.getMostAbundant().getIntensity());
 
         for (auto &p : pg.peaks) {
-            if (p.isotopeIndex > pg.maxIsotopeIndex) continue;
+            if (p.isotopeIndex > iso.size()) continue;
             int index = p.charge - param.minCharge;
             double intensity = p.orgPeak->getIntensity();
             if (maxIntensityForMonoIsotopeMass > intensity) continue;
@@ -217,10 +191,10 @@ protected:
 
     void updatePerChargeIsotopeIntensities(double *perChargeIntensities, double *perIsotopeIntensities, PeakGroup &pg, const Parameter &param){
         fill_n(perChargeIntensities, param.chargeRange, 0);
-        fill_n(perIsotopeIntensities, pg.maxIsotopeIndex + 1, 0); // change it to be flexible
+        fill_n(perIsotopeIntensities, param.maxIsotopeIndex + 1, 0); // change it to be flexible
 
         for (auto &p : pg.peaks) {
-            if (p.isotopeIndex > pg.maxIsotopeIndex) continue;
+            if (p.isotopeIndex > param.maxIsotopeIndex) continue;
             int index = p.charge - param.minCharge;
             double intensity = p.orgPeak->getIntensity();
             perChargeIntensities[index] += intensity;
@@ -228,7 +202,7 @@ protected:
         }
     }
 
-    bool checkIntensities(double *perChargeIntensities, double *perIsotopeIntensities, int maxIsotopeIndex, const Parameter &param){
+    bool checkIntensities(double *perChargeIntensities, double *perIsotopeIntensities, const Parameter &param){
         int setIntensityCounter = 0;
         int maxSetIntensityCounter = 0;
         for (int i = 0; i < param.chargeRange; i++) {
@@ -244,7 +218,7 @@ protected:
 
         setIntensityCounter = 0;
         maxSetIntensityCounter = 0;
-        for (int i = 0; i < maxIsotopeIndex; i++) {
+        for (int i = 0; i < param.maxIsotopeIndex; i++) {
             if (perIsotopeIntensities[i] <= 0) {
                 setIntensityCounter = 0;
                 continue;
@@ -281,20 +255,17 @@ protected:
 
     std::map<double, double> getIntensityMassMap(vector<PeakGroup> &peakGroups, CoarseIsotopePatternGenerator *generator, const Parameter &param){
         std::map<double, double> intensityMassMap;
-        for (auto &pg : peakGroups) {
-            auto iso = generator->estimateFromPeptideWeight(pg.peaks[0].getMass()); // TODO clean later..
-            iso.trimRight(.1*iso.getMostAbundant().getIntensity());
-            pg.maxIsotopeIndex = iso.size()-1;
 
+        for (auto &pg : peakGroups) {
             auto perChargeIntensities = new double[param.chargeRange];
-            auto perIsotopeIntensities = new double[pg.maxIsotopeIndex + 1];
+            auto perIsotopeIntensities = new double[param.maxIsotopeIndex + 1];
             updatePerChargeIsotopeIntensities(perChargeIntensities, perIsotopeIntensities, pg, param);
-            if(!checkIntensities(perChargeIntensities, perIsotopeIntensities, pg.maxIsotopeIndex, param)) continue;
+            if(!checkIntensities(perChargeIntensities, perIsotopeIntensities, param)) continue;
 
             double chargeDistributionScore = getChargeDistributionScore(perChargeIntensities, param);
             if(chargeDistributionScore<=param.chargeDistributionScoreThreshold) continue;
             double monoIsotopeMass;
-            double isotopeCosine = getIsotopeCosine(monoIsotopeMass, pg, perIsotopeIntensities, iso, param);
+            double isotopeCosine = getIsotopeCosine(monoIsotopeMass, pg, perIsotopeIntensities, generator, param);
             if (isotopeCosine <= param.isotopeCosineThreshold) continue;
 
             double totalIntensity = accumulate(perChargeIntensities, perChargeIntensities+param.chargeRange,.0);
@@ -303,7 +274,7 @@ protected:
         return intensityMassMap;
     }
 
-    void onlineDeconvolution(MSExperiment &map, const Parameter &param, fstream &fs, int &specCntr, int &qspecCntr, int &massCntr) {
+    void onlineDeconvolution(MSExperiment &map, Parameter &param, fstream &fs, int &specCntr, int &qspecCntr, int &massCntr) {
 
         double filter[param.chargeRange];
         double harmonicFilter[param.chargeRange];
@@ -311,7 +282,8 @@ protected:
         auto generator = new CoarseIsotopePatternGenerator();
         auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
         maxIso.trimRight(.1*maxIso.getMostAbundant().getIntensity());
-        generator->setMaxIsotope(maxIso.size());
+        param.maxIsotopeIndex = min(param.maxIsotopeIndex, (int)maxIso.size());
+        generator->setMaxIsotope(param.maxIsotopeIndex);
 
         for (int i = 0; i < param.chargeRange; i++) {
             filter[i] = log(1.0 / (i + param.minCharge)); // should be descending, and negative!
