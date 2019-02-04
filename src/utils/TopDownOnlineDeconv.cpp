@@ -10,19 +10,22 @@
 #include <queue>
 #include "boost/dynamic_bitset.hpp"
 #include <iostream>
+//#include "boost/filesystem.hpp"
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
+//namespace fs = boost::filesystem;
 
 class FlashDeconv:
         public TOPPBase {
 
 public:
     FlashDeconv() :
-            TOPPBase("FlashDeconv", "Real-time Deconvolution for Non-redundant MS2 acquisition with top down data", false)
+            TOPPBase("FlashDeconv", "Real-time Deconvolution for Non-redundant MS2 acquisition with top down data",
+                     false)
  {}
 
     typedef struct Parameter{
@@ -123,11 +126,25 @@ protected:
         // 1. when inputpath is for dir
         // 2. error checking for option values.
 
-        // just for quick use
+    // just for quick use
 //        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
 //        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
 //        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
 //        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/myo.m";
+
+        //-------------------------------------------------------------
+        // input file path --> put in array
+        //-------------------------------------------------------------
+/*        vector<String> infileArray;
+        if (fs::is_directory(infilePath)){
+            for (const auto & entry : fs::directory_iterator(infilePath)){
+                if (std::toupper(fs::extension(entry) == "MZML"))
+                    infileArray.push_back(entry.path().string());
+            }
+        }else{
+            infileArray.push_back(infilePath);
+        }
+*/
 
         //-------------------------------------------------------------
         // reading input
@@ -146,29 +163,25 @@ protected:
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
 
         double elapsed_secs = 0;
-        for (int r = 1; r <= 2; r++) {
-            ostringstream st;
-//            st << "/Users/kyowonjeong/Documents/A4B/matlab/yeast" << r << ".m";
-            //outfilePath = st.str();
 
-            fstream fs;
-            fs.open(outfilePath, fstream::out);
-            fs << "m=[";
-            for (int f = 1; f <= 12; f++) {
-                infilePath = infileDir + "f"+f+"r" + r+".mzML";
-                cout << "%file name : " << infilePath << endl;
-                MSExperiment map;
-                mzml.load(infilePath, map);
-                cout << "%Loaded consensus maps" << endl;
-                clock_t begin = clock();
-                onlineDeconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
-                clock_t end = clock();
-                elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-                std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
-            }
-            fs << "];";
-            fs.close();
-        }
+        fstream fs;
+        fs.open(outfilePath, fstream::out);
+        fs << "m=[";
+//        for (auto& f : infileArray) {
+        String f = infilePath; //  tmp
+//                infilePath = infileDir + "f"+f+"r" + r+".mzML";
+            cout << "%file name : " << f << endl;
+            MSExperiment map;
+            mzml.load(f, map);
+            cout << "%Loaded consensus maps" << endl;
+            clock_t begin = clock();
+            onlineDeconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
+            clock_t end = clock();
+            elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+            std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
+//        }
+        fs << "];";
+        fs.close();
 
         std::cout << "%" << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
         std::cout << "%" << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
