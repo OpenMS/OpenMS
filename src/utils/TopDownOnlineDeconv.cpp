@@ -22,8 +22,7 @@ class FlashDeconv:
 
 public:
     FlashDeconv() :
-            TOPPBase("FlashDeconv", "Real-time Deconvolution for Non-redundant MS2 acquisition with top down data",
-                     false)\
+            TOPPBase("FlashDeconv", "Real-time Deconvolution for Non-redundant MS2 acquisition with top down data", false)
  {}
 
     typedef struct Parameter{
@@ -43,7 +42,7 @@ public:
         double isotopeCosineThreshold;
         double chargeDistributionScoreThreshold; // geek accessible parameters
 
-        Parameter() : intensityThreshold(500), chargeRange(25), minCharge(5), maxCharge(minCharge + chargeRange), minContinuousCharge(3),
+        Parameter() : intensityThreshold(500), minCharge(5), maxCharge(30), chargeRange(maxCharge-minCharge), minContinuousCharge(3),
             minChargeCount(minContinuousCharge * 2), minIsotopeCount(4), maxMassCount(50), minMass(500.0), maxMass(50000.0),
             tolerance(5e-6), isotopeCosineThreshold(.5), chargeDistributionScoreThreshold(.0) {}
     } Parameter;
@@ -95,6 +94,13 @@ protected:
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<file>", "", "Input file.");
         setValidFormats_("in", ListUtils::create<String>("mzML"));
+
+        registerIntOption_("maxC", "<max charge>", 4, "minimum charge state", false, false);
+        registerIntOption_("minC", "<min charge>", 30, "maximum charge state", false, false);
+        registerDoubleOption_("minM", "<min mass>", 500.0, "minimum mass (Da)", false, false);
+        registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
+        registerDoubleOption_("tol", "<tolerance>", 5e-6, "ppm tolerance", false, false);
+
     }
 
     ExitCodes main_(int, const char **) override {
