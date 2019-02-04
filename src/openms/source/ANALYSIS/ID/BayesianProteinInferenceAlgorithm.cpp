@@ -121,7 +121,8 @@ namespace OpenMS
         MessagePasserFactory<IDBoostGraph::vertex_t> mpf (param_.getValue("model_parameters:pep_emission"),
                                                  param_.getValue("model_parameters:pep_spurious_emission"),
                                                  param_.getValue("model_parameters:prot_prior"),
-                                                 pnorm); // the p used for marginalization: 1 = sum product, inf = max product
+                                                 pnorm,
+                                                 param_.getValue("model_parameters:pep_prior")); // the p used for marginalization: 1 = sum product, inf = max product
         BetheInferenceGraphBuilder<IDBoostGraph::vertex_t> bigb;
 
         IDBoostGraph::Graph::vertex_iterator ui, ui_end;
@@ -288,7 +289,8 @@ namespace OpenMS
         MessagePasserFactory<IDBoostGraph::vertex_t> mpf (param_.getValue("model_parameters:pep_emission"),
                                                  param_.getValue("model_parameters:pep_spurious_emission"),
                                                  param_.getValue("model_parameters:prot_prior"),
-                                                 pnorm); // the p used for marginalization: 1 = sum product, inf = max product
+                                                 pnorm,
+                                                 param_.getValue("model_parameters:pep_prior")); // the p used for marginalization: 1 = sum product, inf = max product
 
         BetheInferenceGraphBuilder<IDBoostGraph::vertex_t> bigb;
 
@@ -499,6 +501,12 @@ namespace OpenMS
                        "Negative values enable grid search for this param.");
     defaults_.setMinFloat("model_parameters:pep_spurious_emission", -1.0);
     defaults_.setMaxFloat("model_parameters:pep_spurious_emission", 1.0);
+
+    defaults_.setValue("model_parameters:pep_prior",
+                       0.5,
+                       "Peptide prior probability (experimental, not part of grid search).");
+    defaults_.setMinFloat("model_parameters:pep_prior", 0.0);
+    defaults_.setMaxFloat("model_parameters:pep_prior", 1.0);
 
     defaults_.addSection("loopy_belief_propagation","Settings for the loopy belief propagation algorithm.");
 

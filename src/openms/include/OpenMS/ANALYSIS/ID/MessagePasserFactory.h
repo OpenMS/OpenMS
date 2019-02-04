@@ -45,7 +45,7 @@ template <typename Label>
 class MessagePasserFactory {
 private:
     const int minInputsPAF = 3;
-    double alpha, beta, gamma, p;
+    double alpha, beta, gamma, p, pepPrior;
     Label offset;
 
     inline double notConditionalGivenSum(unsigned long summ) {
@@ -69,7 +69,7 @@ public:
 
     PseudoAdditiveDependency<Label> createBFPeptideProbabilisticAdderFactor(const std::set<Label> & parentProteinIDs, Label nId, const std::vector<TableDependency <Label> > & deps);
 
-    MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p);
+    MessagePasserFactory<Label>(double alpha, double beta, double gamma, double p, double pepPrior);
 
 
 
@@ -93,16 +93,18 @@ public:
 //IMPLEMENTATIONS:
 
 template <typename L>
-MessagePasserFactory<L>::MessagePasserFactory(double alpha_, double beta_, double gamma_, double p_) {
-  assert(0 < alpha_ && alpha_ < 1);
-  assert(0 < beta_ && beta_ < 1);
-  assert(0 < gamma_ && gamma_ < 1);
+MessagePasserFactory<L>::MessagePasserFactory(double alpha_, double beta_, double gamma_, double p_, double pep_prior_) {
+  assert(0. < alpha_ && alpha_ < 1.);
+  assert(0. < beta_ && beta_ < 1.);
+  assert(0. < gamma_ && gamma_ < 1.);
   //Note: smaller than 1 might be possible but is untested right now.
-  assert(p_ >= 1);
+  assert(p_ >= 1.);
+  assert(0. < pep_prior_ && pep_prior_ < 1.);
   alpha = alpha_;
   beta = beta_;
   gamma = gamma_;
   p = p_;
+  pepPrior = pep_prior_;
 }
 
 template <typename L>
@@ -132,7 +134,7 @@ TableDependency<L> MessagePasserFactory<L>::createProteinFactor(L id, double pri
 
 template <typename L>
 TableDependency<L> MessagePasserFactory<L>::createPeptideEvidenceFactor(L id, double prob) {
-  double table[] = {1 - prob, prob};
+  double table[] = {(1 - prob) * (1 - pepPrior), prob * pepPrior};
   LabeledPMF<L> lpmf({id}, PMF({0L}, Tensor<double>::from_array(table)));
   return TableDependency<L>(lpmf,p);
 }

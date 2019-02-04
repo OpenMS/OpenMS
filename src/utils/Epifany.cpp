@@ -80,7 +80,8 @@ using namespace std;
     </table>
   </center>
   <p>It is a protein inference engine based on a Bayesian network. Currently the same model like
-  Fido is used with the main parameters alpha (NAME!), beta (NAME!) and gamma (NAME!). If not specified,
+  Fido is used with the main parameters alpha (pep_emission), beta (pep_spurious_emission) and gamma (prot_prior).
+  If not specified,
   these parameters are trained based on their classification performance and calibration via a grid search
   by simply running with several possible combinations and evaluating. Unless you see very extreme output
   probabilities (e.g. many close to 1.0) or you know good parameters (e.g. from an earlier run),
@@ -90,7 +91,7 @@ using namespace std;
   Percolator/IDPEP since target/decoy associations are needed there already. Make sure that the input PSM
   probabilities are not too extreme already (garbage in - garbage out). After merging the input probabilities
   are preprocessed with a low posterior probability cutoff to neglect very unreliable matches. Then
-  the probablities are aggregated with the maximum per peptide and the graph is built and split into
+  the probabilities are aggregated with the maximum per peptide and the graph is built and split into
   connected components. When compiled with the OpenMP
   flag (default enabled in the release binaries) the tool is multithreaded which can
   be activated at runtime by the threads parameter. Note that peak memory requirements
@@ -137,10 +138,19 @@ protected:
                        "none",
                        "Post-process inference output with greedy resolution of shared peptides based on the parent protein probabilities. Also adds the resolved ambiguity groups to output.", false, true);
     setValidStrings_("greedy_group_resolution", {"none","remove_associations_only","remove_proteins_wo_evidence"});
-    registerDoubleOption_("evidence_cutoff",
+    registerDoubleOption_("psm_probability_cutoff",
                           "<option>",
                           0.001,
-                          "After greedy resolution, before filtering proteins evidence-based, remove very low-scoring PSMs under this posterior probability cutoff.", false, true);
+                          "Remove PSMs with probabilities less than or equal this cutoff", false, true);
+    registerDoubleOption_("min_psms_extreme_probability",
+                          "<option>",
+                          0.0,
+                          "Set PSMs with probability lower than this to this minimum probability.", false, true);
+    registerDoubleOption_("max_psms_extreme_probability",
+                          "<option>",
+                          1.0,
+                          "Set PSMs with probability lower than this to this maximum probability.", false, true);
+
     addEmptyLine_();
 
     registerSubsection_("algorithm", "Parameters for the Algorithm section");
@@ -149,6 +159,74 @@ protected:
   Param getSubsectionDefaults_(const String& /*section*/) const override
   {
     return BayesianProteinInferenceAlgorithm().getParameters();
+  }
+
+  pair<double,double> checkExtremePSMScores_(vector<PeptideIdentification>& mergedpeps)
+  {
+    double minscore = 2.;
+    double maxscore = -1.;
+    //convert all scores to PPs
+    for (auto &pep_id : mergedpeps)
+    {
+      for (auto &pep_hit : pep_id.getHits())
+      {
+        double newScore = pep_hit.getScore();
+        if (newScore > 0)
+        {
+          minscore = std::min(minscore, newScore);
+        }
+        if (newScore < 1.)
+        {
+          maxscore = std::max(maxscore, newScore);
+        }
+      }
+    }
+    return {minscore, maxscore};
+  }
+
+  void convertPSMScores_(vector<PeptideIdentification>& mergedpeps)
+  {
+    //convert all scores to PPs
+    for (auto &pep_id : mergedpeps)
+    {
+      String score_l = pep_id.getScoreType();
+      score_l = score_l.toLower();
+      if (score_l == "pep" || score_l == "posterior error probability")
+      {
+        for (auto &pep_hit : pep_id.getHits())
+        {
+          double newScore = 1. - pep_hit.getScore();
+          pep_hit.setScore(newScore);
+        }
+        pep_id.setScoreType("Posterior Probability");
+        pep_id.setHigherScoreBetter(true);
+      }
+      else
+      {
+        if (score_l != "Posterior Probability")
+        {
+          throw OpenMS::Exception::InvalidParameter(
+              __FILE__,
+              __LINE__,
+              OPENMS_PRETTY_FUNCTION,
+              "Epifany needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
+              "or run IDPosteriorErrorProbability first.");
+        }
+      }
+    }
+  }
+
+  void removeExtremeValues_(vector<PeptideIdentification>& mergedpeps, double minscore, double maxscore)
+  {
+    //convert all scores to PPs
+    for (auto &pep_id : mergedpeps)
+    {
+      for (auto &pep_hit : pep_id.getHits())
+      {
+        double score = pep_hit.getScore();
+        pep_hit.setScore(std::min(std::max(score,minscore),maxscore));
+      }
+    }
   }
 
   ExitCodes main_(int, const char**) override
@@ -191,57 +269,28 @@ protected:
       mergedprots[0].getProteinGroups().clear();
     }
 
-    //TODO if we always filter low-probability PSMs we can also do it
-    // before this line to save some computation time
     IDFilter::filterBestPerPeptide(mergedpeps, true, true, 1);
 
     IDFilter::filterEmptyPeptideIDs(mergedpeps);
 
-    //TODO get from data or set as parameter
-    double min_nonnull_obs_probability = 0.0001;
-    double pre_filter = 0.05;
-    //convert all scores to PPs
-    for (auto& pep_id : mergedpeps)
+    convertPSMScores_(mergedpeps);
+
+    double min_nonnull_obs_probability = getDoubleOption_("min_psms_extreme_probability");
+    double max_nonone_obs_probability = getDoubleOption_("max_psms_extreme_probability");
+    bool datadependent_extrema_removal = false;
+    if (datadependent_extrema_removal)
     {
-      String score_l = pep_id.getScoreType();
-      score_l = score_l.toLower();
-      if (score_l == "pep" || score_l == "posterior error probability")
-      {
-        for (auto& pep_hit : pep_id.getHits())
-        {
-          double newScore = 1. - pep_hit.getScore();
-          if (newScore <= min_nonnull_obs_probability)
-          {
-            newScore = min_nonnull_obs_probability;
-          }
-          pep_hit.setScore(newScore);
-        }
-        pep_id.setScoreType("Posterior Probability");
-        pep_id.setHigherScoreBetter(true);
-      }
-      else
-      {
-        if (score_l != "Posterior Probability")
-        {
-          throw OpenMS::Exception::InvalidParameter(
-              __FILE__,
-              __LINE__,
-              OPENMS_PRETTY_FUNCTION,
-              "Epifany needs Posterior (Error) Probabilities in the Peptide Hits. Use Percolator with PEP score"
-              "or run IDPosteriorErrorProbability first.");
-        }
-        for (auto& pep_hit : pep_id.getHits())
-        {
-          double newScore = pep_hit.getScore();
-          if (newScore <= min_nonnull_obs_probability)
-          {
-            newScore = min_nonnull_obs_probability;
-          }
-          pep_hit.setScore(newScore);
-        }
-      }
+      pair<double,double> minmax = checkExtremePSMScores_(mergedpeps);
+      min_nonnull_obs_probability = minmax.first;
+      max_nonone_obs_probability = minmax.second;
     }
-    if (pre_filter > 0.0)
+    if (min_nonnull_obs_probability > 0.0 || max_nonone_obs_probability < 1.0 )
+    {
+      removeExtremeValues_(mergedpeps, min_nonnull_obs_probability, max_nonone_obs_probability);
+    }
+
+    double pre_filter = getDoubleOption_("psm_probability_cutoff");
+    if (pre_filter > min_nonnull_obs_probability)
     {
       LOG_INFO << "Removing PSMs with probability < " << pre_filter << std::endl;
       IDFilter::filterHitsByScore(mergedpeps, pre_filter);
@@ -272,6 +321,10 @@ protected:
     LOG_INFO << "Inference total took " << sw.toString() << std::endl;
     sw.stop();
 
+    // Let's always add all the proteins to the protein group section, easier in postprocessing.
+    // PeptideProteinResolution needs it anyway.
+    mergedprots[0].fillIndistinguishableGroupsWithSingletons();
+
     bool greedy_group_resolution = getStringOption_("greedy_group_resolution") != "none";
     bool remove_prots_wo_evidence = getStringOption_("greedy_group_resolution") == "remove_proteins_wo_evidence";
 
@@ -280,7 +333,7 @@ protected:
       LOG_INFO << "Postprocessing: Removing associations from spectrum via best PSM to all but the best protein group..." << std::endl;
       //TODO add group resolution to the IDBoostGraph class so we do not
       // unnecessarily build a second (old) data structure
-      mergedprots[0].fillIndistinguishableGroupsWithSingletons();
+
       PeptideProteinResolution ppr;
       ppr.buildGraph(mergedprots[0], mergedpeps);
       ppr.resolveGraph(mergedprots[0], mergedpeps);
@@ -290,14 +343,6 @@ protected:
     if (remove_prots_wo_evidence)
     {
       LOG_INFO << "Postprocessing: Removing proteins without associated evidence..." << std::endl;
-      //TODO filtering as parameter? Do it before (remember that before the inference PSMs often hold PEPs not PPs)
-      // Should be bigger than min_nonnull_obs_probability!!
-      double cutoff = getDoubleOption_("evidence_cutoff");
-      if (cutoff <= min_nonnull_obs_probability)
-      {
-        LOG_WARN << "Post-greedy, pre-filter cutoff smaller than minimum PSM probability. Maybe not useful." << std::endl;
-      }
-      IDFilter::filterHitsByScore(mergedpeps, cutoff);
       IDFilter::removeUnreferencedProteins(mergedprots, mergedpeps);
       IDFilter::updateProteinGroups(mergedprots[0].getIndistinguishableProteins(), mergedprots[0].getHits());
       IDFilter::updateProteinGroups(mergedprots[0].getProteinGroups(), mergedprots[0].getHits());
