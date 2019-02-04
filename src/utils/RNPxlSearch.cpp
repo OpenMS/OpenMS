@@ -314,9 +314,10 @@ protected:
 
     // @brief Calculate all chemically feasible fragment adducts for all possible precursor adducts
     // Same as getFeasibleFragmentAdducts but calculated from all precursor adducts
-    static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(const RNPxlModificationMassesResult& precursor_adducts,
-                                                          const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
-                                                          const set<char>& can_xl);
+    static PrecursorsToMS2Adducts getAllFeasibleFragmentAdducts(
+      const RNPxlModificationMassesResult& precursor_adducts,
+      const NucleotideToFragmentAdductMap& nucleotide_to_fragment_adducts,
+      const set<char>& can_xl);
 
   };
 
@@ -422,63 +423,68 @@ protected:
 #endif
     for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
     {
+      MSSpectrum & spec = exp[exp_index];
       // sort by mz
-      exp[exp_index].sortByPosition();
+      spec.sortByPosition();
 
       // deisotope
-      Deisotoper::deisotopeAndSingleCharge(exp[exp_index], 
+      Deisotoper::deisotopeAndSingleCharge(spec, 
                                          fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, 
                                          1, 3, 
                                          false, 
                                          2, 10, 
                                          single_charge_spectra, 
                                          annotate_charge);
+
+      // set Unknown charge to z=1. Otherwise we get a lot of spurious matches 
+      // to highly charged fragments in the low m/z region
+      DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[0]; // charge array
+      for (int & z : ia) { if (z == 0) { z = 1; } }
     #ifdef DEBUG_RNPXLSEARCH
       cout << "after deisotoping..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-//      for (Size i = 0; i != exp[exp_index].size(); ++i) cout << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << endl;
       cout << "Fragment charges in spectrum: " << exp_index  << endl;
-      if (exp[exp_index].getIntegerDataArrays().size())
-        for (Size i = 0; i != exp[exp_index].size(); ++i) 
-          cout  << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << "\t"  << exp[exp_index].getIntegerDataArrays()[0][i] << endl;
+      if (spec.getIntegerDataArrays().size())
+        for (Size i = 0; i != spec.size(); ++i) 
+          cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
       cout << endl;
     #endif
 
       // remove noise
-      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      window_mower_filter.filterPeakSpectrum(spec);
 
     #ifdef DEBUG_RNPXLSEARCH
       cout << "after mower..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != exp[exp_index].size(); ++i) cout << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << endl;
+      for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
       cout << "Fragment charges in spectrum: " << exp_index  << endl;
-      if (exp[exp_index].getIntegerDataArrays().size())
-        for (Size i = 0; i != exp[exp_index].size(); ++i) 
-          cout  << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << "\t"  << exp[exp_index].getIntegerDataArrays()[0][i] << endl;
+      if (spec.getIntegerDataArrays().size())
+        for (Size i = 0; i != spec.size(); ++i) 
+          cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
     
-      nlargest_filter.filterPeakSpectrum(exp[exp_index]);
+      nlargest_filter.filterPeakSpectrum(spec);
 
     #ifdef DEBUG_RNPXLSEARCH
       cout << "after nlargest..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != exp[exp_index].size(); ++i) cout << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << endl;
+      for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec[i].getIntensity() << endl;
       cout << "Fragment charges in spectrum: " << exp_index  << endl;
-      if (exp[exp_index].getIntegerDataArrays().size())
-        for (Size i = 0; i != exp[exp_index].size(); ++i) 
-          cout  << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << "\t"  << exp[exp_index].getIntegerDataArrays()[0][i] << endl;
+      if (spec.getIntegerDataArrays().size())
+        for (Size i = 0; i != spec.size(); ++i) 
+          cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
  
       // sort (nlargest changes order)
-      exp[exp_index].sortByPosition();
+      spec.sortByPosition();
   
     #ifdef DEBUG_RNPXLSEARCH
       cout << "after sort..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
-      for (Size i = 0; i != exp[exp_index].size(); ++i) cout << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << endl;
-      if (exp[exp_index].getIntegerDataArrays().size())
-        for (Size i = 0; i != exp[exp_index].size(); ++i) 
-          cout  << exp[exp_index][i].getMZ() << "\t" << exp[exp_index][i].getIntensity() << "\t"  << exp[exp_index].getIntegerDataArrays()[0][i] << endl;
+      for (Size i = 0; i != spec.size(); ++i) cout << spec[i].getMZ() << "\t" << spec.getIntensity() << endl;
+      if (spec.getIntegerDataArrays().size())
+        for (Size i = 0; i != spec.size(); ++i) 
+          cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
     }
 
@@ -766,8 +772,8 @@ protected:
 
             if (loss_first != string::npos) // ion with neutral loss e.g. water
             {
-              // only allow matching charges (if a fragment charge was assigned)
-              if (fragment_charge == 0 || fragment_charge == charge)
+              // only allow matching charges
+              if (fragment_charge == charge)
               {
                 PeptideHit::PeakAnnotation fa;
                 fa.mz = fragment_mz;
@@ -789,7 +795,7 @@ protected:
             peak_is_annotated.insert(aligned.second);
 
             // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == 0 || fragment_charge == charge)
+            if (fragment_charge == charge)
             {
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_y_ions[ion_number].push_back(d);
@@ -809,8 +815,8 @@ protected:
 
             if (loss_first != string::npos)
             {
-              // only allow matching charges (if a fragment charge was assigned)
-              if (fragment_charge == 0 || fragment_charge == charge)
+              // only allow matching charges
+              if (fragment_charge == charge)
               {
                 PeptideHit::PeakAnnotation fa;
                 fa.mz = fragment_mz;
@@ -832,7 +838,7 @@ protected:
             peak_is_annotated.insert(aligned.second);
 
             // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == 0 || fragment_charge == charge)
+            if (fragment_charge == charge)
             {
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_b_ions[ion_number].push_back(d);
@@ -853,7 +859,7 @@ protected:
             if (loss_first != string::npos)
             {
               // only allow matching charges (if a fragment charge was assigned)
-              if (fragment_charge == 0 || fragment_charge == charge)
+              if (fragment_charge == charge)
               {
                 PeptideHit::PeakAnnotation fa;
                 fa.mz = fragment_mz;
@@ -875,7 +881,7 @@ protected:
             peak_is_annotated.insert(aligned.second);
 
             // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == 0 || fragment_charge == charge)
+            if (fragment_charge == charge)
             {
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
               unshifted_a_ions[ion_number].push_back(d);
@@ -988,8 +994,8 @@ protected:
             ion_nr_string.substitute("+", ""); // remove one or multiple '+'
             auto ion_number = (Size)ion_nr_string.toInt();
 
-            // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == 0 || fragment_charge == charge)
+            // only allow matching charges
+            if (fragment_charge == charge)
             {
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
               shifted_y_ions[ion_number].push_back(d);
@@ -1008,8 +1014,8 @@ protected:
             ion_nr_string.substitute("+", ""); // remove one or multiple '+'
             auto ion_number = (Size)ion_nr_string.toInt();
 
-            // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == 0 || fragment_charge == charge)
+            // only allow matching charges
+            if (fragment_charge == charge)
             {
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
               shifted_b_ions[ion_number].push_back(d);
@@ -1029,7 +1035,7 @@ protected:
             auto ion_number = (Size)ion_nr_string.toInt();
 
             // only allow matching charges (if a fragment charge was assigned)
-            if (fragment_charge == 0 || fragment_charge == charge)
+            if (fragment_charge == charge)
             {
               RNPxlFragmentAnnotationHelper::FragmentAnnotationDetail_ d(fragment_shift_name, charge, fragment_mz, fragment_intensity);
               shifted_a_ions[ion_number].push_back(d);
@@ -1043,7 +1049,7 @@ protected:
           }
           else if (ion_name.hasPrefix(ANNOTATIONS_MARKER_ION_PREFIX))
           {
-            if (fragment_charge <= 1)
+            if (fragment_charge == 1)
             {
               PeptideHit::PeakAnnotation fa;
               fa.mz = fragment_mz;
@@ -1061,7 +1067,7 @@ protected:
           }
           else if (ion_name.hasPrefix("i"))
           {
-            if (fragment_charge <= 1)
+            if (fragment_charge == 1)
             {
               PeptideHit::PeakAnnotation fa;
               fa.mz = fragment_mz;
