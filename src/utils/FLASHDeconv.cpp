@@ -195,6 +195,7 @@ protected:
         auto averagines = getPrecalculatedAveragines(param);
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
         double elapsed_secs = 0;
+
         fstream fs;
         fs.open(outfilePath, fstream::out);
         fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tMass\tNominalMass\t"
