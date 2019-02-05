@@ -215,8 +215,8 @@ protected:
             clock_t end = clock();
             elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
             fs.close();
+            std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
         }
-        std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
         std::cout << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
         std::cout << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
 
