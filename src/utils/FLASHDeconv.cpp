@@ -129,7 +129,7 @@ protected:
     }
 
     void registerOptionsAndFlags_() override {
-        registerInputFile_("in", "<file>", "", "Input file.");
+        registerInputFile_("in", "<file>", "", "Input file");
         setValidFormats_("in", ListUtils::create<String>("mzML"));
 
         registerIntOption_("minC", "<max charge>", 5, "minimum charge state", false, false);
@@ -138,7 +138,7 @@ protected:
         registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
 
-        registerOutputFile_("out", "<file>", "[input_file]_fdec.txt", "Output file.", false);
+        registerOutputFile_("out", "<file>", "", "Output file");
     }
 
     ExitCodes main_(int, const char **) override {
@@ -162,7 +162,7 @@ protected:
         //-------------------------------------------------------------
         // input file path --> put in array
         //-------------------------------------------------------------
-        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
+        //infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
 
         vector<String> infileArray;
         QString path = QString::fromUtf8( infilePath.data(), infilePath.size() );
@@ -196,15 +196,11 @@ protected:
         auto averagines = getPrecalculatedAveragines(param);
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
         double elapsed_secs = 0;
+        fstream fs;
+        fs.open(outfilePath, fstream::out);
 
         for (auto& infile : infileArray){
-            String outfile = "";
-            outfile = outfilePath;
-
-            fstream fs;
-            fs.open(outfilePath, fstream::out);
             fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
-
             cout << "file name : " << infile << endl;
             MSExperiment map;
             mzml.load(infile, map);
@@ -214,9 +210,9 @@ protected:
             Deconvolution(map, param, fs, averagines,  specCntr, qspecCntr, massCntr);
             clock_t end = clock();
             elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-            fs.close();
             std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
         }
+        fs.close();
         std::cout << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
         std::cout << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
 
