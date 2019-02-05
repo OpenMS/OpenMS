@@ -7,13 +7,11 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <queue>
 #include "boost/dynamic_bitset.hpp"
 #include <iostream>
 #include "boost/filesystem.hpp"
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
@@ -34,6 +32,7 @@ public:
         double minMass;
         double maxMass;
         double tolerance; // up to here: ordinary user accessible parameters
+        String fileName;
 
         double intensityThreshold;
         int chargeRange;
@@ -49,6 +48,28 @@ public:
             minChargeCount(minContinuousCharge + 3), minIsotopeCount(3), maxMassCount(50), minMass(500.0), maxMass(50000.0),
             tolerance(5e-6), isotopeCosineThreshold(.5), chargeDistributionScoreThreshold(0), maxIsotopeCount(100) {}
     } Parameter;
+
+    typedef struct PrecalcularedAveragine{
+        vector<IsotopeDistribution> isotopes;
+        double massInterval;
+        double minMass;
+
+        PrecalcularedAveragine(double m, double M, double delta, CoarseIsotopePatternGenerator *generator): minMass(m), massInterval(delta)
+        {
+            for(double i=minMass;i<M;i+=massInterval){
+                auto iso = generator->estimateFromPeptideWeight(i);
+                iso.trimRight(.01*iso.getMostAbundant().getIntensity());
+                isotopes.push_back(iso);
+            }
+        }
+
+        IsotopeDistribution get(double mass){
+            int i = round((mass - minMass)/massInterval);
+            i = i >= isotopes.size() ? isotopes.size()-1 : i;
+            return isotopes[i];
+        }
+
+    };
 
     typedef struct LogMzPeak {
         Peak1D *orgPeak;
@@ -166,40 +187,51 @@ protected:
         param.maxMass = maxM;
         param.tolerance = tole;
 
-        for (auto& infile : infileArray){
-            int specCntr = 0, qspecCntr = 0, massCntr = 0;
-            double elapsed_secs = 0;
+        auto averagines = getPrecalculatedAveragines(param);
+        int specCntr = 0, qspecCntr = 0, massCntr = 0;
+        double elapsed_secs = 0;
 
+        for (auto& infile : infileArray){
             String outfile = "";
             if(outfilePath=="[input_file]_fdec.txt"){
                 outfile = infile.substr(0, infile.find_last_of(".")) + "_fdec.txt" ;
             }else if(bfs::is_directory(outfilePath)){
-                outfile = outfilePath + infile.substr(infile.find_last_of("/\\")+1, infile.find_last_of(".")) + "_fdec.txt"
+                outfile = outfilePath + infile.substr(infile.find_last_of("/\\")+1, infile.find_last_of(".")) + "_fdec.txt";
             }else{
-                outfile = outfilePath
+                outfile = outfilePath;
             }
 
             fstream fs;
-            fs.open(outfile, fstream::out);
-            fs << "MassIndex.\tSpecIndex.\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
-            String f = infile;
-            cout << "file name : " << f << endl;
+            fs.open(outfilePath, fstream::out);
+            fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
+
+            cout << "file name : " << infilePath << endl;
             MSExperiment map;
-            mzml.load(f, map);
-            cout << "Loaded consensus maps" << endl;
+            mzml.load(infilePath, map);
+            param.fileName = infilePath;
+
             clock_t begin = clock();
-            Deconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
+            Deconvolution(map, param, fs, averagines,  specCntr, qspecCntr, massCntr);
             clock_t end = clock();
             elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-            std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
-            //fs << "];";
             fs.close();
-
-            std::cout << "%" << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
-            std::cout << "%" << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
         }
+        std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
+        std::cout << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
+        std::cout << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
+
         return EXECUTION_OK;
     }
+
+    PrecalcularedAveragine getPrecalculatedAveragines(Parameter &param){
+        auto generator = new CoarseIsotopePatternGenerator();
+        auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
+        maxIso.trimRight(.01*maxIso.getMostAbundant().getIntensity());
+        param.maxIsotopeCount = min(param.maxIsotopeCount, (int)maxIso.size() - 1);
+        generator->setMaxIsotope(param.maxIsotopeCount);
+        return PrecalcularedAveragine(param.minMass, param.maxMass, 10.0, generator);
+    }
+
 
     vector<LogMzPeak> getLogMzPeaks(MSSpectrum &spec, const Parameter &param){
         vector<LogMzPeak> logMzPeaks;
@@ -213,12 +245,9 @@ protected:
     }
 
     double getIsotopeCosine(double &monoIsotopeMass, PeakGroup &pg, double *perIsotopeIntensities,
-                            vector<IsotopeDistribution> &averagines, const Parameter &param){
+                            PrecalcularedAveragine &averagines, const Parameter &param){
         double maxIntensityForMonoIsotopeMass = -1;
-
-        int averaginesIndex = round((pg.peaks[0].getMass() - param.minMass)/100.0);
-        averaginesIndex = averaginesIndex >= averagines.size() ? averagines.size()-1 : averaginesIndex;
-        auto iso = averagines[averaginesIndex];
+        auto iso = averagines.get(pg.peaks[0].getMass());
 
         for (auto &p : pg.peaks) {
             if (p.isotopeIndex >= iso.size()) continue;
@@ -308,7 +337,7 @@ protected:
     }
 
     void setMassAndIntensityToPeakGroups(vector<PeakGroup> &peakGroups,
-                                         vector<IsotopeDistribution> &averagines,
+                                         PrecalcularedAveragine &averagines,
                                                              const Parameter &param){
         vector<double> intensities;
         intensities.reserve(peakGroups.size());
@@ -344,23 +373,10 @@ protected:
         }
     }
 
-    void Deconvolution(MSExperiment &map, Parameter &param, fstream &fs, int &specCntr, int &qspecCntr, int &massCntr) {
+    void Deconvolution(MSExperiment &map, Parameter &param, fstream &fs, PrecalcularedAveragine& averagines, int &specCntr, int &qspecCntr, int &massCntr) {
 
         double filter[param.chargeRange];
         double harmonicFilter[param.chargeRange];
-
-        auto generator = new CoarseIsotopePatternGenerator();
-        auto maxIso = generator->estimateFromPeptideWeight(param.maxMass);
-        maxIso.trimRight(.01*maxIso.getMostAbundant().getIntensity());
-        param.maxIsotopeCount = min(param.maxIsotopeCount, (int)maxIso.size() - 1);
-        generator->setMaxIsotope(param.maxIsotopeCount);
-
-        vector<IsotopeDistribution> averagines; // TODO make struct or something...
-        for(double i=param.minMass;i<param.maxMass;i+=100.0){
-            auto iso = generator->estimateFromPeptideWeight(i);
-            iso.trimRight(.01*iso.getMostAbundant().getIntensity());
-            averagines.push_back(iso);
-        }// round((mass - param.minMass)/10)
 
         for (int i = 0; i < param.chargeRange; i++) {
             filter[i] = log(1.0 / (i + param.minCharge)); // should be descending, and negative!
@@ -386,29 +402,24 @@ protected:
                 double intensity = pg.intensity;
                 int nm = getNominalMass(m);
 
-                fs<<massCntr<<"\t"<<qspecCntr<<"\t"<<it->getNativeID()<<"\t"<<peakGroups.size()<<"\t"<< fixed << setprecision(3) << m << "\t" << nm<<"\t"<< intensity<<"\t"<<it->getRT()<<"\t";
+                fs<<massCntr<<"\t"<<qspecCntr<<"\t"<<param.fileName<<"\t"<<it->getNativeID()<<"\t"<<peakGroups.size()<<"\t"<< fixed << setprecision(3) << m << "\t" << nm<<"\t"<< intensity<<"\t"<<it->getRT()<<"\t";
                 for(auto &p : pg.peaks){
-                    fs<<p.orgPeak->getMZ()<<";";
+                    fs<<p.orgPeak->getMZ()<<",";
                 }
                 fs<<"\t";
                 for(auto &p : pg.peaks){
-                    fs<<p.charge<<";";
+                    fs<<p.charge<<",";
                 }
                 fs<<"\t";
                 for(auto &p : pg.peaks){
-                    fs<<p.isotopeIndex<<";";
+                    fs<<p.isotopeIndex<<",";
                 }
                 fs<<"\t";
                 for(auto &p : pg.peaks){
                     fs<<p.orgPeak->getIntensity()<<";";
                 }
                 fs<<"\t"<<pg.chargeDistributionScore<<"\t"<<pg.isotopeCosineScore<<endl;
-
-                //fs << massCntrForThis << " " << qspecCntr << " " << specCntr << " " << it->getRT() << " "  <<intensity<<" "   << setprecision(15)
-                //   << m << " " << round(m * 0.999497) << endl;
-               // if (massCntrForThis > param.maxMassCount) break;
             }
-            //break;
         }
     }
 
@@ -545,8 +556,8 @@ protected:
                 int isoOff = 0, maxi = 0;
                 PeakGroup peakGroup;
                 vector<int> peakMassBins;
-                //peakMassBins.reserve(param.chargeRange * param.maxIsotopeCount * 3);
-                //peakGroup.reserve(param.chargeRange * param.maxIsotopeCount * 3);
+                peakMassBins.reserve(logMzPeaks.size());
+                peakGroup.reserve(logMzPeaks.size());
 
                 for (int j = 0; j < param.chargeRange; j++) {
                     int charge = j + param.minCharge;
