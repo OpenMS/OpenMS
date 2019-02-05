@@ -197,7 +197,14 @@ protected:
         double elapsed_secs = 0;
         fstream fs;
         fs.open(outfilePath, fstream::out);
-        fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
+        fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tMass\tNominalMass\t"
+              "AggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\t"
+              "PeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
+        fstream fsm;
+        fsm.open(outfilePath+".m", fstream::out);
+        fsm<< "m=[";
+
+        sort(infileArray.begin(), infileArray.end());
 
         for (auto& infile : infileArray){
             cout << "file name : " << infile << endl;
@@ -206,15 +213,17 @@ protected:
             param.fileName = infile;
 
             clock_t begin = clock();
-            Deconvolution(map, param, fs, averagines,  specCntr, qspecCntr, massCntr);
+            Deconvolution(map, param, fs, fsm, averagines,  specCntr, qspecCntr, massCntr);
             clock_t end = clock();
             elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
             std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
         }
+
+        fsm<< "];";
+        fsm.close();
         fs.close();
         std::cout << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
         std::cout << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
-
         return EXECUTION_OK;
     }
 
@@ -368,7 +377,7 @@ protected:
         }
     }
 
-    void Deconvolution(MSExperiment &map, Parameter &param, fstream &fs, PrecalcularedAveragine& averagines, int &specCntr, int &qspecCntr, int &massCntr) {
+    void Deconvolution(MSExperiment &map, Parameter &param, fstream &fs, fstream &fsm, PrecalcularedAveragine& averagines, int &specCntr, int &qspecCntr, int &massCntr) {
 
         double filter[param.chargeRange];
         double harmonicFilter[param.chargeRange];
@@ -414,6 +423,8 @@ protected:
                     fs<<p.orgPeak->getIntensity()<<";";
                 }
                 fs<<"\t"<<pg.chargeDistributionScore<<"\t"<<pg.isotopeCosineScore<<endl;
+
+                fsm<<fixed << setprecision(3) << m<<","<<nm<<","<< intensity<<","<<it->getRT()<<endl;
             }
         }
     }
