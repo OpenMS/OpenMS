@@ -114,5 +114,93 @@ namespace OpenMS
       return hyperScore;
     }
 
+  double HyperScore::compute(double fragment_mass_tolerance, 
+                             bool fragment_mass_tolerance_unit_ppm, 
+                             const PeakSpectrum& exp_spectrum, 
+                             const DataArrays::IntegerDataArray& exp_charges,
+                             const PeakSpectrum& theo_spectrum,
+                             const DataArrays::IntegerDataArray& theo_charges)
+  {
+    double dot_product = 0.0;
+    UInt y_ion_count = 0;
+    UInt b_ion_count = 0;
+
+    if (exp_spectrum.size() < 1 || theo_spectrum.size() < 1)
+    {
+      std::cout << "Warning: HyperScore: One of the given spectra is empty." << std::endl;
+      return 0.0;
+    }
+
+    // TODO this assumes only one StringDataArray is present and it is the right one
+    const PeakSpectrum::StringDataArray* ion_names;
+    if (theo_spectrum.getStringDataArrays().size() > 0)
+    {
+      ion_names = &theo_spectrum.getStringDataArrays()[0];
+    }
+    else
+    {
+      std::cout << "Error: HyperScore: Theoretical spectrum without StringDataArray (\"IonNames\" annotation) provided." << std::endl;
+      return 0.0;
+    }
+
+    if (theo_charges.size() != theo_spectrum.size())
+    {
+      std::cout << "Error: HyperScore: #charges != #peaks in theoretical spectrum." << std::endl;
+      return 0.0;
+    }
+
+    if (exp_charges.size() != exp_spectrum.size())
+    {
+      std::cout << "Error: HyperScore: #charges != #peaks in experimental spectrum." << std::endl;
+      return 0.0;
+    }
+
+    for (Size i = 0; i < theo_spectrum.size(); ++i)
+    {
+      const double theo_mz = theo_spectrum[i].getMZ();
+
+      double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+      // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+      Size index = exp_spectrum.findNearest(theo_mz);
+
+      const double exp_mz = exp_spectrum[index].getMZ();
+      const double theo_intensity = theo_spectrum[i].getIntensity();
+      const int exp_z = exp_charges[index];
+      const int theo_z = theo_charges[i];
+
+      #ifdef DEBUG_HYPERSCORE
+      if (exp_z != theo_z) std::cout << "exp_z != theo_z " << exp_z << "\t" << theo_z << std::endl;
+      #endif
+
+      // found peak match
+      if (std::abs(theo_mz - exp_mz) < max_dist_dalton 
+          && exp_z == theo_z)
+      {
+        dot_product += exp_spectrum[index].getIntensity() * theo_intensity /* * mass_error */;
+        // fragment annotations in XL-MS data are more complex and do not start with the ion type, but the ion type always follows after a $
+        if ((*ion_names)[i][0] == 'y' || (*ion_names)[i].hasSubstring("$y"))
+        {
+          #ifdef DEBUG_HYPERSCORE
+            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+          #endif
+          ++y_ion_count;
+        }
+        else if ((*ion_names)[i][0] == 'b' || (*ion_names)[i].hasSubstring("$b"))
+        {
+          #ifdef DEBUG_HYPERSCORE
+            std::cout << (*ion_names)[i] << " intensity: " << exp_spectrum[index].getIntensity() << std::endl;
+          #endif
+          ++b_ion_count;
+        }
+      }
+    }
+
+    const double yFact = logfactorial_(y_ion_count);
+    const double bFact = logfactorial_(b_ion_count);
+    const double hyperScore = log1p(dot_product) + yFact + bFact;
+    return hyperScore;    
+  } 
+
 }
 

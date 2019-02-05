@@ -395,7 +395,11 @@ protected:
   /* @brief Filter spectra to remove noise.
      Parameter are passed to spectra filter.
    */
-  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool single_charge_spectra, bool annotate_charge = false)
+  void preprocessSpectra_(PeakMap& exp, 
+    double fragment_mass_tolerance, 
+    bool fragment_mass_tolerance_unit_ppm, 
+    bool single_charge_spectra, 
+    bool annotate_charge = false)
   {
     // filter MS2 map
     // remove 0 intensities
@@ -436,10 +440,13 @@ protected:
                                          single_charge_spectra, 
                                          annotate_charge);
 
-      // set Unknown charge to z=1. Otherwise we get a lot of spurious matches 
-      // to highly charged fragments in the low m/z region
-      DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[0]; // charge array
-      for (int & z : ia) { if (z == 0) { z = 1; } }
+      if (annotate_charge)
+      { 
+        // set Unknown charge to z=1. Otherwise we get a lot of spurious matches 
+        // to highly charged fragments in the low m/z region
+        DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[0]; // charge array
+        for (int & z : ia) { if (z == 0) { z = 1; } }
+      } 
     #ifdef DEBUG_RNPXLSEARCH
       cout << "after deisotoping..." << endl;
       cout << "Fragment m/z and intensities for spectrum: " << exp_index << endl;
@@ -487,8 +494,6 @@ protected:
           cout  << spec[i].getMZ() << "\t" << spec[i].getIntensity() << "\t" << ia[i] << endl;
     #endif
     }
-
-//    MzMLFile().store(String("RNPxlSearch_a_") + String((int)annotate_charge) + ".mzML", exp);
   }
 
 
@@ -1723,8 +1728,12 @@ protected:
 
     progresslogger.startProgress(0, 1, "Filtering spectra...");
     const bool convert_to_single_charge = false;  // whether to convert fragment peaks with isotopic patterns to single charge
-    const bool annotate_charge = false;  // whether the charge and type is annotated
-    preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, convert_to_single_charge, annotate_charge);
+    const bool annotate_charge = true;
+    preprocessSpectra_(spectra, 
+                       fragment_mass_tolerance, 
+                       fragment_mass_tolerance_unit_ppm, 
+                       convert_to_single_charge, // no single charge (false), annotate charge (true)
+                       annotate_charge);
     progresslogger.endProgress();
 
     // build multimap of precursor mass to scan index (and perform some mass and length based filtering)
@@ -1755,7 +1764,7 @@ protected:
     for (auto & a : annotated_hits) { a.reserve(2 * report_top_hits); }
 
 #ifdef _OPENMP     
-    // we want to do locking at the spectrum level so we get good parallelisation 
+    // locking is done at the spectrum level to ensure good parallelisation 
     vector<omp_lock_t> annotated_hits_lock(annotated_hits.size());
     for (size_t i = 0; i != annotated_hits_lock.size(); i++) { omp_init_lock(&(annotated_hits_lock[i])); }
 #endif
@@ -2273,7 +2282,11 @@ protected:
     spectra.sortSpectra(true);    
 
     // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
-    preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, true); // no single charge (false), annotate charge (true)
+    preprocessSpectra_(spectra, 
+                       fragment_mass_tolerance, 
+                       fragment_mass_tolerance_unit_ppm, 
+                       false, // no single charge (false), annotate charge (true)
+                       true); 
 
     progresslogger.startProgress(0, 1, "localization...");
 
@@ -2386,8 +2399,12 @@ protected:
                                 float &precursor_sub_score,
                                 float &a_ion_sub_score) const
   {
-    total_loss_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
-                                           exp_spectrum, total_loss_spectrum);
+    total_loss_score = HyperScore::compute(fragment_mass_tolerance, 
+                                           fragment_mass_tolerance_unit_ppm,
+                                           exp_spectrum,
+                                           exp_spectrum.getIntegerDataArrays()[0],
+                                           total_loss_spectrum,
+                                           total_loss_spectrum.getIntegerDataArrays()[0]);
 
     // bad score, likely wihout any single matching peak
     if (total_loss_score < 0.01) { return; }
@@ -2467,8 +2484,12 @@ protected:
     {
       if (exp_pc_charge < 3)
       {
-        partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
-                                                     exp_spectrum, partial_loss_spectrum_z1);
+        partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, 
+                                                     fragment_mass_tolerance_unit_ppm,
+                                                     exp_spectrum,
+                                                     exp_spectrum.getIntegerDataArrays()[0], 
+                                                     partial_loss_spectrum_z1,
+                                                     partial_loss_spectrum_z1.getIntegerDataArrays()[0]);
         auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                            fragment_mass_tolerance_unit_ppm,
                                                            exp_spectrum,
@@ -2480,8 +2501,12 @@ protected:
       }
       else //if (exp_pc_charge >= 3)
       {
-        partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm,
-                                                     exp_spectrum, partial_loss_spectrum_z2);
+        partial_loss_sub_score = HyperScore::compute(fragment_mass_tolerance, 
+                                                     fragment_mass_tolerance_unit_ppm,
+                                                     exp_spectrum, 
+                                                     exp_spectrum.getIntegerDataArrays()[0],
+                                                     partial_loss_spectrum_z2,
+                                                     partial_loss_spectrum_z2.getIntegerDataArrays()[0]);
         auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                            fragment_mass_tolerance_unit_ppm,
                                                            exp_spectrum,
