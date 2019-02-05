@@ -1154,6 +1154,15 @@ START_SECTION([EXTRA] Peptide equivalence)
   TEST_EQUAL(AASequence::fromString("PEPS(UniMod:21)TIDEK"), AASequence::fromString("PEPS[167]TIDEK"))
   TEST_EQUAL(AASequence::fromString("PEPS(UniMod:21)TIDEK"), AASequence::fromString("PEPS[+80]TIDEK"))
 
+  TEST_EQUAL(AASequence::fromString("C[143]PEPTIDEK"), AASequence::fromString("(UniMod:26)CPEPTIDEK"))
+  TEST_EQUAL(AASequence::fromString("C[+40]PEPTIDEK"), AASequence::fromString("(UniMod:26)CPEPTIDEK"))
+  TEST_EQUAL(AASequence::fromString("Q[111]PEPTIDEK"), AASequence::fromString("(UniMod:28)QPEPTIDEK"))
+  TEST_EQUAL(AASequence::fromString("Q[-17]PEPTIDEK"), AASequence::fromString("(UniMod:28)QPEPTIDEK"))
+
+  // Note: this will not really work if there is another mod that also matches within the precision of the mass
+  TEST_NOT_EQUAL(AASequence::fromString("Q[-17.0265]PEPTIDEK"), AASequence::fromString("(UniMod:28)QPEPTIDEK"))
+  TEST_NOT_EQUAL(AASequence::fromString("C[+39.994915]PEPTIDEK"), AASequence::fromString("(UniMod:26)CPEPTIDEK"))
+
   // Test loss
   TEST_EQUAL(AASequence::fromString("PEPTIDEM(UniMod:10)"), AASequence::fromString("PEPTIDEM(Met->Hse)"))
 
