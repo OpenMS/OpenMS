@@ -147,6 +147,28 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq14.isModified(), true);
   TEST_STRING_EQUAL(seq14[3].getModificationName(), "Label:13C(6)15N(4)");
 
+  // Test modifications of amino acids that can *only occur* N terminally
+
+  // test case: "Pyro-carbamidomethyl" is only defined as N-terminal
+  AASequence seq15 = AASequence::fromString("C[143]PEPTIDEK");
+  TEST_EQUAL(seq15.isModified(), true);
+  TEST_EQUAL(seq15.hasNTerminalModification(), true)
+  TEST_EQUAL(seq15.hasCTerminalModification(), false)
+  TEST_EQUAL(seq15.getNTerminalModification() == nullptr, false);
+  TEST_STRING_EQUAL(seq15.getNTerminalModification()->getId(), "Pyro-carbamidomethyl");
+  TEST_STRING_EQUAL(seq15.getNTerminalModification()->getFullId(), "Pyro-carbamidomethyl (N-term C)");
+  TEST_STRING_EQUAL(seq15.getNTerminalModificationName(), "Pyro-carbamidomethyl");
+
+  // test case: "Gln->pyro-Glu" is only defined as N-terminal
+  AASequence seq16 = AASequence::fromString("Q[111]PEPTIDEK");
+  TEST_EQUAL(seq16.isModified(), true);
+  TEST_EQUAL(seq16.hasNTerminalModification(), true)
+  TEST_EQUAL(seq16.hasCTerminalModification(), false)
+  TEST_EQUAL(seq16.getNTerminalModification() == nullptr, false);
+  TEST_STRING_EQUAL(seq16.getNTerminalModification()->getId(), "Gln->pyro-Glu");
+  TEST_STRING_EQUAL(seq16.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
+  TEST_STRING_EQUAL(seq16.getNTerminalModificationName(), "Gln->pyro-Glu");
+
   // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal
   // AASequence seq15 = AASequence::fromString("PEPC[143]TIDEK");
   // TEST_EQUAL(seq15.isModified(), true);
