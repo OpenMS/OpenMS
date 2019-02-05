@@ -10,14 +10,14 @@
 #include <queue>
 #include "boost/dynamic_bitset.hpp"
 #include <iostream>
-//#include "boost/filesystem.hpp"
+#include "boost/filesystem.hpp"
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <unordered_set>
 
 using namespace OpenMS;
 using namespace std;
-//namespace fs = boost::filesystem;
+namespace bfs = boost::filesystem;
 
 class FLASHDeconv:
         public TOPPBase {
@@ -132,13 +132,6 @@ protected:
         double tole = getDoubleOption_("tol")*1e-6;
         String outfilePath = getStringOption_("out");
 
-        if(outfilePath=="[input_file]_fdec.txt"){
-            outfilePath = infilePath.substr(0, infilePath.find_last_of(".")) + "_fdec.txt" ;
-        }
-        // TODO
-        // 1. when inputpath is for dir
-        // 2. error checking for option values.
-
     // just for quick use
 //        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
 //        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
@@ -148,16 +141,16 @@ protected:
         //-------------------------------------------------------------
         // input file path --> put in array
         //-------------------------------------------------------------
- /*       vector<String> infileArray;
-        if (OpenMS::File(infilePath)){
-            for (const auto & entry : fs::directory_iterator(infilePath)){
-                if (std::toupper(fs::extension(entry) == "MZML"))
+        vector<String> infileArray;
+        if (bfs::is_directory(infilePath)){
+            for (const auto & entry : bfs::directory_iterator(infilePath)){
+                if (std::toupper(bfs::extension(entry.path().string()) == "MZML"))
                     infileArray.push_back(entry.path().string());
             }
         }else{
             infileArray.push_back(infilePath);
         }
-*/
+
 
         //-------------------------------------------------------------
         // reading input
@@ -173,28 +166,38 @@ protected:
         param.maxMass = maxM;
         param.tolerance = tole;
 
-        int specCntr = 0, qspecCntr = 0, massCntr = 0;
-        double elapsed_secs = 0;
+        for (auto& infile : infileArray){
+            int specCntr = 0, qspecCntr = 0, massCntr = 0;
+            double elapsed_secs = 0;
 
-        fstream fs;
-        fs.open(outfilePath, fstream::out);
-        fs << "MassIndex.\tSpecIndex.\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
-        String f = infilePath;
-        cout << "file name : " << f << endl;
-        MSExperiment map;
-        mzml.load(f, map);
-        cout << "Loaded consensus maps" << endl;
-        clock_t begin = clock();
-        Deconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
-        clock_t end = clock();
-        elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
-        std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
-        //fs << "];";
-        fs.close();
+            String outfile = "";
+            if(outfilePath=="[input_file]_fdec.txt"){
+                outfile = infile.substr(0, infile.find_last_of(".")) + "_fdec.txt" ;
+            }else if(bfs::is_directory(outfilePath)){
+                outfile = outfilePath + infile.substr(infile.find_last_of("/\\")+1, infile.find_last_of(".")) + "_fdec.txt"
+            }else{
+                outfile = outfilePath
+            }
 
-        std::cout << "%" << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
-        std::cout << "%" << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
+            fstream fs;
+            fs.open(outfile, fstream::out);
+            fs << "MassIndex.\tSpecIndex.\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
+            String f = infile;
+            cout << "file name : " << f << endl;
+            MSExperiment map;
+            mzml.load(f, map);
+            cout << "Loaded consensus maps" << endl;
+            clock_t begin = clock();
+            Deconvolution(map, param, fs, specCntr, qspecCntr, massCntr);
+            clock_t end = clock();
+            elapsed_secs += double(end - begin) / CLOCKS_PER_SEC;
+            std::cout << massCntr << " masses in "<< qspecCntr << " MS1 spectra deconvoluted so far" << endl;
+            //fs << "];";
+            fs.close();
 
+            std::cout << "%" << elapsed_secs << " seconds elapsed for " << specCntr << " MS1 spectra" << endl;
+            std::cout << "%" << elapsed_secs / specCntr * 1000 << " msec per spectrum" << std::endl;
+        }
         return EXECUTION_OK;
     }
 
