@@ -162,7 +162,6 @@ protected:
         //-------------------------------------------------------------
         // input file path --> put in array
         //-------------------------------------------------------------
-        //infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
 
         vector<String> infileArray;
         QString path = QString::fromUtf8( infilePath.data(), infilePath.size() );
@@ -198,9 +197,9 @@ protected:
         double elapsed_secs = 0;
         fstream fs;
         fs.open(outfilePath, fstream::out);
+        fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
 
         for (auto& infile : infileArray){
-            fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
             cout << "file name : " << infile << endl;
             MSExperiment map;
             mzml.load(infile, map);
