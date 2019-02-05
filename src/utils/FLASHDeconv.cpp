@@ -9,13 +9,13 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include "boost/dynamic_bitset.hpp"
 #include <iostream>
-#include "boost/filesystem.hpp"
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <QDirIterator>
+#include <QFileInfo>
 
 using namespace OpenMS;
 using namespace std;
-namespace bfs = boost::filesystem;
 
 class FLASHDeconv:
         public TOPPBase {
@@ -154,7 +154,7 @@ protected:
         String outfilePath = getStringOption_("out");
 
     // just for quick use
-//        String infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
+//        infileDir = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
 //        String infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Cytocrome_C_MS2_HCD_MS1only.mzML";
 //        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/180523_Myoglobin_MS2_HCD_MS1only.mzML";
 //        String outfilePath = "/Users/kyowonjeong/Documents/A4B/matlab/myo.m";
@@ -162,16 +162,22 @@ protected:
         //-------------------------------------------------------------
         // input file path --> put in array
         //-------------------------------------------------------------
+        infilePath = "/Users/kyowonjeong/Documents/A4B/mzml/MS1only/yeast/";
+
         vector<String> infileArray;
-        if (bfs::is_directory(infilePath)){
-            for (const auto & entry : bfs::directory_iterator(infilePath)){
-                if (std::toupper(bfs::extension(entry.path().string()) == "MZML"))
-                    infileArray.push_back(entry.path().string());
+        QString path = QString::fromUtf8( infilePath.data(), infilePath.size() );
+        QFileInfo check_file(path);
+
+        if (check_file.isDir()){
+            QDirIterator it(path, QStringList() << "*.mzML", QDir::Files, QDirIterator::Subdirectories);
+
+            while (it.hasNext()) {
+                QString file = it.next();
+                infileArray.push_back(file.toStdString());
             }
         }else{
             infileArray.push_back(infilePath);
         }
-
 
         //-------------------------------------------------------------
         // reading input
@@ -193,22 +199,16 @@ protected:
 
         for (auto& infile : infileArray){
             String outfile = "";
-            if(outfilePath=="[input_file]_fdec.txt"){
-                outfile = infile.substr(0, infile.find_last_of(".")) + "_fdec.txt" ;
-            }else if(bfs::is_directory(outfilePath)){
-                outfile = outfilePath + infile.substr(infile.find_last_of("/\\")+1, infile.find_last_of(".")) + "_fdec.txt";
-            }else{
-                outfile = outfilePath;
-            }
+            outfile = outfilePath;
 
             fstream fs;
             fs.open(outfilePath, fstream::out);
             fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tMass\tNominalMass\tAggregatedIntensity\tRetentionTime\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\tPeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
 
-            cout << "file name : " << infilePath << endl;
+            cout << "file name : " << infile << endl;
             MSExperiment map;
-            mzml.load(infilePath, map);
-            param.fileName = infilePath;
+            mzml.load(infile, map);
+            param.fileName = infile;
 
             clock_t begin = clock();
             Deconvolution(map, param, fs, averagines,  specCntr, qspecCntr, massCntr);
