@@ -124,7 +124,7 @@ protected:
     setValidFormats_("out_tsv", ListUtils::create<String>("tsv"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
-    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance (+/- around precursor m/z)", false);
+    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 6.0, "Precursor mass tolerance (+/- around precursor m/z)", false);
 
     StringList precursor_mass_tolerance_unit_valid_strings;
     precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
@@ -141,7 +141,7 @@ protected:
     registerIntList_("precursor:isotopes", "<num>", isotopes, "Corrects for mono-isotopic peak misassignments. (E.g.: 1 = prec. may be misassigned to first isotopic peak)", false, false);
 
     registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
-    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
+    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 20.0, "Fragment mass tolerance (+/- around fragment m/z)", false);
 
     StringList fragment_mass_tolerance_unit_valid_strings;
     fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
@@ -155,14 +155,14 @@ protected:
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
     setValidStrings_("modifications:fixed", all_mods);
-    registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>("Oxidation (M)"), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
     setValidStrings_("modifications:variable", all_mods);
     registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
 
     registerTOPPSubsection_("peptide", "Peptide Options");
     registerIntOption_("peptide:min_size", "<num>", 6, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
     registerIntOption_("peptide:max_size", "<num>", 1e6, "Maximum size a peptide may have after digestion to be considered in the search.", false, true);
-    registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
+    registerIntOption_("peptide:missed_cleavages", "<num>", 2, "Number of missed cleavages.", false, false);
 
     StringList all_enzymes;
     ProteaseDB::getInstance()->getAllNames(all_enzymes);
@@ -2074,8 +2074,8 @@ protected:
                                                 precursor_rna_weight,
                                                 2, // don't know the charge of the precursor at that point
                                                 partial_loss_modification,
-					        partial_loss_template_z1,
-					        partial_loss_template_z2,
+					                                      partial_loss_template_z1,
+					                                      partial_loss_template_z2,
                                                 partial_loss_template_z3,
                                                 partial_loss_spectrum_z2);
                     for (auto& n : partial_loss_spectrum_z2.getStringDataArrays()[0]) { n[0] = 'y'; } // hyperscore hack
@@ -2412,10 +2412,12 @@ protected:
     immonium_sub_score = 0;
     precursor_sub_score = 0;
     a_ion_sub_score = 0;
-    auto const & tl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
-                                                       fragment_mass_tolerance_unit_ppm,
-                                                       exp_spectrum,
-                                                       total_loss_spectrum);
+    auto const & tl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance, 
+                                           fragment_mass_tolerance_unit_ppm,
+                                           exp_spectrum,
+                                           exp_spectrum.getIntegerDataArrays()[0],
+                                           total_loss_spectrum,
+                                           total_loss_spectrum.getIntegerDataArrays()[0]);
 
     tlss_MIC = tl_sub_scores.TIC != 0 ? tl_sub_scores.MIC / tl_sub_scores.TIC : 0;
     tlss_err = tl_sub_scores.err;
@@ -2423,26 +2425,32 @@ protected:
 
     if (!immonium_sub_score_spectrum.empty())
     {
-      auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
+      auto const & r = MorpheusScore::compute(fragment_mass_tolerance, 
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
-                                             immonium_sub_score_spectrum);
+                                             exp_spectrum.getIntegerDataArrays()[0],
+                                             immonium_sub_score_spectrum,
+                                             immonium_sub_score_spectrum.getIntegerDataArrays()[0]);
       immonium_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
     }
     if (!precursor_sub_score_spectrum.empty())
     {
-      auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
+      auto const & r = MorpheusScore::compute(fragment_mass_tolerance, 
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
-                                             precursor_sub_score_spectrum);
+                                             exp_spectrum.getIntegerDataArrays()[0],
+                                             precursor_sub_score_spectrum,
+                                             precursor_sub_score_spectrum.getIntegerDataArrays()[0]);
       precursor_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
     }
     if (!a_ion_sub_score_spectrum.empty())
     {
-      auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
-                                             fragment_mass_tolerance_unit_ppm,
-                                             exp_spectrum,
-                                             a_ion_sub_score_spectrum);
+      auto const & r = MorpheusScore::compute(fragment_mass_tolerance, 
+                                           fragment_mass_tolerance_unit_ppm,
+                                           exp_spectrum,
+                                           exp_spectrum.getIntegerDataArrays()[0],
+                                           a_ion_sub_score_spectrum,
+                                           a_ion_sub_score_spectrum.getIntegerDataArrays()[0]);
       a_ion_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
     }
   }
@@ -2469,7 +2477,9 @@ protected:
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
                                              fragment_mass_tolerance_unit_ppm,
                                              exp_spectrum,
-                                             marker_ions_sub_score_spectrum_z1);
+                                             exp_spectrum.getIntegerDataArrays()[0],
+                                             marker_ions_sub_score_spectrum_z1,
+                                             marker_ions_sub_score_spectrum_z1.getIntegerDataArrays()[0]);
       marker_ions_sub_score = r.TIC != 0 ? r.MIC / r.TIC : 0;
     }
     //TODO: these are currently empty
@@ -2493,7 +2503,9 @@ protected:
         auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                            fragment_mass_tolerance_unit_ppm,
                                                            exp_spectrum,
-                                                           partial_loss_spectrum_z1);
+                                                           exp_spectrum.getIntegerDataArrays()[0],
+                                                           partial_loss_spectrum_z1,
+                                                           partial_loss_spectrum_z1.getIntegerDataArrays()[0]);
 
         plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
         plss_err = pl_sub_scores.err;
@@ -2510,7 +2522,9 @@ protected:
         auto const & pl_sub_scores = MorpheusScore::compute(fragment_mass_tolerance,
                                                            fragment_mass_tolerance_unit_ppm,
                                                            exp_spectrum,
-                                                           partial_loss_spectrum_z2);
+                                                           exp_spectrum.getIntegerDataArrays()[0],
+                                                           partial_loss_spectrum_z2,
+                                                           partial_loss_spectrum_z2.getIntegerDataArrays()[0]);
 
         plss_MIC = pl_sub_scores.TIC != 0 ? pl_sub_scores.MIC / pl_sub_scores.TIC : 0;
         plss_err = pl_sub_scores.err;
@@ -3079,7 +3093,6 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::generatePartialLossSpectrum(const S
         } 
       }
       else // don't consider fragment ions with charge >= 4 
-
       { 
         break; 
       }    
@@ -3123,7 +3136,15 @@ void RNPxlSearch::RNPxlFragmentIonGenerator::addPrecursorWithCompleteRNA_(
                  / static_cast<double>(charge);
   partial_loss_spectrum.push_back(Peak1D(xl_mz, 1.0));
   partial_loss_spectrum_charge.push_back(charge);
-  partial_loss_spectrum_annotation.push_back(String("[M+") + precursor_rna_adduct + "]");
+  if (charge > 1)
+  {
+    partial_loss_spectrum_annotation.push_back(String("[M+") 
+      + String(charge) + "H+" + precursor_rna_adduct + "]");
+  } 
+  else
+  {
+    partial_loss_spectrum_annotation.push_back(String("[M+H+") + precursor_rna_adduct + "]");
+  }  
 }
 
 int main(int argc, const char** argv)

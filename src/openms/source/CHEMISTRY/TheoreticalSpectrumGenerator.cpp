@@ -555,7 +555,15 @@ namespace OpenMS
   {
     Peak1D p;
 
-    String ion_name("[M+H]" + String((Size)charge, '+'));
+    String ion_name;
+    if (charge == 1)
+    {
+      ion_name = "[M+H]+";
+    }
+    else
+    { 
+      ion_name = "[M+" + String(charge) + "H]" + String(charge) + "+";
+    }
 
     // precursor peak
     double mono_pos = peptide.getMonoWeight(Residue::Full, charge);
@@ -602,7 +610,15 @@ namespace OpenMS
         p.setIntensity(pre_int_H2O_ *  it->getIntensity());
         if (add_metainfo_)
         {
-          String ion_name("[M+H]-H2O" + String((Size)charge, '+'));
+          String ion_name;
+          if (charge == 1)
+          {
+            ion_name = "[M+H-H2O]+";
+          }
+          else
+          { 
+            ion_name = "[M+" + String(charge) + "H-H2O]" + String(charge) + "+";
+          }
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
@@ -635,7 +651,16 @@ namespace OpenMS
         p.setIntensity(pre_int_NH3_ *  it->getIntensity());
         if (add_metainfo_)
         {
-          String ion_name("[M+H]-NH3" + String((Size)charge, '+'));
+          String ion_name;
+          if (charge == 1)
+          {
+            ion_name = "[M+H-NH3]+";
+          }
+          else
+          { 
+            ion_name = "[M+" + String(charge) + "H-NH3]" + String(charge) + "+";
+          }
+
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
@@ -648,7 +673,15 @@ namespace OpenMS
       p.setIntensity(pre_int_NH3_);
       if (add_metainfo_)
       {
-        String ion_name("[M+H]-NH3" + String((Size)charge, '+'));
+        String ion_name;
+        if (charge == 1)
+        {
+          ion_name = "[M+H-NH3]+";
+        }
+        else
+        { 
+          ion_name = "[M+" + String(charge) + "H-NH3]" + String(charge) + "+";
+        }        
         ion_names.push_back(ion_name);
         charges.push_back(charge);
       }
