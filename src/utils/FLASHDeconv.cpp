@@ -226,8 +226,7 @@ protected:
             elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
             cpu_secs = chrono::duration<double>(t_end-t_start).count();
 
-            cout.flush();
-            cout << "-- done [took " << cpu_secs << " s (CPU), " <<elapsed_secs << " s (wall)] --" << endl;
+            cout << endl << "-- done [took " << cpu_secs << " s (CPU), " <<elapsed_secs << " s (wall)] --" << endl;
             cout << "-- per spectrum [took " << 1000.0*cpu_secs/(specCntr - prevSpecCntr)
                 << " ms (CPU), " << 1000.0*elapsed_secs /(specCntr - prevSpecCntr) << " ms (wall)] --"  << endl;
             cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " out of "
@@ -280,6 +279,7 @@ protected:
 
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
+            printProgress((float)(it - map.begin())/map.size());
             specCntr++;
             auto logMzPeaks = getLogMzPeaks(*it, param);
             auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilter, param);
@@ -291,8 +291,8 @@ protected:
                 massCntr++;
                 writePeakGroup(pg, massCntr, qspecCntr, peakGroups.size(), param, *it, fs, fsm);
             }
-            printProgress((float)(it - map.begin())/map.size());
         }
+        printProgress(1);
     }
 
     void writePeakGroup(PeakGroup &pg, int& massCntr, int& qspecCntr, Size peakGroupSize,
