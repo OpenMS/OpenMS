@@ -28,7 +28,6 @@ public:
 
     struct Parameter{
         int minCharge;
-        int maxCharge;
         double minMass;
         double maxMass;
         double tolerance; // up to here: ordinary user accessible parameters
@@ -38,16 +37,12 @@ public:
         int chargeRange;
         int minContinuousChargeCount;
         int minChargeCount;
-        int minIsotopeCount;
+        int minContinuousIsotopeCount;
         int maxIsotopeCount;
         int maxMassCount;
         double isotopeCosineThreshold;
-        double chargeDistributionScoreThreshold; // geek accessible parameters
+        int chargeDistributionScoreThreshold; // advanced parameters
 
-        Parameter() :  minCharge(5), maxCharge(30), minMass(500.0), maxMass(50000.0), tolerance(5e-6),
-            intensityThreshold(500), chargeRange(25), minContinuousChargeCount(3),
-            minChargeCount(minContinuousChargeCount + 3), minIsotopeCount(3), maxIsotopeCount(100), maxMassCount(50),
-             isotopeCosineThreshold(.5), chargeDistributionScoreThreshold(0) {}
     };
 
     struct PrecalcularedAveragine{
@@ -110,7 +105,7 @@ public:
         vector<LogMzPeak> peaks;
         double monoisotopicMass = .0;
         double intensity = .0;
-        double chargeDistributionScore = .0;
+        int chargeDistributionScore = 0;
         double isotopeCosineScore = .0;
 
         void push_back(LogMzPeak & p){
@@ -120,10 +115,6 @@ public:
         void reserve(Size n){
             peaks.reserve(n);
         }
-
-        /*void sort(){
-            std::sort (peaks.begin(), peaks.end());
-        }*/
     };
 
 protected:
@@ -147,7 +138,34 @@ protected:
         registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
 
+        registerDoubleOption_("minInt", "<min intensity>", 500.0, "intensity threshold", false, true);
+        registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
+        registerIntOption_("minCC", "<min charge count>", 5, "minimum number of peaks of distinct charges per mass", false, true);
+        registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
+        registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
+        registerIntOption_("maxMC", "<max mass count>", 50, "maximum mass count per spec", false, true);
+        registerDoubleOption_("minIsoScore", "<score 0-1>", .5, "minimum isotope cosine score threshold (0-1)", false, true);
+        registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)", false, true);
+    }
 
+    Parameter setParameter(){
+        Parameter param;
+        param.minCharge = getIntOption_("minC");
+        param.chargeRange = getIntOption_("maxC") - param.minCharge;
+        param.maxMass = getDoubleOption_("maxM");
+        param.minMass = getDoubleOption_("minM");
+        param.tolerance = getDoubleOption_("tol")*1e-6;
+
+        param.intensityThreshold = getDoubleOption_("minInt");
+        param.minContinuousChargeCount = getIntOption_("minCCC");
+        param.minChargeCount = getIntOption_("minCC");
+        param.minContinuousIsotopeCount = getIntOption_("minIC");
+        param.maxIsotopeCount = getIntOption_("maxIC");
+        param.maxMassCount = getIntOption_("maxMC");
+        param.isotopeCosineThreshold = getDoubleOption_("minIsoScore");
+        param.chargeDistributionScoreThreshold = getIntOption_("minCDScore");
+
+        return param;
     }
 
     ExitCodes main_(int, const char **) override {
@@ -155,11 +173,6 @@ protected:
         // parsing parameters
         //-------------------------------------------------------------
         String infilePath = getStringOption_("in");
-        int maxC = getIntOption_("maxC");
-        int minC = getIntOption_("minC");
-        double maxM = getDoubleOption_("maxM");
-        double minM = getDoubleOption_("minM");
-        double tole = getDoubleOption_("tol")*1e-6;
         String outfilePath = getStringOption_("out");
 
         //-------------------------------------------------------------
@@ -180,22 +193,8 @@ protected:
         }
         sort(infileArray.begin(), infileArray.end());
 
-        //-------------------------------------------------------------
-        // reading input
-        //-------------------------------------------------------------
-
-        MzMLFile mzml;
-        mzml.setLogType(log_type_);
-
-        Parameter param;
-        param.maxCharge = maxC;
-        param.minCharge = minC;
-        param.minMass = minM;
-        param.maxMass = maxM;
-        param.tolerance = tole;
-        param.chargeRange = maxC-minC;
         cout << "Initializing ... " <<endl;
-
+        auto param = setParameter();
         auto averagines = getPrecalculatedAveragines(param);
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
         int prevSpecCntr = 0, prevQspecCntr = 0, prevMassCntr = 0;
@@ -209,12 +208,13 @@ protected:
         fsm<< "m=[";
 
         for (auto& infile : infileArray){
-            double elapsed_secs = 0, cpu_secs = 0;
             param.fileName = QFileInfo(infile).fileName().toStdString();
-
+            double elapsed_secs = 0, cpu_secs = 0;
             cout << "Processing : " << infile.toStdString() << endl;
 
             MSExperiment map;
+            MzMLFile mzml;
+            mzml.setLogType(log_type_);
             mzml.load(infile, map);
 
             cout << "Running FLASHDeconv now ... "<<endl;
@@ -251,7 +251,7 @@ protected:
     }
 
     void writeHeader(fstream &fs){
-        fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tExactMass\tNominalMass(round(ExactMass*0.999497))\t"
+        fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassCountInSpec\tExactMass\tNominalMass(round(ExactMass*0.999497))\t"
               "AggregatedIntensity\tRetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\t"
               "PeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
         return;
@@ -393,14 +393,13 @@ protected:
                     }
                 }
 
-                if(maxi + isoOff >= param.minIsotopeCount - 1){
+                if(maxi + isoOff >= param.minContinuousIsotopeCount - 1){
                     for(auto& i :peakMassBins){
                         massBins[i] = false;
                     }
                     for (LogMzPeak &p : pg.peaks) {
                         p.isotopeIndex -= isoOff;
                     }
-                    //sort(pg.peaks.begin(), pg.peaks.end());
                     peakGroups.push_back(pg);
                 }
             }
@@ -607,6 +606,7 @@ protected:
             intensities.push_back(pg->intensity);
             ++pg;
         }
+        filterPeakGroupsByIntensity(peakGroups, intensities, param);
     }
 
     void updatePerChargeIsotopeIntensities(double *perChargeIntensities, double *perIsotopeIntensities, PeakGroup &pg, const Parameter &param){
@@ -647,7 +647,7 @@ protected:
             maxSetIntensityCounter =
                     maxSetIntensityCounter > setIntensityCounter ? maxSetIntensityCounter : setIntensityCounter;
         }
-        return maxSetIntensityCounter > param.minIsotopeCount;
+        return maxSetIntensityCounter > param.minContinuousIsotopeCount;
     }
 
     double getIsotopeCosine(double &monoIsotopeMass, PeakGroup &pg, double *perIsotopeIntensities,
@@ -673,12 +673,15 @@ protected:
                 offset = f;
             }
         }
+        for (auto &p : pg.peaks) {
+            p.isotopeIndex -= offset;
+        }
         monoIsotopeMass += offset * Constants::C13C12_MASSDIFF_U;
         return maxCosine;
     }
 
 
-    double getChargeDistributionScore(double *perChargeIntensities, const Parameter &param){
+    int getChargeDistributionScore(double *perChargeIntensities, const Parameter &param){
         int maxIntensityIndex = 0;
         double maxIntensity = -1;
         for (int i = 0; i < param.chargeRange; i++) {
@@ -688,7 +691,7 @@ protected:
             }
         }
 
-        double score = 0;
+        int score = 0;
         for (int k = 1; k < param.chargeRange; k++) {
             int d1 = k<=maxIntensityIndex? 0 : -1;
             int d2 = k<=maxIntensityIndex? -1 : 0;
@@ -717,6 +720,19 @@ protected:
         //return 1;
         if (d <= 0) return 0;
         return n / d;
+    }
+
+    void filterPeakGroupsByIntensity(vector<PeakGroup> &peakGroups, vector<double> &intensities, const Parameter &param){
+        if(intensities.size() <= (Size)param.maxMassCount) return;
+
+        sort(intensities.begin(), intensities.end());
+        auto threshold = intensities[intensities.size() - param.maxMassCount];
+        for (auto pg = peakGroups.begin(); pg != peakGroups.end(); ) {
+            if(pg->intensity >= threshold) continue;
+            pg = peakGroups.erase(pg);
+            if(peakGroups.size() <= (Size)param.maxMassCount) break;
+            ++pg;
+        }
     }
 };
 
