@@ -130,7 +130,7 @@ protected:
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<file>", "", "Input file");
         //setValidFormats_("in", ListUtils::create<String>("mzML"));
-        registerOutputFile_("out", "<file prefix>", "", "Output file prefix ([file prefix].txt and [file prefix].m will be generated)");
+        registerOutputFile_("out", "<file prefix>", "", "Output file prefix ([file prefix].tsv and [file prefix].m will be generated)");
 
         registerIntOption_("minC", "<max charge>", 5, "minimum charge state", false, false);
         registerIntOption_("maxC", "<min charge>", 30, "maximum charge state", false, false);
@@ -201,7 +201,7 @@ protected:
 
         double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
         fstream fs, fsm;
-        fs.open(outfilePath + ".txt", fstream::out);
+        fs.open(outfilePath + ".tsv", fstream::out);
         writeHeader(fs);
 
         fsm.open(outfilePath + ".m", fstream::out);
@@ -432,7 +432,7 @@ protected:
     void addPeaksAroundPeakIndexToPeakGroup(PeakGroup &peakGroup, vector<Size> &peakMassBins,
             int &currentPeakIndex, double &mzToMassOffset, vector<LogMzPeak> &logMzPeaks,
             int &charge, double &tol){
-        double logMz = logMzPeaks[currentPeakIndex].logMz;
+        double& logMz = logMzPeaks[currentPeakIndex].logMz;
         for(int i=-1; i<2; i++){
             int peakIndex = currentPeakIndex+i;
             if(peakIndex <0 || peakIndex>=(int)logMzPeaks.size()) continue;
@@ -444,7 +444,7 @@ protected:
     void addIsotopicPeaksToPeakGroup(PeakGroup &peakGroup, vector<Size> &peakMassBins,
                           int &currentPeakIndex, double &mzToMassOffset, vector<LogMzPeak> &logMzPeaks,
                           int &charge, double &tol, int &isoOff, int &maxi){
-        double logMz = logMzPeaks[currentPeakIndex].logMz;
+        double& logMz = logMzPeaks[currentPeakIndex].logMz;
         double mz = logMzPeaks[currentPeakIndex].orgPeak->getMZ() - Constants::PROTON_MASS_U;
 
         for (int d = -1; d <= 1; d += 2) { // negative then positive direction.
@@ -453,7 +453,7 @@ protected:
                 double isotopeLogMz = logMz + Constants::C13C12_MASSDIFF_U * i * d / charge / mz;
                 bool isotopePeakPresent = false;
                 while (peakIndex >= 0 && peakIndex < (int)logMzPeaks.size()) {
-                    double logMzForIsotopePeak = logMzPeaks[peakIndex].logMz;
+                    double& logMzForIsotopePeak = logMzPeaks[peakIndex].logMz;
                     peakIndex += d;
                     if (logMzForIsotopePeak < isotopeLogMz - tol){ if (d < 0){ break;} else{ continue;}}
                     if (logMzForIsotopePeak > isotopeLogMz + tol){ if (d < 0){ continue;}else { break;}}
@@ -677,22 +677,22 @@ protected:
         auto iso = averagines.get(pg.peaks[0].getMonoIsotopeMass());
 
         int maxIsotopeIndex=0, minIsotopeIndex = (int)iso.size();
-        for (auto &p : pg.peaks) {
-            maxIsotopeIndex = p.isotopeIndex < maxIsotopeIndex ? p.isotopeIndex : maxIsotopeIndex;
-            maxIsotopeIndex = p.isotopeIndex < maxIsotopeIndex ? maxIsotopeIndex : p.isotopeIndex;
 
-            if (p.isotopeIndex >= (int)iso.size()) continue;
+        for (auto &p : pg.peaks) {
+            maxIsotopeIndex = p.isotopeIndex < maxIsotopeIndex ? maxIsotopeIndex : p.isotopeIndex;
+            minIsotopeIndex = p.isotopeIndex < minIsotopeIndex ? p.isotopeIndex : minIsotopeIndex;
+
+            if (p.isotopeIndex != 0) continue;
+
             double intensity = p.orgPeak->getIntensity();
             if (maxIntensityForMonoIsotopeMass > intensity) continue;
             maxIntensityForMonoIsotopeMass = intensity;
             monoIsotopeMass = p.getMonoIsotopeMass();
-
         }
-
         int offset = 0;
         double maxCosine = -1;
         for (int f = -3; f <= 3; f++) {
-            if(minIsotopeIndex - f <0) continue;
+            if(minIsotopeIndex < f) continue;
             if(maxIsotopeIndex - f > (int)iso.size())continue;
 
             auto cos = getCosine(perIsotopeIntensities, iso, f);
