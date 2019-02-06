@@ -74,7 +74,7 @@ public:
     struct LogMzPeak {
         Peak1D *orgPeak;
         double logMz;
-        double mass = 0;
+        double mass = .0;
         int charge;
         int isotopeIndex;
         double score;
@@ -138,9 +138,9 @@ protected:
         registerDoubleOption_("maxM", "<max mass>", 50000.0, "maximum mass (Da)", false, false);
         registerDoubleOption_("tol", "<tolerance>", 5.0, "ppm tolerance", false, false);
 
-        registerDoubleOption_("minInt", "<min intensity>", 500.0, "intensity threshold", false, true);
+        registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
         registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
-        registerIntOption_("minCC", "<min charge count>", 5, "minimum number of peaks of distinct charges per mass", false, true);
+        registerIntOption_("minCC", "<min charge count>", 6, "minimum number of peaks of distinct charges per mass", false, true);
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", 50, "maximum mass count per spec", false, true);
@@ -226,6 +226,7 @@ protected:
             elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
             cpu_secs = chrono::duration<double>(t_end-t_start).count();
 
+            cout.flush();
             cout << "-- done [took " << cpu_secs << " s (CPU), " <<elapsed_secs << " s (wall)] --" << endl;
             cout << "-- per spectrum [took " << 1000.0*cpu_secs/(specCntr - prevSpecCntr)
                 << " ms (CPU), " << 1000.0*elapsed_secs /(specCntr - prevSpecCntr) << " ms (wall)] --"  << endl;
@@ -330,7 +331,7 @@ protected:
     void printProgress(float progress){
         int barWidth = 70;
         cout << "[";
-        int pos = barWidth * progress;
+        int pos = (int)(barWidth * progress);
         for (int i = 0; i < barWidth; ++i) {
             if (i < pos) std::cout << "=";
             else if (i == pos) std::cout << ">";
@@ -762,8 +763,6 @@ protected:
         FLASHDeconv tool;
         return tool.main(argc, argv);
     }
-
-
 
 /*
     double getLogLikelihood(double int1, double int2, bool isH0){
