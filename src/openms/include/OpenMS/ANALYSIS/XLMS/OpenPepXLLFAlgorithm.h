@@ -165,8 +165,6 @@ private:
     Size missed_cleavages_;
     String enzyme_name_;
 
-    bool pre_scoring_;
-    Size number_of_scored_candidates_;
     Int number_top_hits_;
     String deisotope_mode_;
 

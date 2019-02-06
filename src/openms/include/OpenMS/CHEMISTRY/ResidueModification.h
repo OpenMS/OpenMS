@@ -134,7 +134,7 @@ public:
     ResidueModification();
 
     /// Copy constructor
-    ResidueModification(const ResidueModification& modification) = default;
+    ResidueModification(const ResidueModification&) = default;
 
     /// Move constructor
     ResidueModification(ResidueModification&&) = default;
@@ -148,7 +148,7 @@ public:
     //@{
 
     /// Assignment operator
-    ResidueModification& operator=(const ResidueModification& modification) = default;
+    ResidueModification& operator=(const ResidueModification&) = default;
 
     /// Move assignment operator
     ResidueModification& operator=(ResidueModification&&) & = default;

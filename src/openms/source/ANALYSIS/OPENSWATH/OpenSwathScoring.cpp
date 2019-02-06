@@ -73,13 +73,15 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
-                                            const std::vector<TransitionType> & transitions,
-                                            std::vector<OpenSwath::SwathMap> swath_maps,
+                                            const std::vector<TransitionType>& transitions,
+                                            const std::vector<OpenSwath::SwathMap>& swath_maps,
                                             OpenSwath::SpectrumAccessPtr ms1_map,
-                                            OpenMS::DIAScoring & diascoring,
+                                            OpenMS::DIAScoring& diascoring,
                                             const CompoundType& compound,
-                                            OpenSwath_Scores & scores,
-                                            double drift_lower, double drift_upper)
+                                            OpenSwath_Scores& scores,
+                                            std::vector<double>& masserror_ppm,
+                                            double drift_lower,
+                                            double drift_upper)
   {
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
@@ -110,8 +112,7 @@ namespace OpenMS
     OpenSwath::SpectrumPtr spectrum = fetchSpectrumSwath(used_swath_maps, imrmfeature->getRT(), add_up_spectra_, drift_lower, drift_upper);
 
     // Mass deviation score
-    diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity,
-        scores.massdev_score, scores.weighted_massdev_score);
+    diascoring.dia_massdiff_score(transitions, spectrum, normalized_library_intensity, scores.massdev_score, scores.weighted_massdev_score, masserror_ppm);
 
     // DIA dotproduct and manhattan score based on library intensity
     diascoring.score_with_isotopes(spectrum, transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
@@ -133,9 +134,6 @@ namespace OpenMS
       OpenSwathDataAccessHelper::convertPeptideToAASequence(compound, aas);
       diascoring.dia_by_ion_score(spectrum, aas, by_charge_state, scores.bseries_score, scores.yseries_score);
     }
-
-    // FEATURE we should not punish so much when one transition is missing!
-    scores.massdev_score = scores.massdev_score / transitions.size();
 
     if (ms1_map && ms1_map->getNrSpectra() > 0) 
     {
@@ -437,9 +435,13 @@ namespace OpenMS
   OpenSwath::SpectrumPtr filterByDrift(const OpenSwath::SpectrumPtr input, const double drift_lower, const double drift_upper)
   {
     OPENMS_PRECONDITION(drift_upper > 0, "Cannot filter by drift time if upper value is less or equal to zero");
-    OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
+    //OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
 
-    if (input->getDriftTimeArray() == nullptr) return input;
+    if (input->getDriftTimeArray() == nullptr)
+    {
+      std::cerr << "Warning: Cannot filter by drift time if no drift time is available.\n";
+      return input;
+    }
       
     OpenSwath::SpectrumPtr output(new OpenSwath::Spectrum);
 
@@ -455,7 +457,7 @@ namespace OpenMS
     OpenSwath::BinaryDataArrayPtr mz_arr_out(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intens_arr_out(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr im_arr_out(new OpenSwath::BinaryDataArray);
-    im_arr_out->description = "Ion Mobility";
+    im_arr_out->description = im_arr->description;
 
     size_t n = mz_arr->data.size();
     im_arr_out->data.reserve(n);

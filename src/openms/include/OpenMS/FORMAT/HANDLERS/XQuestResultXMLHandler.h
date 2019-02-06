@@ -131,6 +131,7 @@ namespace OpenMS
       String decoy_string_;
       int spectrum_index_light_;
       int spectrum_index_heavy_;
+      String cross_linker_name_;
 
       // Main data structures that are populated during loading the file
       std::vector< PeptideIdentification >* pep_ids_;

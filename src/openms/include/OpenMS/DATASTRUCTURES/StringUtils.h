@@ -124,7 +124,7 @@ namespace OpenMS
     {
       String res;
       size_t count = 0;
-      while (count < length && *(s + count) != 0)
+      while (count < length)
       {
         res += *(s + count);
         ++count;

@@ -85,14 +85,14 @@ public:
     /// Constructor
     DataProcessing() = default;
     /// Copy constructor
-    DataProcessing(const DataProcessing & source) = default;
+    DataProcessing(const DataProcessing &) = default;
     /// Move constructor
     DataProcessing(DataProcessing&&) = default;
     /// Destructor
     ~DataProcessing();
 
     /// Assignment operator
-    DataProcessing & operator=(const DataProcessing & source) = default;
+    DataProcessing & operator=(const DataProcessing &) = default;
     /// Move assignment operator
     DataProcessing& operator=(DataProcessing&&) & = default;
 
