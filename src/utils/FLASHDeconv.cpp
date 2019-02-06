@@ -312,19 +312,19 @@ protected:
         << fixed << setprecision(5) << m << "\t" << nm<<"\t"<< intensity<<"\t"<<spec.getRT()<<"\t"<<pg.peaks.size()<<"\t";
         sort(pg.peaks.begin(), pg.peaks.end());
         for(auto &p : pg.peaks){
-            fs<<p.orgPeak->getMZ()<<",";
+            fs<<p.orgPeak->getMZ()<<";";
         }
         fs<<"\t";
         for(auto &p : pg.peaks){
-            fs<<p.charge<<",";
+            fs<<p.charge<<";";
         }
         fs<<"\t";
         for(auto &p : pg.peaks){
-            fs<<p.getMass()<<",";
+            fs<<p.getMass()<<";";
         }
         fs<<"\t";
         for(auto &p : pg.peaks){
-            fs<<p.isotopeIndex<<",";
+            fs<<p.isotopeIndex<<";";
         }
         fs<<"\t";
         for(auto &p : pg.peaks){
