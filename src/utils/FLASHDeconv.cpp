@@ -277,9 +277,16 @@ protected:
             harmonicFilter[i] = log(1.0 / (i + .5 + param.minCharge));
         }
 
+        float prevProgress = .0;
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
-            printProgress((float)(it - map.begin())/map.size());
+
+            float progress = (float)(it - map.begin())/map.size();
+            if(progress>prevProgress+.01){
+                printProgress(progress);
+                prevProgress = progress;
+            }
+
             specCntr++;
             auto logMzPeaks = getLogMzPeaks(*it, param);
             auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilter, param);
