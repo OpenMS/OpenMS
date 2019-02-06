@@ -229,8 +229,8 @@ protected:
             cout << endl << "-- done [took " << elapsed_cpu_secs << " s (CPU), " <<elapsed_wall_secs << " s (Wall)] --" << endl;
             cout << "-- per spectrum [took " << 1000.0*elapsed_cpu_secs/(specCntr - prevSpecCntr)
                 << " ms (CPU), " << 1000.0*elapsed_wall_secs /(specCntr - prevSpecCntr) << " ms (Wall)] --"  << endl;
-            cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " out of "
-            << specCntr - prevSpecCntr << " MS1 spectra" << endl;
+            cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " MS1 spectra out of "
+            << specCntr - prevSpecCntr << endl;
 
             prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr; total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
@@ -239,8 +239,8 @@ protected:
             cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " <<total_elapsed_wall_secs << " s (Wall)] --" << endl;
             cout << "-- per spectrum [took " << 1000.0*total_elapsed_cpu_secs/specCntr
                  << " ms (CPU), " << 1000.0*total_elapsed_wall_secs /specCntr << " ms (Wall)] --" << endl;
-            cout << "In total, found " << massCntr << " masses in "<< qspecCntr << " out of total "
-                 << specCntr << " MS1 spectra" << endl;
+            cout << "In total, found " << massCntr << " masses in "<< qspecCntr << " MS1 spectra out of "
+                 << specCntr << endl;
         }
 
         fsm<< "];";
