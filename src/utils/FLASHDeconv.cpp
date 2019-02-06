@@ -199,7 +199,7 @@ protected:
         int specCntr = 0, qspecCntr = 0, massCntr = 0;
         int prevSpecCntr = 0, prevQspecCntr = 0, prevMassCntr = 0;
 
-        double totalElapsed_secs = 0, totalCPU_secs = 0;
+        double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
         fstream fs, fsm;
         fs.open(outfilePath + ".txt", fstream::out);
         writeHeader(fs);
@@ -209,7 +209,7 @@ protected:
 
         for (auto& infile : infileArray){
             param.fileName = QFileInfo(infile).fileName().toStdString();
-            double elapsed_secs = 0, cpu_secs = 0;
+            double elapsed_cpu_secs = 0, elapsed_wall_secs = 0;
             cout << "Processing : " << infile.toStdString() << endl;
 
             MSExperiment map;
@@ -223,22 +223,22 @@ protected:
             Deconvolution(map, param, fs, fsm, averagines,  specCntr, qspecCntr, massCntr);
             auto t_end = chrono::high_resolution_clock::now();
             auto end = clock();
-            elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-            cpu_secs = chrono::duration<double>(t_end-t_start).count();
+            elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
+            elapsed_wall_secs = chrono::duration<double>(t_end-t_start).count();
 
-            cout << endl << "-- done [took " << cpu_secs << " s (CPU), " <<elapsed_secs << " s (wall)] --" << endl;
-            cout << "-- per spectrum [took " << 1000.0*cpu_secs/(specCntr - prevSpecCntr)
-                << " ms (CPU), " << 1000.0*elapsed_secs /(specCntr - prevSpecCntr) << " ms (wall)] --"  << endl;
+            cout << endl << "-- done [took " << elapsed_cpu_secs << " s (CPU), " <<elapsed_wall_secs << " s (Wall)] --" << endl;
+            cout << "-- per spectrum [took " << 1000.0*elapsed_cpu_secs/(specCntr - prevSpecCntr)
+                << " ms (CPU), " << 1000.0*elapsed_wall_secs /(specCntr - prevSpecCntr) << " ms (Wall)] --"  << endl;
             cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " out of "
             << specCntr - prevSpecCntr << " MS1 spectra" << endl;
 
-            prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr; totalElapsed_secs += elapsed_secs; totalCPU_secs += cpu_secs;
+            prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr; total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
 
         if(infileArray.size() > 1){
-            cout << "-- done [took " << totalCPU_secs << " s (CPU), " <<totalElapsed_secs << " s (wall)] --" << endl;
-            cout << "-- per spectrum [took " << 1000.0*totalCPU_secs/specCntr
-                 << " ms (CPU), " << 1000.0*totalElapsed_secs /specCntr << " ms (wall)] --" << endl;
+            cout << "-- done [took " << total_elapsed_cpu_secs << " s (CPU), " <<total_elapsed_wall_secs << " s (Wall)] --" << endl;
+            cout << "-- per spectrum [took " << 1000.0*total_elapsed_cpu_secs/specCntr
+                 << " ms (CPU), " << 1000.0*total_elapsed_wall_secs /specCntr << " ms (Wall)] --" << endl;
             cout << "In total, found " << massCntr << " masses in "<< qspecCntr << " out of total "
                  << specCntr << " MS1 spectra" << endl;
         }
