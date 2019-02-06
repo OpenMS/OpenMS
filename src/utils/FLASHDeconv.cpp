@@ -79,6 +79,7 @@ public:
     struct LogMzPeak {
         Peak1D *orgPeak;
         double logMz;
+        double mass = 0;
         int charge;
         int isotopeIndex;
         double score;
@@ -89,7 +90,8 @@ public:
         LogMzPeak(Peak1D &peak, int c, int i) : orgPeak(&peak), logMz(getLogMz(peak.getMZ())), charge(c),
                                                 isotopeIndex(i), score(0) {}
         double getMass() {
-            return exp(logMz) * charge;
+            if(mass <= 0) mass = exp(logMz) * charge;
+            return mass;
         }
         double getMonoIsotopeMass(){
             return getMass() - isotopeIndex * Constants::C13C12_MASSDIFF_U;
@@ -250,7 +252,7 @@ protected:
 
     void writeHeader(fstream &fs){
         fs << "MassIndex\tSpecIndex\tFileName\tSpecID\tMassNoInSpec\tExactMass\tNominalMass(round(ExactMass*0.999497))\t"
-              "AggregatedIntensity\tRetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakIsotopeIndices\t"
+              "AggregatedIntensity\tRetentionTime\tPeakCount\tPeakMZs\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\t"
               "PeakIntensities\tChargeDistScore\tIsotopeCosineScore\n";
         return;
     }
@@ -310,6 +312,10 @@ protected:
         }
         fs<<"\t";
         for(auto &p : pg.peaks){
+            fs<<p.getMass()<<",";
+        }
+        fs<<"\t";
+        for(auto &p : pg.peaks){
             fs<<p.isotopeIndex<<",";
         }
         fs<<"\t";
@@ -352,7 +358,6 @@ protected:
                                                 double &binScoreThreshold, vector<LogMzPeak> &logMzPeaks,
                                                 double &minBinLogMass,
                                                 double *filter, const Parameter &param) {
-
         int *currentPeakIndex = new int[param.chargeRange];
         double tol = param.tolerance;
 
@@ -459,10 +464,11 @@ protected:
 
         for (auto &p : logMzPeaks) {
             Size bi = (Size) ((p.logMz - logMzPeaks[0].logMz) / tol);
-            if (bi >= binNumber) break;
+            if (bi >= binNumber-1) break;
             mzBins[bi] = true;
+            mzBins[bi+1] = true;
         }
-        mzBins |= mzBins << 1;
+        //mzBins |= mzBins << 1;
         return mzBins;
     }
 
