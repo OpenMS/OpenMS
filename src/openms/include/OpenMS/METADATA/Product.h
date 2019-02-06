@@ -54,14 +54,14 @@ public:
     /// Constructor
     Product() = default;
     /// Copy constructor
-    Product(const Product & source) = default;
+    Product(const Product &) = default;
     /// Move constructor
     Product(Product&&) = default;
     /// Destructor
     ~Product() override = default;
 
     /// Assignment operator
-    Product & operator=(const Product & source) = default;
+    Product & operator=(const Product &) = default;
     /// Move assignment operator
     Product& operator=(Product&&) & = default;
 

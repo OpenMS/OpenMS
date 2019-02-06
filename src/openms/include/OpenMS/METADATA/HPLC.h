@@ -53,14 +53,14 @@ public:
     /// Constructor
     HPLC();
     /// Copy constructor
-    HPLC(const HPLC & source) = default;
+    HPLC(const HPLC &) = default;
     /// Move constructor
     HPLC(HPLC&&) = default;
     /// Destructor
     ~HPLC();
 
     /// Assignment operator
-    HPLC & operator=(const HPLC & source) = default;
+    HPLC & operator=(const HPLC &) = default;
     /// Move assignment operator
     HPLC& operator=(HPLC&&) & = default;
 

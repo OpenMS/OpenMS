@@ -16,7 +16,7 @@
   sudo apt-get update
   \endcode
   and try the installation again.
-  When ICU with its libicu is missing in a certain version, we suggest to find the missing version on https://pkgs.org/ and 
+  If <b>after the successful Qt installation above</b>, ICU with its libicu is missing in a certain version, we suggest to find the missing version on https://pkgs.org/ and 
   install it with gdebi, too. You can safely have multiple versions of ICU installed.<br>
   To ensure the tool functionality please add the OPENMS_DATA_PATH variable to your environment as follows (you will get an error advising you this when executing a tool): 
   \code

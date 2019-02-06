@@ -116,6 +116,12 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq7.isModified(), true);
   TEST_EQUAL(seq7.getCTerminalModificationName(), "Amidated");
 
+  AASequence seqq8 = AASequence::fromString("PEPTIDEM(UniMod:10)");
+  TEST_EQUAL(seqq8.hasNTerminalModification(), false);
+  TEST_EQUAL(seqq8.hasCTerminalModification(), true);
+  TEST_EQUAL(seqq8.isModified(), true);
+  TEST_STRING_EQUAL(seqq8.getCTerminalModification()->getFullId(), "Met->Hse (C-term M)");
+
   // test square bracket modifications
   AASequence seq8 = AASequence::fromString("PEPTIDEK[136]");
   TEST_EQUAL(seq8.hasNTerminalModification(), false);
@@ -147,6 +153,28 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq14.isModified(), true);
   TEST_STRING_EQUAL(seq14[3].getModificationName(), "Label:13C(6)15N(4)");
 
+  // Test modifications of amino acids that can *only occur* N terminally
+
+  // test case: "Pyro-carbamidomethyl" is only defined as N-terminal
+  AASequence seq15 = AASequence::fromString("C[143]PEPTIDEK");
+  TEST_EQUAL(seq15.isModified(), true);
+  TEST_EQUAL(seq15.hasNTerminalModification(), true)
+  TEST_EQUAL(seq15.hasCTerminalModification(), false)
+  TEST_EQUAL(seq15.getNTerminalModification() == nullptr, false);
+  TEST_STRING_EQUAL(seq15.getNTerminalModification()->getId(), "Pyro-carbamidomethyl");
+  TEST_STRING_EQUAL(seq15.getNTerminalModification()->getFullId(), "Pyro-carbamidomethyl (N-term C)");
+  TEST_STRING_EQUAL(seq15.getNTerminalModificationName(), "Pyro-carbamidomethyl");
+
+  // test case: "Gln->pyro-Glu" is only defined as N-terminal
+  AASequence seq16 = AASequence::fromString("Q[111]PEPTIDEK");
+  TEST_EQUAL(seq16.isModified(), true);
+  TEST_EQUAL(seq16.hasNTerminalModification(), true)
+  TEST_EQUAL(seq16.hasCTerminalModification(), false)
+  TEST_EQUAL(seq16.getNTerminalModification() == nullptr, false);
+  TEST_STRING_EQUAL(seq16.getNTerminalModification()->getId(), "Gln->pyro-Glu");
+  TEST_STRING_EQUAL(seq16.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
+  TEST_STRING_EQUAL(seq16.getNTerminalModificationName(), "Gln->pyro-Glu");
+
   // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal
   // AASequence seq15 = AASequence::fromString("PEPC[143]TIDEK");
   // TEST_EQUAL(seq15.isModified(), true);
@@ -172,6 +200,11 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
 
   TEST_EXCEPTION(Exception::ParseError,
                  AASequence::fromString("PEP T*I#D+E", false));
+
+  // invalid test case: N/C terminal mods need to be at the termini
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("PEPTIDEM(UniMod:10)K"));
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("PQ(UniMod:28)EPTIDEK"));
+  TEST_EXCEPTION(Exception::InvalidValue, AASequence::fromString("PC(UniMod:26)EPTIDEK"));
 
   // prefer residue mod. over C-term mod.:
   AASequence seq19 = AASequence::fromString("PEPM(Oxidation)");
@@ -1131,6 +1164,23 @@ START_SECTION([EXTRA] Peptide equivalence)
   TEST_EQUAL(AASequence::fromString("PEPS(UniMod:21)TIDEK"), AASequence::fromString("PEPS(Phospho)TIDEK"))
   TEST_EQUAL(AASequence::fromString("PEPS(UniMod:21)TIDEK"), AASequence::fromString("PEPS[167]TIDEK"))
   TEST_EQUAL(AASequence::fromString("PEPS(UniMod:21)TIDEK"), AASequence::fromString("PEPS[+80]TIDEK"))
+
+  // Test N-terminal modification
+  TEST_EQUAL(AASequence::fromString("C[143]PEPTIDEK"), AASequence::fromString("(UniMod:26)CPEPTIDEK"))
+  TEST_EQUAL(AASequence::fromString("C[+40]PEPTIDEK"), AASequence::fromString("(UniMod:26)CPEPTIDEK"))
+  TEST_EQUAL(AASequence::fromString("Q[111]PEPTIDEK"), AASequence::fromString("(UniMod:28)QPEPTIDEK"))
+  TEST_EQUAL(AASequence::fromString("Q[-17]PEPTIDEK"), AASequence::fromString("(UniMod:28)QPEPTIDEK"))
+  TEST_EQUAL(AASequence::fromString("Q[-17.0265]PEPTIDEK"), AASequence::fromString("(UniMod:28)QPEPTIDEK"))
+  TEST_EQUAL(AASequence::fromString("C[+39.994915]PEPTIDEK"), AASequence::fromString("(UniMod:26)CPEPTIDEK"))
+
+  // Test C-terminal modification
+  TEST_EQUAL(AASequence::fromString("PEPTIDEM[-29.992806]"), AASequence::fromString("PEPTIDEM(UniMod:610)"));
+  TEST_EQUAL(AASequence::fromString("PEPTIDEM[-30]"), AASequence::fromString("PEPTIDEM(UniMod:610)"));
+  TEST_EQUAL(AASequence::fromString("PEPTIDEM[101]"), AASequence::fromString("PEPTIDEM(UniMod:610)"));
+
+  //
+  // TEST_EQUAL(AASequence::fromString("[143]CPEPTIDEK"), AASequence::fromString("(UniMod:26)CPEPTIDEK"))
+  // TEST_EQUAL(AASequence::fromString("n[143]CPEPTIDEK"), AASequence::fromString("(UniMod:26)CPEPTIDEK"))
 
   // Test loss
   TEST_EQUAL(AASequence::fromString("PEPTIDEM(UniMod:10)"), AASequence::fromString("PEPTIDEM(Met->Hse)"))

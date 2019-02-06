@@ -118,7 +118,9 @@ public:
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
                             SpectrumPtrType spectrum,
                             const std::vector<double>& normalized_library_intensity,
-                            double& ppm_score, double& ppm_score_weighted);
+                            double& ppm_score,
+                            double& ppm_score_weighted,
+                            std::vector<double>& diff_ppm);
 
     /**
       Precursor massdifference score

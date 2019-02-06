@@ -52,14 +52,14 @@ public:
     /// Constructor
     MetaInfoDescription() = default;
     /// Copy constructor
-    MetaInfoDescription(const MetaInfoDescription & source) = default;
+    MetaInfoDescription(const MetaInfoDescription &) = default;
     /// Move constructor
     MetaInfoDescription(MetaInfoDescription&&) = default;
     /// Destructor
     ~MetaInfoDescription();
 
     /// Assignment operator
-    MetaInfoDescription & operator=(const MetaInfoDescription & source) = default;
+    MetaInfoDescription & operator=(const MetaInfoDescription &) = default;
     /// Move assignment operator
     MetaInfoDescription& operator=(MetaInfoDescription&&) & = default;
 

@@ -35,7 +35,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -167,8 +166,8 @@ protected:
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
-    //check for peak type (profile data required)
-    if (PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(), ms_exp_raw[0].end()) == SpectrumSettings::CENTROID)
+    // check for peak type (profile data required)
+    if (ms_exp_raw[0].getType(true) == SpectrumSettings::CENTROID)
     {
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }

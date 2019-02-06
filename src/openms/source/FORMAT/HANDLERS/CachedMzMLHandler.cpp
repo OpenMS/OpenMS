@@ -342,6 +342,8 @@ namespace Internal
                                         const Size& data_size,
                                         const Size& nr_float_arrays)
   {
+    OPENMS_PRECONDITION(data.size() == 2, "Input data needs to have 2 slots.")
+
     data[0]->data.resize(data_size);
     data[1]->data.resize(data_size);
 
@@ -360,7 +362,8 @@ namespace Internal
       ifs.read((char*)&len, sizeof(len));
       ifs.read((char*)&len_name, sizeof(len_name));
 
-      // We will not read data longer than 1024 length as this is user-generated input data
+      // We will not read data longer than 1024 bytes as this will not fit into
+      // our buffer (and is user-generated input data)
       if (len_name > 1023) ifs.seekg(len_name * sizeof(char), ifs.cur);
       else
       {

@@ -74,12 +74,12 @@ public:
     /// destructor
     virtual ~PeptideIdentification() noexcept;
     /// copy constructor
-    PeptideIdentification(const PeptideIdentification& source) = default;
+    PeptideIdentification(const PeptideIdentification&) = default;
     /// Move constructor
     PeptideIdentification(PeptideIdentification&&) noexcept = default;
 
     /// Assignment operator
-    PeptideIdentification& operator=(const PeptideIdentification& source) = default;
+    PeptideIdentification& operator=(const PeptideIdentification&) = default;
     /// Move assignment operator
     PeptideIdentification& operator=(PeptideIdentification&&) = default; // TODO: add noexcept (gcc 4.8 bug)
     /// Equality operator

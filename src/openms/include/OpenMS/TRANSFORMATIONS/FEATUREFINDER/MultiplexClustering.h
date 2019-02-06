@@ -39,7 +39,6 @@
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 

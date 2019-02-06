@@ -43,7 +43,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteredMSExperiment.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineInterpolatedPeaks.h>
 
 #include <vector>
 #include <algorithm>
@@ -72,8 +72,8 @@ public:
      * @brief constructor
      *
      * @param exp_profile    experimental data in profile mode
-     * @param exp_picked    experimental data in centroid mode
-     * @param boundaries    peak boundaries for exp_picked
+     * @param exp_centroided    experimental data in centroid mode
+     * @param boundaries    peak boundaries for exp_centroided
      * @param patterns    patterns of isotopic peaks to be searched for
      * @param isotopes_per_peptide_min    minimum number of isotopic peaks in peptides
      * @param isotopes_per_peptide_max    maximum number of isotopic peaks in peptides
@@ -89,7 +89,7 @@ public:
      * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
      * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
      */
-    MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries,
+    MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries,
                               const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band,
                               double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type="peptide");
 
@@ -103,6 +103,11 @@ public:
      * @see MultiplexFilteredMSExperiment
      */
     std::vector<MultiplexFilteredMSExperiment> filter();
+
+    /**
+     * @brief returns the intensity-filtered peak boundaries
+     */
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& getPeakBoundaries();
 
 private:
     /**
@@ -129,7 +134,7 @@ private:
     /**
      * @brief spline interpolated profile data and peak boundaries
      */
-    std::vector<SplineSpectrum> exp_spline_profile_;
+    std::vector<SplineInterpolatedPeaks> exp_spline_profile_;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
 
   };
