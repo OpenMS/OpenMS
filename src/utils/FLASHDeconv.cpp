@@ -282,7 +282,6 @@ protected:
             specCntr++;
             auto logMzPeaks = getLogMzPeaks(*it, param);
             auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilter, param);
-
             scoreAndFilterPeakGroups(peakGroups, averagines, param);
             if(peakGroups.empty()) continue;
 
@@ -291,6 +290,7 @@ protected:
                 massCntr++;
                 writePeakGroup(pg, massCntr, qspecCntr, peakGroups.size(), param, *it, fs, fsm);
             }
+            printProgress((float)(it - map.begin())/map.size());
         }
     }
 
@@ -325,6 +325,19 @@ protected:
         fs<<"\t"<<pg.chargeDistributionScore<<"\t"<<pg.isotopeCosineScore<<endl;
 
         fsm<<fixed << setprecision(5) << m<<","<<nm<<","<< intensity<<","<<spec.getRT()<<endl;
+    }
+
+    void printProgress(float progress){
+        int barWidth = 70;
+        cout << "[";
+        int pos = barWidth * progress;
+        for (int i = 0; i < barWidth; ++i) {
+            if (i < pos) std::cout << "=";
+            else if (i == pos) std::cout << ">";
+            else std::cout << " ";
+        }
+        cout << "] " << int(progress * 100.0) << " %\r";
+        cout.flush();
     }
 
     vector<LogMzPeak> getLogMzPeaks(MSSpectrum &spec, const Parameter &param){
@@ -655,17 +668,25 @@ protected:
         double maxIntensityForMonoIsotopeMass = -1;
         auto iso = averagines.get(pg.peaks[0].getMonoIsotopeMass());
 
+        int maxIsotopeIndex=0, minIsotopeIndex = (int)iso.size();
         for (auto &p : pg.peaks) {
+            maxIsotopeIndex = p.isotopeIndex < maxIsotopeIndex ? p.isotopeIndex : maxIsotopeIndex;
+            maxIsotopeIndex = p.isotopeIndex < maxIsotopeIndex ? maxIsotopeIndex : p.isotopeIndex;
+
             if (p.isotopeIndex >= (int)iso.size()) continue;
             double intensity = p.orgPeak->getIntensity();
             if (maxIntensityForMonoIsotopeMass > intensity) continue;
             maxIntensityForMonoIsotopeMass = intensity;
             monoIsotopeMass = p.getMonoIsotopeMass();
+
         }
 
         int offset = 0;
         double maxCosine = -1;
         for (int f = -3; f <= 3; f++) {
+            if(minIsotopeIndex - f <0) continue;
+            if(maxIsotopeIndex - f > (int)iso.size())continue;
+
             auto cos = getCosine(perIsotopeIntensities, iso, f);
 
             if (maxCosine < cos) {
@@ -724,13 +745,14 @@ protected:
 
     void filterPeakGroupsByIntensity(vector<PeakGroup> &peakGroups, vector<double> &intensities, const Parameter &param){
         if(intensities.size() <= (Size)param.maxMassCount) return;
-
         sort(intensities.begin(), intensities.end());
         auto threshold = intensities[intensities.size() - param.maxMassCount];
         for (auto pg = peakGroups.begin(); pg != peakGroups.end(); ) {
-            if(pg->intensity >= threshold) continue;
-            pg = peakGroups.erase(pg);
             if(peakGroups.size() <= (Size)param.maxMassCount) break;
+            if(pg->intensity < threshold) {
+                pg = peakGroups.erase(pg);
+                continue;
+            }
             ++pg;
         }
     }
