@@ -673,6 +673,9 @@ protected:
                 offset = f;
             }
         }
+        for (auto &p : pg.peaks) {
+            p.isotopeIndex -= offset;
+        }
         monoIsotopeMass += offset * Constants::C13C12_MASSDIFF_U;
         return maxCosine;
     }
