@@ -105,6 +105,7 @@ public:
         vector<LogMzPeak> peaks;
         double monoisotopicMass = .0;
         double intensity = .0;
+        double rt = .0;
         int chargeDistributionScore = 0;
         double isotopeCosineScore = .0;
 
@@ -130,7 +131,7 @@ protected:
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<file>", "", "Input file");
         //setValidFormats_("in", ListUtils::create<String>("mzML"));
-        registerOutputFile_("out", "<file prefix>", "", "Output file prefix ([file prefix].tsv and [file prefix].m will be generated)");
+        registerOutputFile_("out", "<file prefix>", "", "Output file prefix ([file prefix].tsv , [file prefix]_feature.tsv, and [file prefix].m will be generated)");
 
         registerIntOption_("minC", "<max charge>", 5, "minimum charge state", false, false);
         registerIntOption_("maxC", "<min charge>", 30, "maximum charge state", false, false);
@@ -144,7 +145,7 @@ protected:
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", 50, "maximum mass count per spec", false, true);
-        registerDoubleOption_("minIsoScore", "<score 0-1>", .5, "minimum isotope cosine score threshold (0-1)", false, true);
+        registerDoubleOption_("minIsoScore", "<score 0-1>", .75, "minimum isotope cosine score threshold (0-1)", false, true);
         registerIntOption_("minCDScore", "<score 0,1,2,...>", 0, "minimum charge distribution score threshold (>= 0)", false, true);
     }
 
@@ -196,16 +197,19 @@ protected:
         cout << "Initializing ... " <<endl;
         auto param = setParameter();
         auto averagines = getPrecalculatedAveragines(param);
-        int specCntr = 0, qspecCntr = 0, massCntr = 0;
+        int specCntr = 0, qspecCntr = 0, massCntr = 0, featureCntr = 0;
         int prevSpecCntr = 0, prevQspecCntr = 0, prevMassCntr = 0;
 
         double total_elapsed_cpu_secs = 0, total_elapsed_wall_secs = 0;
-        fstream fs, fsm;
+        fstream fs, fsm, fsf;
         fs.open(outfilePath + ".tsv", fstream::out);
         writeHeader(fs);
 
         fsm.open(outfilePath + ".m", fstream::out);
         fsm<< "m=[";
+
+        fsf.open(outfilePath + "_feature.tsv", fstream::out);
+        fsf<<"FeatureID\tFileName\tNominalMass\tStartRetentionTime\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime\tApexIntensity\tAbundance"<<endl;
 
         for (auto& infile : infileArray){
             param.fileName = QFileInfo(infile).fileName().toStdString();
@@ -220,7 +224,7 @@ protected:
             cout << "Running FLASHDeconv now ... "<<endl;
             auto begin = clock();
             auto t_start = chrono::high_resolution_clock::now();
-            Deconvolution(map, param, fs, fsm, averagines,  specCntr, qspecCntr, massCntr);
+            auto peakGroups = Deconvolution(map, param, fs, fsm, averagines,  specCntr, qspecCntr, massCntr);
             auto t_end = chrono::high_resolution_clock::now();
             auto end = clock();
             elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
@@ -232,6 +236,9 @@ protected:
             cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " MS1 spectra out of "
             << specCntr - prevSpecCntr << endl;
 
+            // make feature file..
+            double rtDelta = 5; // tmp
+            findNominalMassFeatures(peakGroups, rtDelta, featureCntr, fsf, param);
             prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr; total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
 
@@ -246,6 +253,7 @@ protected:
         fsm<< "];";
         fsm.close();
         fs.close();
+        fsf.close();
 
         return EXECUTION_OK;
     }
@@ -266,7 +274,7 @@ protected:
         return PrecalcularedAveragine(param.minMass, param.maxMass, 10.0, generator);
     }
 
-    void Deconvolution(MSExperiment &map, Parameter &param, fstream &fs, fstream &fsm,
+    vector<PeakGroup> Deconvolution(MSExperiment &map, Parameter &param, fstream &fs, fstream &fsm,
             PrecalcularedAveragine& averagines, int &specCntr, int &qspecCntr, int &massCntr) {
 
         double* filter = new double[param.chargeRange];
@@ -278,6 +286,9 @@ protected:
         }
 
         float prevProgress = .0;
+        vector<PeakGroup> allPeakGroups;
+        allPeakGroups.reserve(map.size() * param.maxMassCount);
+
         for (auto it = map.begin(); it != map.end(); ++it) {
             if (it->getMSLevel() != 1) continue;
 
@@ -297,16 +308,93 @@ protected:
             for (auto &pg : peakGroups) {
                 massCntr++;
                 writePeakGroup(pg, massCntr, qspecCntr, peakGroups.size(), param, *it, fs, fsm);
+                allPeakGroups.push_back(pg);
             }
         }
         printProgress(1);
+        return allPeakGroups;
     }
+
+
+    void findNominalMassFeatures(vector<PeakGroup> &peakGroups, double &rtDelta, int &id, fstream& fs, const Parameter & param){
+
+        map<int, vector<double>> massMap;
+        map<int, vector<string>> writeMap;
+
+        for(auto& pg : peakGroups){
+            int nm = getNominalMass(pg.monoisotopicMass);
+            double &rt = pg.rt;
+            double &intensity = pg.intensity;
+            auto it = massMap.find(nm);
+            vector<double> v; // start rt, end rt, apex rt, intensity, maxIntensity, abundance
+            if (it == massMap.end()){
+                v.push_back(rt);
+                v.push_back(rt);
+                v.push_back(rt);
+                v.push_back(intensity);
+                v.push_back(intensity);
+                v.push_back(0);
+                massMap[nm] = v;
+                continue;
+            }
+            v = it->second;
+            double prt = v[1];
+            double pIntensity = v[3];
+
+            if(rt - prt <rtDelta){ // keep feature
+                v[1] = rt;
+                if(pIntensity < intensity) v[2] = rt;
+                v[3] = intensity;
+                v[4] = v[4]<intensity?intensity:v[4];
+                v[5] += (pIntensity + intensity)/2.0*(rt - prt);
+                massMap[nm] = v;
+            }else{ // write feature and clear key
+                if(v[1] - v[0] > rtDelta) {
+                    stringstream s;
+                    s <<"\t" << param.fileName << "\t" << nm << "\t" << fixed << setprecision(5) << v[0] << "\t"
+                      << v[1]<<"\t"<<v[1]-v[0] << "\t" << v[2] << "\t" << v[4]<< "\t" << v[5];
+                    auto sit = writeMap.find(nm);
+                    if (sit == writeMap.end()) {
+                       vector<string> vs;
+                        writeMap[nm] = vs;
+                    }
+                    writeMap[nm].push_back(s.str());
+                }
+                massMap.erase(it);
+            }
+        }
+
+        for (auto it=massMap.begin(); it!=massMap.end(); ++it){
+            int nm = it->first;
+            auto v = it->second;
+            if(v[1] - v[0] < rtDelta) continue;
+            stringstream s;
+            s<<"\t"<< param.fileName << "\t" <<nm<<"\t"<<fixed<<setprecision(5)<<v[0]<<"\t"<<v[1]<<"\t"<<v[1]-v[0]<<"\t"
+                <<v[2]<<"\t"<<v[4]<< "\t" << v[5];
+            auto sit = writeMap.find(nm);
+            if (sit == writeMap.end()) {
+                vector<string> vs;
+                writeMap[nm] = vs;
+            }
+            writeMap[nm].push_back(s.str());
+        }
+
+        for (auto it=writeMap.begin(); it!=writeMap.end(); ++it) {
+            for(auto& s : it->second){
+                fs<<++id<<s<<endl;
+            }
+        }
+
+    }
+
+
 
     void writePeakGroup(PeakGroup &pg, int& massCntr, int& qspecCntr, Size peakGroupSize,
             Parameter& param, MSSpectrum &spec, fstream &fs, fstream &fsm){
         double m = pg.monoisotopicMass;
         double intensity = pg.intensity;
         int nm = getNominalMass(m);
+        pg.rt = spec.getRT();
 
         fs<<massCntr<<"\t"<<qspecCntr<<"\t"<<param.fileName<<"\t"<<spec.getNativeID()<<"\t"<<peakGroupSize<<"\t"
         << fixed << setprecision(5) << m << "\t" << nm<<"\t"<< intensity<<"\t"<<spec.getRT()<<"\t"<<pg.peaks.size()<<"\t";
@@ -689,9 +777,19 @@ protected:
             maxIntensityForMonoIsotopeMass = intensity;
             monoIsotopeMass = p.getMonoIsotopeMass();
         }
+
+        int maxIsoIndex = 0;
+        auto mostAbundant = iso.getMostAbundant();
+        for(int i=0;i<(int)iso.size();i++){
+            if(iso[i] == mostAbundant){
+                maxIsoIndex = i;
+                break;
+            }
+        }
+
         int offset = 0;
         double maxCosine = -1;
-        for (int f = -3; f <= 3; f++) {
+        for (int f = -maxIsoIndex + 1; f <= 3; f++) {
             if(minIsotopeIndex < f) continue;
             if(maxIsotopeIndex - f > (int)iso.size())continue;
 
@@ -724,8 +822,8 @@ protected:
         for (int k = 1; k < param.chargeRange; k++) {
             int d1 = k<=maxIntensityIndex? 0 : -1;
             int d2 = k<=maxIntensityIndex? -1 : 0;
-            double int1 = perChargeIntensities[k + d1];
-            double int2 = perChargeIntensities[k + d2];
+            double& int1 = perChargeIntensities[k + d1];
+            double& int2 = perChargeIntensities[k + d2];
             if (int2 <= 0) continue;
             score += int1 >= int2 ? 1 : -1;
         }
@@ -737,16 +835,14 @@ protected:
         double n = 0, d1 = 0, d2 = 0;
         for (Size i = 0; i < b.size(); i++) {
             Size j = i + offset;
-            if (j >= b.size()) continue;
             double bInt = b[i].getIntensity();
             d2 += bInt * bInt;
-
+            if (j >= b.size()) continue;
             n += a[j] * bInt;
             d1 += a[j] * a[j];
 
         }
         double d = sqrt(d1 * d2);
-        //return 1;
         if (d <= 0) return 0;
         return n / d;
     }
