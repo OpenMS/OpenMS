@@ -132,7 +132,7 @@ protected:
     void registerOptionsAndFlags_() override {
         registerInputFile_("in", "<file>", "", "Input file");
         //setValidFormats_("in", ListUtils::create<String>("mzML"));
-        registerOutputFile_("out", "<file prefix>", "", "Output file prefix ([file prefix].tsv , [file prefix]_feature.tsv, and [file prefix].m will be generated)");
+        registerOutputFile_("out", "<file prefix>", "", "Output file prefix ([file prefix].tsv , [file prefix]feature.tsv, and [file prefix].m will be generated)");
 
         registerIntOption_("minC", "<max charge>", 5, "minimum charge state", false, false);
         registerIntOption_("maxC", "<min charge>", 30, "maximum charge state", false, false);
@@ -209,7 +209,7 @@ protected:
         fsm.open(outfilePath + ".m", fstream::out);
         fsm<< "m=[";
 
-        fsf.open(outfilePath + "_feature.tsv", fstream::out);
+        fsf.open(outfilePath + "feature.tsv", fstream::out);
         fsf<<"FeatureID\tFileName\tNominalMass\tStartRetentionTime\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime\tApexIntensity\tAbundance"<<endl;
 
         for (auto& infile : infileArray){
@@ -238,7 +238,7 @@ protected:
             << specCntr - prevSpecCntr << endl;
 
             // make feature file..
-            double rtDelta = 5; // tmp
+            double rtDelta = 20; // tmp
             findNominalMassFeatures(peakGroups, rtDelta, featureCntr, fsf, param);
             prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr; total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
@@ -300,10 +300,11 @@ protected:
             }
 
             specCntr++;
-            auto logMzPeaks = getLogMzPeaks(*it, param);
+
+            auto logMzPeaks = getLogMzPeaks(*it, param.intensityThreshold);
             auto peakGroups = getPeakGroupsFromSpectrum(logMzPeaks, filter, harmonicFilter, param);
             scoreAndFilterPeakGroups(peakGroups, averagines, param);
-            if(peakGroups.empty()) continue;
+
 
             qspecCntr++;
             for (auto &pg : peakGroups) {
@@ -368,7 +369,7 @@ protected:
         for (auto it=massMap.begin(); it!=massMap.end(); ++it){
             int nm = it->first;
             auto v = it->second;
-            if(v[1] - v[0] < rtDelta) continue;
+            if(v[1] - v[0] <= 0) continue;
             stringstream s;
             s<<"\t"<< param.fileName << "\t" <<nm<<"\t"<<fixed<<setprecision(5)<<v[0]<<"\t"<<v[1]<<"\t"<<v[1]-v[0]<<"\t"
                 <<v[2]<<"\t"<<v[4]<< "\t" << v[5];
@@ -437,14 +438,22 @@ protected:
         cout.flush();
     }
 
-    vector<LogMzPeak> getLogMzPeaks(MSSpectrum &spec, const Parameter &param){
+    vector<LogMzPeak> getLogMzPeaks(MSSpectrum &spec, double &threshold){
         vector<LogMzPeak> logMzPeaks;
         logMzPeaks.reserve(spec.size());
         for (auto &peak : spec) {
-            if (peak.getIntensity() <= param.intensityThreshold) continue;
+            if (peak.getIntensity() <= threshold) continue;
             LogMzPeak logMzPeak(peak);
             logMzPeaks.push_back(logMzPeak);
         }
+
+        //vector<LogMzPeak> tlogMzPeaks;
+        //tlogMzPeaks.reserve(spec.size() + prev.size());
+        //for(auto &peak : logMzPeaks) tlogMzPeaks.push_back(peak);
+        //for(auto &peak : prev) tlogMzPeaks.push_back(peak);
+        //sort(tlogMzPeaks.begin(), tlogMzPeaks.end());
+
+        //prev = logMzPeaks;
         return logMzPeaks;
     }
 
