@@ -18,6 +18,7 @@ ERPairFinder
 FeatureFinderMetaboIdent
 FeatureFinderSuperHirn
 FFEval
+FLASHDeconv
 FuzzyDiff
 IDDecoyProbability
 IDExtractor
@@ -64,7 +65,6 @@ SpectraSTSearchAdapter
 SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
-FLASHDeconv
 XFDR
 XMLValidator
 )
