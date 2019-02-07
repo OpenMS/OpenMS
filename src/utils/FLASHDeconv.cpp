@@ -13,6 +13,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <chrono>
 
 using namespace OpenMS;
 using namespace std;
