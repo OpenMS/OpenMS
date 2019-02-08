@@ -1327,17 +1327,20 @@ protected:
 #endif
     for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
     {
+      const MSSpectrum& spec = exp[scan_index];
       if (!annotated_hits[scan_index].empty())
       {
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi;
         pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+        pi.setMetaValue("spectrum_reference", spec.getNativeID());
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
-        pi.setRT(exp[scan_index].getRT());
-        pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
-        pi.setMetaValue("precursor_intensity", exp[scan_index].getPrecursors()[0].getIntensity());
-        Size charge = exp[scan_index].getPrecursors()[0].getCharge();
+        pi.setRT(spec.getRT());
+        pi.setMZ(spec.getPrecursors()[0].getMZ());
+        double precursor_intensity_log10 = log10(1.0 + spec.getPrecursors()[0].getIntensity());
+        pi.setMetaValue("precursor_intensity_log10", precursor_intensity_log10);
+        Size charge = spec.getPrecursors()[0].getCharge();
 
         // create full peptide hit structure from annotated hits
         vector<PeptideHit> phs;
@@ -1391,6 +1394,9 @@ protected:
           ph.setMetaValue(String("RNPxl:best_localization_score"), ah.best_localization_score);
           ph.setMetaValue(String("RNPxl:localization_scores"), ah.localization_scores);
           ph.setMetaValue(String("RNPxl:best_localization"), ah.best_localization);
+
+          // also annotate PI to hit so it is available to percolator
+          ph.setMetaValue("precursor_intensity_log10", precursor_intensity_log10);
 
           if (!purities.empty())
           {
@@ -1458,7 +1464,8 @@ protected:
        << "RNPxl:pl_Morph"
        << "RNPxl:pl_modds"
        << "RNPxl:total_MIC"
-       << "RNPxl:RNA_MASS_z0";
+       << "RNPxl:RNA_MASS_z0"
+       << "precursor_intensity_log10";
     if (!purities.empty()) feature_set << "precursor_purity";
 
     search_parameters.setMetaValue("feature_extractor", "TOPP_PSMFeatureExtractor");
@@ -2436,18 +2443,18 @@ protected:
     double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
 
     // A priori probability of a random match given info about the theoretical spectrum
-    double a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
+    long double a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
     
-    double match_odds = 0;
+    long double match_odds(0);
 
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
-    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+    match_odds = -log(1 - cdf(flip, (long double)matched_size) + std::numeric_limits<long double>::min());
 
     // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
     {
-      return match_odds;
+      return (double)match_odds;
     }
     else
     {
@@ -2480,7 +2487,13 @@ protected:
                                            total_loss_spectrum.getIntegerDataArrays()[0]);
 
     // bad score, likely wihout any single matching peak
-    if (total_loss_score < 0.01) { return; }
+    if (total_loss_score < 0.01) 
+    { 
+      // cap total loss error to a large value
+      float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
+      if (tlss_err > ft_da) tlss_err = ft_da;
+      return; 
+    }
 
     immonium_sub_score = 0;
     precursor_sub_score = 0;
@@ -2547,10 +2560,6 @@ protected:
   {
     const SignedSize& exp_pc_charge = exp_spectrum.getPrecursors()[0].getCharge();
 
-    plss_MIC = 0;
-    plss_err = 0;
-    plss_Morph = 0;
-
     if (!marker_ions_sub_score_spectrum_z1.empty())
     {
       auto const & r = MorpheusScore::compute(fragment_mass_tolerance,
@@ -2596,7 +2605,7 @@ protected:
 #ifdef DEBUG_RNPXLSEARCH
     LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
-  // cap plss_err
+  // cap plss_err to something larger than the mean_mz * max_ppm_error
   float ft_da = fragment_mass_tolerance_unit_ppm ? fragment_mass_tolerance * 1e-6 * 1000.0 : fragment_mass_tolerance;
   if (plss_err > ft_da) plss_err = ft_da;
   }
