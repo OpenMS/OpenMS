@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 #define OPENMS_ANALYSIS_ID_IDBOOSTGRAPH_H
 
+// define to get timings for connected components
 #define INFERENCE_BENCH
 
 #include <OpenMS/ANALYSIS/ID/MessagePasserFactory.h> //included in BPI
@@ -335,8 +336,8 @@ namespace OpenMS
     Graphs ccs_;
 
     #ifdef INFERENCE_BENCH
-    /// sizes and times of last functor execution
-    std::vector<std::pair<Size,double>> sizes_and_times_{1};
+    /// nrnodes, nredges and times of last functor execution per connected component
+    std::vector<std::pair<std::pair<Size,Size>,double>> sizes_and_times_{1};
     #endif
 
     /// underlying protein identification object

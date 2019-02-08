@@ -461,7 +461,7 @@ namespace OpenMS
 
       #ifdef INFERENCE_BENCH
       sw.stop();
-      sizes_and_times_[i] = {boost::num_vertices(curr_cc) , sw.getClockTime()};
+      sizes_and_times_[i] = {{boost::num_vertices(curr_cc), boost::num_edges(curr_cc)}, sw.getClockTime()};
       #endif
     }
 
@@ -471,7 +471,7 @@ namespace OpenMS
 
     for( const auto& size_time : sizes_and_times_ )
     {
-      debugfile << size_time.first << "\t" << size_time.second << "\n";
+      debugfile << size_time.first.first << "\t" << size_time.first.second << "\t" << size_time.second << "\n";
     }
     debugfile.close();
     #endif
@@ -508,7 +508,7 @@ namespace OpenMS
 
       #ifdef INFERENCE_BENCH
       sw.stop();
-      sizes_and_times_[i] = {boost::num_vertices(curr_cc) , sw.getClockTime()};
+      sizes_and_times_[i] = {{boost::num_vertices(curr_cc), boost::num_edges(curr_cc)}, sw.getClockTime()};
       #endif
     }
 
@@ -518,7 +518,7 @@ namespace OpenMS
 
     for( const auto& size_time : sizes_and_times_ )
     {
-      debugfile << size_time.first << "\t" << size_time.second << "\n";
+      debugfile << size_time.first.first << "\t" << size_time.first.second <<  "\t" << size_time.second << "\n";
     }
     debugfile.close();
     #endif
