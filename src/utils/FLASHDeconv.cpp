@@ -106,10 +106,9 @@ public:
         vector<LogMzPeak> peaks;
         double monoisotopicMass = .0;
         double intensity = .0;
-        double rt = .0;
         int chargeDistributionScore = 0;
         double isotopeCosineScore = .0;
-        string specID;
+        MSSpectrum *spec;
 
         void push_back(LogMzPeak & p){
             peaks.push_back(p);
@@ -143,7 +142,7 @@ protected:
 
         registerDoubleOption_("minInt", "<min intensity>", 100.0, "intensity threshold", false, true);
         registerIntOption_("minCCC", "<min continuous charge count>", 3, "minimum number of peaks of continuous charges per mass", false, true);
-        registerIntOption_("minCC", "<min charge count>", 8, "minimum number of peaks of distinct charges per mass", false, true);
+        registerIntOption_("minCC", "<min charge count>", 8, "minimum number of peaks of distinct charges per mass (recommended - ~25% of (maxC - minC))", false, true);
         registerIntOption_("minIC", "<min isotope count>", 3, "minimum continuous isotope count", false, true);
         registerIntOption_("maxIC", "<max isotope count>", 100, "maximum isotope count", false, true);
         registerIntOption_("maxMC", "<max mass count>", -1, "maximum mass count per spec", false, true);
@@ -232,8 +231,6 @@ protected:
             elapsed_cpu_secs = double(end - begin) / CLOCKS_PER_SEC;
             elapsed_wall_secs = chrono::duration<double>(t_end-t_start).count();
 
-            for(auto &pg : peakGroups)
-                writePeakGroup(pg, massCntr, qspecCntr, peakGroups.size(), param, fs, fsm);
 
 
             cout << endl << "-- done [took " << elapsed_cpu_secs << " s (CPU), " <<elapsed_wall_secs << " s (Wall)] --" << endl;
@@ -242,8 +239,11 @@ protected:
             cout << "Found " << massCntr - prevMassCntr << " masses in "<< qspecCntr - prevQspecCntr << " MS1 spectra out of "
             << specCntr - prevSpecCntr << endl;
 
+            for(auto &pg : peakGroups)
+                writePeakGroup(pg, massCntr, qspecCntr, peakGroups.size(), param, fs, fsm);
+
             // make feature file..
-            double rtDelta = 20; // tmp
+            double rtDelta = 10; // tmp
             findNominalMassFeatures(peakGroups, rtDelta, featureCntr, fsf, param);
             prevSpecCntr = specCntr; prevQspecCntr = qspecCntr; prevMassCntr = massCntr; total_elapsed_cpu_secs += elapsed_cpu_secs; total_elapsed_wall_secs += elapsed_wall_secs;
         }
@@ -313,8 +313,7 @@ protected:
             qspecCntr++;
             for (auto &pg : peakGroups) {
                 massCntr++;
-                pg.rt = it->getRT();
-                pg.specID = it->getNativeID();
+                pg.spec = &(*it);
                 allPeakGroups.push_back(pg);
             }
         }
@@ -330,7 +329,7 @@ protected:
 
         for(auto& pg : peakGroups){
             int nm = getNominalMass(pg.monoisotopicMass);
-            double &rt = pg.rt;
+            double rt = pg.spec->getRT();
             double &intensity = pg.intensity;
             auto it = massMap.find(nm);
             vector<double> v; // start rt, end rt, apex rt, intensity, maxIntensity, abundance
@@ -404,8 +403,8 @@ protected:
 
         fs<<fixed<<setprecision(4);
 
-        fs <<massCntr<<"\t"<<qspecCntr<<"\t"<<param.fileName<<"\t"<<pg.specID<<"\t"<<peakGroupSize<<"\t"
-            << m << "\t" << nm<<"\t"<< intensity<<"\t"<<pg.rt<<"\t"<<pg.peaks.size()<<"\t";
+        fs <<massCntr<<"\t"<<qspecCntr<<"\t"<<param.fileName<<"\t"<<pg.spec->getNativeID()<<"\t"<<peakGroupSize<<"\t"
+            << m << "\t" << nm<<"\t"<< intensity<<"\t"<<pg.spec->getRT()<<"\t"<<pg.peaks.size()<<"\t";
         sort(pg.peaks.begin(), pg.peaks.end());
 
 
@@ -430,7 +429,7 @@ protected:
         }
         fs<<"\t"<<pg.chargeDistributionScore<<"\t"<<pg.isotopeCosineScore<<"\n";
 
-        fsm<<fixed << setprecision(4) << m<<","<<nm<<","<< intensity<<","<<pg.rt<<"\n";
+        fsm<<fixed << setprecision(4) << m<<","<<nm<<","<< intensity<<","<<pg.spec->getRT()<<"\n";
     }
 
     void printProgress(float progress){
