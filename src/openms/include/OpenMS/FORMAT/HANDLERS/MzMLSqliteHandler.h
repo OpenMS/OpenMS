@@ -227,10 +227,6 @@ public:
 
 protected:
 
-      void executeBlobBind_(sqlite3 *db, String& prepare_statement, std::vector<String>& data);
-
-      void executeSql_(sqlite3 *db, const std::stringstream& statement);
-
       sqlite3* openDB() const;
       //@}
 

@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h> // for writing to stringstream
 
+#include <OpenMS/FORMAT/SqliteConnector.h>
+
 #include <sqlite3.h>
 #include <OpenMS/FORMAT/ZlibCompression.h>
 #include <OpenMS/FORMAT/Base64.h>
@@ -816,7 +818,7 @@ namespace OpenMS
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
           run_id << ",'" << native_id << "','" << native_id << "'); ";
       sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-      executeSql_(db, insert_run_sql);
+      SqliteConnector::executeStatement(db, insert_run_sql);
       sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       if (write_full_meta)
@@ -851,7 +853,7 @@ namespace OpenMS
         OpenMS::ZlibCompression::compressString(output, encoded_string);
         data.push_back(encoded_string);
         // data.push_back(output); // in case you need to debug ... 
-        executeBlobBind_(db, prepare_statement, data);
+        SqliteConnector::executeBindStatement(db, prepare_statement, data);
       }
       sqlite3_close(db);
     }
@@ -1174,7 +1176,7 @@ namespace OpenMS
           if (!data.empty())
           {
             prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-            executeBlobBind_(db, prepare_statement, data);
+            SqliteConnector::executeBindStatement(db, prepare_statement, data);
           }
 
           data.clear();
@@ -1188,14 +1190,14 @@ namespace OpenMS
       if (!data.empty())
       {
         prepare_statement.resize( prepare_statement.size() -1 );
-        executeBlobBind_(db, prepare_statement, data);
+        SqliteConnector::executeBindStatement(db, prepare_statement, data);
       }
 
       sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
 
-      executeSql_(db, insert_spectra_sql);
-      if (nr_precursors > 0) executeSql_(db, insert_precursor_sql);
-      if (nr_products > 0) executeSql_(db, insert_product_sql);
+      SqliteConnector::executeStatement(db, insert_spectra_sql);
+      if (nr_precursors > 0) SqliteConnector::executeStatement(db, insert_precursor_sql);
+      if (nr_products > 0) SqliteConnector::executeStatement(db, insert_product_sql);
 
       sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
 
@@ -1369,7 +1371,7 @@ namespace OpenMS
           if (!data.empty())
           {
             prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-            executeBlobBind_(db, prepare_statement, data);
+            SqliteConnector::executeBindStatement(db, prepare_statement, data);
           }
 
           data.clear();
@@ -1383,73 +1385,18 @@ namespace OpenMS
       if (!data.empty())
       {
         prepare_statement.resize( prepare_statement.size() -1 ); // remove last ","
-        executeBlobBind_(db, prepare_statement, data);
+        SqliteConnector::executeBindStatement(db, prepare_statement, data);
       }
 
       sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
 
-      executeSql_(db, insert_chrom_sql);
-      executeSql_(db, insert_precursor_sql);
-      executeSql_(db, insert_product_sql);
+      SqliteConnector::executeStatement(db, insert_chrom_sql);
+      SqliteConnector::executeStatement(db, insert_precursor_sql);
+      SqliteConnector::executeStatement(db, insert_product_sql);
 
       sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
 
       sqlite3_close(db);
-    }
-
-    void MzMLSqliteHandler::executeBlobBind_(sqlite3 *db, String& prepare_statement, std::vector<String>& data)
-    {
-      int rc;
-
-      // The calling procedure is responsible for deleting the compiled SQL statement using sqlite3_finalize() after it has finished with it.
-      sqlite3_stmt *stmt = nullptr;
-      const char *curr_loc;
-      rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), &stmt, &curr_loc);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
-        std::cerr << "Prepared statement " << prepare_statement << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-
-      for (Size k = 0; k < data.size(); k++)
-      {
-        // Fifth argument is a destructor for the blob.
-        // SQLITE_STATIC because the statement is finalized
-        // before the buffer is freed:
-        rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), data[k].size(), SQLITE_STATIC);
-        if (rc != SQLITE_OK)
-        {
-          std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
-          std::cerr << "Prepared statement " << prepare_statement << std::endl;
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-        } 
-      }
-
-      rc = sqlite3_step(stmt);
-      if (rc != SQLITE_DONE)
-      {
-        std::cerr << "SQL error after sqlite3_step" << std::endl;
-        std::cerr << "Prepared statement " << prepare_statement << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
-      }
-
-      // free memory again
-      sqlite3_finalize(stmt);
-    }
-
-    void MzMLSqliteHandler::executeSql_(sqlite3 *db, const std::stringstream& statement)
-    {
-      char *zErrMsg = nullptr;
-      std::string insert_str = statement.str();
-      int rc = sqlite3_exec(db, insert_str.c_str(), callback, nullptr, &zErrMsg);
-      if (rc != SQLITE_OK)
-      {
-        std::cerr << "Error message after sqlite3_exec" << std::endl;
-        std::cerr << "Prepared statement " << statement.str() << std::endl;
-        sqlite3_free(zErrMsg);
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, zErrMsg);
-      }
     }
 
   } // namespace Internal
