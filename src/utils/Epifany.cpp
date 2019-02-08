@@ -149,7 +149,7 @@ protected:
     registerDoubleOption_("max_psms_extreme_probability",
                           "<option>",
                           1.0,
-                          "Set PSMs with probability lower than this to this maximum probability.", false, true);
+                          "Set PSMs with probability higher than this to this maximum probability.", false, true);
 
     addEmptyLine_();
 
