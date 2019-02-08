@@ -104,7 +104,6 @@ namespace OpenMS
     sqlite3 *db;
     sqlite3_stmt * cntstmt;
     sqlite3_stmt * stmt;
-    int rc;
     std::string select_sql;
 
     // Use legacy TraML identifiers for precursors (transition_group_id) and transitions (transition_name)?
@@ -115,20 +114,11 @@ namespace OpenMS
     }
 
     // Open database
-    rc = sqlite3_open(filename, &db);
-    if ( rc )
-    {
-      fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-    }
+    SqliteConnector conn(filename);
+    db = conn.getDB();
 
     // Count transitions
-    rc = sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM TRANSITION;", -1, &cntstmt, nullptr);
-    if (rc != SQLITE_OK)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("SQL Error when determining number of transitions.") );
-    }
-
+    SqliteConnector::executePreparedStatement(db, &cntstmt, "SELECT COUNT(*) FROM TRANSITION;");
     sqlite3_step( cntstmt );
     int num_transitions = sqlite3_column_int( cntstmt, 0 );
     sqlite3_finalize(cntstmt);
@@ -220,13 +210,7 @@ namespace OpenMS
 
 
     // Execute SQL select statement
-    rc = sqlite3_prepare_v2(db, select_sql.c_str(), -1, &stmt, nullptr);
-    if (rc != SQLITE_OK)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          String("SQL Error with query: ") + select_sql);
-    }
-
+    SqliteConnector::executePreparedStatement(db, &stmt, select_sql);
     sqlite3_step( stmt );
 
     Size progress = 0;
@@ -276,24 +260,15 @@ namespace OpenMS
     endProgress();
 
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
   }
 
   void TransitionPQPFile::writePQPOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp)
   {
-    sqlite3 *db;
-    char *zErrMsg = nullptr;
-    int  rc;
-
     // delete file if present
     remove(filename);
 
     // Open database
-    rc = sqlite3_open(filename, &db);
-    if ( rc )
-    {
-      fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-    }
+    SqliteConnector conn(filename);
 
     // Create SQL structure
     const char* create_sql =
@@ -380,13 +355,7 @@ namespace OpenMS
       "DECOY INT NOT NULL);";
 
     // Execute SQL create statement
-    rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
+    conn.executeStatement(create_sql);
 
     // Prepare insert statements
 
@@ -609,132 +578,23 @@ namespace OpenMS
     // Proteins
     update_decoys_sql << "UPDATE PROTEIN SET DECOY = 1 WHERE ID IN (SELECT PROTEIN.ID FROM PEPTIDE JOIN PEPTIDE_PROTEIN_MAPPING ON PEPTIDE.ID =  PEPTIDE_PROTEIN_MAPPING.PEPTIDE_ID JOIN PROTEIN ON PEPTIDE_PROTEIN_MAPPING.PROTEIN_ID = PROTEIN.ID WHERE PEPTIDE.DECOY = 1); ";
 
-    sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
+    conn.executeStatement("BEGIN TRANSACTION");
 
     // Execute SQL insert statement
     String insert_version = "INSERT INTO VERSION (ID) VALUES (2);";
-    rc = sqlite3_exec(db, insert_version.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_protein_sql_str = insert_protein_sql.str();
-    rc = sqlite3_exec(db, insert_protein_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_peptide_protein_mapping_str = insert_peptide_protein_mapping.str();
-    rc = sqlite3_exec(db, insert_peptide_protein_mapping_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_peptide_sql_str = insert_peptide_sql.str();
-    rc = sqlite3_exec(db, insert_peptide_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_compound_sql_str = insert_compound_sql.str();
-    rc = sqlite3_exec(db, insert_compound_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_precursor_peptide_mapping_str = insert_precursor_peptide_mapping.str();
-    rc = sqlite3_exec(db, insert_precursor_peptide_mapping_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_precursor_compound_mapping_str = insert_precursor_compound_mapping.str();
-    rc = sqlite3_exec(db, insert_precursor_compound_mapping_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_precursor_sql_str = insert_precursor_sql.str();
-    rc = sqlite3_exec(db, insert_precursor_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_transition_sql_str = insert_transition_sql.str();
-    rc = sqlite3_exec(db, insert_transition_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_transition_peptide_mapping_sql_str = insert_transition_peptide_mapping_sql.str();
-    rc = sqlite3_exec(db, insert_transition_peptide_mapping_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL insert statement
-    std::string insert_transition_precursor_mapping_sql_str = insert_transition_precursor_mapping_sql.str();
-    rc = sqlite3_exec(db, insert_transition_precursor_mapping_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    // Execute SQL update statement
-    std::string update_decoys_sql_str = update_decoys_sql.str();
-    rc = sqlite3_exec(db, update_decoys_sql_str.c_str(), callback, nullptr, &zErrMsg);
-    if ( rc != SQLITE_OK )
-    {
-      sqlite3_free(zErrMsg);
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          zErrMsg);
-    }
-
-    sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-    sqlite3_close(db);
-
+    conn.executeStatement(insert_version);
+    conn.executeStatement(insert_protein_sql);
+    conn.executeStatement(insert_peptide_protein_mapping);
+    conn.executeStatement(insert_peptide_sql);
+    conn.executeStatement(insert_compound_sql);
+    conn.executeStatement(insert_precursor_peptide_mapping);
+    conn.executeStatement(insert_precursor_compound_mapping);
+    conn.executeStatement(insert_precursor_sql);
+    conn.executeStatement(insert_transition_sql);
+    conn.executeStatement(insert_transition_peptide_mapping_sql);
+    conn.executeStatement(insert_transition_precursor_mapping_sql);
+    conn.executeStatement(update_decoys_sql);
+    conn.executeStatement("END TRANSACTION");
   }
 
   // public methods
