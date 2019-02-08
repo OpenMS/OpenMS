@@ -39,6 +39,46 @@
 namespace OpenMS
 {
 
+  template <typename ValueType>
+  void extractValue(ValueType* dst, sqlite3_stmt* stmt, int pos)
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Not implemented");
+  }
+
+  template <> void extractValue<double>(double* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+  {
+    if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+    {
+      *dst = sqlite3_column_double( stmt, pos);
+    }
+  }
+
+  template <> void extractValue<int>(int* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+  {
+    if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+    {
+      *dst = sqlite3_column_int( stmt, pos);
+    }
+  }
+
+  template <> void extractValue<String>(String* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+  {
+    if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+    {
+      *dst = String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, pos )));
+    }
+  }
+
+  template <> void extractValue<std::string>(std::string* dst, sqlite3_stmt* stmt, int pos) //explicit specialization
+  {
+    if (sqlite3_column_type(stmt, pos) != SQLITE_NULL)
+    {
+      *dst = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, pos )));
+    }
+  }
+
+
   TransitionPQPFile::TransitionPQPFile() :
     TransitionTSVFile()
   {
@@ -197,123 +237,38 @@ namespace OpenMS
       setProgress(progress++);
       TSVTransition mytransition;
 
-      if (sqlite3_column_type( stmt, 0 ) != SQLITE_NULL)
-      {
-        mytransition.precursor = sqlite3_column_double( stmt, 0 );
-      }
-      if (sqlite3_column_type( stmt, 1 ) != SQLITE_NULL)
-      {
-        mytransition.product = sqlite3_column_double( stmt, 1 );
-      }
-      if (sqlite3_column_type( stmt, 2 ) != SQLITE_NULL)
-      {
-        mytransition.rt_calibrated = sqlite3_column_double( stmt, 2 );
-      }
-      if (sqlite3_column_type( stmt, 3 ) != SQLITE_NULL)
-      {
-        mytransition.transition_name = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 3 )));
-      }
-      if (sqlite3_column_type( stmt, 4 ) != SQLITE_NULL)
-      {
-        mytransition.CE = sqlite3_column_double( stmt, 4 );
-      }
-      if (sqlite3_column_type( stmt, 5 ) != SQLITE_NULL)
-      {
-        mytransition.library_intensity = sqlite3_column_double( stmt, 5 );
-      }
-      if (sqlite3_column_type( stmt, 6 ) != SQLITE_NULL)
-      {
-        mytransition.group_id = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 6 )));
-      }
-      if (sqlite3_column_type( stmt, 7 ) != SQLITE_NULL)
-      {
-        mytransition.decoy = sqlite3_column_int( stmt, 7 );
-      }
-      if (sqlite3_column_type( stmt, 8 ) != SQLITE_NULL)
-      {
-        mytransition.PeptideSequence = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 8 )));
-      }
-      if (sqlite3_column_type( stmt, 9 ) != SQLITE_NULL)
-      {
-        mytransition.ProteinName = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 9 )));
-      }
-      if (sqlite3_column_type( stmt, 10 ) != SQLITE_NULL)
-      {
-        mytransition.Annotation = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 10 )));
-      }
-      if (sqlite3_column_type( stmt, 11 ) != SQLITE_NULL)
-      {
-        mytransition.FullPeptideName = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 11 )));
-      }
-      if (sqlite3_column_type( stmt, 12 ) != SQLITE_NULL)
-      {
-        mytransition.CompoundName = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 12 )));
-      }
-      if (sqlite3_column_type( stmt, 13 ) != SQLITE_NULL)
-      {
-        mytransition.SMILES = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 13 )));
-      }
-      if (sqlite3_column_type( stmt, 14 ) != SQLITE_NULL)
-      {
-        mytransition.SumFormula = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 14 )));
-      }
-      if (sqlite3_column_type( stmt, 15 ) != SQLITE_NULL)
-      {
-        mytransition.precursor_charge = sqlite3_column_int( stmt, 15 );
-      }
-      if (sqlite3_column_type( stmt, 16 ) != SQLITE_NULL)
-      {
-        mytransition.peptide_group_label = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 16 )));
-      }
-      if (sqlite3_column_type( stmt, 17 ) != SQLITE_NULL)
-      {
-        mytransition.label_type = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 17 )));
-      }
-      if (sqlite3_column_type( stmt, 18 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_charge = sqlite3_column_int( stmt, 18 );
-      }
-      if (sqlite3_column_type( stmt, 19 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_nr = sqlite3_column_int( stmt, 19 );
-      }
-      if (sqlite3_column_type( stmt, 20 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_mzdelta = sqlite3_column_double( stmt, 20 );
-      }
-      if (sqlite3_column_type( stmt, 21 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_modification = sqlite3_column_int( stmt, 21 );
-      }
-      if (sqlite3_column_type( stmt, 22 ) != SQLITE_NULL)
-      {
-        mytransition.fragment_type = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 22 )));
-      }
-      if (sqlite3_column_type( stmt, 23 ) != SQLITE_NULL)
-      {
-        mytransition.uniprot_id = std::string(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 23 )));
-      }
-      if (sqlite3_column_type( stmt, 24 ) != SQLITE_NULL)
-      {
-        mytransition.detecting_transition = sqlite3_column_int( stmt, 24 );
-      }
-      if (sqlite3_column_type( stmt, 25 ) != SQLITE_NULL)
-      {
-        mytransition.identifying_transition = sqlite3_column_int( stmt, 25 );
-      }
-      if (sqlite3_column_type( stmt, 26 ) != SQLITE_NULL)
-      {
-        mytransition.quantifying_transition = sqlite3_column_int( stmt, 26 );
-      }
+      extractValue<double>(&mytransition.precursor, stmt, 0);
+      extractValue<double>(&mytransition.product, stmt, 1);
+      extractValue<double>(&mytransition.rt_calibrated, stmt, 2);
+      extractValue<std::string>(&mytransition.transition_name, stmt, 3);
+      extractValue<double>(&mytransition.CE, stmt, 4);
+      extractValue<double>(&mytransition.library_intensity, stmt, 5);
+      extractValue<std::string>(&mytransition.group_id, stmt, 6);
+      extractValue<int>((int*)&mytransition.decoy, stmt, 7);
+      extractValue<std::string>(&mytransition.PeptideSequence, stmt, 8);
+      extractValue<std::string>(&mytransition.ProteinName, stmt, 9);
+      extractValue<std::string>(&mytransition.Annotation, stmt, 10);
+      extractValue<std::string>(&mytransition.FullPeptideName, stmt, 11);
+      extractValue<std::string>(&mytransition.CompoundName, stmt, 12);
+      extractValue<std::string>(&mytransition.SMILES, stmt, 13);
+      extractValue<std::string>(&mytransition.SumFormula, stmt, 14);
+      extractValue<int>(&mytransition.precursor_charge, stmt, 15);
+      extractValue<std::string>(&mytransition.peptide_group_label, stmt, 16);
+      extractValue<std::string>(&mytransition.label_type, stmt, 17);
+      extractValue<int>(&mytransition.fragment_charge, stmt, 18);
+      extractValue<int>(&mytransition.fragment_nr, stmt, 19);
+      extractValue<double>(&mytransition.fragment_mzdelta, stmt, 20);
+      extractValue<int>(&mytransition.fragment_modification, stmt, 21);
+      extractValue<std::string>(&mytransition.fragment_type, stmt, 22);
+      extractValue<std::string>(&mytransition.uniprot_id, stmt, 23);
+      extractValue<int>((int*)&mytransition.detecting_transition, stmt, 24);
+      extractValue<int>((int*)&mytransition.identifying_transition, stmt, 25);
+      extractValue<int>((int*)&mytransition.quantifying_transition, stmt, 26);
       if (sqlite3_column_type( stmt, 27 ) != SQLITE_NULL)
       {
-        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 27 ))).split('|', mytransition.peptidoforms);;
+        String(reinterpret_cast<const char*>(sqlite3_column_text( stmt, 27 ))).split('|', mytransition.peptidoforms);
       }
-      // optional attributes only present in newer file versions
-      if (drift_time_exists && sqlite3_column_type( stmt, 28 ) != SQLITE_NULL)
-      {
-        mytransition.drift_time = sqlite3_column_double( stmt, 28 );
-      }
+      if (drift_time_exists) extractValue<double>(&mytransition.drift_time, stmt, 28); // optional attributes only present in newer file versions
 
       transition_list.push_back(mytransition);
       sqlite3_step( stmt );
