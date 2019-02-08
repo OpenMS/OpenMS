@@ -45,6 +45,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <QtCore/qfile.h>
+
 #include <iostream>
 #include <cmath>
 #include <string>
@@ -225,6 +227,15 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzid,idXML,osw"));
     registerOutputFile_("out_pin", "<file>", "", "Write pin file (e.g., for debugging)", !is_required, is_advanced_option);
     setValidFormats_("out_pin", ListUtils::create<String>("tab"), !force_openms_format);
+
+    registerOutputFile_("out_pout_target", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pout_target", ListUtils::create<String>("tab"), !force_openms_format);
+    registerOutputFile_("out_pout_decoy", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pout_decoy", ListUtils::create<String>("tab"), !force_openms_format);
+    registerOutputFile_("out_pout_target_proteins", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pout_target_proteins", ListUtils::create<String>("tab"), !force_openms_format);
+    registerOutputFile_("out_pout_decoy_proteins", "<file>", "", "Write pout file (e.g., for debugging)", !is_required, is_advanced_option);
+    setValidFormats_("out_pout_decoy_proteins", ListUtils::create<String>("tab"), !force_openms_format);
 
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
     setValidStrings_("out_type", ListUtils::create<String>("mzid,idXML,osw"));
@@ -1011,15 +1022,40 @@ protected:
     // when percolator finished calculation, it stores the results -r option (with or without -U) or -m (which seems to be not working)
     //  WARNING: The -r option cannot be used in conjunction with -U: no peptide level statistics are calculated, redirecting PSM level statistics to provided file instead.
     map<String, PercolatorResult> pep_map;
+    String pout_target = getStringOption_("out_pout_target");
+    String pout_decoy = getStringOption_("out_pout_decoy");
+    String pout_target_proteins = getStringOption_("out_pout_target_proteins");
+    String pout_decoy_proteins = getStringOption_("out_pout_decoy_proteins");
+
     if (peptide_level_fdrs)
     {
       readPoutAsMap_(pout_target_file_peptides, pep_map);
       readPoutAsMap_(pout_decoy_file_peptides, pep_map);
+
+      // copy file in tmp folder to output
+      if (!pout_target.empty())
+      {
+        QFile::copy(pout_target_file_peptides.toQString(), pout_target.toQString());
+      }
+      if (!pout_decoy.empty())
+      {
+        QFile::copy(pout_decoy_file_peptides.toQString(), pout_decoy.toQString());
+      }
     }
     else
     {
       readPoutAsMap_(pout_target_file, pep_map);
       readPoutAsMap_(pout_decoy_file, pep_map);
+
+      // copy file in tmp folder to output
+      if (!pout_target.empty())
+      {
+        QFile::copy(pout_target_file.toQString(), pout_target.toQString());
+      }
+      if (!pout_decoy.empty())
+      {
+        QFile::copy(pout_decoy_file.toQString(), pout_decoy.toQString());
+      }
     }
     
     map<String, PercolatorProteinResult> protein_map;
@@ -1027,6 +1063,16 @@ protected:
     {
       readProteinPoutAsMap_(pout_target_file_proteins, protein_map);
       readProteinPoutAsMap_(pout_decoy_file_proteins, protein_map);
+
+      // copy file in tmp folder to output filename
+      if (!pout_target_proteins.empty())
+      {
+        QFile::copy(pout_target_file_proteins.toQString(), pout_target_proteins.toQString());
+      }
+      if (!pout_decoy_proteins.empty())
+      {
+        QFile::copy(pout_target_file_proteins.toQString(), pout_decoy_proteins.toQString());
+      }
     }
 
     // idXML or mzid input
