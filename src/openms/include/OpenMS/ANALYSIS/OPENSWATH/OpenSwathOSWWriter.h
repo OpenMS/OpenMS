@@ -40,6 +40,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/SqliteConnector.h>
 
 #include <sqlite3.h>
 
@@ -81,17 +82,6 @@ namespace OpenMS
       enable_uis_scoring_(uis_scores)
       {}
 
-    static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-    {
-      int i;
-      for(i=0; i<argc; i++)
-      {
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-      }
-      printf("\n");
-      return(0);
-    }
-
     bool isActive() const
     {
       return doWrite_;
@@ -103,16 +93,8 @@ namespace OpenMS
      */
     void writeHeader()
     {
-      sqlite3 *db;
-      char *zErrMsg = nullptr;
-      int  rc;
-
       // Open database
-      rc = sqlite3_open(output_filename_.c_str(), &db);
-      if( rc )
-      {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-      }
+      SqliteConnector conn(output_filename_);
 
       // Create SQL structure
       const char * create_sql =
@@ -210,16 +192,8 @@ namespace OpenMS
         "VAR_ISOTOPE_CORRELATION_SCORE REAL NULL," \
         "VAR_ISOTOPE_OVERLAP_SCORE REAL NULL); " ;
 
-
       // Execute SQL create statement
-      rc = sqlite3_exec(db, create_sql, callback, nullptr, &zErrMsg);
-      if( rc != SQLITE_OK )
-      {
-        std::string error_message = zErrMsg;
-        sqlite3_free(zErrMsg);
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            error_message);
-      }
+      conn.executeStatement(create_sql);
 
       // Insert run_id information
       std::stringstream sql_run;
@@ -228,16 +202,7 @@ namespace OpenMS
               << input_filename_ << "'); ";
 
       // Execute SQL insert statement
-      rc = sqlite3_exec(db, sql_run.str().c_str(), callback, nullptr, &zErrMsg);
-      if( rc != SQLITE_OK )
-      {
-        std::string error_message = zErrMsg;
-        sqlite3_free(zErrMsg);
-        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            error_message);
-      }
-
-      sqlite3_close(db);
+      conn.executeStatement(sql_run);
     }
 
     /**
@@ -548,7 +513,7 @@ namespace OpenMS
         sql << sql_feature.str() << sql_feature_ms1.str() << sql_feature_ms1_precursor.str() << sql_feature_ms2.str() << sql_feature_ms2_transition.str();
       }
 
-      return(sql.str());
+      return sql.str();
     }
 
     /**
@@ -566,35 +531,13 @@ namespace OpenMS
      */
     void writeLines(const std::vector<String>& to_osw_output)
     {
-      sqlite3 *db;
-      char *zErrMsg = nullptr;
-      int  rc;
-      // char *create_sql;
-
-      // Open database
-      rc = sqlite3_open(output_filename_.c_str(), &db);
-      if( rc )
-      {
-        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-      }
-
-      sqlite3_exec(db, "BEGIN TRANSACTION", nullptr, nullptr, &zErrMsg);
-
+      SqliteConnector conn(output_filename_);
+      conn.executeStatement("BEGIN TRANSACTION");
       for (Size i = 0; i < to_osw_output.size(); i++)
       {
-        rc = sqlite3_exec(db, to_osw_output[i].c_str(), callback, nullptr, &zErrMsg);
-        if( rc != SQLITE_OK )
-        {
-          std::string error_message = zErrMsg;
-          sqlite3_free(zErrMsg);
-          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-              error_message);
-        }
+        conn.executeStatement(to_osw_output[i]);
       }
-
-      sqlite3_exec(db, "END TRANSACTION", nullptr, nullptr, &zErrMsg);
-
-      sqlite3_close(db);
+      conn.executeStatement("END TRANSACTION");
     }
 
   };
