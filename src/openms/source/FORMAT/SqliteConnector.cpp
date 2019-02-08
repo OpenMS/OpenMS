@@ -38,6 +38,15 @@
 
 namespace OpenMS
 {
+  void SqliteConnector::openDatabase(const String& filename)
+  {
+    // Open database
+    int rc = sqlite3_open(filename.c_str(), &db_);
+    if (rc)
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db_));
+    }
+  }
 
   bool SqliteConnector::columnExists(sqlite3 *db, const String& tablename, const String& colname)
   {
@@ -67,6 +76,84 @@ namespace OpenMS
     }
     sqlite3_finalize(xcntstmt);
     return found;
+  }
+
+  void SqliteConnector::executeStatement(sqlite3 *db, const std::stringstream& statement)
+  {
+    char *zErrMsg = nullptr;
+    std::string insert_str = statement.str();
+    int rc = sqlite3_exec(db, insert_str.c_str(), nullptr /* callback */, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK)
+    {
+      String error (zErrMsg);
+      std::cerr << "Error message after sqlite3_exec" << std::endl;
+      std::cerr << "Prepared statement " << statement.str() << std::endl;
+      sqlite3_free(zErrMsg);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+    }
+  }
+
+  void SqliteConnector::executeStatement(sqlite3 *db, const String& statement)
+  {
+    char *zErrMsg = nullptr;
+    int rc = sqlite3_exec(db, statement.c_str(), nullptr /* callback */, nullptr, &zErrMsg);
+    if (rc != SQLITE_OK)
+    {
+      String error (zErrMsg);
+      std::cerr << "Error message after sqlite3_exec" << std::endl;
+      std::cerr << "Prepared statement " << statement << std::endl;
+      sqlite3_free(zErrMsg);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
+    }
+  }
+
+  void SqliteConnector::executePreparedStatement(sqlite3 *db, sqlite3_stmt** stmt, const String& prepare_statement)
+  {
+    int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), stmt, nullptr);
+    if (rc != SQLITE_OK)
+    {
+      std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
+      std::cerr << "Prepared statement " << prepare_statement << std::endl;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+    }
+  }
+
+  void SqliteConnector::executeBindStatement(sqlite3 *db, const String& prepare_statement, const std::vector<String>& data)
+  {
+    sqlite3_stmt *stmt = nullptr;
+    const char *curr_loc;
+    int rc = sqlite3_prepare_v2(db, prepare_statement.c_str(), prepare_statement.size(), &stmt, &curr_loc);
+    if (rc != SQLITE_OK)
+    {
+      std::cerr << "Error message after sqlite3_prepare_v2" << std::endl;
+      std::cerr << "Prepared statement " << prepare_statement << std::endl;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+    }
+
+    for (Size k = 0; k < data.size(); k++)
+    {
+      // Fifth argument is a destructor for the blob.
+      // SQLITE_STATIC because the statement is finalized
+      // before the buffer is freed:
+      rc = sqlite3_bind_blob(stmt, k+1, data[k].c_str(), data[k].size(), SQLITE_STATIC);
+      if (rc != SQLITE_OK)
+      {
+        std::cerr << "SQL error after sqlite3_bind_blob at iteration " << k << std::endl;
+        std::cerr << "Prepared statement " << prepare_statement << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+      } 
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE)
+    {
+      std::cerr << "SQL error after sqlite3_step" << std::endl;
+      std::cerr << "Prepared statement " << prepare_statement << std::endl;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, sqlite3_errmsg(db));
+    }
+
+    // free memory
+    sqlite3_finalize(stmt);
   }
 
 }
